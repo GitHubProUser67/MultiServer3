@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "489Q/80WO1JLmIbbGz2YQWjOVeH2NxmoXwrKr166jJ69TrmtrNc5s2btmStUNWh308XYrhrb7+ihN2hLF1MCgQ==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Maxime\\Desktop\\PSMultiServer\\PSMultiServer\\PSMultiServer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Maxime\\.nuget\\packages\\httpmultipartparser\\8.2.0\\httpmultipartparser.8.2.0.nupkg.sha512",
+    "C:\\Users\\Maxime\\.nuget\\packages\\microsoft.io.recyclablememorystream\\2.2.1\\microsoft.io.recyclablememorystream.2.2.1.nupkg.sha512",
+    "C:\\Users\\Maxime\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.17.2\\microsoft.visualstudio.azure.containers.tools.targets.1.17.2.nupkg.sha512",
+    "C:\\Users\\Maxime\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\Maxime\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512"
+  ],
+  "logs": []
+}
