@@ -22,7 +22,7 @@
         "UserCount": 1,
         "MaxUsers": 15000,
 		"SvoURL": "http://homeps3.online.scee.com:10060/HUBPS3_SVML/unity/start.jsp ",
-        "ExtendedInfo": "01.32 http://YOUR IP/LINKTOCDN/",
+        "ExtendedInfo": "PSHOMEVERSION http://YOUR IP/LINKTOCDN/",
 		"UniverseBilling": "SCEA",
 		"BillingSystemName": "Sony Computer Entertainment America, Inc. Billing System",
         "Port": 10075,
