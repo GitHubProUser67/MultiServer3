@@ -4,11 +4,6 @@
     {
         public static void PrepareHomeFoldersNFiles()
         {
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_THQ/Server_Template/"))
-            {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_THQ/Server_Template/");
-            }
-
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/User_Profiles/"))
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/User_Profiles/");
@@ -17,24 +12,6 @@
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/Object_Instances/"))
             {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/Object_Instances/");
-            }
-
-            if (!File.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_THQ/Server_Template/get_template.xml"))
-            {
-                File.WriteAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_THQ/Server_Template/get_template.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                    "<UFC value=\"1\">\r\n" +
-                    "    <books value=\"1\">\r\n" +
-                    "        <book value=\"1\" />\r\n" +
-                    "        <set01 value=\"1\">\r\n" +
-                    "            <card001 value=\"1\" />\r\n" +
-                    "            <fb01 value=\"Card one picked up!\" />\r\n" +
-                    "        </set01>\r\n" +
-                    "        <set02 value=\"1\">\r\n" +
-                    "            <card001 value=\"2\" />\r\n" +
-                    "            <fb01 value=\"Card two picked up!\"\" />\r\n" +
-                    "        </set02>\r\n" +
-                    "    </books>\r\n" +
-                    "</UFC>");
             }
 
             if (!File.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/challenges.json"))

@@ -738,7 +738,7 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                     try
                     {
-                        slot_num = int.Parse(data.GetParameterValue("slot_num")); // isssues
+                        slot_num = int.Parse(data.GetParameterValue("slot_num")); // issues
                     }
                     catch (Exception ex) // User not clicked on anything, remove all
                     {

@@ -1,6 +1,7 @@
 ﻿using HttpMultipartParser;
 using System.Net;
 using System.Text;
+using System.Xml;
 
 namespace PSMultiServer.SRC_Addons.HOME
 {
@@ -57,24 +58,152 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                     byte[] ticketData = ExtractUFCTicketData(copyStream, boundary);
 
-                                    byte[] functooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("func"));
+                                    string func = data.GetParameterValue("func");
 
-                                    byte[] id = Encoding.UTF8.GetBytes(data.GetParameterValue("id"));
+                                    string id = data.GetParameterValue("id");
 
-                                    byte[] responsetooutput = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_THQ/Server_Template/get_template.xml");
-
-                                    Console.WriteLine($"THQ Server : {userAgent} issued a HOME THQ request : index.php");
+                                    string val2 = "";
 
                                     try
                                     {
-                                        if (!Directory.Exists(directoryPath + $"/HOME_THQ/{Encoding.UTF8.GetString(id)}"))
+                                        val2 = data.GetParameterValue("val2");
+                                    }
+                                    catch (Exception ex)
+                                    {
+
+                                    }
+
+                                    try
+                                    {
+                                        // Extract the desired portion of the binary data
+                                        byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                        // Copy it
+                                        Array.Copy(ticketData, 0x54, extractedData, 0, extractedData.Length);
+
+                                        // Convert 0x00 bytes to 0x20 so we pad as space.
+                                        for (int i = 0; i < extractedData.Length; i++)
                                         {
-                                            Directory.CreateDirectory(directoryPath + $"/HOME_THQ/{Encoding.UTF8.GetString(id)}");
+                                            if (extractedData[i] == 0x00)
+                                            {
+                                                extractedData[i] = 0x20;
+                                            }
+                                        }
+
+                                        // Convert the modified data to a string
+                                        string psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", "");
+
+                                        if (id == psnname)
+                                        {
+                                            try
+                                            {
+                                                if (!Directory.Exists(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/"))
+                                                {
+                                                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/");
+                                                }
+
+                                                if (!File.Exists(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/data.xml"))
+                                                {
+                                                    File.WriteAllText(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/data.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                                                        "<UFC>1</UFC><tokens>100000</tokens><books><book value=\"1\" /><set01 value=\"1\"><card001 value=\"1\" /><fb01 value=\"Card one picked up!\" /></set01><set02 value=\"1\"><card001 value=\"2\" /><fb01 value=\"Card two picked up!\" /></set02></books>");
+                                                }
+                                                else if (File.Exists(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/data.xml") && func == "write" && val2 != null)
+                                                {
+                                                    File.WriteAllText(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/data.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                                                        $"<UFC>1</UFC><tokens>{val2}</tokens><books><book value=\"1\" /><set01 value=\"1\"><card001 value=\"1\" /><fb01 value=\"Card one picked up!\" /></set01><set02 value=\"1\"><card001 value=\"2\" /><fb01 value=\"Card two picked up!\" /></set02></books>");
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.WriteLine($"THQ Server : thrown an exception in ProcessRequest while processing the HOME THQ index.php POST request and creating/updating user data : {ex}");
+
+                                                // Return an internal server error response
+                                                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                                                if (response.OutputStream.CanWrite)
+                                                {
+                                                    try
+                                                    {
+                                                        response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                                        response.ContentLength64 = InternnalError.Length;
+                                                        response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                                                        response.OutputStream.Close();
+                                                    }
+                                                    catch (Exception ex1)
+                                                    {
+                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("Client Disconnected early");
+                                                }
+
+                                                response.Close();
+                                            }
+
+                                            byte[] responsetooutput = File.ReadAllBytes(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_THQ/{id}/data.xml");
+
+
+                                            if (context.Response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.KeepAlive = true;
+                                                    response.ContentEncoding = Encoding.UTF8;
+                                                    response.Headers.Add("Connection", "Keep-Alive");
+                                                    response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                                    response.ContentLength64 = responsetooutput.Length;
+                                                    response.OutputStream.Write(responsetooutput, 0, responsetooutput.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception ex1)
+                                                {
+                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+
+                                                    response.Close();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Client Disconnected early");
+
+                                                response.Close();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Return a NotAuthorised response
+                                            byte[] NotAuthorised = Encoding.UTF8.GetBytes("You cannot access this server");
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                    response.ContentLength64 = NotAuthorised.Length;
+                                                    response.OutputStream.Write(NotAuthorised, 0, NotAuthorised.Length);
+                                                    response.OutputStream.Close();
+
+                                                    Console.WriteLine($"THQ Server : {context.Request.Headers["User-Agent"]} - was not validated, we forbid!");
+                                                }
+                                                catch (Exception ex1)
+                                                {
+                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Client Disconnected early");
+                                            }
+
+                                            response.Close();
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"THQ Server : thrown an exception in ProcessRequest while processing the HOME THQ index.php POST request and creating the directory : {ex}");
+                                        Console.WriteLine($"THQ Server : has throw an exception in index.php while processing the PSN Ticket : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -97,44 +226,6 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         {
                                             Console.WriteLine("Client Disconnected early");
                                         }
-
-                                        response.Close();
-                                    }
-
-                                    using (FileStream fs = new FileStream($"./wwwroot/HOME_THQ/{Encoding.UTF8.GetString(id)}/ticket.bin", FileMode.Create))
-                                    {
-                                        fs.Write(ticketData, 0, ticketData.Length);
-                                        fs.Flush();
-                                        fs.Dispose();
-
-                                        Console.WriteLine($"File {$"./wwwroot/HOME_THQ/{Encoding.UTF8.GetString(id)}/ticket.bin"} has been uploaded to HTTP");
-                                    }
-
-                                    if (context.Response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.KeepAlive = true;
-                                            response.ContentEncoding = Encoding.UTF8;
-                                            response.Headers.Add("Connection", "Keep-Alive");
-                                            response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                            response.StatusCode = (int)HttpStatusCode.OK;
-                                            response.ContentLength64 = responsetooutput.Length;
-                                            response.OutputStream.Write(responsetooutput, 0, responsetooutput.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception ex1)
-                                        {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
-
-                                            response.Close();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Client Disconnected early");
-
-                                        response.Close();
                                     }
 
                                     copyStream.Dispose();
@@ -142,7 +233,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"THQ Server : thrown an exception in ProcessRequest while processing the OHS POST request and creating the file/http response : {ex}");
+                                Console.WriteLine($"THQ Server : thrown an exception in ProcessRequest while processing the POST request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
