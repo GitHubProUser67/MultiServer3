@@ -11,9 +11,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" />
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="DotNetty.Buffers" Version="0.7.5" />
+    <PackageReference Include="DotNetty.Codecs" Version="0.7.5" />
+    <PackageReference Include="DotNetty.Common" Version="0.7.5" />
+    <PackageReference Include="DotNetty.Handlers" Version="0.7.5" />
+    <PackageReference Include="DotNetty.Transport" Version="0.7.5" />
+    <PackageReference Include="HighPrecisionTimeStamps" Version="1.0.0.6" />
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NReco.Logging.File" Version="1.1.6" />
+    <PackageReference Include="SharpCompress" Version="0.33.0" />
+    <PackageReference Include="System.Management" Version="7.0.2" />
   </ItemGroup>
 
 </Project>

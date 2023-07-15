@@ -9,7 +9,7 @@
  
  It is very easy to compile and get up and running. No extra configs required aside TCP port management.
  
- You need to open ports : 80 , 10060 , 10443.
+ You need to open ports : 80 , 10060 , 10071, 10072, 10073, 10075, 10443, 10086.
  
  When it comes to medius, you will need to configure the appids : 20374 and 20371 in DME, MEDIUS, MUIS.
  

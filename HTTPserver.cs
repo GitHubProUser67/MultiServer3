@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using PSMultiServer.SRC_Addons.HOME;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -33,7 +34,7 @@ namespace PSMultiServer
 
                 phpver = phpverlocal;
 
-                SRC_Addons.HOME.CustomHomeContextProcess.PrepareHomeFolders();
+                GENERALHomeClass.PrepareHomeFoldersNFiles();
 
                 if (httpkey == "")
                 {
@@ -46,12 +47,8 @@ namespace PSMultiServer
                     httpkey = "";
                 }
 
-                if (!Directory.Exists(Directory.GetCurrentDirectory() + @"/wwwroot/"))
-                {
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + @"/wwwroot/");
-                }
-
                 stopserver = false;
+
                 _keepGoing = true;
                 if (_mainLoop != null && !_mainLoop.IsCompleted) return; //Already started
                 _mainLoop = loopserver(port);
@@ -64,6 +61,7 @@ namespace PSMultiServer
         public static void HTTPstop()
         {
             stopserver = true;
+
             listener.Stop();
             _keepGoing = false;
 
@@ -185,15 +183,83 @@ namespace PSMultiServer
                         {
                             specialpage = true;
 
-                            await SRC_Addons.HOME.CustomHomeContextProcess.ProcessHomeTHQRequest(context, userAgent);
+                            if (context.Request.Headers["Host"] != null)
+                            {
+                                if (context.Request.Headers["Host"] == "sonyhome.thqsandbox.com") // THQ Home servers
+                                {
+                                    Task.Run(() => SRC_Addons.HOME.THQservices.ProcessHomeTHQRequest(context, userAgent));
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"HTTP Server : {userAgent} tried to access a sub-server via /index.php server, but it's not correct so we forbid.");
 
-                            GC.Collect();
+                                    // Return a not allowed response
+                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            context.Response.ContentLength64 = notAllowed.Length;
+                                            context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+
+                                    context.Response.Close();
+                                    GC.Collect();
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"HTTP Server : {userAgent} tried to access /index.php without a host, so we forbid.");
+
+                                // Return a not allowed response
+                                byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                if (context.Response.OutputStream.CanWrite)
+                                {
+                                    try
+                                    {
+                                        context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        context.Response.ContentLength64 = notAllowed.Length;
+                                        context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                        context.Response.OutputStream.Close();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Client Disconnected early");
+                                }
+
+                                context.Response.Close();
+                                GC.Collect();
+                            }
                         }
-                        else if (context.Request.Url.AbsolutePath.Contains("/ohs") && (context.Request.HttpMethod == "POST" || context.Request.HttpMethod == "PUT"))
+                        else if (context.Request.Url.AbsolutePath.Contains("/ohs"))
                         {
                             specialpage = true;
 
-                            SRC_Addons.HOME.CustomHomeContextProcess.ProcessOHSRequest(context, userAgent);
+                            Task.Run(() => SRC_Addons.HOME.OHSservices.ProcessRequest(context, userAgent));
+                        }
+                        else if (context.Request.Headers["Host"] != null && context.Request.Headers["Host"] == "away.veemee.com" && context.Request.Url.AbsolutePath.Contains(".php"))
+                        {
+                            specialpage = true;
+
+                            Task.Run(() => SRC_Addons.HOME.VEEMEEservices.ProcessRequest(context, userAgent));
                         }
 
                         if (!specialpage)

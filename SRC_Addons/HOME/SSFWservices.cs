@@ -149,7 +149,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     string httpMethod = request.HttpMethod;
                     string url = request.Url.LocalPath;
 
-                    Console.WriteLine($"Received {httpMethod} request for {url}");
+                    Console.WriteLine($"SSFW : Received {httpMethod} request for {url}");
 
                     // Split the URL into segments
                     string[] segments = url.Trim('/').Split('/');
@@ -687,7 +687,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         }
                                                     }
 
-                                                    LoginCounter counter = new LoginCounter();
+                                                    SSFWLoginCounter counter = new SSFWLoginCounter();
 
                                                     counter.ProcessLogin(resultString);
 
@@ -2433,19 +2433,16 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else if (request.Headers["X-Home-Session-Id"] != null)
                                 {
-                                    // Return a not found response
-                                    byte[] notFoundResponse = Encoding.UTF8.GetBytes("File not found");
+                                    // Return nothing, it seems SSFW likes better response 200 with nothing inside.
+
+                                    Console.WriteLine($"SSFW : File {filePath} not found");
 
                                     if (response.OutputStream.CanWrite)
                                     {
                                         try
                                         {
-                                            response.StatusCode = (int)HttpStatusCode.NotFound;
-                                            response.ContentLength64 = notFoundResponse.Length;
-                                            response.OutputStream.Write(notFoundResponse, 0, notFoundResponse.Length);
+                                            response.StatusCode = 200;
                                             response.OutputStream.Close();
-
-                                            Console.WriteLine($"File {filePath} not found");
                                         }
                                         catch (Exception ex1)
                                         {
@@ -3416,11 +3413,11 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
         }
     }
-    public class LoginCounter
+    public class SSFWLoginCounter
     {
         private Dictionary<string, int> loginCounts;
 
-        public LoginCounter()
+        public SSFWLoginCounter()
         {
             loginCounts = new Dictionary<string, int>();
         }

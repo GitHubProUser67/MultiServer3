@@ -16,239 +16,9 @@ namespace PSMultiServer
 
                 if (contentType == "video/mp4" || contentType.StartsWith("audio/"))
                 {
-                    if (context.Response.OutputStream.CanWrite)
+                    try
                     {
-                        try
-                        {
-                            if (userAgent != null && userAgent.Contains("CellOS"))
-                            {
-                                context.Response.Headers.Add("Accept-Ranges", "bytes");
-                                context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
-                            }
-                            else
-                            {
-                                context.Response.ContentType = contentType;
-                            }
-
-                            if (context.Request.Headers["Accept"] != null)
-                            {
-                                if (context.Request.Headers["Accept"].Contains("text/html")) // Chrome does that...
-                                {
-                                    context.Response.StatusCode = 200;
-                                    context.Response.StatusDescription = "OK";
-
-                                    // Generate an HTML page with the video element
-                                    string html = @"
-                                        <!DOCTYPE html>
-                                        <html>
-                                        <head>
-                                            <title>Media Page</title>
-                                        </head>
-                                        <body>
-                                            <video controls>
-                                                <source src=" + "\"" + context.Request.Url.AbsolutePath + "\"" + $@" type=""{contentType}"">
-                                            </video>
-                                        </body>
-                                        </html>";
-
-                                    // Set the response headers for the HTML content
-                                    context.Response.ContentType = "text/html";
-                                    context.Response.ContentEncoding = Encoding.UTF8;
-
-                                    // Write the HTML content to the response
-                                    byte[] buffer = Encoding.UTF8.GetBytes(html);
-
-                                    context.Response.ContentLength64 = buffer.Length;
-
-                                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-
-                                    context.Response.OutputStream.Close();
-                                }
-                                else
-                                {
-                                    context.Response.StatusCode = 200;
-                                    context.Response.StatusDescription = "OK";
-
-                                    keepalive = true;
-
-                                    // Set the Keep-Alive header in the response
-                                    context.Response.KeepAlive = true;
-
-                                    // Set the Chunked header in the response
-                                    context.Response.SendChunked = true;
-
-                                    byte[] firstNineBytes = new byte[9];
-
-                                    using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
-                                    {
-                                        fileStream.Read(firstNineBytes, 0, 9);
-                                        fileStream.Close();
-                                    }
-
-                                    if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
-                                    {
-                                        byte[] src = File.ReadAllBytes(page);
-                                        byte[] dst = new byte[src.Length - 9];
-
-                                        Array.Copy(src, 9, dst, 0, dst.Length);
-
-                                        byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                    SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
-
-                                        context.Response.ContentLength64 = fileBytes.Length;
-
-                                        using (MemoryStream memoryStream = new MemoryStream(fileBytes))
-                                        {
-                                            byte[] buffer = new byte[context.Response.ContentLength64];
-                                            int bytesRead;
-
-                                            while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
-                                            {
-                                                context.Response.OutputStream.Write(buffer, 0, bytesRead);
-                                                context.Response.OutputStream.Flush();
-                                            }
-
-                                            memoryStream.Close();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        context.Response.ContentLength64 = new FileInfo(page).Length;
-
-                                        // Open the file and send it in chunks
-                                        using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
-                                        {
-                                            byte[] buffer = new byte[context.Response.ContentLength64];
-                                            int bytesRead;
-
-                                            while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
-                                            {
-                                                context.Response.OutputStream.Write(buffer, 0, bytesRead);
-                                                context.Response.OutputStream.Flush();
-                                            }
-
-                                            fileStream.Close();
-                                        }
-                                    }
-
-                                    context.Response.OutputStream.Close();
-                                }
-                            }
-                            else
-                            {
-                                context.Response.StatusCode = 200;
-                                context.Response.StatusDescription = "OK";
-
-                                keepalive = true;
-
-                                // Set the Keep-Alive header in the response
-                                context.Response.KeepAlive = true;
-
-                                // Set the Chunked header in the response
-                                context.Response.SendChunked = true;
-
-                                byte[] firstNineBytes = new byte[9];
-
-                                using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
-                                {
-                                    fileStream.Read(firstNineBytes, 0, 9);
-                                    fileStream.Close();
-                                }
-
-                                if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
-                                {
-                                    byte[] src = File.ReadAllBytes(page);
-                                    byte[] dst = new byte[src.Length - 9];
-
-                                    Array.Copy(src, 9, dst, 0, dst.Length);
-
-                                    byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
-
-                                    context.Response.ContentLength64 = fileBytes.Length;
-
-                                    using (MemoryStream memoryStream = new MemoryStream(fileBytes))
-                                    {
-                                        byte[] buffer = new byte[context.Response.ContentLength64];
-                                        int bytesRead;
-
-                                        while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
-                                        {
-                                            context.Response.OutputStream.Write(buffer, 0, bytesRead);
-                                            context.Response.OutputStream.Flush();
-                                        }
-
-                                        memoryStream.Close();
-                                    }
-                                }
-                                else
-                                {
-                                    context.Response.ContentLength64 = new FileInfo(page).Length;
-
-                                    // Open the file and send it in chunks
-                                    using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
-                                    {
-                                        byte[] buffer = new byte[context.Response.ContentLength64];
-                                        int bytesRead;
-
-                                        while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
-                                        {
-                                            context.Response.OutputStream.Write(buffer, 0, bytesRead);
-                                            context.Response.OutputStream.Flush();
-                                        }
-
-                                        fileStream.Close();
-                                    }
-                                }
-
-                                context.Response.OutputStream.Close();
-                            }
-                        }
-                        catch (HttpListenerException ex) when (ex.HResult == -2147467259) // We EXPLODE httplistener limitations already, stream response is not-supported.
-                        {
-                            Console.WriteLine($"{userAgent} has sent a FIN response or called the request after stream has ended. Finish request.");
-
-                            context.Response.OutputStream.Close();
-
-                            keepalive = false;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
-
-                            // Return an internal server error response
-                            byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
-
-                            if (context.Response.OutputStream.CanWrite)
-                            {
-                                try
-                                {
-                                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                                    context.Response.ContentLength64 = InternnalError.Length;
-                                    context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
-                                    context.Response.OutputStream.Close();
-                                }
-                                catch (Exception ex1)
-                                {
-                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Client Disconnected early");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Client Disconnected early");
-                    }
-                }
-                else if (contentType.StartsWith("home/") || contentType.StartsWith("ps3/"))
-                {
-                    if (context.Response.OutputStream.CanWrite)
-                    {
-                        try
+                        if (userAgent != null && userAgent.Contains("CellOS"))
                         {
                             byte[] fileBuffer;
 
@@ -275,40 +45,16 @@ namespace PSMultiServer
                                 fileBuffer = File.ReadAllBytes(page);
                             }
 
-                            context.Response.StatusCode = 200;
-                            context.Response.StatusDescription = "OK";
-
-                            if (userAgent != null && userAgent.Contains("CellOS"))
-                            {
-                                context.Response.Headers.Add("Accept-Ranges", "bytes");
-                                context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
-                            }
-                            else
-                            {
-                                context.Response.ContentType = contentType;
-                            }
-
-                            context.Response.ContentLength64 = fileBuffer.Length;
-
-                            context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
-
-                            context.Response.OutputStream.Close();
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
-
-                            // Return an internal server error response
-                            byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+                            context.Response.Headers.Add("Accept-Ranges", "bytes");
+                            context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
 
                             if (context.Response.OutputStream.CanWrite)
                             {
                                 try
                                 {
-                                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                                    context.Response.ContentLength64 = InternnalError.Length;
-                                    context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                                    context.Response.StatusCode = 200;
+                                    context.Response.ContentLength64 = fileBuffer.Length;
+                                    context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
                                     context.Response.OutputStream.Close();
                                 }
                                 catch (Exception ex1)
@@ -321,28 +67,242 @@ namespace PSMultiServer
                                 Console.WriteLine("Client Disconnected early");
                             }
                         }
+                        else
+                        {
+                            context.Response.ContentType = contentType;
+
+                            if (context.Request.Headers["Accept"] != null)
+                            {
+                                if (context.Request.Headers["Accept"].Contains("text/html")) // Chrome does that...
+                                {
+                                    // Generate an HTML page with the video element
+                                    string html = @"
+                                        <!DOCTYPE html>
+                                        <html>
+                                        <head>
+                                            <title>Media Page</title>
+                                        </head>
+                                        <body>
+                                            <video controls>
+                                                <source src=" + "\"" + context.Request.Url.AbsolutePath + "\"" + $@" type=""{contentType}"">
+                                            </video>
+                                        </body>
+                                        </html>";
+
+                                    // Write the HTML content to the response
+                                    byte[] buffer = Encoding.UTF8.GetBytes(html);
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            // Set the response headers for the HTML content
+                                            context.Response.ContentType = "text/html";
+                                            context.Response.ContentEncoding = Encoding.UTF8;
+                                            context.Response.StatusCode = 200;
+                                            context.Response.ContentLength64 = buffer.Length;
+                                            context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex1)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+                                }
+                                else
+                                {
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            keepalive = true;
+
+                                            context.Response.StatusCode = 200;
+
+                                            // Set the Keep-Alive header in the response
+                                            context.Response.KeepAlive = true;
+
+                                            // Set the Chunked header in the response
+                                            context.Response.SendChunked = true;
+
+                                            byte[] firstNineBytes = new byte[9];
+
+                                            using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                                            {
+                                                fileStream.Read(firstNineBytes, 0, 9);
+                                                fileStream.Close();
+                                            }
+
+                                            if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                            {
+                                                byte[] src = File.ReadAllBytes(page);
+                                                byte[] dst = new byte[src.Length - 9];
+
+                                                Array.Copy(src, 9, dst, 0, dst.Length);
+
+                                                byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+
+                                                context.Response.ContentLength64 = fileBytes.Length;
+
+                                                using (MemoryStream memoryStream = new MemoryStream(fileBytes))
+                                                {
+                                                    byte[] buffer = new byte[context.Response.ContentLength64];
+                                                    int bytesRead;
+
+                                                    while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
+                                                    {
+                                                        context.Response.OutputStream.Write(buffer, 0, bytesRead);
+                                                        context.Response.OutputStream.Flush();
+                                                    }
+
+                                                    memoryStream.Close();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                context.Response.ContentLength64 = new FileInfo(page).Length;
+
+                                                // Open the file and send it in chunks
+                                                using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                                                {
+                                                    byte[] buffer = new byte[context.Response.ContentLength64];
+                                                    int bytesRead;
+
+                                                    while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+                                                    {
+                                                        context.Response.OutputStream.Write(buffer, 0, bytesRead);
+                                                        context.Response.OutputStream.Flush();
+                                                    }
+
+                                                    fileStream.Close();
+                                                }
+                                            }
+
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex1)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (context.Response.OutputStream.CanWrite)
+                                {
+                                    try
+                                    {
+                                        keepalive = true;
+
+                                        context.Response.StatusCode = 200;
+
+                                        // Set the Keep-Alive header in the response
+                                        context.Response.KeepAlive = true;
+
+                                        // Set the Chunked header in the response
+                                        context.Response.SendChunked = true;
+
+                                        byte[] firstNineBytes = new byte[9];
+
+                                        using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                                        {
+                                            fileStream.Read(firstNineBytes, 0, 9);
+                                            fileStream.Close();
+                                        }
+
+                                        if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                        {
+                                            byte[] src = File.ReadAllBytes(page);
+                                            byte[] dst = new byte[src.Length - 9];
+
+                                            Array.Copy(src, 9, dst, 0, dst.Length);
+
+                                            byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+
+                                            context.Response.ContentLength64 = fileBytes.Length;
+
+                                            using (MemoryStream memoryStream = new MemoryStream(fileBytes))
+                                            {
+                                                byte[] buffer = new byte[context.Response.ContentLength64];
+                                                int bytesRead;
+
+                                                while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
+                                                {
+                                                    context.Response.OutputStream.Write(buffer, 0, bytesRead);
+                                                    context.Response.OutputStream.Flush();
+                                                }
+
+                                                memoryStream.Close();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            context.Response.ContentLength64 = new FileInfo(page).Length;
+
+                                            // Open the file and send it in chunks
+                                            using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                                            {
+                                                byte[] buffer = new byte[context.Response.ContentLength64];
+                                                int bytesRead;
+
+                                                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+                                                {
+                                                    context.Response.OutputStream.Write(buffer, 0, bytesRead);
+                                                    context.Response.OutputStream.Flush();
+                                                }
+
+                                                fileStream.Close();
+                                            }
+                                        }
+
+                                        context.Response.OutputStream.Close();
+                                    }
+                                    catch (Exception ex1)
+                                    {
+                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Client Disconnected early");
+                                }
+                            }
+                        }
                     }
-                    else
+                    catch (HttpListenerException ex) when (ex.HResult == -2147467259) // We EXPLODE httplistener limitations already, stream response is not-supported.
                     {
-                        Console.WriteLine("Client Disconnected early");
+                        Console.WriteLine($"{userAgent} has sent a FIN response or called the request after stream has ended. Finish request.");
+
+                        context.Response.OutputStream.Close();
+
+                        keepalive = false;
                     }
-                }
-                else if (contentType == "text/php")
-                {
-                    if (!Directory.Exists(Directory.GetCurrentDirectory() + "/PHP"))
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"HTTP - Client : {userAgent} requested a PHP file, but PHP is not present so we return nothing.");
+                        Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
 
                         // Return an internal server error response
-                        byte[] PHPError = Encoding.UTF8.GetBytes(PreMadeWebPages.phpnotenabled);
+                        byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
 
                         if (context.Response.OutputStream.CanWrite)
                         {
                             try
                             {
-                                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                                context.Response.ContentLength64 = PHPError.Length;
-                                context.Response.OutputStream.Write(PHPError, 0, PHPError.Length);
+                                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                context.Response.ContentLength64 = InternnalError.Length;
+                                context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
                                 context.Response.OutputStream.Close();
                             }
                             catch (Exception ex1)
@@ -355,76 +315,185 @@ namespace PSMultiServer
                             Console.WriteLine("Client Disconnected early");
                         }
                     }
-                    else
+                }
+                else if (contentType.StartsWith("home/") || contentType.StartsWith("ps3/"))
+                {
+                    try
                     {
+                        byte[] fileBuffer;
+
+                        byte[] firstNineBytes = new byte[9];
+
+                        using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                        {
+                            fileStream.Read(firstNineBytes, 0, 9);
+                            fileStream.Close();
+                        }
+
+                        if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                        {
+                            byte[] src = File.ReadAllBytes(page);
+                            byte[] dst = new byte[src.Length - 9];
+
+                            Array.Copy(src, 9, dst, 0, dst.Length);
+
+                            fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                        }
+                        else
+                        {
+                            fileBuffer = File.ReadAllBytes(page);
+                        }
+
+                        if (userAgent != null && userAgent.Contains("CellOS"))
+                        {
+                            context.Response.Headers.Add("Accept-Ranges", "bytes");
+                            context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                        }
+                        else
+                        {
+                            context.Response.ContentType = contentType;
+                        }
+
                         if (context.Response.OutputStream.CanWrite)
                         {
                             try
                             {
-                                byte[] fileBuffer;
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentLength64 = fileBuffer.Length;
+                                context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
+                                context.Response.OutputStream.Close();
+                            }
+                            catch (Exception ex1)
+                            {
+                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client Disconnected early");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
 
-                                byte[] firstNineBytes = new byte[9];
+                        // Return an internal server error response
+                        byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
 
-                                using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                        if (context.Response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                context.Response.ContentLength64 = InternnalError.Length;
+                                context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                                context.Response.OutputStream.Close();
+                            }
+                            catch (Exception ex1)
+                            {
+                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client Disconnected early");
+                        }
+                    }
+                }
+                else if (contentType == "text/php")
+                {
+                    try
+                    {
+                        if (!Directory.Exists(Directory.GetCurrentDirectory() + "/PHP"))
+                        {
+                            Console.WriteLine($"HTTP - Client : {userAgent} requested a PHP file, but PHP is not present so we return nothing.");
+
+                            // Return an internal server error response
+                            byte[] PHPError = Encoding.UTF8.GetBytes(PreMadeWebPages.phpnotenabled);
+
+                            if (context.Response.OutputStream.CanWrite)
+                            {
+                                try
                                 {
-                                    fileStream.Read(firstNineBytes, 0, 9);
-                                    fileStream.Close();
-                                }
-
-                                if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
-                                {
-                                    byte[] src = File.ReadAllBytes(page);
-                                    byte[] dst = new byte[src.Length - 9];
-
-                                    Array.Copy(src, 9, dst, 0, dst.Length);
-
-                                    fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
-                                }
-                                else
-                                {
-                                    fileBuffer = File.ReadAllBytes(page);
-                                }
-
-                                if (await Task.Run(() => Misc.FindbyteSequence(fileBuffer, new byte[] { 0x3c, 0x3f, 0x70, 0x68, 0x70 })))
-                                {
-                                    fileBuffer = Encoding.UTF8.GetBytes(await Task.Run(() => ProcessPhpPage(Directory.GetCurrentDirectory() + "/wwwroot" + context.Request.Url.AbsolutePath, phpver, context)));
-
-                                    context.Response.StatusCode = 200;
-                                    context.Response.StatusDescription = "OK";
-
-                                    if (userAgent != null && userAgent.Contains("CellOS"))
-                                    {
-                                        context.Response.Headers.Add("Accept-Ranges", "bytes");
-                                        context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
-                                    }
-                                    else
-                                    {
-                                        context.Response.ContentType = "text/html";
-                                    }
-
-                                    context.Response.ContentLength64 = fileBuffer.Length;
-
-                                    context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
-
+                                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                                    context.Response.ContentLength64 = PHPError.Length;
+                                    context.Response.OutputStream.Write(PHPError, 0, PHPError.Length);
                                     context.Response.OutputStream.Close();
                                 }
-                                else
+                                catch (Exception ex1)
                                 {
-                                    Console.WriteLine("HTTP - An error occured when trying to find PHP pathern, or no PHP pathern at all. Closing...");
-
-                                    // Return an internal server error response
-                                    byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
-
-                                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                                    context.Response.ContentLength64 = InternnalError.Length;
-                                    context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
-                                    context.Response.OutputStream.Close();
+                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
                                 }
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
+                                Console.WriteLine("Client Disconnected early");
+                            }
+                        }
+                        else
+                        {
+                            byte[] fileBuffer;
+
+                            byte[] firstNineBytes = new byte[9];
+
+                            using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
+                            {
+                                fileStream.Read(firstNineBytes, 0, 9);
+                                fileStream.Close();
+                            }
+
+                            if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                            {
+                                byte[] src = File.ReadAllBytes(page);
+                                byte[] dst = new byte[src.Length - 9];
+
+                                Array.Copy(src, 9, dst, 0, dst.Length);
+
+                                fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                            }
+                            else
+                            {
+                                fileBuffer = File.ReadAllBytes(page);
+                            }
+
+                            if (await Task.Run(() => Misc.FindbyteSequence(fileBuffer, new byte[] { 0x3c, 0x3f, 0x70, 0x68, 0x70 })))
+                            {
+                                fileBuffer = Encoding.UTF8.GetBytes(await Task.Run(() => ProcessPhpPage(Directory.GetCurrentDirectory() + "/wwwroot" + context.Request.Url.AbsolutePath, phpver, context)));
+
+                                if (userAgent != null && userAgent.Contains("CellOS"))
+                                {
+                                    context.Response.Headers.Add("Accept-Ranges", "bytes");
+                                    context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                                }
+                                else
+                                {
+                                    context.Response.ContentType = "text/html";
+                                }
+
+                                if (context.Response.OutputStream.CanWrite)
+                                {
+                                    try
+                                    {
+                                        context.Response.StatusCode = 200;
+                                        context.Response.ContentLength64 = fileBuffer.Length;
+                                        context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
+                                        context.Response.OutputStream.Close();
+                                    }
+                                    catch (Exception ex1)
+                                    {
+                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Client Disconnected early");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("HTTP - An error occured when trying to find PHP pathern, or no PHP pathern at all. Closing...");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -449,6 +518,28 @@ namespace PSMultiServer
                                 }
                             }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
+
+                        // Return an internal server error response
+                        byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                        if (context.Response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                context.Response.ContentLength64 = InternnalError.Length;
+                                context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                                context.Response.OutputStream.Close();
+                            }
+                            catch (Exception ex1)
+                            {
+                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                            }
+                        }
                         else
                         {
                             Console.WriteLine("Client Disconnected early");
@@ -457,92 +548,95 @@ namespace PSMultiServer
                 }
                 else
                 {
-                    if (context.Response.OutputStream.CanWrite)
+                    try
                     {
-                        try
+                        byte[] fileBuffer;
+
+                        byte[] firstNineBytes = new byte[9];
+
+                        using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
                         {
-                            byte[] fileBuffer;
-
-                            byte[] firstNineBytes = new byte[9];
-
-                            using (FileStream fileStream = new FileStream(page, FileMode.Open, FileAccess.Read))
-                            {
-                                fileStream.Read(firstNineBytes, 0, 9);
-                                fileStream.Close();
-                            }
-
-                            if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
-                            {
-                                byte[] src = File.ReadAllBytes(page);
-                                byte[] dst = new byte[src.Length - 9];
-
-                                Array.Copy(src, 9, dst, 0, dst.Length);
-
-                                fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
-                            }
-                            else
-                            {
-                                fileBuffer = File.ReadAllBytes(page);
-                            }
-
-                            context.Response.StatusCode = 200;
-                            context.Response.StatusDescription = "OK";
-
-                            if (userAgent != null && userAgent.Contains("CellOS"))
-                            {
-                                context.Response.Headers.Add("Accept-Ranges", "bytes");
-                                context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
-                            }
-                            else
-                            {
-                                context.Response.ContentType = contentType;
-                            }
-
-                            context.Response.ContentLength64 = fileBuffer.Length;
-
-                            context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
-
-                            context.Response.OutputStream.Close();
+                            fileStream.Read(firstNineBytes, 0, 9);
+                            fileStream.Close();
                         }
-                        catch (HttpListenerException ex) when (ex.HResult == -2147467259) // We EXPLODE httplistener limitations already, stream response is not-supported.
+
+                        if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                         {
-                            Console.WriteLine($"{userAgent} has sent a FIN response or called the request after stream has ended. Finish request.");
+                            byte[] src = File.ReadAllBytes(page);
+                            byte[] dst = new byte[src.Length - 9];
 
-                            context.Response.OutputStream.Close();
+                            Array.Copy(src, 9, dst, 0, dst.Length);
 
-                            keepalive = false;
+                            fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
+                            fileBuffer = File.ReadAllBytes(page);
+                        }
 
-                            // Return an internal server error response
-                            byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+                        if (userAgent != null && userAgent.Contains("CellOS"))
+                        {
+                            context.Response.Headers.Add("Accept-Ranges", "bytes");
+                            context.Response.Headers.Add("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                        }
+                        else
+                        {
+                            context.Response.ContentType = contentType;
+                        }
 
-                            if (context.Response.OutputStream.CanWrite)
+                        if (context.Response.OutputStream.CanWrite)
+                        {
+                            try
                             {
-                                try
-                                {
-                                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                                    context.Response.ContentLength64 = InternnalError.Length;
-                                    context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
-                                    context.Response.OutputStream.Close();
-                                }
-                                catch (Exception ex1)
-                                {
-                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
-                                }
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentLength64 = fileBuffer.Length;
+                                context.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
+                                context.Response.OutputStream.Close();
                             }
-                            else
+                            catch (Exception ex1)
                             {
-                                Console.WriteLine("Client Disconnected early");
+                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
                             }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client Disconnected early");
                         }
                     }
-                    else
+                    catch (HttpListenerException ex) when (ex.HResult == -2147467259) // We EXPLODE httplistener limitations already, stream response is not-supported.
                     {
-                        Console.WriteLine("Client Disconnected early");
+                        Console.WriteLine($"{userAgent} has sent a FIN response or called the request after stream has ended. Finish request.");
+
+                        context.Response.OutputStream.Close();
+
+                        keepalive = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Client Disconnected early or an error occured : {ex}");
+
+                        // Return an internal server error response
+                        byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                        if (context.Response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                context.Response.ContentLength64 = InternnalError.Length;
+                                context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                                context.Response.OutputStream.Close();
+                            }
+                            catch (Exception ex1)
+                            {
+                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client Disconnected early");
+                        }
                     }
                 }
 
@@ -578,7 +672,16 @@ namespace PSMultiServer
             var tempPath = Path.GetTempPath();
 
             Process proc = new Process();
-            proc.StartInfo.FileName = Directory.GetCurrentDirectory() + $"PHP/{phpver}threadsafe/php";
+
+            if (Misc.IsWindows())
+            {
+                proc.StartInfo.FileName = Directory.GetCurrentDirectory() + $"PHP/{phpver}threadsafe/php.exe";
+            }
+            else
+            {
+                proc.StartInfo.FileName = Directory.GetCurrentDirectory() + $"PHP/{phpver}threadsafe/php";
+            }
+
             proc.StartInfo.Arguments = $"-d \"display_errors=1\" -d \"error_reporting=E_ALL\" -d \"display_errors=true\" -d \"include_path='{documentRootPath}'\" -d \"extension_dir='{Directory.GetCurrentDirectory() + $@"PHP/{phpver}threadsafe/ext/"}'\" -d \"extension=php_mysql.dll\" -d \"extension=php_mysqli.dll\" -d \"extension=php_pdo_mysql.dll\" \"" + pageFileName + "\"";
             proc.StartInfo.CreateNoWindow = true;
             proc.StartInfo.UseShellExecute = false;

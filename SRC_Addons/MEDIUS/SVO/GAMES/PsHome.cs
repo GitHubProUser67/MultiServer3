@@ -1,4 +1,5 @@
 ﻿using HttpMultipartParser;
+using DotNetty.Common.Internal.Logging;
 using System.Net;
 using System.Security;
 using System.Text;
@@ -9,8 +10,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 {
     public class Ps_Home
     {
-        private static Dictionary<int, string> database = new Dictionary<int, string>();
-        private static Random random = new Random();
+        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<Ps_Home>();
         public static async Task Home_SVO(HttpListenerContext context, string userAgent)
         {
             using (var response = context.Response)
@@ -30,11 +30,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -43,19 +43,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -124,12 +124,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -150,11 +150,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                         string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                        string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                        string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                         if (serverMac == null)
                                         {
-                                            Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                            Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                             // Return an internal server error response
                                             byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -163,19 +163,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             {
                                                 try
                                                 {
-                                                    response.StatusCode = 500;
+                                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                     response.ContentLength64 = Refused.Length;
                                                     response.OutputStream.Write(Refused, 0, Refused.Length);
                                                     response.OutputStream.Close();
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             context.Response.Close();
@@ -208,12 +208,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             ros.Dispose();
@@ -232,11 +232,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                         string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                        string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                        string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                         if (serverMac == null)
                                         {
-                                            Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                            Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                             // Return an internal server error response
                                             byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -245,19 +245,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             {
                                                 try
                                                 {
-                                                    response.StatusCode = 500;
+                                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                     response.ContentLength64 = Refused.Length;
                                                     response.OutputStream.Write(Refused, 0, Refused.Length);
                                                     response.OutputStream.Close();
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             context.Response.Close();
@@ -297,12 +297,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             ros.Dispose();
@@ -321,11 +321,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                         string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                        string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                        string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                         if (serverMac == null)
                                         {
-                                            Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                            Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                             // Return an internal server error response
                                             byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -334,19 +334,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             {
                                                 try
                                                 {
-                                                    response.StatusCode = 500;
+                                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                     response.ContentLength64 = Refused.Length;
                                                     response.OutputStream.Write(Refused, 0, Refused.Length);
                                                     response.OutputStream.Close();
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             context.Response.Close();
@@ -386,12 +386,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             ros.Dispose();
@@ -414,11 +414,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -427,19 +427,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -473,12 +473,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -498,11 +498,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -511,19 +511,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -563,12 +563,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -588,11 +588,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -601,19 +601,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -628,7 +628,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                         if (!context.Request.HasEntityBody)
                                         {
-                                            Console.WriteLine($"SVO server : {userAgent} Requested a SVO Home SP Submit without any data.");
+                                            Logger.Warn($"SVO server : {userAgent} Requested a SVO Home SP Submit without any data.");
 
                                             // Return an internal server error response
                                             byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -644,12 +644,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             context.Response.Close();
@@ -672,15 +672,23 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                         string acctNameREX = Regex.Replace(acctName, @"[^a-zA-Z0-9]+", string.Empty);
 
-                                        Console.WriteLine($"Logging user {acctNameREX} into SVO...\n");
+                                        Logger.Info($"Logging user {acctNameREX} into SVO...\n");
 
                                         response.Headers.Set("X-SVOMac", serverMac);
 
                                         string sig = HttpUtility.ParseQueryString(context.Request.Url.Query).Get("sig");
 
-                                        int accountId = AddToDatabase(acctNameREX);
+                                        int accountId = -1;
 
                                         string langId = "0";
+
+                                        SvoClass.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
+                                        {
+                                            //Found in database so keep.
+                                            string langId = context.Request.Url.Query.Substring(94, context.Request.Url.Query.Length - 94);
+                                            string accountName = r.Result.AccountName;
+                                            accountId = r.Result.AccountId;
+                                        });
 
                                         response.AddHeader("Set-Cookie", $"LangID={langId}; Path=/");
                                         response.AppendHeader("Set-Cookie", $"AcctID={accountId}; Path=/");
@@ -704,7 +712,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             "            <id>20600</id>\r\n" +
                                             "            <message>ACCT_LOGIN_SUCCESS</message>\r\n" +
                                             "        </status>\r\n" +
-                                            $"        <accountID>{accountId}</accountID>\r\n" +
+                                            $"       <accountID>{accountId}</accountID>\r\n" +
                                             "        <userContext>0</userContext>\r\n" +
                                             "    </SP_Login>\r\n" +
                                             "</XML>");
@@ -722,12 +730,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -747,11 +755,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -760,19 +768,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -786,23 +794,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        byte[] Medius_Announcement_Read = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                            "<SVML>\r\n" +
-                                            "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
-                                            "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
-                                            "    <TEXT name=\"text\" x=\"640\" y=\"171\" width=\"636\" height=\"26\" fontSize=\"26\" align=\"center\" textColor=\"#cc000000\">Message Of the Day</TEXT>\r\n\r\n" +
-                                            "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\t" +
-                                            "fontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t" +
-                                            "readonly=\"true\" selectable=\"false\" blinkCursor=\"false\"\r\n\t\t" +
-                                            "textColor=\"#CC000000\" highlightTextColor=\"#FF000000\"\r\n\t\t" +
-                                            "leftPadValue=\"8\" topPadValue=\"8\" \r\n" +
-                                            "        defaultTextEntry=\"1\" defaultTextScroll=\"1\">Welcome to PlayStationÂ®Home Open Beta.\r\n\r\n" +
-                                            "Head over to the new Resident Evil 5 Studio Lot space, accessible via the Menu Pad by selecting Locations &gt; World Map and then clicking on the Capcom chip. Here you can enjoy an interactive behind-the-scenes look at the tools and devices used on location for the filming of a portion of Resident Evil 5.\r\n\r\n" +
-                                            "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n" +
-                                            "    \r\n" +
-                                            "    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
-                                            "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
-                                            "</SVML>");
+                                        byte[] Medius_Announcement_Read = Encoding.UTF8.GetBytes(SvoClass.HOMEmessageoftheday);
 
                                         Stream ros = response.OutputStream;
 
@@ -817,12 +809,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -842,11 +834,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -855,19 +847,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -899,12 +891,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -924,11 +916,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -937,19 +929,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -978,12 +970,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -1003,7 +995,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     response.Headers.Set("X-SVOMac", serverMac);
 
@@ -1043,12 +1035,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        Logger.Warn("Client Disconnected early");
                                     }
 
                                     ros.Dispose();
@@ -1069,11 +1061,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -1082,19 +1074,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -1155,12 +1147,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                     }
                                                     catch (Exception ex)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                        Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    Logger.Warn("Client Disconnected early");
                                                 }
 
                                                 ros.Dispose();
@@ -1183,11 +1175,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -1196,19 +1188,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -1266,12 +1258,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -1289,11 +1281,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -1302,19 +1294,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -1373,12 +1365,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         ros.Dispose();
@@ -1396,11 +1388,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
-                                        Console.WriteLine($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
+                                        Logger.Warn($"SVO server : {userAgent} Requested a SVO file without a SVOMAC, so we forbid.");
 
                                         // Return an internal server error response
                                         byte[] Refused = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
@@ -1409,19 +1401,19 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         {
                                             try
                                             {
-                                                response.StatusCode = 500;
+                                                response.StatusCode = (int)HttpStatusCode.Forbidden;
                                                 response.ContentLength64 = Refused.Length;
                                                 response.OutputStream.Write(Refused, 0, Refused.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            Logger.Warn("Client Disconnected early");
                                         }
 
                                         context.Response.Close();
@@ -1467,12 +1459,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             ros.Dispose();
@@ -1503,12 +1495,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             ros.Dispose();
@@ -1539,12 +1531,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             ros.Dispose();
@@ -1565,7 +1557,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                     string clientMac = context.Request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVO_OTG.CalcuateSVOMac(clientMac);
+                                    string serverMac = SVO.CalcuateSVOMac(clientMac);
 
                                     response.Headers.Set("X-SVOMac", serverMac);
 
@@ -1595,12 +1587,12 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        Logger.Warn("Client Disconnected early");
                                     }
 
                                     ros.Dispose();
@@ -1634,7 +1626,6 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 fs.Write(datatooutput, 0, datatooutput.Length);
                                                 fs.Flush();
                                                 fs.Dispose();
-                                                Console.WriteLine($"SVO server : Home Debug Stats Uploaded to : {nameoffile}");
                                             }
 
                                             if (response.OutputStream.CanWrite)
@@ -1643,18 +1634,17 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                                 {
                                                     response.StatusCode = 200;
                                                     response.SendChunked = true;
-                                                    response.ContentLength64 = datatooutput.Length;
                                                     response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
                                                     response.OutputStream.Close();
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                Logger.Warn("Client Disconnected early");
                                             }
 
                                             break;
@@ -1666,18 +1656,40 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                                 break;
                             }
 
+                        default:
+
+                            Logger.Warn($"SVO server : {userAgent} Requested a PsHome SVO Method that doesn't exist.");
+
+                            // Return an internal server error response
+                            byte[] FileNotFound = Encoding.UTF8.GetBytes(PreMadeWebPages.filenotfound);
+
+                            if (response.OutputStream.CanWrite)
+                            {
+                                try
+                                {
+                                    response.StatusCode = 200;
+                                    response.ContentLength64 = FileNotFound.Length;
+                                    response.OutputStream.Write(FileNotFound, 0, FileNotFound.Length);
+                                    response.OutputStream.Close();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Warn($"Client Disconnected early and thrown an exception {ex}");
+                                }
+                            }
+                            else
+                            {
+                                Logger.Warn("Client Disconnected early");
+                            }
+
+                            break;
+
                             #endregion
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"SVO Server : an error occured in Ps_Home Request type - {ex}");
-
-                    context.Response.Close();
-
-                    GC.Collect();
-
-                    return;
+                    Logger.Error($"SVO Server : an error occured in Ps_Home Request type - {ex}");
                 }
 
                 context.Response.Close();
@@ -1687,22 +1699,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
                 return;
             }
         }
-        public static int AddToDatabase(string name)
-        {
-            int id;
 
-            if (database.ContainsValue(name))
-            {
-                id = database.FirstOrDefault(x => x.Value == name).Key; // Retrieve the existing ID for the given name
-            }
-            else
-            {
-                id = random.Next(); // Generate a random integer id
-                database[id] = name; // Link the id with the name in the database
-            }
-
-            return id; // Return the id
-        }
         public static void PrepareSVOFolders()
         {
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "/wwwsvoroot/HUBPS3_SVML/tracking/"))

@@ -119,7 +119,7 @@
             </head>
             <body>
               <div class=""error-container"">
-                <h1>PHP Disabled/h1>
+                <h1>PHP Disabled</h1>
                 <p>We're sorry, but the PHP system is disabled right now.</p>
               </div>
             </body>
