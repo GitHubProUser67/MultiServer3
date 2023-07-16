@@ -187,7 +187,7 @@ namespace PSMultiServer
                             {
                                 if (context.Request.Headers["Host"] == "sonyhome.thqsandbox.com") // THQ Home servers
                                 {
-                                    Task.Run(() => SRC_Addons.HOME.THQservices.ProcessHomeTHQRequest(context, userAgent));
+                                    Task.Run(() => THQservices.ProcessHomeTHQRequest(context, userAgent));
                                 }
                                 else
                                 {
@@ -253,13 +253,13 @@ namespace PSMultiServer
                         {
                             specialpage = true;
 
-                            Task.Run(() => SRC_Addons.HOME.OHSservices.ProcessRequest(context, userAgent));
+                            Task.Run(() => OHSservices.ProcessRequest(context, userAgent));
                         }
-                        else if (context.Request.Headers["Host"] != null && context.Request.Headers["Host"] == "away.veemee.com" && context.Request.Url.AbsolutePath.Contains(".php"))
+                        else if (context.Request.Headers["Host"] != null && (context.Request.Headers["Host"] == "away.veemee.com" || context.Request.Headers["Host"] == "home.veemee.com") && context.Request.Url.AbsolutePath.Contains(".php"))
                         {
                             specialpage = true;
 
-                            Task.Run(() => SRC_Addons.HOME.VEEMEEservices.ProcessRequest(context, userAgent));
+                            Task.Run(() => VEEMEEservices.ProcessRequest(context, userAgent));
                         }
 
                         if (!specialpage)

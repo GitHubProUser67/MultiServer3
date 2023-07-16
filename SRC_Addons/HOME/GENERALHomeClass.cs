@@ -14,6 +14,16 @@
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/Object_Instances/");
             }
 
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/"))
+            {
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/");
+            }
+
+            if (!File.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/SCREENLINKS.XML"))
+            {
+                File.WriteAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/SCREENLINKS.XML", "<XML>\r\n\t<SCREEN ID=\"screenLobbyRight\">\r\n\t\t<TYPE>HSML</TYPE>\r\n \t\t<SOURCE></SOURCE>\r\n\t</SCREEN>\r\n\t<SCREEN ID=\"AudiVrun_152E_D24C_SC01\">\r\n\t\t<TYPE>VIDEO</TYPE>\r\n \t\t<SOURCE></SOURCE>\r\n\t</SCREEN>\r\n</XML>");
+            }
+
             if (!File.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/challenges.json"))
             {
                 File.WriteAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/challenges.json", "{\r\n    \"EVENT_RIDE_THE_TRAIN_AS_DRIVER\": {\r\n        \"lcl\": true,\r\n        \"scene\": \"Acorn_Park_E2AE_6FC8\",\r\n        \"done\": false,\r\n        \"xp\": 10\r\n    },\r\n    \"EVENT_EAT_5_HOTDOGS\": {\r\n        \"compCount\": {\r\n            \"events\": {\r\n                \"EVENT_HOTDOG_COUNT\": {\r\n                    \"=\": 5\r\n                }\r\n            }\r\n        },\r\n    },\r\n    \"EVENT_HOTDOG_COUNT\": {\r\n        \"counter\": true\r\n    }\r\n}");

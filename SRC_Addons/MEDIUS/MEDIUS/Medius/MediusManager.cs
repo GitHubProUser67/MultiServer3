@@ -310,7 +310,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius
             return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
                             .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
                             .Where(x => (x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging) &&
-                                        (filters.Count() == 0 || filters.Any(y => y.IsMatch(x))))
+                                        (filters.Count() == 0 || filters.All(y => y.IsMatch(x))))
                             .Skip((pageIndex - 1) * pageSize)
                             .Take(pageSize);
         }

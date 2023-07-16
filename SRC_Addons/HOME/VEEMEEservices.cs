@@ -42,6 +42,10 @@ namespace PSMultiServer.SRC_Addons.HOME
                             {
                                 Task.Run(() => GetConfig(context, true, userAgent));
                             }
+                            else if (request.Url.AbsolutePath.Replace("//", "/") == "/screens.php")
+                            {
+                                Task.Run(() => GetAudiVrunScreenXML(context, userAgent));
+                            }
                             else
                             {
                                 // Return a not found response
@@ -112,7 +116,11 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                         try
                         {
-                            if (request.Url.AbsolutePath.Replace("//", "/") == "/commerce/get_count.php")
+                            if (request.Url.AbsolutePath.Replace("//", "/") == "/audiHSGlobalTable.php")
+                            {
+                                Task.Run(() => audiHSGlobalTable(context, userAgent));
+                            }
+                            else if (request.Url.AbsolutePath.Replace("//", "/") == "/commerce/get_count.php")
                             {
                                 Task.Run(() => get_count(context, userAgent));
                             }
@@ -310,6 +318,198 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                 GC.Collect();
             }
+
+            return;
+        }
+
+        private static async Task audiHSGlobalTable(HttpListenerContext context, string userAgent)
+        {
+            try
+            {
+                string key = "";
+                string psnid = "";
+                string title = "";
+
+                string boundary = Misc.ExtractBoundary(context.Request.ContentType);
+
+                // Get the input stream from the context
+                Stream inputStream = context.Request.InputStream;
+
+                // Create a memory stream to copy the content
+                using (MemoryStream copyStream = new MemoryStream())
+                {
+                    // Copy the input stream to the memory stream
+                    inputStream.CopyTo(copyStream);
+
+                    // Reset the position of the copy stream to the beginning
+                    copyStream.Position = 0;
+
+                    var data = MultipartFormDataParser.Parse(copyStream, boundary);
+
+                    key = data.GetParameterValue("key");
+
+                    psnid = data.GetParameterValue("psnid");
+
+                    title = data.GetParameterValue("title");
+
+                    copyStream.Dispose();
+                }
+
+                if (key == "3Ebadrebr6qezag8")
+                {
+                    byte[] clientresponse = Encoding.UTF8.GetBytes("<XML>\r\n<Leaderboard>\r\n<rpcs3testhome05/>\r\n</Leaderboard>\r\n</XML>");
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/xml; charset=utf-8";
+                            context.Response.ContentLength64 = clientresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
+                            context.Response.OutputStream.Close();
+
+                            Console.WriteLine($"VEEMEE Server : Returned response for {userAgent} - {Encoding.UTF8.GetString(clientresponse)}");
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+                else
+                {
+                    Console.WriteLine($"VEEMEE Server : Client {userAgent} - tried to access audi data without the correct password, we forbid!");
+
+                    byte[] notauthorisedresponse = Encoding.UTF8.GetBytes("You don't have access to this server.");
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/plain; charset=utf-8";
+                            context.Response.ContentLength64 = notauthorisedresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(notauthorisedresponse, 0, notauthorisedresponse.Length);
+                            context.Response.OutputStream.Close();
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VEEMEE Server : has throw an exception in audiHSGlobalTable while processing POST request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+
+                context.Response.Close();
+            }
+
+            GC.Collect();
+
+            return;
+        }
+
+        private static async Task GetAudiVrunScreenXML(HttpListenerContext context, string userAgent)
+        {
+            try
+            {
+                byte[] clientresponse = Encoding.UTF8.GetBytes(File.ReadAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/SCREENLINKS.XML"));
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.ContentType = "text/xml; charset=utf-8";
+                        context.Response.ContentLength64 = clientresponse.Length;
+                        context.Response.KeepAlive = true;
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        context.Response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
+                        context.Response.OutputStream.Close();
+
+                        Console.WriteLine($"VEEMEE Server : Returned response for {userAgent} - {Encoding.UTF8.GetString(clientresponse)}");
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+
+                context.Response.Close();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VEEMEE Server : has throw an exception in GetAudiVrunScreenXML while processing GET request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+
+                context.Response.Close();
+            }
+
+            GC.Collect();
 
             return;
         }
