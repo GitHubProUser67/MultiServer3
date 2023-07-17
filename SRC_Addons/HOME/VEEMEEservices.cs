@@ -120,6 +120,18 @@ namespace PSMultiServer.SRC_Addons.HOME
                             {
                                 Task.Run(() => audiHSGlobalTable(context, userAgent));
                             }
+                            else if (request.Url.AbsolutePath.Replace("//", "/") == "/audiHSGetUserData.php")
+                            {
+                                Task.Run(() => audiHSGetUserData(context, userAgent));
+                            }
+                            else if (request.Url.AbsolutePath.Replace("//", "/") == "/audiHSSetUserData.php")
+                            {
+                                Task.Run(() => audiHSSetUserData(context, userAgent));
+                            }
+                            else if (request.Url.AbsolutePath.Replace("//", "/") == "/audiHSGetTopUser.php")
+                            {
+                                Task.Run(() => audiHSGetTopUser(context, userAgent));
+                            }
                             else if (request.Url.AbsolutePath.Replace("//", "/") == "/commerce/get_count.php")
                             {
                                 Task.Run(() => get_count(context, userAgent));
@@ -322,6 +334,425 @@ namespace PSMultiServer.SRC_Addons.HOME
             return;
         }
 
+        private static async Task audiHSGetTopUser(HttpListenerContext context, string userAgent)
+        {
+            try
+            {
+                string key = "";
+                string psnid = "";
+
+                string boundary = Misc.ExtractBoundary(context.Request.ContentType);
+
+                // Get the input stream from the context
+                Stream inputStream = context.Request.InputStream;
+
+                // Create a memory stream to copy the content
+                using (MemoryStream copyStream = new MemoryStream())
+                {
+                    // Copy the input stream to the memory stream
+                    inputStream.CopyTo(copyStream);
+
+                    // Reset the position of the copy stream to the beginning
+                    copyStream.Position = 0;
+
+                    var data = MultipartFormDataParser.Parse(copyStream, boundary);
+
+                    key = data.GetParameterValue("key");
+
+                    psnid = data.GetParameterValue("psnid");
+
+                    copyStream.Dispose();
+                }
+
+                if (key == "3Ebadrebr6qezag8")
+                {
+                    byte[] clientresponse = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml");
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/xml; charset=utf-8";
+                            context.Response.ContentLength64 = clientresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
+                            context.Response.OutputStream.Close();
+
+                            Console.WriteLine($"VEEMEE Server : Returned response for {userAgent} - {Encoding.UTF8.GetString(clientresponse)}");
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+                else
+                {
+                    Console.WriteLine($"VEEMEE Server : Client {userAgent} - tried to access audi data without the correct password, we forbid!");
+
+                    byte[] notauthorisedresponse = Encoding.UTF8.GetBytes("You don't have access to this server.");
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/plain; charset=utf-8";
+                            context.Response.ContentLength64 = notauthorisedresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(notauthorisedresponse, 0, notauthorisedresponse.Length);
+                            context.Response.OutputStream.Close();
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VEEMEE Server : has throw an exception in audiHSGetTopUser while processing POST request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+
+                context.Response.Close();
+            }
+
+            GC.Collect();
+
+            return;
+        }
+
+        private static async Task audiHSSetUserData(HttpListenerContext context, string userAgent)
+        {
+            try
+            {
+                string key = "";
+                string psnid = "";
+                string time = "";
+                string dist = "";
+
+                string boundary = Misc.ExtractBoundary(context.Request.ContentType);
+
+                // Get the input stream from the context
+                Stream inputStream = context.Request.InputStream;
+
+                // Create a memory stream to copy the content
+                using (MemoryStream copyStream = new MemoryStream())
+                {
+                    // Copy the input stream to the memory stream
+                    inputStream.CopyTo(copyStream);
+
+                    // Reset the position of the copy stream to the beginning
+                    copyStream.Position = 0;
+
+                    var data = MultipartFormDataParser.Parse(copyStream, boundary);
+
+                    key = data.GetParameterValue("key");
+
+                    psnid = data.GetParameterValue("psnid");
+
+                    time = data.GetParameterValue("time");
+
+                    dist = data.GetParameterValue("dist");
+
+                    copyStream.Dispose();
+                }
+
+                if (key == "3Ebadrebr6qezag8")
+                {
+                    byte[] resultData = Encoding.UTF8.GetBytes($"<XML>\r\n<PAGE>\r\n<RECT X=\"0\" Y=\"1\" W=\"0\" H=\"0\" col=\"#C0C0C0\" /><RECT X=\"0\" Y=\"0\" W=\"1280\" H=\"720\" col=\"#000000\" /><TEXT X=\"57\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{psnid}</TEXT><TEXT X=\"77\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{time}</TEXT><TEXT X=\"97\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{dist}</TEXT>\r\n</PAGE>\r\n</XML>");
+
+                    /*string pageupdate = $"<RECT X=\"0\" Y=\"1\" W=\"0\" H=\"0\" col=\"#C0C0C0\" /><RECT X=\"0\" Y=\"0\" W=\"1280\" H=\"720\" col=\"#000000\" /><TEXT X=\"57\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{psnid}</TEXT><TEXT X=\"77\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{time}</TEXT><TEXT X=\"97\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{dist}</TEXT>\r\n";
+
+                    string tempgeneral = File.ReadAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml");
+
+                    // Load the XML string into an XmlDocument
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(tempgeneral);
+
+                    // Find the TABLE element
+                    XmlNode tableNode = xmlDoc.SelectSingleNode("//PAGE");
+
+                    if (tableNode != null)
+                    {
+                        // Create a new PAGE element
+                        XmlElement newTableElement = xmlDoc.CreateElement("PAGE");
+                        newTableElement.InnerText = pageupdate;
+
+                        // Insert the new PAGE element after the existing PAGE element
+                        tableNode.ParentNode.InsertAfter(newTableElement, tableNode);
+                    }
+
+                    // Get the modified XML string
+                    string modifiedXmlString = xmlDoc.OuterXml;
+
+                    File.WriteAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml", modifiedXmlString);*/
+
+                    File.WriteAllBytes(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/User_Score/{psnid}.hsml", resultData);
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/xml; charset=utf-8";
+                            context.Response.ContentLength64 = resultData.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(resultData, 0, resultData.Length);
+                            context.Response.OutputStream.Close();
+
+                            Console.WriteLine($"VEEMEE Server : Returned response for {userAgent} - {Encoding.UTF8.GetString(resultData)}");
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+                else
+                {
+                    Console.WriteLine($"VEEMEE Server : Client {userAgent} - tried to access audi data without the correct password, we forbid!");
+
+                    byte[] notauthorisedresponse = Encoding.UTF8.GetBytes("You don't have access to this server.");
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/plain; charset=utf-8";
+                            context.Response.ContentLength64 = notauthorisedresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(notauthorisedresponse, 0, notauthorisedresponse.Length);
+                            context.Response.OutputStream.Close();
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VEEMEE Server : has throw an exception in audiHSSetUserData while processing POST request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+
+                context.Response.Close();
+            }
+
+            GC.Collect();
+
+            return;
+        }
+
+        private static async Task audiHSGetUserData(HttpListenerContext context, string userAgent)
+        {
+            try
+            {
+                string key = "";
+                string psnid = "";
+
+                string boundary = Misc.ExtractBoundary(context.Request.ContentType);
+
+                // Get the input stream from the context
+                Stream inputStream = context.Request.InputStream;
+
+                // Create a memory stream to copy the content
+                using (MemoryStream copyStream = new MemoryStream())
+                {
+                    // Copy the input stream to the memory stream
+                    inputStream.CopyTo(copyStream);
+
+                    // Reset the position of the copy stream to the beginning
+                    copyStream.Position = 0;
+
+                    var data = MultipartFormDataParser.Parse(copyStream, boundary);
+
+                    key = data.GetParameterValue("key");
+
+                    psnid = data.GetParameterValue("psnid");
+
+                    copyStream.Dispose();
+                }
+
+                byte[] clientresponse = new byte[0];
+
+                if (key == "3Ebadrebr6qezag8")
+                {
+                    if (psnid != "nil")
+                    {
+                        if (File.Exists(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/User_Score/{psnid}.hsml"))
+                        {
+                            clientresponse = File.ReadAllBytes(Directory.GetCurrentDirectory() + $"/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/User_Score/{psnid}.hsml");
+                        }
+                        else
+                        {
+                            clientresponse = Encoding.UTF8.GetBytes($"<XML>\r\n<PAGE>\r\n<RECT X=\"0\" Y=\"1\" W=\"0\" H=\"0\" col=\"#C0C0C0\" /><RECT X=\"0\" Y=\"0\" W=\"1280\" H=\"720\" col=\"#000000\" /><TEXT X=\"57\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">{psnid}</TEXT><TEXT X=\"77\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">0.000000</TEXT><TEXT X=\"97\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">0000.000000</TEXT>\r\n</PAGE>\r\n</XML>");
+                        }
+                    }
+                    else
+                    {
+                        clientresponse = Encoding.UTF8.GetBytes($"<XML>\r\n<PAGE>\r\n</PAGE>\r\n</XML>");
+                    }
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/xml; charset=utf-8";
+                            context.Response.ContentLength64 = clientresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
+                            context.Response.OutputStream.Close();
+
+                            Console.WriteLine($"VEEMEE Server : Returned response for {userAgent} - {Encoding.UTF8.GetString(clientresponse)}");
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+                else
+                {
+                    Console.WriteLine($"VEEMEE Server : Client {userAgent} - tried to access audi data without the correct password, we forbid!");
+
+                    byte[] notauthorisedresponse = Encoding.UTF8.GetBytes("You don't have access to this server.");
+
+                    if (context.Response.OutputStream.CanWrite)
+                    {
+                        try
+                        {
+                            context.Response.ContentType = "text/plain; charset=utf-8";
+                            context.Response.ContentLength64 = notauthorisedresponse.Length;
+                            context.Response.KeepAlive = true;
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.OutputStream.Write(notauthorisedresponse, 0, notauthorisedresponse.Length);
+                            context.Response.OutputStream.Close();
+                        }
+                        catch (Exception ex1)
+                        {
+                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Client Disconnected early");
+                    }
+
+                    context.Response.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"VEEMEE Server : has throw an exception in audiHSGetUserData while processing POST request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+
+                context.Response.Close();
+            }
+
+            GC.Collect();
+
+            return;
+        }
+
         private static async Task audiHSGlobalTable(HttpListenerContext context, string userAgent)
         {
             try
@@ -357,7 +788,7 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                 if (key == "3Ebadrebr6qezag8")
                 {
-                    byte[] clientresponse = Encoding.UTF8.GetBytes("<XML>\r\n<Leaderboard>\r\n<rpcs3testhome05/>\r\n</Leaderboard>\r\n</XML>");
+                    byte[] clientresponse = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml");
 
                     if (context.Response.OutputStream.CanWrite)
                     {
@@ -1850,7 +2281,7 @@ namespace PSMultiServer.SRC_Addons.HOME
         {
             try
             {
-                string formattedJson = JToken.Parse(jsonData.Replace("\n", "")).ToString(Formatting.None);
+                string formattedJson = JToken.Parse(jsonData.Replace("\n", "")).ToString(Newtonsoft.Json.Formatting.None);
 
                 string hash = Sha1Hash(formattedJson).ToUpper();
 
@@ -1860,7 +2291,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                 {
                     JObject obj = (JObject)token;
                     obj["hash"] = hash;
-                    formattedJson = obj.ToString(Formatting.None);
+                    formattedJson = obj.ToString(Newtonsoft.Json.Formatting.None);
                 }
                 else if (token.Type == JTokenType.Array)
                 {
@@ -1868,7 +2299,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     JObject obj = new JObject();
                     obj["hash"] = hash;
                     array.Add(obj);
-                    formattedJson = array.ToString(Formatting.None);
+                    formattedJson = array.ToString(Newtonsoft.Json.Formatting.None);
                 }
 
                 return Encoding.UTF8.GetBytes(formattedJson);

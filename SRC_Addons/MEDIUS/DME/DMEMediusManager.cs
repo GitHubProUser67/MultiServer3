@@ -1,7 +1,4 @@
-﻿using DotNetty.Codecs;
-using DotNetty.Codecs.Json;
-using DotNetty.Common.Internal.Logging;
-using DotNetty.Handlers.Logging;
+﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;

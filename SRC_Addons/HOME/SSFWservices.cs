@@ -193,7 +193,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the PUT request and creating the directory : {ex}");
+                                            Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the PUT request and creating the directory : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -295,7 +295,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the PUT request and creating the file : {ex}");
+                                            Console.WriteLine($"SSFW Server : Server has throw an exception in ProcessRequest while processing the PUT request and creating the file : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -345,7 +345,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"Host has issued a PUT command without Home specific cookie. We forbid");
+                                    Console.WriteLine($"SSFW Server : Host has issued a PUT command without Home specific cookie. We forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -372,7 +372,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the PUT request : {ex}");
+                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the PUT request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -491,7 +491,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the PSN Ticket : {ex}");
+                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the PSN Ticket : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -540,7 +540,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -720,7 +720,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -750,7 +750,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                            Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -777,7 +777,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Host requested a login, but it doesn't have any Home required cookies, so we forbid");
+                                        Console.WriteLine("SSFW Server : Host requested a login, but it doesn't have any Home required cookies, so we forbid");
 
                                         // Return a not allowed response
                                         byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -823,7 +823,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             // Check if the number is valid
                                             if (!int.TryParse(numberString, out number))
                                             {
-                                                Console.WriteLine($"Server has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
+                                                Console.WriteLine($"SSFW Server : has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -877,7 +877,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -950,7 +950,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -980,7 +980,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                         else
                                         {
-                                            Console.WriteLine("AvatarLayoutService does not end with a number, so the request is invalidated.");
+                                            Console.WriteLine("SSFW Server : AvatarLayoutService does not end with a number, so the request is invalidated.");
 
                                             byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -1005,7 +1005,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1058,7 +1058,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1134,7 +1134,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1164,7 +1164,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1218,7 +1218,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1294,7 +1294,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1324,7 +1324,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1378,7 +1378,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1449,7 +1449,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1479,7 +1479,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1533,7 +1533,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1597,7 +1597,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("LayoutService does not end with an UUID, so the request is invalidated.");
+                                                    Console.WriteLine("SSFW Server : LayoutService does not end with an UUID, so the request is invalidated.");
 
                                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -1623,7 +1623,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and processing the mylayout update : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the mylayout update : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1638,7 +1638,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1683,7 +1683,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             // Read the contents of the memory stream into the byte array
                                             ms.Read(buffer, 0, contentLength);
 
-                                            Console.WriteLine("Host has sent a morelife ping");
+                                            Console.WriteLine("SSFW Server : Host has sent a morelife ping");
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -1710,7 +1710,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1755,7 +1755,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             // Read the contents of the memory stream into the byte array
                                             ms.Read(buffer, 0, contentLength);
 
-                                            Console.WriteLine("WARNING - Host requested a POST method I don't know about!! Report it to GITHUB with the request : " + Encoding.UTF8.GetString(buffer));
+                                            Console.WriteLine("SSFW Server : WARNING - Host requested a POST method I don't know about!! Report it to GITHUB with the request : " + Encoding.UTF8.GetString(buffer));
 
                                             try
                                             {
@@ -1766,7 +1766,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and creating the directory : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and creating the directory : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1889,7 +1889,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and creating the file/http response : {ex}");
+                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and creating the file/http response : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1919,7 +1919,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1946,7 +1946,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Host has issued a POST command without Home specific cookie. we forbid");
+                                    Console.WriteLine("SSFW Server : Host has issued a POST command without Home specific cookie. we forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -1973,7 +1973,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the POST request : {ex}");
+                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2024,7 +2024,7 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                             if (stringlayout != "")
                                             {
-                                                Console.WriteLine($"Returned furniture layout for " + inputurlfortrim);
+                                                Console.WriteLine($"SSFW Server : Returned furniture layout for " + inputurlfortrim);
 
                                                 byte[] layout = Encoding.UTF8.GetBytes("[{\"PUT_SCENEID_HERE\":PUT_LAYOUT_HERE}]".Replace("PUT_SCENEID_HERE", inputurlfortrim).Replace("PUT_LAYOUT_HERE", stringlayout));
 
@@ -2051,7 +2051,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                             else
                                             {
-                                                Console.WriteLine($"No furniture layout for " + inputurlfortrim);
+                                                Console.WriteLine($"SSFW Server : No furniture layout for " + inputurlfortrim);
 
                                                 if (response.OutputStream.CanWrite)
                                                 {
@@ -2077,7 +2077,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                         else
                                         {
-                                            Console.WriteLine("LayoutService does not end with an UUID, so the request is invalidated.");
+                                            Console.WriteLine("SSFW Server : LayoutService does not end with an UUID, so the request is invalidated.");
 
                                             byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2103,7 +2103,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2205,11 +2205,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             }
                                         }
 
-                                        Console.WriteLine($"Returned file contents from {filePath + ".ssfw"}");
+                                        Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".ssfw"}");
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server :  has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2266,7 +2266,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"Returned file contents from {filePath + ".bin"}");
+                                                    Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".bin"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
@@ -2292,7 +2292,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"Returned file contents from {filePath + ".bin"}");
+                                                    Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".bin"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
@@ -2307,7 +2307,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server :  has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2364,7 +2364,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"Returned file contents from {filePath + ".jpeg"}");
+                                                    Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".jpeg"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
@@ -2406,7 +2406,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2456,7 +2456,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"Host has issued a GET command without Home specific cookie. We forbid");
+                                    Console.WriteLine($"SSFW Server : Host has issued a GET command without Home specific cookie. We forbid");
 
                                     if (response.OutputStream.CanWrite)
                                     {
@@ -2482,7 +2482,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the GET request : {ex}");
+                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2523,8 +2523,6 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     // Check if the string ends with a number
                                     if (regex.IsMatch(input))
                                     {
-                                        Console.WriteLine("AvatarLayoutService ends with a number.");
-
                                         // Get the matched number as a string
                                         string numberString = regex.Match(input).Value;
 
@@ -2533,7 +2531,7 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                         if (!int.TryParse(numberString, out number))
                                         {
-                                            Console.WriteLine($"Server has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
+                                            Console.WriteLine($"SSFW Server : has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2592,7 +2590,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
+                                            Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2619,7 +2617,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     else
                                     {
-                                        Console.WriteLine("AvatarLayoutService does not end with a number, so the request is invalidated.");
+                                        Console.WriteLine("SSFW Server : AvatarLayoutService does not end with a number, so the request is invalidated.");
 
                                         byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2650,7 +2648,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         // Delete the binary file
                                         File.Delete(filePath + ".ssfw");
 
-                                        Console.WriteLine($"Deleted file {filePath + ".ssfw"}");
+                                        Console.WriteLine($"SSFW Server : Deleted file {filePath + ".ssfw"}");
 
                                         // Return a success response
                                         byte[] deleteResponse = Encoding.UTF8.GetBytes("File deleted successfully");
@@ -2676,7 +2674,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2708,7 +2706,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         // Delete the binary file
                                         File.Delete(filePath + ".jpeg");
 
-                                        Console.WriteLine($"Deleted file {filePath + ".jpeg"}");
+                                        Console.WriteLine($"SSFW Server : Deleted file {filePath + ".jpeg"}");
 
                                         // Return a success response
                                         byte[] deleteResponse = Encoding.UTF8.GetBytes("File deleted successfully");
@@ -2734,7 +2732,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2787,7 +2785,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"Host has issued a DELETE command without Home specific cookie. We forbid");
+                                    Console.WriteLine($"SSFW Server : Host has issued a DELETE command without Home specific cookie. We forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -2814,7 +2812,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the DELETE request : {ex}");
+                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2847,7 +2845,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             {
                                 if (request.Headers["X-Home-Session-Id"] != null)
                                 {
-                                    Console.WriteLine($"WARNING - Host requested a method I don't know about!! Report it to GITHUB with the request : {httpMethod} request for {url} is not supported");
+                                    Console.WriteLine($"SSFW Server : WARNING - Host requested a method I don't know about!! Report it to GITHUB with the request : {httpMethod} request for {url} is not supported");
 
                                     // Return a method not allowed response for unsupported methods
                                     byte[] methodNotAllowedResponse = Encoding.UTF8.GetBytes("Method not allowed");
@@ -2873,7 +2871,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"Host has issued a UNKNOWN command without Home specific cookie. We forbid");
+                                    Console.WriteLine($"SSFW Server : Host has issued a UNKNOWN command without Home specific cookie. We forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -2900,7 +2898,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Server has throw an exception in ProcessRequest while processing the default request : {ex}");
+                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the default request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2959,7 +2957,7 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in ProcessRequest : {ex}");
+                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest : {ex}");
 
                 GC.Collect();
 
@@ -3077,7 +3075,7 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in SSFWtrunkserviceprocess : {ex}");
+                Console.WriteLine($"SSFW Server : has throw an exception in SSFWtrunkserviceprocess : {ex}");
 
                 return;
             }
@@ -3169,7 +3167,7 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in SSFWupdatemini : {ex}");
+                Console.WriteLine($"SSFW Server : has throw an exception in SSFWupdatemini : {ex}");
 
                 return;
             }
@@ -3262,7 +3260,7 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in SSFWfurniturelayout : {ex}");
+                Console.WriteLine($"SSFW Server : has throw an exception in SSFWfurniturelayout : {ex}");
 
                 return;
             }
@@ -3315,7 +3313,7 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in SSFWgetfurniturelayout : {ex}");
+                Console.WriteLine($"SSFW Server : has throw an exception in SSFWgetfurniturelayout : {ex}");
 
                 return "";
             }
@@ -3381,7 +3379,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     }
                     else
                     {
-                        Console.WriteLine("Invalid mode specified. Please use 'UPDATE' or 'DELETE'.");
+                        Console.WriteLine("SSFW Server : SSFWUpdateavatar - Invalid mode specified. Please use 'UPDATE' or 'DELETE'.");
 
                         return;
                     }
@@ -3407,7 +3405,7 @@ namespace PSMultiServer.SRC_Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in SSFWUpdateavatar : {ex}");
+                Console.WriteLine($"SSFW Server : has throw an exception in SSFWUpdateavatar : {ex}");
 
                 return;
             }

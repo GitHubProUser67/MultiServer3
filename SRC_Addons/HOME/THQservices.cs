@@ -1,7 +1,6 @@
 ﻿using HttpMultipartParser;
 using System.Net;
 using System.Text;
-using System.Xml;
 
 namespace PSMultiServer.SRC_Addons.HOME
 {
@@ -186,7 +185,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                     response.OutputStream.Write(NotAuthorised, 0, NotAuthorised.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"THQ Server : {context.Request.Headers["User-Agent"]} - was not validated, we forbid!");
+                                                    Console.WriteLine($"THQ Server : {userAgent} - was not validated, we forbid!");
                                                 }
                                                 catch (Exception ex1)
                                                 {
@@ -263,7 +262,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                         else
                         {
                             // Return a not found response
-                            byte[] notFoundResponse = Encoding.UTF8.GetBytes("Method not found");
+                            byte[] notFoundResponse = Encoding.UTF8.GetBytes(PreMadeWebPages.filenotfound);
 
                             if (response.OutputStream.CanWrite)
                             {
@@ -274,7 +273,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     response.OutputStream.Write(notFoundResponse, 0, notFoundResponse.Length);
                                     response.OutputStream.Close();
 
-                                    Console.WriteLine($"THQ Server : Method {filePath} - {httpMethod} not found");
+                                    Console.WriteLine($"THQ Server : {userAgent} - Requested a method {filePath} - {httpMethod} not found");
                                 }
                                 catch (Exception ex1)
                                 {
@@ -295,19 +294,19 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                         try
                         {
-                            Console.WriteLine($"THQ Server : WARNING - Host requested a method I don't know about!! Report it to GITHUB with the request : {httpMethod} request for {url} is not supported");
-
-                            // Return a method not allowed response for unsupported methods
-                            byte[] methodNotAllowedResponse = Encoding.UTF8.GetBytes("Method not allowed");
+                            // Return a not found response
+                            byte[] notFoundResponse = Encoding.UTF8.GetBytes(PreMadeWebPages.filenotfound);
 
                             if (response.OutputStream.CanWrite)
                             {
                                 try
                                 {
-                                    response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                                    response.ContentLength64 = methodNotAllowedResponse.Length;
-                                    response.OutputStream.Write(methodNotAllowedResponse, 0, methodNotAllowedResponse.Length);
+                                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                                    response.ContentLength64 = notFoundResponse.Length;
+                                    response.OutputStream.Write(notFoundResponse, 0, notFoundResponse.Length);
                                     response.OutputStream.Close();
+
+                                    Console.WriteLine($"THQ Server : {userAgent} - Requested a method {filePath} - {httpMethod} not found");
                                 }
                                 catch (Exception ex1)
                                 {

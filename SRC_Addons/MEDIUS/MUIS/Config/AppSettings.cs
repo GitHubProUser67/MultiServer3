@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using static Org.BouncyCastle.Math.EC.ECCurve;
-
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.Config
+﻿namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.Config
 {
     public class AppSettings
     {

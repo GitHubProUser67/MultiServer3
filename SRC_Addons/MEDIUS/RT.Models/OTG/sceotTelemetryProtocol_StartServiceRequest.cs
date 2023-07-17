@@ -1,13 +1,12 @@
 using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
 using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
 
 namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
 {
 
     public class sceotTelemetryProtocol_StartServiceRequest : BaseScertMessage { 
 
-        public override RT_MSG_TYPE Id => throw new System.NotImplementedException();
+        public override RT_MSG_TYPE Id => throw new NotImplementedException();
 
         public byte msgType;
         public short maxBlockSize;

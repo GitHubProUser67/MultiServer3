@@ -14,9 +14,14 @@
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Acorn_Medow/Object_Instances/");
             }
 
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/"))
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/User_Score/"))
             {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/");
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/User_Score/");
+            }
+
+            if (!File.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml"))
+            {
+                File.WriteAllText(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml", "<XML>\r\n<PAGE>\r\n<RECT X=\"0\" Y=\"1\" W=\"0\" H=\"0\" col=\"#C0C0C0\" /><RECT X=\"0\" Y=\"0\" W=\"1280\" H=\"720\" col=\"#000000\" /><TEXT X=\"57\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">EatFlammingDeath</TEXT><TEXT X=\"77\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">0.000000</TEXT><TEXT X=\"97\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">3614.657715</TEXT>\r\n</PAGE>\r\n</XML>");
             }
 
             if (!File.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/HOME_VEEMEE/Audi_Vrun/SCREENLINKS.XML"))

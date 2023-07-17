@@ -261,6 +261,12 @@ namespace PSMultiServer
 
                             Task.Run(() => VEEMEEservices.ProcessRequest(context, userAgent));
                         }
+                        else if (context.Request.Headers["Host"] != null && context.Request.Headers["Host"] == "pshome.ndreams.net" && context.Request.Url.AbsolutePath.Contains(".php"))
+                        {
+                            specialpage = true;
+
+                            Task.Run(() => NDREAMSservices.ProcessRequest(context, userAgent));
+                        }
 
                         if (!specialpage)
                         {
