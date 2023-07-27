@@ -243,53 +243,72 @@
 
         public bool Encrypt(byte[] plaintext, ref byte[] ciphertext)
         {
-            if (plaintext == null || ciphertext == null || ciphertext.Length < plaintext.Length) //invalid input(s)
-                return false;
-            int extrabytes = plaintext.Length % BLOCK_SIZE;
-            int pblock = plaintext.Length / BLOCK_SIZE + (extrabytes > 0 ? 1 : 0);
-            int cblock = ciphertext.Length / BLOCK_SIZE;
-            if (cblock < pblock) //invalid size
-                return false;
-            pblock = plaintext.Length / BLOCK_SIZE;
-            byte[] text = new byte[BLOCK_SIZE];
-            int p;
-            for (int k = 0; k < pblock; ++k)
-            { //Encrypt all possible blocks
-                p = k * BLOCK_SIZE;
-                Array.Copy(plaintext, p, text, 0, BLOCK_SIZE);
-                encryptBlock(text, ref text);
-                Array.Copy(text, 0, ciphertext, p, BLOCK_SIZE);
+            try
+            {
+                if (plaintext == null || ciphertext == null || ciphertext.Length < plaintext.Length) //invalid input(s)
+                    return false;
+                int extrabytes = plaintext.Length % BLOCK_SIZE;
+                int pblock = plaintext.Length / BLOCK_SIZE + (extrabytes > 0 ? 1 : 0);
+                int cblock = ciphertext.Length / BLOCK_SIZE;
+                if (cblock < pblock) //invalid size
+                    return false;
+                pblock = plaintext.Length / BLOCK_SIZE;
+                byte[] text = new byte[BLOCK_SIZE];
+                int p;
+                for (int k = 0; k < pblock; ++k)
+                { //Encrypt all possible blocks
+                    p = k * BLOCK_SIZE;
+                    Array.Copy(plaintext, p, text, 0, BLOCK_SIZE);
+                    encryptBlock(text, ref text);
+                    Array.Copy(text, 0, ciphertext, p, BLOCK_SIZE);
+                }
+                if (extrabytes > 0)
+                { //encrypt the left over
+                    p = pblock * BLOCK_SIZE;
+                    Array.Copy(plaintext, p, text, 0, extrabytes);
+                    for (int i = extrabytes; i < BLOCK_SIZE; ++i) //TODO not sure if there is any faster way in C#
+                        text[i] = 0;
+                    encryptBlock(text, ref text);
+                    Array.Copy(text, 0, ciphertext, p, BLOCK_SIZE);
+                }
+                return true;
             }
-            if (extrabytes > 0)
-            { //encrypt the left over
-                p = pblock * BLOCK_SIZE;
-                Array.Copy(plaintext, p, text, 0, extrabytes);
-                for (int i = extrabytes; i < BLOCK_SIZE; ++i) //TODO not sure if there is any faster way in C#
-                    text[i] = 0;
-                encryptBlock(text, ref text);
-                Array.Copy(text, 0, ciphertext, p, BLOCK_SIZE);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRYPTOSPORIDIUM : has throw an exception in AES128 Encrypt - {ex}");
+
+                return false;
             }
-            return true;
         }
 
         public bool Decrypt(byte[] ciphertext, ref byte[] plaintext)
-        { //can only recover up to valid multiplication of 16, extra bytes are not decrypted
-            if (plaintext == null || ciphertext == null) //invalid input(s)
-                return false;
-            int cblock = ciphertext.Length / BLOCK_SIZE;
-            int pblock = plaintext.Length / BLOCK_SIZE;
-            if (pblock < cblock)
-                return false; //invalid size
-            byte[] text = new byte[BLOCK_SIZE];
-            int p;
-            for (int k = 0; k < cblock; ++k)
+        { 
+            try
             {
-                p = k * BLOCK_SIZE;
-                Array.Copy(ciphertext, p, text, 0, BLOCK_SIZE);
-                decryptBlock(text, ref text);
-                Array.Copy(text, 0, plaintext, p, BLOCK_SIZE);
-            } //extra bytes are not taken cared of...
-            return true;
+                //can only recover up to valid multiplication of 16, extra bytes are not decrypted
+                if (plaintext == null || ciphertext == null) //invalid input(s)
+                    return false;
+                int cblock = ciphertext.Length / BLOCK_SIZE;
+                int pblock = plaintext.Length / BLOCK_SIZE;
+                if (pblock < cblock)
+                    return false; //invalid size
+                byte[] text = new byte[BLOCK_SIZE];
+                int p;
+                for (int k = 0; k < cblock; ++k)
+                {
+                    p = k * BLOCK_SIZE;
+                    Array.Copy(ciphertext, p, text, 0, BLOCK_SIZE);
+                    decryptBlock(text, ref text);
+                    Array.Copy(text, 0, plaintext, p, BLOCK_SIZE);
+                } //extra bytes are not taken cared of...
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRYPTOSPORIDIUM : has throw an exception in AES128 Decrypt - {ex}");
+
+                return false;
+            }
         }
     }
 }

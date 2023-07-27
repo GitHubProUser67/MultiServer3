@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using PSMultiServer.SRC_Addons.MEDIUS.MUIS.Config;
 using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
+using System.Globalization;
 
 namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
 {
@@ -547,21 +548,45 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
                                         }
                                         #endregion
 
-                                        #region SVOUrl
-                                        if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
-                                        {
-                                            Logger.Info($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                        bool SVOUrl = true;
 
-                                            Queue(new RT_MSG_SERVER_APP()
+                                        if (data.ApplicationId == 20374 || data.ApplicationId == 20371)
+                                        {
+                                            try
                                             {
-                                                Message = new MediusUniverseSvoURLResponse()
+                                                string firstFiveElements = info.ExtendedInfo.Substring(0, Math.Min(5, info.ExtendedInfo.Length));
+
+                                                double homenumber = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
+
+                                                if (homenumber < 01.30)
                                                 {
-                                                    MessageID = getUniverseInfo.MessageID,
-                                                    URL = info.SvoURL
+                                                    SVOUrl = false;
                                                 }
-                                            }, clientChannel);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                SVOUrl = true;
+                                            }
                                         }
-                                        #endregion
+
+                                        if (SVOUrl)
+                                        {
+                                            #region SVOUrl
+                                            if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
+                                            {
+                                                Logger.Info($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+
+                                                Queue(new RT_MSG_SERVER_APP()
+                                                {
+                                                    Message = new MediusUniverseSvoURLResponse()
+                                                    {
+                                                        MessageID = getUniverseInfo.MessageID,
+                                                        URL = info.SvoURL
+                                                    }
+                                                }, clientChannel);
+                                            }
+                                            #endregion
+                                        }
 
                                         /*if (data.ApplicationId == 20374 && info.ExtendedInfo.Contains("01.83") && info.Name.Contains("HDKONLINEDEBUG")) // Special Home 1.83 eboot.
                                         {

@@ -101,7 +101,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
                 listener.Prefixes.Add($"http://*:{portNumber}/");
             }
 
-            Logger.Info("SVO Server started on *:10060 - Listening for requests...");
+            Logger.Info("SVO Server started on *:10060 - *:10061 - Listening for requests...");
 
             listener.Start();
 

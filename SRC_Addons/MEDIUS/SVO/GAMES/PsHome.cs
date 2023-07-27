@@ -1619,14 +1619,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                             byte[] datatooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("body"));
 
-                                            string nameoffile = Misc.CreateSessionID(context);
-
-                                            using (FileStream fs = new FileStream($"./wwwsvoroot/dataloaderweb/queue/{nameoffile}.xml", FileMode.OpenOrCreate))
-                                            {
-                                                fs.Write(datatooutput, 0, datatooutput.Length);
-                                                fs.Flush();
-                                                fs.Dispose();
-                                            }
+                                            Logger.Warn($"SVO server : {userAgent} Requested a Home OTG stat, queue | {Encoding.UTF8.GetString(datatooutput)}.");
 
                                             if (response.OutputStream.CanWrite)
                                             {

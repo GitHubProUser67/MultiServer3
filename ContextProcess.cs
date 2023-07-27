@@ -6,7 +6,7 @@ namespace PSMultiServer
 {
     public class ContextProcess
     {
-        public async Task Processwwwroot(HttpListenerContext context, string page, string phpver, string httpkey, string userAgent)
+        public async Task Processwwwroot(HttpListenerContext context, string page, string phpver, string userAgent)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace PSMultiServer
                                 fileStream.Close();
                             }
 
-                            if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                            if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                             {
                                 byte[] src = File.ReadAllBytes(page);
                                 byte[] dst = new byte[src.Length - 9];
@@ -38,7 +38,7 @@ namespace PSMultiServer
                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
                                 fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                             }
                             else
                             {
@@ -138,7 +138,7 @@ namespace PSMultiServer
                                                 fileStream.Close();
                                             }
 
-                                            if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                            if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                             {
                                                 byte[] src = File.ReadAllBytes(page);
                                                 byte[] dst = new byte[src.Length - 9];
@@ -146,7 +146,7 @@ namespace PSMultiServer
                                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
                                                 byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
 
                                                 context.Response.ContentLength64 = fileBytes.Length;
 
@@ -221,7 +221,7 @@ namespace PSMultiServer
                                             fileStream.Close();
                                         }
 
-                                        if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                        if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                         {
                                             byte[] src = File.ReadAllBytes(page);
                                             byte[] dst = new byte[src.Length - 9];
@@ -229,7 +229,7 @@ namespace PSMultiServer
                                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                                             byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
 
                                             context.Response.ContentLength64 = fileBytes.Length;
 
@@ -330,7 +330,7 @@ namespace PSMultiServer
                             fileStream.Close();
                         }
 
-                        if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                        if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                         {
                             byte[] src = File.ReadAllBytes(page);
                             byte[] dst = new byte[src.Length - 9];
@@ -338,7 +338,7 @@ namespace PSMultiServer
                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                             fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                         }
                         else
                         {
@@ -443,7 +443,7 @@ namespace PSMultiServer
                                 fileStream.Close();
                             }
 
-                            if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                            if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                             {
                                 byte[] src = File.ReadAllBytes(page);
                                 byte[] dst = new byte[src.Length - 9];
@@ -451,7 +451,7 @@ namespace PSMultiServer
                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
                                 fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                             }
                             else
                             {
@@ -560,7 +560,7 @@ namespace PSMultiServer
                             fileStream.Close();
                         }
 
-                        if (httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                        if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                         {
                             byte[] src = File.ReadAllBytes(page);
                             byte[] dst = new byte[src.Length - 9];
@@ -568,7 +568,7 @@ namespace PSMultiServer
                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                             fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(httpkey));
+                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                         }
                         else
                         {

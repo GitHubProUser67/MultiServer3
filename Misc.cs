@@ -1,11 +1,12 @@
 ﻿using System.Net;
 using System.Net.NetworkInformation;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Archives.Tar;
+using NLua;
+using System.Security.Cryptography;
 
 namespace PSMultiServer
 {
@@ -68,15 +69,6 @@ namespace PSMultiServer
             newArray[0] = newByte;
             return newArray;
         }
-        public static byte[] ObjectToByteArray(object obj)
-        {
-            using (var stream = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(stream, obj);
-                return stream.ToArray();
-            }
-        }
 
         public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
         {
@@ -110,6 +102,7 @@ namespace PSMultiServer
                 return false;
             }
         }
+
         public static string ExtractBoundary(string contentType)
         {
             int boundaryIndex = contentType.IndexOf("boundary=", StringComparison.InvariantCultureIgnoreCase);
@@ -119,15 +112,96 @@ namespace PSMultiServer
             }
             return null;
         }
+
+        public static object[] ExecuteLuaScript(string luaScript)
+        {
+            using (Lua lua = new Lua())
+            {
+                try
+                {
+                    // Execute the Lua script
+                    object[] returnValues = lua.DoString(luaScript);
+
+                    // If the script returns no values, return an empty object array
+                    if (returnValues == null || returnValues.Length == 0)
+                    {
+                        return new object[0];
+                    }
+
+                    return returnValues;
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions that might occur during script execution
+                    Console.WriteLine("Error executing Lua script: " + ex.Message);
+                    return new object[0];
+                }
+            }
+        }
+
         public static string CreateSessionID(HttpListenerContext context)
         {
             return Guid.NewGuid().ToString();
         }
+
         public static string GenerateUUID()
         {
             Guid uuid = Guid.NewGuid();
             return uuid.ToString();
         }
+
+        public static string CalculateMD5Hash(string input)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+                // Convert the byte array to a hexadecimal string
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hashBytes.Length; i++)
+                {
+                    sb.Append(hashBytes[i].ToString("x2"));
+                }
+
+                return sb.ToString();
+            }
+        }
+
+        public static string GetFirstEightCharacters(string input)
+        {
+            if (input.Length >= 8)
+            {
+                return input.Substring(0, 8);
+            }
+            else
+            {
+                // If the input is less than 8 characters, you can handle it accordingly
+                // For simplicity, let's just pad with zeros in this case
+                return input.PadRight(8, '0');
+            }
+        }
+
+        public static byte[] ReverseByteArray(byte[] input)
+        {
+            byte[] reversedArray = new byte[input.Length];
+            int lastIndex = input.Length - 1;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                reversedArray[i] = input[lastIndex - i];
+            }
+
+            return reversedArray;
+        }
+
+        public static string Base64Encode(string input)
+        {
+            byte[] bytesToEncode = Encoding.UTF8.GetBytes(input);
+            string encodedText = Convert.ToBase64String(bytesToEncode);
+            return encodedText;
+        }
+
         public static string Base64Decode(string base64EncodedText)
         {
             byte[] base64EncodedBytes = Convert.FromBase64String(base64EncodedText);
@@ -168,11 +242,33 @@ namespace PSMultiServer
             return null;
         }
     }
-
-    public class FileWriteOperation
+    public static class UniqueNumberGenerator
     {
-        public string FilePath { get; set; }
-        public string Content { get; set; }
+        // Function to generate a unique number based on a string using MD5
+        public static int GenerateUniqueNumber(string inputString)
+        {
+            using (MD5 md5Hash = MD5.Create())
+            {
+                byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
+
+                // To get a small integer within Lua int bounds, take the least significant 16 bits of the hash and convert to int16
+                int uniqueNumber = Math.Abs(BitConverter.ToUInt16(data, 0));
+
+                return uniqueNumber;
+            }
+        }
+    }
+    public static class ScoreboardNameGenerator
+    {
+        private static Random random = new Random();
+
+        // List of silly French-sounding words to be used in the names
+        private static string[] sillyFrenchWords = { "Croissant", "Baguette", "Fougasse", "TarteAuFromage", "Tabernack", "UnePetiteContine", "ChuckNorris", "Pamplemousse", "JimCarrey", "Fromage" };
+
+        public static string GenerateRandomName()
+        {
+            return sillyFrenchWords[random.Next(0, sillyFrenchWords.Length)];
+        }
     }
 
     // Custom comparer to sort file names numerically

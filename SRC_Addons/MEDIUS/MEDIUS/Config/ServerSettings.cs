@@ -242,7 +242,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Config
         /// Set this to 1 to activate AntiCheat.  Or to 0 (the default) to
         /// deactivate it.
         /// </summary>
-        public bool AntiCheatOn = false;
+        public bool AntiCheatOn = true;
 
         #endregion
 

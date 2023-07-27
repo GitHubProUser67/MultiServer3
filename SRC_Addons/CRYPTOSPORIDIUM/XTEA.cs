@@ -1,11 +1,13 @@
-﻿namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM
+﻿using System.Text;
+
+namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM
 {
     public class XTEA
     {
         /// <summary>
-		/// Libsecure documentation seems to recommand 64...
+		/// Recommanded is always 32.
 		/// </summary>
-		private const uint Rounds = 64;
+		private const uint Rounds = 32;
 
         /// <summary>
         /// Encrypts the given data with the provided key.
@@ -15,27 +17,36 @@
         /// <returns></returns>
         public static byte[] Encrypt(byte[] data, byte[] key)
         {
-            var keyBuffer = CreateKey(key);
-            var blockBuffer = new uint[2];
-            var result = new byte[NextMultipleOf8(data.Length + 4)];
-            var lengthBuffer = BitConverter.GetBytes(data.Length);
-            Array.Copy(lengthBuffer, result, lengthBuffer.Length);
-            Array.Copy(data, 0, result, lengthBuffer.Length, data.Length);
-            using (var stream = new MemoryStream(result))
+            try
             {
-                using (var writer = new BinaryWriter(stream))
+                var keyBuffer = CreateKey(key);
+                var blockBuffer = new uint[2];
+                var result = new byte[NextMultipleOf8(data.Length + 4)];
+                var lengthBuffer = BitConverter.GetBytes(data.Length);
+                Array.Copy(lengthBuffer, result, lengthBuffer.Length);
+                Array.Copy(data, 0, result, lengthBuffer.Length, data.Length);
+                using (var stream = new MemoryStream(result))
                 {
-                    for (int i = 0; i < result.Length; i += 8)
+                    using (var writer = new BinaryWriter(stream))
                     {
-                        blockBuffer[0] = BitConverter.ToUInt32(result, i);
-                        blockBuffer[1] = BitConverter.ToUInt32(result, i + 4);
-                        Encrypt(Rounds, blockBuffer, keyBuffer);
-                        writer.Write(blockBuffer[0]);
-                        writer.Write(blockBuffer[1]);
+                        for (int i = 0; i < result.Length; i += 8)
+                        {
+                            blockBuffer[0] = BitConverter.ToUInt32(result, i);
+                            blockBuffer[1] = BitConverter.ToUInt32(result, i + 4);
+                            Encrypt(Rounds, blockBuffer, keyBuffer);
+                            writer.Write(blockBuffer[0]);
+                            writer.Write(blockBuffer[1]);
+                        }
                     }
                 }
+                return result;
             }
-            return result;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRYPTOSPORIDIUM : has throw an exception in XTEA Encrypt - {ex}");
+
+                return Encoding.UTF8.GetBytes("ERROR IN Encrypt");
+            }
         }
 
         /// <summary>
@@ -48,34 +59,46 @@
         /// <returns></returns>
         public static byte[] Decrypt(byte[] data, byte[] key)
         {
-            if (data.Length % 8 != 0) throw new ArgumentException("Encrypted data length must be a multiple of 8 bytes.");
-            var keyBuffer = CreateKey(key);
-            var blockBuffer = new uint[2];
-            var buffer = new byte[data.Length];
-            Array.Copy(data, buffer, data.Length);
-            using (var stream = new MemoryStream(buffer))
+            try
             {
-                using (var writer = new BinaryWriter(stream))
+                if (data.Length % 8 != 0) throw new ArgumentException("Encrypted data length must be a multiple of 8 bytes.");
+                var keyBuffer = CreateKey(key);
+                var blockBuffer = new uint[2];
+                var buffer = new byte[data.Length];
+                Array.Copy(data, buffer, data.Length);
+                using (var stream = new MemoryStream(buffer))
                 {
-                    for (int i = 0; i < buffer.Length; i += 8)
+                    using (var writer = new BinaryWriter(stream))
                     {
-                        blockBuffer[0] = BitConverter.ToUInt32(buffer, i);
-                        blockBuffer[1] = BitConverter.ToUInt32(buffer, i + 4);
-                        Decrypt(Rounds, blockBuffer, keyBuffer);
-                        writer.Write(blockBuffer[0]);
-                        writer.Write(blockBuffer[1]);
+                        for (int i = 0; i < buffer.Length; i += 8)
+                        {
+                            blockBuffer[0] = BitConverter.ToUInt32(buffer, i);
+                            blockBuffer[1] = BitConverter.ToUInt32(buffer, i + 4);
+                            Decrypt(Rounds, blockBuffer, keyBuffer);
+                            writer.Write(blockBuffer[0]);
+                            writer.Write(blockBuffer[1]);
+                        }
                     }
                 }
+                // verify valid length
+                var length = BitConverter.ToUInt32(buffer, 0);
+                if (length > buffer.Length - 4)
+                {
+                    return Encoding.UTF8.GetBytes("ERROR in Decrypt");
+                }
+                var result = new byte[length];
+                Array.Copy(buffer, 4, result, 0, length);
+                return result;
             }
-            // verify valid length
-            var length = BitConverter.ToUInt32(buffer, 0);
-            if (length > buffer.Length - 4) throw new ArgumentException("Invalid encrypted data");
-            var result = new byte[length];
-            Array.Copy(buffer, 4, result, 0, length);
-            return result;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRYPTOSPORIDIUM : has throw an exception in XTEA Decrypt - {ex}");
+
+                return Encoding.UTF8.GetBytes("ERROR in Decrypt");
+            }
         }
 
-        private static int NextMultipleOf8(int length)
+        public static int NextMultipleOf8(int length)
         {
             // XTEA is a 64-bit block chiffre, therefore our data must be a multiple of 64 bit
             return (length + 7) / 8 * 8; // this will give us the next multiple of 8
@@ -86,7 +109,7 @@
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        private static uint[] CreateKey(byte[] key)
+        public static uint[] CreateKey(byte[] key)
         {
             // It might be a better idea to just calculate the MD5 hash of the key: var hash = MD5.Create().ComputeHash(key);
             // But we don't want to depend on the Cryptography namespace, because it would increase the build size for some Unity3d platforms.

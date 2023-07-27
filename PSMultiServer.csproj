@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" />
+    <PackageReference Include="ComponentAce.Compression.Libs.zlib" Version="1.0.4" />
     <PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,9 +24,11 @@
     <PackageReference Include="DotNetty.Transport" Version="0.7.5" />
     <PackageReference Include="HighPrecisionTimeStamps" Version="1.0.0.6" />
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />
+    <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NLua" Version="1.6.3" />
     <PackageReference Include="NReco.Logging.File" Version="1.1.6" />
     <PackageReference Include="SharpCompress" Version="0.33.0" />
     <PackageReference Include="System.Management" Version="7.0.2" />

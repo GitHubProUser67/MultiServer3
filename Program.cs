@@ -193,13 +193,13 @@ namespace PSMultiServer
                     Task.Run(() => SvoClass.SvoMain(_HOMEmessageoftheday));
                 }
 
+                Task.Run(() => SRC_Addons.MEDIUS.MEDIUS.MediusClass.MediusMain());
+
                 Task.Run(() => SRC_Addons.MEDIUS.BWPS.BwpsClass.BwpsMain());
 
                 Task.Run(() => SRC_Addons.MEDIUS.GHS.GhsClass.GhsMain());
 
                 Task.Run(() => SRC_Addons.MEDIUS.MUIS.MuisClass.MuisMain(_HOMEversion_BETA_HDK, _HOMEversion_RETAIL_HDKONLINEDEBUG));
-
-                Task.Run(() => SRC_Addons.MEDIUS.MEDIUS.MediusClass.MediusMain());
 
                 Task.Run(() => SRC_Addons.MEDIUS.DME.DmeClass.DmeMain());
             }

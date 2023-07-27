@@ -405,7 +405,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                             {
                                 if (context.Request.Url.AbsolutePath == "/bb88aea9-6bf8-4201-a6ff-5d1f8da0dd37/login/token/psn")
                                 {
-                                    if (request.Headers["X-HomeClientVersion"] != null && request.Headers["x-signature"] != null && request.Headers["general-secret"] != null)
+                                    if (request.Headers["X-HomeClientVersion"] != null && request.Headers["general-secret"] != null)
                                     {
                                         try
                                         {
@@ -456,7 +456,18 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         // Calculate the MD5 hash of the result
                                                         using (MD5 md5 = MD5.Create())
                                                         {
-                                                            byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + request.Headers["general-secret"] + request.Headers["x-signature"] + request.Headers["X-HomeClientVersion"]));
+                                                            string salt = "";
+
+                                                            if (request.Headers["x-signature"] != null)
+                                                            {
+                                                                salt = request.Headers["general-secret"] + request.Headers["x-signature"] + request.Headers["X-HomeClientVersion"];
+                                                            }
+                                                            else
+                                                            {
+                                                                salt = request.Headers["general-secret"] + request.Headers["X-HomeClientVersion"];
+                                                            }
+
+                                                            byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + salt));
                                                             string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
                                                             // Trim the hash to a specific length
@@ -477,7 +488,18 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         // Calculate the MD5 hash of the result
                                                         using (MD5 md5 = MD5.Create())
                                                         {
-                                                            byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + request.Headers["general-secret"] + request.Headers["x-signature"] + request.Headers["X-HomeClientVersion"]));
+                                                            string salt = "";
+
+                                                            if (request.Headers["x-signature"] != null)
+                                                            {
+                                                                salt = request.Headers["general-secret"] + request.Headers["x-signature"] + request.Headers["X-HomeClientVersion"];
+                                                            }
+                                                            else
+                                                            {
+                                                                salt = request.Headers["general-secret"] + request.Headers["X-HomeClientVersion"];
+                                                            }
+
+                                                            byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + salt));
                                                             string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
                                                             // Trim the hash to a specific length
@@ -1663,7 +1685,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                     }
                                 }
-                                else if (context.Request.Url.AbsolutePath.EndsWith("/morelife") && request.Headers["X-HomeClientVersion"] != null && request.Headers["x-signature"] != null && request.Headers["general-secret"] != null)
+                                else if (context.Request.Url.AbsolutePath.EndsWith("/morelife") && request.Headers["x-signature"] != null)
                                 {
                                     try
                                     {
@@ -2433,7 +2455,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 }
                                 else if (request.Headers["X-Home-Session-Id"] != null)
                                 {
-                                    // Return nothing, it seems SSFW likes better response 200 with nothing inside.
+                                    // Return nothing, it seems SSFW likes better response 404 with nothing inside.
 
                                     Console.WriteLine($"SSFW : File {filePath} not found");
 
@@ -2441,7 +2463,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     {
                                         try
                                         {
-                                            response.StatusCode = 200;
+                                            response.StatusCode = 404;
                                             response.OutputStream.Close();
                                         }
                                         catch (Exception ex1)

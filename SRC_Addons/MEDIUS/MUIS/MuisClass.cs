@@ -185,7 +185,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
                     // Reload config
                     if ((Utils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
                     {
-                        RefreshConfig();
+                        RefreshConfig(false);
                         lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
                     }
 
@@ -220,13 +220,13 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
 
         static void Initialize()
         {
-            RefreshConfig();
+            RefreshConfig(true);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        static void RefreshConfig()
+        static void RefreshConfig(bool firstboot)
         {
             // 
             var serializerSettings = new JsonSerializerSettings()
@@ -235,7 +235,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
             };
 
             // Load settings
-            if (File.Exists(CONFIG_FILE))
+            if (File.Exists(CONFIG_FILE) && !firstboot)
             {
                 // Populate existing object
                 JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);

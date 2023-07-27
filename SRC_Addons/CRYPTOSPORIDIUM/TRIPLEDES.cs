@@ -40,32 +40,107 @@ namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM
 
         public static byte[] EncryptData(string encryptionKey, byte[] data)
         {
-            TripleDES des = TripleDES.Create();
-            des.Mode = CipherMode.ECB;
-            des.Padding = PaddingMode.PKCS7;
-            des.Key = Encoding.UTF8.GetBytes(encryptionKey);
+            try
+            {
+                byte[] xteakey = new byte[16];
 
-            ICryptoTransform cryptoTransform = des.CreateEncryptor();
-            byte[] encryptedDataBytes = cryptoTransform.TransformFinalBlock(data, 0, data.Length);
+                byte[] cipheredkey = new byte[xteakey.Length];
 
-            des.Dispose();
+                TripleDES des = TripleDES.Create();
+                des.Mode = CipherMode.ECB;
+                des.Padding = PaddingMode.PKCS7;
+                des.Key = Encoding.UTF8.GetBytes(encryptionKey);
 
-            return encryptedDataBytes;
+                Array.Copy(des.Key, 0, xteakey, 0, 16);
+
+                ICryptoTransform cryptoTransform = des.CreateEncryptor();
+                byte[] encryptedDataBytes = cryptoTransform.TransformFinalBlock(data, 0, data.Length);
+
+                // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
+                AES128 aes = new AES128();
+
+                aes.Key = Misc.ReverseByteArray(xteakey);
+
+                bool success = aes.Encrypt(xteakey, ref cipheredkey);
+
+                if (success)
+                {
+                    byte[] outfile = new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 };
+
+                    encryptedDataBytes = Misc.Combinebytearay(outfile, CUSTOMXTEA.Encrypt(encryptedDataBytes, cipheredkey));
+                }
+                else
+                {
+                    // Encryption failed, fallback to classic crypto.
+                }
+
+                des.Dispose();
+
+                return encryptedDataBytes;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRYPTOSPORIDIUM : has throw an exception in TripleDes EncryptData - {ex}");
+
+                return Encoding.UTF8.GetBytes("ERROR IN EncryptData");
+            }
         }
 
         public static byte[] DecryptData(byte[] encryptedData, string encryptionKey)
         {
-            TripleDES des = TripleDES.Create();
-            des.Key = Encoding.UTF8.GetBytes(encryptionKey);
-            des.Mode = CipherMode.ECB;
-            des.Padding = PaddingMode.PKCS7;
+            try
+            {
+                TripleDES des = TripleDES.Create();
+                des.Key = Encoding.UTF8.GetBytes(encryptionKey);
+                des.Mode = CipherMode.ECB;
+                des.Padding = PaddingMode.PKCS7;
 
-            ICryptoTransform cryptoTransform = des.CreateDecryptor();
-            byte[] plainDataBytes = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+                byte[] firstSixBytes = new byte[6];
 
-            des.Dispose();
+                Array.Copy(encryptedData, 0, firstSixBytes, 0, 6);
 
-            return plainDataBytes;
+                if (Misc.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
+                {
+                    byte[] xteakey = new byte[16];
+
+                    byte[] cipheredkey = new byte[xteakey.Length];
+
+                    Array.Copy(des.Key, 0, xteakey, 0, 16);
+
+                    // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
+                    AES128 aes = new AES128();
+
+                    aes.Key = Misc.ReverseByteArray(xteakey);
+
+                    bool success = aes.Encrypt(xteakey, ref cipheredkey);
+
+                    if (success)
+                    {
+                        byte[] dst = new byte[encryptedData.Length - 6];
+
+                        Array.Copy(encryptedData, 6, dst, 0, dst.Length);
+
+                        encryptedData = CUSTOMXTEA.Decrypt(dst, cipheredkey);
+                    }
+                    else
+                    {
+                        // Encryption failed, fallback to classic crypto.
+                    }
+                }
+
+                ICryptoTransform cryptoTransform = des.CreateDecryptor();
+                byte[] plainDataBytes = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+
+                des.Dispose();
+
+                return plainDataBytes;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRYPTOSPORIDIUM : has throw an exception in TripleDes DecryptData - {ex}");
+
+                return Encoding.UTF8.GetBytes("ERROR IN DecryptData");
+            }
         }
     }
 }

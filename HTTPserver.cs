@@ -13,7 +13,7 @@ namespace PSMultiServer
 
         public static bool httpstarted = false;
 
-        private static string httpkey = "";
+        public static string httpkey = "";
 
         private static string phpver = "";
 
@@ -72,7 +72,19 @@ namespace PSMultiServer
 
         private async static Task loopserver(int port)
         {
-            listener.Prefixes.Add($"http://*:{port}/");
+            string[] portNumbers = { port.ToString(), "443" };
+
+            foreach (string portNumber in portNumbers)
+            {
+                string httpprefix = "http";
+
+                if (portNumber == "443")
+                {
+                    httpprefix = "https";
+                }
+
+                listener.Prefixes.Add($"{httpprefix}://*:{portNumber}/");
+            }
 
             Console.WriteLine($"HTTP Server started on *:{port} - Listening for requests...");
 
@@ -249,7 +261,7 @@ namespace PSMultiServer
                                 GC.Collect();
                             }
                         }
-                        else if (context.Request.Url.AbsolutePath.Contains("/ohs"))
+                        else if (context.Request.Url.AbsolutePath.Contains("/ohs") || context.Request.Headers["Host"] == "stats.outso-srv1.com")
                         {
                             specialpage = true;
 
@@ -276,7 +288,7 @@ namespace PSMultiServer
                             {
                                 ContextProcess wwwroot = new ContextProcess();
 
-                                Task.Run(() => wwwroot.Processwwwroot(context, page, phpver, httpkey, userAgent));
+                                Task.Run(() => wwwroot.Processwwwroot(context, page, phpver, userAgent));
                             }
                             else
                             {
@@ -392,7 +404,7 @@ namespace PSMultiServer
                             {
                                 ContextProcess wwwroot = new ContextProcess();
 
-                                Task.Run(() => wwwroot.Processwwwroot(context, page, phpver, httpkey, userAgent));
+                                Task.Run(() => wwwroot.Processwwwroot(context, page, phpver, userAgent));
                             }
                             else
                             {
