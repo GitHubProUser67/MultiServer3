@@ -86,7 +86,7 @@ namespace PSMultiServer
                 listener.Prefixes.Add($"{httpprefix}://*:{portNumber}/");
             }
 
-            Console.WriteLine($"HTTP Server started on *:{port} - Listening for requests...");
+            Console.WriteLine($"HTTP Server started on *:{port} - *:443 - Listening for requests...");
 
             listener.Start();
 

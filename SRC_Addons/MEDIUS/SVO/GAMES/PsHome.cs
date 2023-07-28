@@ -1619,7 +1619,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
 
                                             byte[] datatooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("body"));
 
-                                            Logger.Warn($"SVO server : {userAgent} Requested a Home OTG stat, queue | {Encoding.UTF8.GetString(datatooutput)}.");
+                                            Logger.Info($"SVO server : {userAgent} Requested a Home OTG stat, queue | {Encoding.UTF8.GetString(datatooutput)}.");
 
                                             if (response.OutputStream.CanWrite)
                                             {

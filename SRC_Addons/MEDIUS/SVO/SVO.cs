@@ -1,4 +1,5 @@
 ﻿using DotNetty.Common.Internal.Logging;
+using PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR;
 using PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES;
 using System.Net;
 using System.Security.Cryptography;
@@ -98,7 +99,14 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
 
             foreach (string portNumber in portNumbers)
             {
-                listener.Prefixes.Add($"http://*:{portNumber}/");
+                string httpprefix = "http";
+
+                if (portNumber == "10061")
+                {
+                    httpprefix = "https";
+                }
+
+                listener.Prefixes.Add($"{httpprefix}://*:{portNumber}/");
             }
 
             Logger.Info("SVO Server started on *:10060 - *:10061 - Listening for requests...");

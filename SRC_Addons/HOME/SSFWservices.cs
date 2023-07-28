@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace PSMultiServer.SRC_Addons.HOME
 {
@@ -46,9 +48,9 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/wwwssfwroot/");
                 }
 
-                if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/SSFW_PSNTickets/"))
+                if (!Directory.Exists(Directory.GetCurrentDirectory() + "/loginformNtemplates/SSFW_Accounts/"))
                 {
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/SSFW_PSNTickets/");
+                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/SSFW_Accounts/");
                 }
 
                 if (ssfwkey == "")
@@ -411,6 +413,10 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         {
                                             string resultString = "Default";
 
+                                            string sessionid = "";
+
+                                            int logoncount = 1;
+
                                             string homeClientVersion = request.Headers["X-HomeClientVersion"].Replace(".", "");
 
                                             using (MemoryStream ms = new MemoryStream())
@@ -475,6 +481,9 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                                             // Append the trimmed hash to the result
                                                             resultString += hash;
+
+                                                            sessionid = ssfwgenerateguid(hash, resultString);
+
                                                             md5.Dispose();
                                                         }
                                                     }
@@ -507,7 +516,113 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                                             // Append the trimmed hash to the result
                                                             resultString += hash;
+
+                                                            sessionid = ssfwgenerateguid(hash, resultString);
+
                                                             md5.Dispose();
+                                                        }
+                                                    }
+
+                                                    string userprofilefile = Directory.GetCurrentDirectory() + $"/loginformNtemplates/SSFW_Accounts/{sessionid}.ssfw";
+
+                                                    if (File.Exists(userprofilefile))
+                                                    {
+                                                        string tempcontent = "";
+
+                                                        byte[] firstNineBytes = new byte[9];
+
+                                                        using (FileStream fileStream = new FileStream(userprofilefile, FileMode.Open, FileAccess.Read))
+                                                        {
+                                                            fileStream.Read(firstNineBytes, 0, 9);
+                                                            fileStream.Close();
+                                                        }
+
+                                                        if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                                        {
+                                                            byte[] src = File.ReadAllBytes(userprofilefile);
+                                                            byte[] dst = new byte[src.Length - 9];
+
+                                                            Array.Copy(src, 9, dst, 0, dst.Length);
+
+                                                            tempcontent = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                                        }
+                                                        else
+                                                        {
+                                                            tempcontent = File.ReadAllText(userprofilefile);
+                                                        }
+
+                                                        // Parsing JSON data to SSFWUserData object
+                                                        SSFWUserData userData = JsonConvert.DeserializeObject<SSFWUserData>(tempcontent);
+
+                                                        if (userData != null)
+                                                        {
+                                                            // Modifying the object if needed
+                                                            userData.LogonCount += 1;
+
+                                                            logoncount = userData.LogonCount;
+
+                                                            Console.WriteLine($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
+                                                            Console.WriteLine($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
+                                                            Console.WriteLine($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
+
+                                                            using (FileStream fs = new FileStream(userprofilefile, FileMode.Create))
+                                                            {
+                                                                byte[] dataforoutput = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(userData));
+
+                                                                if (ssfwkey != "")
+                                                                {
+                                                                    byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
+
+                                                                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforoutput));
+
+                                                                    fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
+                                                                    fs.Flush();
+                                                                    fs.Dispose();
+                                                                }
+                                                                else
+                                                                {
+                                                                    fs.Write(dataforoutput, 0, dataforoutput.Length);
+                                                                    fs.Flush();
+                                                                    fs.Dispose();
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        string tempcontent = $"{{\"Username\":\"{sessionid}\",\"LogonCount\":{logoncount},\"IGA\":0}}";
+
+                                                        // Parsing JSON data to SSFWUserData object
+                                                        SSFWUserData userData = JsonConvert.DeserializeObject<SSFWUserData>(tempcontent);
+
+                                                        if (userData != null)
+                                                        {
+                                                            Console.WriteLine($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
+                                                            Console.WriteLine($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
+                                                            Console.WriteLine($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
+
+                                                            using (FileStream fs = new FileStream(userprofilefile, FileMode.Create))
+                                                            {
+                                                                byte[] dataforoutput = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(userData));
+
+                                                                if (ssfwkey != "")
+                                                                {
+                                                                    byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
+
+                                                                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforoutput));
+
+                                                                    fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
+                                                                    fs.Flush();
+                                                                    fs.Dispose();
+                                                                }
+                                                                else
+                                                                {
+                                                                    fs.Write(dataforoutput, 0, dataforoutput.Length);
+                                                                    fs.Flush();
+                                                                    fs.Dispose();
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -589,26 +704,6 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                                 try
                                                 {
-                                                    using (FileStream fs = new FileStream($"./loginformNtemplates/SSFW_PSNTickets/{resultString}", FileMode.Create))
-                                                    {
-                                                        if (ssfwkey != "")
-                                                        {
-                                                            byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
-
-                                                            byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), bufferwrite));
-
-                                                            fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
-                                                            fs.Flush();
-                                                            fs.Dispose();
-                                                        }
-                                                        else
-                                                        {
-                                                            fs.Write(bufferwrite, 0, contentLength);
-                                                            fs.Flush();
-                                                            fs.Dispose();
-                                                        }
-                                                    }
-
                                                     if (!File.Exists(Directory.GetCurrentDirectory() + "/wwwssfwroot/LayoutService/cprod/person/" + resultString + "/mylayout.ssfw"))
                                                     {
                                                         using (FileStream fs = new FileStream($"./wwwssfwroot/LayoutService/cprod/person/" + resultString + "/mylayout.ssfw", FileMode.Create))
@@ -709,10 +804,6 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         }
                                                     }
 
-                                                    SSFWLoginCounter counter = new SSFWLoginCounter();
-
-                                                    counter.ProcessLogin(resultString);
-
                                                     if (response.OutputStream.CanWrite)
                                                     {
                                                         try
@@ -725,7 +816,7 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                                                             // Write the JSON response to the output stream
                                                             byte[] buffer = Encoding.UTF8.GetBytes("{ \"session\": [\r\n\t  {\r\n\t\t\"@id\": \"PUT_SESSIONID_HERE\",\r\n\t\t\"person\": {\r\n\t\t  \"@id\": \"PUT_PERSONID_HERE\",\r\n\t\t  \"logonCount\": PUT_LOGONNUMBER_HERE\r\n\t\t}\r\n\t  }\r\n   ]\r\n}"
-                                                                .Replace("PUT_SESSIONID_HERE", Guid.NewGuid().ToString()).Replace("PUT_PERSONID_HERE", resultString).Replace("PUT_LOGONNUMBER_HERE", counter.GetLoginCount(resultString).ToString()));
+                                                                .Replace("PUT_SESSIONID_HERE", sessionid).Replace("PUT_PERSONID_HERE", resultString).Replace("PUT_LOGONNUMBER_HERE", logoncount.ToString()));
                                                             context.Response.ContentLength64 = buffer.Length;
                                                             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
                                                             response.OutputStream.Close();
@@ -2150,6 +2241,174 @@ namespace PSMultiServer.SRC_Addons.HOME
                                         }
                                     }
                                 }
+                                else if (context.Request.Url.AbsolutePath.Contains("/AdminObjectService/start") && request.Headers["X-Home-Session-Id"] != null)
+                                {
+                                    try
+                                    {
+                                        string sessionid = request.Headers["X-Home-Session-Id"];
+
+                                        if (File.Exists(Directory.GetCurrentDirectory() + $"/loginformNtemplates/SSFW_Accounts/{sessionid}.ssfw"))
+                                        {
+                                            string tempcontent = "";
+
+                                            byte[] firstNineBytes = new byte[9];
+
+                                            using (FileStream fileStream = new FileStream(Directory.GetCurrentDirectory() + $"/loginformNtemplates/SSFW_Accounts/{sessionid}.ssfw", FileMode.Open, FileAccess.Read))
+                                            {
+                                                fileStream.Read(firstNineBytes, 0, 9);
+                                                fileStream.Close();
+                                            }
+
+                                            if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                            {
+                                                byte[] src = File.ReadAllBytes(Directory.GetCurrentDirectory() + $"/loginformNtemplates/SSFW_Accounts/{sessionid}.ssfw");
+                                                byte[] dst = new byte[src.Length - 9];
+
+                                                Array.Copy(src, 9, dst, 0, dst.Length);
+
+                                                tempcontent = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                                            CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                            }
+                                            else
+                                            {
+                                                tempcontent = File.ReadAllText(Directory.GetCurrentDirectory() + $"/loginformNtemplates/SSFW_Accounts/{sessionid}.ssfw");
+                                            }
+
+                                            // Parsing JSON data to SSFWUserData object
+                                            SSFWUserData userData = JsonConvert.DeserializeObject<SSFWUserData>(tempcontent);
+
+                                            if (userData != null)
+                                            {
+                                                Console.WriteLine($"SSFW Server : IGA Request from : {sessionid} - IGA : {userData.IGA}");
+
+                                                if (userData.IGA == 1)
+                                                {
+                                                    Console.WriteLine($"SSFW Server : Admin role confirmed");
+
+                                                    if (response.OutputStream.CanWrite)
+                                                    {
+                                                        try
+                                                        {
+                                                            // Return a success response
+                                                            response.ContentType = "application/json";
+                                                            response.StatusCode = (int)HttpStatusCode.OK;
+                                                            response.OutputStream.Close();
+                                                        }
+                                                        catch (Exception ex1)
+                                                        {
+                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("Client Disconnected early");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
+
+                                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                                    if (response.OutputStream.CanWrite)
+                                                    {
+                                                        try
+                                                        {
+                                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                            response.ContentLength64 = notAllowed.Length;
+                                                            response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                            response.OutputStream.Close();
+                                                        }
+                                                        catch (Exception ex1)
+                                                        {
+                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("Client Disconnected early");
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
+
+                                                byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                                if (response.OutputStream.CanWrite)
+                                                {
+                                                    try
+                                                    {
+                                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                        response.ContentLength64 = notAllowed.Length;
+                                                        response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                        response.OutputStream.Close();
+                                                    }
+                                                    catch (Exception ex1)
+                                                    {
+                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("Client Disconnected early");
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
+
+                                            byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                    response.ContentLength64 = notAllowed.Length;
+                                                    response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception ex1)
+                                                {
+                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Client Disconnected early");
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET /AdminObjectService/start request : {ex}");
+
+                                        // Return an internal SSFW Server : error response
+                                        byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                                response.ContentLength64 = InternnalError.Length;
+                                                response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception ex1)
+                                            {
+                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Client Disconnected early");
+                                        }
+                                    }
+                                }
                                 else if (File.Exists(filePath + ".ssfw") && request.Headers["X-Home-Session-Id"] != null)
                                 {
                                     try
@@ -3432,36 +3691,39 @@ namespace PSMultiServer.SRC_Addons.HOME
                 return;
             }
         }
+
+        private static string ssfwgenerateguid(string input1, string input2)
+        {
+            string md5hash = "";
+            string sha512hash = "";
+
+            using (MD5 md5 = MD5.Create())
+            {
+                string salt = "**H0mEIsG3reAT!!!!!!!!!!!!!!";
+
+                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input1 + salt));
+                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+
+                md5.Dispose();
+            }
+
+            using (SHA512 sha512 = SHA512.Create())
+            {
+                string salt = "C0MeBaCKHOm3*!*!*!*!*!*!*!*!";
+
+                byte[] hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(salt + input2));
+                sha512hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+
+                sha512.Dispose();
+            }
+
+            return (md5hash.Substring(1, 8) + "-" + sha512hash.Substring(2, 4) + "-" + md5hash.Substring(10, 4) + "-" + sha512hash.Substring(16, 4) + "-" + sha512hash.Substring(19, 12)).ToLower();
+        }
     }
-    public class SSFWLoginCounter
+    public class SSFWUserData
     {
-        private Dictionary<string, int> loginCounts;
-
-        public SSFWLoginCounter()
-        {
-            loginCounts = new Dictionary<string, int>();
-        }
-
-        public void ProcessLogin(string username)
-        {
-            if (loginCounts.ContainsKey(username))
-            {
-                loginCounts[username]++;
-            }
-            else
-            {
-                loginCounts.Add(username, 1);
-            }
-        }
-
-        public int GetLoginCount(string username)
-        {
-            if (loginCounts.ContainsKey(username))
-            {
-                return loginCounts[username];
-            }
-
-            return 0;
-        }
+        public string Username { get; set; }
+        public int LogonCount { get; set; }
+        public int IGA { get; set; }
     }
 }
