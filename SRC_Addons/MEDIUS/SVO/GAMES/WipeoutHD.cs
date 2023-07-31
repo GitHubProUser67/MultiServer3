@@ -1065,16 +1065,16 @@ namespace PSMultiServer.Addons.Medius.SVO.GAMES
 
                                             if (await Task.Run(() => Misc.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E })))
                                             {
-                                                Logger.Info($"SVO : User {psnname} logged in and is on RPCN");
+                                                ServerConfiguration.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
                                             }
                                             else
                                             {
-                                                Logger.Info($"SVO : User {psnname} logged in and is on PSN");
+                                                ServerConfiguration.LogInfo($"SVO : User {psnname} logged in and is on PSN");
                                             }
                                         }
                                         catch (Exception ex)
                                         {
-                                            Logger.Error($"SVO Server : has throw an exception in /wox_ws/rest/account/TicketLogin while processing the PSN Ticket : {ex}");
+                                            ServerConfiguration.LogError($"SVO Server : has throw an exception in /wox_ws/rest/account/TicketLogin while processing the PSN Ticket : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1403,7 +1403,7 @@ namespace PSMultiServer.Addons.Medius.SVO.GAMES
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"SVO Server : an error occured in WipeoutHD Request type - {ex}");
+                    ServerConfiguration.LogError($"SVO Server : an error occured in WipeoutHD Request type - {ex}");
                 }
 
                 context.Response.Close();

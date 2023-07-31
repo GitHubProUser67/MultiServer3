@@ -395,7 +395,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             catch (Exception e)
             {
                 // 
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason
                 client.Queue(new MediusCreateGameResponse()
@@ -470,7 +470,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             catch (Exception e)
             {
                 // 
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason
                 client.Queue(new MediusCreateGameResponse()
@@ -576,7 +576,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 catch (Exception e)
                 {
                     // 
-                    Logger.Error(e);
+                    ServerConfiguration.LogError(e);
 
                     // Failure adding game for some reason
                     client.Queue(new MediusMatchCreateGameResponse()
@@ -633,7 +633,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 catch (Exception e)
                 {
                     // 
-                    Logger.Error(e);
+                    ServerConfiguration.LogError(e);
 
                     // Failure adding game for some reason
                     client.Queue(new MediusMatchCreateGameResponse()
@@ -773,7 +773,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             catch (Exception e)
             {
                 // 
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason
                 client.Queue(new MediusCreateGameResponse()
@@ -1502,7 +1502,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             catch (Exception e)
             {
                 // 
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason
                 client.Queue(new MediusPartyCreateResponse()
@@ -1520,7 +1520,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             catch (Exception e)
             {
                 // 
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason
                 client.Queue(new MediusPartyCreateResponse()
@@ -1634,7 +1634,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             string fileName = filesArray[i];
                             FileInfo fi = new FileInfo(fileName);
 
-                            Logger.Info($"Medius Files Count: {_mediusFiles.Count}");
+                            ServerConfiguration.LogInfo($"Medius Files Count: {_mediusFiles.Count}");
 
                             _mediusFiles.Add(new MediusFile()
                             {
@@ -1823,7 +1823,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 {
                     if (channelKeyPair.Value.ReadyToDestroy)
                     {
-                        Logger.Info($"Destroying Channel {channelKeyPair.Value}");
+                        ServerConfiguration.LogInfo($"Destroying Channel {channelKeyPair.Value}");
                         channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
                     }
                     else
@@ -1849,7 +1849,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 {
                     if (gameKeyPair.Value.ReadyToDestroy)
                     {
-                        Logger.Info($"Destroying Game {gameKeyPair.Value}");
+                        ServerConfiguration.LogInfo($"Destroying Game {gameKeyPair.Value}");
                         await gameKeyPair.Value.EndGame();
                         gamesToRemove.Enqueue((quickLookup.Value, gameKeyPair.Key));
                     }
@@ -1899,7 +1899,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             quickLookup.SessionKeyToClient.Remove(newClient.SessionKey);
                     }
 
-                    Logger.Error(e);
+                    ServerConfiguration.LogError(e);
                     //throw e;
                 }
             }
@@ -1913,7 +1913,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         if (clientKeyPair.Value.Timedout)
                             Logger.Warn($"Timing out client {clientKeyPair.Value}");
                         else
-                            Logger.Info($"Destroying Client {clientKeyPair.Value}");
+                            ServerConfiguration.LogInfo($"Destroying Client {clientKeyPair.Value}");
 
                         // Logout and end session
                         await clientKeyPair.Value.Logout();
@@ -1959,7 +1959,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 {
                     if (!dmeKeyPair.Value.IsConnected)
                     {
-                        Logger.Info($"Destroying DME Client {dmeKeyPair.Value}");
+                        ServerConfiguration.LogInfo($"Destroying DME Client {dmeKeyPair.Value}");
 
                         // Logout and end session
                         dmeKeyPair.Value?.Logout();

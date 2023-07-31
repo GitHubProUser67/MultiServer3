@@ -153,7 +153,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
                     }
                 default:
                     {
-                        Logger.Error($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in DMEObject.SetIp()");
+                        ServerConfiguration.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in DMEObject.SetIp()");
                         break;
                     }
             }

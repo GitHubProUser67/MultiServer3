@@ -86,7 +86,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
 
                 // Log if id is set
                 if (message.CanLog())
-                    Logger.Info($"TCP RECV {channel}: {message}");
+                    ServerConfiguration.LogInfo($"TCP RECV {channel}: {message}");
             };
 
             var bootstrap = new ServerBootstrap();
@@ -162,7 +162,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e);
+                            ServerConfiguration.LogError(e);
                         }
                     }
 
@@ -181,7 +181,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 
@@ -419,7 +419,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                                         #region News
                                         if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
                                         {
-                                            Logger.Info("MUIS: News bit set in request");
+                                            ServerConfiguration.LogInfo("MUIS: News bit set in request");
 
                                             Queue(new RT_MSG_SERVER_APP()
                                             {
@@ -436,7 +436,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
 
                                     }
 
-                                    Logger.Info($"MUIS: send univ info (ctr=):  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                    ServerConfiguration.LogInfo($"MUIS: send univ info (ctr=):  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
                                 }
                                 #endregion
 
@@ -574,7 +574,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                                             #region SVOUrl
                                             if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                                             {
-                                                Logger.Info($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                                ServerConfiguration.LogInfo($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
 
                                                 Queue(new RT_MSG_SERVER_APP()
                                                 {
@@ -668,7 +668,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                                     #region News
                                     if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
                                     {
-                                        Logger.Info("MUIS: News bit set in request");
+                                        ServerConfiguration.LogInfo("MUIS: News bit set in request");
 
                                         Queue(new RT_MSG_SERVER_APP()
                                         {
@@ -683,7 +683,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                                     }
                                     #endregion
 
-                                    Logger.Info($"MUIS: send univ info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                    ServerConfiguration.LogInfo($"MUIS: send univ info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
                                 }
                             }
                             else

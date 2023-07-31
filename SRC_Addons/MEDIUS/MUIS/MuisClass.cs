@@ -55,7 +55,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                 if (!await Database.Authenticate())
                 {
                     // Log and exit when unable to authenticate
-                    Logger.Error($"Unable to authenticate connection to Cache Server.");
+                    ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
                     return;
                 }
                 else
@@ -71,11 +71,11 @@ namespace PSMultiServer.Addons.Medius.MUIS
                     #region Check Cache Server Simulated
                     if (Database._settings.SimulatedMode != true)
                     {
-                        Logger.Info("Connected to Cache Server");
+                        ServerConfiguration.LogInfo("Connected to Cache Server");
                     }
                     else
                     {
-                        Logger.Info("Connected to Cache Server (Simulated)");
+                        ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
                     }
                     #endregion
                 }
@@ -89,30 +89,30 @@ namespace PSMultiServer.Addons.Medius.MUIS
 
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
             #region MediusGetBuildTimeStamp
             var MediusBuildTimeStamp = GetLinkerTime(Assembly.GetEntryAssembly());
-            Logger.Info($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
+            ServerConfiguration.LogInfo($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
             #endregion
 
             string gpszVersionString = "3.05.201109161400";
 
-            Logger.Info($"* Medius Universe Information Server Version {gpszVersionString}");
-            Logger.Info($"* Launched on {datetime}");
+            ServerConfiguration.LogInfo($"* Medius Universe Information Server Version {gpszVersionString}");
+            ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
             if (Database._settings.SimulatedMode == true)
             {
-                Logger.Info("* Database Disabled Medius Stack");
+                ServerConfiguration.LogInfo("* Database Disabled Medius Stack");
             }
             else
             {
-                Logger.Info("* Database Enabled Medius Stack");
+                ServerConfiguration.LogInfo("* Database Enabled Medius Stack");
             }
 
             UniverseInfoServers = new MUIS[Settings.Ports.Length];
             for (int i = 0; i < UniverseInfoServers.Length; ++i)
             {
-                Logger.Info($"* Enabling MUIS on TCP Port = {Settings.Ports[i]}.");
+                ServerConfiguration.LogInfo($"* Enabling MUIS on TCP Port = {Settings.Ports[i]}.");
                 UniverseInfoServers[i] = new MUIS(Settings.Ports[i]);
                 UniverseInfoServers[i].Start();
             }
@@ -120,22 +120,22 @@ namespace PSMultiServer.Addons.Medius.MUIS
             //* Process ID: %d , Parent Process ID: %d
             if (Database._settings.SimulatedMode == true)
             {
-                Logger.Info("* Database Disabled Medius Universe Information Server");
+                ServerConfiguration.LogInfo("* Database Disabled Medius Universe Information Server");
             } else {
-                Logger.Info("* Database Enabled Medius Universe Information Server");
+                ServerConfiguration.LogInfo("* Database Enabled Medius Universe Information Server");
             }
             */
-            Logger.Info($"* Server Key Type: {Settings.EncryptMessages}");
+            ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
 
             #region Remote Log Viewing
             if (Settings.RemoteLogViewPort == 0)
             {
                 //* Remote log viewing setup failure with port %d.
-                Logger.Info("* Remote log viewing disabled.");
+                ServerConfiguration.LogInfo("* Remote log viewing disabled.");
             }
             else if (Settings.RemoteLogViewPort != 0)
             {
-                Logger.Info($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
+                ServerConfiguration.LogInfo($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
             }
             #endregion
 
@@ -144,14 +144,14 @@ namespace PSMultiServer.Addons.Medius.MUIS
             if (Settings.MediusServerVersionOverride == true)
             {
                 // Use override methods in code to send our own version string from config
-                Logger.Info("Using config input server version");
-                Logger.Info($"MUISVersion Version: {Settings.MUISVersion}");
+                ServerConfiguration.LogInfo("Using config input server version");
+                ServerConfiguration.LogInfo($"MUISVersion Version: {Settings.MUISVersion}");
 
             }
             else
             {
                 // Use hardcoded methods in code to handle specific games server versions
-                Logger.Info("Using game specific server versions");
+                ServerConfiguration.LogInfo("Using game specific server versions");
             }
 
 
@@ -160,7 +160,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
 
             //* Diagnostic Profiling Enabled: %d Counts
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
 
             if (Settings.NATIp != null)
             {
@@ -168,7 +168,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                 DoGetHostEntry(ip);
             }
 
-            Logger.Info($"MUIS initalized.");
+            ServerConfiguration.LogInfo($"MUIS initalized.");
 
             try
             {
@@ -190,7 +190,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
             finally
             {
@@ -916,15 +916,15 @@ namespace PSMultiServer.Addons.Medius.MUIS
             {
                 IPHostEntry host = Dns.GetHostEntry(address);
 
-                Logger.Info($"* NAT Service IP: {address}");
-                //Logger.Info($"GetHostEntry({address}) returns HostName: {host.HostName}");
+                ServerConfiguration.LogInfo($"* NAT Service IP: {address}");
+                //ServerConfiguration.LogInfo($"GetHostEntry({address}) returns HostName: {host.HostName}");
             }
             catch (SocketException ex)
             {
                 //unknown host or
                 //not every IP has a name
                 //log exception (manage it)
-                Logger.Error($"* NAT not resolved {ex}");
+                ServerConfiguration.LogError($"* NAT not resolved {ex}");
             }
         }
 
@@ -1006,7 +1006,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
         }
 

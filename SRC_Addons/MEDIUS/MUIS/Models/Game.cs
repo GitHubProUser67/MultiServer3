@@ -102,7 +102,7 @@ namespace PSMultiServer.Addons.Medius.MUIS.Models
             Host = client;
             SetWorldStatus(MediusWorldStatus.WorldPendingCreation).Wait();
 
-            Logger.Info($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
         }
 
         public GameDTO ToGameDTO()
@@ -360,7 +360,7 @@ namespace PSMultiServer.Addons.Medius.MUIS.Models
                 return;
 
             // 
-            Logger.Info($"Game {Id}: {GameName}: {client} added.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {client} added.");
 
             Clients.Add(new GameClient()
             {
@@ -375,7 +375,7 @@ namespace PSMultiServer.Addons.Medius.MUIS.Models
         protected virtual async Task OnPlayerLeft(GameClient player)
         {
             // 
-            Logger.Info($"Game {Id}: {GameName}: {player.Client} left.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {player.Client} left.");
 
             // 
             player.InGame = false;
@@ -391,7 +391,7 @@ namespace PSMultiServer.Addons.Medius.MUIS.Models
         public virtual async Task RemovePlayer(ClientObject client)
         {
             // 
-            Logger.Info($"Game {Id}: {GameName}: {client} removed.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {client} removed.");
 
             // Remove host
             if (Host == client)
@@ -504,7 +504,7 @@ namespace PSMultiServer.Addons.Medius.MUIS.Models
             destroyed = true;
 
             // 
-            Logger.Info($"Game {Id}: {GameName}: EndGame() called.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: EndGame() called.");
 
             // Send to plugins
             await MuisClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });

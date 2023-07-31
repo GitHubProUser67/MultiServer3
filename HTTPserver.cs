@@ -34,11 +34,11 @@ namespace PSMultiServer
 
                 if (httpkey == "")
                 {
-                    Console.WriteLine("No HTTP key so http encryption is disabled.");
+                    ServerConfiguration.LogWarn("No HTTP key so http encryption is disabled.");
                 }
                 else if (httpkey.Length < 20)
                 {
-                    Console.WriteLine("HTTP key is less than 20 characters, so encryption is disabled.");
+                    ServerConfiguration.LogWarn("HTTP key is less than 20 characters, so encryption is disabled.");
 
                     httpkey = "";
                 }
@@ -51,7 +51,7 @@ namespace PSMultiServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"HTTP Server has throw an exception in Main : {ex}");
+                ServerConfiguration.LogError($"HTTP Server has throw an exception in Main : {ex}");
             }
         }
         public static void HTTPstop()
@@ -82,7 +82,7 @@ namespace PSMultiServer
                 listener.Prefixes.Add($"{httpprefix}://*:{portNumber}/");
             }
 
-            Console.WriteLine($"HTTP Server started on *:{port} - *:443 - Listening for requests...");
+            ServerConfiguration.LogInfo($"HTTP Server started on *:{port} - *:443 - Listening for requests...");
 
             listener.Start();
 
@@ -116,7 +116,7 @@ namespace PSMultiServer
                         {
                             _keepGoing = false;
 
-                            Console.WriteLine($"HTTP Server : FATAL ERROR OCCURED - {ex} - Trying to listen for requests again...");
+                            ServerConfiguration.LogError($"HTTP Server : FATAL ERROR OCCURED - {ex} - Trying to listen for requests again...");
 
                             if (!listener.IsListening)
                             {
@@ -145,7 +145,7 @@ namespace PSMultiServer
 
                 if (userAgent != null && userAgent.Contains("CellOS"))
                 {
-                    Console.WriteLine($"HTTP Server : Received request from : {userAgent} : {context.Request.Url.AbsolutePath}");
+                    ServerConfiguration.LogInfo($"HTTP Server : Received request from : {userAgent} : {context.Request.Url.AbsolutePath}");
 
                     if (context.Request.IsWebSocketRequest)
                     {
@@ -157,7 +157,7 @@ namespace PSMultiServer
                         {
                             specialpage = true;
 
-                            Console.WriteLine($"HTTP Server : {userAgent} - Requested server root, we forbid!");
+                            ServerConfiguration.LogInfo($"HTTP Server : {userAgent} - Requested server root, we forbid!");
 
                             context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
@@ -174,12 +174,12 @@ namespace PSMultiServer
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Client Disconnected early");
+                                ServerConfiguration.LogError("Client Disconnected early");
                             }
 
                             ros.Dispose();
@@ -199,7 +199,7 @@ namespace PSMultiServer
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"HTTP Server : {userAgent} tried to access a sub-server via /index.php server, but it's not correct so we forbid.");
+                                    ServerConfiguration.LogInfo($"HTTP Server : {userAgent} tried to access a sub-server via /index.php server, but it's not correct so we forbid.");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -215,12 +215,12 @@ namespace PSMultiServer
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
 
                                     context.Response.Close();
@@ -229,7 +229,7 @@ namespace PSMultiServer
                             }
                             else
                             {
-                                Console.WriteLine($"HTTP Server : {userAgent} tried to access /index.php without a host, so we forbid.");
+                                ServerConfiguration.LogInfo($"HTTP Server : {userAgent} tried to access /index.php without a host, so we forbid.");
 
                                 // Return a not allowed response
                                 byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -245,12 +245,12 @@ namespace PSMultiServer
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
 
                                 context.Response.Close();
@@ -288,7 +288,7 @@ namespace PSMultiServer
                             }
                             else
                             {
-                                Console.WriteLine($"HTTP Server : {userAgent} - Requested a file that doesn't exist : {page}");
+                                ServerConfiguration.LogInfo($"HTTP Server : {userAgent} - Requested a file that doesn't exist : {page}");
 
                                 context.Response.StatusCode = 404;
 
@@ -305,12 +305,12 @@ namespace PSMultiServer
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
 
                                 ros.Dispose();
@@ -349,7 +349,7 @@ namespace PSMultiServer
                         userAgent = userAgent + $" - {clientDNS}";
                     }
 
-                    Console.WriteLine($"HTTP Server : Received request from : {userAgent} : {context.Request.Url.AbsolutePath}");
+                    ServerConfiguration.LogInfo($"HTTP Server : Received request from : {userAgent} : {context.Request.Url.AbsolutePath}");
 
                     if (context.Request.IsWebSocketRequest)
                     {
@@ -361,7 +361,7 @@ namespace PSMultiServer
                         {
                             specialpage = true;
 
-                            Console.WriteLine($"HTTP Server : {userAgent} - Requested server root, we forbid!");
+                            ServerConfiguration.LogInfo($"HTTP Server : {userAgent} - Requested server root, we forbid!");
 
                             context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
@@ -378,12 +378,12 @@ namespace PSMultiServer
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Client Disconnected early");
+                                ServerConfiguration.LogError("Client Disconnected early");
                             }
 
                             ros.Dispose();
@@ -404,7 +404,7 @@ namespace PSMultiServer
                             }
                             else
                             {
-                                Console.WriteLine($"HTTP Server : {userAgent} - Requested a file that doesn't exist : {page}");
+                                ServerConfiguration.LogInfo($"HTTP Server : {userAgent} - Requested a file that doesn't exist : {page}");
 
                                 context.Response.StatusCode = 404;
 
@@ -421,12 +421,12 @@ namespace PSMultiServer
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
 
                                 ros.Dispose();
@@ -442,7 +442,7 @@ namespace PSMultiServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"HTTP Server : an error occured in ProcessRequest - {ex}");
+                ServerConfiguration.LogInfo($"HTTP Server : an error occured in ProcessRequest - {ex}");
 
                 context.Response.Close();
                 GC.Collect();
@@ -503,7 +503,7 @@ namespace PSMultiServer
                     rooms.Remove(clientIp);
                 }
 
-                Console.WriteLine($"HTTP Server: {userAgent} closed the websocket connection.");
+                ServerConfiguration.LogInfo($"HTTP Server: {userAgent} closed the websocket connection.");
 
                 context.Response.Close();
                 GC.Collect();
@@ -512,7 +512,7 @@ namespace PSMultiServer
             }
             catch (KeyNotFoundException ex)
             {
-                Console.WriteLine($"HTTP Server: {userAgent} tried to access a chat channel that doesn't exist anymore! Closing.");
+                ServerConfiguration.LogInfo($"HTTP Server: {userAgent} tried to access a chat channel that doesn't exist anymore! Closing.");
 
                 context.Response.Close();
                 GC.Collect();
@@ -521,7 +521,7 @@ namespace PSMultiServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"HTTP Server: An error occurred in ProcessWebSocketRequest - {ex}");
+                ServerConfiguration.LogInfo($"HTTP Server: An error occurred in ProcessWebSocketRequest - {ex}");
 
                 context.Response.Close();
                 GC.Collect();
@@ -555,7 +555,7 @@ namespace PSMultiServer
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Error broadcasting message to client - {ex}");
+                            ServerConfiguration.LogInfo($"Error broadcasting message to client - {ex}");
                             roomClients.RemoveAt(i);
                         }
                     }
@@ -571,13 +571,13 @@ namespace PSMultiServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"HTTP Server: An error occurred in BroadcastMessageAsync - {ex}");
+                ServerConfiguration.LogInfo($"HTTP Server: An error occurred in BroadcastMessageAsync - {ex}");
 
                 return;
             }
         }
 
-        public static async Task WriteFile(HttpListenerContext ctx, string path)
+        public static Task WriteFile(HttpListenerContext ctx, string path)
         {
             var response = ctx.Response;
             using (FileStream fs = File.OpenRead(path))
@@ -614,18 +614,18 @@ namespace PSMultiServer
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Client Disconnected early");
+                    ServerConfiguration.LogError("Client Disconnected early");
                 }
 
                 ros.Dispose();
             }
 
-            return;
+            return Task.CompletedTask;
         }
 
         public static byte[] ReadLine(BinaryReader reader)

@@ -72,7 +72,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         #region Check if AppId from Client matches Server
                         if (!MediusClass.Manager.IsAppIdSupported(clientConnectTcp.AppId))
                         {
-                            Logger.Error($"Client {clientChannel.RemoteAddress} attempting to authenticate with incompatible app id {clientConnectTcp.AppId}");
+                            ServerConfiguration.LogError($"Client {clientChannel.RemoteAddress} attempting to authenticate with incompatible app id {clientConnectTcp.AppId}");
                             await clientChannel.CloseAsync();
                             return;
                         }
@@ -163,7 +163,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 #region Client Disconnect
                 case RT_MSG_CLIENT_DISCONNECT _:
                     {
-                        //Logger.Info($"Client id = {data.ClientObject} disconnected by request with no specific reason\n");
+                        //ServerConfiguration.LogInfo($"Client id = {data.ClientObject} disconnected by request with no specific reason\n");
                         break;
                     }
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
@@ -202,7 +202,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         //UYA Public Beta v1.0
                         if (mgclSessionBeginRequest.ApplicationID == 10680)
                         {
-                            Logger.Info("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
+                            ServerConfiguration.LogInfo("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
                             // Create client object
                             data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest);
                         }
@@ -385,7 +385,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         if (mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternal)
                         {
                             // NetAddressTypeBinaryExternal
-                            Logger.Info($"AddressConverted: {ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress)}");
+                            ServerConfiguration.LogInfo($"AddressConverted: {ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress)}");
                             data.ClientObject.SetIp(ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress));
                         }
                         else if (mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
@@ -516,7 +516,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                     {
                         (data.ClientObject as DMEObject)?.OnServerReport(serverReport);
                         data.ClientObject.OnConnected();
-                        Logger.Info($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject.DmeId} WorldID {data.ClientObject.WorldId}");
+                        ServerConfiguration.LogInfo($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject.DmeId} WorldID {data.ClientObject.WorldId}");
                         break;
                     }
 
@@ -580,7 +580,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = sessionBeginRequest.ConnectionClass;
                         data.ClientObject.OnConnected();
 
-                        Logger.Info($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
+                        ServerConfiguration.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
                         _ = MediusClass.Database.GetServerFlags().ContinueWith((r) =>
                         {
@@ -628,7 +628,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
 
 
-                        Logger.Info($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
+                        ServerConfiguration.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
                         #region SystemMessageSingleTest Disabled?
                         if (MediusClass.Settings.SystemMessageSingleTest != false)
@@ -696,7 +696,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         /*
                         if (data.ClientObject.IsLoggedIn)
                         {
-                            Logger.Info($"SessionEnd Success");
+                            ServerConfiguration.LogInfo($"SessionEnd Success");
                             await data.ClientObject.Logout();
                         }
                         */
@@ -853,7 +853,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             //Sets the CachedPlayer's MachineId
                             data.MachineId = BitConverter.ToString(machineSignaturePost.MachineSignature);
 
-                            Logger.Info($"Session Key {machineSignaturePost.SessionKey} | Posting Machine signatures");
+                            ServerConfiguration.LogInfo($"Session Key {machineSignaturePost.SessionKey} | Posting Machine signatures");
 
                             // Then post to the Database if logged in
                             if (data.ClientObject?.IsLoggedIn ?? false)
@@ -876,7 +876,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             {
                                 data.MachineId = BitConverter.ToString(dnasSignaturePost.DnasSignature);
 
-                                Logger.Info($"Posting ConsoleID - ConsoleSigSize={dnasSignaturePost.DnasSignatureLength}");
+                                ServerConfiguration.LogInfo($"Posting ConsoleID - ConsoleSigSize={dnasSignaturePost.DnasSignatureLength}");
 
                                 // Then post to the Database if logged in
                                 if (data.ClientObject?.IsLoggedIn ?? false)
@@ -885,14 +885,14 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasTitleID)
                             {
-                                Logger.Info($"DnasSignaturePost Error - Invalid SignatureType");
+                                ServerConfiguration.LogInfo($"DnasSignaturePost Error - Invalid SignatureType");
 
                             }
 
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasDiskID)
                             {
 
-                                Logger.Info($"Posting DiskID - DiskSigSize={dnasSignaturePost.DnasSignatureLength}");
+                                ServerConfiguration.LogInfo($"Posting DiskID - DiskSigSize={dnasSignaturePost.DnasSignatureLength}");
 
                             }
                         }
@@ -1019,7 +1019,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         if (data.ClientObject == null)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLocationsRequest} without a session.");
 
-                        Logger.Info($"Get Locations Request Received Sessionkey: {getLocationsRequest.SessionKey}");
+                        ServerConfiguration.LogInfo($"Get Locations Request Received Sessionkey: {getLocationsRequest.SessionKey}");
                         await MediusClass.Database.GetLocations(data.ClientObject.ApplicationId).ContinueWith(r =>
                         {
                             var locations = r.Result;
@@ -1045,8 +1045,8 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                         LocationName = x.Name
                                     }).ToList();
 
-                                    Logger.Info("GetLocationsRequest  success");
-                                    Logger.Info($"NumLocations returned[{responses.Count}]");
+                                    ServerConfiguration.LogInfo("GetLocationsRequest  success");
+                                    ServerConfiguration.LogInfo($"NumLocations returned[{responses.Count}]");
 
                                     responses[responses.Count - 1].EndOfList = true;
                                     data.ClientObject.Queue(responses);
@@ -1192,7 +1192,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         {
                             if (r.IsCompletedSuccessfully && r.Result)
                             {
-                                Logger.Info($"Logging out {data?.ClientObject?.AccountName}'s account\nDeleting from Medius Server");
+                                ServerConfiguration.LogInfo($"Logging out {data?.ClientObject?.AccountName}'s account\nDeleting from Medius Server");
 
                                 data?.ClientObject?.Logout();
 
@@ -1507,7 +1507,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 {
 
                                     #region isBanned?
-                                    Logger.Info(msg: $"Is Connected User MAC Banned: {r.Result}");
+                                    ServerConfiguration.LogInfo($"Is Connected User MAC Banned: {r.Result}");
 
                                     if (r.Result)
                                     {
@@ -1534,7 +1534,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                         if (r.IsCompletedSuccessfully && r.Result != null && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                         {
 
-                                            Logger.Info($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
+                                            ServerConfiguration.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
 
                                             if (r.Result.IsBanned == true)
                                             {
@@ -1554,7 +1554,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                             else if (appSettings.EnableAccountWhitelist && !appSettings.AccountIdWhitelist.Contains(r.Result.AccountId))
                                             {
 
-                                                Logger.Error($"AppId {data.ClientObject.ApplicationId} has EnableAccountWhitelist enabled or\n" +
+                                                ServerConfiguration.LogError($"AppId {data.ClientObject.ApplicationId} has EnableAccountWhitelist enabled or\n" +
                                                     $"Contains a AccountIdWhitelist!");
 
                                                 // Account not allowed to sign in
@@ -1575,7 +1575,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                             // Check that account creation is enabled
                                             if (appSettings.DisableAccountCreation)
                                             {
-                                                Logger.Error($"AppId {data.ClientObject.ApplicationId} has DisableAllowCreation enabled!");
+                                                ServerConfiguration.LogError($"AppId {data.ClientObject.ApplicationId} has DisableAllowCreation enabled!");
 
                                                 // Reply error
                                                 data.ClientObject.Queue(new MediusTicketLoginResponse()
@@ -1587,7 +1587,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                             }
                                             #endregion
 
-                                            Logger.Info($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
+                                            ServerConfiguration.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
 
                                             _ = MediusClass.Database.CreateAccount(new Server.Database.Models.CreateAccountDTO()
                                             {
@@ -1598,7 +1598,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                                 AppId = data.ClientObject.ApplicationId
                                             }).ContinueWith(async (r) =>
                                             {
-                                                Logger.Info($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
+                                                ServerConfiguration.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
 
                                                 if (r.IsCompletedSuccessfully && r.Result != null)
                                                 {
@@ -1621,7 +1621,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 }
                                 else
                                 {
-                                    Logger.Info($"Account MachineID {data.MachineId} is BANNED!");
+                                    ServerConfiguration.LogInfo($"Account MachineID {data.MachineId} is BANNED!");
 
                                     // Reply error
                                     data.ClientObject.Queue(new MediusTicketLoginResponse()
@@ -2156,7 +2156,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                         if (!data.ClientObject.IsLoggedIn && data.ClientObject.ApplicationId != 10411)
                         {
-                            Logger.Info($"Get My IP Request Handler Error: [{data.ClientObject}]: Player Not Privileged\nPlayer not logged in");
+                            ServerConfiguration.LogInfo($"Get My IP Request Handler Error: [{data.ClientObject}]: Player Not Privileged\nPlayer not logged in");
                             data.ClientObject.Queue(new MediusGetMyIPResponse()
                             {
                                 MessageID = getMyIpRequest.MessageID,
@@ -2171,7 +2171,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             {
                                 //var temp = DmeServerClientIpQuery()
 
-                                Logger.Info($"Error: Retrieving Client IP address {clientChannel.RemoteAddress} = [{ClientIP}]");
+                                ServerConfiguration.LogInfo($"Error: Retrieving Client IP address {clientChannel.RemoteAddress} = [{ClientIP}]");
                                 data.ClientObject.Queue(new MediusGetMyIPResponse()
                                 {
                                     MessageID = getMyIpRequest.MessageID,
@@ -2261,7 +2261,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             MediusClass.Manager.AddClient(data.ClientObject);
 
             // 
-            Logger.Info($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
+            ServerConfiguration.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
 
 
             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
@@ -2428,7 +2428,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
             int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
-            Logger.Info($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
+            ServerConfiguration.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
             //
             //await data.ClientObject.Login(accountDto);
@@ -2447,7 +2447,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             MediusClass.Manager.AddClient(data.ClientObject);
 
             // 
-            Logger.Info($"LOGGING IN ANONYMOUSLY AS {data.ClientObject.AccountDisplayName} with access token {data.ClientObject.Token}");
+            ServerConfiguration.LogInfo($"LOGGING IN ANONYMOUSLY AS {data.ClientObject.AccountDisplayName} with access token {data.ClientObject.Token}");
 
             // Put client in default channel
             //await data.ClientObject.JoinChannel(MediusStarter.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));

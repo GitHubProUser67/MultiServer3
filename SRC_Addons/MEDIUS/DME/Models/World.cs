@@ -37,13 +37,13 @@ namespace PSMultiServer.Addons.Medius.DME.Models
             // 
             WorldId = _idCounter++;
             _idToWorld.TryAdd(WorldId, this);
-            Logger.Info($"Registered world with id {WorldId}");
+            ServerConfiguration.LogInfo($"Registered world with id {WorldId}");
         }
 
         private void FreeWorld()
         {
             _idToWorld.TryRemove(WorldId, out _);
-            Logger.Info($"Unregistered world with id {WorldId}");
+            ServerConfiguration.LogInfo($"Unregistered world with id {WorldId}");
         }
 
         private bool TryRegisterNewClientIndex(out int index)
@@ -157,7 +157,7 @@ namespace PSMultiServer.Addons.Medius.DME.Models
             {
                 if (!Destroyed)
                 {
-                    Logger.Info($"{this} destroyed.");
+                    ServerConfiguration.LogInfo($"{this} destroyed.");
                     await Stop();
                 }
 

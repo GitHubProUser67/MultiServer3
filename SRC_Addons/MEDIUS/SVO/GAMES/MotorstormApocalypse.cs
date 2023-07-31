@@ -262,7 +262,7 @@ namespace PSMultiServer.Addons.Medius.SVO.GAMES
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"SVO Server : an error occured in Ps_Home Request type - {ex}");
+                    ServerConfiguration.LogError($"SVO Server : an error occured in Ps_Home Request type - {ex}");
                 }
 
                 context.Response.Close();

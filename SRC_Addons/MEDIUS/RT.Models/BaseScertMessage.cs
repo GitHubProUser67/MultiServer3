@@ -235,7 +235,7 @@ namespace PSMultiServer.Addons.Medius.RT.Models
                 }
                 else
                 {
-                    Logger.Error($"Unable to decrypt {id}, HASH:{BitConverter.ToString(hash)} DATA:{BitConverter.ToString(messageBuffer).Replace("-", "")}");
+                    ServerConfiguration.LogError($"Unable to decrypt {id}, HASH:{BitConverter.ToString(hash)} DATA:{BitConverter.ToString(messageBuffer).Replace("-", "")}");
                 }
             }
             else

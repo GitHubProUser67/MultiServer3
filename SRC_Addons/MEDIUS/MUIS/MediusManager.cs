@@ -650,7 +650,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                 {
                     if (channelKeyPair.Value.ReadyToDestroy)
                     {
-                        Logger.Info($"Destroying Channel {channelKeyPair.Value}");
+                        ServerConfiguration.LogInfo($"Destroying Channel {channelKeyPair.Value}");
                         channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
                     }
                     else
@@ -676,7 +676,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                 {
                     if (gameKeyPair.Value.ReadyToDestroy)
                     {
-                        Logger.Info($"Destroying Game {gameKeyPair.Value}");
+                        ServerConfiguration.LogInfo($"Destroying Game {gameKeyPair.Value}");
                         await gameKeyPair.Value.EndGame();
                         gamesToRemove.Enqueue((quickLookup.Value, gameKeyPair.Key));
                     }
@@ -726,7 +726,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                             quickLookup.SessionKeyToClient.Remove(newClient.SessionKey);
                     }
 
-                    Logger.Error(e);
+                    ServerConfiguration.LogError(e);
                     //throw e;
                 }
             }
@@ -740,7 +740,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                         if (clientKeyPair.Value.Timedout)
                             Logger.Warn($"Timing out client {clientKeyPair.Value}");
                         else
-                            Logger.Info($"Destroying Client {clientKeyPair.Value}");
+                            ServerConfiguration.LogInfo($"Destroying Client {clientKeyPair.Value}");
 
                         // Logout and end session
                         await clientKeyPair.Value.Logout();
@@ -786,7 +786,7 @@ namespace PSMultiServer.Addons.Medius.MUIS
                 {
                     if (!dmeKeyPair.Value.IsConnected)
                     {
-                        Logger.Info($"Destroying DME Client {dmeKeyPair.Value}");
+                        ServerConfiguration.LogInfo($"Destroying DME Client {dmeKeyPair.Value}");
 
                         // Logout and end session
                         dmeKeyPair.Value?.Logout();

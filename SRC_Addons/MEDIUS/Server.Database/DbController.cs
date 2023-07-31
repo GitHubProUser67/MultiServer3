@@ -51,7 +51,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             {
                 // Populate existing object
                 try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
-                catch (Exception e) { Logger.Error(e); }
+                catch (Exception e) { ServerConfiguration.LogError(e); }
             }
             #endregion
             else
@@ -141,7 +141,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return results;
@@ -189,7 +189,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -217,7 +217,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -270,7 +270,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -298,7 +298,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
             return result;
         }
@@ -320,7 +320,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -349,7 +349,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -377,7 +377,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -405,7 +405,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -428,7 +428,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -457,7 +457,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -495,7 +495,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -521,7 +521,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -553,7 +553,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -585,7 +585,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -618,7 +618,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -650,7 +650,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -678,7 +678,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -712,7 +712,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -742,7 +742,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -774,7 +774,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -815,7 +815,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -857,7 +857,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -898,7 +898,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -940,7 +940,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -981,7 +981,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1017,7 +1017,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1057,7 +1057,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1098,7 +1098,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1140,7 +1140,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1179,7 +1179,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1218,7 +1218,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1255,7 +1255,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1288,7 +1288,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1321,7 +1321,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1364,7 +1364,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1406,7 +1406,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1440,7 +1440,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1474,7 +1474,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1506,7 +1506,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1551,7 +1551,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1596,7 +1596,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1651,7 +1651,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1693,7 +1693,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1741,7 +1741,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1790,7 +1790,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1856,7 +1856,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1897,7 +1897,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -1970,7 +1970,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2021,7 +2021,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2058,7 +2058,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2107,7 +2107,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2159,7 +2159,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2209,7 +2209,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2254,7 +2254,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2288,7 +2288,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2315,7 +2315,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2342,7 +2342,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2380,7 +2380,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2417,7 +2417,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2453,7 +2453,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2489,7 +2489,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2554,7 +2554,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2581,7 +2581,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2624,7 +2624,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2674,7 +2674,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2722,7 +2722,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2759,7 +2759,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2804,7 +2804,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2838,7 +2838,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2893,7 +2893,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2923,7 +2923,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -2953,7 +2953,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return results;
@@ -2984,7 +2984,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3011,7 +3011,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3039,7 +3039,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3067,7 +3067,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3094,7 +3094,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3258,7 +3258,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return results;
@@ -3308,7 +3308,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return results;
@@ -3358,7 +3358,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return results;
@@ -3400,7 +3400,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3431,7 +3431,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3458,7 +3458,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3486,7 +3486,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3514,7 +3514,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3541,7 +3541,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3572,7 +3572,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3599,7 +3599,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3641,7 +3641,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3675,7 +3675,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return results;
@@ -3698,7 +3698,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3719,7 +3719,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 
@@ -3748,7 +3748,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3777,7 +3777,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
 
             return result;
@@ -3813,7 +3813,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = null;
                     }
                 }
@@ -3848,7 +3848,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = null;
                     }
                 }
@@ -3887,7 +3887,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = default(T);
                     }
                 }
@@ -3922,7 +3922,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = null;
                     }
                 }
@@ -3957,7 +3957,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = null;
                     }
                 }
@@ -3996,7 +3996,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = default(T);
                     }
                 }
@@ -4031,7 +4031,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = null;
                     }
                 }
@@ -4066,7 +4066,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = null;
                     }
                 }
@@ -4105,7 +4105,7 @@ namespace PSMultiServer.Addons.Medius.Server.Database
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e);
+                        ServerConfiguration.LogError(e);
                         result = default(T);
                     }
                 }

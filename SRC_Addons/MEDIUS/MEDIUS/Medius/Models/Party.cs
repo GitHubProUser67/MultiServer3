@@ -77,7 +77,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
             ChatChannel?.RegisterParty(this);
             Host = client;
 
-            Logger.Info($"Party {Id}: {PartyName}: Created by {client}");
+            ServerConfiguration.LogInfo($"Party {Id}: {PartyName}: Created by {client}");
         }
 
         public PartyDTO ToPartyDTO()
@@ -188,7 +188,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
                 return;
 
             // 
-            Logger.Info($"Party {Id}: {PartyName}: {client} added.");
+            ServerConfiguration.LogInfo($"Party {Id}: {PartyName}: {client} added.");
 
             Clients.Add(new PartyClient()
             {
@@ -203,7 +203,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
         protected virtual async Task OnPlayerLeft(PartyClient player)
         {
             // 
-            Logger.Info($"Game {Id}: {PartyName}: {player.Client} left.");
+            ServerConfiguration.LogInfo($"Game {Id}: {PartyName}: {player.Client} left.");
 
             // 
             player.InGame = false;
@@ -221,7 +221,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             // 
-            Logger.Info($"Party {Id}: {PartyName}: {client} removed.");
+            ServerConfiguration.LogInfo($"Party {Id}: {PartyName}: {client} removed.");
 
             // Remove host
             if (Host == client)
@@ -252,7 +252,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
             destroyed = true;
 
             // 
-            Logger.Info($"Game {Id}: {PartyName}: EndParty() called.");
+            ServerConfiguration.LogInfo($"Game {Id}: {PartyName}: EndParty() called.");
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnPartyArgs() { Party = this });

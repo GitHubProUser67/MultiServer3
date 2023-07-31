@@ -28,7 +28,7 @@ namespace PSMultiServer.Addons.Medius.Server.Common.Logging
                 _fileLogger.MinLevel = Logging.LogLevel;
             }
 
-            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => level >= LogSettings.Singleton.LogLevel, true));
+            InternalLoggerFactory.DefaultFactory.CreateLogger("Medius");
 
             return;
         }

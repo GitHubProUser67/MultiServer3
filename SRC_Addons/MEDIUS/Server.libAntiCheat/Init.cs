@@ -26,7 +26,7 @@ namespace PSMultiServer.Addons.Medius.Server.libAntiCheat
             {
 
 
-                Logger.Info("Initializing anticheat\n");
+                ServerConfiguration.LogInfo("Initializing anticheat\n");
 
                 mc_anticheat_init(aInfo);
             }
@@ -210,11 +210,11 @@ namespace PSMultiServer.Addons.Medius.Server.libAntiCheat
             /*
             if (Settings.AntiCheatOn != true)
             {
-                Logger.Info("AntiCheat is not activated. \n Try setting AntiCheatOn=1 in your config.json file.");
+                ServerConfiguration.LogInfo("AntiCheat is not activated. \n Try setting AntiCheatOn=1 in your config.json file.");
             }
             else
             {
-                Logger.Info($"{anticheatVersion}");
+                ServerConfiguration.LogInfo($"{anticheatVersion}");
             }
             */
         }

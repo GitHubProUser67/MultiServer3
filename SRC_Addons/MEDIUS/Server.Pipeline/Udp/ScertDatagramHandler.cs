@@ -19,7 +19,7 @@ namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
             // Detect when client disconnects
             ctx.Channel.CloseCompletion.ContinueWith((x) =>
             {
-                Logger.Info("Channel Closed");
+                ServerConfiguration.LogInfo("Channel Closed");
                 OnChannelInactive?.Invoke(ctx.Channel);
             });
 
@@ -30,7 +30,7 @@ namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
         // The Channel is closed hence the connection is closed
         public override void ChannelInactive(IChannelHandlerContext ctx)
         {
-            Logger.Info("Client disconnected");
+            ServerConfiguration.LogInfo("Client disconnected");
 
             // Send event upstream
             OnChannelInactive?.Invoke(ctx.Channel);
@@ -52,7 +52,7 @@ namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            Logger.Error(exception);
+            ServerConfiguration.LogError(exception);
         }
     }
 }

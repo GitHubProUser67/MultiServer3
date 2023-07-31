@@ -928,7 +928,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
                     }
                 default:
                     {
-                        Logger.Error($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in DMEObject.SetIp()");
+                        ServerConfiguration.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in DMEObject.SetIp()");
                         break;
                     }
             }
@@ -940,7 +940,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
             if(clientVersion <= 113)
             {
 
-                Logger.Info($"rt_msg_server_check_protocol_compatibility: client_version {clientVersion}, p_compatible {p_compatible}");
+                ServerConfiguration.LogInfo($"rt_msg_server_check_protocol_compatibility: client_version {clientVersion}, p_compatible {p_compatible}");
             }
             return 
         }

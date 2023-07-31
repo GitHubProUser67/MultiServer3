@@ -85,7 +85,7 @@ namespace PSMultiServer.Addons.Medius.GHS
 
                 // Log if id is set
                 if (message.CanLog())
-                    Logger.Info($"TCP RECV {channel}: {message}");
+                    ServerConfiguration.LogInfo($"TCP RECV {channel}: {message}");
             };
 
             var bootstrap = new ServerBootstrap();
@@ -157,11 +157,11 @@ namespace PSMultiServer.Addons.Medius.GHS
                     {
                         try
                         {
-                            await ProcessMessage(message, clientChannel, data);
+                            ProcessMessage(message, clientChannel, data);
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e);
+                            ServerConfiguration.LogError(e);
                         }
                     }
 
@@ -180,13 +180,13 @@ namespace PSMultiServer.Addons.Medius.GHS
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 
         #region Message Processing
 
-        protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
+        protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
@@ -207,7 +207,7 @@ namespace PSMultiServer.Addons.Medius.GHS
                             GhsClass.Settings.DefaultKey.N : Org.BouncyCastle.Math.BigInteger.Zero
                         }, clientChannel);
 
-                        Logger.Info("plugin: RT_MSG_SERVER_HELLO\n");
+                        ServerConfiguration.LogInfo("plugin: RT_MSG_SERVER_HELLO\n");
                         break;
                     }
                 case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
@@ -315,16 +315,16 @@ namespace PSMultiServer.Addons.Medius.GHS
                             PlayerCount = 0x0001,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
-                        Logger.Info("plugin: RT_MSG_SERVER_CONNECT_ACCEPT_TCP\n");
+                        ServerConfiguration.LogInfo("plugin: RT_MSG_SERVER_CONNECT_ACCEPT_TCP\n");
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Logger.Info("plugin: RT_MSG_CLIENT_CONNECT_READY_TCP\n");
+                        ServerConfiguration.LogInfo("plugin: RT_MSG_CLIENT_CONNECT_READY_TCP\n");
                         Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
 
-                        Logger.Info("plugin: RT_MSG_SERVER_CONNECT_COMPLETE\n");
+                        ServerConfiguration.LogInfo("plugin: RT_MSG_SERVER_CONNECT_COMPLETE\n");
                         /*
                         Queue(new RT_MSG_SERVER_APP()
                         {
@@ -345,7 +345,7 @@ namespace PSMultiServer.Addons.Medius.GHS
                     }
                 case RT_MSG_CLIENT_ECHO clientEcho:
                     {
-                        Logger.Info("plugin: RT_MSG_CLIENT_ECHO");
+                        ServerConfiguration.LogInfo("plugin: RT_MSG_CLIENT_ECHO");
                         Queue(new RT_MSG_CLIENT_ECHO() { Value = clientEcho.Value }, clientChannel);
                         break;
                     }
@@ -388,7 +388,7 @@ namespace PSMultiServer.Addons.Medius.GHS
                 case scertGhsTypeProtocolChoice ghsTypeProtocolChoice:
                     {
 
-                        Logger.Info($"ghsTypeProtocolChoice: {ghsTypeProtocolChoice.MajorVersion}.{ghsTypeProtocolChoice.MinorVersion}\n");
+                        ServerConfiguration.LogInfo($"ghsTypeProtocolChoice: {ghsTypeProtocolChoice.MajorVersion}.{ghsTypeProtocolChoice.MinorVersion}\n");
                         break;
                     }
                 default:

@@ -672,7 +672,7 @@ namespace PSMultiServer.Addons.Medius.SVO.GAMES
 
                                         string acctNameREX = Regex.Replace(acctName, @"[^a-zA-Z0-9]+", string.Empty);
 
-                                        Logger.Info($"Logging user {acctNameREX} into SVO...\n");
+                                        ServerConfiguration.LogInfo($"Logging user {acctNameREX} into SVO...\n");
 
                                         response.Headers.Set("X-SVOMac", serverMac);
 
@@ -1619,7 +1619,8 @@ namespace PSMultiServer.Addons.Medius.SVO.GAMES
 
                                             byte[] datatooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("body"));
 
-                                            Logger.Info($"SVO server : {userAgent} Requested a Home OTG stat, queue | {Encoding.UTF8.GetString(datatooutput)}.");
+                                            // Don't print the file. It might be huge.
+                                            ServerConfiguration.LogInfo($"SVO server : {userAgent} Requested a Home OTG stat, queue.");
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -1682,7 +1683,7 @@ namespace PSMultiServer.Addons.Medius.SVO.GAMES
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"SVO Server : an error occured in Ps_Home Request type - {ex}");
+                    ServerConfiguration.LogError($"SVO Server : an error occured in Ps_Home Request type - {ex}");
                 }
 
                 context.Response.Close();

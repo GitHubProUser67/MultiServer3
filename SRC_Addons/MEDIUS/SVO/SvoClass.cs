@@ -84,10 +84,10 @@ namespace PSMultiServer.Addons.Medius.SVO
                     float error = MathF.Abs(Settings.TickRate - tps) / Settings.TickRate;
 
                     if (error > 0.1f)
-                        Logger.Error($"Average TickRate Per Second: {tps} is {error * 100}% off of target {Settings.TickRate}");
+                        ServerConfiguration.LogError($"Average TickRate Per Second: {tps} is {error * 100}% off of target {Settings.TickRate}");
                     //var dt = DateTime.UtcNow - Utils.GetHighPrecisionUtcTime();
                     //if (Math.Abs(dt.TotalMilliseconds) > 50)
-                    //    Logger.Error($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
+                    //    ServerConfiguration.LogError($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
 
                     _sw.Restart();
                     _ticks = 0;
@@ -101,7 +101,7 @@ namespace PSMultiServer.Addons.Medius.SVO
                     if (!await Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
-                        Logger.Error($"Unable to authenticate connection to Cache Server.");
+                        ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
                         return;
                     }
                     else
@@ -117,11 +117,11 @@ namespace PSMultiServer.Addons.Medius.SVO
                         #region Check Cache Server Simulated
                         if (Database._settings.SimulatedMode != true)
                         {
-                            Logger.Info("Connected to Cache Server");
+                            ServerConfiguration.LogInfo("Connected to Cache Server");
                         }
                         else
                         {
-                            Logger.Info("Connected to Cache Server (Simulated)");
+                            ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
                         }
                         #endregion
                         /*
@@ -140,9 +140,9 @@ namespace PSMultiServer.Addons.Medius.SVO
 
                 // prof:* Total Number of Connect Attempts (%d), Number Disconnects (%d), Total On (%d)
                 // 
-                //Logger.Info($"prof:* Total Server Uptime = {GetUptime()} Seconds == (%d days, %d hours, %d minutes, %d seconds)");
+                //ServerConfiguration.LogInfo($"prof:* Total Server Uptime = {GetUptime()} Seconds == (%d days, %d hours, %d minutes, %d seconds)");
 
-                //Logger.Info($"prof:* Total Available RAM = {} bytes");
+                //ServerConfiguration.LogInfo($"prof:* Total Available RAM = {} bytes");
 
                 // Tick
                 await Task.WhenAll(
@@ -169,7 +169,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
 
                 //STOP SVO
             }
@@ -180,12 +180,12 @@ namespace PSMultiServer.Addons.Medius.SVO
 
             int waitMs = sleepMS;
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
-            Logger.Info($"* Launched on {datetime}");
+            ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
             Task.WaitAll(SVOServer.Start());
-            Logger.Info($"SVO started. . .");
+            ServerConfiguration.LogInfo($"SVO started. . .");
 
             #region Timer
             // start timer
@@ -224,7 +224,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
             finally
             {
@@ -301,7 +301,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
         }
 

@@ -71,11 +71,11 @@ namespace PSMultiServer.Addons.Medius.DME
                     var error = Math.Abs(Settings.MainLoopSleepMs - averageMsPerTick) / Settings.MainLoopSleepMs;
 
                     //if (error > 0.1f)
-                    //    Logger.Error($"Average Ms between ticks is: {averageMsPerTick} is {error * 100}% off of target {Settings.MainLoopSleepMs}");
+                    //    ServerConfiguration.LogError($"Average Ms between ticks is: {averageMsPerTick} is {error * 100}% off of target {Settings.MainLoopSleepMs}");
 
                     //var dt = DateTime.UtcNow - Utils.GetHighPrecisionUtcTime();
                     //if (Math.Abs(dt.TotalMilliseconds) > 50)
-                    //    Logger.Error($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
+                    //    ServerConfiguration.LogError($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
 
                     _sw.Restart();
                     _ticks = 0;
@@ -89,7 +89,7 @@ namespace PSMultiServer.Addons.Medius.DME
                     if (!await Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
-                        Logger.Error("Unable to authenticate with the db middleware server");
+                        ServerConfiguration.LogError("Unable to authenticate with the db middleware server");
 
                         // disconnect from MPS
                         foreach (var manager in Managers)
@@ -178,7 +178,7 @@ namespace PSMultiServer.Addons.Medius.DME
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
 
                 await TcpServer.Stop();
                 await Task.WhenAll(Managers.Select(x => x.Value.Stop()));
@@ -189,21 +189,21 @@ namespace PSMultiServer.Addons.Medius.DME
         {
             int waitMs = Settings.MainLoopSleepMs;
 
-            Logger.Info("Initializing DME components...");
-            Logger.Info("*****************************************************************");
-            Logger.Info($"DME Message Router Version {DME_SERVER_VERSION}");
+            ServerConfiguration.LogInfo("Initializing DME components...");
+            ServerConfiguration.LogInfo("*****************************************************************");
+            ServerConfiguration.LogInfo($"DME Message Router Version {DME_SERVER_VERSION}");
 
             int KM_GetSoftwareID = 120;
-            Logger.Info($"DME Message Router Application ID {KM_GetSoftwareID}");
+            ServerConfiguration.LogInfo($"DME Message Router Application ID {KM_GetSoftwareID}");
 
             #region DateTime
             string date = DateTime.Now.ToString("MMMM/dd/yyyy");
             string time = DateTime.Now.ToString("hh:mm:ss tt");
-            Logger.Info($"Date: {date}, Time: {time}");
+            ServerConfiguration.LogInfo($"Date: {date}, Time: {time}");
             #endregion
 
             #region DME Server Info
-            Logger.Info($"Server IP = {SERVER_IP} [{IP_TYPE}]  TCP Port = {Settings.TCPPort}  UDP Port = {Settings.UDPPort}");
+            ServerConfiguration.LogInfo($"Server IP = {SERVER_IP} [{IP_TYPE}]  TCP Port = {Settings.TCPPort}  UDP Port = {Settings.UDPPort}");
             TcpServer.Start();
             #endregion
 
@@ -211,17 +211,17 @@ namespace PSMultiServer.Addons.Medius.DME
 
             if (Settings.EnableAuxUDP)
             {
-                Logger.Info("Auxilary UDP is ENABLED!\n");
+                ServerConfiguration.LogInfo("Auxilary UDP is ENABLED!\n");
             }
             else
             {
-                Logger.Info("Auxilary UDP is DISABLED!\n");
+                ServerConfiguration.LogInfo("Auxilary UDP is DISABLED!\n");
             }
 
             #endregion
 
-            Logger.Info("*****************************************************************");
-            Logger.Info($"TCP started.");
+            ServerConfiguration.LogInfo("*****************************************************************");
+            ServerConfiguration.LogInfo($"TCP started.");
 
             // build and start medius managers per app id
             foreach (var applicationId in Settings.ApplicationIds)
@@ -229,12 +229,12 @@ namespace PSMultiServer.Addons.Medius.DME
                 var manager = new DMEMediusManager(applicationId);
                 //ogger.Info($"Starting MPS for appid {applicationId}.");
                 //await manager.Start();
-                //Logger.Info($"MPS started.");
+                //ServerConfiguration.LogInfo($"MPS started.");
                 Managers.Add(applicationId, manager);
             }
 
             // 
-            Logger.Info("DME Initalized.");
+            ServerConfiguration.LogInfo("DME Initalized.");
 
             // start timer
             _timer = new Timer.HighResolutionTimer();
@@ -265,9 +265,9 @@ namespace PSMultiServer.Addons.Medius.DME
                 if (GetLogs.Logging.LogMetrics && !String.IsNullOrEmpty(metricPrintString))
                 {
                     if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                        Logger.Info("\n" + metricPrintString);
+                        ServerConfiguration.LogInfo("\n" + metricPrintString);
                     else
-                        Logger.Info(metricPrintString);
+                        ServerConfiguration.LogInfo(metricPrintString);
                     metricPrintString = "";
                 }
 
@@ -281,7 +281,7 @@ namespace PSMultiServer.Addons.Medius.DME
 
                 if (l2 - l1 > 1)
                 {
-                    //Logger.Error($"LOOP DT {l2 - l1}");
+                    //ServerConfiguration.LogError($"LOOP DT {l2 - l1}");
                 }
             }
         }
@@ -397,7 +397,7 @@ namespace PSMultiServer.Addons.Medius.DME
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
         }
 

@@ -9,6 +9,7 @@ using PSMultiServer.Addons.Medius.GHS;
 using PSMultiServer.Addons.Medius.BWPS;
 using PSMultiServer.Addons.Medius.DME;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace PSMultiServer
 {
@@ -42,6 +43,37 @@ namespace PSMultiServer
         public static bool EnableHttpServer { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
+
+        public static ILogger Logger { get; set; }
+
+        /// <summary>
+        /// Instantiate the global logger.
+        /// </summary>
+        public static void SetupLogger()
+        {
+            using ILoggerFactory loggerFactory =
+                LoggerFactory.Create(builder =>
+                    builder.AddSimpleConsole(options => { options.SingleLine = true; }));
+
+            Logger = loggerFactory.CreateLogger(string.Empty);
+
+            // Set LogSettings singleton
+            LogSettings.Singleton = GetLogs.Logging;
+
+            // Update file logger min level
+            if (GetLogs._fileLogger != null)
+                GetLogs._fileLogger.MinLevel = GetLogs.Logging.LogLevel;
+
+            GetLogs.StartPooling(); // We have so many threads racing to the end when starting medius server, we must do it as soon as possible.
+        }
+
+#nullable enable
+        public static void LogInfo(string? message, params object[]? args) { Logger.LogInformation(message, args); }
+        public static void LogWarn(string? message, params object[]? args) { Logger.LogWarning(message, args); }
+        public static void LogError(string? message, params object[]? args) { Logger.LogError(message, args); }
+        public static void LogError(Exception exception) { Logger.LogError(exception.ToString()); }
+        public static void LogDebug(string? message, params object[]? args) { Logger.LogDebug(message, args); }
+#nullable disable
 
         /// <summary>
         /// Tries to load the specified configuration file.
@@ -180,20 +212,12 @@ namespace PSMultiServer
 
             if (ServerConfiguration.EnableMedius)
             {
-                // Set LogSettings singleton
-                LogSettings.Singleton = GetLogs.Logging;
-
-                // Update file logger min level
-                if (GetLogs._fileLogger != null)
-                    GetLogs._fileLogger.MinLevel = GetLogs.Logging.LogLevel;
-
-                GetLogs.StartPooling(); // We have so many threads racing to the end when starting medius server, we must do it as soon as possible.
-
+                // TODO: Implement BWPS and GHS.
                 Parallel.Invoke(
+                    // async () => await BwpsClass.BwpsMain(),
+                    // async () => await GhsClass.GhsMain(),
                     async () => await SvoClass.SvoMain(),
                     async () => await MediusClass.MediusMain(),
-                    async () => await BwpsClass.BwpsMain(),
-                    async () => await GhsClass.GhsMain(),
                     async () => await MuisClass.MuisMain(),
                     async () => await DmeClass.DmeMain()
                 );
@@ -209,29 +233,35 @@ namespace PSMultiServer
         /// </summary>
         static void Main()
         {
+            ServerConfiguration.SetupLogger();
+
             try
             {
                 string currentDir = Directory.GetCurrentDirectory();
+                ServerConfiguration.LogInfo($"Current working directory: {currentDir}");
+
                 ServerConfiguration.Initialize($"{currentDir}/static/config.json");
 
                 while (true)
                 {
-                    Console.WriteLine("Press any key to shutdown the server...");
+                    ServerConfiguration.LogInfo("Press any key to shutdown the server...");
                     Console.ReadLine();
 
-                    Console.WriteLine("Are you sure you want to shut down the server? [y/N]");
+                    ServerConfiguration.LogWarn("Are you sure you want to shut down the server? [y/N]");
                     char input = char.ToLower(Console.ReadKey().KeyChar);
 
                     if (input == 'y')
                     {
-                        Console.WriteLine("Shutting down. Goodbye!");
+                        ServerConfiguration.LogInfo("Shutting down. Goodbye!");
                         Environment.Exit(0);
                     }
                 }
             } catch (FileNotFoundException e)
             {
                 // Handle any missing file.
-                Console.WriteLine(e.Message);
+                ServerConfiguration.LogError(e.Message);
+
+                Console.ReadKey();
             }
         }
 

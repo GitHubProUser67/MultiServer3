@@ -26,7 +26,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
 
         public static RSA_KEY GlobalAuthPublic = null;
 
-        public static ServerSettings Settings = new ServerSettings();
+        public static ServerSettings Settings = new();
         public static DbController Database = null;
 
         //public static Init libAntiCheat = new Init();
@@ -84,10 +84,10 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                     float error = MathF.Abs(Settings.TickRate - tps) / Settings.TickRate;
 
                     if (error > 0.1f)
-                        Logger.Error($"Average TickRate Per Second: {tps} is {error * 100}% off of target {Settings.TickRate}");
+                        ServerConfiguration.LogError($"Average TickRate Per Second: {tps} is {error * 100}% off of target {Settings.TickRate}");
                     //var dt = DateTime.UtcNow - Utils.GetHighPrecisionUtcTime();
                     //if (Math.Abs(dt.TotalMilliseconds) > 50)
-                    //    Logger.Error($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
+                    //    ServerConfiguration.LogError($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
 
                     _sw.Restart();
                     _ticks = 0;
@@ -101,13 +101,13 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                     if (!await Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
-                        Logger.Error($"Unable to authenticate connection to Cache Server.");
+                        ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
                         return;
                     }
                     else
                     {
                         _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
-                        Logger.Info("Successfully authenticated with the db middleware server");
+                        ServerConfiguration.LogInfo("Successfully authenticated with the db middleware server");
 
                         // pass to manager
                         await Manager.OnDatabaseAuthenticated();
@@ -118,11 +118,11 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                         #region Check Cache Server Simulated
                         if (Database._settings.SimulatedMode != true)
                         {
-                            Logger.Info("Connected to Cache Server");
+                            ServerConfiguration.LogInfo("Connected to Cache Server");
                         }
                         else
                         {
-                            Logger.Info("Connected to Cache Server (Simulated)");
+                            ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
                         }
                         #endregion
                         /*
@@ -141,9 +141,9 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
 
                 // prof:* Total Number of Connect Attempts (%d), Number Disconnects (%d), Total On (%d)
                 // 
-                //Logger.Info($"prof:* Total Server Uptime = {GetUptime()} Seconds == (%d days, %d hours, %d minutes, %d seconds)");
+                //ServerConfiguration.LogInfo($"prof:* Total Server Uptime = {GetUptime()} Seconds == (%d days, %d hours, %d minutes, %d seconds)");
 
-                //Logger.Info($"prof:* Total Available RAM = {} bytes");
+                //ServerConfiguration.LogInfo($"prof:* Total Available RAM = {} bytes");
 
                 // Tick
                 await Task.WhenAll(
@@ -179,7 +179,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
 
                 await AuthenticationServer.Stop();
                 await LobbyServer.Stop();
@@ -194,36 +194,36 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             int waitMs = sleepMS;
             string AppIdArray = null; //string.Join(", ", Settings.ApplicationIds);
 
-            Logger.Info("Initializing medius components...");
+            ServerConfiguration.LogInfo("Initializing medius components...");
             //Program
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
 
             #region MediusGetBuildTimeStamp
             var MediusBuildTimeStamp = GetLinkerTime(Assembly.GetEntryAssembly());
-            Logger.Info($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
+            ServerConfiguration.LogInfo($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
             #endregion
 
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
-            Logger.Info($"* Launched on {datetime}");
+            ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
             // Get the current process.
             Process currentProcess = Process.GetCurrentProcess();
 
             //Parent ProcessId
-            Logger.Info($"* Process ID: {currentProcess.Id}");
+            ServerConfiguration.LogInfo($"* Process ID: {currentProcess.Id}");
 
             if (Database._settings.SimulatedMode == true)
             {
-                Logger.Info("* Database Disabled Medius Stack");
+                ServerConfiguration.LogInfo("* Database Disabled Medius Stack");
             }
             else
             {
-                Logger.Info("* Database Enabled Medius Stack");
+                ServerConfiguration.LogInfo("* Database Enabled Medius Stack");
             }
 
             #region KeyMaster
             //Use PublicKeyType
-            //Logger.Info($"* Server Key Type: {Settings.EncryptMessages}");
+            //ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
 
             #endregion
 
@@ -231,15 +231,15 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             if (Settings.RemoteLogViewPort == 0)
             {
                 //* Remote log viewing setup failure with port %d.
-                Logger.Info("* Remote log viewing disabled.");
+                ServerConfiguration.LogInfo("* Remote log viewing disabled.");
             }
             else if (Settings.RemoteLogViewPort > 0)
             {
-                Logger.Info($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
+                ServerConfiguration.LogInfo($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
             }
             #endregion
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
 
             #region Anti-Cheat Init (WIP)
             if (Settings.AntiCheatOn == true)
@@ -254,11 +254,11 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 #region MAPS - Zipper Interactive MAG/Socom 4
                 if (Settings.EnableMAPS == true)
                 {
-                    Logger.Info($"MAPS Version: {Settings.MAPSVersion}");
-                    Logger.Info($"Enabling MAPS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
+                    ServerConfiguration.LogInfo($"MAPS Version: {Settings.MAPSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MAPS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
 
                     ProfileServer.Start();
-                    Logger.Info("Medius Profile Server Intialized and Now Accepting Clients");
+                    ServerConfiguration.LogInfo("Medius Profile Server Intialized and Now Accepting Clients");
                 }
                 #endregion
 
@@ -266,15 +266,15 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 if (Settings.EnableMMS == true)
                 {
                     #region MAS 
-                    Logger.Info($"MMS Version: {Settings.MMSVersion}");
-                    Logger.Info($"Enabling MMS on Server IP = {SERVER_IP} TCP Port = {MatchmakingServer.TCPPort} UDP Port = {MatchmakingServer.UDPPort}.");
-                    //Logger.Info($"Medius Matchmaking Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MMS Version: {Settings.MMSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MMS on Server IP = {SERVER_IP} TCP Port = {MatchmakingServer.TCPPort} UDP Port = {MatchmakingServer.UDPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Matchmaking Server running under ApplicationID {AppIdArray}");
 
                     //Connecting to Medius Universe Manager 127.0.0.1 10076 1
                     //Connected to Universe Manager server
 
                     MatchmakingServer.Start();
-                    Logger.Info("Medius Matchmaking Server Initialized");
+                    ServerConfiguration.LogInfo("Medius Matchmaking Server Initialized");
                     #endregion
 
                 }
@@ -284,15 +284,15 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 if (Settings.EnableMAS == true)
                 {
                     #region MAS 
-                    Logger.Info($"MAS Version: {Settings.MASVersion}");
-                    Logger.Info($"Enabling MAS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
-                    //Logger.Info($"Medius Authentication Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MAS Version: {Settings.MASVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MAS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Authentication Server running under ApplicationID {AppIdArray}");
 
                     //Connecting to Medius Universe Manager 127.0.0.1 10076 1
                     //Connected to Universe Manager server
 
                     AuthenticationServer.Start();
-                    Logger.Info("Medius Authentication Server Initialized");
+                    ServerConfiguration.LogInfo("Medius Authentication Server Initialized");
                     #endregion
 
                 }
@@ -301,26 +301,26 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 #region MLS Enabled?
                 if (Settings.EnableMLS == true)
                 {
-                    Logger.Info($"MLS Version: {Settings.MLSVersion}");
-                    Logger.Info($"Enabling MLS on Server IP = {SERVER_IP} TCP Port = {LobbyServer.TCPPort} UDP Port = {LobbyServer.UDPPort}.");
-                    Logger.Info($"Medius Lobby Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MLS Version: {Settings.MLSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MLS on Server IP = {SERVER_IP} TCP Port = {LobbyServer.TCPPort} UDP Port = {LobbyServer.UDPPort}.");
+                    ServerConfiguration.LogInfo($"Medius Lobby Server running under ApplicationID {AppIdArray}");
 
                     DMEServerResetMetrics();
 
                     LobbyServer.Start();
-                    Logger.Info("Medius Lobby Server Initialized and Now Accepting Clients");
+                    ServerConfiguration.LogInfo("Medius Lobby Server Initialized and Now Accepting Clients");
                 }
                 #endregion
 
                 #region MPS Enabled?
                 if (Settings.EnableMPS == true)
                 {
-                    Logger.Info($"MPS Version: {Settings.MPSVersion}");
-                    Logger.Info($"Enabling MPS on Server IP = {SERVER_IP} TCP Port = {ProxyServer.TCPPort}.");
-                    //Logger.Info($"Medius Proxy Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MPS Version: {Settings.MPSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MPS on Server IP = {SERVER_IP} TCP Port = {ProxyServer.TCPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Proxy Server running under ApplicationID {AppIdArray}");
 
                     ProxyServer.Start();
-                    Logger.Info("Medius Proxy Server Initialized and Now Accepting Clients");
+                    ServerConfiguration.LogInfo("Medius Proxy Server Initialized and Now Accepting Clients");
 
                     //Connecting to Medius Universe Manager 127.0.0.1 10076 1
                     //Connected to Universe Manager server after 1 attempts
@@ -333,11 +333,11 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 #region MAPS - Zipper Interactive MAG/Socom 4
                 if (Settings.EnableMAPS == true)
                 {
-                    Logger.Info($"Enabling MAPS on Server IP = {SERVER_IP} TCP Port = {ProfileServer.TCPPort} UDP Port = {ProfileServer.UDPPort}.");
-                    //Logger.Info($"Medius Profile Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"Enabling MAPS on Server IP = {SERVER_IP} TCP Port = {ProfileServer.TCPPort} UDP Port = {ProfileServer.UDPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Profile Server running under ApplicationID {AppIdArray}");
 
                     ProfileServer.Start();
-                    Logger.Info("Medius Profile Server Intialized and Now Accepting Clients");
+                    ServerConfiguration.LogInfo("Medius Profile Server Intialized and Now Accepting Clients");
                 }
                 #endregion
 
@@ -345,15 +345,15 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 if (Settings.EnableMMS == true)
                 {
                     #region MAS 
-                    Logger.Info($"MMS Version: {Settings.MMSVersion}");
-                    Logger.Info($"Enabling MMS on Server IP = {SERVER_IP} TCP Port = {MatchmakingServer.TCPPort} UDP Port = {MatchmakingServer.UDPPort}.");
-                    //Logger.Info($"Medius Matchmaking Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MMS Version: {Settings.MMSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MMS on Server IP = {SERVER_IP} TCP Port = {MatchmakingServer.TCPPort} UDP Port = {MatchmakingServer.UDPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Matchmaking Server running under ApplicationID {AppIdArray}");
 
                     //Connecting to Medius Universe Manager 127.0.0.1 10076 1
                     //Connected to Universe Manager server
 
                     MatchmakingServer.Start();
-                    Logger.Info("Medius Matchmaking Server Initialized");
+                    ServerConfiguration.LogInfo("Medius Matchmaking Server Initialized");
                     #endregion
 
                 }
@@ -362,15 +362,15 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 #region MAS
                 if (Settings.EnableMAS == true)
                 {
-                    Logger.Info($"MAS Version: {Settings.MASVersion}");
-                    Logger.Info($"Enabling MAS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
-                    //Logger.Info($"Medius Authentication Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MAS Version: {Settings.MASVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MAS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Authentication Server running under ApplicationID {AppIdArray}");
 
                     //Connecting to Medius Universe Manager 127.0.0.1 10076 1
                     //Connected to Universe Manager server
 
                     AuthenticationServer.Start();
-                    Logger.Info("Medius Authentication Server Initialized");
+                    ServerConfiguration.LogInfo("Medius Authentication Server Initialized");
 
                 }
                 #endregion
@@ -378,26 +378,26 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 #region MLS Enabled?
                 if (Settings.EnableMAS == true)
                 {
-                    Logger.Info($"MLS Version: {Settings.MLSVersion}");
-                    Logger.Info($"Enabling MLS on Server IP = {SERVER_IP} TCP Port = {LobbyServer.TCPPort} UDP Port = {LobbyServer.UDPPort}.");
-                    //Logger.Info($"Medius Lobby Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MLS Version: {Settings.MLSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MLS on Server IP = {SERVER_IP} TCP Port = {LobbyServer.TCPPort} UDP Port = {LobbyServer.UDPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Lobby Server running under ApplicationID {AppIdArray}");
 
                     //DMEServerResetMetrics();
 
                     LobbyServer.Start();
-                    Logger.Info("Medius Lobby Server Initialized and Now Accepting Clients");
+                    ServerConfiguration.LogInfo("Medius Lobby Server Initialized and Now Accepting Clients");
                 }
                 #endregion
 
                 #region MPS Enabled?
                 if (Settings.EnableMPS == true)
                 {
-                    Logger.Info($"MPS Version: {Settings.MPSVersion}");
-                    Logger.Info($"Enabling MPS on Server IP = {SERVER_IP} TCP Port = {ProxyServer.TCPPort}.");
-                    //Logger.Info($"Medius Proxy Server running under ApplicationID {AppIdArray}");
+                    ServerConfiguration.LogInfo($"MPS Version: {Settings.MPSVersion}");
+                    ServerConfiguration.LogInfo($"Enabling MPS on Server IP = {SERVER_IP} TCP Port = {ProxyServer.TCPPort}.");
+                    //ServerConfiguration.LogInfo($"Medius Proxy Server running under ApplicationID {AppIdArray}");
 
                     ProxyServer.Start();
-                    Logger.Info("Medius Proxy Server Initialized and Now Accepting Clients");
+                    ServerConfiguration.LogInfo("Medius Proxy Server Initialized and Now Accepting Clients");
 
                     //Connecting to Medius Universe Manager 127.0.0.1 10076 1
                     //Connected to Universe Manager server after 1 attempts
@@ -405,7 +405,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 #endregion
 
                 // Use hardcoded methods in code to handle specific games server versions
-                Logger.Info("Using Game Specific Server Versions");
+                ServerConfiguration.LogInfo("Using Game Specific Server Versions");
             }
 
 
@@ -427,7 +427,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                         }
                         catch (Exception ex)
                         {
-                            Logger.Error($"Unable to resolve NAT service IP: {ip}  Exiting with exception: {ex}");
+                            ServerConfiguration.LogError($"Unable to resolve NAT service IP: {ip}  Exiting with exception: {ex}");
                             Environment.Exit(1);
                         }
                     }
@@ -438,7 +438,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"Unable to resolve NAT service IP: {Settings.NATIp}  Exiting with exception: {ex}");
+                    ServerConfiguration.LogError($"Unable to resolve NAT service IP: {Settings.NATIp}  Exiting with exception: {ex}");
                     Environment.Exit(1);
                 }
 
@@ -468,7 +468,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
 
             /*
             string rt_msg_client_get_version_string = "rt_msg_client version: 1.08.0206";
-            Logger.Info($"Initialized Message Client Library {rt_msg_client_get_version_string}");
+            ServerConfiguration.LogInfo($"Initialized Message Client Library {rt_msg_client_get_version_string}");
             */
 
             //DMEServer Enabling Dynamic Client Memory
@@ -571,17 +571,17 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
 
             #endregion
 
-            Logger.Info("Medius Stacks Initialized");
+            ServerConfiguration.LogInfo("Medius Stacks Initialized");
             /*
             #region MFS
             if (!GetAppSettingsOrDefault(appId).EnableMediusFileServices == true)
             {
-                Logger.Info($"Initializing MFS Download Queue of size {Settings.MFSDownloadQSize}");
+                ServerConfiguration.LogInfo($"Initializing MFS Download Queue of size {Settings.MFSDownloadQSize}");
 
-                Logger.Info($"Initializing MFS Upload Queue of size {Settings.MFSUploadQSize}");
+                ServerConfiguration.LogInfo($"Initializing MFS Upload Queue of size {Settings.MFSUploadQSize}");
                 MFS_transferInit();
 
-                Logger.Info($"MFS Queue Timeout Interval {Settings.MFSQueueTimeoutInterval}");
+                ServerConfiguration.LogInfo($"MFS Queue Timeout Interval {Settings.MFSQueueTimeoutInterval}");
             }
             #endregion
             */
@@ -665,11 +665,11 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             {
                 if (r.IsCompletedSuccessfully && r.IsCompleted)
                 {
-                    Logger.Info("Reloading Config File");
+                    ServerConfiguration.LogInfo("Reloading Config File");
                 }
                 else
                 {
-                    Logger.Info($"ConfigManager Cannot Reload Configuration File {CONFIG_FILE}");
+                    ServerConfiguration.LogInfo($"ConfigManager Cannot Reload Configuration File {CONFIG_FILE}");
                 }
                 //Program.AntiCheatPlugin.mc_anticheat_event(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, Program.AntiCheatClient, updateUserState, 256);
             });
@@ -1038,7 +1038,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
         }
 
@@ -1211,15 +1211,15 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             IPHostEntry host = Dns.GetHostEntry(hostName);
             try
             {
-                Logger.Info($"NAT Service HostName: {hostName} \n      NAT Service IP: {host.AddressList.First()}");
-                //Logger.Info($"GetHostEntry({address}) returns HostName: {host.HostName}");
+                ServerConfiguration.LogInfo($"NAT Service HostName: {hostName} \n      NAT Service IP: {host.AddressList.First()}");
+                //ServerConfiguration.LogInfo($"GetHostEntry({address}) returns HostName: {host.HostName}");
             }
             catch (SocketException ex)
             {
                 //unknown host or
                 //not every IP has a name
                 //log exception (manage it)
-                Logger.Error($"Unable to resolve NAT service IP: {host.AddressList.First()}  Exiting with exception: {ex}");
+                ServerConfiguration.LogError($"Unable to resolve NAT service IP: {host.AddressList.First()}  Exiting with exception: {ex}");
             }
         }
 
@@ -1228,22 +1228,22 @@ namespace PSMultiServer.Addons.Medius.MEDIUS
             IPHostEntry host = Dns.GetHostEntry(address);
             try
             {
-                Logger.Info($"NAT Service IP: {host.AddressList.First()}");
-                //Logger.Info($"GetHostEntry({address}) returns HostName: {host.HostName}");
+                ServerConfiguration.LogInfo($"NAT Service IP: {host.AddressList.First()}");
+                //ServerConfiguration.LogInfo($"GetHostEntry({address}) returns HostName: {host.HostName}");
             }
             catch (SocketException ex)
             {
                 //unknown host or
                 //not every IP has a name
                 //log exception (manage it)
-                Logger.Info($"Unable to resolve NAT service IP: {host.AddressList.First()}  Exiting with exception: {ex}");
+                ServerConfiguration.LogInfo($"Unable to resolve NAT service IP: {host.AddressList.First()}  Exiting with exception: {ex}");
             }
         }
         #endregion
 
         public static void MFS_transferInit()
         {
-            Logger.Info($"Initializing MFS_transfer with url {Settings.MFSTransferURI} "); //numThreads{}"
+            ServerConfiguration.LogInfo($"Initializing MFS_transfer with url {Settings.MFSTransferURI} "); //numThreads{}"
 
         }
 
