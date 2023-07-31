@@ -212,7 +212,7 @@ namespace PSMultiServer
             try
             {
                 string currentDir = Directory.GetCurrentDirectory();
-                ServerConfiguration.Initialize($"{currentDir}static/config.json");
+                ServerConfiguration.Initialize($"{currentDir}/static/config.json");
 
                 while (true)
                 {
