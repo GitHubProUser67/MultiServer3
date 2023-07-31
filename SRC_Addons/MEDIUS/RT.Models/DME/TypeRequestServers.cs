@@ -1,4 +1,4 @@
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models.DME
+namespace PSMultiServer.Addons.Medius.RT.Models.DME
 {
     internal class TypeRequestServers
     {

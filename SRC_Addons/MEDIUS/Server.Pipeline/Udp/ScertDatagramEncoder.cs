@@ -2,9 +2,9 @@
 using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 {
     public class ScertDatagramEncoder : MessageToMessageEncoder<ScertDatagramPacket>
     {

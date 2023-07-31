@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Math;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RSA
+namespace PSMultiServer.Addons.Medius.RT.Cryptography.RSA
 {
     [JsonConverter(typeof(RSAConverter))]
     public class PS2_RSA : ICipher

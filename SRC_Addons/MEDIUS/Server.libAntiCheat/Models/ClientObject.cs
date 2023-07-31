@@ -1,12 +1,12 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
 using System.Collections.Concurrent;
 using System.Net;
-using static PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat.Models.Game;
+using static PSMultiServer.Addons.Medius.Server.libAntiCheat.Models.Game;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat.Models
+namespace PSMultiServer.Addons.Medius.Server.libAntiCheat.Models
 {
     public class ClientObject
     {

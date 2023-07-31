@@ -3,7 +3,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography
+namespace PSMultiServer.Addons.Medius.RT.Cryptography
 {
     public class PS2CipherFactory : ICipherFactory
     {

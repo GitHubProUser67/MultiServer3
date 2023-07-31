@@ -1,16 +1,16 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database;
-using PSMultiServer.SRC_Addons.MEDIUS.DME.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.DME.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Common.Logging;
+using PSMultiServer.Addons.Medius.Server.Database;
+using PSMultiServer.Addons.Medius.DME.Config;
+using PSMultiServer.Addons.Medius.DME.Models;
+using PSMultiServer.Addons.Medius.Server.Plugins;
 using System.Diagnostics;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.DME
+namespace PSMultiServer.Addons.Medius.DME
 {
     public class DmeClass
     {
@@ -42,7 +42,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.DME
 
         private static int _ticks = 0;
         private static Stopwatch _sw = new Stopwatch();
-        private static HighResolutionTimer.HighResolutionTimer _timer;
+        private static Timer.HighResolutionTimer _timer;
         private static DateTime _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
         private static DateTime? _lastSuccessfulDbAuth = null;
 
@@ -237,7 +237,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.DME
             Logger.Info("DME Initalized.");
 
             // start timer
-            _timer = new HighResolutionTimer.HighResolutionTimer();
+            _timer = new Timer.HighResolutionTimer();
             _timer.SetPeriod(waitMs);
             _timer.Start();
 

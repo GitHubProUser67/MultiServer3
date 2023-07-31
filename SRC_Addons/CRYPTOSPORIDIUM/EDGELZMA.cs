@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM
+﻿namespace PSMultiServer.Addons.CRYPTOSPORIDIUM
 {
     public class EDGELZMA
     {

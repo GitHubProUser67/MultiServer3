@@ -1,17 +1,17 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.MUIS.PluginArgs;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Database.Models;
+using PSMultiServer.Addons.Medius.MUIS.PluginArgs;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Udp;
+using PSMultiServer.Addons.Medius.Server.Plugins.Interface;
 using System.Collections.Concurrent;
 using System.Net;
-using static PSMultiServer.SRC_Addons.MEDIUS.MUIS.Models.Game;
+using static PSMultiServer.Addons.Medius.MUIS.Models.Game;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.Models
+namespace PSMultiServer.Addons.Medius.MUIS.Models
 {
     public class ClientObject
     {

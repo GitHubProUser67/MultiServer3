@@ -1,8 +1,8 @@
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.Server.Common.Stream;
+using PSMultiServer.Addons.Medius.Server.Common.Logging;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     #region MediusMessageAttribute
     [AttributeUsage(AttributeTargets.Class)]

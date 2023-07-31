@@ -1,7 +1,7 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models
+namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
 {
     public class Anticheat
     {

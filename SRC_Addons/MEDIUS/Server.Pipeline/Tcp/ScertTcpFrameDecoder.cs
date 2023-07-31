@@ -3,7 +3,7 @@ using DotNetty.Codecs;
 using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Tcp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Tcp
 {
     public class ScertTcpFrameDecoder : ByteToMessageDecoder
     {

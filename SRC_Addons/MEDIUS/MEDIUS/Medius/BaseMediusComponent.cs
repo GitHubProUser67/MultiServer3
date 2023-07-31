@@ -4,17 +4,17 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RC;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.PluginArgs;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Tcp;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography.RC;
+using PSMultiServer.Addons.Medius.MEDIUS.Medius.Models;
+using PSMultiServer.Addons.Medius.MEDIUS.PluginArgs;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius
+namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 {
     public abstract class BaseMediusComponent : IMediusComponent
     {

@@ -1,8 +1,8 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+﻿using PSMultiServer.Addons.Medius.RT.Models;
 using DotNetty.Common.Internal.Logging;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat.Models
+namespace PSMultiServer.Addons.Medius.Server.libAntiCheat.Models
 {
     public class DMEObject : ClientObject
     {

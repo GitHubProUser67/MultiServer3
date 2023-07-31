@@ -1,12 +1,12 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.DME.PluginArgs;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.DME.PluginArgs;
+using PSMultiServer.Addons.Medius.Server.Plugins.Interface;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.DME.Models
+namespace PSMultiServer.Addons.Medius.DME.Models
 {
     public class World : IDisposable
     {

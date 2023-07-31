@@ -1,12 +1,12 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Database;
+using PSMultiServer.Addons.Medius.MEDIUS.Config;
+using PSMultiServer.Addons.Medius.MEDIUS.Medius.Models;
+using PSMultiServer.Addons.Medius.Server.Plugins;
 using System.Diagnostics;
 using System.Globalization;
 using System.Management;
@@ -14,9 +14,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat;
+using PSMultiServer.Addons.Medius.Server.libAntiCheat;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS
+namespace PSMultiServer.Addons.Medius.MEDIUS
 {
     public class MediusClass
     {
@@ -61,7 +61,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS
 
         private static int _ticks = 0;
         private static Stopwatch _sw = new Stopwatch();
-        private static HighResolutionTimer.HighResolutionTimer _timer;
+        private static Timer.HighResolutionTimer _timer;
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MediusClass>();
 
@@ -588,7 +588,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS
 
             #region Timer
             // start timer
-            _timer = new SRC_Addons.HighResolutionTimer.HighResolutionTimer();
+            _timer = new Addons.Timer.HighResolutionTimer();
             _timer.SetPeriod(waitMs);
             _timer.Start();
 

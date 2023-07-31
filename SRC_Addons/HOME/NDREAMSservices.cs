@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PSMultiServer.SRC_Addons.HOME
+namespace PSMultiServer.Addons.HOME
 {
     public class NDREAMSservices
     {

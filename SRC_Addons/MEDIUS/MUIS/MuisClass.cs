@@ -1,29 +1,25 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins;
-using PSMultiServer.SRC_Addons.MEDIUS.MUIS.Config;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Database;
+using PSMultiServer.Addons.Medius.Server.Plugins;
+using PSMultiServer.Addons.Medius.MUIS.Config;
 using System.Diagnostics;
 using System.Globalization;
 using System.Management;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using PSMultiServer.SRC_Addons.MEDIUS.DME;
+using PSMultiServer.Addons.Medius.DME;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
+namespace PSMultiServer.Addons.Medius.MUIS
 {
     public class MuisClass
     {
         private static string CONFIG_DIRECTIORY = "./loginformNtemplates/MUIS";
         public static string CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "muis.json");
         public static string DB_CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "db.config.json");
-
-        public static string HOMEversion_BETA_HDK = "01.60";
-
-        public static string HOMEversion_RETAIL_HDKONLINEDEBUG = "01.83";
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MuisClass>();
 
@@ -45,7 +41,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
         private static DateTime? _lastSuccessfulDbAuth = null;
         private static int _ticks = 0;
         private static Stopwatch _sw = new Stopwatch();
-        private static HighResolutionTimer.HighResolutionTimer _timer;
+        private static Timer.HighResolutionTimer _timer;
 
         static async Task TickAsync()
         {
@@ -202,19 +198,10 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
             }
         }
 
-        public static async Task MuisMain(string _HOMEversion_BETA_HDK, string _HOMEversion_RETAIL_HDKONLINEDEBUG)
+        public static async Task MuisMain()
         {
-            HOMEversion_BETA_HDK = _HOMEversion_BETA_HDK;
-
-            HOMEversion_RETAIL_HDKONLINEDEBUG = _HOMEversion_RETAIL_HDKONLINEDEBUG;
-
-            // 
             Database = new DbController(DB_CONFIG_FILE);
-
-            // 
             Initialize();
-
-            // 
             await StartServerAsync();
         }
 
@@ -607,13 +594,13 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
                         SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
                         UniverseBilling = "SCEA",
                         BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        ExtendedInfo = $"{HOMEversion_BETA_HDK} http://{iptofile}/dev.{HOMEversion_BETA_HDK}/",
+                        ExtendedInfo = $"{ServerConfiguration.VersionBetaHDK} http://{iptofile}/dev.{ServerConfiguration.VersionBetaHDK}/",
                         Port = 10075,
                         UniverseId = 1
                     }
                 });
 
-                if (HOMEversion_RETAIL_HDKONLINEDEBUG == "01.83")
+                if (ServerConfiguration.VersionRetail == "01.83")
                 {
                     Settings.Universes.Add(20374, new UniverseInfo[]
                     {
@@ -626,7 +613,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
                             UserCount = 1,
                             MaxUsers = 15000,
                             SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                            ExtendedInfo = $"{HOMEversion_RETAIL_HDKONLINEDEBUG} http://{iptofile}/{HOMEversion_RETAIL_HDKONLINEDEBUG}/",
+                            ExtendedInfo = $"{ServerConfiguration.VersionRetail} http://{iptofile}/{ServerConfiguration.VersionRetail}/",
                             UniverseBilling = "SCEA",
                             BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
                             Port = 10075,
@@ -647,7 +634,7 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
                             UserCount = 1,
                             MaxUsers = 15000,
                             SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                            ExtendedInfo = $"{HOMEversion_RETAIL_HDKONLINEDEBUG} http://{iptofile}/{HOMEversion_RETAIL_HDKONLINEDEBUG}/",
+                            ExtendedInfo = $"{ServerConfiguration.VersionRetail} http://{iptofile}/{ServerConfiguration.VersionRetail}/",
                             UniverseBilling = "SCEA",
                             BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
                             Port = 10075,

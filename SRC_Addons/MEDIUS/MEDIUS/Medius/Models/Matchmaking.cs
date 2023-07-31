@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models
+﻿namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
 {
     public class Matchmaking
     {

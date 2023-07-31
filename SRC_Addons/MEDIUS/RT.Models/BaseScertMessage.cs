@@ -1,10 +1,10 @@
 using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.Server.Common.Logging;
+using PSMultiServer.Addons.Medius.Server.Common.Stream;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     public abstract class BaseScertMessage
     {

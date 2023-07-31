@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream
+﻿namespace PSMultiServer.Addons.Medius.Server.Common.Stream
 {
     public interface IStreamSerializer
     {

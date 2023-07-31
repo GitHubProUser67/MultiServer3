@@ -1,8 +1,8 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
+﻿using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.Models
+namespace PSMultiServer.Addons.Medius.MUIS.Models
 {
     public enum ChannelType
     {

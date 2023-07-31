@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM
 {
     internal class TRIPLEDES
     {

@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RC
+﻿namespace PSMultiServer.Addons.Medius.RT.Cryptography.RC
 {
     /// <summary>
     /// PS2's custom RC4 implementation,

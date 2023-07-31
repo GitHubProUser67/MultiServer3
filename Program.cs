@@ -1,23 +1,28 @@
-﻿using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.SVO;
+﻿using PSMultiServer.Addons.Medius.Server.Common.Logging;
+using PSMultiServer.Addons.Medius.SVO;
 using System.Net.NetworkInformation;
 using SharpCompress.Archives;
 using SharpCompress.Common;
+using PSMultiServer.Addons.Medius.MEDIUS;
+using PSMultiServer.Addons.Medius.MUIS;
+using PSMultiServer.Addons.Medius.GHS;
+using PSMultiServer.Addons.Medius.BWPS;
+using PSMultiServer.Addons.Medius.DME;
+using Newtonsoft.Json.Linq;
 
 namespace PSMultiServer
 {
-    public class ServerConfiguration
+    public static class ServerConfiguration
     {
-        public ServerConfiguration()
-        {
-            PHPVER = "8.25";
-            SSFWKEY = "";
-            HTTPKEY = "";
-            SSFWminibase = "[]";
-            HOMEversion_BETA_HDK = "01.60";
-            HOMEversion_RETAIL_HDKONLINEDEBUG = "01.83";
-            HOMEmessageoftheday = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+        public static string PHPVersion { get; set; } = "8.25";
+        public static string? SSFWPrivateKey { get; set; }
+        public static bool SSFWCrossSave { get; set; } = true;
+        public static string? HTTPPrivateKey { get; set; }
+        public static int HTTPPort { get; set; } = 80;
+        public static string SSFWMinibase { get; set; } = "[]";
+        public static string VersionBetaHDK { get; set; } = "01.60";
+        public static string VersionRetail { get; set; } = "01.83";
+        public static string? MOTD { get; set; } = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
             "<SVML>\r\n" +
             "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
             "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
@@ -34,58 +39,57 @@ namespace PSMultiServer
             "    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
             "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
             "</SVML>";
-            HTTPPort = 80;
-            EnableHTTPserver = true;
-            EnableSSFW = true;
-            EnableMEDIUS = true;
-            SSFWcrosssave = false;
-        }
+        public static bool EnableHttpServer { get; set; } = true;
+        public static bool EnableSSFW { get; set; } = true;
+        public static bool EnableMedius { get; set; } = true;
 
-        public string? PHPVER { get; set; }
-        public string? SSFWKEY { get; set; }
-        public string? HTTPKEY { get; set; }
-        public string? SSFWminibase { get; set; }
-        public string? HOMEversion_BETA_HDK { get; set; }
-        public string? HOMEversion_RETAIL_HDKONLINEDEBUG { get; set; }
-        public string? HOMEmessageoftheday { get; set; }
-        public int HTTPPort { get; set; }
-        public bool EnableHTTPserver { get; set; }
-        public bool EnableSSFW { get; set; }
-        public bool EnableMEDIUS { get; set; }
-        public bool SSFWcrosssave { get; set; }
+        /// <summary>
+        /// Tries to load the specified configuration file.
+        /// Throws an exception if it fails to find the file.
+        /// </summary>
+        /// <param name="configPath"></param>
+        /// <exception cref="FileNotFoundException"></exception>
+        public static void Initialize(string configPath)
+        {
+            // Make sure the file exists
+            if (!File.Exists(configPath))
+                throw new FileNotFoundException("Could not find the config.json file.");
+
+            // Read the file
+            string json = File.ReadAllText(configPath);
+
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
+
+            PHPVersion = config.php.version;
+
+            EnableSSFW = config.ssfw.enabled;
+            SSFWPrivateKey = config.ssfw.private_key;
+            SSFWMinibase = config.ssfw.minibase;
+            SSFWCrossSave = config.ssfw.cross_save;
+
+            EnableHttpServer = config.http.enabled;
+            HTTPPrivateKey = config.http.private_key;
+            HTTPPort = config.http.port;
+
+            EnableMedius = config.medius.enabled;
+
+            VersionBetaHDK = config.home.beta_version;
+            VersionRetail = config.home.retail_version;
+
+            // Look for the MOTD xml file.
+            string motd_file = config.home.motd_file;
+            if (!File.Exists(motd_file))
+                throw new FileNotFoundException("Could not find the motd.xml file.");
+
+            MOTD = File.ReadAllText(motd_file);
+
+            new Server().Start();
+        }
     }
 
     public class Server
     {
-        private readonly string _PHPVER;
-        private readonly string _SSFWKEY;
-        private readonly string _HTTPKEY;
-        private readonly string _SSFWminibase;
-        private readonly string _HOMEversion_BETA_HDK;
-        private readonly string _HOMEversion_RETAIL_HDKONLINEDEBUG;
-        private readonly string _HOMEmessageoftheday;
-        private readonly int _HTTPPort;
-        private readonly bool _enableHTTPserver;
-        private readonly bool _enableSSFW;
-        private readonly bool _enableMEDIUS;
-        private readonly bool _SSFWcrosssave;
-
-        public Server(ServerConfiguration config)
-        {
-            _PHPVER = config.PHPVER;
-            _SSFWKEY = config.SSFWKEY;
-            _HTTPKEY = config.HTTPKEY;
-            _SSFWminibase = config.SSFWminibase;
-            _HOMEversion_BETA_HDK = config.HOMEversion_BETA_HDK;
-            _HOMEversion_RETAIL_HDKONLINEDEBUG = config.HOMEversion_RETAIL_HDKONLINEDEBUG;
-            _HOMEmessageoftheday = config.HOMEmessageoftheday;
-            _HTTPPort = config.HTTPPort;
-            _enableHTTPserver = config.EnableHTTPserver;
-            _enableSSFW = config.EnableSSFW;
-            _enableMEDIUS = config.EnableMEDIUS;
-            _SSFWcrosssave = config.SSFWcrosssave;
-        }
-
         private static bool IsSupportedArchive(string filePath)
         {
             string extension = Path.GetExtension(filePath).ToLower();
@@ -93,20 +97,20 @@ namespace PSMultiServer
                     extension == ".gz" || extension == ".7z");
         }
 
-        public async Task ExtractToHTTPFolder(string sourceFolder, string destinationFolder)
+        public static bool ExtractToHTTPFolder(string sourceFolder, string destinationFolder)
         {
             // Check if the source folder exists
             if (!Directory.Exists(sourceFolder))
             {
                 Console.WriteLine("HTTP : Source folder does not exist.");
-                return;
+                return false;
             }
 
             // Check if the destination folder exists
             if (!Directory.Exists(destinationFolder))
             {
                 Console.WriteLine("HTTP : Destination folder does not exist.");
-                return;
+                return false;
             }
 
             // Get all archive files in the source folder
@@ -152,32 +156,29 @@ namespace PSMultiServer
                 }
             }
 
-            return;
+            return true;
         }
 
         public void Start()
         {
-            if (_enableHTTPserver && HTTPserver.httpstarted == false)
+            string currentDir = Directory.GetCurrentDirectory();
+
+            if (ServerConfiguration.EnableHttpServer && HTTPserver.httpstarted == false)
             {
-                if (!Directory.Exists(Directory.GetCurrentDirectory() + @"/wwwroot/"))
-                {
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + @"/wwwroot/");
-                }
+                Directory.CreateDirectory($"{currentDir}/wwwroot/");
 
-                if (Directory.Exists(Directory.GetCurrentDirectory() + @"/HTTPServer_Archives/"))
-                {
-                    Task.Run(() => ExtractToHTTPFolder(Directory.GetCurrentDirectory() + "/HTTPServer_Archives/", Directory.GetCurrentDirectory() + "/wwwroot/"));
-                }
+                if (Directory.Exists($"{currentDir}/HTTPServer_Archives/"))
+                    ExtractToHTTPFolder($"{currentDir}/HTTPServer_Archives/", $"{currentDir}/wwwroot/");
 
-                HTTPserver.HTTPstart(_PHPVER, _HTTPKEY, _HTTPPort);
+                HTTPserver.HTTPstart();
             }
 
-            if (_enableSSFW && SRC_Addons.HOME.SSFWServices.ssfwstarted == false)
+            if (ServerConfiguration.EnableSSFW && Addons.HOME.SSFWServices.Started == false)
             {
-                SRC_Addons.HOME.SSFWServices.SSFWstart(_SSFWKEY, _SSFWminibase, _SSFWcrosssave);
+                Addons.HOME.SSFWServices.SSFWstart();
             }
 
-            if (_enableMEDIUS)
+            if (ServerConfiguration.EnableMedius)
             {
                 // Set LogSettings singleton
                 LogSettings.Singleton = GetLogs.Logging;
@@ -188,20 +189,14 @@ namespace PSMultiServer
 
                 GetLogs.StartPooling(); // We have so many threads racing to the end when starting medius server, we must do it as soon as possible.
 
-                if (SVO.svostarted == false)
-                {
-                    Task.Run(() => SvoClass.SvoMain(_HOMEmessageoftheday));
-                }
-
-                Task.Run(() => SRC_Addons.MEDIUS.MEDIUS.MediusClass.MediusMain());
-
-                Task.Run(() => SRC_Addons.MEDIUS.BWPS.BwpsClass.BwpsMain());
-
-                Task.Run(() => SRC_Addons.MEDIUS.GHS.GhsClass.GhsMain());
-
-                Task.Run(() => SRC_Addons.MEDIUS.MUIS.MuisClass.MuisMain(_HOMEversion_BETA_HDK, _HOMEversion_RETAIL_HDKONLINEDEBUG));
-
-                Task.Run(() => SRC_Addons.MEDIUS.DME.DmeClass.DmeMain());
+                Parallel.Invoke(
+                    async () => await SvoClass.SvoMain(),
+                    async () => await MediusClass.MediusMain(),
+                    async () => await BwpsClass.BwpsMain(),
+                    async () => await GhsClass.GhsMain(),
+                    async () => await MuisClass.MuisMain(),
+                    async () => await DmeClass.DmeMain()
+                );
             }
 
             return;
@@ -209,73 +204,34 @@ namespace PSMultiServer
     }
     internal class Program
     {
+        /// <summary>
+        /// Entry point of the server.
+        /// </summary>
         static void Main()
         {
             try
             {
-                if (!File.Exists(Directory.GetCurrentDirectory() + @"/config.json"))
-                {
-                    ServerConfiguration configuration = new ServerConfiguration();
-
-                    string json = JsonConvert.SerializeObject(configuration, Formatting.Indented);
-
-                    File.WriteAllText(Directory.GetCurrentDirectory() + @"/config.json", json);
-
-                    // Create and start the server
-                    var server = new Server(configuration);
-
-                    server.Start();
-                }
-                else
-                {
-                    // Read the configuration file
-                    string configFile = "config.json";
-                    string json = File.ReadAllText(configFile);
-
-                    // Parse the JSON configuration
-                    var config = JsonConvert.DeserializeObject<ServerConfiguration>(json);
-
-                    // Create and start the server
-                    var server = new Server(config);
-
-                    server.Start();
-                }
+                string currentDir = Directory.GetCurrentDirectory();
+                ServerConfiguration.Initialize($"{currentDir}/static/config.json");
 
                 while (true)
                 {
                     Console.WriteLine("Press any key to shutdown the server...");
-
                     Console.ReadLine();
 
-                    Console.WriteLine("Are you sure you want to SHUTDOWN THE SERVER? Press no if you don't want to!");
+                    Console.WriteLine("Are you sure you want to shut down the server? [y/N]");
+                    char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                    string emergencyin = Console.ReadLine().ToLower();
-
-                    if (emergencyin == "no" || emergencyin == "n0")
+                    if (input == 'y')
                     {
-
-                    }
-                    else
-                    {
-                        Console.WriteLine("Are you REALLY sure you want to SHUTDOWN THE SERVER? Press no if you don't want to!");
-
-                        emergencyin = Console.ReadLine().ToLower();
-
-                        if (emergencyin == "no" || emergencyin == "n0")
-                        {
-
-                        }
-                        else
-                        {
-                            Environment.Exit(0);
-                        }
+                        Console.WriteLine("Shutting down. Goodbye!");
+                        Environment.Exit(0);
                     }
                 }
-
-            }
-            catch (Exception ex)
+            } catch (FileNotFoundException e)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                // Handle any missing file.
+                Console.WriteLine(e.Message);
             }
         }
 

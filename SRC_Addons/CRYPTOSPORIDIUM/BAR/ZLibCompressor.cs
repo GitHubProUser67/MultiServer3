@@ -1,6 +1,6 @@
 using ComponentAce.Compression.Libs.zlib;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR
 {
 	internal static class ZLibCompressor
 	{

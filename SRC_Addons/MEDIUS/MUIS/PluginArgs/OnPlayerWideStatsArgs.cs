@@ -1,6 +1,6 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.MUIS.Models;
+﻿using PSMultiServer.Addons.Medius.MUIS.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.PluginArgs
+namespace PSMultiServer.Addons.Medius.MUIS.PluginArgs
 {
     public class OnPlayerWideStatsArgs
     {

@@ -1,7 +1,7 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface
+namespace PSMultiServer.Addons.Medius.Server.Plugins.Interface
 {
     public delegate Task OnRegisterActionHandler(PluginEvent eventType, object data);
     public delegate Task OnRegisterMessageActionHandler(RT_MSG_TYPE msgId, object data);

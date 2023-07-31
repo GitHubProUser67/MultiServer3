@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using HttpMultipartParser;
 
-namespace PSMultiServer.SRC_Addons.HOME
+namespace PSMultiServer.Addons.HOME
 {
     public class VEEMEEservices
     {

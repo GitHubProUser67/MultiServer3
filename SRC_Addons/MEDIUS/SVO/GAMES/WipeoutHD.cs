@@ -2,7 +2,7 @@
 using System.Net;
 using System.Text;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
+namespace PSMultiServer.Addons.Medius.SVO.GAMES
 {
     public class WipeoutHD
     {

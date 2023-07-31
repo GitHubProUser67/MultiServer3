@@ -4,17 +4,17 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Tcp;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
-using PSMultiServer.SRC_Addons.MEDIUS.MUIS.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
+using PSMultiServer.Addons.Medius.MUIS.Config;
+using PSMultiServer.Addons.Medius.Server.Common.Logging;
 using System.Globalization;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS
+namespace PSMultiServer.Addons.Medius.MUIS
 {
     /// <summary>
     /// Introduced in Medius 1.43

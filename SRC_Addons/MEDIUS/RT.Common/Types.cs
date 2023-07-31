@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Common
+﻿namespace PSMultiServer.Addons.Medius.RT.Common
 {
     #region RT_MSG
     public enum RT_MSG_TYPE : byte

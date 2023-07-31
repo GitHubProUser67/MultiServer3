@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace PSMultiServer.SRC_Addons.HighResolutionTimer
+namespace PSMultiServer.Addons.Timer
 {
     // Disable these StyleCop rules for this file, as we are using native names here.
 #pragma warning disable SA1300 // Element should begin with upper-case letter

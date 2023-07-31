@@ -1,7 +1,7 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database;
-using PSMultiServer.SRC_Addons.MEDIUS.GHS.Config;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Database;
+using PSMultiServer.Addons.Medius.GHS.Config;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
@@ -9,7 +9,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using System.Management;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.GHS
+namespace PSMultiServer.Addons.Medius.GHS
 {
     public class GhsClass
     {

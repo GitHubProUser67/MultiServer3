@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography
+﻿namespace PSMultiServer.Addons.Medius.RT.Cryptography
 {
     /// <summary>
     /// The highest 3 bits of the hash.

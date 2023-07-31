@@ -1,6 +1,6 @@
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Models
+namespace PSMultiServer.Addons.Medius.Server.Database.Models
 {
     public partial class DimLocations
     {

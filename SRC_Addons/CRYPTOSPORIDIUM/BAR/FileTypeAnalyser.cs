@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR
 {
 	public class FileTypeAnalyser
 	{

@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Common
+﻿namespace PSMultiServer.Addons.Medius.RT.Common
 {
     public static class Extensions
     {

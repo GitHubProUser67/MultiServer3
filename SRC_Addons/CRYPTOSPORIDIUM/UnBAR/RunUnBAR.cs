@@ -1,6 +1,6 @@
-﻿using PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR;
+﻿using PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.UnBAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.UnBAR
 {
     internal class RunUnBAR
     {

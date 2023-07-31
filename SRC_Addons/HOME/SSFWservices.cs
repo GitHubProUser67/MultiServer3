@@ -6,42 +6,23 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Ocsp;
 
-namespace PSMultiServer.SRC_Addons.HOME
+namespace PSMultiServer.Addons.HOME
 {
     public class SSFWServices
     {
-        private static string ssfwkey = "";
-
-        private static string SSFWminibase = "[]";
-
         private static volatile bool _keepGoing = true;
-
-        private static bool stopserver = false;
-
-        private static bool ssfwcrosssave = false;
-
-        public static bool ssfwstarted = false;
+        private static bool StopServer = false;
+        public static bool Started = false;
 
         // Create and start the HttpListener
-        private static HttpListener listener = new HttpListener();
+        private static HttpListener HttpListener = new();
 
         private static Task? _mainLoop;
-        public static void SSFWstart(string ssfwkeylocal, string SSFWminibaselocal, bool ssfwcrosssavelocal)
+        public static void SSFWstart()
         {
             try
             {
-                ssfwcrosssave = ssfwcrosssavelocal;
-
-                ssfwkey = ssfwkeylocal;
-
-                SSFWminibase = SSFWminibaselocal;
-
-                ssfwstarted = true;
-
-                if (SSFWminibase == "")
-                {
-                    SSFWminibase = "[]";
-                }
+                Started = true;
 
                 if (!Directory.Exists(Directory.GetCurrentDirectory() + "/wwwssfwroot/"))
                 {
@@ -53,18 +34,18 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/loginformNtemplates/SSFW_Accounts/");
                 }
 
-                if (ssfwkey == "")
+                if (ServerConfiguration.SSFWPrivateKey == "")
                 {
                     Console.WriteLine("No SSFW key so ssfw encryption is disabled.");
                 }
-                else if (ssfwkey.Length < 20)
+                else if (ServerConfiguration.SSFWPrivateKey == null || ServerConfiguration.SSFWPrivateKey.Length < 20)
                 {
                     Console.WriteLine("SSFW key is less than 20 characters, so encryption is disabled.");
 
-                    ssfwkey = "";
+                    ServerConfiguration.SSFWPrivateKey = "";
                 }
 
-                stopserver = false;
+                StopServer = false;
                 _keepGoing = true;
                 if (_mainLoop != null && !_mainLoop.IsCompleted) return; //Already started
                 _mainLoop = loopserver();
@@ -78,19 +59,19 @@ namespace PSMultiServer.SRC_Addons.HOME
         {
             Console.WriteLine($"SSFW Server stopped - Block requests...");
 
-            stopserver = true;
-            listener.Stop();
+            StopServer = true;
+            HttpListener.Stop();
             _keepGoing = false;
 
-            ssfwstarted = false;
+            Started = false;
 
             return;
         }
 
         private async static Task loopserver()
         {
-            listener.Prefixes.Add("http://*:10443/");
-            listener.Start();
+            HttpListener.Prefixes.Add("http://*:10443/");
+            HttpListener.Start();
 
             Console.WriteLine($"SSFW Server started on *:10443 - Listening for requests...");
 
@@ -99,9 +80,9 @@ namespace PSMultiServer.SRC_Addons.HOME
                 try
                 {
                     //GetContextAsync() returns when a new request come in
-                    var context = await listener.GetContextAsync();
+                    var context = await HttpListener.GetContextAsync();
 
-                    lock (listener)
+                    lock (HttpListener)
                     {
                         if (_keepGoing)
                         {
@@ -113,9 +94,9 @@ namespace PSMultiServer.SRC_Addons.HOME
                 {
                     if (ex is HttpListenerException)
                     {
-                        if (stopserver)
+                        if (StopServer)
                         {
-                            stopserver = false;
+                            StopServer = false;
                             return;
                         }
                         else
@@ -124,10 +105,10 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                             Console.WriteLine($"FATAL ERROR OCCURED in SSFW Listener - {ex} - Trying to listen for requests again...");
 
-                            if (!listener.IsListening)
+                            if (!HttpListener.IsListening)
                             {
                                 _keepGoing = true;
-                                listener.Start();
+                                HttpListener.Start();
                             }
                             else
                             {
@@ -226,11 +207,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             {
                                                 using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.jpeg", FileMode.Create))
                                                 {
-                                                    if (ssfwkey != "")
+                                                    if (ServerConfiguration.SSFWPrivateKey != "")
                                                     {
                                                         byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                         fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                         fs.Flush();
@@ -250,11 +231,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             {
                                                 using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw", FileMode.Create))
                                                 {
-                                                    if (ssfwkey != "")
+                                                    if (ServerConfiguration.SSFWPrivateKey != "")
                                                     {
                                                         byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                         fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                         fs.Flush();
@@ -274,11 +255,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             {
                                                 using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.bin", FileMode.Create))
                                                 {
-                                                    if (ssfwkey != "")
+                                                    if (ServerConfiguration.SSFWPrivateKey != "")
                                                     {
                                                         byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                         fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                         fs.Flush();
@@ -452,7 +433,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         }
                                                     }
 
-                                                    if (await Task.Run(() => Misc.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E })) && !ssfwcrosssave)
+                                                    if (await Task.Run(() => Misc.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E })) && !ServerConfiguration.SSFWCrossSave)
                                                     {
                                                         Console.WriteLine($"User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
 
@@ -537,7 +518,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                             fileStream.Close();
                                                         }
 
-                                                        if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                                        if (ServerConfiguration.SSFWPrivateKey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                                         {
                                                             byte[] src = File.ReadAllBytes(userprofilefile);
                                                             byte[] dst = new byte[src.Length - 9];
@@ -545,7 +526,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                                                             tempcontent = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                                                         }
                                                         else
                                                         {
@@ -570,11 +551,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                             {
                                                                 byte[] dataforoutput = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(userData));
 
-                                                                if (ssfwkey != "")
+                                                                if (ServerConfiguration.SSFWPrivateKey != "")
                                                                 {
                                                                     byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforoutput));
+                                                                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), dataforoutput));
 
                                                                     fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                                     fs.Flush();
@@ -606,11 +587,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                             {
                                                                 byte[] dataforoutput = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(userData));
 
-                                                                if (ssfwkey != "")
+                                                                if (ServerConfiguration.SSFWPrivateKey != "")
                                                                 {
                                                                     byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforoutput));
+                                                                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), dataforoutput));
 
                                                                     fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                                     fs.Flush();
@@ -710,11 +691,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         {
                                                             byte[] dataforlayout = Encoding.UTF8.GetBytes("[{\"00000000-00000000-00000000-00000004\":{\"version\":3,\"wallpaper\":2,\"furniture\":[{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000010\",\"instanceId\":\"4874595585\",\"itemId\":0,\"positionX\":-4.287144660949707,\"positionY\":2.9999580383300781,\"positionZ\":-2.3795166015625,\"rotationX\":2.6903744583250955E-06,\"rotationY\":0.70767402648925781,\"rotationZ\":-2.1571504476014525E-06,\"rotationW\":0.70653915405273438,\"time\":1686384673},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000002\",\"instanceId\":\"4874595586\",\"itemId\":1,\"positionX\":-3.7360246181488037,\"positionY\":2.9999902248382568,\"positionZ\":-0.93418246507644653,\"rotationX\":1.5251726836140733E-05,\"rotationY\":0.92014747858047485,\"rotationZ\":-0.00032892703893594444,\"rotationW\":0.39157184958457947,\"time\":1686384699},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000002\",\"instanceId\":\"4874595587\",\"itemId\":2,\"positionX\":-4.2762022018432617,\"positionY\":2.9999568462371826,\"positionZ\":-4.1523990631103516,\"rotationX\":1.4554960570123399E-09,\"rotationY\":0.4747755229473114,\"rotationZ\":-1.4769816480963982E-08,\"rotationW\":0.88010692596435547,\"time\":1686384723},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000002\",\"instanceId\":\"4874595588\",\"itemId\":3,\"positionX\":-2.8646721839904785,\"positionY\":2.9999570846557617,\"positionZ\":-3.0560495853424072,\"rotationX\":0.00010053320875158533,\"rotationY\":-0.26336261630058289,\"rotationZ\":-3.8589099858654663E-05,\"rotationW\":0.96469688415527344,\"time\":1686384751},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000001\",\"instanceId\":\"4874595589\",\"itemId\":4,\"positionX\":3.9096813201904297,\"positionY\":2.9995136260986328,\"positionZ\":-4.2813630104064941,\"rotationX\":4.3287433072691783E-05,\"rotationY\":-0.53099715709686279,\"rotationZ\":-3.9187150832731277E-05,\"rotationW\":0.8473736047744751,\"time\":1686384774},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000004\",\"instanceId\":\"4874595590\",\"itemId\":5,\"positionX\":1.8418744802474976,\"positionY\":3.0001647472381592,\"positionZ\":-3.2746503353118896,\"rotationX\":-5.4990476201055571E-05,\"rotationY\":-0.53177982568740845,\"rotationZ\":-1.335094293608563E-05,\"rotationW\":0.84688264131546021,\"time\":1686384795},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000008\",\"instanceId\":\"4874595591\",\"itemId\":6,\"positionX\":3.4726400375366211,\"positionY\":3.0000433921813965,\"positionZ\":4.783566951751709,\"rotationX\":6.1347323935478926E-05,\"rotationY\":0.99999260902404785,\"rotationZ\":-1.7070769899873994E-05,\"rotationW\":0.0038405421655625105,\"time\":1686384822},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000008\",\"instanceId\":\"4874595592\",\"itemId\":7,\"positionX\":3.4952659606933594,\"positionY\":3.0000007152557373,\"positionZ\":0.2776024341583252,\"rotationX\":-1.2929040167364292E-05,\"rotationY\":-0.0061355167999863625,\"rotationZ\":-4.4378830352798104E-05,\"rotationW\":0.999981164932251,\"time\":1686384834},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000001\",\"instanceId\":\"4874595593\",\"itemId\":8,\"positionX\":1.3067165613174438,\"positionY\":2.9994897842407227,\"positionZ\":2.546649694442749,\"rotationX\":2.8451957405195571E-05,\"rotationY\":0.70562022924423218,\"rotationZ\":-8.0827621786738746E-06,\"rotationW\":0.70859026908874512,\"time\":1686384862},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000003\",\"instanceId\":\"4874595594\",\"itemId\":9,\"positionX\":3.4803681373596191,\"positionY\":2.9999568462371826,\"positionZ\":2.5385856628417969,\"rotationX\":3.1659130428352E-08,\"rotationY\":-0.70712763071060181,\"rotationZ\":8.1442820487609424E-08,\"rotationW\":0.70708584785461426,\"time\":1686384884},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000009\",\"instanceId\":\"4874595595\",\"itemId\":10,\"positionX\":-3.5043892860412598,\"positionY\":2.9999568462371826,\"positionZ\":-9.527653694152832,\"rotationX\":-1.7184934222314041E-06,\"rotationY\":0.00023035785125102848,\"rotationZ\":2.5227839728358958E-07,\"rotationW\":0.99999994039535522,\"time\":1686384912},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000009\",\"instanceId\":\"4874595596\",\"itemId\":11,\"positionX\":3.6248698234558105,\"positionY\":2.9999566078186035,\"positionZ\":-9.5347089767456055,\"rotationX\":-2.1324558474589139E-07,\"rotationY\":2.0361580027383752E-05,\"rotationZ\":-4.7822368287597783E-08,\"rotationW\":1,\"time\":1686384931},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000005\",\"instanceId\":\"4874595597\",\"itemId\":12,\"positionX\":-3.5068926811218262,\"positionY\":3.4883472919464111,\"positionZ\":-9.5313901901245117,\"rotationX\":-0.00091801158851012588,\"rotationY\":0.006055513396859169,\"rotationZ\":0.000585820700507611,\"rotationW\":0.99998104572296143,\"time\":1686384961,\"photo\":\"/Furniture/Modern2/lampOutputcube.dds\"},{\"flags\":0,\"furnitureObjectId\":\"00000000-00000000-00000002-00000005\",\"instanceId\":\"4874595598\",\"itemId\":13,\"positionX\":3.6171293258666992,\"positionY\":3.4891724586486816,\"positionZ\":-9.53490161895752,\"rotationX\":0.00042979296995326877,\"rotationY\":-0.0092521701008081436,\"rotationZ\":-0.00027207753737457097,\"rotationW\":0.99995702505111694,\"time\":1686385008,\"photo\":\"/Furniture/Modern2/lampOutputcube.dds\"}]}}]");
 
-                                                            if (ssfwkey != "")
+                                                            if (ServerConfiguration.SSFWPrivateKey != "")
                                                             {
                                                                 byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforlayout));
+                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), dataforlayout));
 
                                                                 fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                                 fs.Flush();
@@ -733,13 +714,13 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                     {
                                                         using (FileStream fs = new FileStream($"./wwwssfwroot/RewardsService/cprod/rewards/" + resultString + "/mini.ssfw", FileMode.Create))
                                                         {
-                                                            byte[] dataforrewardservice = Encoding.UTF8.GetBytes(SSFWminibase);
+                                                            byte[] dataforrewardservice = Encoding.UTF8.GetBytes(ServerConfiguration.SSFWMinibase);
 
-                                                            if (ssfwkey != "")
+                                                            if (ServerConfiguration.SSFWPrivateKey != "")
                                                             {
                                                                 byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforrewardservice));
+                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), dataforrewardservice));
 
                                                                 fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                                 fs.Flush();
@@ -760,11 +741,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         {
                                                             byte[] dataforrewardservice = Encoding.UTF8.GetBytes("{\"objects\":[]}");
 
-                                                            if (ssfwkey != "")
+                                                            if (ServerConfiguration.SSFWPrivateKey != "")
                                                             {
                                                                 byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforrewardservice));
+                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), dataforrewardservice));
 
                                                                 fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                                 fs.Flush();
@@ -785,11 +766,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                         {
                                                             byte[] dataforavatarlayoutservice = Encoding.UTF8.GetBytes("[]");
 
-                                                            if (ssfwkey != "")
+                                                            if (ServerConfiguration.SSFWPrivateKey != "")
                                                             {
                                                                 byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), dataforavatarlayoutservice));
+                                                                byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), dataforavatarlayoutservice));
 
                                                                 fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                                 fs.Flush();
@@ -1019,11 +1000,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 {
                                                     using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw", FileMode.Create))
                                                     {
-                                                        if (ssfwkey != "")
+                                                        if (ServerConfiguration.SSFWPrivateKey != "")
                                                         {
                                                             byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                            byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                            byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                             fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                             fs.Flush();
@@ -1200,11 +1181,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             {
                                                 using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw", FileMode.Create))
                                                 {
-                                                    if (ssfwkey != "")
+                                                    if (ServerConfiguration.SSFWPrivateKey != "")
                                                     {
                                                         byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                         fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                         fs.Flush();
@@ -1360,11 +1341,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             {
                                                 using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw", FileMode.Create))
                                                 {
-                                                    if (ssfwkey != "")
+                                                    if (ServerConfiguration.SSFWPrivateKey != "")
                                                     {
                                                         byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                         fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                         fs.Flush();
@@ -1520,11 +1501,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             {
                                                 using (FileStream fs = new FileStream($"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw", FileMode.Create))
                                                 {
-                                                    if (ssfwkey != "")
+                                                    if (ServerConfiguration.SSFWPrivateKey != "")
                                                     {
                                                         byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), buffer));
+                                                        byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), buffer));
 
                                                         fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
                                                         fs.Flush();
@@ -2259,7 +2240,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 fileStream.Close();
                                             }
 
-                                            if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                            if (ServerConfiguration.SSFWPrivateKey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                             {
                                                 byte[] src = File.ReadAllBytes(Directory.GetCurrentDirectory() + $"/loginformNtemplates/SSFW_Accounts/{sessionid}.ssfw");
                                                 byte[] dst = new byte[src.Length - 9];
@@ -2267,7 +2248,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
                                                 tempcontent = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                            CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                                            CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                                             }
                                             else
                                             {
@@ -2421,7 +2402,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             fileStream.Close();
                                         }
 
-                                        if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                        if (ServerConfiguration.SSFWPrivateKey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                         {
                                             byte[] src = File.ReadAllBytes(filePath + ".ssfw");
                                             byte[] dst = new byte[src.Length - 9];
@@ -2429,7 +2410,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                                             byte[] fileBytes = CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey));
+                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey));
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -2527,7 +2508,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             fileStream.Close();
                                         }
 
-                                        if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                        if (ServerConfiguration.SSFWPrivateKey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                         {
                                             byte[] src = File.ReadAllBytes(filePath + ".bin");
                                             byte[] dst = new byte[src.Length - 9];
@@ -2535,7 +2516,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                                             byte[] fileBytes = CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey));
+                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey));
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -2625,7 +2606,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             fileStream.Close();
                                         }
 
-                                        if (ssfwkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                                        if (ServerConfiguration.SSFWPrivateKey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
                                         {
                                             byte[] src = File.ReadAllBytes(filePath + ".jpeg");
                                             byte[] dst = new byte[src.Length - 9];
@@ -2633,7 +2614,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                                             Array.Copy(src, 9, dst, 0, dst.Length);
 
                                             byte[] fileBytes = CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey));
+                                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey));
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -3263,7 +3244,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     fileStream.Close();
                 }
 
-                if (ssfwkey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                if (ServerConfiguration.SSFWPrivateKey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                 {
                     byte[] src = File.ReadAllBytes(filePath);
                     byte[] dst = new byte[src.Length - 9];
@@ -3271,7 +3252,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Array.Copy(src, 9, dst, 0, dst.Length);
 
                     json = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                 }
                 else
                 {
@@ -3339,11 +3320,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                 // Save the modified main file back to the original file path
                 string updatedJson = mainFile.ToString();
 
-                if (ssfwkey != "")
+                if (ServerConfiguration.SSFWPrivateKey != "")
                 {
                     byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), Encoding.UTF8.GetBytes(updatedJson)));
+                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), Encoding.UTF8.GetBytes(updatedJson)));
 
                     File.WriteAllBytes(filePath, encryptedbuffer);
                 }
@@ -3375,7 +3356,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     fileStream.Close();
                 }
 
-                if (ssfwkey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                if (ServerConfiguration.SSFWPrivateKey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                 {
                     byte[] src = File.ReadAllBytes(filePath);
                     byte[] dst = new byte[src.Length - 9];
@@ -3383,7 +3364,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Array.Copy(src, 9, dst, 0, dst.Length);
 
                     json = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                 }
                 else
                 {
@@ -3431,11 +3412,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                 // Convert the updated JSON array back to a string
                 string updatedJson = jsonArray.ToString();
 
-                if (ssfwkey != "")
+                if (ServerConfiguration.SSFWPrivateKey != "")
                 {
                     byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), Encoding.UTF8.GetBytes(updatedJson)));
+                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), Encoding.UTF8.GetBytes(updatedJson)));
 
                     File.WriteAllBytes(filePath, encryptedbuffer);
                 }
@@ -3467,7 +3448,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     fileStream.Close();
                 }
 
-                if (ssfwkey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                if (ServerConfiguration.SSFWPrivateKey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                 {
                     byte[] src = File.ReadAllBytes(filePath);
                     byte[] dst = new byte[src.Length - 9];
@@ -3475,7 +3456,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Array.Copy(src, 9, dst, 0, dst.Length);
 
                     json = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                 }
                 else
                 {
@@ -3524,11 +3505,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                 // Convert the updated JSON array back to a string
                 string updatedJson = jsonArray.ToString(Newtonsoft.Json.Formatting.None);
 
-                if (ssfwkey != "")
+                if (ServerConfiguration.SSFWPrivateKey != "")
                 {
                     byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), Encoding.UTF8.GetBytes(updatedJson)));
+                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), Encoding.UTF8.GetBytes(updatedJson)));
 
                     File.WriteAllBytes(filePath, encryptedbuffer);
                 }
@@ -3560,7 +3541,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     fileStream.Close();
                 }
 
-                if (ssfwkey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                if (ServerConfiguration.SSFWPrivateKey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                 {
                     byte[] src = File.ReadAllBytes(filePath);
                     byte[] dst = new byte[src.Length - 9];
@@ -3568,7 +3549,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Array.Copy(src, 9, dst, 0, dst.Length);
 
                     json = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                 }
                 else
                 {
@@ -3613,7 +3594,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     fileStream.Close();
                 }
 
-                if (ssfwkey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                if (ServerConfiguration.SSFWPrivateKey != "" && Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                 {
                     byte[] src = File.ReadAllBytes(filePath);
                     byte[] dst = new byte[src.Length - 9];
@@ -3621,7 +3602,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     Array.Copy(src, 9, dst, 0, dst.Length);
 
                     json = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey)));
+                                CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey)));
                 }
                 else
                 {
@@ -3669,11 +3650,11 @@ namespace PSMultiServer.SRC_Addons.HOME
                 // Serialize the JSON array back to a string
                 string updatedJson = jsonArray.ToString();
 
-                if (ssfwkey != "")
+                if (ServerConfiguration.SSFWPrivateKey != "")
                 {
                     byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
 
-                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ssfwkey), Encoding.UTF8.GetBytes(updatedJson)));
+                    byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(ServerConfiguration.SSFWPrivateKey), Encoding.UTF8.GetBytes(updatedJson)));
 
                     File.WriteAllBytes(filePath, encryptedbuffer);
                 }

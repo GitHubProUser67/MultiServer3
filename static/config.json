@@ -1,0 +1,24 @@
+{
+  "php": {
+    "version": "8.25"
+  },
+  "ssfw": {
+    "enabled": true,
+    "private_key": "",
+    "minibase": "[]",
+    "cross_save": true
+  },
+  "http": {
+    "enabled": true,
+    "private_key": "",
+    "port": 80
+  },
+  "medius": {
+    "enabled": true
+  },
+  "home": {
+    "beta_version": "",
+    "retail_version": "",
+    "motd_file": "static/motd.xml" 
+  }
+}

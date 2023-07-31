@@ -1,9 +1,9 @@
 ﻿using DotNetty.Codecs;
 using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 {
     public class ScertDatagramMultiAppDecoder : MessageToMessageDecoder<ScertDatagramPacket>
     {

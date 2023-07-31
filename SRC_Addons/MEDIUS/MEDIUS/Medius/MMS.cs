@@ -4,13 +4,13 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Tcp;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Tcp;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius
+namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 {
     /// <summary>
     /// Introduced in Medius 3.03

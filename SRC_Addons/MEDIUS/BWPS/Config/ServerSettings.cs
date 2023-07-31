@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.BWPS.Config
+﻿namespace PSMultiServer.Addons.Medius.BWPS.Config
 {
     public class ServerSettings
     {

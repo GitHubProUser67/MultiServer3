@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 
-namespace PSMultiServer.SRC_Addons.HOME
+namespace PSMultiServer.Addons.HOME
 {
     public class OHSservices
     {

@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
+namespace PSMultiServer.Addons.Medius.SVO.GAMES
 {
     public class MotorstormApocalypse
     {

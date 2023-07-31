@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.Config
+﻿namespace PSMultiServer.Addons.Medius.SVO.Config
 {
     public class AppSettings
     {

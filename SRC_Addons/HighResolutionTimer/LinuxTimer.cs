@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace PSMultiServer.SRC_Addons.HighResolutionTimer
+namespace PSMultiServer.Addons.Timer
 {
     internal class LinuxTimer : ITimer, IDisposable
     {

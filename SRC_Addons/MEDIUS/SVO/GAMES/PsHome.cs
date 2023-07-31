@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES
+namespace PSMultiServer.Addons.Medius.SVO.GAMES
 {
     public class Ps_Home
     {

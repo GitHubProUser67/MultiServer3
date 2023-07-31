@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.UnBAR
+﻿namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.UnBAR
 {
     internal abstract class Decryptor
     {
