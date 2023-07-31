@@ -1,10 +1,10 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models.AntiCheat;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat.Models;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Models.AntiCheat;
+using PSMultiServer.Addons.Medius.Server.libAntiCheat.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat
+namespace PSMultiServer.Addons.Medius.Server.libAntiCheat
 {
     public class AntiCheat
     {

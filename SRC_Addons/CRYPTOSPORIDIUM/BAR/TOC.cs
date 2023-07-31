@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR
 {
 	public class TOC
 	{

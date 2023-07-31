@@ -1,7 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR
 {
     public class EdgeZLibCompression_ICSharp : CompressionBase
     {

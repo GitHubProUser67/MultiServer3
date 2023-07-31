@@ -37,8 +37,8 @@ namespace PSMultiServer
 
                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
-                                fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
+                                fileBuffer = Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                            Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                             }
                             else
                             {
@@ -145,8 +145,8 @@ namespace PSMultiServer
 
                                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
-                                                byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
+                                                byte[] fileBytes = Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                                            Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
 
                                                 context.Response.ContentLength64 = fileBytes.Length;
 
@@ -228,8 +228,8 @@ namespace PSMultiServer
 
                                             Array.Copy(src, 9, dst, 0, dst.Length);
 
-                                            byte[] fileBytes = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
+                                            byte[] fileBytes = Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                                        Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
 
                                             context.Response.ContentLength64 = fileBytes.Length;
 
@@ -337,8 +337,8 @@ namespace PSMultiServer
 
                             Array.Copy(src, 9, dst, 0, dst.Length);
 
-                            fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
+                            fileBuffer = Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                         }
                         else
                         {
@@ -450,8 +450,8 @@ namespace PSMultiServer
 
                                 Array.Copy(src, 9, dst, 0, dst.Length);
 
-                                fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                            SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
+                                fileBuffer = Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                            Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                             }
                             else
                             {
@@ -567,8 +567,8 @@ namespace PSMultiServer
 
                             Array.Copy(src, 9, dst, 0, dst.Length);
 
-                            fileBuffer = SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
-                                        SRC_Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
+                            fileBuffer = Addons.CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        Addons.CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey));
                         }
                         else
                         {

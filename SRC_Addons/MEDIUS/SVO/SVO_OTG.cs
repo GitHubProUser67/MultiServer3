@@ -2,7 +2,7 @@
 using System.Text;
 using System.Security.Cryptography;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
+namespace PSMultiServer.Addons.Medius.SVO
 {
     public class SVO_OTG
     {

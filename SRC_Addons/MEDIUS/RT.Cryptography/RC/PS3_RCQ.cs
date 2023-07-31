@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RC
+﻿namespace PSMultiServer.Addons.Medius.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
     {

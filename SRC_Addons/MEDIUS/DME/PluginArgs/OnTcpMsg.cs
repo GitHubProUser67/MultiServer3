@@ -1,7 +1,7 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.DME.Models;
+﻿using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.DME.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.DME.PluginArgs
+namespace PSMultiServer.Addons.Medius.DME.PluginArgs
 {
     public class OnTcpMsg
     {

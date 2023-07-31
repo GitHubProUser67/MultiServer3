@@ -1,11 +1,11 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR;
-using PSMultiServer.SRC_Addons.MEDIUS.SVO.GAMES;
+using PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR;
+using PSMultiServer.Addons.Medius.SVO.GAMES;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
+namespace PSMultiServer.Addons.Medius.SVO
 {
     /// <summary>
     /// SVO.

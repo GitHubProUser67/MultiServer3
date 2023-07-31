@@ -1,7 +1,7 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.DME.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp;
+﻿using PSMultiServer.Addons.Medius.DME.Models;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Udp;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.DME.PluginArgs
+namespace PSMultiServer.Addons.Medius.DME.PluginArgs
 {
     public class OnUdpMsg
     {

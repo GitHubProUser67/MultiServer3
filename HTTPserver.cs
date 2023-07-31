@@ -1,4 +1,4 @@
-﻿using PSMultiServer.SRC_Addons.HOME;
+﻿using PSMultiServer.Addons.HOME;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
@@ -24,15 +24,11 @@ namespace PSMultiServer
 
         private static Task? _mainLoop;
 
-        public static void HTTPstart(string phpverlocal, string _HTTPKEY, int port)
+        public static void HTTPstart()
         {
             try
             {
                 httpstarted = true;
-
-                httpkey = _HTTPKEY;
-
-                phpver = phpverlocal;
 
                 GENERALHomeClass.PrepareHomeFoldersNFiles();
 
@@ -51,7 +47,7 @@ namespace PSMultiServer
 
                 _keepGoing = true;
                 if (_mainLoop != null && !_mainLoop.IsCompleted) return; //Already started
-                _mainLoop = loopserver(port);
+                _mainLoop = loopserver(ServerConfiguration.HTTPPort);
             }
             catch (Exception ex)
             {

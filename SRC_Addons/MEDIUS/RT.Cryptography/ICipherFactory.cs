@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography
+﻿namespace PSMultiServer.Addons.Medius.RT.Cryptography
 {
     public interface ICipherFactory
     {

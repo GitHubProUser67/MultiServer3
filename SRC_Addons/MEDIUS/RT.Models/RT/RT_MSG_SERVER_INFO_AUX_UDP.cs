@@ -1,8 +1,8 @@
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.Server.Common.Stream;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     [ScertMessage(RT_MSG_TYPE.RT_MSG_SERVER_INFO_AUX_UDP)]
     public class RT_MSG_SERVER_INFO_AUX_UDP : BaseScertMessage

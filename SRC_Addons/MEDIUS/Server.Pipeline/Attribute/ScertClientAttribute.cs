@@ -1,8 +1,8 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RSA;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+﻿using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.RT.Cryptography.RSA;
+using PSMultiServer.Addons.Medius.RT.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Attribute
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Attribute
 {
     public class ScertClientAttribute
     {

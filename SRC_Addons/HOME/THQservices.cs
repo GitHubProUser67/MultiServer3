@@ -2,7 +2,7 @@
 using System.Net;
 using System.Text;
 
-namespace PSMultiServer.SRC_Addons.HOME
+namespace PSMultiServer.Addons.HOME
 {
     public class THQservices
     {

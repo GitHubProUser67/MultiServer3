@@ -1,7 +1,7 @@
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.Server.Common.Stream;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     /// <summary>
     /// Report from the "host" of game at the end of the game instance to the Medius Lobby Server

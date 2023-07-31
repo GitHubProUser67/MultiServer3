@@ -1,8 +1,8 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Models;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.Models
+namespace PSMultiServer.Addons.Medius.MUIS.Models
 {
     public class DMEObject : ClientObject
     {

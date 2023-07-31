@@ -1,13 +1,13 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.DME.Models
+namespace PSMultiServer.Addons.Medius.DME.Models
 {
     public class ClientObject
     {

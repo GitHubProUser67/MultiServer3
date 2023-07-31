@@ -1,7 +1,7 @@
 ﻿using Org.BouncyCastle.Math;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RSA;
+using PSMultiServer.Addons.Medius.RT.Cryptography.RSA;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.Config
+namespace PSMultiServer.Addons.Medius.MUIS.Config
 {
     public class ServerSettings
     {

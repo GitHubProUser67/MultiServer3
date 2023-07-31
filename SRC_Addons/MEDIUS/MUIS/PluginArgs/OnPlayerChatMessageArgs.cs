@@ -1,7 +1,7 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.RT.Models.Misc;
-using PSMultiServer.SRC_Addons.MEDIUS.MUIS.Models;
+﻿using PSMultiServer.Addons.Medius.RT.Models.Misc;
+using PSMultiServer.Addons.Medius.MUIS.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MUIS.PluginArgs
+namespace PSMultiServer.Addons.Medius.MUIS.PluginArgs
 {
     public class OnPlayerChatMessageArgs
     {

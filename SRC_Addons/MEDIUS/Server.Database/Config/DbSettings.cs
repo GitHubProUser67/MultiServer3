@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Config
+﻿namespace PSMultiServer.Addons.Medius.Server.Database.Config
 {
     public class DbSettings
     {

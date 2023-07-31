@@ -1,13 +1,14 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.SVO.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
+using PSMultiServer.Addons.Medius.SVO.Config;
+using PSMultiServer.Addons.Medius.Server.Common;
 using System.Diagnostics;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
+using PSMultiServer.Addons.Medius.Server.Database;
+using PSMultiServer.Addons.Medius.Server.Plugins;
+using PSMultiServer.Addons.Medius.Server.Common.Logging;
+using PSMultiServer.Addons.Timer;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
+namespace PSMultiServer.Addons.Medius.SVO
 {
     public class SvoClass
     {
@@ -35,11 +36,11 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
 
         public static ServerSettings Settings = new ServerSettings();
         public static SVO SVOServer = new SVO();
-        public static DbController Database = null;
+        public static DbController? Database;
 
 
         public static SVOManager Manager = new SVOManager();
-        public static PluginsManager Plugins = null;
+        public static PluginsManager Plugins;
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<SvoClass>();
 
@@ -55,14 +56,14 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
         private static ulong _sessionKeyCounter = 0;
         private static int sleepMS = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
-        private static DateTime? _lastSuccessfulDbAuth = null;
+        private static DateTime? _lastSuccessfulDbAuth;
         private static DateTime _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
         private static DateTime _lastComponentLog = Utils.GetHighPrecisionUtcTime();
 
 
         private static int _ticks = 0;
         private static Stopwatch _sw = new Stopwatch();
-        private static HighResolutionTimer.HighResolutionTimer _timer;
+        private static HighResolutionTimer _timer = new Timer.HighResolutionTimer();
 
         static async Task TickAsync()
         {
@@ -188,7 +189,6 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
 
             #region Timer
             // start timer
-            _timer = new HighResolutionTimer.HighResolutionTimer();
             _timer.SetPeriod(waitMs);
             _timer.Start();
 
@@ -233,10 +233,8 @@ namespace PSMultiServer.SRC_Addons.MEDIUS.SVO
             */
         }
 
-        public static async Task SvoMain(string _HOMEmessageoftheday)
+        public static async Task SvoMain()
         {
-            HOMEmessageoftheday = _HOMEmessageoftheday;
-
             // 
             Database = new DbController(DB_CONFIG_FILE);
 

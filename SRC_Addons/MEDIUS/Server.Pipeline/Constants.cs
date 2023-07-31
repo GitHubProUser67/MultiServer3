@@ -1,7 +1,7 @@
 ﻿using DotNetty.Common.Utilities;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Attribute;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Attribute;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline
+namespace PSMultiServer.Addons.Medius.Server.Pipeline
 {
     public static class Constants
     {

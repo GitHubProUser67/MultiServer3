@@ -1,4 +1,4 @@
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models.ServerPlugins
+namespace PSMultiServer.Addons.Medius.RT.Models.ServerPlugins
 {
     internal class NetMessageServerStatusRequest
     {

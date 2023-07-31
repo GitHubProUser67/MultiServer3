@@ -1,9 +1,9 @@
 using Org.BouncyCastle.Math;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Common.Stream;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     [ScertMessage(RT_MSG_TYPE.RT_MSG_SERVER_HELLO)]
     public class RT_MSG_SERVER_HELLO : BaseScertMessage

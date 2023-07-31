@@ -1,13 +1,13 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models.ServerPlugins;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Models.ServerPlugins;
+using PSMultiServer.Addons.Medius.MEDIUS.Medius.Models;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius
+namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 {
     public class MAPS : BaseMediusComponent
     {

@@ -1,6 +1,6 @@
 ﻿using Org.BouncyCastle.Crypto.Digests;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.Hash
+namespace PSMultiServer.Addons.Medius.RT.Cryptography.Hash
 {
     public static class SHA1
     {

@@ -1,4 +1,4 @@
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Models
+namespace PSMultiServer.Addons.Medius.Server.Database.Models
 {
     public partial class DimEula
     {

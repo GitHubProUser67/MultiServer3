@@ -1,10 +1,10 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.Server.Plugins.Interface;
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins
+namespace PSMultiServer.Addons.Medius.Server.Plugins
 {
     public class PluginsManager : IPluginHost
     {

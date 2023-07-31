@@ -1,8 +1,8 @@
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Stream;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.Server.Common.Stream;
 using System.Text;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     /// <summary>
     /// Makes a PostRequest to the Medius Lobby Server on Connect sending the SCE_NPID_MAXLEN data blob

@@ -1,11 +1,11 @@
 ﻿using DotNetty.Codecs;
 using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.RT.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Tcp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Tcp
 {
     public class ScertEncoder : MessageToMessageEncoder<BaseScertMessage>
     {

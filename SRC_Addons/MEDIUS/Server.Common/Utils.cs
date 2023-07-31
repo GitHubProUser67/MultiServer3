@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using MonotonicContext = HpTimeStamps.MonotonicStampContext;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Common
+namespace PSMultiServer.Addons.Medius.Server.Common
 {
     using MonoStampSource = MonotonicTimeStampUtil<MonotonicContext>;
 

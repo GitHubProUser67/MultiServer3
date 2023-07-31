@@ -1,9 +1,9 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Groups;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Tcp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Tcp
 {
     public class ScertServerHandler : SimpleChannelInboundHandler<BaseScertMessage>
     {

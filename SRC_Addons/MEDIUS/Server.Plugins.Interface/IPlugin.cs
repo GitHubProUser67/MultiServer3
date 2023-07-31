@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface
+﻿namespace PSMultiServer.Addons.Medius.Server.Plugins.Interface
 {
     public interface IPlugin
     {

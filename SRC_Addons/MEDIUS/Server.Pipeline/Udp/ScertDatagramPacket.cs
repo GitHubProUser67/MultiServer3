@@ -1,7 +1,7 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
+﻿using PSMultiServer.Addons.Medius.RT.Models;
 using System.Net;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 {
     public class ScertDatagramPacket
     {

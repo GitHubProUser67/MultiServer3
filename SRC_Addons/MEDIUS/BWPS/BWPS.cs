@@ -3,9 +3,9 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Udp;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.BWPS
+namespace PSMultiServer.Addons.Medius.BWPS
 {
     /// <summary>
     /// Unimplemented BWPS.

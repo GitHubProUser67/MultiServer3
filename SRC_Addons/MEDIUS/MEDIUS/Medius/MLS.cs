@@ -1,22 +1,22 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models.Misc;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.libAntiCheat;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.PluginArgs;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Cryptography;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.RT.Models.Misc;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Database.Models;
+using PSMultiServer.Addons.Medius.Server.libAntiCheat;
+using PSMultiServer.Addons.Medius.MEDIUS.Config;
+using PSMultiServer.Addons.Medius.MEDIUS.Medius.Models;
+using PSMultiServer.Addons.Medius.MEDIUS.PluginArgs;
+using PSMultiServer.Addons.Medius.Server.Plugins.Interface;
 using System.Net;
 using System.Security.Cryptography;
 using File = System.IO.File;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models.Lobby;
+using PSMultiServer.Addons.Medius.RT.Models.Lobby;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius
+namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 {
     public class MLS : BaseMediusComponent
     {

@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using NReco.Logging.File;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging
+namespace PSMultiServer.Addons.Medius.Server.Common.Logging
 {
     public class GetLogs
     {

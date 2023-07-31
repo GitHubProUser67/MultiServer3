@@ -3,17 +3,17 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp;
-using PSMultiServer.SRC_Addons.MEDIUS.DME.Models;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Udp;
+using PSMultiServer.Addons.Medius.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
-using PSMultiServer.SRC_Addons.MEDIUS.DME.PluginArgs;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Plugins.Interface;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Attribute;
+using PSMultiServer.Addons.Medius.DME.PluginArgs;
+using PSMultiServer.Addons.Medius.Server.Plugins.Interface;
+using PSMultiServer.Addons.Medius.Server.Pipeline.Attribute;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.DME
+namespace PSMultiServer.Addons.Medius.DME
 {
     public class UdpServer
     {

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR
 {
 
 	public class BARArchive

@@ -2,7 +2,7 @@
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 {
     public class SimpleDatagramHandler : SimpleChannelInboundHandler<DatagramPacket>
     {

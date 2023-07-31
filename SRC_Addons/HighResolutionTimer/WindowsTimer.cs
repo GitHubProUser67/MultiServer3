@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace PSMultiServer.SRC_Addons.HighResolutionTimer
+namespace PSMultiServer.Addons.Timer
 {
     /// <summary>
     /// A timer based on the multimedia timer API with 1ms precision.

@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius
+﻿namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 {
     public interface IMediusComponent
     {

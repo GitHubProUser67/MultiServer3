@@ -1,15 +1,15 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Models;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Database.Models;
+using PSMultiServer.Addons.Medius.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Models;
+using PSMultiServer.Addons.Medius.Server.Common;
+using PSMultiServer.Addons.Medius.Server.Database.Config;
+using PSMultiServer.Addons.Medius.Server.Database.Models;
 using System.Reflection;
 using System.Text;
 using System.Web;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Database
+namespace PSMultiServer.Addons.Medius.Server.Database
 {
     public class DbController
     {

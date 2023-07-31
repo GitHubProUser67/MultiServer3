@@ -1,6 +1,6 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.Server.Common.Logging;
+﻿using PSMultiServer.Addons.Medius.Server.Common.Logging;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.SVO.Config
+namespace PSMultiServer.Addons.Medius.SVO.Config
 {
     #region SVO Server Config
     public class ServerSettings

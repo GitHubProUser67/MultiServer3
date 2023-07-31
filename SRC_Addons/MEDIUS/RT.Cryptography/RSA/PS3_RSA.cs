@@ -1,6 +1,6 @@
 ﻿using Org.BouncyCastle.Math;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Cryptography.RSA
+namespace PSMultiServer.Addons.Medius.RT.Cryptography.RSA
 {
     public class PS3_RSA : PS2_RSA
     {

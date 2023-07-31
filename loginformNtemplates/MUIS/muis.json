@@ -1,0 +1,632 @@
+{
+  "RefreshConfigInterval": 5000,
+  "RemoteLogViewPort": 0,
+  "Ports": [
+    10071,
+    10080
+  ],
+  "CompatibleApplicationIds": [
+    21624,
+    20764,
+    20371,
+    22500,
+    10540,
+    22920,
+    21731,
+    21834,
+    23624,
+    20043,
+    20032,
+    20034,
+    20454,
+    20314,
+    21874,
+    21244,
+    20304,
+    20463,
+    21614,
+    20344,
+    20434,
+    22204,
+    23360,
+    21513,
+    21064,
+    20804,
+    20374,
+    21094,
+    22274,
+    20060,
+    10984,
+    10782,
+    10421,
+    10130
+  ],
+  "NATIp": "192.168.1.34",
+  "NATPort": 10070,
+  "MediusServerVersionOverride": false,
+  "MUISVersion": "Medius Universe Information Server Version 3.05.0000",
+  "DefaultKey": {
+    "n": "10315955513017997681600210131013411322695824559688299373570246338038100843097466504032586443986679280716603540690692615875074465586629501752500179100369237",
+    "e": "17",
+    "d": "4854567300243763614870687120476899445974505675147434999327174747312047455575182761195687859800492317495944895566174677168271650454805328075020357360662513"
+  },
+  "EncryptMessages": true,
+  "Universes": {
+    "0": [
+      {
+        "Name": "sample universe",
+        "Description": null,
+        "Status": 0,
+        "UserCount": 0,
+        "MaxUsers": 0,
+        "Endpoint": "url",
+        "SvoURL": "url",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "10130": [
+      {
+        "Name": "Hardware Online Arena Beta",
+        "Description": "Beta Universe",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": "SCEA",
+        "BillingSystemName": "Sony Computer Entertainment America, Inc. Billing System",
+        "Port": 10075,
+        "UniverseId": 31
+      }
+    ],
+    "10540": [
+      {
+        "Name": "Socom II November Beta",
+        "Description": "Beta Universe",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": "SCEA",
+        "BillingSystemName": "Sony Computer Entertainment America, Inc. Billing System",
+        "Port": 10075,
+        "UniverseId": 31
+      }
+    ],
+    "10782": [
+      {
+        "Name": "GT4 Online Public Beta",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 0,
+        "MaxUsers": 15000,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "10421": [
+      {
+        "Name": "Arc the Lad: Generations Preview",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 0,
+        "MaxUsers": 10000,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "10984": [
+      {
+        "Name": "Arc the Lad: EoD US",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 0,
+        "MaxUsers": 10000,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20060": [
+      {
+        "Name": "F1 2006",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 0,
+        "MaxUsers": 10000,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/F12006_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "21064": [
+      {
+        "Name": "Syphon Filter: Logan's Shadow",
+        "Description": "Test",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/SFO2PSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "21094": [
+      {
+        "Name": "Socom Confrontation Prod",
+        "Description": "v1.61",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/CONFRONTATION_XML/uri/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20804": [
+      {
+        "Name": "Syphon Filter: Logan's Shadow Test Sample",
+        "Description": "Test",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/SFO2PSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "21513": [
+      {
+        "Name": "Syphon Filter: Logan's Shadow Test Sample",
+        "Description": "Test",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/SFO2PSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "22204": [
+      {
+        "Name": "Motorstorm PSP",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/MOTORSTORMPSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "23360": [
+      {
+        "Name": "Wipeout HD",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/wox_ws/rest/main/Start ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20624": [
+      {
+        "Name": "Calling All Cars",
+        "Description": null,
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 2
+      }
+    ],
+    "20764": [
+      {
+        "Name": "Motorstorm NTSC",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": "v3.1 http://192.168.1.34/frostfight.prod/myuser/BCUS98137",
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 4
+      }
+    ],
+    "20364": [
+      {
+        "Name": "Motorstorm PAL",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/socomcf/index ",
+        "ExtendedInfo": "v3.1 http://192.168.1.34/frostfight.prod/myuser/BCES00006",
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 5
+      }
+    ],
+    "21624": [
+      {
+        "Name": "Motorstorm: Pacific Rift",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 4
+      }
+    ],
+    "21614": [
+      {
+        "Name": "Wipeout Pulse PSP",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "NONE",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 4
+      }
+    ],
+    "20344": [
+      {
+        "Name": "ATV Offroad Fury Pro PSP",
+        "Description": null,
+        "Status": 0,
+        "UserCount": 0,
+        "MaxUsers": 0,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/ATV4UNIFIED_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 0
+      }
+    ],
+    "20371": [
+      {
+        "Name": "muis",
+        "Description": "01",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 15000,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/HUBPS3_SVML/unity/start.jsp ",
+        "ExtendedInfo": " http://192.168.1.34/dev./",
+        "UniverseBilling": "SCEA",
+        "BillingSystemName": "Sony Computer Entertainment America, Inc. Billing System",
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20374": [
+      {
+        "Name": "CPROD prod1 (Public MUIS)",
+        "Description": "01",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 15000,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/HUBPS3_SVML/unity/start.jsp ",
+        "ExtendedInfo": " http://192.168.1.34//",
+        "UniverseBilling": "SCEA",
+        "BillingSystemName": "Sony Computer Entertainment America, Inc. Billing System",
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "21834": [
+      {
+        "Name": "Twisted Metal X Online",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20304": [
+      {
+        "Name": "Socom FTB2",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/socom3/index ",
+        "ExtendedInfo": "v1.60 http://192.168.1.34/ftb2/manifest.txt",
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20032": [
+      {
+        "Name": "Socom FTB Pubeta",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http:/192.168.1.34:10060/SOCOMPUBETAPSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "22920": [
+      {
+        "Name": "Starhawk Dev",
+        "Description": "Starhawk Dev LAN Build",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/BOURBON_XML/uri/URIStore.do ",
+        "ExtendedInfo": "<XML><A url=`http://blob117.scea.com` latest=`0` access=`0` /></XML>",
+        "UniverseBilling": "SCEA",
+        "BillingSystemName": "Sony Computer Entertainment America, Inc. Billing System",
+        "Port": 10075,
+        "UniverseId": 2
+      }
+    ],
+    "22500": [
+      {
+        "Name": "Motorstorm 3 Apocalypse",
+        "Description": "Motorstorm 3 Apocalypse",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/MOTORSTORM3PS3_XML/ ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 11
+      }
+    ],
+    "21731": [
+      {
+        "Name": "Resistance 2 Private Beta",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 2
+      }
+    ],
+    "23624": [
+      {
+        "Name": "Buzz! Quiz Player",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/BUZZPS3_XML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 2
+      }
+    ],
+    "20043": [
+      {
+        "Name": "Warhawk Pubeta NTSC",
+        "Description": "A Emulated Server project by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 255,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "",
+        "ExtendedInfo": "v1.13 http://192.168.1.34/medius-patch/warhawk-pubeta/warhawk/20070608_r012/NPUA80093.cfg",
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 7
+      }
+    ],
+    "20034": [
+      {
+        "Name": "Socom FTB Prod",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": null,
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20454": [
+      {
+        "Name": "Killzone Lib v1.20",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:1006/KILLZONEPSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 4
+      }
+    ],
+    "20314": [
+      {
+        "Name": "Lemmings PSP",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/LEMMINGSPSP_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": "SCEA",
+        "BillingSystemName": "Sony Computer Entertainment America Inc.",
+        "Port": 10075,
+        "UniverseId": 4
+      }
+    ],
+    "21874": [
+      {
+        "Name": "Resistance PSP",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/SOCOMTACTICS_SVML/index.jsp ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "21244": [
+      {
+        "Name": "Socom Tactical PSP",
+        "Description": "Revival by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "NONE",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 1
+      }
+    ],
+    "20463": [
+      {
+        "Name": "Syphon Filter: Dark Mirror Pre-Prod 0.02",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "NONE",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 2
+      }
+    ],
+    "20434": [
+      {
+        "Name": "WTS 2006",
+        "Description": "Revived by PSORG",
+        "Status": 1,
+        "UserCount": 1,
+        "MaxUsers": 256,
+        "Endpoint": "192.168.1.34",
+        "SvoURL": "http://192.168.1.34:10060/WTS06_SVML/index.svml ",
+        "ExtendedInfo": null,
+        "UniverseBilling": null,
+        "BillingSystemName": null,
+        "Port": 10075,
+        "UniverseId": 0
+      }
+    ]
+  }
+}

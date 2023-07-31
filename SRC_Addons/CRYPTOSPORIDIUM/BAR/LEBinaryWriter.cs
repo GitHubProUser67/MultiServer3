@@ -1,4 +1,4 @@
-namespace PSMultiServer.SRC_Addons.CRYPTOSPORIDIUM.BAR
+namespace PSMultiServer.Addons.CRYPTOSPORIDIUM.BAR
 {
 	internal class LEBinaryWriter : EndianAwareBinaryWriter
 	{

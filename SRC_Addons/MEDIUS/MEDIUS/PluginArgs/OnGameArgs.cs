@@ -1,6 +1,6 @@
-﻿using PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.Medius.Models;
+﻿using PSMultiServer.Addons.Medius.MEDIUS.Medius.Models;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.MEDIUS.PluginArgs
+namespace PSMultiServer.Addons.Medius.MEDIUS.PluginArgs
 {
     public class OnGameArgs
     {

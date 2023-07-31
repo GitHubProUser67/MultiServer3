@@ -1,0 +1,23 @@
+[{
+    "done": false,
+    "levelRequired": 1,
+    "active": true,
+    "name": "Photo",
+    "checkEventCompletion": false,
+    "priority": 100,
+    "eventPriority": 100,
+    "flow": [
+        {
+            "loc": "1",
+            "pS": {
+                "angleloc": "1"
+            }
+        },
+        {
+            "loc": "2",
+            "pS": {
+                "angleloc": "2"
+            }
+        }
+    ]
+}]

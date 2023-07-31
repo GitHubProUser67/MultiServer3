@@ -1,9 +1,9 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using Newtonsoft.Json;
-using PSMultiServer.SRC_Addons.MEDIUS.BWPS.Config;
-using PSMultiServer.SRC_Addons.MEDIUS.Server.Common;
+using PSMultiServer.Addons.Medius.BWPS.Config;
+using PSMultiServer.Addons.Medius.Server.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.BWPS
+namespace PSMultiServer.Addons.Medius.BWPS
 {
     public class BwpsClass
     {

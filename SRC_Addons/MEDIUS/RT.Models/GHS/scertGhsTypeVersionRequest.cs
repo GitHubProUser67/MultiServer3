@@ -1,4 +1,4 @@
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models
+namespace PSMultiServer.Addons.Medius.RT.Models
 {
     /*
     [MediusMessage(GhsOpcode.ghs_ServerProtocolNegotiation)]

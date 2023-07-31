@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.SRC_Addons.HighResolutionTimer
+﻿namespace PSMultiServer.Addons.Timer
 {
     public interface ITimer : IDisposable
     {

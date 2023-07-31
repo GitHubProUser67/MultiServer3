@@ -1,6 +1,6 @@
-using PSMultiServer.SRC_Addons.MEDIUS.RT.Common;
+using PSMultiServer.Addons.Medius.RT.Common;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.RT.Models.Misc
+namespace PSMultiServer.Addons.Medius.RT.Models.Misc
 {
     public interface IMediusChatMessage
     {

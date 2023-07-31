@@ -1,7 +1,7 @@
 ﻿using DotNetty.Common.Internal.Logging;
 using DotNetty.Transport.Channels;
 
-namespace PSMultiServer.SRC_Addons.MEDIUS.Server.Pipeline.Udp
+namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 {
     public class ScertDatagramHandler : SimpleChannelInboundHandler<ScertDatagramPacket>
     {
