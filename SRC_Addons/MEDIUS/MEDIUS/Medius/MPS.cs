@@ -77,7 +77,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         // Ensure key is correct
                         if (!clientCryptKeyPublic.PublicKey.Reverse().SequenceEqual(MediusStarter.Settings.MPSKey.N.ToByteArrayUnsigned()))
                         {
-                            Logger.Error($"Client {clientChannel.RemoteAddress} attempting to authenticate with invalid key {Encoding.Default.GetString(clientCryptKeyPublic.PublicKey)}");
+                            ServerConfiguration.LogError($"Client {clientChannel.RemoteAddress} attempting to authenticate with invalid key {Encoding.Default.GetString(clientCryptKeyPublic.PublicKey)}");
                             data.State = ClientState.DISCONNECTED;
                             await clientChannel.CloseAsync();
                             break;
@@ -115,7 +115,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             if (data.ClientObject != null)
                             {
                                 clientObject = data.ClientObject;
-                                Logger.Info("MPS Client Connected!");
+                                ServerConfiguration.LogInfo("MPS Client Connected!");
                                 data.ClientObject.OnConnected();
                             }
                         }
@@ -165,7 +165,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_DISCONNECT _:
                     {
-                        //Logger.Info($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
+                        //ServerConfiguration.LogInfo($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
                         break;
                     }
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
@@ -742,7 +742,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             game.netAddressList.AddressList[0] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[0];
                             game.netAddressList.AddressList[1] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[1];
 
-                            Logger.Info("MediusServerMoveGameWorldOnMeRequest Successful");
+                            ServerConfiguration.LogInfo("MediusServerMoveGameWorldOnMeRequest Successful");
                             data.ClientObject.Queue(new MediusServerMoveGameWorldOnMeResponse()
                             {
                                 MessageID = serverMoveGameWorldOnMeRequest.MessageID,
@@ -789,7 +789,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         (data.ClientObject as DMEObject)?.OnServerReport(serverReport);
                         //data.ClientObject.OnConnected();
                         //data.ClientObject.KeepAliveUntilNextConnection();
-                        //Logger.Info($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject.DmeId} WorldID {data.ClientObject.WorldId}");
+                        //ServerConfiguration.LogInfo($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject.DmeId} WorldID {data.ClientObject.WorldId}");
                         break;
                     }
                 #endregion
@@ -797,7 +797,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 #region MediusServerConnectNotification
                 case MediusServerConnectNotification connectNotification:
                     {
-                        Logger.Info("MediusServerConnectNotification Received");
+                        ServerConfiguration.LogInfo("MediusServerConnectNotification Received");
                         await MediusClass.Manager.GetGameByDmeWorldId((data.ClientObject as DMEObject).SessionKey, (int)connectNotification.MediusWorldUID)?.OnMediusServerConnectNotification(connectNotification);
 
                         //MediusServerConnectNotification -  sent Notify msg to MUM
@@ -860,7 +860,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 #region MediusServerSessionEndRequest
                 case MediusServerSessionEndRequest sessionEndRequest:
                     {
-                        Logger.Info("ServerSessionEndRequest Received");
+                        ServerConfiguration.LogInfo("ServerSessionEndRequest Received");
 
                         //DmeServerGetConnectKeys
                         if (data.ClientObject.SessionKey == null)
@@ -878,7 +878,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             data?.ClientObject.KeepAliveUntilNextConnection();
 
                             //Success
-                            Logger.Info("Server Session End Success");
+                            ServerConfiguration.LogInfo("Server Session End Success");
                             data?.ClientObject.Queue(new MediusServerSessionEndResponse()
                             {
                                 MessageID = sessionEndRequest.MessageID,
@@ -909,7 +909,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             }
             catch (Exception e)
             {
-                Logger.Error("No DME Game Server assigned to this AppId\n", e);
+                ServerConfiguration.LogError("No DME Game Server assigned to this AppId\n", e);
             }
 
             return null;

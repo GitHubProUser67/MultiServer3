@@ -50,7 +50,7 @@ namespace PSMultiServer.Addons.Medius.Server.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(ex.Message, ex);
+                ServerConfiguration.LogError(ex.Message, ex);
             }
         }
 
@@ -69,8 +69,8 @@ namespace PSMultiServer.Addons.Medius.Server.Plugins
                 }
                 catch (Exception e)
                 {
-                    Logger.Error($"PLUGIN OnEvent Exception. {callback}({eventType}, {data})");
-                    Logger.Error(e);
+                    ServerConfiguration.LogError($"PLUGIN OnEvent Exception. {callback}({eventType}, {data})");
+                    ServerConfiguration.LogError(e);
                 }
             }
         }
@@ -88,8 +88,8 @@ namespace PSMultiServer.Addons.Medius.Server.Plugins
                 }
                 catch (Exception e)
                 {
-                    Logger.Error($"PLUGIN OnMessageEvent Exception. {callback}({msgId}, {data})");
-                    Logger.Error(e);
+                    ServerConfiguration.LogError($"PLUGIN OnMessageEvent Exception. {callback}({msgId}, {data})");
+                    ServerConfiguration.LogError(e);
                 }
             }
         }
@@ -108,8 +108,8 @@ namespace PSMultiServer.Addons.Medius.Server.Plugins
                 }
                 catch (Exception e)
                 {
-                    Logger.Error($"PLUGIN OnMediusMessageEvent Exception. {callback}({key}, {data})");
-                    Logger.Error(e);
+                    ServerConfiguration.LogError($"PLUGIN OnMediusMessageEvent Exception. {callback}({key}, {data})");
+                    ServerConfiguration.LogError(e);
                 }
             }
         }
@@ -212,7 +212,7 @@ namespace PSMultiServer.Addons.Medius.Server.Plugins
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex);
+                    ServerConfiguration.LogError(ex);
                 }
             }
         }

@@ -105,7 +105,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
             Host = client;
             SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
 
-            Logger.Info($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
         }
 
         public GameDTO ToGameDTO()
@@ -392,7 +392,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
                 return;
 
             // 
-            Logger.Info($"Game {Id}: {GameName}: {client} added.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {client} added.");
 
             Clients.Add(new GameClient()
             {
@@ -407,7 +407,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
         protected virtual async Task OnPlayerLeft(GameClient player)
         {
             // 
-            Logger.Info($"Game {Id}: {GameName}: {player.Client} left.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {player.Client} left.");
 
             // 
             player.InGame = false;
@@ -426,7 +426,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
         public virtual async Task RemovePlayer(ClientObject client)
         {
             // 
-            Logger.Info($"Game {Id}: {GameName}: {client} removed.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {client} removed.");
 
             // Remove host
             if (Host == client)
@@ -450,7 +450,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
             {
                 ///Send database EndGameReport info
                 await EndGame();
-                Logger.Info($"Successful local delete of game world [{report.MediusWorldID}]");
+                ServerConfiguration.LogInfo($"Successful local delete of game world [{report.MediusWorldID}]");
             }
             catch (Exception e)
             {
@@ -531,7 +531,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
                 if (!utcTimeEnded.HasValue)
                     _ = MediusClass.Database.UpdateGame(ToGameDTO());
             }
-            Logger.Info("World Updated from World Report");
+            ServerConfiguration.LogInfo("World Updated from World Report");
         }
 
         public virtual async Task OnWorldReportOnMe(MediusServerWorldReportOnMe report)
@@ -588,7 +588,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
             destroyed = true;
 
             // 
-            Logger.Info($"Game {Id}: {GameName}: EndGame() called.");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: EndGame() called.");
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });

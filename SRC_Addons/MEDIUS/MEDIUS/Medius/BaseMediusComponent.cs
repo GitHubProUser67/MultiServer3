@@ -147,7 +147,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                 // Log if id is set
                 if (message.CanLog())
                 {
-                    Logger.Info($"RECV {data?.ClientObject},{channel}: {message}");
+                    ServerConfiguration.LogInfo($"RECV {data?.ClientObject},{channel}: {message}");
                 }
             };
 
@@ -280,8 +280,8 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e);
-                            Logger.Error($"FORCE DISCONNECTING CLIENT 1 {data} || {data.ClientObject}");
+                            ServerConfiguration.LogError(e);
+                            ServerConfiguration.LogError($"FORCE DISCONNECTING CLIENT 1 {data} || {data.ClientObject}");
                             _ = ForceDisconnectClient(clientChannel);
                             data.Ignore = true;
                         }
@@ -327,7 +327,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
                 _forceDisconnectQueue.Enqueue(clientChannel);
                 //await DisconnectClient(clientChannel);
             }

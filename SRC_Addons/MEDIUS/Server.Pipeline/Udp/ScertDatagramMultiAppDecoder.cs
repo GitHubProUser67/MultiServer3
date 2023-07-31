@@ -33,7 +33,7 @@ namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
     }

@@ -27,7 +27,7 @@ namespace PSMultiServer.Addons.Medius.Server.Pipeline.Udp
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            Logger.Error(exception);
+            ServerConfiguration.LogError(exception);
             // context.CloseAsync();
         }
 

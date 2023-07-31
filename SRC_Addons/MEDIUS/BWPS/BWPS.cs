@@ -40,7 +40,7 @@ namespace PSMultiServer.Addons.Medius.BWPS
             _scertHandler.OnChannelMessage += (channel, message) =>
             {
 
-                Logger.Info($"Received Message: {message} on {channel}");
+                ServerConfiguration.LogInfo($"Received Message: {message} on {channel}");
 
                 // Send ip and port back if the last byte isn't 0xD4
 
@@ -55,7 +55,7 @@ namespace PSMultiServer.Addons.Medius.BWPS
 
 
 
-                    Logger.Info("Sending 22 len response");
+                    ServerConfiguration.LogInfo("Sending 22 len response");
 
                     buffer.WriteBytes(data);
                     //buffer.WriteUnsignedShort((ushort)(message.Sender as IPEndPoint).Port);
@@ -68,7 +68,7 @@ namespace PSMultiServer.Addons.Medius.BWPS
                     {
                         var buffer = channel.Allocator.Buffer(18);
 
-                        Logger.Info("Sending 18 response");
+                        ServerConfiguration.LogInfo("Sending 18 response");
 
                         var data = message.Content;
                         buffer.WriteBytes(data);
@@ -88,7 +88,7 @@ namespace PSMultiServer.Addons.Medius.BWPS
                     var padding = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
                     var data = new byte[] { MessageId, Unk1, 0x01, 0x00, 0x01, 0x00 };
 
-                    Logger.Info("Sending 6 len response ");
+                    ServerConfiguration.LogInfo("Sending 6 len response ");
 
                     buffer.WriteBytes(data);
                     //buffer.WriteUnsignedShort((ushort)(message.Sender as IPEndPoint).Port);

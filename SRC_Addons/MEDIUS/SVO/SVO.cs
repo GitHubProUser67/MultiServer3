@@ -33,7 +33,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Info("An exception as occured in SVO : " + ex);
+                ServerConfiguration.LogInfo("An exception as occured in SVO : " + ex);
 
                 return;
             }
@@ -61,7 +61,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Info($"SVO Server has throw an exception in Main : {ex}");
+                ServerConfiguration.LogInfo($"SVO Server has throw an exception in Main : {ex}");
             }
         }
 
@@ -82,7 +82,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Error($"SVO Server : an error occured in Stop - {ex}");
+                ServerConfiguration.LogError($"SVO Server : an error occured in Stop - {ex}");
             }
 
             return;
@@ -109,7 +109,7 @@ namespace PSMultiServer.Addons.Medius.SVO
                 listener.Prefixes.Add($"{httpprefix}://*:{portNumber}/");
             }
 
-            Logger.Info("SVO Server started on *:10060 - *:10061 - Listening for requests...");
+            ServerConfiguration.LogInfo("SVO Server started on *:10060 - *:10061 - Listening for requests...");
 
             listener.Start();
 
@@ -141,7 +141,7 @@ namespace PSMultiServer.Addons.Medius.SVO
                         {
                             _keepGoing = false;
 
-                            Logger.Error($"FATAL ERROR OCCURED in SVO Listener - {ex} - Trying to listen for requests again...");
+                            ServerConfiguration.LogError($"FATAL ERROR OCCURED in SVO Listener - {ex} - Trying to listen for requests again...");
 
                             if (!listener.IsListening)
                             {
@@ -171,7 +171,7 @@ namespace PSMultiServer.Addons.Medius.SVO
                     userAgent = "Medius Client";
                 }
 
-                Logger.Info($"SVO Server : Received request from : {userAgent} : {context.Request.Url.AbsolutePath}");
+                ServerConfiguration.LogInfo($"SVO Server : Received request from : {userAgent} : {context.Request.Url.AbsolutePath}");
 
                 if (context.Request.Url.AbsolutePath == "/" || context.Request.Url.AbsolutePath == @"\")
                 {
@@ -221,7 +221,7 @@ namespace PSMultiServer.Addons.Medius.SVO
                 }
                 else
                 {
-                    Logger.Info($"SVO Server : {userAgent} - Requested a SVO method that doesn't exist.");
+                    ServerConfiguration.LogInfo($"SVO Server : {userAgent} - Requested a SVO method that doesn't exist.");
 
                     context.Response.StatusCode = 404;
 
@@ -257,7 +257,7 @@ namespace PSMultiServer.Addons.Medius.SVO
             }
             catch (Exception ex)
             {
-                Logger.Error($"SVO Server : an error occured in ProcessRequest - {ex}");
+                ServerConfiguration.LogError($"SVO Server : an error occured in ProcessRequest - {ex}");
 
                 context.Response.Close();
                 GC.Collect();

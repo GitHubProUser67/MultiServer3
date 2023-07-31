@@ -118,7 +118,7 @@ namespace PSMultiServer.Addons.Medius.DME
             // Remove client on disconnect
             _scertHandler.OnChannelInactive += async (channel) =>
             {
-                Logger.Error($"Lost connection to MPS");
+                ServerConfiguration.LogError($"Lost connection to MPS");
                 TimeLostConnection = Utils.GetHighPrecisionUtcTime();
                 await Stop();
             };
@@ -191,7 +191,7 @@ namespace PSMultiServer.Addons.Medius.DME
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e);
+                            ServerConfiguration.LogError(e);
                         }
                     }
 
@@ -200,7 +200,7 @@ namespace PSMultiServer.Addons.Medius.DME
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e);
+                    ServerConfiguration.LogError(e);
                 }
             });
         }
@@ -241,7 +241,7 @@ namespace PSMultiServer.Addons.Medius.DME
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
 
             }
         }
@@ -257,7 +257,7 @@ namespace PSMultiServer.Addons.Medius.DME
             }
             catch (Exception)
             {
-                Logger.Error($"Failed to connect to MPS");
+                ServerConfiguration.LogError($"Failed to connect to MPS");
                 TimeLostConnection = Utils.GetHighPrecisionUtcTime();
                 return;
             }

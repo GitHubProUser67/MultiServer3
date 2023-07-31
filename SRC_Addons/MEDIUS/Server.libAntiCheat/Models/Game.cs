@@ -96,7 +96,7 @@ namespace PSMultiServer.Addons.Medius.Server.libAntiCheat.Models
             ChatChannel?.RegisterGame(this);
             Host = client;
 
-            Logger.Info($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
         }
 
 

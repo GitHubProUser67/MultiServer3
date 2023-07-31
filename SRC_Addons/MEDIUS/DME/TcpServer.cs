@@ -224,7 +224,7 @@ namespace PSMultiServer.Addons.Medius.DME
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e);
+                            ServerConfiguration.LogError(e);
                             _ = ForceDisconnectClient(clientChannel);
                         }
                     }
@@ -232,7 +232,7 @@ namespace PSMultiServer.Addons.Medius.DME
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 
@@ -299,7 +299,7 @@ namespace PSMultiServer.Addons.Medius.DME
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 
@@ -335,7 +335,7 @@ namespace PSMultiServer.Addons.Medius.DME
                         #region Check EnableAuxUDP
                         if (DmeClass.Settings.EnableAuxUDP != true)
                         {
-                            Logger.Error("rt_msg_server_process_client_connect_aux_msg: AUX UDP not enabled");
+                            ServerConfiguration.LogError("rt_msg_server_process_client_connect_aux_msg: AUX UDP not enabled");
                             return;
                         }
                         #endregion
@@ -496,7 +496,7 @@ namespace PSMultiServer.Addons.Medius.DME
                     }
                 case RT_MSG_CLIENT_SET_AGG_TIME setAggTime:
                     {
-                        Logger.Info($"rt_msg_server_process_client_set_agg_time_msg: new agg time = {setAggTime.AggTime}");
+                        ServerConfiguration.LogInfo($"rt_msg_server_process_client_set_agg_time_msg: new agg time = {setAggTime.AggTime}");
                         if (scertClient.ApplicationID != 10954 || scertClient.ApplicationID != 10952)
                         {
                             data.ClientObject.AggTimeMs = setAggTime.AggTime;
@@ -591,7 +591,7 @@ namespace PSMultiServer.Addons.Medius.DME
             {
                 case TypePing ping:
                     {
-                        Logger.Info($"PingPacketHandler: client {data.ClientObject} received \n");
+                        ServerConfiguration.LogInfo($"PingPacketHandler: client {data.ClientObject} received \n");
                         if (ping.RequestEcho == true)
                         {
                             byte[] value = new byte[0xA];
@@ -632,13 +632,13 @@ namespace PSMultiServer.Addons.Medius.DME
 
         protected virtual Task ProcessRTTHostTokenMessage(RT_MSG_CLIENT_TOKEN_MESSAGE clientTokenMsg, IChannel clientChannel, ChannelData data)
         {
-            Logger.Info($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.ClientObject.ScertId}, target token = {clientTokenMsg.targetToken}");
+            ServerConfiguration.LogInfo($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.ClientObject.ScertId}, target token = {clientTokenMsg.targetToken}");
 
             bool isTokenValid = rt_token_is_valid(clientTokenMsg.targetToken);
 
             if (!isTokenValid)
             {
-                Logger.Info($"rt_msg_server_process_client_token_msg: bad target token {clientTokenMsg.targetToken}");
+                ServerConfiguration.LogInfo($"rt_msg_server_process_client_token_msg: bad target token {clientTokenMsg.targetToken}");
             }
             else
             {

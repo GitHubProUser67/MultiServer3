@@ -20,24 +20,24 @@ namespace PSMultiServer.Addons.Medius.BWPS
         {
             DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
-            Logger.Info($"* Launched on {datetime}");
+            ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
-            Task.WaitAll(BWPS.Start());
+            await BWPS.Start();
             //string gpszVersion = "rt_bwprobe ReleaseVersion 3.02.200704101920";
             string gpszVersion2 = "3.02.200704101920";
-            Logger.Info($"* Bandwidth Probe Server Version {gpszVersion2}");
+            ServerConfiguration.LogInfo($"* Bandwidth Probe Server Version {gpszVersion2}");
 
             //* Process ID: %d , Parent Process ID: %d
 
-            Logger.Info($"* Server Key Type: {Settings.EncryptMessages}");
+            ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
 
             //* Diagnostic Profiling Enabled: %d Counts
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
 
-            Logger.Info($"UDP BWPS started on port {Settings.BWPSPort}.");
+            ServerConfiguration.LogInfo($"UDP BWPS started on port {Settings.BWPSPort}.");
 
             try
             {
@@ -55,7 +55,7 @@ namespace PSMultiServer.Addons.Medius.BWPS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
             finally
             {

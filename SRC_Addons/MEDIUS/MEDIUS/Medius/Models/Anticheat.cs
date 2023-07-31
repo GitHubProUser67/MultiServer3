@@ -31,7 +31,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius.Models
 
         public void handleLogDetectedAction()
         {
-            Logger.Info($"handleLogDetectedAction: AID[%d] ");
+            ServerConfiguration.LogInfo($"handleLogDetectedAction: AID[%d] ");
         }
 
 

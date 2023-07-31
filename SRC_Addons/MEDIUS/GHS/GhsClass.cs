@@ -31,46 +31,46 @@ namespace PSMultiServer.Addons.Medius.GHS
 
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
             #region MediusGetBuildTimeStamp
             var MediusBuildTimeStamp = GetLinkerTime(Assembly.GetEntryAssembly());
-            Logger.Info($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
+            ServerConfiguration.LogInfo($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
             #endregion
 
             string gpszVersionString = "1.0.0";
 
-            Logger.Info($"* Global Handle Service Version {gpszVersionString}");
-            Logger.Info($"* Launched on {datetime}");
+            ServerConfiguration.LogInfo($"* Global Handle Service Version {gpszVersionString}");
+            ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
-            Task.WaitAll(GHSServer.Start());
+            await GHSServer.Start();
 
             //* Process ID: %d , Parent Process ID: %d
             if (Database._settings.SimulatedMode == true)
             {
-                Logger.Info("* Database Disabled GHS");
+                ServerConfiguration.LogInfo("* Database Disabled GHS");
             }
             else
             {
-                Logger.Info("* Database Enabled GHS");
+                ServerConfiguration.LogInfo("* Database Enabled GHS");
             }
 
-            Logger.Info($"* Server Key Type: {Settings.EncryptMessages}");
+            ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
 
             #region Remote Log Viewing
             if (Settings.RemoteLogViewPort == 0)
             {
                 //* Remote log viewing setup failure with port %d.
-                Logger.Info("* Remote log viewing disabled.");
+                ServerConfiguration.LogInfo("* Remote log viewing disabled.");
             }
             else if (Settings.RemoteLogViewPort != 0)
             {
-                Logger.Info($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
+                ServerConfiguration.LogInfo($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
             }
             #endregion
 
             //* Diagnostic Profiling Enabled: %d Counts
 
-            Logger.Info("**************************************************");
+            ServerConfiguration.LogInfo("**************************************************");
 
             if (Settings.NATIp != null)
             {
@@ -78,7 +78,7 @@ namespace PSMultiServer.Addons.Medius.GHS
                 DoGetHostEntry(ip);
             }
 
-            Logger.Info($"GHS started.");
+            ServerConfiguration.LogInfo($"GHS started.");
 
 
             try
@@ -100,7 +100,7 @@ namespace PSMultiServer.Addons.Medius.GHS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                ServerConfiguration.LogError(ex);
             }
             finally
             {
@@ -155,15 +155,15 @@ namespace PSMultiServer.Addons.Medius.GHS
             {
                 IPHostEntry host = Dns.GetHostEntry(address);
 
-                Logger.Info($"* NAT Service IP: {address}");
-                //Logger.Info($"GetHostEntry({address}) returns HostName: {host.HostName}");
+                ServerConfiguration.LogInfo($"* NAT Service IP: {address}");
+                //ServerConfiguration.LogInfo($"GetHostEntry({address}) returns HostName: {host.HostName}");
             }
             catch (SocketException ex)
             {
                 //unknown host or
                 //not every IP has a name
                 //log exception (manage it)
-                Logger.Error($"* NAT not resolved {ex}");
+                ServerConfiguration.LogError($"* NAT not resolved {ex}");
             }
         }
 

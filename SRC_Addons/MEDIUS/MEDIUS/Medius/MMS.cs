@@ -74,7 +74,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                 // Log if id is set
                 if (message.CanLog())
-                    Logger.Info($"TCP RECV {channel}: {message}");
+                    ServerConfiguration.LogInfo($"TCP RECV {channel}: {message}");
             };
 
             var bootstrap = new ServerBootstrap();
@@ -150,7 +150,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e);
+                            ServerConfiguration.LogError(e);
                         }
                     }
 
@@ -169,7 +169,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 
@@ -205,7 +205,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         #region Compatible AppId
                         if (!MediusClass.Manager.IsAppIdSupported(clientConnectTcp.AppId))
                         {
-                            Logger.Error($"Client {clientChannel.RemoteAddress} attempting to authenticate with incompatible app id {clientConnectTcp.AppId}");
+                            ServerConfiguration.LogError($"Client {clientChannel.RemoteAddress} attempting to authenticate with incompatible app id {clientConnectTcp.AppId}");
                             await clientChannel.CloseAsync();
                             return;
                         }
@@ -222,7 +222,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         //If Client Object is null, then ignore
                         if (data.ClientObject == null)
                         {
-                            Logger.Error($"IGNORING CLIENT 1 {data} || {data.ClientObject}");
+                            ServerConfiguration.LogError($"IGNORING CLIENT 1 {data} || {data.ClientObject}");
                             data.Ignore = true;
                         }
                         #endregion
@@ -370,18 +370,18 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             data.State = ClientState.DISCONNECTED;
                         _ = clientChannel.CloseAsync();
 
-                        Logger.Info($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
+                        ServerConfiguration.LogInfo($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
                         break;
                     }
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {
                         if (clientDisconnectWithReason.disconnectReason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
                         {
-                            Logger.Info($"disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
+                            ServerConfiguration.LogInfo($"disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
                         }
                         else
                         {
-                            Logger.Info($"disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
+                            ServerConfiguration.LogInfo($"disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
                         }
 
                         data.State = ClientState.DISCONNECTED;

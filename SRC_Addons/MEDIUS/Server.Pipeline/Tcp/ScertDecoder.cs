@@ -29,7 +29,7 @@ namespace PSMultiServer.Addons.Medius.Server.Pipeline.Tcp
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                ServerConfiguration.LogError(e);
             }
         }
 

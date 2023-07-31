@@ -95,7 +95,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         #region Compatible AppId
                         if (!MediusClass.Manager.IsAppIdSupported(clientConnectTcp.AppId))
                         {
-                            Logger.Error($"Client {clientChannel.RemoteAddress} attempting to authenticate with incompatible app id {clientConnectTcp.AppId}");
+                            ServerConfiguration.LogError($"Client {clientChannel.RemoteAddress} attempting to authenticate with incompatible app id {clientConnectTcp.AppId}");
                             await clientChannel.CloseAsync();
                             return;
                         }
@@ -116,7 +116,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         //If Client Object is null, then ignore
                         if (data.ClientObject == null)
                         {
-                            Logger.Error($"IGNORING CLIENT {data} || {data.ClientObject}");
+                            ServerConfiguration.LogError($"IGNORING CLIENT {data} || {data.ClientObject}");
                             data.Ignore = true;
                         }
                         #endregion
@@ -281,18 +281,18 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             data.State = ClientState.DISCONNECTED;
                         _ = clientChannel.CloseAsync();
 
-                        Logger.Info($"Client disconnected by request with no specific reason\n");
+                        ServerConfiguration.LogInfo($"Client disconnected by request with no specific reason\n");
                         break;
                     }
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {
                         if (clientDisconnectWithReason.disconnectReason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
                         {
-                            Logger.Info($"Disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
+                            ServerConfiguration.LogInfo($"Disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
                         }
                         else
                         {
-                            Logger.Info($"Disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
+                            ServerConfiguration.LogInfo($"Disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
                         }
 
                         data.State = ClientState.DISCONNECTED;
@@ -341,7 +341,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         /*
                         if (data.ClientObject.IsLoggedIn)
                         {
-                            Logger.Info($"SessionEnd Success");
+                            ServerConfiguration.LogInfo($"SessionEnd Success");
                             await data.ClientObject.Logout();
                         }
                         */
@@ -361,7 +361,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             {
                                 data.MachineId = BitConverter.ToString(dnasSignaturePost.DnasSignature);
 
-                                Logger.Info($"Posting ConsoleID - ConsoleSigSize={dnasSignaturePost.DnasSignatureLength}");
+                                ServerConfiguration.LogInfo($"Posting ConsoleID - ConsoleSigSize={dnasSignaturePost.DnasSignatureLength}");
 
                                 // Then post to the Database if logged in
                                 if (data.ClientObject?.IsLoggedIn ?? false)
@@ -370,14 +370,14 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasTitleID)
                             {
-                                Logger.Info($"DnasSignaturePost Error - Invalid SignatureType");
+                                ServerConfiguration.LogInfo($"DnasSignaturePost Error - Invalid SignatureType");
 
                             }
 
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasDiskID)
                             {
 
-                                Logger.Info($"Posting DiskID - DiskSigSize={dnasSignaturePost.DnasSignatureLength}");
+                                ServerConfiguration.LogInfo($"Posting DiskID - DiskSigSize={dnasSignaturePost.DnasSignatureLength}");
 
                             }
                         }
@@ -409,7 +409,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             await data.ClientObject.Logout();
 
                             //
-                            Logger.Info($"Player {data.ClientObject.AccountName} has logged out.\n");
+                            ServerConfiguration.LogInfo($"Player {data.ClientObject.AccountName} has logged out.\n");
 
                             // Reply
                             data.ClientObject.Queue(new MediusAccountLogoutResponse()
@@ -799,7 +799,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     }));
                                 foreach(var response in responses)
                                 {
-                                    Logger.Info($"{response.SupersetID}: {response.SupersetName}[x{responses.Count}]: {response.SupersetDescription}\n");
+                                    ServerConfiguration.LogInfo($"{response.SupersetID}: {response.SupersetName}[x{responses.Count}]: {response.SupersetDescription}\n");
                                 }
 
                             }
@@ -817,7 +817,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                             if (responses.Count == 0)
                             {
-                                Logger.Info("No supersets\n");
+                                ServerConfiguration.LogInfo("No supersets\n");
                                 responses.Add(new MediusMatchGetSupersetListResponse()
                                 {
                                     MessageID = matchGetSupersetListRequest.MessageID,
@@ -2601,7 +2601,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 }
                                 else
                                 {
-                                    Logger.Info("GetLadderListRequest_ExtraInfo - no result");
+                                    ServerConfiguration.LogInfo("GetLadderListRequest_ExtraInfo - no result");
                                     data.ClientObject.Queue(new MediusLadderList_ExtraInfoResponse()
                                     {
                                         MessageID = ladderList_ExtraInfoRequest0.MessageID,
@@ -2679,7 +2679,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 }
                                 else
                                 {
-                                    Logger.Info("GetLadderListRequest_ExtraInfo - no result");
+                                    ServerConfiguration.LogInfo("GetLadderListRequest_ExtraInfo - no result");
                                     data.ClientObject.Queue(new MediusLadderList_ExtraInfoResponse()
                                     {
                                         MessageID = ladderList_ExtraInfoRequest.MessageID,
@@ -3087,7 +3087,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                         if (playerInfoRequest.AccountID == 0)
                         {
-                            Logger.Info($"playerInfo accountId is 0!!");
+                            ServerConfiguration.LogInfo($"playerInfo accountId is 0!!");
 
                             data.ClientObject.Queue(new MediusPlayerInfoResponse()
                             {
@@ -3100,7 +3100,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 Stats = null
                             });
 
-                            Logger.Info($"playerInfo response sent");
+                            ServerConfiguration.LogInfo($"playerInfo response sent");
                         }
                         else
                         {
@@ -3123,12 +3123,12 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                         Stats = mediusStats
                                     });
 
-                                    Logger.Info($"playerInfo accountId found!!");
+                                    ServerConfiguration.LogInfo($"playerInfo accountId found!!");
                                 }
                                 else
                                 {
 
-                                    Logger.Info($"playerInfo accountId not found!!");
+                                    ServerConfiguration.LogInfo($"playerInfo accountId not found!!");
 
                                     data?.ClientObject?.Queue(new MediusPlayerInfoResponse()
                                     {
@@ -3168,7 +3168,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    Logger.Info($"Successfully JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    ServerConfiguration.LogInfo($"Successfully JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     //await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
                                     break;
                                 }
@@ -3176,14 +3176,14 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 {
                                     await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
 
-                                    Logger.Info($"Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    ServerConfiguration.LogInfo($"Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
                                     break;
                                 }
                             case MediusUserAction.LeftPartyWorld:
                                 {
                                     await data.ClientObject.LeaveParty(data.ClientObject.CurrentParty);
-                                    Logger.Info($"Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    ServerConfiguration.LogInfo($"Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                         }
@@ -3629,7 +3629,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                                 if (MediusClass.Database._settings.SimulatedMode == true)
                                 {
-                                    Logger.Info($"GetClanMemberListRequest_ExtraInfo (simulated) success --- {responses.Count} rows returned");
+                                    ServerConfiguration.LogInfo($"GetClanMemberListRequest_ExtraInfo (simulated) success --- {responses.Count} rows returned");
                                 }
 
                                 if (responses.Count == 0)
@@ -4054,7 +4054,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         }
                         else
                         {
-                            Logger.Info($"Update Clan Ladder Stats Delta (Open Access)");
+                            ServerConfiguration.LogInfo($"Update Clan Ladder Stats Delta (Open Access)");
                             if (MediusClass.Database._settings.SimulatedMode != false)
                             {
                                 Logger.Warn("MediusUpdateClanLadderStatsWide_Delta Success (DB DISABLED)");
@@ -4100,7 +4100,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                                         if (r.IsCompletedSuccessfully && r.Result != false)
                                         {
-                                            Logger.Info("Updated Clan Ladder stats (Delta)");
+                                            ServerConfiguration.LogInfo("Updated Clan Ladder stats (Delta)");
                                             data.ClientObject.WideStats = pluginMessage.WideStats;
                                             data.ClientObject.Queue(new RT_MSG_SERVER_APP()
                                             {
@@ -4710,7 +4710,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 StatusCode = MediusCallbackStatus.MediusNotClanLeader
                             });
 
-                            Logger.Error($"INVALID OPERATION: {clientChannel} sent {transferClanLeadershipRequest} without being the leader of clan to disband.");
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {transferClanLeadershipRequest} without being the leader of clan to disband.");
                         }
 
                         _ = MediusClass.Database.ClanTransferLeadership(data.ClientObject.AccountId,
@@ -4845,7 +4845,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     NewMediusWorldID = iNewMediusWorldID,
                                 });
 
-                                Logger.Info($"Sent new MediusWorldID[{iNewMediusWorldID}]");
+                                ServerConfiguration.LogInfo($"Sent new MediusWorldID[{iNewMediusWorldID}]");
                             }
                         });
                         break;
@@ -4888,7 +4888,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                         if (data.ClientObject.ApplicationId == 10538 || data.ClientObject.ApplicationId == 10190)
                         {
-                            Logger.Info("AppId GameList Check");
+                            ServerConfiguration.LogInfo("AppId GameList Check");
                             var gameList = MediusClass.Manager.GetGameListAppId(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
@@ -4926,7 +4926,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         }
                         else
                         {
-                            Logger.Info("Filtered GameList Check");
+                            ServerConfiguration.LogInfo("Filtered GameList Check");
                             var gameList = MediusClass.Manager.GetGameList(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
@@ -5600,7 +5600,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                         findWorldType = "Unknown find type";
                                 }
 
-                                Logger.Info($"WorldType: {findWorldByNameRequest.WorldType} ({findWorldType})");
+                                ServerConfiguration.LogInfo($"WorldType: {findWorldByNameRequest.WorldType} ({findWorldType})");
                             }
 
                             var appIds = MediusClass.Database.GetAppIds();
@@ -5636,7 +5636,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 if (gameWorldNameList.Length > 0)
                                     gameWorldNameList[gameWorldNameList.Length - 1].EndOfList = true;
 
-                                Logger.Info($"GetWorldByName - {gameWorldNameList.Length} results returned");
+                                ServerConfiguration.LogInfo($"GetWorldByName - {gameWorldNameList.Length} results returned");
 
                                 data.ClientObject.Queue(gameWorldNameList);
                             }
@@ -5663,7 +5663,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 if (lobbyNameList.Length > 0)
                                     lobbyNameList[lobbyNameList.Length - 1].EndOfList = true;
 
-                                Logger.Info($"GetWorldByName - {lobbyNameList.Length} results returned");
+                                ServerConfiguration.LogInfo($"GetWorldByName - {lobbyNameList.Length} results returned");
 
                                 data.ClientObject.Queue(lobbyNameList);
                             }
@@ -6106,7 +6106,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         {
                             if (playerReport.Stats == data.ClientObject.AccountStats)
                             {
-                                Logger.Info($"Ignoring a player report with unchanged account stats (AccountID={data.ClientObject.AccountId} MediusWorldID={playerReport.MediusWorldID})");
+                                ServerConfiguration.LogInfo($"Ignoring a player report with unchanged account stats (AccountID={data.ClientObject.AccountId} MediusWorldID={playerReport.MediusWorldID})");
                             }
                             else
                             {
@@ -6117,7 +6117,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     data.ClientObject.SessionKey == playerReport.SessionKey)
                                 {
                                     data.ClientObject.OnPlayerReport(playerReport);
-                                    Logger.Info($"Player was updated on Game World (AccountID={data.ClientObject.AccountId} MediusWorldID={playerReport.MediusWorldID})");
+                                    ServerConfiguration.LogInfo($"Player was updated on Game World (AccountID={data.ClientObject.AccountId} MediusWorldID={playerReport.MediusWorldID})");
                                 }
                             }
                         }
@@ -6544,7 +6544,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         {
                             if (createChannelRequest1.LobbyName.StartsWith("CLAN_"))
                             {
-                                Logger.Info($"SFO_HACK:Overriding Clan Lobby {createChannelRequest1.LobbyName} MaxPlayers from {createChannelRequest1.MaxPlayers} to {MediusClass.Settings.SFOOverrideClanLobbyMaxPlayers}");
+                                ServerConfiguration.LogInfo($"SFO_HACK:Overriding Clan Lobby {createChannelRequest1.LobbyName} MaxPlayers from {createChannelRequest1.MaxPlayers} to {MediusClass.Settings.SFOOverrideClanLobbyMaxPlayers}");
                                 createChannelRequest1.MaxPlayers = MediusClass.Settings.SFOOverrideClanLobbyMaxPlayers;
                             }
                             /*
@@ -6603,7 +6603,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         }
                         else
                         {
-                            Logger.Info($"Channel Joining: {channel.Name} Generic Fields: {channel.GenericField1} {channel.GenericField2} {channel.GenericField3} {channel.GenericField4} {channel.GenericFieldLevel} Type: {channel.Type}");
+                            ServerConfiguration.LogInfo($"Channel Joining: {channel.Name} Generic Fields: {channel.GenericField1} {channel.GenericField2} {channel.GenericField3} {channel.GenericField4} {channel.GenericFieldLevel} Type: {channel.Type}");
 
                             // Join new channel
                             await data.ClientObject.JoinChannel(channel);
@@ -6690,7 +6690,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         }
                         else
                         {
-                            Logger.Info($"Joining Least Populated Channel: {channel.Name} PlayerCount {channel.PlayerCount} Generic Fields: {channel.GenericField1} {channel.GenericField2} {channel.GenericField3} {channel.GenericField4} {channel.GenericFieldLevel} Type: {channel.Type}");
+                            ServerConfiguration.LogInfo($"Joining Least Populated Channel: {channel.Name} PlayerCount {channel.PlayerCount} Generic Fields: {channel.GenericField1} {channel.GenericField2} {channel.GenericField3} {channel.GenericField4} {channel.GenericFieldLevel} Type: {channel.Type}");
 
                             // Join new channel
                             await data.ClientObject.JoinChannel(channel);
@@ -6757,7 +6757,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 if (channel.PlayerCount >= MediusClass.Settings.SFOOverrideLobbyPlayerCountThreshold)
                                 {
                                     activePlayerCount = channel.MaxPlayers;
-                                    Logger.Info($"SFO_HACK:Overriding Lobby ActivePlayerCount from {channel.PlayerCount} to {activePlayerCount}");
+                                    ServerConfiguration.LogInfo($"SFO_HACK:Overriding Lobby ActivePlayerCount from {channel.PlayerCount} to {activePlayerCount}");
                                 }
                             }
                             else
@@ -7118,7 +7118,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                         if (!data.ClientObject.IsLoggedIn)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLocationsRequest} without a being logged in.");
 
-                        Logger.Info($"Get Locations Request Received Sessionkey: {getLocationsRequest.SessionKey}");
+                        ServerConfiguration.LogInfo($"Get Locations Request Received Sessionkey: {getLocationsRequest.SessionKey}");
                         await MediusClass.Database.GetLocations(data.ClientObject.ApplicationId).ContinueWith(r =>
                         {
                             var locations = r.Result;
@@ -7144,8 +7144,8 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                         LocationName = x.Name
                                     }).ToList();
 
-                                    Logger.Info("GetLocationsRequest  success");
-                                    Logger.Info($"NumLocations returned[{responses.Count}]");
+                                    ServerConfiguration.LogInfo("GetLocationsRequest  success");
+                                    ServerConfiguration.LogInfo($"NumLocations returned[{responses.Count}]");
 
                                     responses[responses.Count - 1].EndOfList = true;
                                     data.ClientObject.Queue(responses);
@@ -7331,12 +7331,12 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     {
                                         case MediusFileSortBy.MFSortByNothing:
                                             {
-                                                Logger.Info("Not Sorting!");
+                                                ServerConfiguration.LogInfo("Not Sorting!");
                                                 return;
                                             }
                                         case MediusFileSortBy.MFSortByName:
                                             {
-                                                Logger.Info("Sorting By Name!");
+                                                ServerConfiguration.LogInfo("Sorting By Name!");
                                                 fileListExtResponses.Sort((x, y) => string.Compare(x.MediusFileInfo.FileName, y.MediusFileInfo.FileName));
                                                 return;
                                             }
@@ -7923,10 +7923,10 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             //Generate Checksum for it
                             using (var md5 = MD5.Create())
                             {
-                                Logger.Info($"Generating file checksum for {path}");
+                                ServerConfiguration.LogInfo($"Generating file checksum for {path}");
                                 using (var stream = File.OpenRead(path))
                                 {
-                                    Logger.Info($"md5 checksum generated: {BitConverter.ToString(md5.ComputeHash(stream))}");
+                                    ServerConfiguration.LogInfo($"md5 checksum generated: {BitConverter.ToString(md5.ComputeHash(stream))}");
                                     string serverCheckSumGenerated = BitConverter.ToString(md5.ComputeHash(stream));
 
 
@@ -8115,7 +8115,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                         try
                         {
-                            Logger.Info($"Bytes Received Total [{uploadState.BytesReceived}] < [{uploadState.TotalSize}]");
+                            ServerConfiguration.LogInfo($"Bytes Received Total [{uploadState.BytesReceived}] < [{uploadState.TotalSize}]");
                             uploadState.Stream.Seek(fileUploadResponse.iStartByteIndex, SeekOrigin.Begin);
                             uploadState.Stream.Write(fileUploadResponse.Data, 0, fileUploadResponse.iDataSize);
                             uploadState.BytesReceived += fileUploadResponse.iDataSize;
@@ -8386,13 +8386,13 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     
                                     if (fileDownloadRequest.MediusFileInfo.FileName.StartsWith("stats_"))
                                     {
-                                        Logger.Info($"[SF:DM] Saving File Stats to cached player");
+                                        ServerConfiguration.LogInfo($"[SF:DM] Saving File Stats to cached player");
                                         data.ClientObject.OnFileDownloadResponse(msgLessThanTotal);
                                     };
                                     
                                     data.ClientObject.Queue(msgLessThanTotal);
 
-                                    Logger.Info($"LAST FILE CONTENT SENT! {len}");
+                                    ServerConfiguration.LogInfo($"LAST FILE CONTENT SENT! {len}");
 
                                     len = bytes.Length - i;
                                 } else
@@ -8593,13 +8593,13 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 }
                             case MediusBinaryMessageType.TargetBinaryMsg:
                                 {
-                                    Logger.Info($"Sending targeted binary message Target AccountID {binaryMessage.TargetAccountID}");
+                                    ServerConfiguration.LogInfo($"Sending targeted binary message Target AccountID {binaryMessage.TargetAccountID}");
 
                                     var target = MediusClass.Manager.GetClientByAccountId(binaryMessage.TargetAccountID, data.ClientObject.ApplicationId);
 
                                     if (target == null)
                                     {
-                                        Logger.Info($"BinaryMsg target not found in cache for AccountID {binaryMessage.TargetAccountID}");
+                                        ServerConfiguration.LogInfo($"BinaryMsg target not found in cache for AccountID {binaryMessage.TargetAccountID}");
                                     }
                                     else
                                     {
@@ -8614,7 +8614,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 }
                             case MediusBinaryMessageType.BroadcastBinaryMsgAcrossEntireUniverse:
                                 {
-                                    Logger.Info($"Sending BroadcastBinaryMsgAcrossEntireUniverse({binaryMessage.Message}) binary message ");
+                                    ServerConfiguration.LogInfo($"Sending BroadcastBinaryMsgAcrossEntireUniverse({binaryMessage.Message}) binary message ");
 
                                     break;
                                 }
@@ -8662,7 +8662,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     }
                                     else
                                     {
-                                        Logger.Info("No players found to send binary msg to");
+                                        ServerConfiguration.LogInfo("No players found to send binary msg to");
                                     }
 
                                     break;
@@ -8673,7 +8673,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                                     //MUMBinaryFwdFromLobby
                                     //MUMBinaryFwdFromLobby() Error %d MID %s, Orig AID %d, Whisper Target AID %d
-                                    Logger.Info($"Sending BroadcastBinaryMsgAcrossEntireUniverse(%d) binary message (%d)");
+                                    ServerConfiguration.LogInfo($"Sending BroadcastBinaryMsgAcrossEntireUniverse(%d) binary message (%d)");
                                     break;
                                 }
                             default:
@@ -8820,7 +8820,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                         if (MediusClass.Database._settings.SimulatedMode == true)
                         {
-                            Logger.Info("TokenRequest DB Disabled Success");
+                            ServerConfiguration.LogInfo("TokenRequest DB Disabled Success");
                             data.ClientObject.Queue(new MediusStatusResponse()
                             {
                                 Class = tokenRequest.PacketClass,
@@ -8911,7 +8911,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                 });
                             }
                             //Post DebugInfo to file
-                            Logger.Info($"POST_INFO: SKey[{data.ClientObject.SessionKey}] Message[{postDebugInfoRequest.Message}]");
+                            ServerConfiguration.LogInfo($"POST_INFO: SKey[{data.ClientObject.SessionKey}] Message[{postDebugInfoRequest.Message}]");
                             data.ClientObject.Queue(new MediusPostDebugInfoResponse
                             {
                                 MessageID = postDebugInfoRequest.MessageID,
@@ -8958,45 +8958,44 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getMyIpRequest} without being logged in.");
 
                         // Ban Mac Check if their in-game
-                        _ = MediusClass.Database.GetIsMacBanned(data.MachineId).ContinueWith((r) =>
+                        bool isMacBanned = await MediusClass.Database.GetIsMacBanned(data.MachineId);
+
+                        if (isMacBanned)
                         {
-                            if (r.Result == true)
+                            #region isMacBanned?
+                            ServerConfiguration.LogInfo($"getMyIp: Connected User MAC Banned: {isMacBanned}");
+
+                            if (isMacBanned)
                             {
-                                #region isMacBanned?
-                                Logger.Info(msg: $"getMyIp: Connected User MAC Banned: {r.Result}");
 
-                                if (r.Result)
-                                {
-
-                                    // Account is banned
-                                    // Tell the client you're no longer privileged
-                                    data?.ClientObject?.Queue(new MediusGetMyIPResponse()
-                                    {
-                                        MessageID = getMyIpRequest.MessageID,
-                                        IP = null,
-                                        StatusCode = MediusCallbackStatus.MediusPlayerNotPrivileged
-                                    });
-
-                                    Logger.Info($"Get My IP Request Handler Error: {r.Result}: Player Not Privileged");
-
-                                    // Send ban message
-                                    QueueBanMessage(data, "You have been MAC Banned");
-                                }
-                                #endregion
-                            }
-                            else
-                            {
-                                #region Send IP & Success 
-                                //Send back other Client's Address 
-                                data.ClientObject.Queue(new MediusGetMyIPResponse()
+                                // Account is banned
+                                // Tell the client you're no longer privileged
+                                data?.ClientObject?.Queue(new MediusGetMyIPResponse()
                                 {
                                     MessageID = getMyIpRequest.MessageID,
-                                    IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address,
-                                    StatusCode = MediusCallbackStatus.MediusSuccess
+                                    IP = null,
+                                    StatusCode = MediusCallbackStatus.MediusPlayerNotPrivileged
                                 });
-                                #endregion
+
+                                ServerConfiguration.LogInfo($"Get My IP Request Handler Error: Player Not Privileged");
+
+                                // Send ban message
+                                QueueBanMessage(data, "You have been MAC Banned");
                             }
-                        });
+                            #endregion
+                        }
+                        else
+                        {
+                            #region Send IP & Success 
+                            //Send back other Client's Address 
+                            data.ClientObject.Queue(new MediusGetMyIPResponse()
+                            {
+                                MessageID = getMyIpRequest.MessageID,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address,
+                                StatusCode = MediusCallbackStatus.MediusSuccess
+                            });
+                            #endregion
+                        }
 
                         break;
                     }
@@ -9055,8 +9054,8 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                     {
                         if (accountClientToAdd != null && clientObject.ApplicationId != 20214)
                         {
-                            Logger.Info($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.WorldId}]");
-                            Logger.Info($"accountToAdd [{accountClientToAdd.AccountName}] is online, forwarding request!");
+                            ServerConfiguration.LogInfo($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.WorldId}]");
+                            ServerConfiguration.LogInfo($"accountToAdd [{accountClientToAdd.AccountName}] is online, forwarding request!");
                             //channel.AddToBuddyListConfirmationSingleRequest(clientObject, accountClientToAdd, addToBuddyListConfirmation);
 
                             if (accountClientToAdd.IsLoggedIn == true)
@@ -9087,7 +9086,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             {
                                 if (r.IsCompletedSuccessfully && r.Result != false)
                                 {
-                                    Logger.Info($"accountToAdd added to DB successfully!");
+                                    ServerConfiguration.LogInfo($"accountToAdd added to DB successfully!");
                                 }
                                 else
                                 {
@@ -9102,8 +9101,8 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                     {
                         if (accountClientToAdd != null && clientObject.ApplicationId != 20214)
                         {
-                            Logger.Info($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.WorldId}]");
-                            Logger.Info($"accountToAdd [{accountClientToAdd.AccountName}] is online, forwarding request!");
+                            ServerConfiguration.LogInfo($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.WorldId}]");
+                            ServerConfiguration.LogInfo($"accountToAdd [{accountClientToAdd.AccountName}] is online, forwarding request!");
                             //channel.AddToBuddyListConfirmationSymmetricRequest(clientObject, accountClientToAdd, addToBuddyListConfirmation);
                             if (accountClientToAdd.IsLoggedIn == true)
                             {
@@ -9134,7 +9133,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                             {
                                 if (r.IsCompletedSuccessfully && r.Result != false)
                                 {
-                                    Logger.Info($"accountToAdd added to DB successfully!");
+                                    ServerConfiguration.LogInfo($"accountToAdd added to DB successfully!");
                                 }
                                 else
                                 {
@@ -9189,7 +9188,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
 
                                 if (ab.IsCompletedSuccessfully && ab.Result)
                                 {
-                                    Logger.Info($"AnswerAddToBuddyListConfirmationResponse: Originator player found in cache. adding [{accountToAdd.AccountId}] to [{clientObject.AccountId}] buddy list");
+                                    ServerConfiguration.LogInfo($"AnswerAddToBuddyListConfirmationResponse: Originator player found in cache. adding [{accountToAdd.AccountId}] to [{clientObject.AccountId}] buddy list");
                                     if (accountClientToAdd.IsLoggedIn == true)
                                     {
                                         accountClientToAdd.Queue(new MediusAddToBuddyListConfirmationResponse()
@@ -9240,7 +9239,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
                                     if (ab.IsCompletedSuccessfully && ab.Result && abr.IsCompletedSuccessfully && abr.Result)
                                     {
 
-                                        Logger.Info($"AnswerAddToBuddyListConfirmationResponse: Originator player found in cache. adding [{accountToAdd.AccountId}] to [{clientObject.AccountId}] buddy list");
+                                        ServerConfiguration.LogInfo($"AnswerAddToBuddyListConfirmationResponse: Originator player found in cache. adding [{accountToAdd.AccountId}] to [{clientObject.AccountId}] buddy list");
 
                                         if (accountClientToAdd.IsLoggedIn == true)
                                         {
@@ -9421,7 +9420,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             }
             catch (Exception ex)
             {
-                Logger.Error("$Failed to get object reference: {ex}");
+                ServerConfiguration.LogError("$Failed to get object reference: {ex}");
             }
         }
         #endregion
@@ -9584,7 +9583,7 @@ namespace PSMultiServer.Addons.Medius.MEDIUS.Medius
             }
             catch (Exception e)
             {
-                Logger.Error("No Medius Proxy Server assigned to this AppId\n", e);
+                ServerConfiguration.LogError("No Medius Proxy Server assigned to this AppId\n", e);
             }
 
             return null;

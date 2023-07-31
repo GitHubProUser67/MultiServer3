@@ -36,11 +36,11 @@ namespace PSMultiServer.Addons.HOME
 
                 if (ServerConfiguration.SSFWPrivateKey == "")
                 {
-                    Console.WriteLine("No SSFW key so ssfw encryption is disabled.");
+                    ServerConfiguration.LogWarn("No SSFW key so ssfw encryption is disabled.");
                 }
                 else if (ServerConfiguration.SSFWPrivateKey == null || ServerConfiguration.SSFWPrivateKey.Length < 20)
                 {
-                    Console.WriteLine("SSFW key is less than 20 characters, so encryption is disabled.");
+                    ServerConfiguration.LogWarn("SSFW key is less than 20 characters, so encryption is disabled.");
 
                     ServerConfiguration.SSFWPrivateKey = "";
                 }
@@ -52,12 +52,12 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in Main : {ex}");
+                ServerConfiguration.LogError($"Server has throw an exception in Main : {ex}");
             }
         }
         public static void SSFWstop()
         {
-            Console.WriteLine($"SSFW Server stopped - Block requests...");
+            ServerConfiguration.LogInfo($"SSFW Server stopped - Block requests...");
 
             StopServer = true;
             HttpListener.Stop();
@@ -73,7 +73,7 @@ namespace PSMultiServer.Addons.HOME
             HttpListener.Prefixes.Add("http://*:10443/");
             HttpListener.Start();
 
-            Console.WriteLine($"SSFW Server started on *:10443 - Listening for requests...");
+            ServerConfiguration.LogInfo($"SSFW Server started on *:10443 - Listening for requests...");
 
             while (true)
             {
@@ -103,7 +103,7 @@ namespace PSMultiServer.Addons.HOME
                         {
                             _keepGoing = false;
 
-                            Console.WriteLine($"FATAL ERROR OCCURED in SSFW Listener - {ex} - Trying to listen for requests again...");
+                            ServerConfiguration.LogError($"FATAL ERROR OCCURED in SSFW Listener - {ex} - Trying to listen for requests again...");
 
                             if (!HttpListener.IsListening)
                             {
@@ -132,7 +132,7 @@ namespace PSMultiServer.Addons.HOME
                     string httpMethod = request.HttpMethod;
                     string url = request.Url.LocalPath;
 
-                    Console.WriteLine($"SSFW : Received {httpMethod} request for {url}");
+                    ServerConfiguration.LogInfo($"SSFW : Received {httpMethod} request for {url}");
 
                     // Split the URL into segments
                     string[] segments = url.Trim('/').Split('/');
@@ -176,7 +176,7 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the PUT request and creating the directory : {ex}");
+                                            ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the PUT request and creating the directory : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -192,12 +192,12 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
 
@@ -224,7 +224,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Dispose();
                                                     }
 
-                                                    Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.jpeg"} has been uploaded to SSFW");
+                                                    ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.jpeg"} has been uploaded to SSFW");
                                                 }
                                             }
                                             if (request.ContentType == "application/json")
@@ -248,7 +248,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Dispose();
                                                     }
 
-                                                    Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
+                                                    ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
                                                 }
                                             }
                                             else
@@ -272,13 +272,13 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Dispose();
                                                     }
 
-                                                    Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.bin"} has been uploaded to SSFW");
+                                                    ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.bin"} has been uploaded to SSFW");
                                                 }
                                             }
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"SSFW Server : Server has throw an exception in ProcessRequest while processing the PUT request and creating the file : {ex}");
+                                            ServerConfiguration.LogInfo($"SSFW Server : Server has throw an exception in ProcessRequest while processing the PUT request and creating the file : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -294,12 +294,12 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
 
@@ -315,12 +315,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
 
                                         ms.Dispose();
@@ -328,7 +328,7 @@ namespace PSMultiServer.Addons.HOME
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"SSFW Server : Host has issued a PUT command without Home specific cookie. We forbid");
+                                    ServerConfiguration.LogInfo($"SSFW Server : Host has issued a PUT command without Home specific cookie. We forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -344,18 +344,18 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the PUT request : {ex}");
+                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the PUT request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -371,12 +371,12 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex1)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
                             }
 
@@ -435,7 +435,7 @@ namespace PSMultiServer.Addons.HOME
 
                                                     if (await Task.Run(() => Misc.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E })) && !ServerConfiguration.SSFWCrossSave)
                                                     {
-                                                        Console.WriteLine($"User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
+                                                        ServerConfiguration.LogInfo($"User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
 
                                                         // Convert the modified data to a string
                                                         resultString = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
@@ -470,7 +470,7 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine($"User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on PSN");
+                                                        ServerConfiguration.LogInfo($"User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on PSN");
 
                                                         // Convert the modified data to a string
                                                         resultString = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
@@ -543,9 +543,9 @@ namespace PSMultiServer.Addons.HOME
 
                                                             logoncount = userData.LogonCount;
 
-                                                            Console.WriteLine($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
-                                                            Console.WriteLine($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
-                                                            Console.WriteLine($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
+                                                            ServerConfiguration.LogInfo($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
+                                                            ServerConfiguration.LogInfo($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
+                                                            ServerConfiguration.LogInfo($"SSFW Server : {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
 
                                                             using (FileStream fs = new FileStream(userprofilefile, FileMode.Create))
                                                             {
@@ -579,9 +579,9 @@ namespace PSMultiServer.Addons.HOME
 
                                                         if (userData != null)
                                                         {
-                                                            Console.WriteLine($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
-                                                            Console.WriteLine($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
-                                                            Console.WriteLine($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
+                                                            ServerConfiguration.LogInfo($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
+                                                            ServerConfiguration.LogInfo($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
+                                                            ServerConfiguration.LogInfo($"SSFW Server : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
 
                                                             using (FileStream fs = new FileStream(userprofilefile, FileMode.Create))
                                                             {
@@ -609,7 +609,7 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the PSN Ticket : {ex}");
+                                                    ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the PSN Ticket : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -625,12 +625,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
 
@@ -658,7 +658,7 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                    ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -674,12 +674,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
 
@@ -804,17 +804,17 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                    ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -830,12 +830,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
 
@@ -844,7 +844,7 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                            ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -860,18 +860,18 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("SSFW Server : Host requested a login, but it doesn't have any Home required cookies, so we forbid");
+                                        ServerConfiguration.LogInfo("SSFW Server : Host requested a login, but it doesn't have any Home required cookies, so we forbid");
 
                                         // Return a not allowed response
                                         byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -887,12 +887,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -917,7 +917,7 @@ namespace PSMultiServer.Addons.HOME
                                             // Check if the number is valid
                                             if (!int.TryParse(numberString, out number))
                                             {
-                                                Console.WriteLine($"SSFW Server : has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
+                                                ServerConfiguration.LogInfo($"SSFW Server : has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -933,12 +933,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -971,7 +971,7 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                    ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -987,12 +987,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
 
@@ -1017,7 +1017,7 @@ namespace PSMultiServer.Addons.HOME
                                                             fs.Dispose();
                                                         }
 
-                                                        Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
+                                                        ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
                                                     }
 
                                                     // Return a success response
@@ -1033,18 +1033,18 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
 
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                    ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                     // Return an internal server error response
                                                     byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1060,12 +1060,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
 
@@ -1074,7 +1074,7 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         else
                                         {
-                                            Console.WriteLine("SSFW Server : AvatarLayoutService does not end with a number, so the request is invalidated.");
+                                            ServerConfiguration.LogInfo("SSFW Server : AvatarLayoutService does not end with a number, so the request is invalidated.");
 
                                             byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -1088,18 +1088,18 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1114,12 +1114,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -1152,7 +1152,7 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1168,12 +1168,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1198,7 +1198,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Dispose();
                                                     }
 
-                                                    Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
+                                                    ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
                                                 }
 
                                                 SSFWServices prog = new SSFWServices();
@@ -1218,17 +1218,17 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1244,12 +1244,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1258,7 +1258,7 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1274,12 +1274,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -1312,7 +1312,7 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1328,12 +1328,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1358,7 +1358,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Dispose();
                                                     }
 
-                                                    Console.WriteLine($"File {$"./wwwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
+                                                    ServerConfiguration.LogInfo($"File {$"./wwwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
                                                 }
 
                                                 SSFWServices prog = new SSFWServices();
@@ -1378,17 +1378,17 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1404,12 +1404,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1418,7 +1418,7 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1434,12 +1434,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -1472,7 +1472,7 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1488,12 +1488,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1518,7 +1518,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Dispose();
                                                     }
 
-                                                    Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
+                                                    ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
                                                 }
 
                                                 if (response.OutputStream.CanWrite)
@@ -1533,17 +1533,17 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Files creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1559,12 +1559,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1573,7 +1573,7 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1589,12 +1589,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -1627,7 +1627,7 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the Directories creation/check : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1643,12 +1643,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1681,17 +1681,17 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("SSFW Server : LayoutService does not end with an UUID, so the request is invalidated.");
+                                                    ServerConfiguration.LogInfo("SSFW Server : LayoutService does not end with an UUID, so the request is invalidated.");
 
                                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -1706,18 +1706,18 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the mylayout update : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and processing the mylayout update : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1732,7 +1732,7 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1748,12 +1748,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -1777,7 +1777,7 @@ namespace PSMultiServer.Addons.HOME
                                             // Read the contents of the memory stream into the byte array
                                             ms.Read(buffer, 0, contentLength);
 
-                                            Console.WriteLine("SSFW Server : Host has sent a morelife ping");
+                                            ServerConfiguration.LogInfo("SSFW Server : Host has sent a morelife ping");
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -1791,12 +1791,12 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
 
                                             ms.Dispose();
@@ -1804,7 +1804,7 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1820,12 +1820,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -1849,7 +1849,7 @@ namespace PSMultiServer.Addons.HOME
                                             // Read the contents of the memory stream into the byte array
                                             ms.Read(buffer, 0, contentLength);
 
-                                            Console.WriteLine("SSFW Server : WARNING - Host requested a POST method I don't know about!! Report it to GITHUB with the request : " + Encoding.UTF8.GetString(buffer));
+                                            ServerConfiguration.LogInfo("SSFW Server : WARNING - Host requested a POST method I don't know about!! Report it to GITHUB with the request : " + Encoding.UTF8.GetString(buffer));
 
                                             try
                                             {
@@ -1860,7 +1860,7 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and creating the directory : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and creating the directory : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1876,12 +1876,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -1895,7 +1895,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Flush();
                                                         fs.Dispose();
 
-                                                        Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.jpeg"} has been uploaded to SSFW");
+                                                        ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.jpeg"} has been uploaded to SSFW");
                                                     }
 
                                                     if (response.OutputStream.CanWrite)
@@ -1910,12 +1910,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                                 if (request.ContentType == "application/json")
@@ -1926,7 +1926,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Flush();
                                                         fs.Dispose();
 
-                                                        Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
+                                                        ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.ssfw"} has been uploaded to SSFW");
                                                     }
 
                                                     if (response.OutputStream.CanWrite)
@@ -1941,12 +1941,12 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                                 else
@@ -1957,7 +1957,7 @@ namespace PSMultiServer.Addons.HOME
                                                         fs.Flush();
                                                         fs.Dispose();
 
-                                                        Console.WriteLine($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.bin"} has been uploaded to SSFW");
+                                                        ServerConfiguration.LogInfo($"File {$"./wwwssfwroot{context.Request.Url.AbsolutePath}.bin"} has been uploaded to SSFW");
                                                     }
 
                                                     if (response.OutputStream.CanWrite)
@@ -1972,18 +1972,18 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                             }
                                             catch (Exception ex)
                                             {
-                                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and creating the file/http response : {ex}");
+                                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and creating the file/http response : {ex}");
 
                                                 // Return an internal server error response
                                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -1999,12 +1999,12 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
 
@@ -2013,7 +2013,7 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2029,18 +2029,18 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("SSFW Server : Host has issued a POST command without Home specific cookie. we forbid");
+                                    ServerConfiguration.LogInfo("SSFW Server : Host has issued a POST command without Home specific cookie. we forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -2056,18 +2056,18 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request : {ex}");
+                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the POST request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2083,12 +2083,12 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex1)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
                             }
 
@@ -2118,7 +2118,7 @@ namespace PSMultiServer.Addons.HOME
 
                                             if (stringlayout != "")
                                             {
-                                                Console.WriteLine($"SSFW Server : Returned furniture layout for " + inputurlfortrim);
+                                                ServerConfiguration.LogInfo($"SSFW Server : Returned furniture layout for " + inputurlfortrim);
 
                                                 byte[] layout = Encoding.UTF8.GetBytes("[{\"PUT_SCENEID_HERE\":PUT_LAYOUT_HERE}]".Replace("PUT_SCENEID_HERE", inputurlfortrim).Replace("PUT_LAYOUT_HERE", stringlayout));
 
@@ -2135,17 +2135,17 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine($"SSFW Server : No furniture layout for " + inputurlfortrim);
+                                                ServerConfiguration.LogInfo($"SSFW Server : No furniture layout for " + inputurlfortrim);
 
                                                 if (response.OutputStream.CanWrite)
                                                 {
@@ -2160,18 +2160,18 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("SSFW Server : LayoutService does not end with an UUID, so the request is invalidated.");
+                                            ServerConfiguration.LogInfo("SSFW Server : LayoutService does not end with an UUID, so the request is invalidated.");
 
                                             byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2186,18 +2186,18 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2213,12 +2213,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2260,11 +2260,11 @@ namespace PSMultiServer.Addons.HOME
 
                                             if (userData != null)
                                             {
-                                                Console.WriteLine($"SSFW Server : IGA Request from : {sessionid} - IGA : {userData.IGA}");
+                                                ServerConfiguration.LogInfo($"SSFW Server : IGA Request from : {sessionid} - IGA : {userData.IGA}");
 
                                                 if (userData.IGA == 1)
                                                 {
-                                                    Console.WriteLine($"SSFW Server : Admin role confirmed");
+                                                    ServerConfiguration.LogInfo($"SSFW Server : Admin role confirmed");
 
                                                     if (response.OutputStream.CanWrite)
                                                     {
@@ -2277,17 +2277,17 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
+                                                    ServerConfiguration.LogInfo("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
 
                                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2302,18 +2302,18 @@ namespace PSMultiServer.Addons.HOME
                                                         }
                                                         catch (Exception ex1)
                                                         {
-                                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("Client Disconnected early");
+                                                        ServerConfiguration.LogError("Client Disconnected early");
                                                     }
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
+                                                ServerConfiguration.LogInfo("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
 
                                                 byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2328,18 +2328,18 @@ namespace PSMultiServer.Addons.HOME
                                                     }
                                                     catch (Exception ex1)
                                                     {
-                                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Client Disconnected early");
+                                                    ServerConfiguration.LogError("Client Disconnected early");
                                                 }
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
+                                            ServerConfiguration.LogInfo("SSFW Server : Host requested a IGA access, but no access allowed so we forbid");
 
                                             byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2354,18 +2354,18 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET /AdminObjectService/start request : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the GET /AdminObjectService/start request : {ex}");
 
                                         // Return an internal SSFW Server : error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2381,12 +2381,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2428,12 +2428,12 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                         else
@@ -2458,20 +2458,20 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
 
-                                        Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".ssfw"}");
+                                        ServerConfiguration.LogInfo($"SSFW Server : Returned file contents from {filePath + ".ssfw"}");
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server :  has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        ServerConfiguration.LogInfo($"SSFW Server :  has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2487,12 +2487,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2528,16 +2528,16 @@ namespace PSMultiServer.Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".bin"}");
+                                                    ServerConfiguration.LogInfo($"SSFW Server : Returned file contents from {filePath + ".bin"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                         else
@@ -2554,22 +2554,22 @@ namespace PSMultiServer.Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".bin"}");
+                                                    ServerConfiguration.LogInfo($"SSFW Server : Returned file contents from {filePath + ".bin"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server :  has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        ServerConfiguration.LogInfo($"SSFW Server :  has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2585,12 +2585,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2626,16 +2626,16 @@ namespace PSMultiServer.Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"SSFW Server : Returned file contents from {filePath + ".jpeg"}");
+                                                    ServerConfiguration.LogInfo($"SSFW Server : Returned file contents from {filePath + ".jpeg"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                         else
@@ -2653,22 +2653,22 @@ namespace PSMultiServer.Addons.HOME
                                                     response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                                                     response.OutputStream.Close();
 
-                                                    Console.WriteLine($"Returned file contents from {filePath + ".jpeg"}");
+                                                    ServerConfiguration.LogInfo($"Returned file contents from {filePath + ".jpeg"}");
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request and sending the response : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2684,12 +2684,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2697,7 +2697,7 @@ namespace PSMultiServer.Addons.HOME
                                 {
                                     // Return nothing, it seems SSFW likes better response 404 with nothing inside.
 
-                                    Console.WriteLine($"SSFW : File {filePath} not found");
+                                    ServerConfiguration.LogInfo($"SSFW : File {filePath} not found");
 
                                     if (response.OutputStream.CanWrite)
                                     {
@@ -2708,17 +2708,17 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"SSFW Server : Host has issued a GET command without Home specific cookie. We forbid");
+                                    ServerConfiguration.LogInfo($"SSFW Server : Host has issued a GET command without Home specific cookie. We forbid");
 
                                     if (response.OutputStream.CanWrite)
                                     {
@@ -2733,18 +2733,18 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request : {ex}");
+                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the GET request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2760,12 +2760,12 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex1)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
                             }
 
@@ -2793,7 +2793,7 @@ namespace PSMultiServer.Addons.HOME
 
                                         if (!int.TryParse(numberString, out number))
                                         {
-                                            Console.WriteLine($"SSFW Server : has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
+                                            ServerConfiguration.LogInfo($"SSFW Server : has errored out in ProcessRequest while processing the number verification for /AvatarLayoutService/cprod/");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2809,12 +2809,12 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
 
@@ -2827,7 +2827,7 @@ namespace PSMultiServer.Addons.HOME
                                             // Delete the binary file
                                             File.Delete(filePath + ".ssfw");
 
-                                            Console.WriteLine($"Deleted file {filePath + ".ssfw"}");
+                                            ServerConfiguration.LogInfo($"Deleted file {filePath + ".ssfw"}");
 
                                             if (response.OutputStream.CanWrite)
                                             {
@@ -2842,17 +2842,17 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
+                                            ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
 
                                             // Return an internal server error response
                                             byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2868,18 +2868,18 @@ namespace PSMultiServer.Addons.HOME
                                                 }
                                                 catch (Exception ex1)
                                                 {
-                                                    Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                    ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Client Disconnected early");
+                                                ServerConfiguration.LogError("Client Disconnected early");
                                             }
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("SSFW Server : AvatarLayoutService does not end with a number, so the request is invalidated.");
+                                        ServerConfiguration.LogInfo("SSFW Server : AvatarLayoutService does not end with a number, so the request is invalidated.");
 
                                         byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
 
@@ -2894,12 +2894,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2910,7 +2910,7 @@ namespace PSMultiServer.Addons.HOME
                                         // Delete the binary file
                                         File.Delete(filePath + ".ssfw");
 
-                                        Console.WriteLine($"SSFW Server : Deleted file {filePath + ".ssfw"}");
+                                        ServerConfiguration.LogInfo($"SSFW Server : Deleted file {filePath + ".ssfw"}");
 
                                         // Return a success response
                                         byte[] deleteResponse = Encoding.UTF8.GetBytes("File deleted successfully");
@@ -2926,17 +2926,17 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2952,12 +2952,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -2968,7 +2968,7 @@ namespace PSMultiServer.Addons.HOME
                                         // Delete the binary file
                                         File.Delete(filePath + ".jpeg");
 
-                                        Console.WriteLine($"SSFW Server : Deleted file {filePath + ".jpeg"}");
+                                        ServerConfiguration.LogInfo($"SSFW Server : Deleted file {filePath + ".jpeg"}");
 
                                         // Return a success response
                                         byte[] deleteResponse = Encoding.UTF8.GetBytes("File deleted successfully");
@@ -2984,17 +2984,17 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
+                                        ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request and removing said file : {ex}");
 
                                         // Return an internal server error response
                                         byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -3010,12 +3010,12 @@ namespace PSMultiServer.Addons.HOME
                                             }
                                             catch (Exception ex1)
                                             {
-                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                                ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                             }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Client Disconnected early");
+                                            ServerConfiguration.LogError("Client Disconnected early");
                                         }
                                     }
                                 }
@@ -3033,21 +3033,21 @@ namespace PSMultiServer.Addons.HOME
                                             response.OutputStream.Write(notFoundResponse, 0, notFoundResponse.Length);
                                             response.OutputStream.Close();
 
-                                            Console.WriteLine($"File {filePath} not found");
+                                            ServerConfiguration.LogInfo($"File {filePath} not found");
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"SSFW Server : Host has issued a DELETE command without Home specific cookie. We forbid");
+                                    ServerConfiguration.LogInfo($"SSFW Server : Host has issued a DELETE command without Home specific cookie. We forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -3063,18 +3063,18 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request : {ex}");
+                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the DELETE request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -3090,12 +3090,12 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex1)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
                             }
 
@@ -3107,7 +3107,7 @@ namespace PSMultiServer.Addons.HOME
                             {
                                 if (request.Headers["X-Home-Session-Id"] != null)
                                 {
-                                    Console.WriteLine($"SSFW Server : WARNING - Host requested a method I don't know about!! Report it to GITHUB with the request : {httpMethod} request for {url} is not supported");
+                                    ServerConfiguration.LogInfo($"SSFW Server : WARNING - Host requested a method I don't know about!! Report it to GITHUB with the request : {httpMethod} request for {url} is not supported");
 
                                     // Return a method not allowed response for unsupported methods
                                     byte[] methodNotAllowedResponse = Encoding.UTF8.GetBytes("Method not allowed");
@@ -3123,17 +3123,17 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"SSFW Server : Host has issued a UNKNOWN command without Home specific cookie. We forbid");
+                                    ServerConfiguration.LogInfo($"SSFW Server : Host has issued a UNKNOWN command without Home specific cookie. We forbid");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -3149,18 +3149,18 @@ namespace PSMultiServer.Addons.HOME
                                         }
                                         catch (Exception ex1)
                                         {
-                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Client Disconnected early");
+                                        ServerConfiguration.LogError("Client Disconnected early");
                                     }
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest while processing the default request : {ex}");
+                                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest while processing the default request : {ex}");
 
                                 // Return an internal server error response
                                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -3176,12 +3176,12 @@ namespace PSMultiServer.Addons.HOME
                                     }
                                     catch (Exception ex1)
                                     {
-                                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                                        ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex1}");
                                     }
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Client Disconnected early");
+                                    ServerConfiguration.LogError("Client Disconnected early");
                                 }
                             }
 
@@ -3190,7 +3190,7 @@ namespace PSMultiServer.Addons.HOME
                 }
                 else
                 {
-                    Console.WriteLine($"SSFW Server : {context.Request.Headers["User-Agent"]} - is not a PS3, we forbid!");
+                    ServerConfiguration.LogInfo($"SSFW Server : {context.Request.Headers["User-Agent"]} - is not a PS3, we forbid!");
 
                     byte[] buffer = Encoding.UTF8.GetBytes(PreMadeWebPages.rootrefused);
 
@@ -3205,12 +3205,12 @@ namespace PSMultiServer.Addons.HOME
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                            ServerConfiguration.LogError($"Client Disconnected early and thrown an exception {ex}");
                         }
                     }
                     else
                     {
-                        Console.WriteLine("Client Disconnected early");
+                        ServerConfiguration.LogError("Client Disconnected early");
                     }
                 }
 
@@ -3219,7 +3219,7 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SSFW Server : has throw an exception in ProcessRequest : {ex}");
+                ServerConfiguration.LogError($"SSFW Server : has throw an exception in ProcessRequest : {ex}");
 
                 GC.Collect();
 
@@ -3337,7 +3337,7 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SSFW Server : has throw an exception in SSFWtrunkserviceprocess : {ex}");
+                ServerConfiguration.LogError($"SSFW Server : has throw an exception in SSFWtrunkserviceprocess : {ex}");
 
                 return;
             }
@@ -3429,7 +3429,7 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SSFW Server : has throw an exception in SSFWupdatemini : {ex}");
+                ServerConfiguration.LogError($"SSFW Server : has throw an exception in SSFWupdatemini : {ex}");
 
                 return;
             }
@@ -3522,7 +3522,7 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SSFW Server : has throw an exception in SSFWfurniturelayout : {ex}");
+                ServerConfiguration.LogError($"SSFW Server : has throw an exception in SSFWfurniturelayout : {ex}");
 
                 return;
             }
@@ -3575,7 +3575,7 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SSFW Server : has throw an exception in SSFWgetfurniturelayout : {ex}");
+                ServerConfiguration.LogError($"SSFW Server : has throw an exception in SSFWgetfurniturelayout : {ex}");
 
                 return "";
             }
@@ -3588,7 +3588,7 @@ namespace PSMultiServer.Addons.HOME
 
                 byte[] firstNineBytes = new byte[9];
 
-                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read))
                 {
                     fileStream.Read(firstNineBytes, 0, 9);
                     fileStream.Close();
@@ -3641,7 +3641,7 @@ namespace PSMultiServer.Addons.HOME
                     }
                     else
                     {
-                        Console.WriteLine("SSFW Server : SSFWUpdateavatar - Invalid mode specified. Please use 'UPDATE' or 'DELETE'.");
+                        ServerConfiguration.LogInfo("SSFW Server : SSFWUpdateavatar - Invalid mode specified. Please use 'UPDATE' or 'DELETE'.");
 
                         return;
                     }
@@ -3667,7 +3667,7 @@ namespace PSMultiServer.Addons.HOME
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SSFW Server : has throw an exception in SSFWUpdateavatar : {ex}");
+                ServerConfiguration.LogError($"SSFW Server : has throw an exception in SSFWUpdateavatar : {ex}");
 
                 return;
             }
