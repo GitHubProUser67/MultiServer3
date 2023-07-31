@@ -12,6 +12,39 @@ namespace PSMultiServer
 {
     public class Misc
     {
+        public static string GetFirstActiveIPAddress(string hostName)
+        {
+            try
+            {
+                IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+                foreach (IPAddress address in addresses)
+                {
+                    using (var ping = new Ping())
+                    {
+                        try
+                        {
+                            PingReply reply = ping.Send(address);
+                            if (reply.Status == IPStatus.Success)
+                            {
+                                return address.ToString();
+                            }
+                        }
+                        catch (PingException)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError(ex);
+                return string.Empty;
+            }
+        }
+
         public static string setipintextbox()
         {
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
