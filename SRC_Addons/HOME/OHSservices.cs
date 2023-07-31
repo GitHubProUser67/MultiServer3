@@ -40,7 +40,147 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                         try
                         {
-                            if (request.Url.AbsolutePath.Contains("global/set/"))
+                            if (request.Url.AbsolutePath.Contains("community/getscore/"))
+                            {
+                                if (context.Request.ContentType != null)
+                                {
+                                    if (context.Request.ContentType.StartsWith("multipart/form-data"))
+                                    {
+                                        Task.Run(() => community_getscore(context, userAgent, directoryPath, ""));
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"OHS Server : {userAgent} tried to POST data to community/getscore/, but it's not correct so we forbid.");
+
+                                        // Return a not allowed response
+                                        byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                        if (context.Response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                context.Response.ContentLength64 = notAllowed.Length;
+                                                context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                context.Response.OutputStream.Close();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Client Disconnected early");
+                                        }
+
+                                        context.Response.Close();
+
+                                        GC.Collect();
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"OHS Server : {userAgent} tried to POST data to community/getscore/, but it's not correct so we forbid.");
+
+                                    // Return a not allowed response
+                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            context.Response.ContentLength64 = notAllowed.Length;
+                                            context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+
+                                    context.Response.Close();
+
+                                    GC.Collect();
+                                }
+                            }
+                            else if (request.Url.AbsolutePath.Contains("community/updatescore/"))
+                            {
+                                if (context.Request.ContentType != null)
+                                {
+                                    if (context.Request.ContentType.StartsWith("multipart/form-data"))
+                                    {
+                                        Task.Run(() => community_updatescore(context, userAgent, directoryPath, ""));
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"OHS Server : {userAgent} tried to POST data to community/updatescore/, but it's not correct so we forbid.");
+
+                                        // Return a not allowed response
+                                        byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                        if (context.Response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                context.Response.ContentLength64 = notAllowed.Length;
+                                                context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                context.Response.OutputStream.Close();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Client Disconnected early");
+                                        }
+
+                                        context.Response.Close();
+
+                                        GC.Collect();
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"OHS Server : {userAgent} tried to POST data to community/updatescore/, but it's not correct so we forbid.");
+
+                                    // Return a not allowed response
+                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            context.Response.ContentLength64 = notAllowed.Length;
+                                            context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+
+                                    context.Response.Close();
+
+                                    GC.Collect();
+                                }
+                            }
+                            else if (request.Url.AbsolutePath.Contains("global/set/"))
                             {
                                 if (context.Request.ContentType != null)
                                 {
@@ -82,6 +222,76 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 else
                                 {
                                     Console.WriteLine($"OHS Server : {userAgent} tried to POST data to global/set/, but it's not correct so we forbid.");
+
+                                    // Return a not allowed response
+                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            context.Response.ContentLength64 = notAllowed.Length;
+                                            context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+
+                                    context.Response.Close();
+
+                                    GC.Collect();
+                                }
+                            }
+                            else if (request.Url.AbsolutePath.Contains("global/getall/"))
+                            {
+                                if (context.Request.ContentType != null)
+                                {
+                                    if (context.Request.ContentType.StartsWith("multipart/form-data"))
+                                    {
+                                        Task.Run(() => get_all(context, userAgent, directoryPath, true, ""));
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"OHS Server : {userAgent} tried to POST data to global/getall/, but it's not correct so we forbid.");
+
+                                        // Return a not allowed response
+                                        byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                        if (context.Response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                context.Response.ContentLength64 = notAllowed.Length;
+                                                context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                context.Response.OutputStream.Close();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Client Disconnected early");
+                                        }
+
+                                        context.Response.Close();
+
+                                        GC.Collect();
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"OHS Server : {userAgent} tried to POST data to global/getall/, but it's not correct so we forbid.");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -320,6 +530,76 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     GC.Collect();
                                 }
                             }
+                            else if (request.Url.AbsolutePath.Contains("user/getall/"))
+                            {
+                                if (context.Request.ContentType != null)
+                                {
+                                    if (context.Request.ContentType.StartsWith("multipart/form-data"))
+                                    {
+                                        Task.Run(() => get_all(context, userAgent, directoryPath, false, ""));
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"OHS Server : {userAgent} tried to POST data to user/getall/, but it's not correct so we forbid.");
+
+                                        // Return a not allowed response
+                                        byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                        if (context.Response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                context.Response.ContentLength64 = notAllowed.Length;
+                                                context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                context.Response.OutputStream.Close();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Client Disconnected early");
+                                        }
+
+                                        context.Response.Close();
+
+                                        GC.Collect();
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"OHS Server : {userAgent} tried to POST data to user/getall/, but it's not correct so we forbid.");
+
+                                    // Return a not allowed response
+                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            context.Response.ContentLength64 = notAllowed.Length;
+                                            context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+
+                                    context.Response.Close();
+
+                                    GC.Collect();
+                                }
+                            }
                             else if (request.Url.AbsolutePath.Contains("user/get/"))
                             {
                                 if (context.Request.ContentType != null)
@@ -502,6 +782,76 @@ namespace PSMultiServer.SRC_Addons.HOME
                                 else
                                 {
                                     Console.WriteLine($"OHS Server : {userAgent} tried to POST data to leaderboard/requestbyrank/, but it's not correct so we forbid.");
+
+                                    // Return a not allowed response
+                                    byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                    if (context.Response.OutputStream.CanWrite)
+                                    {
+                                        try
+                                        {
+                                            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            context.Response.ContentLength64 = notAllowed.Length;
+                                            context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                            context.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Client Disconnected early");
+                                    }
+
+                                    context.Response.Close();
+
+                                    GC.Collect();
+                                }
+                            }
+                            else if (request.Url.AbsolutePath.Contains("leaderboard/update/"))
+                            {
+                                if (context.Request.ContentType != null)
+                                {
+                                    if (context.Request.ContentType.StartsWith("multipart/form-data"))
+                                    {
+                                        Task.Run(() => leaderboard_update(context, userAgent, directoryPath, ""));
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"OHS Server : {userAgent} tried to POST data to leaderboard/update/, but it's not correct so we forbid.");
+
+                                        // Return a not allowed response
+                                        byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
+
+                                        if (context.Response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                                context.Response.ContentLength64 = notAllowed.Length;
+                                                context.Response.OutputStream.Write(notAllowed, 0, notAllowed.Length);
+                                                context.Response.OutputStream.Close();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Client Disconnected early");
+                                        }
+
+                                        context.Response.Close();
+
+                                        GC.Collect();
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"OHS Server : {userAgent} tried to POST data to leaderboard/update/, but it's not correct so we forbid.");
 
                                     // Return a not allowed response
                                     byte[] notAllowed = Encoding.UTF8.GetBytes("Not allowed.");
@@ -1005,57 +1355,87 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                     switch (method)
                     {
+                        case "community/getscore/":
+
+                            resultfromcommand = await community_getscore(context, userAgent, directorypath + $"/{project}/", data);
+
+                            break;
+
+                        case "community/updatescore/":
+
+                            resultfromcommand = await community_updatescore(context, userAgent, directorypath + $"/{project}/", data);
+
+                            break;
+
+                        case "global/getall/":
+
+                            resultfromcommand = await get_all(context, userAgent, directorypath + $"/{project}/", true, data);
+
+                            break;
+
                         case "global/get/":
 
-                            resultfromcommand = await Task.Run(() => get(context, userAgent, directorypath + $"/{project}/", true, data));
+                            resultfromcommand = await get(context, userAgent, directorypath + $"/{project}/", true, data);
 
                             break;
 
                         case "global/set/":
 
-                            resultfromcommand = await Task.Run(() => set(context, userAgent, directorypath + $"/{project}/", true, data));
+                            resultfromcommand = await set(context, userAgent, directorypath + $"/{project}/", true, data);
 
                             break;
 
                         case "userid/":
 
-                            resultfromcommand = await Task.Run(() => user_id(context, userAgent, data));
+                            resultfromcommand = await user_id(context, userAgent, data);
+
+                            break;
+
+                        case "user/getall/":
+
+                            resultfromcommand = await get_all(context, userAgent, directorypath + $"/{project}/", false, data);
 
                             break;
 
                         case "user/get/":
 
-                            resultfromcommand = await Task.Run(() => get(context, userAgent, directorypath + $"/{project}/", false, data));
+                            resultfromcommand = await get(context, userAgent, directorypath + $"/{project}/", false, data);
 
                             break;
 
                         case "user/set/":
 
-                            resultfromcommand = await Task.Run(() => set(context, userAgent, directorypath + $"/{project}/", false, data));
+                            resultfromcommand = await set(context, userAgent, directorypath + $"/{project}/", false, data);
 
                             break;
 
                         case "user/getwritekey/":
 
-                            resultfromcommand = await Task.Run(() => user_getwritekey(context, userAgent, data));
+                            resultfromcommand = await user_getwritekey(context, userAgent, data);
 
                             break;
 
                         case "leaderboard/requestbyusers/":
 
-                            resultfromcommand = await Task.Run(() => leaderboard_requestbyusers(context, userAgent, directorypath + $"/{project}/", data));
+                            resultfromcommand = await leaderboard_requestbyusers(context, userAgent, directorypath + $"/{project}/", data);
 
                             break;
 
                         case "leaderboard/requestbyrank/":
 
-                            resultfromcommand = await Task.Run(() => leaderboard_requestbyrank(context, userAgent, directorypath + $"/{project}/", data));
+                            resultfromcommand = await leaderboard_requestbyrank(context, userAgent, directorypath + $"/{project}/", data);
+
+                            break;
+
+                        case "leaderboard/update/":
+
+                            resultfromcommand = await leaderboard_update(context, userAgent, directorypath + $"/{project}/", data);
 
                             break;
 
                         case "leaderboard/updatessameentry/":
 
-                            resultfromcommand = await Task.Run(() => leaderboard_updatessameentry(context, userAgent, directorypath + $"/{project}/", data));
+                            resultfromcommand = await leaderboard_updatessameentry(context, userAgent, directorypath + $"/{project}/", data);
 
                             break;
 
@@ -1068,7 +1448,7 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                     if (resultfromcommand == "")
                     {
-                        resultfromcommand = "{ [\"status\"] = \"failed\" }";
+                        resultfromcommand = "{ [\"status\"] = \"fail\" }";
                     }
 
                     if (resultBuilder.Length == 0)
@@ -1153,13 +1533,388 @@ namespace PSMultiServer.SRC_Addons.HOME
             return "";
         }
 
+        private static async Task<string> community_getscore(HttpListenerContext context, string userAgent, string directorypath, string batchparams)
+        {
+            try
+            {
+                string dataforohs = "";
+
+                int value = 0;
+
+                if (batchparams == "")
+                {
+                    var data = MultipartFormDataParser.Parse(context.Request.InputStream, Misc.ExtractBoundary(context.Request.ContentType));
+
+                    Console.WriteLine($"OHS Server : {userAgent} issued a OHS request : Version - {data.GetParameterValue("version")}");
+
+                    dataforohs = data.GetParameterValue("data");
+
+                    // Execute the Lua script and get the result
+                    object[] returnValues = Misc.ExecuteLuaScript(jamindecrypt.Replace("PUT_ENCRYPTEDJAMINVALUE_HERE", dataforohs.Substring(8)));
+
+                    if (!string.IsNullOrEmpty(returnValues[0]?.ToString()))
+                    {
+                        dataforohs = returnValues[0]?.ToString();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"OHS Server : {userAgent} Requested a community/getscore/ method, but the lua errored out!");
+                    }
+                }
+                else
+                {
+                    dataforohs = batchparams;
+                }
+
+                // Parsing the JSON string
+                JObject inputjsonObject = JObject.Parse(dataforohs);
+
+                // Getting the value of the "user" field
+                dataforohs = (string)inputjsonObject["key"];
+
+                if (File.Exists(directorypath + $"/Community_Profiles/{dataforohs}.json"))
+                {
+                    string tempreader = "";
+
+                    byte[] firstNineBytes = new byte[9];
+
+                    using (FileStream fileStream = new FileStream(directorypath + $"/Community_Profiles/{dataforohs}.json", FileMode.Open, FileAccess.Read))
+                    {
+                        fileStream.Read(firstNineBytes, 0, 9);
+                        fileStream.Close();
+                    }
+
+                    if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                    {
+                        byte[] src = File.ReadAllBytes(directorypath + $"/Community_Profiles/{dataforohs}.json");
+                        byte[] dst = new byte[src.Length - 9];
+
+                        Array.Copy(src, 9, dst, 0, dst.Length);
+
+                        tempreader = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                    CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey)));
+                    }
+                    else
+                    {
+                        tempreader = File.ReadAllText(directorypath + $"/Community_Profiles/{dataforohs}.json");
+                    }
+
+                    // Deserialize the JSON string into a dynamic object
+                    dynamic jsonObject = JsonConvert.DeserializeObject<dynamic>(tempreader);
+
+                    if (jsonObject.Key != null)
+                    {
+                        if (jsonObject.Value != null)
+                        {
+                            value = (int)jsonObject.Value;
+                        }
+                    }
+                }
+
+                if (batchparams != "")
+                {
+                    return "{ [\"score\"] = " + value.ToString() + " }";
+                }
+
+                // Execute the Lua script and get the result
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\", [\"value\"] = { [\"score\"] = " + value.ToString() + " } }"));
+
+                if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
+                {
+                    dataforohs = returnValues2nd[0]?.ToString();
+                }
+                else
+                {
+                    Console.WriteLine($"OHS Server : {userAgent} Requested a community/getscore/ method, but the lua errored out!");
+                }
+
+                byte[] postresponsetooutput = Encoding.UTF8.GetBytes($"<ohs>{dataforohs}</ohs>");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        context.Response.ContentLength64 = postresponsetooutput.Length;
+                        context.Response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OHS Server : thrown an exception in ProcessRequest while processing the community/getscore/ request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+
+            context.Response.Close();
+
+            GC.Collect();
+
+            return "";
+        }
+
+        private static async Task<string> community_updatescore(HttpListenerContext context, string userAgent, string directorypath, string batchparams)
+        {
+            try
+            {
+                string dataforohs = "";
+
+                int value = 0;
+
+                int increment = 0;
+
+                if (batchparams == "")
+                {
+                    var data = MultipartFormDataParser.Parse(context.Request.InputStream, Misc.ExtractBoundary(context.Request.ContentType));
+
+                    Console.WriteLine($"OHS Server : {userAgent} issued a OHS request : Version - {data.GetParameterValue("version")}");
+
+                    dataforohs = data.GetParameterValue("data");
+
+                    // Execute the Lua script and get the result
+                    object[] returnValues = Misc.ExecuteLuaScript(jamindecrypt.Replace("PUT_ENCRYPTEDJAMINVALUE_HERE", dataforohs.Substring(8)));
+
+                    if (!string.IsNullOrEmpty(returnValues[0]?.ToString()))
+                    {
+                        dataforohs = returnValues[0]?.ToString();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"OHS Server : {userAgent} Requested a community/updatescore/ method, but the lua errored out!");
+                    }
+                }
+                else
+                {
+                    dataforohs = batchparams;
+                }
+
+                // Parsing the JSON string
+                JObject inputjsonObject = JObject.Parse(dataforohs);
+
+                // Getting the value of the "user" field
+                dataforohs = (string)inputjsonObject["key"];
+
+                increment = (int)inputjsonObject["inc"];
+
+                if (File.Exists(directorypath + $"/Community_Profiles/{dataforohs}.json"))
+                {
+                    string tempreader = "";
+
+                    byte[] firstNineBytes = new byte[9];
+
+                    using (FileStream fileStream = new FileStream(directorypath + $"/Community_Profiles/{dataforohs}.json", FileMode.Open, FileAccess.Read))
+                    {
+                        fileStream.Read(firstNineBytes, 0, 9);
+                        fileStream.Close();
+                    }
+
+                    if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                    {
+                        byte[] src = File.ReadAllBytes(directorypath + $"/Community_Profiles/{dataforohs}.json");
+                        byte[] dst = new byte[src.Length - 9];
+
+                        Array.Copy(src, 9, dst, 0, dst.Length);
+
+                        tempreader = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                    CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey)));
+                    }
+                    else
+                    {
+                        tempreader = File.ReadAllText(directorypath + $"/Community_Profiles/{dataforohs}.json");
+                    }
+
+                    // Deserialize the JSON string into a dynamic object
+                    dynamic jsonObject = JsonConvert.DeserializeObject<dynamic>(tempreader);
+
+                    if (jsonObject.Key != null)
+                    {
+                        // Check if the Value is null before attempting to increment
+                        if (jsonObject.Value != null)
+                        {
+                            jsonObject.Value = (int)jsonObject.Value + increment;
+                        }
+                        else
+                        {
+                            // If Value is null, initialize it with the increment value
+                            jsonObject.Value = increment;
+                        }
+
+                        value = (int)jsonObject.Value;
+                    }
+
+                    string json = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
+
+                    using (FileStream fs = new FileStream(directorypath + $"/Community_Profiles/{dataforohs}.json", FileMode.Create))
+                    {
+                        // Serialize the updated JSON back to a byte array
+                        byte[] updatedJsonString = Encoding.UTF8.GetBytes(json);
+
+                        if (HTTPserver.httpkey != "")
+                        {
+                            byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
+
+                            byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey), updatedJsonString));
+
+                            fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
+                            fs.Flush();
+                            fs.Dispose();
+                        }
+                        else
+                        {
+                            fs.Write(updatedJsonString, 0, updatedJsonString.Length);
+                            fs.Flush();
+                            fs.Dispose();
+                        }
+
+                        Console.WriteLine($"File {directorypath + $"/Community_Profiles/{dataforohs}.json"} has been uploaded to HTTP");
+                    }
+                }
+                else
+                {
+                    if (!Directory.Exists(directorypath + $"/Community_Profiles/"))
+                    {
+                        Directory.CreateDirectory(directorypath + $"/Community_Profiles/");
+                    }
+
+                    using (FileStream fs = new FileStream(directorypath + $"/Community_Profiles/{dataforohs}.json", FileMode.Create))
+                    {
+                        // Serialize the updated JSON back to a byte array
+                        byte[] updatedJsonString = Encoding.UTF8.GetBytes($"{{ \"Key\":{increment} }}");
+
+                        if (HTTPserver.httpkey != "")
+                        {
+                            byte[] outfile = new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6C, 0x65, 0x64, 0x65, 0x73 };
+
+                            byte[] encryptedbuffer = Misc.Combinebytearay(outfile, CRYPTOSPORIDIUM.TRIPLEDES.EncryptData(CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey), updatedJsonString));
+
+                            fs.Write(encryptedbuffer, 0, encryptedbuffer.Length);
+                            fs.Flush();
+                            fs.Dispose();
+                        }
+                        else
+                        {
+                            fs.Write(updatedJsonString, 0, updatedJsonString.Length);
+                            fs.Flush();
+                            fs.Dispose();
+                        }
+
+                        Console.WriteLine($"File {directorypath + $"/Community_Profiles/{dataforohs}.json"} has been uploaded to HTTP");
+                    }
+
+                    value = increment;
+                }
+
+                if (batchparams != "")
+                {
+                    return "{ [\"score\"] = " + value.ToString() + " }";
+                }
+
+                // Execute the Lua script and get the result
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\", [\"value\"] = { [\"score\"] = " + value.ToString() + " } }"));
+
+                if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
+                {
+                    dataforohs = returnValues2nd[0]?.ToString();
+                }
+                else
+                {
+                    Console.WriteLine($"OHS Server : {userAgent} Requested a community/updatescore/ method, but the lua errored out!");
+                }
+
+                byte[] postresponsetooutput = Encoding.UTF8.GetBytes($"<ohs>{dataforohs}</ohs>");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        context.Response.ContentLength64 = postresponsetooutput.Length;
+                        context.Response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OHS Server : thrown an exception in ProcessRequest while processing the community/updatescore/ request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+
+            context.Response.Close();
+
+            GC.Collect();
+
+            return "";
+        }
+
         private static async Task<string> set(HttpListenerContext context, string userAgent, string directorypath, bool global, string batchparams)
         {
             try
             {
-                int value = 0;
-
                 string dataforohs = "";
+
+                string output = "";
 
                 if (batchparams == "")
                 {
@@ -1186,19 +1941,20 @@ namespace PSMultiServer.SRC_Addons.HOME
                     dataforohs = batchparams;
                 }
 
+                JToken keyToken = JToken.Parse(dataforohs);
+
+                // Deserialize the JSON data into a JObject
+                JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+
+                object value = GetValueFromJToken(keyToken, "value");
+
+                keyToken = jObject.GetValue("key");
+
+                string keyName = keyToken.Value<string>();
+
                 if (!global)
                 {
-                    // Deserialize the JSON data into a JObject
-                    JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
-
-                    // Get the values from the JObject
-                    value = jObject.Value<int>("value");
-
                     string user = jObject.Value<string>("user");
-
-                    JToken keyToken = jObject.GetValue("key");
-
-                    string keyName = keyToken.Value<string>();
 
                     string profiledatastring = directorypath + $"/User_Profiles/{user}.json";
 
@@ -1234,10 +1990,10 @@ namespace PSMultiServer.SRC_Addons.HOME
                             tempreader = File.ReadAllText(profiledatastring);
                         }
 
-                        JObject jsonObject = JObject.Parse(tempreader);
+                        jObject = JObject.Parse(tempreader);
 
                         // Check if the key name already exists in the JSON
-                        JToken existingKey = jsonObject.SelectToken($"$..{keyName}");
+                        JToken existingKey = jObject.SelectToken($"$..{keyName}");
 
                         if (existingKey != null)
                         {
@@ -1247,13 +2003,13 @@ namespace PSMultiServer.SRC_Addons.HOME
                         else
                         {
                             // Step 2: Add a new entry to the "Key" object
-                            jsonObject["Key"][keyName] = value;
+                            jObject["Key"][keyName] = JToken.FromObject(value);
                         }
 
                         using (FileStream fs = new FileStream(profiledatastring, FileMode.Create))
                         {
                             // Serialize the updated JSON back to a byte array
-                            byte[] updatedJsonString = Encoding.UTF8.GetBytes(jsonObject.ToString(Formatting.None));
+                            byte[] updatedJsonString = Encoding.UTF8.GetBytes(jObject.ToString(Formatting.None));
 
                             if (HTTPserver.httpkey != "")
                             {
@@ -1281,7 +2037,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                         OHSUserProfile newProfile = new OHSUserProfile
                         {
                             User = user,
-                            Key = new JObject { { keyName, value } }
+                            Key = new JObject { { keyName, JToken.FromObject(value) } }
                         };
 
                         using (FileStream fs = new FileStream(profiledatastring, FileMode.Create))
@@ -1312,16 +2068,6 @@ namespace PSMultiServer.SRC_Addons.HOME
                 }
                 else
                 {
-                    // Deserialize the JSON data into a JObject
-                    JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
-
-                    // Get the values from the JObject
-                    value = jObject.Value<int>("value");
-
-                    JToken keyToken = jObject.GetValue("key");
-
-                    string keyName = keyToken.Value<string>();
-
                     string globaldatastring = directorypath + "/Global.json";
 
                     if (!Directory.Exists(directorypath))
@@ -1356,10 +2102,10 @@ namespace PSMultiServer.SRC_Addons.HOME
                             tempreader = File.ReadAllText(globaldatastring);
                         }
 
-                        JObject jsonObject = JObject.Parse(tempreader);
+                        jObject = JObject.Parse(tempreader);
 
                         // Check if the key name already exists in the JSON
-                        JToken existingKey = jsonObject.SelectToken($"$..{keyName}");
+                        JToken existingKey = jObject.SelectToken($"$..{keyName}");
 
                         if (existingKey != null)
                         {
@@ -1369,13 +2115,13 @@ namespace PSMultiServer.SRC_Addons.HOME
                         else
                         {
                             // Step 2: Add a new entry to the "Key" object
-                            jsonObject["Key"][keyName] = value;
+                            jObject["Key"][keyName] = JToken.FromObject(value);
                         }
 
                         using (FileStream fs = new FileStream(globaldatastring, FileMode.Create))
                         {
                             // Serialize the updated JSON back to a byte array
-                            byte[] updatedJsonString = Encoding.UTF8.GetBytes(jsonObject.ToString(Formatting.None));
+                            byte[] updatedJsonString = Encoding.UTF8.GetBytes(jObject.ToString(Formatting.None));
 
                             if (HTTPserver.httpkey != "")
                             {
@@ -1402,7 +2148,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                         // Create a new profile with the key field
                         OHSGlobalProfile newProfile = new OHSGlobalProfile
                         {
-                            Key = new JObject { { keyName, value } }
+                            Key = new JObject { { keyName, JToken.FromObject(value) } }
                         };
 
                         using (FileStream fs = new FileStream(globaldatastring, FileMode.Create))
@@ -1432,13 +2178,34 @@ namespace PSMultiServer.SRC_Addons.HOME
                     }
                 }
 
+                if (JToken.FromObject(value).Type == JTokenType.String)
+                {
+                    // Handle string type
+                    output = "\"" + JToken.FromObject(value).ToString() + "\"";
+                }
+                else if (JToken.FromObject(value).Type == JTokenType.Integer)
+                {
+                    // Handle integer type
+                    output = JToken.FromObject(value).ToString();
+                }
+                else if (JToken.FromObject(value).Type == JTokenType.Array)
+                {
+                    // Handle array type
+                    output = ConvertToLuaTable(JToken.FromObject(value), false);
+                }
+                else if (JToken.FromObject(value).Type == JTokenType.Boolean)
+                {
+                    // Handle boolean type
+                    output = JToken.FromObject(value).ToObject<bool>() ? "true" : "false";
+                }
+
                 if (batchparams != "")
                 {
-                    return value.ToString();
+                    return output;
                 }
 
                 // Execute the Lua script and get the result
-                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", $"{{ [\"status\"] = \"success\", [\"value\"] = {value.ToString()} }}"));
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", $"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}"));
 
                 if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
                 {
@@ -1505,13 +2272,13 @@ namespace PSMultiServer.SRC_Addons.HOME
             return "";
         }
 
-        private static async Task<string> get(HttpListenerContext context, string userAgent, string directorypath, bool global, string batchparams)
+        private static async Task<string> get_all(HttpListenerContext context, string userAgent, string directorypath, bool global, string batchparams)
         {
             try
             {
                 string dataforohs = "";
 
-                int value = 0;
+                string value = "";
 
                 if (batchparams == "")
                 {
@@ -1530,7 +2297,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                     }
                     else
                     {
-                        Console.WriteLine($"OHS Server : {userAgent} Requested a global/get/ or user/get/ method, but the lua errored out!");
+                        Console.WriteLine($"OHS Server : {userAgent} Requested a global/getall/ or user/getall/ method, but the lua errored out!");
                     }
                 }
                 else
@@ -1539,12 +2306,12 @@ namespace PSMultiServer.SRC_Addons.HOME
                 }
 
                 // Parsing the JSON string
-                JObject inputjsonObject = JObject.Parse(dataforohs);
+                JObject jsonObject = JObject.Parse(dataforohs);
 
                 if (!global)
                 {
                     // Getting the value of the "user" field
-                    dataforohs = (string)inputjsonObject["user"];
+                    dataforohs = (string)jsonObject["user"];
 
                     if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                     {
@@ -1573,15 +2340,21 @@ namespace PSMultiServer.SRC_Addons.HOME
                             tempreader = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
                         }
 
-                        // Deserialize the JSON string into a dynamic object
-                        dynamic jsonObject = JsonConvert.DeserializeObject<dynamic>(tempreader);
-
-                        // Get the value using the name of the key as a string
-                        dataforohs = (string)inputjsonObject["key"];
-
-                        if (jsonObject.Key[dataforohs] != null)
+                        try
                         {
-                            value = jsonObject.Key[dataforohs];
+                            // Parse the JSON string to a JObject
+                            jsonObject = JObject.Parse(tempreader);
+
+                            // Check if the "Key" property exists and if it is an object
+                            if (jsonObject.TryGetValue("Key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                            {
+                                // Convert the JToken to a Lua table-like string
+                                value = ConvertToLuaTable(keyValueToken, false);
+                            }
+                        }
+                        catch (JsonReaderException ex)
+                        {
+                            Console.WriteLine("Error parsing JSON: " + ex);
                         }
                     }
                 }
@@ -1614,30 +2387,232 @@ namespace PSMultiServer.SRC_Addons.HOME
                             tempreader = File.ReadAllText(directorypath + $"/Global.json");
                         }
 
-                        // Deserialize the JSON string into a dynamic object
-                        dynamic jsonObject = JsonConvert.DeserializeObject<dynamic>(tempreader);
+                        // Parse the JSON string to a JObject
+                        jsonObject = JObject.Parse(tempreader);
 
-                        // Get the value using the name of the key as a string
-                        dataforohs = (string)inputjsonObject["key"];
-
-                        if (jsonObject.Key[dataforohs] != null)
+                        // Check if the "Key" property exists and if it is an object
+                        if (jsonObject.TryGetValue("Key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                         {
-                            value = jsonObject.Key[dataforohs];
+                            // Convert the JToken to a Lua table-like string
+                            value = ConvertToLuaTable(keyValueToken, false);
                         }
                     }
-                    else if ((string)inputjsonObject["key"] == "vickie_version")
-                    {
-                        value = 7; // Random value for vickie if file not exist.
-                    }
+                }
+
+                if (value == "")
+                {
+                    value = "{ }";
                 }
 
                 if (batchparams != "")
                 {
-                    return value.ToString();
+                    return value;
                 }
 
                 // Execute the Lua script and get the result
-                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\", [\"value\"] = " + value.ToString() + " }"));
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\", [\"value\"] = " + value + " }"));
+
+                if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
+                {
+                    dataforohs = returnValues2nd[0]?.ToString();
+                }
+                else
+                {
+                    Console.WriteLine($"OHS Server : {userAgent} Requested a global/getall/ or user/getall/ method, but the lua errored out!");
+                }
+
+                byte[] postresponsetooutput = Encoding.UTF8.GetBytes($"<ohs>{dataforohs}</ohs>");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        context.Response.ContentLength64 = postresponsetooutput.Length;
+                        context.Response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OHS Server : thrown an exception in ProcessRequest while processing the global/getall/ user/getall/ request : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+
+            context.Response.Close();
+
+            GC.Collect();
+
+            return "";
+        }
+
+        private static async Task<string> get(HttpListenerContext context, string userAgent, string directorypath, bool global, string batchparams)
+        {
+            try
+            {
+                string dataforohs = "";
+
+                string value = "";
+
+                if (batchparams == "")
+                {
+                    var data = MultipartFormDataParser.Parse(context.Request.InputStream, Misc.ExtractBoundary(context.Request.ContentType));
+
+                    Console.WriteLine($"OHS Server : {userAgent} issued a OHS request : Version - {data.GetParameterValue("version")}");
+
+                    dataforohs = data.GetParameterValue("data");
+
+                    // Execute the Lua script and get the result
+                    object[] returnValues = Misc.ExecuteLuaScript(jamindecrypt.Replace("PUT_ENCRYPTEDJAMINVALUE_HERE", dataforohs.Substring(8)));
+
+                    if (!string.IsNullOrEmpty(returnValues[0]?.ToString()))
+                    {
+                        dataforohs = returnValues[0]?.ToString();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"OHS Server : {userAgent} Requested a global/get/ or user/get/ method, but the lua errored out!");
+                    }
+                }
+                else
+                {
+                    dataforohs = batchparams;
+                }
+
+                // Parsing the JSON string
+                JObject jsonObject = JObject.Parse(dataforohs);
+
+                if (!global)
+                {
+                    // Getting the value of the "user" field
+                    dataforohs = (string)jsonObject["user"];
+
+                    if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                    {
+                        string tempreader = "";
+
+                        byte[] firstNineBytes = new byte[9];
+
+                        using (FileStream fileStream = new FileStream(directorypath + $"/User_Profiles/{dataforohs}.json", FileMode.Open, FileAccess.Read))
+                        {
+                            fileStream.Read(firstNineBytes, 0, 9);
+                            fileStream.Close();
+                        }
+
+                        if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                        {
+                            byte[] src = File.ReadAllBytes(directorypath + $"/User_Profiles/{dataforohs}.json");
+                            byte[] dst = new byte[src.Length - 9];
+
+                            Array.Copy(src, 9, dst, 0, dst.Length);
+
+                            tempreader = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey)));
+                        }
+                        else
+                        {
+                            tempreader = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
+                        }
+
+                        // Parse the JSON string to a JObject
+                        jsonObject = JObject.Parse(tempreader);
+
+                        // Check if the "Key" property exists and if it is an object
+                        if (jsonObject.TryGetValue("Key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                        {
+                            // Convert the JToken to a Lua table-like string
+                            value = ConvertToLuaTable(keyValueToken, false);
+                        }
+                    }
+                }
+                else
+                {
+                    if (File.Exists(directorypath + $"/Global.json"))
+                    {
+                        string tempreader = "";
+
+                        byte[] firstNineBytes = new byte[9];
+
+                        using (FileStream fileStream = new FileStream(directorypath + $"/Global.json", FileMode.Open, FileAccess.Read))
+                        {
+                            fileStream.Read(firstNineBytes, 0, 9);
+                            fileStream.Close();
+                        }
+
+                        if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                        {
+                            byte[] src = File.ReadAllBytes(directorypath + $"/Global.json");
+                            byte[] dst = new byte[src.Length - 9];
+
+                            Array.Copy(src, 9, dst, 0, dst.Length);
+
+                            tempreader = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey)));
+                        }
+                        else
+                        {
+                            tempreader = File.ReadAllText(directorypath + $"/Global.json");
+                        }
+
+                        // Parse the JSON string to a JObject
+                        jsonObject = JObject.Parse(tempreader);
+
+                        // Check if the "Key" property exists and if it is an object
+                        if (jsonObject.TryGetValue("Key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                        {
+                            // Convert the JToken to a Lua table-like string
+                            value = ConvertToLuaTable(keyValueToken, false);
+                        }
+                    }
+                    else if ((string)jsonObject["key"] == "vickie_version")
+                    {
+                        value = $"{{ [\"vickie_version\"] = 7 }}"; // Random value for vickie if file not exist.
+                    }
+                }
+
+                if (value == "")
+                {
+                    value = "{ }";
+                }
+
+                if (batchparams != "")
+                {
+                    return value;
+                }
+
+                // Execute the Lua script and get the result
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\", [\"value\"] = " + value + " }"));
 
                 if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
                 {
@@ -1954,18 +2929,13 @@ namespace PSMultiServer.SRC_Addons.HOME
                     dataforohs = requestbyusers(batchparams, directoryPath);
                 }
 
-                if (dataforohs == "")
-                {
-                    dataforohs = "{}";
-                }
-
                 if (batchparams != "")
                 {
-                    return "{ [\"entries\"] = " + dataforohs + " }";
+                    return dataforohs;
                 }
 
                 // Execute the Lua script and get the result
-                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\",[\"value\"] = { [\"entries\"] = " + dataforohs + " } }"));
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\",[\"value\"] = " + dataforohs + " }"));
 
                 if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
                 {
@@ -2067,16 +3037,16 @@ namespace PSMultiServer.SRC_Addons.HOME
 
                 if (dataforohs == "")
                 {
-                    dataforohs = "{}";
+                    dataforohs = "{ [\"user\"] = { [\"score\"] = 0 }, [\"entries\"] = { } }";
                 }
 
                 if (batchparams != "")
                 {
-                    return "{ [\"entries\"] = " + dataforohs + " }";
+                    return dataforohs;
                 }
 
                 // Execute the Lua script and get the result
-                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\",[\"value\"] = { [\"entries\"] = " + dataforohs + "} }"));
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", "{ [\"status\"] = \"success\", [\"value\"] = " + dataforohs + " }"));
 
                 if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
                 {
@@ -2114,6 +3084,174 @@ namespace PSMultiServer.SRC_Addons.HOME
             catch (Exception ex)
             {
                 Console.WriteLine($"OHS Server : thrown an exception in ProcessRequest while processing the leaderboard/requestbyrank/ request and creating the file/http response : {ex}");
+
+                // Return an internal server error response
+                byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentLength64 = InternnalError.Length;
+                        context.Response.OutputStream.Write(InternnalError, 0, InternnalError.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+
+            context.Response.Close();
+
+            GC.Collect();
+
+            return "";
+        }
+
+        private static async Task<string> leaderboard_update(HttpListenerContext context, string userAgent, string directoryPath, string batchparams)
+        {
+            try
+            {
+                string resultfromjamin = "";
+
+                string writekey = "11111111";
+
+                if (batchparams == "")
+                {
+                    var data = MultipartFormDataParser.Parse(context.Request.InputStream, Misc.ExtractBoundary(context.Request.ContentType));
+
+                    Console.WriteLine($"OHS Server : {userAgent} issued a OHS request : Version - {data.GetParameterValue("version")}");
+
+                    string hasheddataforohs = data.GetParameterValue("data");
+
+                    string dataforohs = hasheddataforohs.Substring(8);
+
+                    writekey = dataforohs.Substring(0, 8);
+
+                    // Execute the Lua script and get the result
+                    object[] returnValues = Misc.ExecuteLuaScript(jamindecrypt.Replace("PUT_ENCRYPTEDJAMINVALUE_HERE", dataforohs.Substring(8)));
+
+                    if (!string.IsNullOrEmpty(returnValues[0]?.ToString()))
+                    {
+                        resultfromjamin = returnValues[0]?.ToString();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"OHS Server : {userAgent} Requested a leaderboard/update/ method, but the lua errored out!");
+                    }
+                }
+                else
+                {
+                    resultfromjamin = batchparams;
+
+                    // TODO! writekey must be somewhere.
+                }
+
+                // Deserialize the JSON string
+                ScoreBoardUpdate rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdate>(resultfromjamin);
+
+                // Extract the values
+                string user = rootObject.user;
+                int score = rootObject.score;
+                string key = rootObject.key;
+
+                string scoreboardfile = directoryPath + $"/scoreboard_{key}.json";
+
+                if (File.Exists(scoreboardfile))
+                {
+                    string tempreader = "";
+
+                    byte[] firstNineBytes = new byte[9];
+
+                    using (FileStream fileStream = new FileStream(scoreboardfile, FileMode.Open, FileAccess.Read))
+                    {
+                        fileStream.Read(firstNineBytes, 0, 9);
+                        fileStream.Close();
+                    }
+
+                    if (HTTPserver.httpkey != "" && await Task.Run(() => Misc.FindbyteSequence(firstNineBytes, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 })))
+                    {
+                        byte[] src = File.ReadAllBytes(scoreboardfile);
+                        byte[] dst = new byte[src.Length - 9];
+
+                        Array.Copy(src, 9, dst, 0, dst.Length);
+
+                        tempreader = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                    CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey)));
+                    }
+                    else
+                    {
+                        tempreader = File.ReadAllText(scoreboardfile);
+                    }
+
+                    resultfromjamin = UpdateScoreboard(tempreader, user, score, scoreboardfile);
+                }
+
+                if (batchparams != "")
+                {
+                    if (resultfromjamin == "")
+                    {
+                        return "";
+                    }
+
+                    return "{ [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + resultfromjamin + " }";
+                }
+
+                string returnvalue = "";
+
+                if (resultfromjamin == "")
+                {
+                    returnvalue = "{ [\"status\"] = \"fail\" }";
+                }
+                else
+                {
+                    returnvalue = "{ [\"status\"] = \"success\",[\"value\"] = { [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + resultfromjamin + " } }";
+                }
+
+                // Execute the Lua script and get the result
+                object[] returnValues2nd = Misc.ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", returnvalue));
+
+                if (!string.IsNullOrEmpty(returnValues2nd[0]?.ToString()))
+                {
+                    resultfromjamin = returnValues2nd[0]?.ToString();
+                }
+                else
+                {
+                    Console.WriteLine($"OHS Server : {userAgent} Requested a leaderboard/update/ method, but the lua errored out!");
+                }
+
+                byte[] postresponsetooutput = Encoding.UTF8.GetBytes($"<ohs>{resultfromjamin}</ohs>");
+
+                if (context.Response.OutputStream.CanWrite)
+                {
+                    try
+                    {
+                        context.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        context.Response.ContentLength64 = postresponsetooutput.Length;
+                        context.Response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
+                        context.Response.OutputStream.Close();
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Client Disconnected early");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OHS Server : thrown an exception in ProcessRequest while processing the leaderboard/update/ request : {ex}");
 
                 // Return an internal server error response
                 byte[] InternnalError = Encoding.UTF8.GetBytes("An Error as occured, please retry.");
@@ -2184,43 +3322,8 @@ namespace PSMultiServer.SRC_Addons.HOME
                     // TODO! writekey must be somewhere.
                 }
 
-                if (writekey == "")
-                {
-                    Console.WriteLine($"OHS Server : {userAgent} Provided no WriteKey in leaderboard/updatessameentry/, we forbid!");
-
-                    if (batchparams != "")
-                    {
-                        return "";
-                    }
-                    else
-                    {
-                        if (context.Response.OutputStream.CanWrite)
-                        {
-                            try
-                            {
-                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                context.Response.OutputStream.Close();
-                            }
-                            catch (Exception ex1)
-                            {
-                                Console.WriteLine($"Client Disconnected early and thrown an exception {ex1}");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Client Disconnected early");
-                        }
-
-                        context.Response.Close();
-
-                        GC.Collect();
-
-                        return "";
-                    }
-                }
-
                 // Deserialize the JSON string
-                ScoreBoardUpdate rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdate>(resultfromjamin);
+                ScoreBoardUpdateSameEntry rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdateSameEntry>(resultfromjamin);
 
                 // Extract the values
                 string user = rootObject.user;
@@ -2260,40 +3363,36 @@ namespace PSMultiServer.SRC_Addons.HOME
                             tempreader = File.ReadAllText(scoreboardfile);
                         }
 
-                        string updatedScoreboard = UpdateScoreboard(tempreader, user, score, scoreboardfile);
-
                         if (resultBuilder.Length == 0)
                         {
-                            resultBuilder.Append($"[\"{key}\"] = {updatedScoreboard}");
+                            resultBuilder.Append(resultfromjamin = UpdateScoreboard(tempreader, user, score, scoreboardfile));
                         }
                         else
                         {
-                            resultBuilder.Append($", [\"{key}\"] = {updatedScoreboard}");
+                            resultBuilder.Append(", " + (resultfromjamin = UpdateScoreboard(tempreader, user, score, scoreboardfile)));
                         }
                     }
                 }
 
-                resultfromjamin = resultBuilder.ToString();
-
                 if (batchparams != "")
                 {
-                    if (resultfromjamin == "")
+                    if (resultBuilder.ToString() == "")
                     {
                         return "";
                     }
 
-                    return "{ [\"writeKey\"] = \"" + writekey + "\", " + resultfromjamin + " }";
+                    return "{ [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + resultBuilder.ToString() + " }";
                 }
 
                 string returnvalue = "";
 
-                if (resultfromjamin == "")
+                if (resultBuilder.ToString() == "")
                 {
-                    returnvalue = "{ [\"status\"] = \"failed\" }";
+                    returnvalue = "{ [\"status\"] = \"fail\" }";
                 }
                 else
                 {
-                    returnvalue = "{ [\"status\"] = \"success\",[\"value\"] = {[\"writeKey\"] = \"" + writekey + "\", " + resultfromjamin + "} }";
+                    returnvalue = "{ [\"status\"] = \"success\",[\"value\"] = { [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + resultBuilder.ToString() + " } }";
                 }
 
                 // Execute the Lua script and get the result
@@ -2378,11 +3477,11 @@ namespace PSMultiServer.SRC_Addons.HOME
 
             int newIndex = -1;
 
-            for (int i = 0; i < scoreboard.Entries.Count; i++)
+            for (int i = 0; i <= scoreboard.Entries.Count; i++)
             {
                 var entry = scoreboard.Entries[i];
 
-                if (newScore >= entry.Score)
+                if (newScore > entry.Score)
                 {
                     newIndex = i;
 
@@ -2501,7 +3600,7 @@ namespace PSMultiServer.SRC_Addons.HOME
                 var rankData = new Dictionary<string, object>
                 {
                     { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
-                    { "[\"score\"]", entry.Score } // For numbers, no need to enclose in quotes and put it inside the brackets
+                    { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
                 };
 
                 luaTable.Add(entry.Rank, rankData);
@@ -2579,34 +3678,88 @@ namespace PSMultiServer.SRC_Addons.HOME
                                     {
                                         if (resultBuilder.Length == 0)
                                         {
-                                            resultBuilder.Append($"{{ [" + entry.Rank + $"] = {{ [\"user\"] = \"{entry.Name}\", [\"score\"] = {entry.Score.ToString()} }}");
+                                            resultBuilder.Append($"[\"user\"] = {{ [\"score\"] = {entry.Score.ToString()} }}");
                                         }
                                         else
                                         {
-                                            resultBuilder.Append($", [" + entry.Rank + $"] = {{ [\"user\"] = \"{entry.Name}\", [\"score\"] = {entry.Score.ToString()} }}");
+                                            resultBuilder.Append($", [\"user\"] = {{ [\"score\"] = {entry.Score.ToString()} }}");
                                         }
                                     }
                                     else
                                     {
                                         if (resultBuilder.Length == 0)
                                         {
-                                            resultBuilder.Append($"{{ [" + entry.Rank + $"] = {{ [\"user\"] = \"{entry.Name}\", [\"score\"] = {0.ToString()} }}");
+                                            resultBuilder.Append($"[\"user\"] = {{ [\"score\"] = {0.ToString()} }}");
                                         }
                                         else
                                         {
-                                            resultBuilder.Append($", [" + entry.Rank + $"] = {{ [\"user\"] = \"{entry.Name}\", [\"score\"] = {0.ToString()} }}");
+                                            resultBuilder.Append($", [\"user\"] = {{ [\"score\"] = {0.ToString()} }}");
                                         }
                                     }
                                 }
                             }
                         }
 
-                        if (resultBuilder.Length != 0)
+                        if (resultBuilder.Length == 0)
                         {
-                            resultBuilder.Append(" }");
+                            resultBuilder.Append($"[\"user\"] = {{ [\"score\"] = 0 }}");
                         }
 
-                        returnvalue = resultBuilder.ToString();
+                        string tempreaderalt = "";
+
+                        byte[] firstNineBytesalt = new byte[9];
+
+                        using (FileStream fileStream = new FileStream(scoreboardfile, FileMode.Open, FileAccess.Read))
+                        {
+                            fileStream.Read(firstNineBytesalt, 0, 9);
+                            fileStream.Close();
+                        }
+
+                        if (HTTPserver.httpkey != "" && Misc.FindbyteSequence(firstNineBytesalt, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                        {
+                            byte[] src = File.ReadAllBytes(scoreboardfile);
+                            byte[] dst = new byte[src.Length - 9];
+
+                            Array.Copy(src, 9, dst, 0, dst.Length);
+
+                            tempreaderalt = Encoding.UTF8.GetString(CRYPTOSPORIDIUM.TRIPLEDES.DecryptData(dst,
+                                        CRYPTOSPORIDIUM.TRIPLEDES.GetEncryptionKey(HTTPserver.httpkey)));
+                        }
+                        else
+                        {
+                            tempreaderalt = File.ReadAllText(scoreboardfile);
+                        }
+
+                        // Step 1: Parse JSON to C# objects
+                        var jsonDatascore = JsonConvert.DeserializeObject<JObject>(tempreaderalt);
+
+                        var scoreentries = jsonDatascore["Entries"].ToObject<List<ScoreboardEntry>>();
+
+                        // Step 2: Convert to Lua table structure
+                        var luaTable = new Dictionary<int, Dictionary<string, object>>();
+
+                        int i = 1;
+
+                        int scoreforuser = 0;
+
+                        foreach (var entry in scoreentries)
+                        {
+                            if (i >= 1)
+                            {
+                                var rankData = new Dictionary<string, object>
+                                {
+                                    { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
+                                    { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
+                                };
+
+                                luaTable.Add(entry.Rank, rankData);
+                            }
+                        }
+
+                        // Step 3: Format the Lua table as a string using regex
+                        string luaString = FormatScoreBoardLuaTable(luaTable);
+
+                        returnvalue = "{ [\"entries\"] = " + luaString + ", " + resultBuilder.ToString() + " }";
                     }
                     else
                     {
@@ -2733,6 +3886,8 @@ namespace PSMultiServer.SRC_Addons.HOME
 
             int i = 1;
 
+            int scoreforuser = 0;
+
             foreach (var entry in entries)
             {
                 if (i >= start)
@@ -2740,17 +3895,22 @@ namespace PSMultiServer.SRC_Addons.HOME
                     var rankData = new Dictionary<string, object>
                     {
                         { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
-                        { "[\"score\"]", entry.Score } // For numbers, no need to enclose in quotes and put it inside the brackets
+                        { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
                     };
 
                     luaTable.Add(entry.Rank, rankData);
+
+                    if (entry.Name == user)
+                    {
+                        scoreforuser = entry.Score;
+                    }
                 }
             }
 
             // Step 3: Format the Lua table as a string using regex
             var luaString = FormatScoreBoardLuaTable(luaTable);
 
-            return luaString;
+            return $"{{ [\"user\"] = {{ [\"score\"] = {scoreforuser.ToString()} }}, [\"entries\"] = " + luaString + " }";
         }
 
         // Helper method to format the Lua table as a string
@@ -2773,6 +3933,164 @@ namespace PSMultiServer.SRC_Addons.HOME
             luaString = RemoveTrailingComma(luaString);
 
             return luaString;
+        }
+
+        // Function to convert a JToken to a Lua table-like string
+        private static string ConvertToLuaTable(JToken token, bool nested, string propertyName = null)
+        {
+            int arrayIndex = 1;
+
+            if (nested)
+            {
+                if (token.Type == JTokenType.Object)
+                {
+                    StringBuilder resultBuilder = new StringBuilder("{ ");
+
+                    foreach (JProperty property in token.Children<JProperty>())
+                    {
+                        if (property.Value.Type == JTokenType.String)
+                        {
+                            // Handle string type
+                            resultBuilder.Append($"[\"{property.Name}\"] = \"{property.Value}\", ");
+                        }
+                        else if (property.Value.Type == JTokenType.Integer)
+                        {
+                            // Handle integer type
+                            resultBuilder.Append($"[\"{property.Name}\"] = {property.Value}, ");
+                        }
+                        else if (property.Value.Type == JTokenType.Array)
+                        {
+                            // Handle array type
+                            resultBuilder.Append($"[\"{property.Name}\"] = {{ ");
+                            foreach (JToken arrayItem in property.Value)
+                            {
+                                resultBuilder.Append($"{ConvertToLuaTable(arrayItem, true)}");
+                                if (arrayIndex < property.Value.Count())
+                                {
+                                    resultBuilder.Append(", ");
+                                }
+                                arrayIndex++;
+                            }
+                            resultBuilder.Append(" }, ");
+                            arrayIndex = 1;
+                        }
+                        else if (property.Value.Type == JTokenType.Object)
+                        {
+                            // Handle nested object type
+                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertToLuaTable(property.Value, true, property.Name)}, ");
+                        }
+                        else
+                        {
+                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertToLuaTable(property.Value, true)}, ");
+                        }
+                    }
+
+                    if (resultBuilder.Length > 2)
+                    {
+                        resultBuilder.Length -= 2; // Remove the last comma and space
+                    }
+
+                    resultBuilder.Append(" }");
+
+                    return resultBuilder.ToString();
+                }
+                else if (token.Type == JTokenType.String)
+                {
+                    return $"\"{token.Value<string>()}\"";
+                }
+                else
+                {
+                    return token.ToString(); // For other value types, use their raw string representation
+                }
+            }
+            else
+            {
+                if (token.Type == JTokenType.Object)
+                {
+                    StringBuilder resultBuilder = new StringBuilder();
+
+                    foreach (JProperty property in token.Children<JProperty>())
+                    {
+                        if (property.Value.Type == JTokenType.String)
+                        {
+                            // Handle string type
+                            resultBuilder.Append($"\"{property.Value}\", ");
+                        }
+                        else if (property.Value.Type == JTokenType.Integer)
+                        {
+                            // Handle integer type
+                            resultBuilder.Append($"{property.Value}, ");
+                        }
+                        else if (property.Value.Type == JTokenType.Array)
+                        {
+                            // Handle array type
+                            resultBuilder.Append($"{{ ");
+                            foreach (JToken arrayItem in property.Value)
+                            {
+                                resultBuilder.Append($"{ConvertToLuaTable(arrayItem, true)}");
+                                if (arrayIndex < property.Value.Count())
+                                {
+                                    resultBuilder.Append(", ");
+                                }
+                                arrayIndex++;
+                            }
+                            resultBuilder.Append(" }, ");
+                            arrayIndex = 1;
+                        }
+                        else if (property.Value.Type == JTokenType.Object)
+                        {
+                            // Handle nested object type
+                            resultBuilder.Append($"{ConvertToLuaTable(property.Value, true, property.Name)}, ");
+                        }
+                        else
+                        {
+                            resultBuilder.Append($"{ConvertToLuaTable(property.Value, true)}, ");
+                        }
+                    }
+
+                    if (resultBuilder.Length > 2)
+                    {
+                        resultBuilder.Length -= 2; // Remove the last comma and space
+                    }
+
+                    return resultBuilder.ToString();
+                }
+                else if (token.Type == JTokenType.String)
+                {
+                    return $"\"{token.Value<string>()}\"";
+                }
+                else
+                {
+                    return token.ToString(); // For other value types, use their raw string representation
+                }
+            }
+        }
+
+        private static object GetValueFromJToken(JToken jToken, string propertyName)
+        {
+            JToken valueToken = jToken[propertyName];
+
+            if (valueToken != null)
+            {
+                if (valueToken.Type == JTokenType.Object || valueToken.Type == JTokenType.Array)
+                {
+                    return valueToken.ToObject<object>();
+                }
+                else if (valueToken.Type == JTokenType.Integer)
+                {
+                    return valueToken.ToObject<int>();
+                }
+                else if (valueToken.Type == JTokenType.String)
+                {
+                    return valueToken.ToObject<string>();
+                }
+                else if (valueToken.Type == JTokenType.Boolean)
+                {
+                    return valueToken.ToObject<bool>();
+                }
+            }
+
+            return null;
         }
 
         // Helper method to remove the trailing comma from the Lua table string
@@ -2830,10 +4148,18 @@ namespace PSMultiServer.SRC_Addons.HOME
         public List<ScoreboardEntry> Entries { get; set; }
     }
 
-    public class ScoreBoardUpdate
+    public class ScoreBoardUpdateSameEntry
     {
         public string user { get; set; }
         public string[] keys { get; set; }
+        public int score { get; set; }
+        public object[] value { get; set; }
+    }
+
+    public class ScoreBoardUpdate
+    {
+        public string user { get; set; }
+        public string key { get; set; }
         public int score { get; set; }
         public object[] value { get; set; }
     }
