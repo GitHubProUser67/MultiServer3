@@ -74,11 +74,7 @@ namespace PSMultiServer.PoodleHTTP
             {
                 string userAgent = ctx.Request.Headers["User-Agent"];
 
-                if (userAgent == null)
-                {
-                    userAgent = "Hidden Client"; // Medius Client can hide userAgent.
-                }
-                else
+                if (userAgent == null || userAgent == "")
                 {
                     await next();
                     return;

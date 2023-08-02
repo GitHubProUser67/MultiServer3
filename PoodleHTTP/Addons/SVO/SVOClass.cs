@@ -144,9 +144,9 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO
 
                 if (userAgent == null)
                 {
-                    userAgent = "Hidden Client"; // Medius Client can hide userAgent.
+                    userAgent = "Medius Client"; // Medius Client can hide userAgent.
                 }
-                else
+                else if (userAgent == "")
                 {
                     await next();
                     return;
