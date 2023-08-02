@@ -6,19 +6,27 @@
     "enabled": true,
     "private_key": "",
     "minibase": "[]",
-    "cross_save": true
+    "cross_save": true,
+	"static_folder": "/wwwssfwroot/"
   },
   "http": {
     "enabled": true,
     "private_key": "",
-    "port": 80
+    "port": 80,
+	"static_folder": "/wwwroot/"
   },
   "medius": {
     "enabled": true
   },
   "home": {
-    "beta_version": "",
-    "retail_version": "",
+    "beta_version": "01.86",
+    "retail_version": "01.83",
     "motd_file": "static/motd.xml" 
+  },
+  "svo": {
+    "enabled": true,
+	"database_config": "static/db.config.json",
+    "static_folder": "/wwwsvoroot/",
+	"db_tick_rate": 20
   }
 }

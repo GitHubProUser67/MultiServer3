@@ -73,6 +73,13 @@ namespace PSMultiServer
             return "*";
 
         }
+        public static string GetLastNCharacters(string input, int n)
+        {
+            if (n >= input.Length)
+                return input; // If n is greater than or equal to the string length, return the whole string.
+            else
+                return input.Substring(input.Length - n);
+        }
         public static byte[] Combinebytearay(byte[] first, byte[] second)
         {
             byte[] bytes = new byte[first.Length + second.Length];

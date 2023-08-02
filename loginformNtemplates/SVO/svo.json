@@ -1,9 +1,0 @@
-{
-  "RefreshConfigInterval": 5000,
-  "PluginsPath": "plugins/",
-  "MainLoopSleepMs": 5,
-  "TickRate": 10,
-  "UsePublicIp": false,
-  "PublicIpOverride": "",
-  "OverridePort": null
-}

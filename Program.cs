@@ -1,15 +1,14 @@
-﻿using PSMultiServer.Addons.Medius.Server.Common.Logging;
-using PSMultiServer.Addons.Medius.SVO;
+﻿using PSMultiServer.Addons.Horizon.Server.Common.Logging;
 using System.Net.NetworkInformation;
 using SharpCompress.Archives;
 using SharpCompress.Common;
-using PSMultiServer.Addons.Medius.MEDIUS;
-using PSMultiServer.Addons.Medius.MUIS;
-using PSMultiServer.Addons.Medius.GHS;
-using PSMultiServer.Addons.Medius.BWPS;
-using PSMultiServer.Addons.Medius.DME;
+using PSMultiServer.Addons.Horizon.MEDIUS;
+using PSMultiServer.Addons.Horizon.MUIS;
+using PSMultiServer.Addons.Horizon.DME;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
+using PSMultiServer.PoodleHTTP;
+using PSMultiServer.PoodleHTTP.Addons.PlayStationHome;
 
 namespace PSMultiServer
 {
@@ -18,31 +17,33 @@ namespace PSMultiServer
         public static string PHPVersion { get; set; } = "8.25";
         public static string? SSFWPrivateKey { get; set; }
         public static bool SSFWCrossSave { get; set; } = true;
+        public static string? SSFWStaticFolder { get; set; } = "/wwwssfwroot/";
         public static string? HTTPPrivateKey { get; set; }
         public static int HTTPPort { get; set; } = 80;
+        public static string? HTTPStaticFolder { get; set; } = "/wwwroot/";
         public static string SSFWMinibase { get; set; } = "[]";
         public static string VersionBetaHDK { get; set; } = "01.60";
         public static string VersionRetail { get; set; } = "01.83";
-        public static string? MOTD { get; set; } = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-            "<SVML>\r\n" +
+        public static string? MOTD { get; set; } = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SVML>\r\n" +
             "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
             "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
             "    <TEXT name=\"text\" x=\"640\" y=\"171\" width=\"636\" height=\"26\" fontSize=\"26\" align=\"center\" textColor=\"#cc000000\">Message Of the Day</TEXT>\r\n\r\n" +
-            "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\t" +
-            "fontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t" +
+            "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\tfontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t" +
             "readonly=\"true\" selectable=\"false\" blinkCursor=\"false\"\r\n\t\t" +
             "textColor=\"#CC000000\" highlightTextColor=\"#FF000000\"\r\n\t\t" +
             "leftPadValue=\"8\" topPadValue=\"8\" \r\n" +
             "        defaultTextEntry=\"1\" defaultTextScroll=\"1\">Welcome to PlayStationÂ®Home Open Beta.\r\n\r\n" +
             "Head over to the new Resident Evil 5 Studio Lot space, accessible via the Menu Pad by selecting Locations &gt; World Map and then clicking on the Capcom chip. Here you can enjoy an interactive behind-the-scenes look at the tools and devices used on location for the filming of a portion of Resident Evil 5.\r\n\r\n" +
-            "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n" +
-            "    \r\n" +
-            "    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
+            "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n    \r\n    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
             "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
             "</SVML>";
         public static bool EnableHttpServer { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
+        public static bool EnableSVO { get; set; } = true;
+        public static string? SVODatabaseConfig { get; set; } = "static/db.config.json";
+        public static string? SVOStaticFolder { get; set; } = "/wwwsvoroot/";
+        public static int SVODBTickrate { get; set; } = 20;
 
         public static ILogger Logger { get; set; }
 
@@ -99,15 +100,22 @@ namespace PSMultiServer
             SSFWPrivateKey = config.ssfw.private_key;
             SSFWMinibase = config.ssfw.minibase;
             SSFWCrossSave = config.ssfw.cross_save;
+            SSFWStaticFolder = config.ssfw.static_folder;
 
             EnableHttpServer = config.http.enabled;
             HTTPPrivateKey = config.http.private_key;
+            HTTPStaticFolder = config.http.static_folder;
             HTTPPort = config.http.port;
 
             EnableMedius = config.medius.enabled;
 
             VersionBetaHDK = config.home.beta_version;
             VersionRetail = config.home.retail_version;
+
+            EnableSVO = config.svo.enabled;
+            SVODatabaseConfig = config.svo.database_config;
+            SVOStaticFolder = config.svo.static_folder;
+            SVODBTickrate = config.svo.db_tick_rate;
 
             // Look for the MOTD xml file.
             string motd_file = config.home.motd_file;
@@ -195,28 +203,62 @@ namespace PSMultiServer
         {
             string currentDir = Directory.GetCurrentDirectory();
 
-            if (ServerConfiguration.EnableHttpServer && HTTPserver.httpstarted == false)
+            if (ServerConfiguration.EnableHttpServer)
             {
-                Directory.CreateDirectory($"{currentDir}/wwwroot/");
+                Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
 
                 if (Directory.Exists($"{currentDir}/HTTPServer_Archives/"))
-                    ExtractToHTTPFolder($"{currentDir}/HTTPServer_Archives/", $"{currentDir}/wwwroot/");
+                    ExtractToHTTPFolder($"{currentDir}/HTTPServer_Archives/", $"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
 
-                HTTPserver.HTTPstart();
+                HTTPPrivateKey.setup();
+
+                PrepareFolder.Prepare();
+
+                var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
+
+                server
+                    .Use(Middlewares.Log)
+                    .Use(Middlewares.Execute)
+                    .Use(Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                server.Start();
             }
 
-            if (ServerConfiguration.EnableSSFW && Addons.HOME.SSFWServices.Started == false)
+            if (ServerConfiguration.EnableSSFW)
             {
-                Addons.HOME.SSFWServices.SSFWstart();
+                PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
+
+                var server = new PoodleHTTP.Server("*", 10443);
+
+                server
+                    .Use(Middlewares.Log)
+                    .Use(Middlewares.Execute)
+                    .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
+
+                server.Start();
+            }
+
+            if (ServerConfiguration.EnableSVO)
+            {
+                PoodleHTTP.Addons.SVO.PrepareFolder.Prepare();
+
+                PoodleHTTP.Addons.SVO.SVOClass.setupdatabase();
+
+                var server = new PoodleHTTP.Server("*", 10060);
+
+                server
+                    .Use(Middlewares.Log)
+                    .Use(Middlewares.Execute)
+                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
+
+                server.Start();
+
+                Task.Run(() => PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling());
             }
 
             if (ServerConfiguration.EnableMedius)
             {
-                // TODO: Implement BWPS and GHS.
                 Parallel.Invoke(
-                    // async () => await BwpsClass.BwpsMain(),
-                    // async () => await GhsClass.GhsMain(),
-                    async () => await SvoClass.SvoMain(),
                     async () => await MediusClass.MediusMain(),
                     async () => await MuisClass.MuisMain(),
                     async () => await DmeClass.DmeMain()
