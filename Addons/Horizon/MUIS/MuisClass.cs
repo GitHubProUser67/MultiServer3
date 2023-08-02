@@ -181,7 +181,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     // Reload config
                     if ((Utils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
                     {
-                        RefreshConfig(false);
+                        RefreshConfig();
                         lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
                     }
 
@@ -207,13 +207,13 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
         static void Initialize()
         {
-            RefreshConfig(true);
+            RefreshConfig();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        static void RefreshConfig(bool firstboot)
+        static void RefreshConfig()
         {
             // 
             var serializerSettings = new JsonSerializerSettings()
@@ -222,7 +222,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             };
 
             // Load settings
-            if (File.Exists(CONFIG_FILE) && !firstboot)
+            if (File.Exists(CONFIG_FILE))
             {
                 // Populate existing object
                 JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);

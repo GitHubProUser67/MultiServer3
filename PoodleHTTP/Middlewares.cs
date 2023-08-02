@@ -214,6 +214,8 @@ namespace PSMultiServer.PoodleHTTP
         {
             if (File.Exists(filePath))
             {
+                if (req.UserAgent.Contains("PSHome"))
+                    resp.Headers.Set("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
                 await resp.File(filePath);
             }
             else
