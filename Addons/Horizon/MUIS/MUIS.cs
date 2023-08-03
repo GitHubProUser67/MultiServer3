@@ -550,6 +550,8 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                         }
                                         #endregion
 
+                                        SVOUrl = true;
+
                                         if (data.ApplicationId == 20374 || data.ApplicationId == 20371)
                                         {
                                             if (info.ExtendedInfo == null || info.ExtendedInfo == "")
@@ -562,8 +564,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
                                                 if (homenumber < 01.30)
                                                     SVOUrl = false;
-                                                else
-                                                    SVOUrl = true;
                                             }
                                         }
 

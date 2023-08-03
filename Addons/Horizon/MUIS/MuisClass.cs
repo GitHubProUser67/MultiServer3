@@ -581,39 +581,63 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     }
                 });
 
-                Settings.Universes.Add(20371, new UniverseInfo[]
+                if (ServerConfiguration.VersionBetaHDK == null || ServerConfiguration.VersionBetaHDK == "")
                 {
-                    new UniverseInfo()
-                    {
-                        Name = "muis",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        ExtendedInfo = $"{ServerConfiguration.VersionBetaHDK} http://{iptofile}/dev.{ServerConfiguration.VersionBetaHDK}/",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                if (ServerConfiguration.VersionRetail == "01.83")
-                {
-                    Settings.Universes.Add(20374, new UniverseInfo[]
+                    Settings.Universes.Add(20371, new UniverseInfo[]
                     {
                         new UniverseInfo()
                         {
-                            Name = "CPROD prod1 (HDKONLINEDEBUG MUIS)",
+                            Name = "muis",
                             Description = "01",
                             Endpoint = iptofile,
                             Status = 1,
                             UserCount = 1,
                             MaxUsers = 15000,
                             SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                            ExtendedInfo = $"{ServerConfiguration.VersionRetail} http://{iptofile}/{ServerConfiguration.VersionRetail}/",
+                            UniverseBilling = "SCEA",
+                            BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
+                            ExtendedInfo = null,
+                            Port = 10075,
+                            UniverseId = 1
+                        }
+                    });
+                }
+                else
+                {
+                    Settings.Universes.Add(20371, new UniverseInfo[]
+                    {
+                        new UniverseInfo()
+                        {
+                            Name = "muis",
+                            Description = "01",
+                            Endpoint = iptofile,
+                            Status = 1,
+                            UserCount = 1,
+                            MaxUsers = 15000,
+                            SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
+                            UniverseBilling = "SCEA",
+                            BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
+                            ExtendedInfo = $"{ServerConfiguration.VersionBetaHDK} http://{iptofile}/dev.{ServerConfiguration.VersionBetaHDK}/",
+                            Port = 10075,
+                            UniverseId = 1
+                        }
+                    });
+                }
+
+                if (ServerConfiguration.VersionRetail == null || ServerConfiguration.VersionRetail == "")
+                {
+                    Settings.Universes.Add(20374, new UniverseInfo[]
+                    {
+                        new UniverseInfo()
+                        {
+                            Name = "CPROD prod1 (Public MUIS)",
+                            Description = "01",
+                            Endpoint = iptofile,
+                            Status = 1,
+                            UserCount = 1,
+                            MaxUsers = 15000,
+                            SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
+                            ExtendedInfo = null,
                             UniverseBilling = "SCEA",
                             BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
                             Port = 10075,
