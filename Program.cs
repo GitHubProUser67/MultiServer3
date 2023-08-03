@@ -224,6 +224,15 @@ namespace PSMultiServer
                     .Use(Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
 
                 server.Start();
+
+                var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
+
+                serverhomebetacdn
+                    .Use(Middlewares.Log)
+                    .Use(Middlewares.Execute)
+                    .Use(Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                serverhomebetacdn.Start();
             }
 
             if (ServerConfiguration.EnableSSFW)
