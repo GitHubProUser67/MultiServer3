@@ -53,7 +53,7 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
 
         public override bool CanLog()
         {
-            return base.CanLog() && (Message?.CanLog() ?? true) /*&& (GHSMessage?.CanLog() ?? true)*/;
+            return ServerConfiguration.MediusDebugLogs;
         }
 
         public override string ToString()
