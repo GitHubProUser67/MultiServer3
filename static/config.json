@@ -16,7 +16,8 @@
 	"static_folder": "/wwwroot/"
   },
   "medius": {
-    "enabled": true
+    "enabled": true,
+	"debug_log": true
   },
   "home": {
     "beta_version": "01.86",

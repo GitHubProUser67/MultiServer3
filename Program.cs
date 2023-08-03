@@ -40,6 +40,7 @@ namespace PSMultiServer
         public static bool EnableHttpServer { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
+        public static bool MediusDebugLogs { get; set; } = false;
         public static bool EnableSVO { get; set; } = true;
         public static string? SVODatabaseConfig { get; set; } = "static/db.config.json";
         public static string? SVOStaticFolder { get; set; } = "/wwwsvoroot/";
@@ -108,6 +109,7 @@ namespace PSMultiServer
             HTTPPort = config.http.port;
 
             EnableMedius = config.medius.enabled;
+            MediusDebugLogs = config.medius.debug_log;
 
             VersionBetaHDK = config.home.beta_version;
             VersionRetail = config.home.retail_version;

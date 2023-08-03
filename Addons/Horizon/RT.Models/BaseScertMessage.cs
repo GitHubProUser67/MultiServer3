@@ -156,7 +156,7 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
         /// </summary>
         public virtual bool CanLog()
         {
-            return LogSettings.Singleton?.IsLog(Id) ?? false;
+            return ServerConfiguration.MediusDebugLogs;
         }
 
         #endregion
