@@ -22,6 +22,8 @@ namespace PSMultiServer.Addons.Horizon.MUIS
     /// </summary>
     public class MUIS
     {
+        public static bool SVOUrl = true;
+
         public static Random RNG = new Random();
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MUIS>();
@@ -548,45 +550,38 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                         }
                                         #endregion
 
-                                        bool SVOUrl = true;
-
                                         if (data.ApplicationId == 20374 || data.ApplicationId == 20371)
                                         {
-                                            try
+                                            if (info.ExtendedInfo == null || info.ExtendedInfo == "")
+                                                SVOUrl = false;
+                                            else
                                             {
                                                 string firstFiveElements = info.ExtendedInfo.Substring(0, Math.Min(5, info.ExtendedInfo.Length));
 
                                                 double homenumber = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
 
                                                 if (homenumber < 01.30)
-                                                {
                                                     SVOUrl = false;
-                                                }
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                SVOUrl = true;
+                                                else
+                                                    SVOUrl = true;
                                             }
                                         }
 
-                                        if (SVOUrl)
+                                        #region SVOUrl
+                                        if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                                         {
-                                            #region SVOUrl
-                                            if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
-                                            {
-                                                ServerConfiguration.LogInfo($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                            ServerConfiguration.LogInfo($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
 
-                                                Queue(new RT_MSG_SERVER_APP()
+                                            Queue(new RT_MSG_SERVER_APP()
+                                            {
+                                                Message = new MediusUniverseSvoURLResponse()
                                                 {
-                                                    Message = new MediusUniverseSvoURLResponse()
-                                                    {
-                                                        MessageID = getUniverseInfo.MessageID,
-                                                        URL = info.SvoURL
-                                                    }
-                                                }, clientChannel);
-                                            }
-                                            #endregion
+                                                    MessageID = getUniverseInfo.MessageID,
+                                                    URL = info.SvoURL
+                                                }
+                                            }, clientChannel);
                                         }
+                                        #endregion
 
                                         /*if (data.ApplicationId == 20374 && info.ExtendedInfo.Contains("01.83") && info.Name.Contains("HDKONLINEDEBUG")) // Special Home 1.83 eboot.
                                         {

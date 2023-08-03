@@ -130,13 +130,17 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
             if(approvedList.Contains(writer.AppId) && 
                 !unapprovedList.Contains(writer.AppId))
             {
-                Console.WriteLine("Setting SVOURL");
-                if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
-                    writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
-            } else
-            {
-                Console.WriteLine("Not writing SVOURL");
+                if (MUIS.MUIS.SVOUrl)
+                {
+                    ServerConfiguration.LogInfo("Setting SVOURL");
+                    if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
+                        writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
+                }
+                else
+                    ServerConfiguration.LogInfo("Not writing SVOURL");
             }
+            else
+                ServerConfiguration.LogInfo("Not writing SVOURL");
 
             writer.Write(EndOfList);
         }
