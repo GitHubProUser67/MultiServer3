@@ -25,7 +25,6 @@
     <PackageReference Include="DotNetty.Transport" Version="0.7.5" />
     <PackageReference Include="HighPrecisionTimeStamps" Version="1.0.0.6" />
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />
-    <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />

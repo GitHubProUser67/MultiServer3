@@ -1,5 +1,5 @@
-﻿using ICSharpCode.SharpZipLib.Zip.Compression;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+﻿using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace PSMultiServer.CryptoSporidium.BAR
 {
