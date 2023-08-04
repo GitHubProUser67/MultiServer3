@@ -213,11 +213,7 @@ namespace PSMultiServer.PoodleHTTP
         private static async Task ReadLocalFile(string filePath, HttpListenerRequest req, HttpListenerResponse resp)
         {
             if (File.Exists(filePath))
-            {
-                if (req.UserAgent.Contains("PSHome"))
-                    resp.Headers.Set("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
                 await resp.File(filePath);
-            }
             else
             {
                 ServerConfiguration.LogWarn($"HTTP : {req.UserAgent} Demands a non-existing file: '{filePath}'.");

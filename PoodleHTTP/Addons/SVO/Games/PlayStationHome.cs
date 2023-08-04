@@ -43,7 +43,16 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                     response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                     response.Headers.Set("X-SVOMac", serverMac);
 
-                                    string region = request.Url.Query.Substring(8);
+                                    string region = "";
+
+                                    try
+                                    {
+                                        region = request.Url.Query.Substring(8);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        region = "en-US";
+                                    }
 
                                     byte[] uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                         "<SVML>\r\n" +
@@ -131,7 +140,16 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        string region = "";
+
+                                        try
+                                        {
+                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            region = "en-US";
+                                        }
 
                                         byte[] eulaCheck = Encoding.ASCII.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
                                             "<SVML>\r\n  " +
@@ -182,7 +200,16 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        string region = "";
+
+                                        try
+                                        {
+                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            region = "en-US";
+                                        }
 
                                         byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
                                             "<SVML>\r\n" +
@@ -238,7 +265,16 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        string region = "";
+
+                                        try
+                                        {
+                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            region = "en-US";
+                                        }
 
                                         byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
                                             "<SVML>\r\n" +
@@ -297,7 +333,16 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                     response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                     response.Headers.Set("X-SVOMac", serverMac);
 
-                                    string region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                    string region = "";
+
+                                    try
+                                    {
+                                        region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        region = "en-US";
+                                    }
 
                                     byte[] eulaDisplay = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
                                         "<SVML>\r\n  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
@@ -348,8 +393,17 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                 {
                                     response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                     response.Headers.Set("X-SVOMac", serverMac);
-                                    string region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
 
+                                    string region = "";
+
+                                    try
+                                    {
+                                        region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        region = "en-US";
+                                    }
 
                                     byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
                                         "<SVML>\r\n" +
@@ -565,7 +619,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
 
                                     byte[] homeEnterWorld = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n\r\n" +
                                         "    <HUB type=\"AutoChangeMode\" textColor=\"#FF7381BA\" highlightTextColor=\"#FF7381BA\" x=\"20\" y=\"200\" width=\"200\" height=\"40\"\r\n" +
-                                        "      align=\"center\" border=\"true\" href=\"EnterLobby\" extra=\"Home Square\" skipOn=\"6\"></HUB>\r\n\r\n\t" +
+                                        "      align=\"center\" border=\"true\" href=\"EnterLobby\" extra=\"Central Lobby\" skipOn=\"6\"></HUB>\r\n\r\n\t" +
                                         "   <REDIRECT name=\"toBlankPage\" href=\"homeInWorld.jsp\" linkOption=\"NORMAL\"/>\r\n\r\n" +
                                         "</SVML>");
 
