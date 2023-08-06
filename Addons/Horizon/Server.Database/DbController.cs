@@ -160,6 +160,21 @@ namespace PSMultiServer.Addons.Horizon.Server.Database
             {
                 if (_settings.SimulatedMode)
                 {
+			AccountDTO ftb3Mod;
+                    _simulatedAccounts.Add(ftb3Mod = new AccountDTO()
+                    {
+                        AccountId = 2,
+                        AccountName = "ftb3 Moderator_0",
+                        AccountPassword = "",
+                        AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
+                        AccountCustomWideStats = new int[1000],
+                        AppId = 21694,
+                        MachineId = "",
+                        MediusStats = "",
+                        Friends = new AccountRelationDTO[0],
+                        Ignored = new AccountRelationDTO[0],
+                        IsBanned = false
+                    });
                     /*
                     //Simulated Resistance 2 beta Account for Matchmaking
                     AccountDTO R2PuBeta;
