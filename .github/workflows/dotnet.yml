@@ -1,0 +1,54 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: PSMultiServer Server Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_linux_release:
+    name: Build PSMultiServer Server Linux (Ubuntu) - Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: 7.0.x
+        include-prerelease: true
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Upload Global artifact
+      continue-on-error: true
+      uses: actions/upload-artifact@v3
+      with:
+          name: PSMultiServer-Global-Linux-Release-${{ github.sha }}
+          path: |
+            ./**/bin
+ 
+            
+    - name: Upload PSMultiServer artifact
+      continue-on-error: true
+      uses: actions/upload-artifact@v3
+      with:
+          name: PSMultiServer-Linux-Release-${{ github.sha }}
+          path: |
+            ./bin
+            ./PSMultiServer/bin
+            !./bin/**/*.bsc
+            !./bin/**/*.exp
+            !./bin/**/*.ilk
+            !./bin/**/*.iobj
+            !./bin/**/*.ipdb
+            !./bin/**/*.pdb
+            !./bin/**/*.lib 
