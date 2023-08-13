@@ -23,7 +23,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC
                     switch (request.Url.AbsolutePath)
                     {
                         case "/index.php":
-                            string boundary = Misc.ExtractBoundary(request.ContentType);
+                            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
                             // Get the input stream from the context
                             Stream inputStream = request.InputStream;
@@ -48,13 +48,13 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC
 
                                 string id = data.GetParameterValue("id");
 
-                                byte[] ticketData = ExtractUFCTicketData(copyStream, boundary);
+                                byte[] ticketData = NpTicketData.ExtractTicketData(copyStream, boundary);
 
                                 try
                                 {
                                     val2 = data.GetParameterValue("val2");
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Sometimes this data is not here, so we catch.
                                 }
@@ -105,7 +105,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC
                                             response.OutputStream.Write(responsetooutput, 0, responsetooutput.Length);
                                             response.OutputStream.Close();
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important.
                                         }
@@ -127,55 +127,6 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC
                 default:
                     response.StatusCode = (int)HttpStatusCode.Forbidden;
                     break;
-            }
-        }
-
-        private static byte[] ExtractUFCTicketData(Stream inputStream, string boundary)
-        {
-            byte[] boundaryBytes = Encoding.ASCII.GetBytes("--" + boundary);
-            byte[] endBoundaryBytes = Encoding.ASCII.GetBytes("--" + boundary + "--");
-
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                using (BinaryReader reader = new BinaryReader(inputStream))
-                {
-                    using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                    {
-                        bool isTicketData = false;
-                        bool isReadingData = false;
-
-                        byte[] lineBytes;
-                        while ((lineBytes = Extensions.ReadLine(reader)) != null)
-                        {
-                            if (Extensions.ByteArrayStartsWith(lineBytes, boundaryBytes))
-                            {
-                                if (isReadingData)
-                                    break;
-
-                                isTicketData = false;
-                                isReadingData = false;
-                            }
-                            else if (Extensions.ByteArrayStartsWith(lineBytes, endBoundaryBytes))
-                            {
-                                break;
-                            }
-                            else if (isTicketData && isReadingData)
-                            {
-                                writer.Write(lineBytes);
-                            }
-                            else if (Extensions.ByteArrayStartsWith(lineBytes, Encoding.ASCII.GetBytes("Content-Disposition: form-data; name=\"ticket\"; filename=\"ticket.bin\"")))
-                            {
-                                isTicketData = true;
-                            }
-                            else if (Extensions.ByteArrayStartsWith(lineBytes, Encoding.ASCII.GetBytes("Content-Type: application/octet-stream")))
-                            {
-                                isReadingData = true;
-                            }
-                        }
-
-                        return memoryStream.ToArray();
-                    }
-                }
             }
         }
     }

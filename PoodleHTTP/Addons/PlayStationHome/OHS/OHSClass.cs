@@ -62,7 +62,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         await OHSLeaderboard.leaderboard_updatessameentry(directorypath, "", request, response);
                     else if (request.Url.AbsolutePath.Contains("/statistic/set/") && request.ContentType.StartsWith("multipart/form-data"))
                     {
-                        var data = MultipartFormDataParser.Parse(request.InputStream, Misc.ExtractBoundary(request.ContentType));
+                        var data = MultipartFormDataParser.Parse(request.InputStream, Extensions.ExtractBoundary(request.ContentType));
 
                         ServerConfiguration.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
 
@@ -99,13 +99,13 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                                     response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
                                     response.OutputStream.Close();
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Not Important!
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             response.StatusCode = (int)HttpStatusCode.InternalServerError;
                             return;

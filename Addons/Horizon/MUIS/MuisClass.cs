@@ -6,20 +6,16 @@ using PSMultiServer.Addons.Horizon.Server.Database;
 using PSMultiServer.Addons.Horizon.Server.Plugins;
 using PSMultiServer.Addons.Horizon.MUIS.Config;
 using System.Diagnostics;
-using System.Globalization;
-using System.Management;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using PSMultiServer.Addons.Horizon.DME;
 
 namespace PSMultiServer.Addons.Horizon.MUIS
 {
     public class MuisClass
     {
-        private static string CONFIG_DIRECTIORY = "./static/MUIS";
-        public static string CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "muis.json");
-        public static string DB_CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "db.config.json");
+        public static string CONFIG_FILE => Path.Combine("./static/MUIS", "muis.json");
+        public static string DB_CONFIG_FILE => Path.Combine("./static/MUIS", "db.config.json");
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MuisClass>();
 
@@ -43,11 +39,8 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         private static Stopwatch _sw = new Stopwatch();
         private static Timer.HighResolutionTimer _timer;
 
-        static async Task TickAsync()
+        private static async Task TickAsync()
         {
-
-
-
             // Attempt to authenticate with the db middleware
             // We do this every 24 hours to get a fresh new token
             if ((_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24))
@@ -83,17 +76,13 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
         }
 
-        static async Task StartServerAsync()
+        private static async Task StartServerAsync()
         {
             DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
 
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
 
             ServerConfiguration.LogInfo("**************************************************");
-            #region MediusGetBuildTimeStamp
-            var MediusBuildTimeStamp = GetLinkerTime(Assembly.GetEntryAssembly());
-            ServerConfiguration.LogInfo($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
-            #endregion
 
             string gpszVersionString = "3.05.201109161400";
 
@@ -116,15 +105,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 UniverseInfoServers[i] = new MUIS(Settings.Ports[i]);
                 UniverseInfoServers[i].Start();
             }
-            /*
-            //* Process ID: %d , Parent Process ID: %d
-            if (Database._settings.SimulatedMode == true)
-            {
-                ServerConfiguration.LogInfo("* Database Disabled Medius Universe Information Server");
-            } else {
-                ServerConfiguration.LogInfo("* Database Enabled Medius Universe Information Server");
-            }
-            */
+
             ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
 
             #region Remote Log Viewing
@@ -156,7 +137,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
 
             #endregion
-
 
             //* Diagnostic Profiling Enabled: %d Counts
 
@@ -198,22 +178,24 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             }
         }
 
-        public static async Task MuisMain()
+        public static void MuisMain()
         {
             Database = new DbController(DB_CONFIG_FILE);
             Initialize();
-            await StartServerAsync();
+            _ = StartServerAsync();
+            return;
         }
 
-        static void Initialize()
+        private static void Initialize()
         {
             RefreshConfig();
+            return;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        static void RefreshConfig()
+        private static void RefreshConfig()
         {
             // 
             var serializerSettings = new JsonSerializerSettings()
@@ -932,6 +914,8 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
             // Update default rsa key
             Server.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+
+            return;
         }
 
         public static void DoGetHostEntry(IPAddress address)
@@ -950,35 +934,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 //log exception (manage it)
                 ServerConfiguration.LogError($"* NAT not resolved {ex}");
             }
+
+            return;
         }
-
-        #region System Time
-        public static DateTime GetLinkerTime(Assembly assembly)
-        {
-            const string BuildVersionMetadataPrefix = "+build";
-
-            var attribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            if (attribute?.InformationalVersion != null)
-            {
-                var value = attribute.InformationalVersion;
-                var index = value.IndexOf(BuildVersionMetadataPrefix);
-                if (index > 0)
-                {
-                    value = value[(index + BuildVersionMetadataPrefix.Length)..];
-                    return DateTime.ParseExact(value, "yyyy-MM-ddTHH:mm:ss:fffZ", CultureInfo.InvariantCulture);
-                }
-            }
-
-            return default;
-        }
-
-        public static TimeSpan GetUptime()
-        {
-            ManagementObject mo = new ManagementObject(@"\\.\root\cimv2:Win32_OperatingSystem=@");
-            DateTime lastBootUp = ManagementDateTimeConverter.ToDateTime(mo["LastBootUpTime"].ToString());
-            return DateTime.Now.ToUniversalTime() - lastBootUp.ToUniversalTime();
-        }
-        #endregion
 
         public static async Task OnDatabaseAuthenticated()
         {
@@ -989,7 +947,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
         }
 
-        static async Task RefreshAppSettings()
+        private static async Task RefreshAppSettings()
         {
             try
             {

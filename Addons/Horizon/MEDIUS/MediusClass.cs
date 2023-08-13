@@ -8,11 +8,8 @@ using PSMultiServer.Addons.Horizon.MEDIUS.Config;
 using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
 using PSMultiServer.Addons.Horizon.Server.Plugins;
 using System.Diagnostics;
-using System.Globalization;
-using System.Management;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using PSMultiServer.Addons.Horizon.Server.libAntiCheat;
 
@@ -20,9 +17,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
 {
     public class MediusClass
     {
-        private static string CONFIG_DIRECTIORY = "./static/MEDIUS";
-        public static string CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "medius.json");
-        public static string DB_CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "db.config.json");
+        public static string CONFIG_FILE => Path.Combine("./static/MEDIUS", "medius.json");
+        public static string DB_CONFIG_FILE => Path.Combine("./static/MEDIUS", "db.config.json");
 
         public static RSA_KEY GlobalAuthPublic = null;
 
@@ -65,7 +61,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MediusClass>();
 
-        static async Task TickAsync()
+        private static async Task TickAsync()
         {
             try
             {
@@ -125,25 +121,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                             ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
                         }
                         #endregion
-                        /*
-                        #if !DEBUG
-                                                if (!_hasPurgedAccountStatuses)
-                                                {
-                                                    _hasPurgedAccountStatuses = await Database.ClearAccountStatuses();
-                                                    await Database.ClearActiveGames();
-                                                }
-                        #endif
-                        */
                     }
                 }
-
-                // Tick Profiling
-
-                // prof:* Total Number of Connect Attempts (%d), Number Disconnects (%d), Total On (%d)
-                // 
-                //ServerConfiguration.LogInfo($"prof:* Total Server Uptime = {GetUptime()} Seconds == (%d days, %d hours, %d minutes, %d seconds)");
-
-                //ServerConfiguration.LogInfo($"prof:* Total Available RAM = {} bytes");
 
                 // Tick
                 await Task.WhenAll(
@@ -159,7 +138,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 // Tick plugins
                 await Plugins.Tick();
 
-                // 
                 if ((Utils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
                 {
                     AuthenticationServer.Log();
@@ -189,7 +167,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             }
         }
 
-        static async Task StartServerAsync()
+        private static async Task StartServerAsync()
         {
             int waitMs = sleepMS;
             string AppIdArray = null; //string.Join(", ", Settings.ApplicationIds);
@@ -197,11 +175,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             ServerConfiguration.LogInfo("Initializing medius components...");
             //Program
             ServerConfiguration.LogInfo("**************************************************");
-
-            #region MediusGetBuildTimeStamp
-            var MediusBuildTimeStamp = GetLinkerTime(Assembly.GetEntryAssembly());
-            ServerConfiguration.LogInfo($"* MediusBuildTimeStamp at {MediusBuildTimeStamp}");
-            #endregion
 
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
             ServerConfiguration.LogInfo($"* Launched on {datetime}");
@@ -304,8 +277,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                     ServerConfiguration.LogInfo($"MLS Version: {Settings.MLSVersion}");
                     ServerConfiguration.LogInfo($"Enabling MLS on Server IP = {SERVER_IP} TCP Port = {LobbyServer.TCPPort} UDP Port = {LobbyServer.UDPPort}.");
                     ServerConfiguration.LogInfo($"Medius Lobby Server running under ApplicationID {AppIdArray}");
-
-                    DMEServerResetMetrics();
 
                     LobbyServer.Start();
                     ServerConfiguration.LogInfo("Medius Lobby Server Initialized and Now Accepting Clients");
@@ -428,7 +399,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                         catch (Exception ex)
                         {
                             ServerConfiguration.LogError($"Unable to resolve NAT service IP: {ip}  Exiting with exception: {ex}");
-                            Environment.Exit(1);
+                            return;
                         }
                     }
                     else
@@ -439,7 +410,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 catch (Exception ex)
                 {
                     ServerConfiguration.LogError($"Unable to resolve NAT service IP: {Settings.NATIp}  Exiting with exception: {ex}");
-                    Environment.Exit(1);
+                    return;
                 }
 
 
@@ -586,80 +557,53 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             #endregion
             */
 
-            #region Timer
-            // start timer
-            _timer = new Addons.Timer.HighResolutionTimer();
-            _timer.SetPeriod(waitMs);
-            _timer.Start();
-
-            // iterate
-            while (true)
+            await Task.Run(async () =>
             {
-                // handle tick rate change
-                if (sleepMS != waitMs)
+                #region Timer
+                // start timer
+                _timer = new Timer.HighResolutionTimer();
+                _timer.SetPeriod(waitMs);
+                _timer.Start();
+
+                // iterate
+                while (true)
                 {
-                    waitMs = sleepMS;
-                    _timer.Stop();
-                    _timer.SetPeriod(waitMs);
-                    _timer.Start();
+                    // handle tick rate change
+                    if (sleepMS != waitMs)
+                    {
+                        waitMs = sleepMS;
+                        _timer.Stop();
+                        _timer.SetPeriod(waitMs);
+                        _timer.Start();
+                    }
+
+                    // tick
+                    await TickAsync();
+
+                    // wait for next tick
+                    _timer.WaitForTrigger();
                 }
 
-                // tick
-                await TickAsync();
-
-                // wait for next tick
-                _timer.WaitForTrigger();
-            }
-
-            #endregion
+                #endregion
+            });
         }
 
 
-        public static async Task MediusMain()
+        public static void MediusMain()
         {
-            // 
             Database = new DbController(DB_CONFIG_FILE);
 
-            // 
-            await Initialize();
-
-            /*
-            string root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string subdirLogs = root + @"\logs";
-            string subdirMFSFiles = root + @"\MFSFiles";
-            string subdirConfig = root + @"\config";
-            string subdirHorizonPlugins = root + @"\plugins";
-
-
-            #region Create Dirs
-            // If Logs directory does not exist, create it. 
-            if (!Directory.Exists(subdirLogs))
-            {
-                Directory.CreateDirectory(subdirLogs);
-            }
-
-            // If MFSFiles directory does not exist, create it. 
-            if (!Directory.Exists(subdirMFSFiles))
-            {
-                Directory.CreateDirectory(subdirMFSFiles);
-            }
-
-            // If config directory does not exist, create it. 
-            if (!Directory.Exists(subdirConfig))
-            {
-                Directory.CreateDirectory(subdirConfig);
-            }
-            #endregion
-            */
+            _ = Initialize();
 
             // Initialize plugins
             Plugins = new PluginsManager(Settings.PluginsPath);
 
-            // 
-            await StartServerAsync();
+            _ = StartServerAsync();
+
+            return;
         }
 
-        static async Task Initialize()
+        private static async Task Initialize()
         {
             await RefreshConfig().ContinueWith(r =>
             {
@@ -671,241 +615,13 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 {
                     ServerConfiguration.LogInfo($"ConfigManager Cannot Reload Configuration File {CONFIG_FILE}");
                 }
-                //Program.AntiCheatPlugin.mc_anticheat_event(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, Program.AntiCheatClient, updateUserState, 256);
             });
-
-            /*
-            #region Locations TEMP
-            if (Settings.Locations != null)
-            {
-                foreach (var location in Settings.Locations)
-                {
-                    if (location.AppIds == null || location.AppIds.Length == 0)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = 0,
-                            MaxPlayers = 256,
-                            Name = location.ChannelName ?? location.Name,
-                            GenericFieldLevel = location.GenericFieldLevel,
-                            Id = location.Id,
-                            Type = ChannelType.Lobby
-                        });
-                    }
-                    else
-                    {
-                        foreach (var appId in location.AppIds)
-                        {
-                            Manager.AddChannel(new Channel()
-                            {
-                                ApplicationId = appId,
-                                MaxPlayers = 256,
-                                Name = location.ChannelName ?? location.Name,
-                                GenericFieldLevel = location.GenericFieldLevel,
-                                Id = location.Id,
-                                Type = ChannelType.Lobby
-                            });
-                        }
-                    }
-                }
-            }
-            #endregion
-            /*
-            if (Settings.ApplicationIds != null)
-            {
-                foreach (var appId in Settings.ApplicationIds)
-                {
-
-                    #region Motorstorm 1 / Monument Valley
-                    //SCEA SCEE SCEI SCEK
-                    else if (appId == 20764 || appId == 20364 || appId == 21000 || appId == 21044)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Motorstorm US West",
-                            Type = ChannelType.Lobby
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Motorstorm US Central",
-                            Type = ChannelType.Lobby
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Motorstorm US East",
-                            Type = ChannelType.Lobby
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Motorstorm EU",
-                            Type = ChannelType.Lobby
-                        });
-                        /*
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "モーターストームJP",
-                            Type = ChannelType.Lobby
-                        });
-                    }
-                    #endregion
-
-                    #region NBA 07
-                    else if (appId == 20244)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "SportsConnect US",
-                            Type = ChannelType.Lobby,
-                            GenericField1 = 1,
-                            GenericField2 = 1,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "SportsConnect EU",
-                            Type = ChannelType.Lobby,
-                            GenericField1 = 1,
-                            GenericField2 = 1,
-                        });
-                    }
-                    #endregion
-
-                    #region WRC 4
-                    else if (appId == 10394)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Region US",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Region EU",
-                            Type = ChannelType.Lobby,
-                        });
-                    }
-                    #endregion
-
-                    #region Socom 1
-                    else if (appId == 10274)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Region US",
-                            Type = ChannelType.Lobby,
-                        });
-                    }
-                    #endregion
-
-                    #region Arc the Lad: End of Darkness
-                    else if (appId == 10984)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Yewbell",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Rueloon",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Dilzweld",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Milmarna",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Romastle Plains",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Halshinne",
-                            Type = ChannelType.Lobby,
-                        });
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Lamda Temple",
-                            Type = ChannelType.Lobby,
-                        });
-                    }
-                    #endregion
-
-                    #region Default 
-                    if (Manager.GetDefaultLobbyChannel(appId) == null)
-                    {
-                        Manager.AddChannel(new Channel()
-                        {
-                            ApplicationId = appId,
-                            MaxPlayers = 256,
-                            Name = "Default",
-                            Type = ChannelType.Lobby
-                        });
-                    }
-                    #endregion
-                }
-            }
-            else
-            {
-                if (Manager.GetDefaultLobbyChannel(0) == null)
-                {
-                    Manager.AddChannel(new Channel()
-                    {
-                        ApplicationId = 0,
-                        MaxPlayers = 256,
-                        Name = "Default",
-                        Type = ChannelType.Lobby
-                    });
-                }
-            }
-            */
-
         }
 
         /// <summary>
         /// 
         /// </summary>
-        static Task RefreshConfig()
+        private static Task RefreshConfig()
         {
             var usePublicIp = Settings.UsePublicIp;
 
@@ -915,41 +631,13 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 MissingMemberHandling = MissingMemberHandling.Ignore,
             };
 
-            #region Dirs
-            string root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string subdirLogs = root + @"\logs";
-            string subdirHorizonPlugins = root + @"\plugins";
-            string subdirConfig = root + @"\config";
-            string subdirConfigFile = subdirConfig + @"\" + CONFIG_FILE;
-            #endregion
-
-            /*
-            #region Create Dirs
-            // If Logs directory does not exist, create it. 
-            if (!Directory.Exists(subdirLogs))
-            {
-                Directory.CreateDirectory(subdirLogs);
-            }
-
-            // If config directory does not exist, create it. 
-            if (!Directory.Exists(subdirConfig))
-            {
-                Directory.CreateDirectory(subdirConfig);
-            }
-            #endregion
-            */
-
             #region Check Config.json
             // Create Defaults if File doesn't exist
             if (!File.Exists(CONFIG_FILE))
-            {
                 File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
-            }
             else
-            {
                 // Populate existing object
                 JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
-            }
             #endregion
 
             // Determine server ip
@@ -973,7 +661,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             return Task.CompletedTask;
         }
 
-        static async Task RefreshAppSettings()
+        private static async Task RefreshAppSettings()
         {
             try
             {
@@ -1042,7 +730,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             }
         }
 
-        static void RefreshServerIp()
+        private static void RefreshServerIp()
         {
             #region Determine Server IP
             if (!Settings.UsePublicIp)
@@ -1065,6 +753,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 }
             }
             #endregion
+
+            return;
         }
 
         /// <summary>
@@ -1177,34 +867,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             return _defaultAppSettings;
         }
 
-        #region System Time
-        public static DateTime GetLinkerTime(Assembly assembly)
-        {
-            const string BuildVersionMetadataPrefix = "+build";
-
-            var attribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            if (attribute?.InformationalVersion != null)
-            {
-                var value = attribute.InformationalVersion;
-                var index = value.IndexOf(BuildVersionMetadataPrefix);
-                if (index > 0)
-                {
-                    value = value[(index + BuildVersionMetadataPrefix.Length)..];
-                    return DateTime.ParseExact(value, "yyyy-MM-ddTHH:mm:ss:fffZ", CultureInfo.InvariantCulture);
-                }
-            }
-
-            return default;
-        }
-
-        public static TimeSpan GetUptime()
-        {
-            ManagementObject mo = new ManagementObject(@"\\.\root\cimv2:Win32_OperatingSystem=@");
-            DateTime lastBootUp = ManagementDateTimeConverter.ToDateTime(mo["LastBootUpTime"].ToString());
-            return DateTime.Now.ToUniversalTime() - lastBootUp.ToUniversalTime();
-        }
-        #endregion
-
         #region DoGetHost
         public static void DoGetHostNameEntry(string hostName)
         {
@@ -1221,6 +883,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 //log exception (manage it)
                 ServerConfiguration.LogError($"Unable to resolve NAT service IP: {host.AddressList.First()}  Exiting with exception: {ex}");
             }
+
+            return;
         }
 
         public static void DoGetHostAddressEntry(IPAddress address)
@@ -1238,23 +902,15 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 //log exception (manage it)
                 ServerConfiguration.LogInfo($"Unable to resolve NAT service IP: {host.AddressList.First()}  Exiting with exception: {ex}");
             }
+
+            return;
         }
         #endregion
 
         public static void MFS_transferInit()
         {
             ServerConfiguration.LogInfo($"Initializing MFS_transfer with url {Settings.MFSTransferURI} "); //numThreads{}"
-
-        }
-
-        public static void DMEServerResetMetrics()
-        {
-            //rt_msg_server_reset_connect_metrics
-            //rt_msg_server_reset_data_metrics
-            //rt_msg_server_reset_message_metrics
-            //rt_msg_server_reset_frame_time_metrics
-
-            //ERROR: Could not reset DME Svr metrics[%d]
+            return;
         }
 
         public static Medius.MPS GetMPS()

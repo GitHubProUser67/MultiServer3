@@ -105,7 +105,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerConnect = new List<int>() { 10190, 10114, 10124, 10284, 10330, 10334, 10540, 10680 };
+                        List<int> pre108ServerConnect = new List<int>() { 10683, 10190, 10114, 10124, 10284, 10330, 10334, 10540, 10680 };
                         List<int> pre108NoServerConnect = new List<int>() { 10782 };
 
 

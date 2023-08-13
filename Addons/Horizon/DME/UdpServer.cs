@@ -289,7 +289,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         public async Task HandleIncomingMessages()
         {
-            if (_boundChannel == null || !_boundChannel.Active)
+            if (_boundChannel == null || !_boundChannel.IsActive)
                 return;
 
             try
@@ -316,7 +316,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         public async Task HandleOutgoingMessages()
         {
-            if (_boundChannel == null || !_boundChannel.Active)
+            if (_boundChannel == null || !_boundChannel.IsActive)
                 return;
 
             //

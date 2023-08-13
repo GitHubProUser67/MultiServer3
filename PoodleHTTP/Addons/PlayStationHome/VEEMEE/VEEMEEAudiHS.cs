@@ -11,7 +11,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             string key = "";
             string psnid = "";
 
-            string boundary = Misc.ExtractBoundary(request.ContentType);
+            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
             // Get the input stream from the context
             Stream inputStream = request.InputStream;
@@ -49,7 +49,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                         response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important.
                     }
@@ -70,7 +70,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             string time = "";
             string dist = "";
 
-            string boundary = Misc.ExtractBoundary(request.ContentType);
+            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
             // Get the input stream from the context
             Stream inputStream = request.InputStream;
@@ -114,7 +114,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                         response.OutputStream.Write(resultData, 0, resultData.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important.
                     }
@@ -133,7 +133,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             string key = "";
             string psnid = "";
 
-            string boundary = Misc.ExtractBoundary(request.ContentType);
+            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
             // Get the input stream from the context
             Stream inputStream = request.InputStream;
@@ -187,7 +187,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                         response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important.
                     }
@@ -207,7 +207,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             string psnid = "";
             string title = "";
 
-            string boundary = Misc.ExtractBoundary(request.ContentType);
+            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
             // Get the input stream from the context
             Stream inputStream = request.InputStream;
@@ -247,7 +247,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                         response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important
                     }

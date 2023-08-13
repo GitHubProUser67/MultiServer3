@@ -13,7 +13,10 @@ namespace PSMultiServer.PoodleHTTP
 
         public Server(string host, int port)
         {
-            HostUrl = $"http://{host}:{port}/";
+            if (port == 443)
+                HostUrl = $"https://{host}:{port}/";
+            else
+                HostUrl = $"http://{host}:{port}/";
         }
 
         public Server Use()
@@ -39,9 +42,14 @@ namespace PSMultiServer.PoodleHTTP
                 ServerConfiguration.LogWarn("Failed to start HttpListener.", e);
                 if (e.ErrorCode == 5)
                 {
-                    NetAclChecker.AddAddress(HostUrl);
-                    StartHttpListener();
-                    return true;
+                    if (Misc.IsWindows())
+                    {
+                        NetAclChecker.AddAddress(HostUrl);
+                        StartHttpListener();
+                        return true;
+                    }
+                    else
+                        return false;
                 }
 
                 return false;

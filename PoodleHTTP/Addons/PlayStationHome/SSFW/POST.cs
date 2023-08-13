@@ -33,7 +33,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                                 response.OutputStream.Write(moreliferesponse, 0, moreliferesponse.Length);
                                 response.OutputStream.Close();
                             }
-                            catch (Exception ex)
+                            catch (Exception)
                             {
                                 // Not Important
                             }

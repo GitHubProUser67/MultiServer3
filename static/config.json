@@ -1,23 +1,44 @@
 {
+  "youtube": {
+    "client_id": null,
+	"client_secret": null,
+	"refresh_token": null
+  },
   "php": {
-    "version": "8.25"
+    "version": "php-8.2.9",
+	"static_folder": "/static/PHP/",
+	"debug_errors": true
+  },
+  "dns": {
+    "enabled": true,
+	"online_routes_config": "",
+	"routes_config": "static/routes.txt",
+	"port": 53
   },
   "ssfw": {
     "enabled": true,
     "private_key": "",
     "minibase": "[]",
     "cross_save": true,
-	"static_folder": "/wwwssfwroot/"
+	"static_folder": "/static/wwwssfwroot/"
   },
   "http": {
     "enabled": true,
     "private_key": "",
+	"https": {
+		"enabled": false,
+		"bind_ip": "127.0.0.1",
+		"SslRootValidAfter": "2023-08-09 14:30:00 +00:00",
+		"SslRootValidBefore": "2053-08-09 14:30:00 +00:00",
+		"SslCertValidAfterNow" : 7,
+		"SslCertValidBeforeNow" : -7,
+	},
     "port": 80,
-	"static_folder": "/wwwroot/"
+	"static_folder": "/static/wwwroot/"
   },
   "medius": {
     "enabled": true,
-	"debug_log": true
+	"debug_log": false
   },
   "home": {
     "beta_version": "01.86",
@@ -27,7 +48,7 @@
   "svo": {
     "enabled": true,
 	"database_config": "static/db.config.json",
-    "static_folder": "/wwwsvoroot/",
+    "static_folder": "/static/wwwsvoroot/",
 	"db_tick_rate": 20
   }
 }

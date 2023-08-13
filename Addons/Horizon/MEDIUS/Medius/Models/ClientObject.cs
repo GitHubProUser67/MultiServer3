@@ -399,7 +399,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // so instead we'll increment our timeout dates by the client echo
             if (MediusVersion <= 108)
             {
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(-1);
+                // reply must be before sent for the timeout to work
+                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
                 UtcLastServerEchoReply = Utils.GetHighPrecisionUtcTime();
             }
 

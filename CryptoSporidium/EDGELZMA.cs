@@ -1,4 +1,6 @@
-﻿namespace PSMultiServer.CryptoSporidium
+﻿using System.Text;
+
+namespace PSMultiServer.CryptoSporidium
 {
     public class EDGELZMA
     {
@@ -12,6 +14,11 @@
             {
                 return new EDGE().Compress(data, false);
             }
+        }
+
+        public static byte[] Decompress(byte[] data)
+        {
+            return new EDGE().Decompress(data);
         }
 
         class EDGE
@@ -114,6 +121,40 @@
                     return temp;
 
                 }
+            }
+
+            public byte[] Decompress(byte[] inbuffer)
+            {
+                byte[] buffer;
+
+                if (inbuffer[0] != 'T' && inbuffer[1] != 'L' && inbuffer[2] != 'Z' && inbuffer[3] != 'C')
+                {
+                    buffer = Misc.Combinebytearay(Encoding.UTF8.GetBytes("TLZC"), inbuffer);
+                }
+                else
+                    buffer = inbuffer;
+
+                MemoryStream result = new MemoryStream();
+                int outSize = BitConverter.ToInt32(buffer, 12);
+                int streamCount = (outSize + 0xffff) >> 16;
+                int offset = 0x18 + streamCount * 2 + 5;
+
+                var decoder = new SevenZip.Compression.LZMA.Decoder();
+                decoder.SetDecoderProperties(new MemoryStream(buffer, 0x18, 5).ToArray());
+
+                for (int i = 0; i < streamCount; i++)
+                {
+                    int streamSize = (buffer[5 + 0x18 + i * 2]) + (buffer[6 + 0x18 + i * 2] << 8);
+                    if (streamSize != 0)
+                        decoder.Code(new MemoryStream(buffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
+                    else
+                        result.Write(buffer, offset, streamSize = Math.Min(outSize, 0x10000));
+                    outSize -= 0x10000;
+                    offset += streamSize;
+                }
+
+                return result.ToArray();
+
             }
         }
     }

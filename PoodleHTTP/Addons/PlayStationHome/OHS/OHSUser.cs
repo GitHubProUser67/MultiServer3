@@ -16,7 +16,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 
             if (batchparams == "")
             {
-                var data = MultipartFormDataParser.Parse(request.InputStream, Misc.ExtractBoundary(request.ContentType));
+                var data = MultipartFormDataParser.Parse(request.InputStream, Extensions.ExtractBoundary(request.ContentType));
 
                 ServerConfiguration.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
 
@@ -32,7 +32,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -165,7 +165,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues2nd[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -184,7 +184,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important.
                     }
@@ -202,7 +202,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 
             if (batchparams == "")
             {
-                var data = MultipartFormDataParser.Parse(request.InputStream, Misc.ExtractBoundary(request.ContentType));
+                var data = MultipartFormDataParser.Parse(request.InputStream, Extensions.ExtractBoundary(request.ContentType));
 
                 ServerConfiguration.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
 
@@ -218,7 +218,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -291,7 +291,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues2nd[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -310,7 +310,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not important.
                     }
@@ -328,7 +328,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 
             if (batchparams == "")
             {
-                var data = MultipartFormDataParser.Parse(request.InputStream, Misc.ExtractBoundary(request.ContentType));
+                var data = MultipartFormDataParser.Parse(request.InputStream, Extensions.ExtractBoundary(request.ContentType));
 
                 ServerConfiguration.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
 
@@ -344,7 +344,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -417,7 +417,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues2nd[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -436,7 +436,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not important.
                     }
@@ -452,7 +452,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 
             if (batchparams == "")
             {
-                var data = MultipartFormDataParser.Parse(request.InputStream, Misc.ExtractBoundary(request.ContentType));
+                var data = MultipartFormDataParser.Parse(request.InputStream, Extensions.ExtractBoundary(request.ContentType));
 
                 ServerConfiguration.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
 
@@ -468,7 +468,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -501,7 +501,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues2nd[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -520,7 +520,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
 
                     }
@@ -536,7 +536,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 
             if (batchparams == "")
             {
-                var data = MultipartFormDataParser.Parse(request.InputStream, Misc.ExtractBoundary(request.ContentType));
+                var data = MultipartFormDataParser.Parse(request.InputStream, Extensions.ExtractBoundary(request.ContentType));
 
                 ServerConfiguration.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
 
@@ -552,7 +552,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -566,7 +566,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
             // Parsing the JSON string
             JObject jsonObject = JObject.Parse(dataforohs);
 
-            dataforohs = Misc.GetFirstEightCharacters(Misc.CalculateMD5Hash((string)jsonObject["user"]));
+            dataforohs = OHSProcessor.GetFirstEightCharacters(OHSProcessor.CalculateMD5HashToExadecimal((string)jsonObject["user"]));
 
             if (batchparams != "")
             {
@@ -584,7 +584,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         dataforohs = returnValues2nd[0]?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return "";
@@ -603,7 +603,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                         response.OutputStream.Write(postresponsetooutput, 0, postresponsetooutput.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important!
                     }

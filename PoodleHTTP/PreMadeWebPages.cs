@@ -84,6 +84,47 @@
             </body>
             </html>";
 
+        public static string phperror = @"
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>PHP Error</title>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 0;
+                }
+
+                .error-container {
+                  position: absolute;
+                  top: 20px;
+                  left: 20px;
+                  background-color: #000;
+                  color: #fff;
+                  padding: 20px;
+                  border-radius: 10px;
+                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+                  font-family: Arial, sans-serif;
+                }
+
+                h1 {
+                  font-size: 24px;
+                  margin-top: 0;
+                }
+
+                p {
+                  font-size: 18px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class=""error-container"">
+                <h1>PHP Error</h1>
+                <p>The PHP page produced an error : PUT_ERROR_HERE</p>
+              </div>
+            </body>
+            </html>";
+
         public static string phpnotenabled = @"
             <!DOCTYPE html>
             <html>

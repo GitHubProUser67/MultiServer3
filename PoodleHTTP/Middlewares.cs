@@ -1,8 +1,9 @@
-﻿using Org.BouncyCastle.Asn1.Ocsp;
+﻿using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.HELLFIREGAMES;
+using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.NDREAMS;
 using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW;
 using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC;
 using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -110,12 +111,16 @@ namespace PSMultiServer.PoodleHTTP
                             await OHSClass.processrequest(ctx.Request, ctx.Response);
                         else if ((requesthost == "away.veemee.com" || requesthost == "home.veemee.com") && absolutepath.EndsWith(".php"))
                             await VEEMEEClass.processrequest(ctx.Request, ctx.Response);
+                        else if (requesthost == "game2.hellfiregames.com" && (absolutepath.EndsWith(".php") || absolutepath == "/Postcards/"))
+                            await HELLFIREGAMESClass.processrequest(ctx.Request, ctx.Response);
+                        else if (requesthost == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
+                            await NDREAMSClass.processrequest(ctx.Request, ctx.Response);
                         else
                             specialrequest = false;
                     }
                     else if (absolutepath.EndsWith(".php"))
                     {
-                        if (!Directory.Exists(Directory.GetCurrentDirectory() + "/PHP"))
+                        if (!Directory.Exists(Directory.GetCurrentDirectory() + "/static/PHP"))
                         {
                             byte[] fileBuffer = Encoding.UTF8.GetBytes(PreMadeWebPages.phpnotenabled);
 
@@ -130,7 +135,7 @@ namespace PSMultiServer.PoodleHTTP
                                     ctx.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
                                     ctx.Response.OutputStream.Close();
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Not Important.
                                 }
@@ -142,7 +147,7 @@ namespace PSMultiServer.PoodleHTTP
 
                             if (Misc.FindbyteSequence(fileBuffer, new byte[] { 0x3c, 0x3f, 0x70, 0x68, 0x70 }))
                             {
-                                fileBuffer = Encoding.UTF8.GetBytes(await Extensions.ProcessPhpPage(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}{absolutepath}", ServerConfiguration.PHPVersion, ctx.Request));
+                                fileBuffer = await Extensions.ProcessPhpPage(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}{absolutepath}", ServerConfiguration.PHPVersion, ctx.Request, ctx.Response);
 
                                 ctx.Response.ContentType = "text/html";
                                 ctx.Response.StatusCode = 200;
@@ -155,7 +160,7 @@ namespace PSMultiServer.PoodleHTTP
                                         ctx.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
                                         ctx.Response.OutputStream.Close();
                                     }
-                                    catch (Exception ex)
+                                    catch (Exception)
                                     {
                                         // Not Important.
                                     }
@@ -174,7 +179,7 @@ namespace PSMultiServer.PoodleHTTP
                                         ctx.Response.OutputStream.Write(fileBuffer, 0, fileBuffer.Length);
                                         ctx.Response.OutputStream.Close();
                                     }
-                                    catch (Exception ex)
+                                    catch (Exception)
                                     {
                                         // Not Important.
                                     }
@@ -183,9 +188,7 @@ namespace PSMultiServer.PoodleHTTP
                         }
                     }
                     else
-                    {
                         specialrequest = false;
-                    }
 
                     if (!specialrequest)
                     {
@@ -210,16 +213,19 @@ namespace PSMultiServer.PoodleHTTP
             };
         }
 
-        private static async Task ReadLocalFile(string filePath, HttpListenerRequest req, HttpListenerResponse resp)
+        private static async Task ReadLocalFile(string filePath, HttpListenerRequest request, HttpListenerResponse response)
         {
             if (File.Exists(filePath))
-                await resp.File(filePath);
+                if (request.Headers["Accept-Encoding"] != null && request.Headers["Accept-Encoding"].Contains("gzip"))
+                    await response.File(filePath, true);
+                else
+                    await response.File(filePath, false);
             else
             {
-                ServerConfiguration.LogWarn($"HTTP : {req.UserAgent} Demands a non-existing file: '{filePath}'.");
-                if (req.UserAgent.Contains("PSHome"))
-                    await resp.Error(false, 404);
-                await resp.Error(true, 404);
+                ServerConfiguration.LogWarn($"HTTP : {request.UserAgent} Demands a non-existing file: '{filePath}'.");
+                if (request.UserAgent.Contains("PSHome"))
+                    await response.Error(false, 404);
+                await response.Error(true, 404);
             }
         }
 

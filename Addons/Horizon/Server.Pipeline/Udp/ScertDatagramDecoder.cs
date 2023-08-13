@@ -33,12 +33,14 @@ namespace PSMultiServer.Addons.Horizon.Server.Pipeline.Udp
 
         protected override void Decode(IChannelHandlerContext context, DatagramPacket message, List<object> output)
         {
-            if (!message.Content.IsReadable())
-                return;
+            while (message.Content.IsReadable())
+            {
+                object decoded = Decode(context, message);
+                if (decoded == null)
+                    break;
 
-            object decoded = Decode(context, message);
-            if (decoded != null)
                 output.Add(decoded);
+            }
         }
 
         /// <summary>

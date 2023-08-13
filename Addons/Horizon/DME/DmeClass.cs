@@ -14,9 +14,8 @@ namespace PSMultiServer.Addons.Horizon.DME
 {
     public class DmeClass
     {
-        private static string CONFIG_DIRECTIORY = "./static/DME";
-        public static string CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "dme.json");
-        public static string DB_CONFIG_FILE => Path.Combine(CONFIG_DIRECTIORY, "db.config.json");
+        public static string CONFIG_FILE => Path.Combine("./static/DME", "dme.json");
+        public static string DB_CONFIG_FILE => Path.Combine("./static/DME", "db.config.json");
 
         public static RSA_KEY GlobalAuthPublic = null;
 
@@ -52,7 +51,7 @@ namespace PSMultiServer.Addons.Horizon.DME
         static string metricPrintString = null;
         static int metricIndent = 0;
 
-        static async Task TickAsync()
+        private static async Task TickAsync()
         {
             try
             {
@@ -65,17 +64,9 @@ namespace PSMultiServer.Addons.Horizon.DME
                 ++_ticks;
                 if (_sw.Elapsed.TotalSeconds > 5f)
                 {
-                    // 
                     _sw.Stop();
                     var averageMsPerTick = 1000 * (_sw.Elapsed.TotalSeconds / _ticks);
                     var error = Math.Abs(Settings.MainLoopSleepMs - averageMsPerTick) / Settings.MainLoopSleepMs;
-
-                    //if (error > 0.1f)
-                    //    ServerConfiguration.LogError($"Average Ms between ticks is: {averageMsPerTick} is {error * 100}% off of target {Settings.MainLoopSleepMs}");
-
-                    //var dt = DateTime.UtcNow - Utils.GetHighPrecisionUtcTime();
-                    //if (Math.Abs(dt.TotalMilliseconds) > 50)
-                    //    ServerConfiguration.LogError($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
 
                     _sw.Restart();
                     _ticks = 0;
@@ -185,7 +176,7 @@ namespace PSMultiServer.Addons.Horizon.DME
             }
         }
 
-        static async Task StartServerAsync()
+        private static async Task StartServerAsync()
         {
             int waitMs = Settings.MainLoopSleepMs;
 
@@ -286,31 +277,31 @@ namespace PSMultiServer.Addons.Horizon.DME
             }
         }
 
-        public static async Task DmeMain()
+        public static void DmeMain()
         {
-            // 
             Database = new DbController(DB_CONFIG_FILE);
 
-            // 
             Initialize();
 
             // Initialize plugins
             Plugins = new PluginsManager(Settings.PluginsPath);
 
-            // 
-            await StartServerAsync();
+            _ = StartServerAsync();
+
+            return;
         }
 
-        static void Initialize()
+        private static void Initialize()
         {
             RefreshServerIp();
             RefreshConfig();
+            return;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        static void RefreshConfig()
+        private static void RefreshConfig()
         {
             var usePublicIp = Settings.UsePublicIp;
 
@@ -322,10 +313,8 @@ namespace PSMultiServer.Addons.Horizon.DME
 
             // Load settings
             if (File.Exists(CONFIG_FILE))
-            {
                 // Populate existing object
                 JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
-            }
             else
             {
                 // Save defaults
@@ -333,7 +322,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                 // Add the appids to the ApplicationIds list
                 Settings.ApplicationIds.AddRange(new List<int>
                 {
-                    21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
+                    10683, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
                     20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
                     20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
                     10984, 10782, 10421, 10130, 24000, 24180
@@ -355,9 +344,11 @@ namespace PSMultiServer.Addons.Horizon.DME
 
             // refresh app settings
             _ = RefreshAppSettings();
+
+            return;
         }
 
-        static async Task RefreshAppSettings()
+        private static async Task RefreshAppSettings()
         {
             try
             {
@@ -401,7 +392,7 @@ namespace PSMultiServer.Addons.Horizon.DME
             }
         }
 
-        static void RefreshServerIp()
+        private static void RefreshServerIp()
         {
             if (!Settings.UsePublicIp)
             {
@@ -414,30 +405,13 @@ namespace PSMultiServer.Addons.Horizon.DME
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }
-        }
 
-        public static DMEMediusManager GetManager(int applicationId, bool useDefaultOnMissing)
-        {
-            if (Managers.TryGetValue(applicationId, out var manager))
-                return manager;
-
-            if (useDefaultOnMissing && Managers.TryGetValue(0, out manager))
-                return manager;
-
-            return null;
+            return;
         }
 
         public static ClientObject GetClientByAccessToken(string accessToken)
         {
             return Managers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
-        }
-
-        public static string GenerateSessionKey()
-        {
-            lock (_sessionKeyCounterLock)
-            {
-                return (++_sessionKeyCounter).ToString();
-            }
         }
 
         public static AppSettings GetAppSettingsOrDefault(int appId)
@@ -449,43 +423,6 @@ namespace PSMultiServer.Addons.Horizon.DME
         }
 
         #region Metrics
-
-        public static void Time(string name, Action action)
-        {
-            if (metricCooldownTicks > 0)
-            {
-                action();
-                return;
-            }
-
-            // 
-            long ticksAtStart = Stopwatch.ElapsedTicks;
-
-            // insert row before action
-            metricPrintString += $"({"".PadRight(metricIndent * 2, ' ') + name,-32}:    {100:#.000} ms)\n";
-            int stringIndex = metricPrintString.Length - 5 - 7;
-
-            // run
-            ++metricIndent;
-            try
-            {
-                action();
-            }
-            finally
-            {
-                --metricIndent;
-            }
-
-            //
-            long ticksAfterAction = Stopwatch.ElapsedTicks;
-            var actionDurationMs = 1000f * (ticksAfterAction - ticksAtStart) / Stopwatch.Frequency;
-
-            //
-            var replacementString = actionDurationMs.ToString("#.000").PadLeft(7, ' ').Substring(0, 7);
-            char[] charArr = metricPrintString.ToCharArray();
-            replacementString.CopyTo(0, charArr, stringIndex, replacementString.Length);
-            metricPrintString = new string(charArr);
-        }
 
         public static async Task TimeAsync(string name, Func<Task> action)
         {
@@ -522,45 +459,6 @@ namespace PSMultiServer.Addons.Horizon.DME
             char[] charArr = metricPrintString.ToCharArray();
             replacementString.CopyTo(0, charArr, stringIndex, replacementString.Length);
             metricPrintString = new string(charArr);
-        }
-
-        public static async Task<T> TimeAsync<T>(string name, Func<Task<T>> action)
-        {
-            T result;
-            if (metricCooldownTicks > 0)
-            {
-                return await action();
-            }
-
-            // 
-            long ticksAtStart = Stopwatch.ElapsedTicks;
-
-            // insert row before action
-            metricPrintString += $"({"".PadRight(metricIndent * 2, ' ') + name,-32}:    {100:#.000} ms)\n";
-            int stringIndex = metricPrintString.Length - 5 - 7;
-
-            // run
-            ++metricIndent;
-            try
-            {
-                result = await action();
-            }
-            finally
-            {
-                --metricIndent;
-            }
-
-            //
-            long ticksAfterAction = Stopwatch.ElapsedTicks;
-            var actionDurationMs = 1000f * (ticksAfterAction - ticksAtStart) / Stopwatch.Frequency;
-
-            //
-            var replacementString = actionDurationMs.ToString("#.000").PadLeft(7, ' ').Substring(0, 7);
-            char[] charArr = metricPrintString.ToCharArray();
-            replacementString.CopyTo(0, charArr, stringIndex, replacementString.Length);
-            metricPrintString = new string(charArr);
-
-            return result;
         }
 
         #endregion

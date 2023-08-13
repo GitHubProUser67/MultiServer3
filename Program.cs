@@ -1,26 +1,33 @@
 ﻿using PSMultiServer.Addons.Horizon.Server.Common.Logging;
-using System.Net.NetworkInformation;
-using SharpCompress.Archives;
-using SharpCompress.Common;
-using PSMultiServer.Addons.Horizon.MEDIUS;
-using PSMultiServer.Addons.Horizon.MUIS;
-using PSMultiServer.Addons.Horizon.DME;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
-using PSMultiServer.PoodleHTTP;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome;
+using System.Diagnostics;
 
 namespace PSMultiServer
 {
     public static class ServerConfiguration
     {
+		public static string CLIENT_ID { get; set; } = null;
+        public static string CLIENT_SECRET { get; set; } = null;
+        public static string REFRESH_TOKEN { get; set; } = null;
         public static string PHPVersion { get; set; } = "8.25";
+        public static string PHPStaticFolder { get; set; } = "/static/PHP/";
+        public static bool PHPDebugErrors { get; set; } = false;
+		public static string DNSConfig { get; set; } = "static/routes.txt";
+        public static string DNSOnlineConfig { get; set; } = "";
+        public static int DNSPort { get; set; } = 53;
         public static string? SSFWPrivateKey { get; set; }
         public static bool SSFWCrossSave { get; set; } = true;
-        public static string? SSFWStaticFolder { get; set; } = "/wwwssfwroot/";
+        public static string? SSFWStaticFolder { get; set; } = "/static/wwwssfwroot/";
         public static string? HTTPPrivateKey { get; set; }
+		public static bool HTTPS { get; set; } = false;
+        public static string? HTTPSBindIp { get; set; }
+        public static DateTimeOffset SslRootValidAfter { get; set; } = DateTimeOffset.Now;
+        public static DateTimeOffset SslRootValidBefore { get; set; } = DateTimeOffset.Now.AddYears(30);
+        public static int SslCertValidAfterNow { get; set; } = 7;
+        public static int SslCertValidBeforeNow { get; set; } = -7;
         public static int HTTPPort { get; set; } = 80;
-        public static string? HTTPStaticFolder { get; set; } = "/wwwroot/";
+        public static string? HTTPStaticFolder { get; set; } = "/static/wwwroot/";
         public static string SSFWMinibase { get; set; } = "[]";
         public static string VersionBetaHDK { get; set; } = "01.60";
         public static string VersionRetail { get; set; } = "01.83";
@@ -37,13 +44,14 @@ namespace PSMultiServer
             "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n    \r\n    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
             "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
             "</SVML>";
+		public static bool EnableDNSServer { get; set; } = true;
         public static bool EnableHttpServer { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
         public static bool MediusDebugLogs { get; set; } = false;
         public static bool EnableSVO { get; set; } = true;
         public static string? SVODatabaseConfig { get; set; } = "static/db.config.json";
-        public static string? SVOStaticFolder { get; set; } = "/wwwsvoroot/";
+        public static string? SVOStaticFolder { get; set; } = "/static/wwwsvoroot/";
         public static int SVODBTickrate { get; set; } = 20;
 
         public static ILogger Logger { get; set; }
@@ -94,8 +102,19 @@ namespace PSMultiServer
 
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
+			
+			CLIENT_ID = config.youtube.client_id;
+            CLIENT_SECRET = config.youtube.client_secret;
+            REFRESH_TOKEN = config.youtube.refresh_token;
 
             PHPVersion = config.php.version;
+            PHPStaticFolder = config.php.static_folder;
+            PHPDebugErrors = config.php.debug_errors;
+			
+			EnableDNSServer = config.dns.enabled;
+            DNSOnlineConfig = config.dns.online_routes_config;
+            DNSConfig = config.dns.routes_config;
+            DNSPort = config.dns.port;
 
             EnableSSFW = config.ssfw.enabled;
             SSFWPrivateKey = config.ssfw.private_key;
@@ -105,6 +124,12 @@ namespace PSMultiServer
 
             EnableHttpServer = config.http.enabled;
             HTTPPrivateKey = config.http.private_key;
+			HTTPS = config.http.https.enabled;
+            HTTPSBindIp = config.http.https.bind_ip;
+            SslRootValidAfter = config.http.https.SslRootValidAfter;
+            SslRootValidBefore = config.http.https.SslRootValidBefore;
+            SslCertValidAfterNow = config.http.https.SslCertValidAfterNow;
+            SslCertValidBeforeNow = config.http.https.SslCertValidBeforeNow;
             HTTPStaticFolder = config.http.static_folder;
             HTTPPort = config.http.port;
 
@@ -132,118 +157,75 @@ namespace PSMultiServer
 
     public class Server
     {
-        private static bool IsSupportedArchive(string filePath)
-        {
-            string extension = Path.GetExtension(filePath).ToLower();
-            return (extension == ".zip" || extension == ".rar" || extension == ".tar" ||
-                    extension == ".gz" || extension == ".7z");
-        }
-
-        public static bool ExtractToHTTPFolder(string sourceFolder, string destinationFolder)
-        {
-            // Check if the source folder exists
-            if (!Directory.Exists(sourceFolder))
-            {
-                Console.WriteLine("HTTP : Source folder does not exist.");
-                return false;
-            }
-
-            // Check if the destination folder exists
-            if (!Directory.Exists(destinationFolder))
-            {
-                Console.WriteLine("HTTP : Destination folder does not exist.");
-                return false;
-            }
-
-            // Get all archive files in the source folder
-            string[] archiveFiles = Directory.GetFiles(sourceFolder, "*.*")
-                                             .Where(file => IsSupportedArchive(file))
-                                             .ToArray();
-
-            // Extract files from each archive
-            foreach (string archiveFile in archiveFiles)
-            {
-                string extension = Path.GetExtension(archiveFile).ToLower();
-                string fileName = Path.GetFileNameWithoutExtension(archiveFile);
-                string destinationPath = Path.Combine(destinationFolder, fileName);
-
-                try
-                {
-                    // Check if the destination folder exists
-                    if (!Directory.Exists(destinationPath))
-                    {
-                        Directory.CreateDirectory(destinationPath);
-                    }
-
-                    // Extract the archive based on its extension
-                    using (var archive = Misc.GetArchiveReader(archiveFile))
-                    {
-                        if (archive != null)
-                        {
-                            foreach (var entry in archive.Entries)
-                            {
-                                if (!entry.IsDirectory)
-                                {
-                                    entry.WriteToDirectory(destinationPath, new ExtractionOptions() { ExtractFullPath = true, Overwrite = true });
-                                }
-                            }
-                        }
-                    }
-
-                    Console.WriteLine($"HTTP : Successfully extracted {extension.ToUpper()} file: {archiveFile}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"HTTP : Error extracting {extension.ToUpper()} file: {archiveFile}\n{ex.Message}");
-                }
-            }
-
-            return true;
-        }
-
         public void Start()
         {
             string currentDir = Directory.GetCurrentDirectory();
+			
+			if (ServerConfiguration.EnableDNSServer)
+            {
+                MitmDNS.MitmDNSClass.MitmDNSMain();
+            }
 
             if (ServerConfiguration.EnableHttpServer)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
 
-                if (Directory.Exists($"{currentDir}/HTTPServer_Archives/"))
-                    ExtractToHTTPFolder($"{currentDir}/HTTPServer_Archives/", $"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
+                PoodleHTTP.HTTPPrivateKey.setup();
 
-                HTTPPrivateKey.setup();
+                PoodleHTTP.Addons.PlayStationHome.PrepareFolder.Prepare();
 
-                PrepareFolder.Prepare();
+                if (ServerConfiguration.HTTPS)
+                {
+                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
+                    {
+                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem",
+                        Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
 
-                var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
+                        ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
+                    }
 
-                server
-                    .Use(Middlewares.Log)
-                    .Use(Middlewares.Execute)
-                    .Use(Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+                    var server = new PoodleHTTP.Server(ServerConfiguration.HTTPSBindIp, 443);
 
-                server.Start();
+                    server
+                        .Use(PoodleHTTP.Middlewares.Log)
+                        .Use(PoodleHTTP.Middlewares.Execute)
+                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                    server.Start();
+                }
+                else
+                {
+                    var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
+
+                    server
+                        .Use(PoodleHTTP.Middlewares.Log)
+                        .Use(PoodleHTTP.Middlewares.Execute)
+                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                    server.Start();
+                }
 
                 var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
 
                 serverhomebetacdn
-                    .Use(Middlewares.Log)
-                    .Use(Middlewares.Execute)
-                    .Use(Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
+                    .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
 
                 serverhomebetacdn.Start();
             }
 
             if (ServerConfiguration.EnableSSFW)
             {
+                Directory.CreateDirectory($"{currentDir}{ServerConfiguration.SSFWStaticFolder}");
+
                 PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
 
                 var server = new PoodleHTTP.Server("*", 10443);
 
                 server
-                    .Use(Middlewares.Log)
-                    .Use(Middlewares.Execute)
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
                     .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
 
                 server.Start();
@@ -258,22 +240,29 @@ namespace PSMultiServer
                 var server = new PoodleHTTP.Server("*", 10060);
 
                 server
-                    .Use(Middlewares.Log)
-                    .Use(Middlewares.Execute)
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
                     .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
 
                 server.Start();
 
-                Task.Run(() => PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling());
+                var server2 = new PoodleHTTP.Server("*", 10061);
+
+                server2
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
+                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
+
+                server2.Start();
+
+                Task.Run(PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling);
             }
 
             if (ServerConfiguration.EnableMedius)
             {
-                Parallel.Invoke(
-                    async () => await MediusClass.MediusMain(),
-                    async () => await MuisClass.MuisMain(),
-                    async () => await DmeClass.DmeMain()
-                );
+                Addons.Horizon.MUIS.MuisClass.MuisMain();
+                Addons.Horizon.MEDIUS.MediusClass.MediusMain();
+                Addons.Horizon.DME.DmeClass.DmeMain();
             }
 
             return;
@@ -286,6 +275,14 @@ namespace PSMultiServer
         /// </summary>
         static void Main()
         {
+            if (Misc.IsWindows())
+                if (!Misc.IsAdministrator())
+                {
+                    Console.WriteLine("[MultiServer] - Trying to restart as admin");
+                    if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
+                        Environment.Exit(0);
+                }
+
             ServerConfiguration.SetupLogger();
 
             try
@@ -316,22 +313,6 @@ namespace PSMultiServer
 
                 Console.ReadKey();
             }
-        }
-
-        private bool IsPortOpen(string host, int port)
-        {
-            TcpConnectionInformation[] tcpConnections = IPGlobalProperties.GetIPGlobalProperties()
-                .GetActiveTcpConnections();
-
-            foreach (TcpConnectionInformation connection in tcpConnections)
-            {
-                if (connection.LocalEndPoint.Port == port && connection.RemoteEndPoint.Address.ToString() == host)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

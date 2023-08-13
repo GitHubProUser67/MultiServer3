@@ -49,7 +49,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                     {
                                         region = request.Url.Query.Substring(8);
                                     }
-                                    catch (Exception ex)
+                                    catch (Exception)
                                     {
                                         region = "en-US";
                                     }
@@ -106,7 +106,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = uriStore.Length;
                                             ros.Write(uriStore, 0, uriStore.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -146,7 +146,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                         {
                                             region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             region = "en-US";
                                         }
@@ -168,7 +168,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                 response.ContentLength64 = eulaCheck.Length;
                                                 ros.Write(eulaCheck, 0, eulaCheck.Length);
                                             }
-                                            catch (Exception ex)
+                                            catch (Exception)
                                             {
                                                 // Not Important;
                                             }
@@ -206,7 +206,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                         {
                                             region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             region = "en-US";
                                         }
@@ -233,7 +233,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                 response.ContentLength64 = unityNpLogin.Length;
                                                 ros.Write(unityNpLogin, 0, unityNpLogin.Length);
                                             }
-                                            catch (Exception ex)
+                                            catch (Exception)
                                             {
                                                 // Not Important;
                                             }
@@ -271,7 +271,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                         {
                                             region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             region = "en-US";
                                         }
@@ -298,7 +298,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                 response.ContentLength64 = unityNpLogin.Length;
                                                 ros.Write(unityNpLogin, 0, unityNpLogin.Length);
                                             }
-                                            catch (Exception ex)
+                                            catch (Exception)
                                             {
                                                 // Not Important;
                                             }
@@ -339,7 +339,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                     {
                                         region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                     }
-                                    catch (Exception ex)
+                                    catch (Exception)
                                     {
                                         region = "en-US";
                                     }
@@ -361,7 +361,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = eulaDisplay.Length;
                                             ros.Write(eulaDisplay, 0, eulaDisplay.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -400,7 +400,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                     {
                                         region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                     }
-                                    catch (Exception ex)
+                                    catch (Exception)
                                     {
                                         region = "en-US";
                                     }
@@ -427,7 +427,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = unityNpLogin.Length;
                                             ros.Write(unityNpLogin, 0, unityNpLogin.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -538,7 +538,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = sp_Login.Length;
                                             ros.Write(sp_Login, 0, sp_Login.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -584,7 +584,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = Medius_Announcement_Read.Length;
                                             ros.Write(Medius_Announcement_Read, 0, Medius_Announcement_Read.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -634,7 +634,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = homeEnterWorld.Length;
                                             ros.Write(homeEnterWorld, 0, homeEnterWorld.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -681,7 +681,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = homeEnterWorld.Length;
                                             ros.Write(homeEnterWorld, 0, homeEnterWorld.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -748,7 +748,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = xmlMessage.Length;
                                             ros.Write(xmlMessage, 0, xmlMessage.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -831,7 +831,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                     response.ContentLength64 = strArr.Length;
                                                     ros.Write(strArr, 0, strArr.Length);
                                                 }
-                                                catch (Exception ex)
+                                                catch (Exception)
                                                 {
                                                     // Not Important;
                                                 }
@@ -910,7 +910,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = xmlMessage.Length;
                                             ros.Write(xmlMessage, 0, xmlMessage.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -985,7 +985,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = xmlMessage.Length;
                                             ros.Write(xmlMessage, 0, xmlMessage.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }
@@ -1046,7 +1046,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 ros.Write(xmlMessage, 0, xmlMessage.Length);
                                             }
-                                            catch (Exception ex)
+                                            catch (Exception)
                                             {
                                                 // Not Important;
                                             }
@@ -1078,7 +1078,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 ros.Write(xmlMessage, 0, xmlMessage.Length);
                                             }
-                                            catch (Exception ex)
+                                            catch (Exception)
                                             {
                                                 // Not Important;
                                             }
@@ -1110,7 +1110,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 ros.Write(xmlMessage, 0, xmlMessage.Length);
                                             }
-                                            catch (Exception ex)
+                                            catch (Exception)
                                             {
                                                 // Not Important;
                                             }
@@ -1168,7 +1168,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO.Games
                                             response.ContentLength64 = xmlMessage.Length;
                                             ros.Write(xmlMessage, 0, xmlMessage.Length);
                                         }
-                                        catch (Exception ex)
+                                        catch (Exception)
                                         {
                                             // Not Important;
                                         }

@@ -7,7 +7,7 @@
     <Nullable>warnings</Nullable>
     <Platforms>AnyCPU;ARM32;ARM64;x64</Platforms>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 80:80 -p 443:443 -p 10443:10443 -p 10060:10060 -p 10061:10061 -p 10061:10061 -p 50100:50100 -p 10075:10075 -p 10077:10077 -p 10073:10073 -p 50000:50000 -p 10070:10070 -p 3101:3101 -p 10072:10072 -p 2222:2222 -p 10373:10373 -p 10372:10372 -p 10079:10079 -p 10078:10078 -p 10076:10076 -p 10071:10071 -p 10080:10080</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 80:80 -p 53:53 -p 443:443 -p 10443:10443 -p 10060:10060 -p 10061:10061 -p 50100:50100 -p 10075:10075 -p 10077:10077 -p 10073:10073 -p 50000:50000 -p 10070:10070 -p 3101:3101 -p 10072:10072 -p 2222:2222 -p 10373:10373 -p 10372:10372 -p 10079:10079 -p 10078:10078 -p 10076:10076 -p 10071:10071 -p 10080:10080</DockerfileRunArguments>
 	<StartupObject>PSMultiServer.Program</StartupObject>
   </PropertyGroup>
 
@@ -18,20 +18,22 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="DotNetty.Buffers" Version="0.7.5" />
-    <PackageReference Include="DotNetty.Codecs" Version="0.7.5" />
-    <PackageReference Include="DotNetty.Common" Version="0.7.5" />
-    <PackageReference Include="DotNetty.Handlers" Version="0.7.5" />
-    <PackageReference Include="DotNetty.Transport" Version="0.7.5" />
+    <PackageReference Include="Google.Apis" Version="1.61.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.61.0" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.61.0.3141" />
     <PackageReference Include="HighPrecisionTimeStamps" Version="1.0.0.6" />
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLua" Version="1.6.3" />
     <PackageReference Include="NReco.Logging.File" Version="1.1.6" />
-    <PackageReference Include="SharpCompress" Version="0.33.0" />
+    <PackageReference Include="SpanNetty.Buffers" Version="0.7.2012.2221" />
+    <PackageReference Include="SpanNetty.Codecs" Version="0.7.2012.2221" />
+    <PackageReference Include="SpanNetty.Common" Version="0.7.2012.2221" />
+    <PackageReference Include="SpanNetty.Handlers" Version="0.7.2012.2221" />
+    <PackageReference Include="SpanNetty.Transport" Version="0.7.2012.2221" />
     <PackageReference Include="System.Management" Version="7.0.2" />
   </ItemGroup>
 

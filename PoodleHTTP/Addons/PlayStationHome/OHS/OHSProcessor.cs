@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 {
@@ -482,6 +483,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
                 return null;
             }
         }
+
         public static Scoreboard GenerateSampleScoreboard(int numEntries)
         {
             Scoreboard scoreboard = new Scoreboard();
@@ -506,7 +508,69 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS
 
             return scoreboard;
         }
+
+        public static string CalculateMD5HashToExadecimal(string input)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+                // Convert the byte array to a hexadecimal string
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hashBytes.Length; i++)
+                {
+                    sb.Append(hashBytes[i].ToString("x2"));
+                }
+
+                return sb.ToString();
+            }
+        }
+
+        public static string GetFirstEightCharacters(string input)
+        {
+            if (input.Length >= 8)
+            {
+                return input.Substring(0, 8);
+            }
+            else
+            {
+                // If the input is less than 8 characters, you can handle it accordingly
+                // For simplicity, let's just pad with zeros in this case
+                return input.PadRight(8, '0');
+            }
+        }
     }
+    public static class ScoreboardNameGenerator
+    {
+        private static Random random = new Random();
+
+        // List of silly French-sounding words to be used in the names
+        private static string[] sillyFrenchWords = { "Croissant", "Baguette", "Fougasse", "TarteAuFromage", "Tabernack", "UnePetiteContine", "ChuckNorris", "Pamplemousse", "JimCarrey", "Fromage" };
+
+        public static string GenerateRandomName()
+        {
+            return sillyFrenchWords[random.Next(0, sillyFrenchWords.Length)];
+        }
+    }
+
+    public static class UniqueNumberGenerator
+    {
+        // Function to generate a unique number based on a string using MD5
+        public static int GenerateUniqueNumber(string inputString)
+        {
+            using (MD5 md5Hash = MD5.Create())
+            {
+                byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
+
+                // To get a small integer within Lua int bounds, take the least significant 16 bits of the hash and convert to int16
+                int uniqueNumber = Math.Abs(BitConverter.ToUInt16(data, 0));
+
+                return uniqueNumber;
+            }
+        }
+    }
+
     public class ScoreboardEntry
     {
         public string Name { get; set; }

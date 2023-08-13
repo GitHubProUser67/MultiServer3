@@ -23,7 +23,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<TcpServer>();
 
-        public bool IsRunning => _boundChannel != null && _boundChannel.Active;
+        public bool IsRunning => _boundChannel != null && _boundChannel.IsActive;
 
         public int Port => DmeClass.Settings.TCPPort;
 

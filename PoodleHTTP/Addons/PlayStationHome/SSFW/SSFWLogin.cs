@@ -45,7 +45,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                     }
                 }
 
-                if (await Task.Run(() => Misc.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E })) && !ServerConfiguration.SSFWCrossSave)
+                if (Misc.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) && !ServerConfiguration.SSFWCrossSave)
                 {
                     ServerConfiguration.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
 
@@ -174,7 +174,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                         response.OutputStream.Write(buffer, 0, buffer.Length);
                         response.OutputStream.Close();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Not Important.
                     }

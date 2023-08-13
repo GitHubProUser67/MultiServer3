@@ -69,7 +69,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
         /// <summary>
         /// 
         /// </summary>
-        public RT_RECV_FLAG RecvFlag { get; set; } = RT_RECV_FLAG.RECV_SINGLE;
+        public RT_RECV_FLAG RecvFlag { get; set; } = RT_RECV_FLAG.RECV_SINGLE | RT_RECV_FLAG.RECV_LIST;
 
         /// <summary>
         /// 
@@ -126,9 +126,14 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
         /// </summary>
         long? LastAggTime { get; set; } = null;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasJoined { get; set; } = false;
+
         public virtual bool IsConnectingGracePeriod => !TimeAuthenticated.HasValue && (Utils.GetHighPrecisionUtcTime() - TimeCreated).TotalSeconds < DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         public virtual bool Timedout => !IsConnectingGracePeriod && ((Utils.GetHighPrecisionUtcTime() - UtcLastServerEchoReply).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds);
-        public virtual bool IsConnected => !Disconnected && !Timedout && Tcp != null && Tcp.Active;
+        public virtual bool IsConnected => !Disconnected && !Timedout && Tcp != null && Tcp.IsActive;
         public virtual bool IsAuthenticated => TimeAuthenticated.HasValue;
         public virtual bool Destroy => Disconnected || (!IsConnected && !IsConnectingGracePeriod);
         public virtual bool IsDestroyed { get; protected set; } = false;
@@ -187,7 +192,8 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
             // so instead we'll increment our timeout dates by the client echo
             if (MediusVersion <= 108)
             {
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(-1);
+                // reply must be before sent for the timeout to work
+                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
                 UtcLastServerEchoReply = Utils.GetHighPrecisionUtcTime();
             }
         }

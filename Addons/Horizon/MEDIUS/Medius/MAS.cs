@@ -64,7 +64,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerComplete = new List<int>() { 10683, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
@@ -1299,7 +1299,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                         else if (Utils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
                                         {
-                                            await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
+                                            await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, accountLoginRequest.Username, false);
                                         }
                                         else
                                         {
@@ -1359,7 +1359,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                                     Player = data.ClientObject,
                                                     Request = accountLoginRequest
                                                 });
-                                                await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
+                                                await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, accountLoginRequest.Username, false);
                                             }
                                             else
                                             {
@@ -1566,7 +1566,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                             }
                                             #endregion
 
-                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, ticketLoginRequest.UserOnlineId, true);
                                         }
                                         else
                                         {
@@ -1602,7 +1602,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                                 if (r.IsCompletedSuccessfully && r.Result != null)
                                                 {
-                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, ticketLoginRequest.UserOnlineId, true);
                                                 }
                                                 else
                                                 {
@@ -2241,14 +2241,14 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         }
 
         #region Login
-        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, Server.Database.Models.AccountDTO accountDto, bool ticket)
+        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, Server.Database.Models.AccountDTO accountDto, string requestedName, bool ticket)
         {
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
-            List<int> pre108Secure = new List<int>() { 10124, 10680 };
+            List<int> pre108Secure = new List<int>() { 10683, 10124, 10680 };
 
-            //
+            accountDto.AccountName = requestedName;
             await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID
@@ -2260,9 +2260,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             // Add to logged in clients
             MediusClass.Manager.AddClient(data.ClientObject);
 
-            // 
             ServerConfiguration.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
-
 
             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
 

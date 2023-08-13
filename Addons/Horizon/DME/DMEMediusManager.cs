@@ -18,7 +18,7 @@ namespace PSMultiServer.Addons.Horizon.DME
     {
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<DMEMediusManager>();
 
-        public bool IsConnected => _mpsChannel != null && _mpsChannel.Active && _mpsState > 0;
+        public bool IsConnected => _mpsChannel != null && _mpsChannel.IsActive && _mpsState > 0;
         public DateTime? TimeLostConnection { get; set; } = null;
         public int ApplicationId { get; } = 0;
 
@@ -262,7 +262,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                 return;
             }
 
-            if (!_mpsChannel.Active)
+            if (!_mpsChannel.IsActive)
                 return;
 
             _mpsState = MPSConnectionState.CONNECTED;
@@ -369,7 +369,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                     }
                 case RT_MSG_SERVER_APP serverApp:
                     {
-                        ProcessMediusMessage(serverApp.Message, serverChannel);
+                        await ProcessMediusMessage(serverApp.Message, serverChannel);
                         break;
                     }
 
@@ -391,7 +391,7 @@ namespace PSMultiServer.Addons.Horizon.DME
             return;
         }
 
-        private void ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel)
+        private async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel)
         {
             if (message == null)
                 return;
@@ -438,15 +438,21 @@ namespace PSMultiServer.Addons.Horizon.DME
                         var world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
                         if (world == null)
                         {
-
-
                             if (ApplicationId == 20371)
                             {
                                 World worldHome = new World(this, 20371, 256);
                                 _worlds.Add(worldHome);
 
 
-                                Enqueue(worldHome.OnJoinGameRequest(joinGameRequest));
+                                Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
+                            }
+                            else if (ApplicationId == 20374)
+                            {
+                                World worldHome = new World(this, 20374, 256);
+                                _worlds.Add(worldHome);
+
+
+                                Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
                             }
                             else
                             {
@@ -460,7 +466,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                         }
                         else
                         {
-                            Enqueue(world.OnJoinGameRequest(joinGameRequest));
+                            Enqueue(await world.OnJoinGameRequest(joinGameRequest));
                         }
                         break;
                     }

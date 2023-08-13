@@ -96,7 +96,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                                     response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                                     response.OutputStream.Close();
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Not Important.
                                 }

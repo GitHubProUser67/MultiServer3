@@ -12,7 +12,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             {
                 string id = "";
 
-                string boundary = Misc.ExtractBoundary(request.ContentType);
+                string boundary = Extensions.ExtractBoundary(request.ContentType);
 
                 // Get the input stream from the context
                 Stream inputStream = request.InputStream;
@@ -48,7 +48,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                     response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                     response.OutputStream.Close();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Not Needed.
                 }
@@ -73,7 +73,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             string objectid = "";
             string objectname = "";
 
-            string boundary = Misc.ExtractBoundary(request.ContentType);
+            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
             // Get the input stream from the context
             Stream inputStream = request.InputStream;
@@ -137,7 +137,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                     response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                     response.OutputStream.Close();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Not Important.
                 }
@@ -148,7 +148,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
         {
             string usage = "";
 
-            string boundary = Misc.ExtractBoundary(request.ContentType);
+            string boundary = Extensions.ExtractBoundary(request.ContentType);
 
             // Get the input stream from the context
             Stream inputStream = request.InputStream;
@@ -181,7 +181,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
                     response.OutputStream.Write(clientresponse, 0, clientresponse.Length);
                     response.OutputStream.Close();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Not Important.
                 }

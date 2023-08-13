@@ -5,7 +5,6 @@ using PSMultiServer.Addons.Horizon.RT.Models;
 using PSMultiServer.Addons.Horizon.Server.Common;
 using PSMultiServer.Addons.Horizon.Server.Database.Config;
 using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using System.Reflection;
 using System.Text;
 using System.Web;
 
@@ -58,13 +57,10 @@ namespace PSMultiServer.Addons.Horizon.Server.Database
             {
                 #region Create Dir and Save Default db config
                 // If Logs directory does not exist, create it. 
-                if (!Directory.Exists(configFile))
-                {
-                    Directory.CreateDirectory(configfolder);
+                Directory.CreateDirectory(configfolder);
 
-                    // Save default db config
-                    File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings, Formatting.Indented));
-                }
+                // Save default db config
+                File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings, Formatting.Indented));
                 #endregion
             }
         }
@@ -178,6 +174,23 @@ namespace PSMultiServer.Addons.Horizon.Server.Database
                         IsBanned = false
                     });
                     */
+
+                    AccountDTO ftb3Mod;
+                    _simulatedAccounts.Add(ftb3Mod = new AccountDTO()
+                    {
+                        AccountId = 2,
+                        AccountName = "ftb3 Moderator_0",
+                        AccountPassword = "",
+                        AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
+                        AccountCustomWideStats = new int[1000],
+                        AppId = 21694,
+                        MachineId = "",
+                        MediusStats = "",
+                        Friends = new AccountRelationDTO[0],
+                        Ignored = new AccountRelationDTO[0],
+                        IsBanned = false
+                    });
+
                     result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && x.AccountName.ToLower() == name.ToLower());
                 }
                 else
@@ -3126,6 +3139,22 @@ namespace PSMultiServer.Addons.Horizon.Server.Database
                             GenericFieldFilter = 1
                         },
                         */
+
+                        // Ratchet UYA PS2
+
+                        new ChannelDTO()
+                        {
+                            AppId = 10683,
+                            Id = 1,
+                            Name = "CY00000000-00",
+                            MaxPlayers = 512,
+                            GenericField1 = 0,
+                            GenericField2 = 1,
+                            GenericField3 = 0,
+                            GenericField4 = 0,
+                            GenericFieldFilter = 32
+                        },
+
                         new ChannelDTO()
                         {
                             AppId = 20624,

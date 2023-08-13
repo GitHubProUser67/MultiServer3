@@ -10,6 +10,9 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO
     {
         private static int _ticks = 0;
 
+        public static int TickRate { get; set; } = ServerConfiguration.SVODBTickrate;
+        public static int TickMS => 1000 / TickRate;
+
         private static int sleepMS = 0;
 
         private static Stopwatch _sw = new Stopwatch();
@@ -49,10 +52,10 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO
                     // 
                     _sw.Stop();
                     float tps = _ticks / (float)_sw.Elapsed.TotalSeconds;
-                    float error = MathF.Abs(ServerConfiguration.SVODBTickrate - tps) / ServerConfiguration.SVODBTickrate;
+                    float error = MathF.Abs(TickRate - tps) / TickRate;
 
                     if (error > 0.1f)
-                        ServerConfiguration.LogError($"Average TickRate Per Second: {tps} is {error * 100}% off of target {ServerConfiguration.SVODBTickrate}");
+                        ServerConfiguration.LogError($"Average TickRate Per Second: {tps} is {error * 100}% off of target {TickRate}");
                     //var dt = DateTime.UtcNow - Utils.GetHighPrecisionUtcTime();
                     //if (Math.Abs(dt.TotalMilliseconds) > 50)
                     //    ServerConfiguration.LogError($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
@@ -103,37 +106,35 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO
             }
         }
 
-        public static async Task StartTickPooling()
+        public static async void StartTickPooling()
         {
-            int waitMs = sleepMS;
-
-            ServerConfiguration.LogInfo($"[SVO] - Tick Pooling Started. . .");
-
-            #region Timer
-            // start timer
-            _timer.SetPeriod(waitMs);
-            _timer.Start();
-
-            // iterate
-            while (true)
+            await Task.Run(async () =>
             {
-                // handle tick rate change
-                if (sleepMS != waitMs)
+                int waitMs = TickMS;
+
+                // start timer
+                _timer = new PSMultiServer.Addons.Timer.HighResolutionTimer();
+                _timer.SetPeriod(waitMs);
+                _timer.Start();
+
+                while (true)
                 {
-                    waitMs = sleepMS;
-                    _timer.Stop();
-                    _timer.SetPeriod(waitMs);
-                    _timer.Start();
+                    // handle tick rate change
+                    if (TickMS != waitMs)
+                    {
+                        waitMs = TickMS;
+                        _timer.Stop();
+                        _timer.SetPeriod(waitMs);
+                        _timer.Start();
+                    }
+
+                    // tick
+                    await TickAsync();
+
+                    // wait for next tick
+                    _timer.WaitForTrigger();
                 }
-
-                // tick
-                await TickAsync();
-
-                // wait for next tick
-                _timer.WaitForTrigger();
-            }
-
-            #endregion
+            });
         }
 
         public static Middleware<Context> StaticSVORoot(string route, string userAgentdrm)
@@ -196,7 +197,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO
                                 response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 response.Headers.Set("Content-Language", "");
 
-                                string boundary = Misc.ExtractBoundary(request.ContentType);
+                                string boundary = PoodleHTTP.Extensions.ExtractBoundary(request.ContentType);
 
                                 var data = MultipartFormDataParser.Parse(request.InputStream, boundary);
 
@@ -225,9 +226,14 @@ namespace PSMultiServer.PoodleHTTP.Addons.SVO
                         break;
                     }
                     break;
+
                 default:
                     if (absolutepath.Contains("/HUBPS3_SVML"))
                         await Games.PlayStationHome.Home_SVO(request, response);
+                    else if (absolutepath.Contains("/motorstorm3ps3_xml"))
+                        await Games.MotorStormApocalypse.MSApocalypse_SVO(request, response);
+                    else if (absolutepath.Contains("/wox_ws"))
+                        await Games.WipeoutHD.WipeoutHD_SVO(request, response);
                     else
                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                     break;

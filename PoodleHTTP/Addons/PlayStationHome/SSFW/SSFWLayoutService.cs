@@ -77,7 +77,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                             response.OutputStream.Write(layout, 0, layout.Length);
                             response.OutputStream.Close();
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             // Not Important
                         }

@@ -96,7 +96,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                                     response.OutputStream.Write(byteresponse, 0, byteresponse.Length);
                                     response.OutputStream.Close();
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Not Important
                                 }
@@ -114,7 +114,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                                     response.OutputStream.Write(byteresponse, 0, byteresponse.Length);
                                     response.OutputStream.Close();
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Not Important
                                 }
@@ -132,7 +132,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW
                                     response.OutputStream.Write(byteresponse, 0, byteresponse.Length);
                                     response.OutputStream.Close();
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Not Important
                                 }

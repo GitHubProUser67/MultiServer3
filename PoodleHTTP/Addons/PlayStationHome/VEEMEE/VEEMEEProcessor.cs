@@ -11,7 +11,7 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
         {
             var sha1 = SHA1.Create();
 
-            byte[] hashBytes = sha1.ComputeHash(Misc.ConcatenateByteArrays(Encoding.UTF8.GetBytes("veemeeHTTPRequ9R3UMWDAT8F3*#@&$^"), Encoding.UTF8.GetBytes(data)));
+            byte[] hashBytes = sha1.ComputeHash(Misc.Combinebytearay(Encoding.UTF8.GetBytes("veemeeHTTPRequ9R3UMWDAT8F3*#@&$^"), Encoding.UTF8.GetBytes(data)));
 
             sha1.Dispose();
 
@@ -201,6 +201,18 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE
             await FileHelper.CryptoWriteAsync(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}HOME_VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(profile));
 
             return VEEMEEProcessor.sign(profile);
+        }
+    }
+
+    // Custom comparer to sort file names numerically
+    public class SlotFileComparer : IComparer<string>
+    {
+        public int Compare(string x, string y)
+        {
+            int slotNumberX = int.Parse(Path.GetFileNameWithoutExtension(x));
+            int slotNumberY = int.Parse(Path.GetFileNameWithoutExtension(y));
+
+            return slotNumberX.CompareTo(slotNumberY);
         }
     }
 }
