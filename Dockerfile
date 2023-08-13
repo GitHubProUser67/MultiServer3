@@ -5,10 +5,10 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["PSMultiServer/PSMultiServer.csproj", "PSMultiServer/"]
+COPY ["PSMultiServer.csproj", "PSMultiServer/"]
 RUN dotnet restore "PSMultiServer/PSMultiServer.csproj"
 COPY . .
-WORKDIR "/src/PSMultiServer"
+WORKDIR "/src/"
 RUN dotnet build "PSMultiServer.csproj" -c Release -o /app/build
 
 FROM build AS publish
