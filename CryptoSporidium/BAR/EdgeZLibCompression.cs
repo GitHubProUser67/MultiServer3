@@ -1,4 +1,4 @@
-using ComponentAce.Compression.Libs.zlib;
+using PSMultiServer.Addons.ComponentAce.Compression.Libs.zlib;
 
 namespace PSMultiServer.CryptoSporidium.BAR
 {
@@ -34,7 +34,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         private byte[] CompressChunk(byte[] InData)
         {
             MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9/*, true*/);
+            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, true);
             zoutputStream.Write(InData, 0, InData.Length);
             zoutputStream.Close();
             memoryStream.Close();
@@ -87,7 +87,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
                 return inData;
             }
             MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream/*, true*/);
+            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, true);
             byte[] array = new byte[inData.Length];
             Array.Copy(inData, 0, array, 0, inData.Length);
             zoutputStream.Write(array, 0, array.Length);

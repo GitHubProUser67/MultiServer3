@@ -1,4 +1,4 @@
-using ComponentAce.Compression.Libs.zlib;
+using PSMultiServer.Addons.ComponentAce.Compression.Libs.zlib;
 
 namespace PSMultiServer.CryptoSporidium.BAR
 {
@@ -8,7 +8,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             byte[] result = null;
             MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9/*, NoHeader*/);
+            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, NoHeader);
             try
             {
                 zoutputStream.Write(inData, 0, inData.Length);
@@ -29,7 +29,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         internal static byte[] Decompress(byte[] inData, bool NoHeader)
         {
             MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream/*, NoHeader*/);
+            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, NoHeader);
             zoutputStream.Write(inData, 0, inData.Length);
             zoutputStream.Close();
             memoryStream.Close();
