@@ -1,14 +1,5 @@
-﻿using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.HELLFIREGAMES;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.NDREAMS;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.OHS;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.VEEMEE;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Web;
-using System;
-using System.Net.Http;
 
 namespace PSMultiServer.PoodleHTTP
 {
@@ -45,7 +36,7 @@ namespace PSMultiServer.PoodleHTTP
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogError($"Unexpected exception occurred - {ex}", ex);
+                ServerConfiguration.LogError($"Unexpected exception occurred - {ex}");
                 response.StatusCode = ex switch
                 {
                     FileNotFoundException => 404,
@@ -71,7 +62,7 @@ namespace PSMultiServer.PoodleHTTP
             };
         }
 
-        public static Middleware<Context> StaticRoot(string route, string rootDir, string userAgentdrm)
+        public static Middleware<Context> StaticRoot(string route, string userAgentdrm)
         {
             return async (ctx, next) =>
             {
@@ -108,21 +99,21 @@ namespace PSMultiServer.PoodleHTTP
                         string requesthost = ctx.Request.Headers["Host"];
 
                         if (requesthost != null && requesthost == "sonyhome.thqsandbox.com")
-                            await UFCClass.processrequest(ctx.Request, ctx.Response);
+                            await Addons.PlayStationHome.UFC.UFCClass.processrequest(ctx.Request, ctx.Response);
                         else if (absolutepath.Contains("/ohs") || requesthost == "stats.outso-srv1.com")
-                            await OHSClass.processrequest(ctx.Request, ctx.Response);
+                            await Addons.PlayStationHome.OHS.OHSClass.processrequest(ctx.Request, ctx.Response);
                         else if ((requesthost == "away.veemee.com" || requesthost == "home.veemee.com") && absolutepath.EndsWith(".php"))
-                            await VEEMEEClass.processrequest(ctx.Request, ctx.Response);
+                            await Addons.PlayStationHome.VEEMEE.VEEMEEClass.processrequest(ctx.Request, ctx.Response);
                         else if (requesthost == "game2.hellfiregames.com" && (absolutepath.EndsWith(".php") || absolutepath == "/Postcards/"))
-                            await HELLFIREGAMESClass.processrequest(ctx.Request, ctx.Response);
+                            await Addons.PlayStationHome.HELLFIREGAMES.HELLFIREGAMESClass.processrequest(ctx.Request, ctx.Response);
                         else if (requesthost == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
-                            await NDREAMSClass.processrequest(ctx.Request, ctx.Response);
+                            await Addons.PlayStationHome.NDREAMS.NDREAMSClass.processrequest(ctx.Request, ctx.Response);
                         else
                             specialrequest = false;
                     }
                     else if (absolutepath.EndsWith(".php"))
                     {
-                        if (!Directory.Exists(Directory.GetCurrentDirectory() + "/static/PHP"))
+                        if (!Directory.Exists(Directory.GetCurrentDirectory() + ServerConfiguration.PHPStaticFolder))
                         {
                             byte[] fileBuffer = Encoding.UTF8.GetBytes(PreMadeWebPages.phpnotenabled);
 
@@ -200,10 +191,10 @@ namespace PSMultiServer.PoodleHTTP
                         string[] segments = url.Trim('/').Split('/');
 
                         // Combine the folder segments into a directory path
-                        string directoryPath = Path.Combine(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.HTTPStaticFolder}", string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                        string directoryPath = Path.Combine(Directory.GetCurrentDirectory() + ServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                         // Process the request based on the HTTP method
-                        string filePath = Path.Combine(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.HTTPStaticFolder}", url.Substring(1));
+                        string filePath = Path.Combine(Directory.GetCurrentDirectory() + ServerConfiguration.HTTPStaticFolder, url.Substring(1));
 
                         switch (ctx.Request.HttpMethod)
                         {

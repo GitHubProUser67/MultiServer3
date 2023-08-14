@@ -366,31 +366,14 @@ namespace PSMultiServer.PoodleHTTP
                         }
                         else
                         {
-                            // Set the Keep-Alive header in the response
-                            response.KeepAlive = true;
-                            // Set the Chunked header in the response
-                            response.SendChunked = true;
-
                             response.ContentLength64 = buffer.Length;
 
                             if (response.OutputStream.CanWrite)
                             {
                                 try
                                 {
-                                    using (MemoryStream memoryStream = new MemoryStream(buffer))
-                                    {
-                                        byte[] tempbuffer = new byte[response.ContentLength64];
-                                        int bytesRead = 0;
-
-                                        while ((bytesRead = memoryStream.Read(tempbuffer, 0, tempbuffer.Length)) > 0)
-                                        {
-                                            response.OutputStream.Write(tempbuffer, 0, bytesRead);
-                                            response.OutputStream.Flush();
-                                        }
-
-                                        memoryStream.Close();
-                                    }
-
+                                    response.ContentLength64 = buffer.Length;
+                                    response.OutputStream.Write(buffer, 0, buffer.Length);
                                     response.OutputStream.Close();
                                 }
                                 catch (Exception)

@@ -87,7 +87,7 @@ namespace PSMultiServer.PoodleHTTP
                         HttpListenerContext context = await _listener.GetContextAsync();
                         Context ctx = new(context.Request, context.Response);
 
-                        _middleware.Run(ctx);
+                        Task.Run(() => _middleware.Run(ctx));
                     }
                     catch (IOException e)
                     {

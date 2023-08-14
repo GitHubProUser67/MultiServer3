@@ -189,7 +189,7 @@ namespace PSMultiServer
                     server
                         .Use(PoodleHTTP.Middlewares.Log)
                         .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", null));
 
                     server.Start();
                 }
@@ -200,7 +200,7 @@ namespace PSMultiServer
                     server
                         .Use(PoodleHTTP.Middlewares.Log)
                         .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", null));
 
                     server.Start();
                 }
@@ -210,7 +210,7 @@ namespace PSMultiServer
                 serverhomebetacdn
                     .Use(PoodleHTTP.Middlewares.Log)
                     .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+                    .Use(PoodleHTTP.Middlewares.StaticRoot("/", null));
 
                 serverhomebetacdn.Start();
             }
