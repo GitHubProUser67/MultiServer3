@@ -291,12 +291,12 @@ namespace PSMultiServer
         /// </summary>
         static void Main()
         {
-            ServerConfiguration.LogInfo("[PSMultiServer] - Server starting, after startup, press any key to shutdown the server.");
+            Console.WriteLine("[PSMultiServer] - Server starting, after startup, press any key to shutdown the server.");
 
             if (Misc.IsWindows())
                 if (!Misc.IsAdministrator())
                 {
-                    ServerConfiguration.LogInfo("[PSMultiServer] - Trying to restart as admin");
+                    Console.WriteLine("[PSMultiServer] - Trying to restart as admin");
                     if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                         Environment.Exit(0);
                 }
@@ -320,7 +320,7 @@ namespace PSMultiServer
                     if (input == 'y')
                     {
                         ServerConfiguration.LogInfo("Shutting down. Goodbye!");
-                        Environment.Exit(0);
+                        break;
                     }
                 }
             }
@@ -330,9 +330,9 @@ namespace PSMultiServer
                 ServerConfiguration.LogError(ex);
 
                 Console.ReadKey();
-
-                Environment.Exit(0);
             }
+
+            Environment.Exit(0);
         }
     }
 }
