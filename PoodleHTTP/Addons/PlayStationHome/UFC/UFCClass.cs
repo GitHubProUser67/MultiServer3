@@ -39,9 +39,6 @@ namespace PSMultiServer.PoodleHTTP.Addons.PlayStationHome.UFC
 
                                 var data = MultipartFormDataParser.Parse(copyStream, boundary);
 
-                                // Reset the position of the copy stream to the beginning
-                                copyStream.Position = 0;
-
                                 string val2 = "";
 
                                 string func = data.GetParameterValue("func");

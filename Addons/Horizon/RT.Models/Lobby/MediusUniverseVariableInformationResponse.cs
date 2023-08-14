@@ -28,9 +28,7 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
         public string SvoURL; // UNIVERSE_SVO_URL_MAXLEN
         public bool EndOfList;
 
-        public List<int> approvedList = new List<int> { 20371, 20374, 21624, 21834, 22920, 10994 };
-
-        public List<int> unapprovedList = new List<int> { 20060, 22500, 20474 };
+        public List<int> approvedList = new List<int> { 21694, 20371, 20374, 21624, 21834, 22920, 10994 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -127,8 +125,7 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
             if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_EXTRAINFO))
                 writer.Write(ExtendedInfo, Constants.UNIVERSE_EXTENDED_INFO_MAXLEN);
 
-            if(approvedList.Contains(writer.AppId) && 
-                !unapprovedList.Contains(writer.AppId))
+            if (approvedList.Contains(writer.AppId))
             {
                 if (MUIS.MUIS.SVOUrl)
                 {

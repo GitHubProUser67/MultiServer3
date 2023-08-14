@@ -1,8 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
+using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW;
+using PSMultiServer.PoodleHTTP.Addons.SVO.Games;
 
 namespace PSMultiServer.PoodleHTTP
 {
@@ -274,9 +278,9 @@ namespace PSMultiServer.PoodleHTTP
             return true;
         }
 
-        public static async Task File(this HttpListenerResponse response, string filePath, bool compress)
+        public static async Task FileProcess(this HttpListenerResponse response, string filePath, bool compress, HttpListenerRequest request)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
                 return;
             }
@@ -284,13 +288,178 @@ namespace PSMultiServer.PoodleHTTP
             await FileHelper.ReadAsync(filePath, async stream =>
             {
                 response.ContentType = MimeTypes.GetMimeType(filePath);
-                response.ContentLength64 = stream.Length;
-                if (compress)
-                    using (var compressedStream = new GZipStream(stream, CompressionMode.Compress))
-                        await compressedStream.CopyToAsync(response.OutputStream);
+
+                if ((response.ContentType.StartsWith("audio/") || response.ContentType.StartsWith("video/")) && !request.UserAgent.Contains("PSHome"))
+                {
+                    if (request.Headers["Accept"] != null && request.Headers["Accept"].Contains("text/html"))
+                    {
+                        // Generate an HTML page with the video element
+                        string html = @"
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                              <title>Media Page</title>
+                              <style>
+                                body {
+                                  display: flex;
+                                  justify-content: center;
+                                  align-items: center;
+                                  height: 100vh;
+                                  margin: 0;
+                                  background-color: black;
+                                }
+                                #video-container {
+                                  max-width: 80%;
+                                  max-height: 80%;
+                                }
+                                video {
+                                  width: 100%;
+                                  height: 100%;
+                                  object-fit: contain;
+                                }
+                              </style>
+                            </head>
+                            <body>
+                              <div id=""video-container"">
+                                <video controls>
+                                  <source src=""" + request.Url.AbsolutePath + $@""" type=""{response.ContentType}"">
+                                </video>
+                              </div>
+                            </body>
+                            </html>";
+
+                        // Set the response headers for the HTML content
+                        response.ContentType = "text/html";
+                        response.ContentEncoding = Encoding.UTF8;
+
+                        // Write the HTML content to the response
+                        byte[] buffer = Encoding.UTF8.GetBytes(html);
+
+                        response.ContentLength64 = buffer.Length;
+
+                        if (response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                response.ContentLength64 = buffer.Length;
+                                response.OutputStream.Write(buffer, 0, buffer.Length);
+                                response.OutputStream.Close();
+                            }
+                            catch (Exception)
+                            {
+                                // Not Important.
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Set the Keep-Alive header in the response
+                        response.KeepAlive = true;
+                        // Set the Chunked header in the response
+                        response.SendChunked = true;
+
+                        byte[] OutputBuffer = await FileHelper.CryptoReadAsync(filePath, HTTPPrivateKey.HTTPPrivatekey);
+
+                        response.ContentLength64 = OutputBuffer.Length;
+
+                        if (response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                using (MemoryStream memoryStream = new MemoryStream(OutputBuffer))
+                                {
+                                    byte[] buffer = new byte[response.ContentLength64];
+                                    int bytesRead;
+
+                                    while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
+                                    {
+                                        response.OutputStream.Write(buffer, 0, bytesRead);
+                                        response.OutputStream.Flush();
+                                    }
+
+                                    memoryStream.Close();
+                                }
+
+                                response.OutputStream.Close();
+                            }
+                            catch (Exception)
+                            {
+                                // Not Important.
+                            }
+                        }
+                    }
+                }
+                else if (compress)
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        stream.CopyTo(ms);
+
+                        // Reset the memory stream position to the beginning
+                        ms.Position = 0;
+
+                        // Find the number of bytes in the stream
+                        int contentLength = (int)ms.Length;
+
+                        // Create a byte array
+                        byte[] buffer = new byte[contentLength];
+
+                        // Read the contents of the memory stream into the byte array
+                        ms.Read(buffer, 0, contentLength);
+
+                        buffer = Compress(buffer);
+
+                        response.Headers.Set("Content-Encoding", "gzip");
+
+                        if (response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                response.ContentLength64 = buffer.Length;
+                                response.OutputStream.Write(buffer, 0, buffer.Length);
+                                response.OutputStream.Close();
+                            }
+                            catch (Exception)
+                            {
+                                // Not Important.
+                            }
+                        }
+
+                        ms.Dispose();
+                    }
+                }
                 else
-                    await stream.CopyToAsync(response.OutputStream);
+                {
+                    response.ContentLength64 = stream.Length;
+
+                    if (response.OutputStream.CanWrite)
+                        await stream.CopyToAsync(response.OutputStream);
+                }
             });
+        }
+
+        public static byte[] Compress(byte[] input)
+        {
+            using (MemoryStream output = new MemoryStream())
+            {
+                using (GZipStream gzipStream = new GZipStream(output, CompressionMode.Compress, leaveOpen: true))
+                {
+                    gzipStream.Write(input, 0, input.Length);
+                }
+
+                return output.ToArray();
+            }
+        }
+
+        public static byte[] Decompress(byte[] input)
+        {
+            using (MemoryStream inputMemoryStream = new MemoryStream(input))
+            using (GZipStream gzipStream = new GZipStream(inputMemoryStream, CompressionMode.Decompress))
+            using (MemoryStream outputMemoryStream = new MemoryStream())
+            {
+                gzipStream.CopyTo(outputMemoryStream);
+                return outputMemoryStream.ToArray();
+            }
         }
 
         public static async Task Error(this HttpListenerResponse response, bool dataresponse, int statusCode = 500)

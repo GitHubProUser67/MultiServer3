@@ -7,6 +7,8 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using System.Net;
 using System.Text;
 using System.Web;
+using System;
+using System.Net.Http;
 
 namespace PSMultiServer.PoodleHTTP
 {
@@ -192,11 +194,16 @@ namespace PSMultiServer.PoodleHTTP
 
                     if (!specialrequest)
                     {
-                        string requestPath = HttpUtility.UrlDecode(absolutepath)
-                            .Substring(route.Length)
-                            .ToLowerInvariant()
-                            .TrimStart('/', '\\');
-                        string filePath = Path.Combine(rootDir, requestPath);
+                        string url = ctx.Request.Url.LocalPath;
+
+                        // Split the URL into segments
+                        string[] segments = url.Trim('/').Split('/');
+
+                        // Combine the folder segments into a directory path
+                        string directoryPath = Path.Combine(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.HTTPStaticFolder}", string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+
+                        // Process the request based on the HTTP method
+                        string filePath = Path.Combine(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.HTTPStaticFolder}", url.Substring(1));
 
                         switch (ctx.Request.HttpMethod)
                         {
@@ -217,9 +224,9 @@ namespace PSMultiServer.PoodleHTTP
         {
             if (File.Exists(filePath))
                 if (request.Headers["Accept-Encoding"] != null && request.Headers["Accept-Encoding"].Contains("gzip"))
-                    await response.File(filePath, true);
+                    await response.FileProcess(filePath, true, request);
                 else
-                    await response.File(filePath, false);
+                    await response.FileProcess(filePath, false, request);
             else
             {
                 ServerConfiguration.LogWarn($"HTTP : {request.UserAgent} Demands a non-existing file: '{filePath}'.");

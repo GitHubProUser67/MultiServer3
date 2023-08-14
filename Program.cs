@@ -293,19 +293,31 @@ namespace PSMultiServer
 
                 ServerConfiguration.Initialize($"{currentDir}/static/config.json");
 
-                while (true)
+                if (Misc.IsWindows())
                 {
-                    Console.WriteLine("\nPress any key to shutdown the server. . .");
-
-                    Console.ReadLine();
-
-                    ServerConfiguration.LogWarn("Are you sure you want to shut down the server? [y/N]");
-                    char input = char.ToLower(Console.ReadKey().KeyChar);
-
-                    if (input == 'y')
+                    while (true)
                     {
-                        ServerConfiguration.LogInfo("Shutting down. Goodbye!");
-                        break;
+                        Console.WriteLine("\nPress any key to shutdown the server. . .");
+
+                        Console.ReadLine();
+
+                        ServerConfiguration.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                        char input = char.ToLower(Console.ReadKey().KeyChar);
+
+                        if (input == 'y')
+                        {
+                            ServerConfiguration.LogInfo("Shutting down. Goodbye!");
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("\nConsole Inputs are locked while server is running. . .");
+
+                    while (true) // Linux is amazing, it bugs out when trying to ReadLine()...
+                    {
+                        
                     }
                 }
             }
@@ -314,7 +326,18 @@ namespace PSMultiServer
                 // Handle any errors.
                 ServerConfiguration.LogError(ex);
 
-                Console.ReadKey();
+                if (Misc.IsWindows())
+                {
+                    Console.WriteLine("\nPress any key to shutdown the server. . .");
+
+                    Console.ReadLine();
+                }
+                else
+                {
+                    Console.WriteLine("\nA Fatal Error occured, Console will stay open for 60 seconds. . .");
+
+                    Thread.Sleep(60000);
+                }
             }
 
             Environment.Exit(0);
