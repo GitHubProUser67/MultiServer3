@@ -1299,7 +1299,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                         else if (Utils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
                                         {
-                                            await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, accountLoginRequest.Username, false);
+                                            await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
                                         }
                                         else
                                         {
@@ -1359,7 +1359,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                                     Player = data.ClientObject,
                                                     Request = accountLoginRequest
                                                 });
-                                                await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, accountLoginRequest.Username, false);
+                                                await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
                                             }
                                             else
                                             {
@@ -1566,7 +1566,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                             }
                                             #endregion
 
-                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, ticketLoginRequest.UserOnlineId, true);
+                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
                                         }
                                         else
                                         {
@@ -1602,7 +1602,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                                 if (r.IsCompletedSuccessfully && r.Result != null)
                                                 {
-                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, ticketLoginRequest.UserOnlineId, true);
+                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
                                                 }
                                                 else
                                                 {
@@ -2241,14 +2241,13 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         }
 
         #region Login
-        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, Server.Database.Models.AccountDTO accountDto, string requestedName, bool ticket)
+        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, Server.Database.Models.AccountDTO accountDto, bool ticket)
         {
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
             List<int> pre108Secure = new List<int>() { 10683, 10124, 10680 };
 
-            accountDto.AccountName = requestedName;
             await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID

@@ -163,111 +163,127 @@ namespace PSMultiServer
 			
 			if (ServerConfiguration.EnableDNSServer)
             {
-                MitmDNS.MitmDNSClass.MitmDNSMain();
+                Task.Run(async () =>
+                {
+                    MitmDNS.MitmDNSClass.MitmDNSMain();
+                });
             }
 
             if (ServerConfiguration.EnableHttpServer)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
 
-                PoodleHTTP.HTTPPrivateKey.setup();
-
-                PoodleHTTP.Addons.PlayStationHome.PrepareFolder.Prepare();
-
-                if (ServerConfiguration.HTTPS)
+                Task.Run(async () =>
                 {
-                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
-                    {
-                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem",
-                        Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
+                    PoodleHTTP.HTTPPrivateKey.setup();
 
-                        ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
+                    PoodleHTTP.Addons.PlayStationHome.PrepareFolder.Prepare();
+
+                    if (ServerConfiguration.HTTPS)
+                    {
+                        if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
+                        {
+                            PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem",
+                            Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
+
+                            ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
+                        }
+
+                        var server = new PoodleHTTP.Server(ServerConfiguration.HTTPSBindIp, 443);
+
+                        server
+                            .Use(PoodleHTTP.Middlewares.Log)
+                            .Use(PoodleHTTP.Middlewares.Execute)
+                            .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                        server.Start();
+                    }
+                    else
+                    {
+                        var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
+
+                        server
+                            .Use(PoodleHTTP.Middlewares.Log)
+                            .Use(PoodleHTTP.Middlewares.Execute)
+                            .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                        server.Start();
                     }
 
-                    var server = new PoodleHTTP.Server(ServerConfiguration.HTTPSBindIp, 443);
+                    var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
 
-                    server
+                    serverhomebetacdn
                         .Use(PoodleHTTP.Middlewares.Log)
                         .Use(PoodleHTTP.Middlewares.Execute)
                         .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
 
-                    server.Start();
-                }
-                else
-                {
-                    var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
-
-                    server
-                        .Use(PoodleHTTP.Middlewares.Log)
-                        .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
-
-                    server.Start();
-                }
-
-                var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
-
-                serverhomebetacdn
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
-
-                serverhomebetacdn.Start();
+                    serverhomebetacdn.Start();
+                });
             }
 
             if (ServerConfiguration.EnableSSFW)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.SSFWStaticFolder}");
 
-                PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
+                Task.Run(async () =>
+                {
+                    PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
 
-                var server = new PoodleHTTP.Server("*", 10443);
+                    var server = new PoodleHTTP.Server("*", 10443);
 
-                server
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
+                    server
+                        .Use(PoodleHTTP.Middlewares.Log)
+                        .Use(PoodleHTTP.Middlewares.Execute)
+                        .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
 
-                server.Start();
+                    server.Start();
+                });
             }
 
             if (ServerConfiguration.EnableSVO)
             {
-                PoodleHTTP.Addons.SVO.PrepareFolder.Prepare();
+                Task.Run(async () =>
+                {
+                    PoodleHTTP.Addons.SVO.PrepareFolder.Prepare();
 
-                PoodleHTTP.Addons.SVO.SVOClass.setupdatabase();
+                    PoodleHTTP.Addons.SVO.SVOClass.setupdatabase();
 
-                var server = new PoodleHTTP.Server("*", 10060);
+                    var server = new PoodleHTTP.Server("*", 10060);
 
-                server
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
+                    server
+                        .Use(PoodleHTTP.Middlewares.Log)
+                        .Use(PoodleHTTP.Middlewares.Execute)
+                        .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
 
-                server.Start();
+                    server.Start();
 
-                var server2 = new PoodleHTTP.Server("*", 10061);
+                    var server2 = new PoodleHTTP.Server("*", 10061);
 
-                server2
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
+                    server2
+                        .Use(PoodleHTTP.Middlewares.Log)
+                        .Use(PoodleHTTP.Middlewares.Execute)
+                        .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
 
-                server2.Start();
+                    server2.Start();
 
-                Task.Run(PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling);
+                    await Task.Run(PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling);
+                });
             }
 
             if (ServerConfiguration.EnableMedius)
             {
-                Addons.Horizon.MUIS.MuisClass.MuisMain();
-                Addons.Horizon.MEDIUS.MediusClass.MediusMain();
-                Addons.Horizon.DME.DmeClass.DmeMain();
+                Task.Run(async () =>
+                {
+                    Addons.Horizon.MUIS.MuisClass.MuisMain();
+                    Addons.Horizon.MEDIUS.MediusClass.MediusMain();
+                    Addons.Horizon.DME.DmeClass.DmeMain();
+                });
             }
 
             return;
         }
     }
+
     internal class Program
     {
         /// <summary>
@@ -275,10 +291,12 @@ namespace PSMultiServer
         /// </summary>
         static void Main()
         {
+            ServerConfiguration.LogInfo("[PSMultiServer] - Server starting, after startup, press any key to shutdown the server.");
+
             if (Misc.IsWindows())
                 if (!Misc.IsAdministrator())
                 {
-                    Console.WriteLine("[MultiServer] - Trying to restart as admin");
+                    ServerConfiguration.LogInfo("[PSMultiServer] - Trying to restart as admin");
                     if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                         Environment.Exit(0);
                 }
@@ -288,13 +306,12 @@ namespace PSMultiServer
             try
             {
                 string currentDir = Directory.GetCurrentDirectory();
-                ServerConfiguration.LogInfo($"Current working directory: {currentDir}");
+                ServerConfiguration.LogInfo($"[PSMultiServer] - Current working directory: {currentDir}");
 
                 ServerConfiguration.Initialize($"{currentDir}/static/config.json");
 
                 while (true)
                 {
-                    ServerConfiguration.LogInfo("Press any key to shutdown the server...");
                     Console.ReadLine();
 
                     ServerConfiguration.LogWarn("Are you sure you want to shut down the server? [y/N]");
@@ -306,12 +323,15 @@ namespace PSMultiServer
                         Environment.Exit(0);
                     }
                 }
-            } catch (FileNotFoundException e)
+            }
+            catch (Exception ex)
             {
-                // Handle any missing file.
-                ServerConfiguration.LogError(e.Message);
+                // Handle any errors.
+                ServerConfiguration.LogError(ex);
 
                 Console.ReadKey();
+
+                Environment.Exit(0);
             }
         }
     }

@@ -142,10 +142,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
             ServerConfiguration.LogInfo("**************************************************");
 
-            if (Settings.NATIp != null)
+            if (Settings.NATIp == null)
             {
-                IPAddress ip = IPAddress.Parse(Settings.NATIp);
-                DoGetHostEntry(ip);
+                ServerConfiguration.LogError("[MUIS] - No NAT ip found! Errors can happen.");
             }
 
             ServerConfiguration.LogInfo($"MUIS initalized.");
@@ -914,26 +913,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
             // Update default rsa key
             Server.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
-
-            return;
-        }
-
-        public static void DoGetHostEntry(IPAddress address)
-        {
-            try
-            {
-                IPHostEntry host = Dns.GetHostEntry(address);
-
-                ServerConfiguration.LogInfo($"* NAT Service IP: {address}");
-                //ServerConfiguration.LogInfo($"GetHostEntry({address}) returns HostName: {host.HostName}");
-            }
-            catch (SocketException ex)
-            {
-                //unknown host or
-                //not every IP has a name
-                //log exception (manage it)
-                ServerConfiguration.LogError($"* NAT not resolved {ex}");
-            }
 
             return;
         }

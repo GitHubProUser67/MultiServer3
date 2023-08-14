@@ -382,38 +382,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
 
             #region NAT
             //Get NATIp
-            if (Settings.NATIp != null)
+            if (Settings.NATIp == null)
             {
-                try
-                {
-                    IPHostEntry host = Dns.GetHostEntry(Settings.NATIp);
-
-                    if (Settings.NATIp != host.HostName)
-                    {
-                        IPAddress ip = IPAddress.Parse(host.AddressList.First().ToString());
-                        ip.MapToIPv4();
-                        try
-                        {
-                            DoGetHostAddressEntry(ip);
-                        }
-                        catch (Exception ex)
-                        {
-                            ServerConfiguration.LogError($"Unable to resolve NAT service IP: {ip}  Exiting with exception: {ex}");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        DoGetHostNameEntry(Settings.NATIp);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ServerConfiguration.LogError($"Unable to resolve NAT service IP: {Settings.NATIp}  Exiting with exception: {ex}");
-                    return;
-                }
-
-
+                ServerConfiguration.LogError("[MEDIUS] - No NAT ip found! Errors can happen.");
             }
             #endregion
 

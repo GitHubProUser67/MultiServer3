@@ -10,36 +10,64 @@ namespace PSMultiServer
 {
     public class Misc
     {
-        public static string GetFirstActiveIPAddress(string hostName)
+        public static string GetFirstActiveIPAddress(string hostName, string fallback)
         {
             try
             {
-                IPAddress[] addresses = Dns.GetHostAddresses(hostName);
-                foreach (IPAddress address in addresses)
+                if (IsWindows())
                 {
-                    using (var ping = new Ping())
+                    IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+
+                    foreach (IPAddress address in addresses)
                     {
-                        try
+                        using (var ping = new Ping())
                         {
-                            PingReply reply = ping.Send(address);
-                            if (reply.Status == IPStatus.Success)
+                            try
                             {
-                                return address.ToString();
+                                PingReply reply = ping.Send(address);
+                                if (reply.Status == IPStatus.Success)
+                                {
+                                    return address.ToString();
+                                }
+                            }
+                            catch (PingException)
+                            {
+                                continue;
                             }
                         }
-                        catch (PingException)
+                    }
+                }
+                else
+                {
+                    IPHostEntry hostEntry = Dns.GetHostEntry(hostName);
+                    IPAddress[] addresses = hostEntry.AddressList;
+
+                    foreach (IPAddress address in addresses)
+                    {
+                        using (var ping = new Ping())
                         {
-                            continue;
+                            try
+                            {
+                                PingReply reply = ping.Send(address);
+                                if (reply.Status == IPStatus.Success)
+                                {
+                                    return address.ToString();
+                                }
+                            }
+                            catch (PingException)
+                            {
+                                continue;
+                            }
                         }
                     }
                 }
 
-                return string.Empty;
+                return fallback;
             }
             catch (Exception ex)
             {
                 ServerConfiguration.LogError(ex);
-                return string.Empty;
+                return fallback;
             }
         }
 

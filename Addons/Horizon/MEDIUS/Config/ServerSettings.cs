@@ -142,7 +142,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string NATIp { get; set; } = "natservice.pdonline.scea.com";
+        public string NATIp { get; set; } = Misc.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
 
         /// <summary>
         /// Port of the NAT server.
