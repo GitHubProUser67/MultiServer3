@@ -133,7 +133,7 @@ namespace PSMultiServer.MitmDNS
             // Iterate through the extracted hostnames and search for corresponding .dns files
             foreach (string hostname in hostnames)
             {
-                string dnsFilePath = Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DNSConfig.Replace("boot", "")}{hostname}.dns";
+                string dnsFilePath = Path.GetDirectoryName(Filename) + $"/{hostname}.dns";
 
                 // Check if the .dns file exists
                 if (File.Exists(dnsFilePath))

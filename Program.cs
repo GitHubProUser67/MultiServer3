@@ -163,121 +163,106 @@ namespace PSMultiServer
 			
 			if (ServerConfiguration.EnableDNSServer)
             {
-                Task.Run(async () =>
-                {
-                    MitmDNS.MitmDNSClass.MitmDNSMain();
-                });
+                MitmDNS.MitmDNSClass.MitmDNSMain();
             }
 
             if (ServerConfiguration.EnableHttpServer)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
 
-                Task.Run(async () =>
+                PoodleHTTP.HTTPPrivateKey.setup();
+
+                PoodleHTTP.Addons.PlayStationHome.PrepareFolder.Prepare();
+
+                if (ServerConfiguration.HTTPS)
                 {
-                    PoodleHTTP.HTTPPrivateKey.setup();
-
-                    PoodleHTTP.Addons.PlayStationHome.PrepareFolder.Prepare();
-
-                    if (ServerConfiguration.HTTPS)
+                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
                     {
-                        if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
-                        {
-                            PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem",
-                            Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
+                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem",
+                        Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
 
-                            ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
-                        }
-
-                        var server = new PoodleHTTP.Server(ServerConfiguration.HTTPSBindIp, 443);
-
-                        server
-                            .Use(PoodleHTTP.Middlewares.Log)
-                            .Use(PoodleHTTP.Middlewares.Execute)
-                            .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
-
-                        server.Start();
-                    }
-                    else
-                    {
-                        var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
-
-                        server
-                            .Use(PoodleHTTP.Middlewares.Log)
-                            .Use(PoodleHTTP.Middlewares.Execute)
-                            .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
-
-                        server.Start();
+                        ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
                     }
 
-                    var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
+                    var server = new PoodleHTTP.Server(ServerConfiguration.HTTPSBindIp, 443);
 
-                    serverhomebetacdn
+                    server
                         .Use(PoodleHTTP.Middlewares.Log)
                         .Use(PoodleHTTP.Middlewares.Execute)
                         .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
 
-                    serverhomebetacdn.Start();
-                });
+                    server.Start();
+                }
+                else
+                {
+                    var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
+
+                    server
+                        .Use(PoodleHTTP.Middlewares.Log)
+                        .Use(PoodleHTTP.Middlewares.Execute)
+                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                    server.Start();
+                }
+
+                var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
+
+                serverhomebetacdn
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
+                    .Use(PoodleHTTP.Middlewares.StaticRoot("/", currentDir + ServerConfiguration.HTTPStaticFolder, null));
+
+                serverhomebetacdn.Start();
             }
 
             if (ServerConfiguration.EnableSSFW)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.SSFWStaticFolder}");
 
-                Task.Run(async () =>
-                {
-                    PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
+                PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
 
-                    var server = new PoodleHTTP.Server("*", 10443);
+                var server = new PoodleHTTP.Server("*", 10443);
 
-                    server
-                        .Use(PoodleHTTP.Middlewares.Log)
-                        .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
+                server
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
+                    .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
 
-                    server.Start();
-                });
+                server.Start();
             }
 
             if (ServerConfiguration.EnableSVO)
             {
-                Task.Run(async () =>
-                {
-                    PoodleHTTP.Addons.SVO.PrepareFolder.Prepare();
+                PoodleHTTP.Addons.SVO.PrepareFolder.Prepare();
 
-                    PoodleHTTP.Addons.SVO.SVOClass.setupdatabase();
+                PoodleHTTP.Addons.SVO.SVOClass.setupdatabase();
 
-                    var server = new PoodleHTTP.Server("*", 10060);
+                var server = new PoodleHTTP.Server("*", 10060);
 
-                    server
-                        .Use(PoodleHTTP.Middlewares.Log)
-                        .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
+                server
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
+                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
 
-                    server.Start();
+                server.Start();
 
-                    var server2 = new PoodleHTTP.Server("*", 10061);
+                var server2 = new PoodleHTTP.Server("*", 10061);
 
-                    server2
-                        .Use(PoodleHTTP.Middlewares.Log)
-                        .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
+                server2
+                    .Use(PoodleHTTP.Middlewares.Log)
+                    .Use(PoodleHTTP.Middlewares.Execute)
+                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
 
-                    server2.Start();
+                server2.Start();
 
-                    await Task.Run(PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling);
-                });
+                Task.Run(PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling);
             }
 
             if (ServerConfiguration.EnableMedius)
             {
-                Task.Run(async () =>
-                {
-                    Addons.Horizon.MUIS.MuisClass.MuisMain();
-                    Addons.Horizon.MEDIUS.MediusClass.MediusMain();
-                    Addons.Horizon.DME.DmeClass.DmeMain();
-                });
+                Addons.Horizon.MUIS.MuisClass.MuisMain();
+                Addons.Horizon.MEDIUS.MediusClass.MediusMain();
+                Addons.Horizon.DME.DmeClass.DmeMain();
             }
 
             return;
@@ -291,12 +276,10 @@ namespace PSMultiServer
         /// </summary>
         static void Main()
         {
-            Console.WriteLine("[PSMultiServer] - Server starting, after startup, press any key to shutdown the server.");
-
             if (Misc.IsWindows())
                 if (!Misc.IsAdministrator())
                 {
-                    Console.WriteLine("[PSMultiServer] - Trying to restart as admin");
+                    Console.WriteLine("Trying to restart as admin");
                     if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                         Environment.Exit(0);
                 }
@@ -312,6 +295,8 @@ namespace PSMultiServer
 
                 while (true)
                 {
+                    Console.WriteLine("\nPress any key to shutdown the server. . .");
+
                     Console.ReadLine();
 
                     ServerConfiguration.LogWarn("Are you sure you want to shut down the server? [y/N]");
