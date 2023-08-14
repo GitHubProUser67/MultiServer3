@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 
 namespace PSMultiServer.PoodleHTTP
 {
@@ -107,28 +108,30 @@ namespace PSMultiServer.PoodleHTTP
             }
         }
 
-        public static async Task WriteAsync(string path, Func<Stream, Task> writer, bool isBackup = true)
+        public static async Task WriteAsync(string path, HttpListenerRequest request)
         {
-            string tempFilePath = $"{path}.writing";
-            using (var stream = new FileStream(
-                tempFilePath,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None,
-                0x10000,
-                FileOptions.SequentialScan)
-            )
-            {
-                await writer(stream);
-            }
+            // Get the input stream from the context
+            Stream inputStream = request.InputStream;
 
-            if (File.Exists(path))
+            using (MemoryStream ms = new MemoryStream())
             {
-                await SpinRetry(() => File.Replace(tempFilePath, path, isBackup ? BackupPath(path) : null, true));
-            }
-            else
-            {
-                await SpinRetry(() => File.Move(tempFilePath, path));
+                inputStream.CopyTo(ms);
+
+                // Reset the memory stream position to the beginning
+                ms.Position = 0;
+
+                // Find the number of bytes in the stream
+                int contentLength = (int)ms.Length;
+
+                // Create a byte array
+                byte[] buffer = new byte[contentLength];
+
+                // Read the contents of the memory stream into the byte array
+                ms.Read(buffer, 0, contentLength);
+
+                await CryptoWriteAsync(path, HTTPPrivateKey.HTTPPrivatekey, buffer);
+
+                ms.Dispose();
             }
         }
 
@@ -138,7 +141,7 @@ namespace PSMultiServer.PoodleHTTP
             {
                 await CriticalReadAsync(path, reader);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 string backupPath = BackupPath(path);
                 if (!File.Exists(backupPath))
@@ -146,43 +149,20 @@ namespace PSMultiServer.PoodleHTTP
                     throw;
                 }
 
-                ServerConfiguration.LogWarn($"Can not read {path}, turn back to backup.", e);
+                ServerConfiguration.LogWarn($"Can not read {path}, turn back to backup.", ex);
                 await CriticalReadAsync(backupPath, reader);
             }
         }
 
         private static async Task CriticalReadAsync(string path, Func<Stream, Task> reader)
         {
-            using FileStream stream = new(
-                path,
-                FileMode.OpenOrCreate,
-                FileAccess.Read,
-                FileShare.ReadWrite,
-                0x10000,
-                FileOptions.SequentialScan);
-            await reader(stream);
+            // Convert byte array to MemoryStream
+            using (Stream stream = new MemoryStream(await CryptoReadAsync(path, HTTPPrivateKey.HTTPPrivatekey)))
+            {
+                await reader(stream);
+            }
         }
 
         private static string BackupPath(string path) => $"{path}.backup";
-
-        private static async Task SpinRetry(Action action, int retryCount = 10)
-        {
-            for (int i = 0; i < retryCount; i++)
-            {
-                try
-                {
-                    action();
-                    await Task.Delay(100);
-                    break;
-                }
-                catch
-                {
-                    if (i == retryCount - 1)
-                    {
-                        throw;
-                    }
-                }
-            }
-        }
     }
 }

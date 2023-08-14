@@ -1,12 +1,8 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Asn1.Ocsp;
-using PSMultiServer.PoodleHTTP.Addons.PlayStationHome.SSFW;
-using PSMultiServer.PoodleHTTP.Addons.SVO.Games;
 
 namespace PSMultiServer.PoodleHTTP
 {
@@ -47,6 +43,7 @@ namespace PSMultiServer.PoodleHTTP
                 {
                     await request.InputStream.CopyToAsync(ms);
                     postData = Convert.ToBase64String(ms.ToArray());
+                    ms.Dispose();
                 }
             }
 
@@ -289,12 +286,28 @@ namespace PSMultiServer.PoodleHTTP
             {
                 response.ContentType = MimeTypes.GetMimeType(filePath);
 
-                if ((response.ContentType.StartsWith("audio/") || response.ContentType.StartsWith("video/")) && !request.UserAgent.Contains("PSHome"))
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    if (request.Headers["Accept"] != null && request.Headers["Accept"].Contains("text/html"))
+                    stream.CopyTo(ms);
+
+                    // Reset the memory stream position to the beginning
+                    ms.Position = 0;
+
+                    // Find the number of bytes in the stream
+                    int contentLength = (int)ms.Length;
+
+                    // Create a byte array
+                    byte[] buffer = new byte[contentLength];
+
+                    // Read the contents of the memory stream into the byte array
+                    ms.Read(buffer, 0, contentLength);
+
+                    if ((response.ContentType.StartsWith("audio/") || response.ContentType.StartsWith("video/")) && !request.UserAgent.Contains("PSHome"))
                     {
-                        // Generate an HTML page with the video element
-                        string html = @"
+                        if (request.Headers["Accept"] != null && request.Headers["Accept"].Contains("text/html"))
+                        {
+                            // Generate an HTML page with the video element
+                            string html = @"
                             <!DOCTYPE html>
                             <html>
                             <head>
@@ -328,85 +341,67 @@ namespace PSMultiServer.PoodleHTTP
                             </body>
                             </html>";
 
-                        // Set the response headers for the HTML content
-                        response.ContentType = "text/html";
-                        response.ContentEncoding = Encoding.UTF8;
+                            // Set the response headers for the HTML content
+                            response.ContentType = "text/html";
+                            response.ContentEncoding = Encoding.UTF8;
 
-                        // Write the HTML content to the response
-                        byte[] buffer = Encoding.UTF8.GetBytes(html);
+                            // Write the HTML content to the response
+                            buffer = Encoding.UTF8.GetBytes(html);
 
-                        response.ContentLength64 = buffer.Length;
+                            response.ContentLength64 = buffer.Length;
 
-                        if (response.OutputStream.CanWrite)
-                        {
-                            try
+                            if (response.OutputStream.CanWrite)
                             {
-                                response.ContentLength64 = buffer.Length;
-                                response.OutputStream.Write(buffer, 0, buffer.Length);
-                                response.OutputStream.Close();
-                            }
-                            catch (Exception)
-                            {
-                                // Not Important.
+                                try
+                                {
+                                    response.ContentLength64 = buffer.Length;
+                                    response.OutputStream.Write(buffer, 0, buffer.Length);
+                                    response.OutputStream.Close();
+                                }
+                                catch (Exception)
+                                {
+                                    // Not Important.
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        // Set the Keep-Alive header in the response
-                        response.KeepAlive = true;
-                        // Set the Chunked header in the response
-                        response.SendChunked = true;
-
-                        byte[] OutputBuffer = await FileHelper.CryptoReadAsync(filePath, HTTPPrivateKey.HTTPPrivatekey);
-
-                        response.ContentLength64 = OutputBuffer.Length;
-
-                        if (response.OutputStream.CanWrite)
+                        else
                         {
-                            try
-                            {
-                                using (MemoryStream memoryStream = new MemoryStream(OutputBuffer))
-                                {
-                                    byte[] buffer = new byte[response.ContentLength64];
-                                    int bytesRead;
+                            // Set the Keep-Alive header in the response
+                            response.KeepAlive = true;
+                            // Set the Chunked header in the response
+                            response.SendChunked = true;
 
-                                    while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
+                            response.ContentLength64 = buffer.Length;
+
+                            if (response.OutputStream.CanWrite)
+                            {
+                                try
+                                {
+                                    using (MemoryStream memoryStream = new MemoryStream(buffer))
                                     {
-                                        response.OutputStream.Write(buffer, 0, bytesRead);
-                                        response.OutputStream.Flush();
+                                        byte[] tempbuffer = new byte[response.ContentLength64];
+                                        int bytesRead = 0;
+
+                                        while ((bytesRead = memoryStream.Read(tempbuffer, 0, tempbuffer.Length)) > 0)
+                                        {
+                                            response.OutputStream.Write(tempbuffer, 0, bytesRead);
+                                            response.OutputStream.Flush();
+                                        }
+
+                                        memoryStream.Close();
                                     }
 
-                                    memoryStream.Close();
+                                    response.OutputStream.Close();
                                 }
-
-                                response.OutputStream.Close();
-                            }
-                            catch (Exception)
-                            {
-                                // Not Important.
+                                catch (Exception)
+                                {
+                                    // Not Important.
+                                }
                             }
                         }
                     }
-                }
-                else if (compress)
-                {
-                    using (MemoryStream ms = new MemoryStream())
+                    else if (compress)
                     {
-                        stream.CopyTo(ms);
-
-                        // Reset the memory stream position to the beginning
-                        ms.Position = 0;
-
-                        // Find the number of bytes in the stream
-                        int contentLength = (int)ms.Length;
-
-                        // Create a byte array
-                        byte[] buffer = new byte[contentLength];
-
-                        // Read the contents of the memory stream into the byte array
-                        ms.Read(buffer, 0, contentLength);
-
                         buffer = Compress(buffer);
 
                         response.Headers.Set("Content-Encoding", "gzip");
@@ -424,16 +419,27 @@ namespace PSMultiServer.PoodleHTTP
                                 // Not Important.
                             }
                         }
-
-                        ms.Dispose();
                     }
-                }
-                else
-                {
-                    response.ContentLength64 = stream.Length;
+                    else
+                    {
+                        response.ContentLength64 = buffer.Length;
 
-                    if (response.OutputStream.CanWrite)
-                        await stream.CopyToAsync(response.OutputStream);
+                        if (response.OutputStream.CanWrite)
+                        {
+                            try
+                            {
+                                response.ContentLength64 = buffer.Length;
+                                response.OutputStream.Write(buffer, 0, buffer.Length);
+                                response.OutputStream.Close();
+                            }
+                            catch (Exception)
+                            {
+                                // Not Important.
+                            }
+                        }
+                    }
+
+                    ms.Dispose();
                 }
             });
         }

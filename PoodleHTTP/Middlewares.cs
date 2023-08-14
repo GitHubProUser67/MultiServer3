@@ -229,7 +229,7 @@ namespace PSMultiServer.PoodleHTTP
                     await response.FileProcess(filePath, false, request);
             else
             {
-                ServerConfiguration.LogWarn($"HTTP : {request.UserAgent} Demands a non-existing file: '{filePath}'.");
+                ServerConfiguration.LogWarn($"HTTP : {request.UserAgent} Request a non-existing file: '{filePath}'.");
                 if (request.UserAgent.Contains("PSHome"))
                     await response.Error(false, 404);
                 await response.Error(true, 404);
@@ -238,7 +238,7 @@ namespace PSMultiServer.PoodleHTTP
 
         private static Task WriteLocalFile(string filePath, HttpListenerRequest request)
         {
-            return FileHelper.WriteAsync(filePath, stream => request.InputStream.CopyToAsync(stream));
+            return FileHelper.WriteAsync(filePath, request);
         }
 
         public static Middleware<T> Then<T>(this Middleware<T> middleware, Middleware<T> nextMiddleware)
