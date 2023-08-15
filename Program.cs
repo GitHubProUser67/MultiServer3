@@ -176,10 +176,10 @@ namespace PSMultiServer
 
                 if (ServerConfiguration.HTTPS)
                 {
-                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
+                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pfx"))
                     {
                         PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer",
-                        Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
+                        Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", Directory.GetCurrentDirectory() + "/static/SSL/certificate.pfx", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
 
                         ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
                     }
@@ -292,6 +292,8 @@ namespace PSMultiServer
                 ServerConfiguration.LogInfo($"[PSMultiServer] - Current working directory: {currentDir}");
 
                 ServerConfiguration.Initialize($"{currentDir}/static/config.json");
+
+                ServerConfiguration.LogInfo("[PSMultiServer] - Guid : {1E2D1A3C-6165-406C-BC69-0F64CA319EF7}");
 
                 if (Misc.IsWindows())
                 {

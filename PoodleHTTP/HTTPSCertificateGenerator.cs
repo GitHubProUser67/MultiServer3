@@ -23,14 +23,16 @@ namespace PSMultiServer.PoodleHTTP
         /// <param name="keyFilePath">Private Key file name.</param>
         /// <param name="certSubject">Certificate subject.</param>
         /// <param name="certHashAlgorithm">Certificate hash algorithm.</param>
-        public static void MakeSelfSignedCert(string certFilePath, string keyFilePath, string certSubject, HashAlgorithmName certHashAlgorithm)
+        public static void MakeSelfSignedCert(string certFilePath, string keyFilePath, string pfxfilepath, string certSubject, HashAlgorithmName certHashAlgorithm)
         {
-            if (certFilePath == null || keyFilePath == null)
+            if (certFilePath == null || keyFilePath == null || pfxfilepath == null)
                 return;
 
             Directory.CreateDirectory(Path.GetDirectoryName(certFilePath));
 
             Directory.CreateDirectory(Path.GetDirectoryName(keyFilePath));
+
+            Directory.CreateDirectory(Path.GetDirectoryName(pfxfilepath));
 
             // PEM file headers.
             const string CRT_HEADER = "-----BEGIN CERTIFICATE-----\n";
@@ -79,6 +81,9 @@ namespace PSMultiServer.PoodleHTTP
             byte[] exportData = certificate.Export(X509ContentType.Cert);
             string crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
             File.WriteAllText(certFilePath, CRT_HEADER + crt + CRT_FOOTER);
+
+            byte[] PFXexportData = certificate.Export(X509ContentType.Pfx);
+            File.WriteAllBytes(pfxfilepath, PFXexportData);
         }
 
         /// <summary>
