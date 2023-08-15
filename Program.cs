@@ -22,10 +22,6 @@ namespace PSMultiServer
         public static string? HTTPPrivateKey { get; set; }
 		public static bool HTTPS { get; set; } = false;
         public static string? HTTPSBindIp { get; set; }
-        public static DateTimeOffset SslRootValidAfter { get; set; } = DateTimeOffset.Now;
-        public static DateTimeOffset SslRootValidBefore { get; set; } = DateTimeOffset.Now.AddYears(30);
-        public static int SslCertValidAfterNow { get; set; } = 7;
-        public static int SslCertValidBeforeNow { get; set; } = -7;
         public static int HTTPPort { get; set; } = 80;
         public static string? HTTPStaticFolder { get; set; } = "/static/wwwroot/";
         public static string SSFWMinibase { get; set; } = "[]";
@@ -126,10 +122,6 @@ namespace PSMultiServer
             HTTPPrivateKey = config.http.private_key;
 			HTTPS = config.http.https.enabled;
             HTTPSBindIp = config.http.https.bind_ip;
-            SslRootValidAfter = config.http.https.SslRootValidAfter;
-            SslRootValidBefore = config.http.https.SslRootValidBefore;
-            SslCertValidAfterNow = config.http.https.SslCertValidAfterNow;
-            SslCertValidBeforeNow = config.http.https.SslCertValidBeforeNow;
             HTTPStaticFolder = config.http.static_folder;
             HTTPPort = config.http.port;
 
@@ -176,10 +168,10 @@ namespace PSMultiServer
 
                 if (ServerConfiguration.HTTPS)
                 {
-                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pfx"))
+                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/RootCA.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/RootCA.pfx") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/RootCA.key")
+                        || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/net.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/com.cer"))
                     {
-                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer",
-                        Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", Directory.GetCurrentDirectory() + "/static/SSL/certificate.pfx", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
+                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA256);
 
                         ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
                     }

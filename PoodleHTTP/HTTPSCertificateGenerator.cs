@@ -8,7 +8,7 @@ namespace PSMultiServer.PoodleHTTP
     /// </summary>
     public class HTTPSCertificateGenerator
     {
-        public static Dictionary<string, X509Certificate2> FakeCertificates = new();
+        private static DateTimeOffset currentdatetime = DateTimeOffset.Now;
 
         // Based on ideas from:
         // https://github.com/wheever/ProxHTTPSProxyMII/blob/master/CertTool.py#L58
@@ -17,22 +17,14 @@ namespace PSMultiServer.PoodleHTTP
         public const string DefaultCASubject = "C=SU, O=PoodleHTTP, OU=This is not really secure connection, CN=MultiServer Certificate Authority";
 
         /// <summary>
-        /// Create a self-signed SSL certificate and private key, and save them to PEM files.
+        /// Create a self-signed SSL certificate and private key, and save them to CER files.
         /// </summary>
-        /// <param name="certFilePath">Certificate file name.</param>
-        /// <param name="keyFilePath">Private Key file name.</param>
+        /// <param name="directory">Path of the certificates.</param>
         /// <param name="certSubject">Certificate subject.</param>
         /// <param name="certHashAlgorithm">Certificate hash algorithm.</param>
-        public static void MakeSelfSignedCert(string certFilePath, string keyFilePath, string pfxfilepath, string certSubject, HashAlgorithmName certHashAlgorithm)
+        public static void MakeSelfSignedCert(string directory, string certSubject, HashAlgorithmName certHashAlgorithm)
         {
-            if (certFilePath == null || keyFilePath == null || pfxfilepath == null)
-                return;
-
-            Directory.CreateDirectory(Path.GetDirectoryName(certFilePath));
-
-            Directory.CreateDirectory(Path.GetDirectoryName(keyFilePath));
-
-            Directory.CreateDirectory(Path.GetDirectoryName(pfxfilepath));
+            Directory.CreateDirectory(directory);
 
             // PEM file headers.
             const string CRT_HEADER = "-----BEGIN CERTIFICATE-----\n";
@@ -69,21 +61,35 @@ namespace PSMultiServer.PoodleHTTP
             certificate = certRequest.Create(
                 certName,
                 customSignatureGenerator,
-                ServerConfiguration.SslRootValidAfter,
-                ServerConfiguration.SslRootValidBefore,
+                currentdatetime,
+                currentdatetime.AddDays(21900),
                 certSerialNumber);
 
             // Export the private key.
             string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(keyFilePath, KEY_HEADER + privateKey + KEY_FOOTER);
+            File.WriteAllText(directory + "/RootCA.key", KEY_HEADER + privateKey + KEY_FOOTER);
 
             // Export the certificate.
             byte[] exportData = certificate.Export(X509ContentType.Cert);
             string crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(certFilePath, CRT_HEADER + crt + CRT_FOOTER);
+            File.WriteAllText(directory + "/RootCA.cer", CRT_HEADER + crt + CRT_FOOTER);
 
-            byte[] PFXexportData = certificate.Export(X509ContentType.Pfx);
-            File.WriteAllBytes(pfxfilepath, PFXexportData);
+            byte[] certData = certificate.Export(X509ContentType.Pfx);
+            File.WriteAllBytes(directory + "/RootCA.pfx", certData);
+
+            X509Certificate2 RootCertificate = new X509Certificate2(X509Certificate2.CreateFromPemFile(directory + "/RootCA.cer", directory + "/RootCA.key").Export(X509ContentType.Pkcs12));
+
+            X509Certificate2 ComCertificate = MakeChainSignedCert("CN=" + "*.com", RootCertificate);
+
+            exportData = ComCertificate.Export(X509ContentType.Cert);
+            crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
+            File.WriteAllText(directory + "/com.cer", CRT_HEADER + crt + CRT_FOOTER);
+
+            X509Certificate2 NetCertificate = MakeChainSignedCert("CN=" + "*.net", RootCertificate);
+
+            exportData = NetCertificate.Export(X509ContentType.Cert);
+            crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
+            File.WriteAllText(directory + "/net.cer", CRT_HEADER + crt + CRT_FOOTER);
         }
 
         /// <summary>
@@ -93,24 +99,10 @@ namespace PSMultiServer.PoodleHTTP
         /// <param name="issuerCertificate">Authority's certificate used to sign this certificate.</param>
         /// <param name="certHashAlgorithm">Certificate hash algorithm.</param>
         /// <returns>Signed chain of SSL Certificates.</returns>
-        public static X509Certificate2 MakeChainSignedCert(string certSubject, X509Certificate2 issuerCertificate, HashAlgorithmName certHashAlgorithm)
+        public static X509Certificate2 MakeChainSignedCert(string certSubject, X509Certificate2 issuerCertificate)
         {
-            // Look if it is already issued.
-            // Why: https://support.mozilla.org/en-US/kb/Certificate-contains-the-same-serial-number-as-another-certificate
-            if (FakeCertificates.ContainsKey(certSubject))
-            {
-                X509Certificate2 CachedCertificate = FakeCertificates[certSubject];
-                //check that it hasn't expired
-                if (CachedCertificate.NotAfter > DateTime.Now && CachedCertificate.NotBefore < DateTime.Now)
-                { return CachedCertificate; }
-                else
-                { FakeCertificates.Remove(certSubject); }
-            }
-
             // If not, initialize private key generator & set up a certificate creation request.
             using RSA rsa = RSA.Create();
-            //CertificateRequest certRequest = new(certSubject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            //CertificateRequest certRequest = new(certSubject, rsa, certHashAlgorithm, RSASignaturePadding.Pkcs1);
 
             // Generate an unique serial number.
             byte[] certSerialNumber = new byte[16];
@@ -123,16 +115,14 @@ namespace PSMultiServer.PoodleHTTP
             CertificateRequest certRequestSha256 = new(certSubject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             certificate = certRequestSha256.Create(
                 issuerCertificate,
-                DateTimeOffset.Now.AddDays(ServerConfiguration.SslCertValidBeforeNow),
-                DateTimeOffset.Now.AddDays(ServerConfiguration.SslCertValidAfterNow),
+                currentdatetime,
+                currentdatetime.AddDays(21900),
                 certSerialNumber
             );
 
             // Export the issued certificate with private key.
             X509Certificate2 certificateWithKey = new(certificate.CopyWithPrivateKey(rsa).Export(X509ContentType.Pkcs12));
 
-            // Save the certificate and return it.
-            FakeCertificates.Add(certSubject, certificateWithKey);
             return certificateWithKey;
         }
     }
