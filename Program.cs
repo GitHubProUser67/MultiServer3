@@ -176,9 +176,9 @@ namespace PSMultiServer
 
                 if (ServerConfiguration.HTTPS)
                 {
-                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
+                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/certificate.key"))
                     {
-                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.pem",
+                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL/certificate.cer",
                         Directory.GetCurrentDirectory() + "/static/SSL/certificate.key", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA1);
 
                         ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
