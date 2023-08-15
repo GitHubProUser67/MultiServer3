@@ -7912,11 +7912,12 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {
+                            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
                             //Create File
                             using (var fs = File.Create(path))
                             {
                                 fs.Write(new byte[fileCreateRequest.MediusFileToCreate.FileSize]);
-
                             }
 
                             #region MediusFileGenerateChecksum
@@ -8073,6 +8074,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                                 break;
                             }
+
+                            Directory.CreateDirectory(Path.GetDirectoryName(path));
 
                             var stream = File.Open(path, FileMode.OpenOrCreate);
                             data.ClientObject.Upload = new UploadState()
