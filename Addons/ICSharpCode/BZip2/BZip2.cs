@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 {
 	/// <summary>
 	/// An example class to demonstrate compression and decompression of BZip2 streams.
@@ -31,11 +31,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			finally
 			{
 				if (isStreamOwner)
-				{
-					// inStream is closed by the BZip2InputStream if stream owner
-					outStream.Dispose();
-				}
-			}
+                    // inStream is closed by the BZip2InputStream if stream owner
+                    outStream.Dispose();
+            }
 		}
 
 		/// <summary>
@@ -66,11 +64,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			finally
 			{
 				if (isStreamOwner)
-				{
-					// outStream is closed by the BZip2OutputStream if stream owner
-					inStream.Dispose();
-				}
-			}
+                    // outStream is closed by the BZip2OutputStream if stream owner
+                    inStream.Dispose();
+            }
 		}
 	}
 }

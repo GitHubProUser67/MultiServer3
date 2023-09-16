@@ -1,7 +1,7 @@
-﻿using Org.BouncyCastle.Math;
-using PSMultiServer.Addons.Horizon.RT.Cryptography.RSA;
+﻿using MultiServer.Addons.Org.BouncyCastle.Math;
+using MultiServer.Addons.Horizon.RT.Cryptography.RSA;
 
-namespace PSMultiServer.Addons.Horizon.DME.Config
+namespace MultiServer.Addons.Horizon.DME.Config
 {
     public class ServerSettings
     {
@@ -23,12 +23,6 @@ namespace PSMultiServer.Addons.Horizon.DME.Config
             new BigInteger("17", 10),
             new BigInteger("4854567300243763614870687120476899445974505675147434999327174747312047455575182761195687859800492317495944895566174677168271650454805328075020357360662513", 10)
             );
-
-
-        /// <summary>
-        /// Path to the plugins directory.
-        /// </summary>
-        public string PluginsPath { get; set; } = "plugins/";
 
         /// <summary>
         /// How many milliseconds before refreshing the config.
@@ -58,11 +52,6 @@ namespace PSMultiServer.Addons.Horizon.DME.Config
         /// Seconds between disconnects before the client attempts to reconnect to the proxy server.
         /// </summary>
         public int MPSReconnectInterval { get; set; } = 15;
-
-        /// <summary>
-        /// Number of milliseconds for main loop thread to sleep.
-        /// </summary>
-        public int MainLoopSleepMs { get; set; } = 5;
 
         /// <summary>
         /// Milliseconds between plugin ticks.
@@ -114,13 +103,12 @@ namespace PSMultiServer.Addons.Horizon.DME.Config
         public short MaxClientsPerWorld = 32; //			# (DEFAULT: 32)
     }
 
-
     public class MASSettings
     {
         /// <summary>
         /// Ip of the Medius Authentication Server.
         /// </summary>
-        public string Ip { get; set; } = Server.Common.Utils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.
@@ -142,7 +130,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Proxy Server.
         /// </summary>
-        public string Ip { get; set; } = Server.Common.Utils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.

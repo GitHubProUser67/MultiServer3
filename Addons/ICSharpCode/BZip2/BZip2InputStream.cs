@@ -1,7 +1,7 @@
 #define VECTORIZE_MEMORY_MOVE
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 {
 	/// <summary>
 	/// An input stream that decompresses files in the BZip2 format
@@ -391,9 +391,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 
 			// -- A bad CRC is considered a fatal error. --
 			if (storedBlockCRC != computedBlockCRC)
-			{
 				CrcError();
-			}
 
 			// 1528150659
 			computedCombinedCRC = ((computedCombinedCRC << 1) & 0xFFFFFFFF) | (computedCombinedCRC >> 31);
@@ -404,9 +402,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 		{
 			storedCombinedCRC = BsGetInt32();
 			if (storedCombinedCRC != (int)computedCombinedCRC)
-			{
 				CrcError();
-			}
 
 			streamEnd = true;
 		}
@@ -425,9 +421,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			}
 
 			if (thech == -1)
-			{
 				CompressedStreamEOF();
-			}
 
 			bsBuff = (bsBuff << 8) | (thech & 0xFF);
 			bsLive += 8;
@@ -544,14 +538,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					while (BsR(1) == 1)
 					{
 						if (BsR(1) == 0)
-						{
-							curr++;
-						}
-						else
-						{
-							curr--;
-						}
-					}
+                            curr++;
+                        else
+                            curr--;
+                    }
 					len[t][i] = (char)curr;
 				}
 			}
@@ -617,10 +607,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			while (zvec > limit[zt][zn])
 			{
 				if (zn > 20)
-				{ // the longest code
-					throw new BZip2Exception("Bzip data error");
-				}
-				zn++;
+                    // the longest code
+                    throw new BZip2Exception("Bzip data error");
+                zn++;
 				while (bsLive < 1)
 				{
 					FillBuffer();
@@ -630,34 +619,26 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				zvec = (zvec << 1) | zj;
 			}
 			if (zvec - baseArray[zt][zn] < 0 || zvec - baseArray[zt][zn] >= BZip2Constants.MaximumAlphaSize)
-			{
-				throw new BZip2Exception("Bzip data error");
-			}
-			nextSym = perm[zt][zvec - baseArray[zt][zn]];
+                throw new BZip2Exception("Bzip data error");
+            nextSym = perm[zt][zvec - baseArray[zt][zn]];
 
 			while (true)
 			{
 				if (nextSym == EOB)
-				{
-					break;
-				}
+                    break;
 
-				if (nextSym == BZip2Constants.RunA || nextSym == BZip2Constants.RunB)
+                if (nextSym == BZip2Constants.RunA || nextSym == BZip2Constants.RunB)
 				{
 					int s = -1;
 					int n = 1;
 					do
 					{
 						if (nextSym == BZip2Constants.RunA)
-						{
-							s += (0 + 1) * n;
-						}
-						else if (nextSym == BZip2Constants.RunB)
-						{
-							s += (1 + 1) * n;
-						}
+                            s += (0 + 1) * n;
+                        else if (nextSym == BZip2Constants.RunB)
+                            s += (1 + 1) * n;
 
-						n <<= 1;
+                        n <<= 1;
 
 						if (groupPos == 0)
 						{
@@ -697,20 +678,16 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					}
 
 					if (last >= limitLast)
-					{
 						BlockOverrun();
-					}
 					continue;
 				}
 				else
 				{
 					last++;
 					if (last >= limitLast)
-					{
-						BlockOverrun();
-					}
+                        BlockOverrun();
 
-					byte tmp = yy[nextSym - 1];
+                    byte tmp = yy[nextSym - 1];
 					unzftab[seqToUnseq[tmp]]++;
 					ll8[last] = seqToUnseq[tmp];
 
@@ -798,12 +775,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				SetupRandPartA();
 			}
 			else
-			{
-				SetupNoRandPartA();
-			}
-		}
+                SetupNoRandPartA();
+        }
 
-		private void SetupRandPartA()
+        private void SetupRandPartA()
 		{
 			if (i2 <= last)
 			{
@@ -815,9 +790,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					rNToGo = BZip2Constants.RandomNumbers[rTPos];
 					rTPos++;
 					if (rTPos == 512)
-					{
 						rTPos = 0;
-					}
 				}
 				rNToGo--;
 				ch2 ^= (int)((rNToGo == 1) ? 1 : 0);
@@ -876,11 +849,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 						rNToGo = BZip2Constants.RandomNumbers[rTPos];
 						rTPos++;
 						if (rTPos == 512)
-						{
-							rTPos = 0;
-						}
-					}
-					rNToGo--;
+                            rTPos = 0;
+                    }
+                    rNToGo--;
 					z ^= (byte)((rNToGo == 1) ? 1 : 0);
 					j2 = 0;
 					currentState = RAND_PART_C_STATE;
@@ -958,16 +929,12 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 		private void SetDecompressStructureSizes(int newSize100k)
 		{
 			if (!(0 <= newSize100k && newSize100k <= 9 && 0 <= blockSize100k && blockSize100k <= 9))
-			{
 				throw new BZip2Exception("Invalid block size");
-			}
 
 			blockSize100k = newSize100k;
 
 			if (newSize100k == 0)
-			{
 				return;
-			}
 
 			int n = BZip2Constants.BaseBlockSize * newSize100k;
 			ll8 = new byte[n];

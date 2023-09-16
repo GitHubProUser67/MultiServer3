@@ -1,7 +1,7 @@
-﻿using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+﻿using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public class EdgeZLibCompression_ICSharp : CompressionBase
     {
@@ -43,13 +43,9 @@ namespace PSMultiServer.CryptoSporidium.BAR
             byte[] array = memoryStream.ToArray();
             byte[] array2;
             if (array.Length >= InData.Length)
-            {
                 array2 = InData;
-            }
             else
-            {
                 array2 = array;
-            }
             byte[] array3 = new byte[array2.Length + 4];
             Array.Copy(array2, 0, array3, 4, array2.Length);
             ChunkHeader chunkHeader = default;
@@ -85,9 +81,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         private byte[] DecompressChunk(byte[] inData, ChunkHeader header)
         {
             if (header.CompressedSize == header.SourceSize)
-            {
                 return inData;
-            }
             MemoryStream baseInputStream = new MemoryStream(inData);
             Inflater inf = new Inflater(true);
             InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, inf);
@@ -97,9 +91,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
             {
                 int num = inflaterInputStream.Read(array, 0, array.Length);
                 if (num <= 0)
-                {
                     break;
-                }
                 memoryStream.Write(array, 0, num);
             }
             inflaterInputStream.Close();

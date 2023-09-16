@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	// TODO: Sort out whether tagged data is useful and what a good implementation might look like.
 	// Its just a sketch of an idea at the moment.

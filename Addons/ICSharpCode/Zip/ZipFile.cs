@@ -1,13 +1,13 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Collections;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	#region Keys Required Event Args
 
@@ -876,7 +876,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		/// <exception cref="ObjectDisposedException">
 		/// The ZipFile has already been closed
 		/// </exception>
-		/// <exception cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
+		/// <exception cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
 		/// The compression method for the entry is unknown
 		/// </exception>
 		/// <exception cref="IndexOutOfRangeException">
@@ -916,7 +916,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		/// <exception cref="ObjectDisposedException">
 		/// The ZipFile has already been closed
 		/// </exception>
-		/// <exception cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
+		/// <exception cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
 		/// The compression method for the entry is unknown
 		/// </exception>
 		/// <exception cref="IndexOutOfRangeException">
@@ -3501,7 +3501,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		/// <exception cref="System.IO.IOException">
 		/// An i/o error occurs.
 		/// </exception>
-		/// <exception cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
+		/// <exception cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
 		/// The central directory is malformed or cannot be found
 		/// </exception>
 		private void ReadEntries()
@@ -3713,7 +3713,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		/// <exception cref="System.IO.EndOfStreamException">
 		/// The stream ends prematurely
 		/// </exception>
-		/// <exception cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
+		/// <exception cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipException">
 		/// The local header signature is invalid, the entry and central header file name lengths are different
 		/// or the local and entry compression methods dont match
 		/// </exception>

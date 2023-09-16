@@ -1,7 +1,7 @@
-﻿using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
+﻿using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs
+namespace MultiServer.Addons.Horizon.MEDIUS.PluginArgs
 {
     public class OnAccountLoginRequestArgs
     {

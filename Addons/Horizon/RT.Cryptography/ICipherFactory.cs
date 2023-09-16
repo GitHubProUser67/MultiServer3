@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.RT.Cryptography
+﻿namespace MultiServer.Addons.Horizon.RT.Cryptography
 {
     public interface ICipherFactory
     {

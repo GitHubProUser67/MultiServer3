@@ -1,20 +1,20 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Handlers.Logging;
+﻿using DotNetty.Handlers.Logging;
 using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Tcp;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
-using PSMultiServer.Addons.Horizon.MUIS.Config;
-using PSMultiServer.Addons.Horizon.Server.Common.Logging;
+using MultiServer.Addons.Horizon.MUIS.Config;
 using System.Globalization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace PSMultiServer.Addons.Horizon.MUIS
+namespace MultiServer.Addons.Horizon.MUIS
 {
     /// <summary>
     /// Introduced in Medius 1.43
@@ -22,13 +22,13 @@ namespace PSMultiServer.Addons.Horizon.MUIS
     /// </summary>
     public class MUIS
     {
-        public static bool SVOUrl = true;
+        public static double homeretailver = 0;
 
-        public static Random RNG = new Random();
+        public static double homebetaver = 0;
 
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MUIS>();
+        public static Random RNG = new();
 
-        public static ServerSettings Settings = new ServerSettings();
+        public static ServerSettings Settings = new();
 
         private int _port = 0;
         public int Port => _port;
@@ -58,7 +58,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         /// </summary>
         public virtual async void Start()
         {
-            //
             _bossGroup = new MultithreadEventLoopGroup(1);
             _workerGroup = new MultithreadEventLoopGroup();
             _scertHandler = new ScertServerHandler();
@@ -146,13 +145,11 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             if (clientChannel == null)
                 return;
 
-            // 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
             string key = clientChannel.Id.AsLongText();
 
             try
             {
-                // 
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
                     // Process all messages in queue
@@ -175,7 +172,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         while (data.SendQueue.TryDequeue(out var message))
                             responses.Add(message);
 
-                        //
                         if (responses.Count > 0)
                             await clientChannel.WriteAndFlushAsync(responses);
                     }
@@ -192,10 +188,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;
 
-            // 
             switch (message)
             {
                 case RT_MSG_CLIENT_HELLO clientHello:
@@ -284,7 +279,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED RT MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED RT MESSAGE: {message}");
                         break;
                     }
             }
@@ -300,7 +295,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             switch (message)
             {
                 #region Version Server
-                /// KZ1
+                // KZ1
                 case MediusVersionServerRequest versionServerRequest:
                     {
                         // ERROR - Need a session
@@ -357,10 +352,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         {
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
-
                                 if (getUniverse_ExtraInfoRequest.InfoType == 0)
                                 {
-                                    Logger.Warn("InfoType not specified to return anything.");
+                                    ServerConfiguration.LogWarn("InfoType not specified to return anything.");
 
                                     Queue(new RT_MSG_SERVER_APP()
                                     {
@@ -380,7 +374,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     var isLast = infos.LastOrDefault() == info;
 
                                     #region SVOUrl
-                                    // 
                                     if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                                     {
                                         Queue(new RT_MSG_SERVER_APP()
@@ -435,17 +428,15 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                             }, clientChannel);
                                         }
                                         #endregion
-
                                     }
 
-                                    ServerConfiguration.LogInfo($"MUIS: send univ info (ctr=):  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                    ServerConfiguration.LogInfo($"MUIS: send univ info (ctr=):  [{MuisClass.Settings.Universes.ToArray().Length}]");
                                 }
                                 #endregion
-
                             }
                             else
                             {
-                                Logger.Warn($"MUIS: No universes out there.");
+                                ServerConfiguration.LogWarn($"MUIS: No universes out there.");
 
                                 Queue(new RT_MSG_SERVER_APP()
                                 {
@@ -461,7 +452,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         }
                         else
                         {
-                            Logger.Warn($"ApplicationID not compatible [{data.ApplicationId}]");
+                            ServerConfiguration.LogWarn($"ApplicationID not compatible [{data.ApplicationId}]");
 
                             Queue(new RT_MSG_SERVER_APP()
                             {
@@ -500,7 +491,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     {
                                         if (getUniverseInfo.InfoType == 0)
                                         {
-                                            Logger.Warn("InfoType not specified to return anything.");
+                                            ServerConfiguration.LogWarn("InfoType not specified to return anything.");
 
                                             Queue(new RT_MSG_SERVER_APP()
                                             {
@@ -536,7 +527,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                         #region InfoFilter = Null
                                         if (getUniverseInfo.InfoType == 0)
                                         {
-                                            Logger.Warn("InfoType not specified to return anything.");
+                                            ServerConfiguration.LogWarn("InfoType not specified to return anything.");
 
                                             Queue(new RT_MSG_SERVER_APP()
                                             {
@@ -550,27 +541,47 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                         }
                                         #endregion
 
-                                        SVOUrl = true;
-
-                                        if (data.ApplicationId == 20374 || data.ApplicationId == 20371)
+                                        if (data.ApplicationId == 20374)
                                         {
-                                            if (info.ExtendedInfo == null || info.ExtendedInfo == "")
-                                                SVOUrl = false;
-                                            else
+                                            if (info.ExtendedInfo != null && info.ExtendedInfo != "")
                                             {
                                                 string firstFiveElements = info.ExtendedInfo.Substring(0, Math.Min(5, info.ExtendedInfo.Length));
 
-                                                double homenumber = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
-
-                                                if (homenumber < 01.30)
-                                                    SVOUrl = false;
+                                                try
+                                                {
+                                                    homeretailver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    homeretailver = 0;
+                                                }
                                             }
+                                            else
+                                                homeretailver = 0;
+                                        }
+                                        else if (data.ApplicationId == 20371)
+                                        {
+                                            if (info.ExtendedInfo != null && info.ExtendedInfo != "")
+                                            {
+                                                string firstFiveElements = info.ExtendedInfo.Substring(0, Math.Min(5, info.ExtendedInfo.Length));
+
+                                                try
+                                                {
+                                                    homebetaver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    homebetaver = 0;
+                                                }
+                                            }
+                                            else
+                                                homebetaver = 0;
                                         }
 
                                         #region SVOUrl
                                         if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                                         {
-                                            ServerConfiguration.LogInfo($"MUIS: send svo info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                            ServerConfiguration.LogInfo($"[MUIS] - send svo info: [{MuisClass.Settings.Universes.ToArray().Length}]");
 
                                             Queue(new RT_MSG_SERVER_APP()
                                             {
@@ -583,58 +594,47 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                         }
                                         #endregion
 
-                                        /*if (data.ApplicationId == 20374 && info.ExtendedInfo.Contains("01.83") && info.Name.Contains("HDKONLINEDEBUG")) // Special Home 1.83 eboot.
+                                        // Requires AntiCheat.
+
+                                        if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
                                         {
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                                            try
                                             {
-                                                start_Address = 0x001070bc,
-                                                Payload = BitConverter.GetBytes(0x38800006),
-                                                SkipEncryption = true
+                                                JObject jsonObject = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
 
-                                            }, clientChannel); // Disable NpEula.
+                                                if (jsonObject!= null && jsonObject.Properties() != null)
+                                                {
+                                                    foreach (var property in jsonObject.Properties())
+                                                    {
+                                                        if (int.Parse(property.Name) == data.ApplicationId)
+                                                        {
+                                                            JObject PokeOffsets = property.Value.ToObject<JObject>();
 
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                                                            if (PokeOffsets!= null && PokeOffsets.Properties() != null)
+                                                            {
+                                                                foreach (var subProperty in PokeOffsets.Properties())
+                                                                {
+                                                                    uint offset = uint.Parse(subProperty.Name);
+                                                                    uint valuetopatch = uint.Parse(subProperty.Value.ToString());
+
+                                                                    Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                                                                    {
+                                                                        start_Address = offset,
+                                                                        Payload = BitConverter.GetBytes(valuetopatch),
+                                                                        SkipEncryption = true
+
+                                                                    }, clientChannel);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception ex)
                                             {
-                                                start_Address = 0x00079440,
-                                                Payload = BitConverter.GetBytes(0x38000000),
-                                                SkipEncryption = true
-
-                                            }, clientChannel); // Disable SHA1 Archive protection.
-
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                            {
-                                                start_Address = 0x001c5f04,
-                                                Payload = BitConverter.GetBytes(0x3c800200),
-                                                SkipEncryption = true
-
-                                            }, clientChannel); // Enable SDAT Dumper.
-
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                            {
-                                                start_Address = 0x001c5f38,
-                                                Payload = BitConverter.GetBytes(0x3c800200),
-                                                SkipEncryption = true
-
-                                            }, clientChannel); // Enable SDAT Dumper.
+                                                ServerConfiguration.LogWarn($"[MUIS] - MemoryPoke failed to initialise! {ex}.");
+                                            }
                                         }
-                                        else if (data.ApplicationId == 20374 && info.ExtendedInfo.Contains("01.86"))
-                                        {
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                            {
-                                                start_Address = 0x0023fbd0,
-                                                Payload = BitConverter.GetBytes(0x38000006),
-                                                SkipEncryption = true
-
-                                            }, clientChannel); // Disable NpEula.
-
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                            {
-                                                start_Address = 0x001c325c,
-                                                Payload = BitConverter.GetBytes(0x38000000),
-                                                SkipEncryption = true
-
-                                            }, clientChannel); // Disable SHA1 Archive protection.
-                                        }*/
 
                                         Queue(new RT_MSG_SERVER_APP()
                                         {
@@ -663,7 +663,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     #region News
                                     if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
                                     {
-                                        ServerConfiguration.LogInfo("MUIS: News bit set in request");
+                                        ServerConfiguration.LogInfo("[MUIS] - News bit set in request");
 
                                         Queue(new RT_MSG_SERVER_APP()
                                         {
@@ -678,12 +678,12 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     }
                                     #endregion
 
-                                    ServerConfiguration.LogInfo($"MUIS: send univ info:  [{GetLogs.Logging.LogLevel}/{MuisClass.Settings.Universes.ToArray().Length}]");
+                                    ServerConfiguration.LogInfo($"[MUIS] - send univ info:  [{MuisClass.Settings.Universes.ToArray().Length}]");
                                 }
                             }
                             else
                             {
-                                Logger.Warn($"MUIS: No universes out there.");
+                                ServerConfiguration.LogWarn($"[MUIS] - No universes out there.");
 
                                 Queue(new RT_MSG_SERVER_APP()
                                 {
@@ -699,7 +699,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         }
                         else
                         {
-                            Logger.Warn($"ApplicationID not compatible [{data.ApplicationId}]");
+                            ServerConfiguration.LogWarn($"ApplicationID not compatible [{data.ApplicationId}]");
 
                             if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_UNIVERSES))
                             {
@@ -853,7 +853,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
                 default:
                     {
-                        Logger.Warn($"UNHANDLED MEDIUS MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED MEDIUS MESSAGE: {message}");
                         break;
                     }
             }
@@ -915,33 +915,19 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             */
 
             if (tzStanName == "CEST")
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_CEST);
-            }
             else if (tzInt == 83 && (tzInt + 1) == 83 && (tzInt + 2) == 84)
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_SWEDISHST);
-            }
             else if (tzInt == 70 && (tzInt + 1) == 83 && (tzInt + 2) == 84)
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_FST);
-            }
             else if (tzInt == 67 && (tzInt + 1) == 65 && (tzInt + 2) == 84)
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_CAT);
-            }
             else if (tzStanName == "SAST")
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_SAST);
-            }
             else if (tzInt == 69 && (tzInt + 1) == 65 && (tzInt + 2) == 84)
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_EET);
-            }
             else if (tzInt == 73 && (tzInt + 1) == 65 && (tzInt + 2) == 84)
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_ISRAELST);
-            }
 
             return Task.FromResult(MediusTimeZone.MediusTimeZone_GMT);
         }

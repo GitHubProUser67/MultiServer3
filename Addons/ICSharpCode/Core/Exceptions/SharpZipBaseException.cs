@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib
 {
 	/// <summary>
 	/// SharpZipBaseException is the base exception class for SharpZipLib.

@@ -1,6 +1,6 @@
-﻿using PSMultiServer.Addons.Horizon.DME.Models;
+﻿using MultiServer.Addons.Horizon.DME.Models;
 
-namespace PSMultiServer.Addons.Horizon.DME.PluginArgs
+namespace MultiServer.Addons.Horizon.DME.PluginArgs
 {
     public class OnPlayerArgs
     {

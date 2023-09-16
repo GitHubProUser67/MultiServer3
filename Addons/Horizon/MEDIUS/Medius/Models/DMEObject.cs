@@ -1,15 +1,11 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 {
     public class DMEObject : ClientObject
     {
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<DMEObject>();
-        protected override IInternalLogger Logger => _logger;
-
         public int MaxWorlds { get; protected set; } = 0;
         public int MaxPlayersPerWorld { get; protected set; } = 0;
         public int CurrentWorlds { get; protected set; } = 0;

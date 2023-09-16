@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	#region Enumerations
 

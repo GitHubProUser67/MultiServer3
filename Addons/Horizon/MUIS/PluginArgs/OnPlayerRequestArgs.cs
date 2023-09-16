@@ -1,7 +1,7 @@
-﻿using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.MUIS.Models;
+﻿using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.MUIS.Models;
 
-namespace PSMultiServer.Addons.Horizon.MUIS.PluginArgs
+namespace MultiServer.Addons.Horizon.MUIS.PluginArgs
 {
     public class OnPlayerRequestArgs
     {

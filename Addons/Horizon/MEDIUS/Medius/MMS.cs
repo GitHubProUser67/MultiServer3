@@ -1,16 +1,15 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Handlers.Logging;
+﻿using DotNetty.Handlers.Logging;
 using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Tcp;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 {
     /// <summary>
     /// Introduced in Medius 3.03
@@ -18,14 +17,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
     public class MMS : BaseMediusComponent
     {
         public static Random RNG = new Random();
-
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<MMS>();
-
-        protected override IInternalLogger Logger => _logger;
-
         public override int TCPPort => MediusClass.Settings.MMSTCPPort;
         public override int UDPPort => 0;
-
         public IPAddress IPAddress => MediusClass.SERVER_IP;
 
         protected IEventLoopGroup _bossGroup = null;
@@ -44,7 +37,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         /// </summary>
         public virtual async void Start()
         {
-            //
             _bossGroup = new MultithreadEventLoopGroup(1);
             _workerGroup = new MultithreadEventLoopGroup();
             _scertHandler = new ScertServerHandler();
@@ -68,9 +60,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             {
                 string key = channel.Id.AsLongText();
                 if (_channelDatas.TryGetValue(key, out var data))
-                {
                     data.RecvQueue.Enqueue(message);
-                }
 
                 // Log if id is set
                 if (message.CanLog())
@@ -132,13 +122,11 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             if (clientChannel == null)
                 return;
 
-            // 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
             string key = clientChannel.Id.AsLongText();
 
             try
             {
-                // 
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
                     // Process all messages in queue
@@ -161,7 +149,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         while (data.SendQueue.TryDequeue(out var message))
                             responses.Add(message);
 
-                        //
                         if (responses.Count > 0)
                             await clientChannel.WriteAndFlushAsync(responses);
                     }
@@ -178,11 +165,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
-            // 
             switch (message)
             {
                 case RT_MSG_CLIENT_HELLO clientHello:
@@ -211,12 +197,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         #endregion
 
-                        // 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
                         data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
-
 
                         #region Client Object Null?
                         //If Client Object is null, then ignore
@@ -228,7 +212,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         #endregion
                         else
                         {
-                            // 
                             data.ClientObject.OnConnected();
 
                             // Update our client object to use existing one
@@ -255,9 +238,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             }
                             #endregion
                             else if (scertClient.MediusVersion > 108 && scertClient.MediusVersion != 111 && scertClient.ApplicationID != 20624 && scertClient.ApplicationID != 11484)
-                            {
                                 Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
-                            }
                             else
                             {
                                 //If Frequency, TMBO, Socom 1, ATV Offroad Fury 2,  My Street, or Field Commander Beta then
@@ -274,9 +255,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                     //If ATV Offroad Fury 2, complete connection
                                     if (data.ApplicationId == 10284)
-                                    {
                                         Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                                    }
                                 }
                                 else
                                 {
@@ -289,9 +268,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                     {
                                         //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
                                         if (scertClient.CipherService.EnableEncryption != false)
-                                        {
                                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                                        }
                                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                         {
                                             PlayerId = 0,
@@ -302,9 +279,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                     }
 
                                     if (scertClient.ApplicationID != 11484)
-                                    {
                                         Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                                    }
                                 }
 
 
@@ -322,9 +297,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
                         if (!scertClient.IsPS3Client)
-                        {
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        }
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,
@@ -365,10 +338,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         //Medius 1.08 (Used on WRC 4) haven't a state
                         if (scertClient.MediusVersion <= 108)
-                            _ = clientChannel.CloseAsync();
+                            await clientChannel.CloseAsync();
                         else
                             data.State = ClientState.DISCONNECTED;
-                        _ = clientChannel.CloseAsync();
+                        await clientChannel.CloseAsync();
 
                         ServerConfiguration.LogInfo($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
                         break;
@@ -376,22 +349,18 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {
                         if (clientDisconnectWithReason.disconnectReason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
-                        {
                             ServerConfiguration.LogInfo($"disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
-                        }
                         else
-                        {
                             ServerConfiguration.LogInfo($"disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
-                        }
 
                         data.State = ClientState.DISCONNECTED;
-                        _ = clientChannel.CloseAsync();
+                        await clientChannel.CloseAsync();
                         break;
                     }
 
                 default:
                     {
-                        Logger.Warn($"UNHANDLED RT MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED RT MESSAGE: {message}");
 
                         break;
                     }
@@ -400,23 +369,21 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             return;
         }
 
-
-        protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
+        protected virtual Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
         {
             if (message == null)
-                return;
+                return Task.CompletedTask;
 
             switch (message)
             {
-
-
-
                 default:
                     {
-                        Logger.Warn($"UNHANDLED MEDIUS MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED MEDIUS MESSAGE: {message}");
                         break;
                     }
             }
+
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -451,7 +418,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         }
 
         #endregion
-
 
         protected uint GenerateNewScertClientId()
         {

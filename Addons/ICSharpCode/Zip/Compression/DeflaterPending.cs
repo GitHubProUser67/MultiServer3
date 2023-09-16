@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
 {
 	/// <summary>
 	/// This class stores the pending output of the Deflater.

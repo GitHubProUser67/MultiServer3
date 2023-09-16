@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
+﻿namespace MultiServer.Addons.Horizon.MEDIUS.Config
 {
     public class AppSettings
     {

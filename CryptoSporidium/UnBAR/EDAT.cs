@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace PSMultiServer.CryptoSporidium.UnBAR
+namespace MultiServer.CryptoSporidium.UnBAR
 {
     internal class EDAT
     {
@@ -24,19 +24,25 @@ namespace PSMultiServer.CryptoSporidium.UnBAR
         public static long FLAG_DEBUG = 2147483648;
         private static int HEADER_MAX_BLOCKSIZE = 15360;
 
-        public int encryptFile(string inFile, string outFile, string sdatFile)
+        public int encryptFile(string inFile, string outFile, string sdatnpdcopyfile)
         {
+            if (inFile == "")
+                return STATUS_ERROR_INPUTFILE_IO;
             if (outFile == "")
                 return STATUS_ERROR_OUPUTFILE_IO;
-            if (sdatFile != "" && !File.Exists(sdatFile) || !File.Exists(inFile))
-                return STATUS_ERROR_INPUTFILE_IO;
             FileStream fileStream = File.Open(inFile, (FileMode)3);
             NPD[] npdPtr = new NPD[1];
-            if (outFile == "")
-                return STATUS_ERROR_OUPUTFILE_IO;
             FileStream o1 = File.Open(outFile, (FileMode)2);
-            byte[] numArray1 = writeValidNPD(npdPtr, fileStream, sdatFile);
-            o1.Write(numArray1, 0, numArray1.Length);
+            if (sdatnpdcopyfile == null || sdatnpdcopyfile == "")
+            {
+                byte[] numArray1 = writeValidNPD(npdPtr, fileStream, "");
+                o1.Write(numArray1, 0, numArray1.Length);
+            }
+            else
+            {
+                byte[] numArray1 = writeValidNPD(npdPtr, fileStream, sdatnpdcopyfile);
+                o1.Write(numArray1, 0, numArray1.Length);
+            }
             byte[] numArray2 = new byte[4]
             {
                  1,
@@ -122,7 +128,7 @@ namespace PSMultiServer.CryptoSporidium.UnBAR
             return output;
         }
 
-        private byte[] writeValidNPD(NPD[] npdPtr, FileStream fin, string sdatFile)
+        private byte[] writeValidNPD(NPD[] npdPtr, FileStream fin, string sdatFile) // The sdatFile argument allows to copy the NPD of a SDAT to an other, very handy.
         {
             byte[] numArray = new byte[128];
             numArray[0] = 78;

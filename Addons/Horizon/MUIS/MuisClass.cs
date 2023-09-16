@@ -1,26 +1,20 @@
-﻿using DotNetty.Common.Internal.Logging;
-using Newtonsoft.Json;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database;
-using PSMultiServer.Addons.Horizon.Server.Plugins;
-using PSMultiServer.Addons.Horizon.MUIS.Config;
-using System.Diagnostics;
-using PSMultiServer.Addons.Horizon.DME;
+﻿using Newtonsoft.Json;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database;
+using MultiServer.Addons.Horizon.MUIS.Config;
+using MultiServer.Addons.Horizon.DME;
 
-namespace PSMultiServer.Addons.Horizon.MUIS
+namespace MultiServer.Addons.Horizon.MUIS
 {
     public class MuisClass
     {
-        public static string CONFIG_FILE => Path.Combine("./static/MUIS", "muis.json");
-        public static string DB_CONFIG_FILE => Path.Combine("./static/MUIS", "db.config.json");
+        private static string CONFIG_FILE => Directory.GetCurrentDirectory() + $"/{ServerConfiguration.MUISConfig}";
 
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MuisClass>();
-
-        public static ServerSettings Settings = new ServerSettings();
+        public static ServerSettings Settings = new();
         public static DbController Database = null;
 
-        public static MediusManager Manager = new MediusManager();
+        public static MediusManager Manager = new();
         public static PluginsManager Plugins = null;
 
         public static RSA_KEY GlobalAuthPublic = null;
@@ -32,52 +26,75 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         private static Dictionary<string, int[]> _appIdGroups = new Dictionary<string, int[]>();
         private static ulong _sessionKeyCounter = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
+        private static DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
         private static DateTime? _lastSuccessfulDbAuth = null;
-        private static int _ticks = 0;
-        private static Stopwatch _sw = new Stopwatch();
-        private static Timer.HighResolutionTimer _timer;
+
+        public static bool started = false;
 
         private static async Task TickAsync()
         {
-            // Attempt to authenticate with the db middleware
-            // We do this every 24 hours to get a fresh new token
-            if ((_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24))
+            try
             {
-                if (!await Database.Authenticate())
+                // Attempt to authenticate with the db middleware
+                // We do this every 24 hours to get a fresh new token
+                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
-                    // Log and exit when unable to authenticate
-                    ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
-                    return;
-                }
-                else
-                {
-                    _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
-
-                    // pass to manager
-                    await OnDatabaseAuthenticated();
-
-                    // refresh app settings
-                    await RefreshAppSettings();
-
-                    #region Check Cache Server Simulated
-                    if (Database._settings.SimulatedMode != true)
+                    if (!await Database.Authenticate())
                     {
-                        ServerConfiguration.LogInfo("Connected to Cache Server");
+                        // Log and exit when unable to authenticate
+                        ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
+                        return;
                     }
                     else
                     {
-                        ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
+                        _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
+
+                        // pass to manager
+                        await OnDatabaseAuthenticated();
+
+                        // refresh app settings
+                        await RefreshAppSettings();
+
+                        #region Check Cache Server Simulated
+                        if (Database._settings.SimulatedMode != true)
+                            ServerConfiguration.LogInfo("Connected to Cache Server");
+                        else
+                            ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
+                        #endregion
                     }
-                    #endregion
+                }
+
+                await Task.WhenAll(UniverseInfoServers.Select(x => x.Tick()));
+
+                // Reload config
+                if ((Utils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
+                {
+                    RefreshConfig();
+                    lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
                 }
             }
-
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError(ex);
+            }
         }
 
-        private static async Task StartServerAsync()
+        private static async Task LoopServer()
         {
-            DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+            // iterate
+            while (started)
+            {
+                // tick
+                await TickAsync();
 
+                await Task.Delay(100);
+            }
+
+            await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));
+        }
+
+        private static Task StartServerAsync()
+        {
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
 
             ServerConfiguration.LogInfo("**************************************************");
@@ -88,13 +105,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
             if (Database._settings.SimulatedMode == true)
-            {
                 ServerConfiguration.LogInfo("* Database Disabled Medius Stack");
-            }
             else
-            {
                 ServerConfiguration.LogInfo("* Database Enabled Medius Stack");
-            }
 
             UniverseInfoServers = new MUIS[Settings.Ports.Length];
             for (int i = 0; i < UniverseInfoServers.Length; ++i)
@@ -108,16 +121,11 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
             #region Remote Log Viewing
             if (Settings.RemoteLogViewPort == 0)
-            {
                 //* Remote log viewing setup failure with port %d.
                 ServerConfiguration.LogInfo("* Remote log viewing disabled.");
-            }
             else if (Settings.RemoteLogViewPort != 0)
-            {
                 ServerConfiguration.LogInfo($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
-            }
             #endregion
-
 
             #region MediusGetVersion
             if (Settings.MediusServerVersionOverride == true)
@@ -128,11 +136,8 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
             }
             else
-            {
                 // Use hardcoded methods in code to handle specific games server versions
                 ServerConfiguration.LogInfo("Using game specific server versions");
-            }
-
 
             #endregion
 
@@ -141,52 +146,27 @@ namespace PSMultiServer.Addons.Horizon.MUIS
             ServerConfiguration.LogInfo("**************************************************");
 
             if (Settings.NATIp == null)
-            {
                 ServerConfiguration.LogError("[MUIS] - No NAT ip found! Errors can happen.");
-            }
 
             ServerConfiguration.LogInfo($"MUIS initalized.");
 
-            try
-            {
-                while (true)
-                {
-                    // Tick
-                    await TickAsync();
-                    await Task.WhenAll(UniverseInfoServers.Select(x => x.Tick()));
+            started = true;
 
-                    // Reload config
-                    if ((Utils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
-                    {
-                        RefreshConfig();
-                        lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
-                    }
+            _ = Task.Run(LoopServer);
 
-                    await Task.Delay(100);
-                }
-            }
-            catch (Exception ex)
-            {
-                ServerConfiguration.LogError(ex);
-            }
-            finally
-            {
-                await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));
-            }
+            return Task.CompletedTask;
+        }
+
+        private static void setupdatabase()
+        {
+            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
         }
 
         public static void MuisMain()
         {
-            Database = new DbController(DB_CONFIG_FILE);
-            Initialize();
-            _ = StartServerAsync();
-            return;
-        }
-
-        private static void Initialize()
-        {
+            setupdatabase();
             RefreshConfig();
-            return;
+            _ = StartServerAsync();
         }
 
         /// <summary>
@@ -194,7 +174,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         /// </summary>
         private static void RefreshConfig()
         {
-            // 
             var serializerSettings = new JsonSerializerSettings()
             {
                 MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -202,10 +181,8 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
             // Load settings
             if (File.Exists(CONFIG_FILE))
-            {
                 // Populate existing object
                 JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
-            }
             else
             {
                 // Add the appids to the ApplicationIds list
@@ -220,13 +197,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 string iptofile = null;
 
                 if (DmeClass.Settings.UsePublicIp || MEDIUS.MediusClass.Settings.UsePublicIp)
-                {
-                    iptofile = Utils.GetPublicIPAddress();
-                }
+                    iptofile = Misc.GetPublicIPAddress();
                 else
-                {
                     iptofile = Utils.GetLocalIPAddress().ToString();
-                }
 
                 // Add default localhost entry
                 Settings.Universes.Add(0, new UniverseInfo[] {
@@ -922,14 +895,14 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     }
                 });
 
+                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
+
                 // Save defaults
                 File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
 
             // Update default rsa key
-            Server.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
-
-            return;
+            LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
         }
 
         public static async Task OnDatabaseAuthenticated()
@@ -945,7 +918,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         {
             try
             {
-                if (!await Database.AmIAuthenticated())
+                if (!Database.AmIAuthenticated())
                     return;
 
                 // get supported app ids
@@ -962,9 +935,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         if (settings != null)
                         {
                             if (_appSettings.TryGetValue(appId, out var appSettings))
-                            {
                                 appSettings.SetSettings(settings);
-                            }
                             else
                             {
                                 appSettings = new AppSettings(appId);

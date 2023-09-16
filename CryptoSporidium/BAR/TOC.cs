@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public class TOC
     {
@@ -69,9 +69,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
             {
                 TOCEntry result = null;
                 if (m_entries.ContainsKey((int)filename))
-                {
                     result = m_entries[(int)filename];
-                }
                 return result;
             }
         }
@@ -89,9 +87,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         private TOCEntry GetEntry(int index)
         {
             if (index >= m_entries.Count)
-            {
                 return null;
-            }
             TOCEntry[] array = new TOCEntry[m_entries.Count];
             m_entries.Values.CopyTo(array, 0);
             return array[index];
@@ -126,13 +122,9 @@ namespace PSMultiServer.CryptoSporidium.BAR
             foreach (TOCEntry tocentry in m_entries.Values)
             {
                 if (num == 0U)
-                {
                     tocentry.DataOffset = 0U;
-                }
                 else
-                {
                     tocentry.DataOffset = num;
-                }
                 num += tocentry.AlignedSize;
             }
         }
@@ -209,9 +201,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
                     uint dataOffset = linkedListNode.Value.DataOffset;
                     uint num = dataOffset + linkedListNode.Value.AlignedSize;
                     if (num != next.Value.DataOffset)
-                    {
                         next.Value.DataOffset = num;
-                    }
                     linkedListNode = next;
                     next = linkedListNode.Next;
                 }

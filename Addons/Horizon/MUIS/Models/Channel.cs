@@ -1,8 +1,8 @@
-﻿using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
 
-namespace PSMultiServer.Addons.Horizon.MUIS.Models
+namespace MultiServer.Addons.Horizon.MUIS.Models
 {
     public enum ChannelType
     {
@@ -108,14 +108,18 @@ namespace PSMultiServer.Addons.Horizon.MUIS.Models
             return Task.CompletedTask;
         }
 
-        public virtual async Task OnChannelCreate(Channel channel)
+        public virtual Task OnChannelCreate(Channel channel)
         {
             Channels.Add(channel);
+
+            return Task.CompletedTask;
         }
 
-        public virtual async Task OnPlayerJoined(ClientObject client)
+        public virtual Task OnPlayerJoined(ClientObject client)
         {
             Clients.Add(client);
+
+            return Task.CompletedTask;
         }
 
         public virtual void OnPlayerLeft(ClientObject client)

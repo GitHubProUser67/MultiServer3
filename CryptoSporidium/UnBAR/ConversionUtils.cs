@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace PSMultiServer.CryptoSporidium.UnBAR
+namespace MultiServer.CryptoSporidium.UnBAR
 {
     internal class ConversionUtils
     {

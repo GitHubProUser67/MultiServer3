@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Tar
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Tar
 {
 	/// <summary>
 	/// TarException represents exceptions specific to Tar classes and code.

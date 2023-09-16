@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     /*
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.SetLobbyWorldFilterResponse1)]

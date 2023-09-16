@@ -1,20 +1,19 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Handlers.Logging;
+﻿using DotNetty.Handlers.Logging;
 using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography.RC;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Tcp;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography.RC;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
+using MultiServer.Addons.Horizon.MEDIUS.PluginArgs;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 {
     public abstract class BaseMediusComponent : IMediusComponent
     {
@@ -29,8 +28,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             CONNECT_1,
             AUTHENTICATED
         }
-
-        protected abstract IInternalLogger Logger { get; }
 
         public abstract int TCPPort { get; }
         public abstract int UDPPort { get; }
@@ -78,7 +75,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
         public virtual async void Start()
         {
-            //
             _bossGroup = new MultithreadEventLoopGroup(1);
             _workerGroup = new MultithreadEventLoopGroup();
 
@@ -94,7 +90,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 };
                 _channelDatas.TryAdd(key, data);
 
-                //
                 OnConnected(channel);
 
                 // Check if IP is banned
@@ -102,9 +97,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 {
                     data.IsBanned = r.IsCompletedSuccessfully && r.Result;
                     if (data.IsBanned == true)
-                    {
                         QueueBanMessage(data, "Your IP has been banned!");
-                    }
                 });
             };
             // Remove client on disconnect
@@ -118,7 +111,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     data.ClientObject?.OnDisconnected();
                 }
 
-                //
                 await OnDisconnected(channel);
             };
 
@@ -146,9 +138,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                 // Log if id is set
                 if (message.CanLog())
-                {
                     ServerConfiguration.LogInfo($"RECV {data?.ClientObject},{channel}: {message}");
-                }
             };
 
             try
@@ -221,8 +211,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 // Logout
                 d?.ClientObject?.Logout();
 
-                // 
-                Logger.Warn($"REMOVING CHANNEL {channel},{d},{d?.ClientObject}");
+                ServerConfiguration.LogWarn($"REMOVING CHANNEL {channel},{d},{d?.ClientObject}");
 
                 // close after 5 seconds
                 _ = Task.Run(async () =>
@@ -248,13 +237,11 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             if (clientChannel == null)
                 return;
 
-            // 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
             string key = clientChannel.Id.AsLongText();
 
             try
             {
-                // 
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
                     // Destroy
@@ -315,14 +302,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             }
                         }
 
-                        //
                         if (responses.Count > 0)
                             _ = clientChannel.WriteAndFlushAsync(responses);
                     }
-                }
-                else
-                {
-
                 }
             }
             catch (Exception e)
@@ -348,8 +330,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
         protected virtual void QueueClanKickMessage(ChannelData data, string msg)
         {
-
-
             // Send clan kick message
             data.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
             {
@@ -381,10 +361,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             catch (Exception)
             {
                 // Silence exception since the client probably just closed the socket before we could write to it
-            }
-            finally
-            {
-
             }
         }
 
@@ -436,8 +412,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             await MediusClass.Plugins.OnMessageEvent(message.Id, onMsg);
             if (onMsg.Ignore)
                 return true;
-
-
 
             // Send medius message to plugins
             if (message is RT_MSG_CLIENT_APP_TOSERVER clientApp)

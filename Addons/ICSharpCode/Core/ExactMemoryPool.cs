@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Core
 {
 	/// <summary>
 	/// A MemoryPool that will return a Memory which is exactly the length asked for using the bufferSize parameter.

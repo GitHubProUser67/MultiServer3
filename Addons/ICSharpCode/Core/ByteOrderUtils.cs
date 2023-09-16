@@ -4,7 +4,7 @@ using CT = System.Threading.CancellationToken;
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable InconsistentNaming
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Core
 {
 	internal static class ByteOrderStreamExtensions
 	{

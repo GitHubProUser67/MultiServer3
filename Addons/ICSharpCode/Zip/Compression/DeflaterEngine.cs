@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
 {
 	/// <summary>
 	/// Strategies for deflater

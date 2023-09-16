@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.GZip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.GZip
 {
 	using static Zip.Compression.Deflater;
 

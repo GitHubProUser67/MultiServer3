@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams
 {
 	/// <summary>
 	/// Contains the output from the Inflation process.

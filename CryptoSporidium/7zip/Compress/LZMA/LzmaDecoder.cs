@@ -8,19 +8,19 @@ namespace SevenZip.Compression.LZMA
 	{
 		class LenDecoder
 		{
-			BitDecoder m_Choice = new BitDecoder();
-			BitDecoder m_Choice2 = new BitDecoder();
+			BitDecoder m_Choice = new();
+			BitDecoder m_Choice2 = new();
 			BitTreeDecoder[] m_LowCoder = new BitTreeDecoder[Base.kNumPosStatesMax];
 			BitTreeDecoder[] m_MidCoder = new BitTreeDecoder[Base.kNumPosStatesMax];
-			BitTreeDecoder m_HighCoder = new BitTreeDecoder(Base.kNumHighLenBits);
+			BitTreeDecoder m_HighCoder = new(Base.kNumHighLenBits);
 			uint m_NumPosStates = 0;
 
 			public void Create(uint numPosStates)
 			{
 				for (uint posState = m_NumPosStates; posState < numPosStates; posState++)
 				{
-					m_LowCoder[posState] = new BitTreeDecoder(Base.kNumLowLenBits);
-					m_MidCoder[posState] = new BitTreeDecoder(Base.kNumMidLenBits);
+					m_LowCoder[posState] = new(Base.kNumLowLenBits);
+					m_MidCoder[posState] = new(Base.kNumMidLenBits);
 				}
 				m_NumPosStates = numPosStates;
 			}
@@ -143,7 +143,7 @@ namespace SevenZip.Compression.LZMA
 		BitTreeDecoder[] m_PosSlotDecoder = new BitTreeDecoder[Base.kNumLenToPosStates];
 		BitDecoder[] m_PosDecoders = new BitDecoder[Base.kNumFullDistances - Base.kEndPosModelIndex];
 
-		BitTreeDecoder m_PosAlignDecoder = new BitTreeDecoder(Base.kNumAlignBits);
+		BitTreeDecoder m_PosAlignDecoder = new(Base.kNumAlignBits);
 
 		LenDecoder m_LenDecoder = new LenDecoder();
 		LenDecoder m_RepLenDecoder = new LenDecoder();
@@ -159,7 +159,7 @@ namespace SevenZip.Compression.LZMA
 		{
 			m_DictionarySize = 0xFFFFFFFF;
 			for (int i = 0; i < Base.kNumLenToPosStates; i++)
-				m_PosSlotDecoder[i] = new BitTreeDecoder(Base.kNumPosSlotBits);
+				m_PosSlotDecoder[i] = new(Base.kNumPosSlotBits);
 		}
 
 		void SetDictionarySize(uint dictionarySize)
@@ -193,7 +193,7 @@ namespace SevenZip.Compression.LZMA
 		}
 
 		bool _solid = false;
-		void Init(System.IO.Stream inStream, System.IO.Stream outStream)
+		void Init(Stream inStream, Stream outStream)
 		{
 			m_RangeDecoder.Init(inStream);
 			m_OutWindow.Init(outStream, _solid);
@@ -225,7 +225,7 @@ namespace SevenZip.Compression.LZMA
 			m_PosAlignDecoder.Init();
 		}
 
-		public void Code(System.IO.Stream inStream, System.IO.Stream outStream,
+		public void Code(Stream inStream, Stream outStream,
 			Int64 inSize, Int64 outSize, ICodeProgress progress)
 		{
 			Init(inStream, outStream);
@@ -362,7 +362,7 @@ namespace SevenZip.Compression.LZMA
 			SetPosBitsProperties(pb);
 		}
 
-		public bool Train(System.IO.Stream stream)
+		public bool Train(Stream stream)
 		{
 			_solid = true;
 			return m_OutWindow.Train(stream);

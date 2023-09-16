@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
 {
 	/// <summary>
 	/// This is the Deflater class.  The deflater class compresses input

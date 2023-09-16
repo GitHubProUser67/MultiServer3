@@ -1,12 +1,9 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
+﻿using MultiServer.Addons.Horizon.RT.Common;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 {
     public class Anticheat
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<Anticheat>();
-
         public class CheatAction
         {
             public int mActions;

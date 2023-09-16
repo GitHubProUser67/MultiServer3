@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     public class NetAddressList : IStreamSerializer
     {
@@ -29,11 +29,6 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
             {
                 writer.Write((AddressList == null || i >= AddressList.Length) ? NetAddress.Empty : AddressList[i]);
             }
-        }
-
-        public override string ToString()
-        {
-            return "NetAddresses: <" + string.Join(" ", AddressList?.Select(x => x.ToString())) + "> ";
         }
     }
 }

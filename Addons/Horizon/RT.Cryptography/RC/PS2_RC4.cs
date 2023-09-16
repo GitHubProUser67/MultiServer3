@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.RT.Cryptography.RC
+﻿namespace MultiServer.Addons.Horizon.RT.Cryptography.RC
 {
     /// <summary>
     /// PS2's custom RC4 implementation,

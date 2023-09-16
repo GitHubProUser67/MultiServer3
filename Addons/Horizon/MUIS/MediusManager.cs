@@ -1,19 +1,16 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using PSMultiServer.Addons.Horizon.MUIS.Models;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database.Models;
+using MultiServer.Addons.Horizon.MUIS.Models;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.MUIS
+namespace MultiServer.Addons.Horizon.MUIS
 {
     public class MediusManager
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MediusManager>();
-
-        class QuickLookup
+        private class QuickLookup
         {
             public Dictionary<int, ClientObject> AccountIdToClient = new Dictionary<int, ClientObject>();
             public Dictionary<string, ClientObject> AccountNameToClient = new Dictionary<string, ClientObject>();
@@ -38,8 +35,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new List<MediusFileMetaData>();
 
         private ConcurrentQueue<ClientObject> _addQueue = new ConcurrentQueue<ClientObject>();
-
-
 
         #region Clients
         public List<ClientObject> GetClients(int appId)
@@ -160,7 +155,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 quickLookup.AccessTokenToDmeClient.Add(dmeClient.Token, dmeClient);
                 quickLookup.SessionKeyToDmeClient.Add(dmeClient.SessionKey, dmeClient);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 // clean up
                 if (dmeClient != null)
@@ -172,7 +167,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         quickLookup.SessionKeyToDmeClient.Remove(dmeClient.SessionKey);
                 }
 
-                throw e;
+                ServerConfiguration.LogError($"[DME] - AddDmeClient thrown an exception {ex}");
             }
         }
 
@@ -436,22 +431,14 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 int counter = 0;
 
                 if (filenameBeginsWith.ToString() == "*")
-                {
                     files = Directory.GetFiles(path).Select(file => Path.GetFileName(file)).ToArray();
-                }
                 else
-                {
                     files = Directory.GetFiles(path, Convert.ToString(filenameBeginsWith));
-                }
 
                 if (files.Length < pageSize)
-                {
                     counter = files.Count();
-                }
                 else
-                {
                     counter = (int)pageSize - 1;
-                }
 
                 for (int i = (int)startingEntryNumber - 1; i < counter; i++)
                 {
@@ -470,7 +457,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     }
                     catch (Exception e)
                     {
-                        Logger.Warn($"MFS FileList Exception:\n{e}");
+                        ServerConfiguration.LogWarn($"MFS FileList Exception:\n{e}");
                     }
                 }
                 return _mediusFiles;
@@ -492,13 +479,9 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 //files = Directory.GetFiles(path).Select(file => Path.GetFileName(filenameBeginsWith)).ToArray();
 
                 if (filesArray.Length < pageSize)
-                {
                     counter = filesArray.Count() - 1;
-                }
                 else
-                {
                     counter = (int)pageSize - 1;
-                }
 
                 for (int i = (int)(startingEntryNumber - 1); i < counter; i++)
                 {
@@ -526,7 +509,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     }
                     catch (Exception e)
                     {
-                        Logger.Warn($"MFS FileListExt Exception:\n{e}");
+                        ServerConfiguration.LogWarn($"MFS FileListExt Exception:\n{e}");
                     }
                 }
                 return _mediusFiles;
@@ -559,7 +542,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn($"MFS UpdateMetaData Exception:\n{e}");
+                    ServerConfiguration.LogWarn($"MFS UpdateMetaData Exception:\n{e}");
                 }
 
                 return _mediusFilesToUpdateMetaData;
@@ -598,36 +581,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
         #endregion
 
-        #region Clans
-
-        //public Clan GetClanByAccountId(int clanId, int appId)
-        //{
-        //    if (_clanIdToClan.TryGetValue(clanId, out var result))
-        //        return result;
-
-        //    return null;
-        //}
-
-        //public Clan GetClanByAccountName(string clanName, int appId)
-        //{
-        //    clanName = clanName.ToLower();
-        //    if (_clanNameToClan.TryGetValue(clanName, out var result))
-        //        return result;
-
-        //    return null;
-        //}
-
-        //public void AddClan(Clan clan)
-        //{
-        //    if (!_lookupsByAppId.TryGetValue(clan.ApplicationId, out var quickLookup))
-        //        _lookupsByAppId.Add(dmeClient.ApplicationId, quickLookup = new QuickLookup());
-
-        //    _clanNameToClan.Add(clan.Name.ToLower(), clan);
-        //    _clanIdToClan.Add(clan.Id, clan);
-        //}
-
-        #endregion
-
         #region Tick
 
         public async Task Tick()
@@ -654,9 +607,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
                     }
                     else
-                    {
                         await channelKeyPair.Value.Tick();
-                    }
                 }
             }
 
@@ -681,9 +632,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         gamesToRemove.Enqueue((quickLookup.Value, gameKeyPair.Key));
                     }
                     else
-                    {
                         await gameKeyPair.Value.Tick();
-                    }
                 }
             }
 
@@ -709,7 +658,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     quickLookup.AccessTokenToClient.Add(newClient.Token, newClient);
                     quickLookup.SessionKeyToClient.Add(newClient.SessionKey, newClient);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
                     // clean up
                     if (newClient != null)
@@ -726,8 +675,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                             quickLookup.SessionKeyToClient.Remove(newClient.SessionKey);
                     }
 
-                    ServerConfiguration.LogError(e);
-                    //throw e;
+                    ServerConfiguration.LogError(ex);
                 }
             }
 
@@ -738,7 +686,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                     if (!clientKeyPair.Value.IsConnected)
                     {
                         if (clientKeyPair.Value.Timedout)
-                            Logger.Warn($"Timing out client {clientKeyPair.Value}");
+                            ServerConfiguration.LogWarn($"Timing out client {clientKeyPair.Value}");
                         else
                             ServerConfiguration.LogInfo($"Destroying Client {clientKeyPair.Value}");
 
@@ -891,7 +839,6 @@ namespace PSMultiServer.Addons.Horizon.MUIS
 
         public Task DmeServerClientIpQuery(int WorldID, int TargetClient, IPAddress IP)
         {
-
             return Task.CompletedTask;
         }
 
@@ -924,9 +871,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     {
                                         result = DME_SERVER_RESULT.DME_SERVER_PARTIAL_RW_ERROR;
                                         if (RtError != 52536)
-                                        {
                                             result = DME_SERVER_RESULT.DME_SERVER_CLIENT_ALREADY_DISCONNECTED;
-                                        }
                                     }
                                 }
                             }
@@ -939,9 +884,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                 {
                                     result = DME_SERVER_RESULT.DME_SERVER_CLIENT_LIMIT;
                                     if (RtError != 52531)
-                                    {
                                         result = DME_SERVER_RESULT.DME_SERVER_ENCRYPTED_ERROR;
-                                    }
                                 }
                             }
                         }
@@ -961,9 +904,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     {
                                         result = DME_SERVER_RESULT.DME_SERVER_SOCKET_RESET_ERROR;
                                         if (RtError != 52526)
-                                        {
                                             result = DME_SERVER_RESULT.DME_SERVER_CIRC_BUF_ERROR;
-                                        }
                                     }
                                 }
                             }
@@ -977,9 +918,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                     {
                                         result = DME_SERVER_RESULT.DME_SERVER_READ_ERROR;
                                         if (RtError != 52521)
-                                        {
                                             result = DME_SERVER_RESULT.DME_SERVER_SOCKET_CLOSED;
-                                        }
                                     }
                                 }
                             }
@@ -1009,9 +948,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                 {
                                     result = DME_SERVER_RESULT.DME_SERVER_SOCKET_READ_ERROR;
                                     if (RtError != 52516)
-                                    {
                                         result = DME_SERVER_RESULT.DME_SERVER_SOCKET_WRITE_ERROR;
-                                    }
                                 }
                             }
                         }
@@ -1025,9 +962,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                                 {
                                     result = DME_SERVER_RESULT.DME_SERVER_SOCKET_CREATE_ERROR;
                                     if (RtError != 52511)
-                                    {
                                         result = DME_SERVER_RESULT.DME_SERVER_SOCKET_OPT_ERROR;
-                                    }
                                 }
                             }
                         }
@@ -1063,9 +998,7 @@ namespace PSMultiServer.Addons.Horizon.MUIS
                         {
                             result = DME_SERVER_RESULT.DME_SERVER_SOCKET_LIMIT;
                             if (RtError != 52506)
-                            {
                                 result = DME_SERVER_RESULT.DME_SERVER_UNKNOWN_CONN_ERROR;
-                            }
                         }
                     }
                 }
@@ -1075,6 +1008,5 @@ namespace PSMultiServer.Addons.Horizon.MUIS
         }
 
         #endregion
-
     }
 }

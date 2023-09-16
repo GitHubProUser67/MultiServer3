@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// Holds data pertinent to a data descriptor.
@@ -117,40 +117,28 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 				ed.AddNewEntry(1);
 
 				if (!ed.Find(1))
-				{
-					throw new ZipException("Internal error cant find extra data");
-				}
+                    throw new ZipException("Internal error cant find extra data");
 
-				patchData.SizePatchOffset = ed.CurrentReadIndex;
+                patchData.SizePatchOffset = ed.CurrentReadIndex;
 			}
 			else
-			{
-				ed.Delete(1);
-			}
+                ed.Delete(1);
 
-			if (entry.AESKeySize > 0)
-			{
+            if (entry.AESKeySize > 0)
 				AddExtraDataAES(entry, ed);
-			}
 			byte[] extra = ed.GetEntryData();
 
 			stream.WriteLEShort(name.Length);
 			stream.WriteLEShort(extra.Length);
 
 			if (name.Length > 0)
-			{
 				stream.Write(name, 0, name.Length);
-			}
 
 			if (entry.LocalHeaderRequiresZip64 && patchEntryHeader)
-			{
 				patchData.SizePatchOffset += streamOffset + stream.Position;
-			}
 
 			if (extra.Length > 0)
-			{
 				stream.Write(extra, 0, extra.Length);
-			}
 
 			return ZipConstants.LocalHeaderBaseSize + name.Length + extra.Length;
 		}
@@ -168,9 +156,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		{
 			long pos = endLocation - minimumBlockSize;
 			if (pos < 0)
-			{
 				return -1;
-			}
 
 			long giveUpMarker = Math.Max(pos - maximumVariableData, 0);
 
@@ -178,9 +164,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			do
 			{
 				if (pos < giveUpMarker)
-				{
 					return -1;
-				}
 				stream.Seek(pos--, SeekOrigin.Begin);
 			} while (stream.ReadLEInt() != signature);
 
@@ -249,9 +233,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			if (noOfEntries >= 0xffff ||
 			    start >= 0xffffffff ||
 			    sizeEntries >= 0xffffffff)
-			{
 				WriteZip64EndOfCentralDirectory(stream, noOfEntries, sizeEntries, start);
-			}
 
 			stream.WriteLEInt(ZipConstants.EndOfCentralDirectorySignature);
 
@@ -273,53 +255,37 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 
 			// Size of the central directory
 			if (sizeEntries >= 0xffffffff)
-			{
-				stream.WriteLEUint(0xffffffff);    // Zip64 marker
-			}
+				stream.WriteLEUint(0xffffffff);
 			else
-			{
 				stream.WriteLEInt((int)sizeEntries);
-			}
 
 			// offset of start of central directory
 			if (start >= 0xffffffff)
-			{
-				stream.WriteLEUint(0xffffffff);    // Zip64 marker
-			}
+				stream.WriteLEUint(0xffffffff);
 			else
-			{
 				stream.WriteLEInt((int)start);
-			}
 
 			var commentLength = comment?.Length ?? 0;
 
 			if (commentLength > 0xffff)
-			{
 				throw new ZipException($"Comment length ({commentLength}) is larger than 64K");
-			}
 
 			stream.WriteLEShort(commentLength);
 
 			if (commentLength > 0)
-			{
-				stream.Write(comment, 0, commentLength);
-			}
-		}
+                stream.Write(comment, 0, commentLength);
+        }
 
-
-
-		/// <summary>
-		/// Write a data descriptor.
-		/// </summary>
-		/// <param name="stream" />
-		/// <param name="entry">The entry to write a descriptor for.</param>
-		/// <returns>Returns the number of descriptor bytes written.</returns>
-		internal static int WriteDataDescriptor(Stream stream, ZipEntry entry)
+        /// <summary>
+        /// Write a data descriptor.
+        /// </summary>
+        /// <param name="stream" />
+        /// <param name="entry">The entry to write a descriptor for.</param>
+        /// <returns>Returns the number of descriptor bytes written.</returns>
+        internal static int WriteDataDescriptor(Stream stream, ZipEntry entry)
 		{
 			if (entry == null)
-			{
 				throw new ArgumentNullException(nameof(entry));
-			}
 
 			int result = 0;
 
@@ -364,9 +330,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			// In theory this may not be a descriptor according to PKZIP appnote.
 			// In practice its always there.
 			if (intValue != ZipConstants.DataDescriptorSignature)
-			{
 				throw new ZipException("Data descriptor signature not found");
-			}
 
 			data.Crc = stream.ReadLEInt();
 
@@ -394,74 +358,52 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 
 			if (entry.IsZip64Forced() ||
 				(entry.CompressedSize >= uint.MaxValue))
-			{
-				stream.WriteLEInt(-1);
-			}
-			else
-			{
-				stream.WriteLEInt((int)entry.CompressedSize);
-			}
+                stream.WriteLEInt(-1);
+            else
+                stream.WriteLEInt((int)entry.CompressedSize);
 
-			if (entry.IsZip64Forced() ||
+            if (entry.IsZip64Forced() ||
 				(entry.Size >= uint.MaxValue))
-			{
-				stream.WriteLEInt(-1);
-			}
-			else
-			{
-				stream.WriteLEInt((int)entry.Size);
-			}
+                stream.WriteLEInt(-1);
+            else
+                stream.WriteLEInt((int)entry.Size);
 
-			byte[] name = stringCodec.ZipOutputEncoding.GetBytes(entry.Name);
+            byte[] name = stringCodec.ZipOutputEncoding.GetBytes(entry.Name);
 
 			if (name.Length > 0xffff)
-			{
-				throw new ZipException("Name too long.");
-			}
+                throw new ZipException("Name too long.");
 
-			var ed = new ZipExtraData(entry.ExtraData);
+            var ed = new ZipExtraData(entry.ExtraData);
 
 			if (entry.CentralHeaderRequiresZip64)
 			{
 				ed.StartNewEntry();
 				if (entry.IsZip64Forced() ||
 					(entry.Size >= 0xffffffff))
-				{
-					ed.AddLeLong(entry.Size);
-				}
+                    ed.AddLeLong(entry.Size);
 
-				if (entry.IsZip64Forced() ||
+                if (entry.IsZip64Forced() ||
 					(entry.CompressedSize >= 0xffffffff))
-				{
-					ed.AddLeLong(entry.CompressedSize);
-				}
+                    ed.AddLeLong(entry.CompressedSize);
 
-				if (entry.Offset >= 0xffffffff)
-				{
-					ed.AddLeLong(entry.Offset);
-				}
+                if (entry.Offset >= 0xffffffff)
+                    ed.AddLeLong(entry.Offset);
 
-				ed.AddNewEntry(1);
+                ed.AddNewEntry(1);
 			}
 			else
-			{
-				ed.Delete(1);
-			}
+                ed.Delete(1);
 
-			if (entry.AESKeySize > 0)
-			{
-				AddExtraDataAES(entry, ed);
-			}
-			byte[] extra = ed.GetEntryData();
+            if (entry.AESKeySize > 0)
+                AddExtraDataAES(entry, ed);
+            byte[] extra = ed.GetEntryData();
 
 			byte[] entryComment = !(entry.Comment is null)
 				? stringCodec.ZipOutputEncoding.GetBytes(entry.Comment) 
 				: Empty.Array<byte>();
 
 			if (entryComment.Length > 0xffff)
-			{
 				throw new ZipException("Comment too long.");
-			}
 
 			stream.WriteLEShort(name.Length);
 			stream.WriteLEShort(extra.Length);
@@ -471,46 +413,30 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 									   // external file attributes
 
 			if (entry.ExternalFileAttributes != -1)
-			{
 				stream.WriteLEInt(entry.ExternalFileAttributes);
-			}
 			else
 			{
 				if (entry.IsDirectory)
-				{                         // mark entry as directory (from nikolam.AT.perfectinfo.com)
 					stream.WriteLEInt(16);
-				}
 				else
-				{
-					stream.WriteLEInt(0);
-				}
-			}
+                    stream.WriteLEInt(0);
+            }
 
-			if (entry.Offset >= uint.MaxValue)
-			{
-				stream.WriteLEInt(-1);
-			}
-			else
-			{
-				stream.WriteLEInt((int)entry.Offset);
-			}
+            if (entry.Offset >= uint.MaxValue)
+                stream.WriteLEInt(-1);
+            else
+                stream.WriteLEInt((int)entry.Offset);
 
-			if (name.Length > 0)
-			{
-				stream.Write(name, 0, name.Length);
-			}
+            if (name.Length > 0)
+                stream.Write(name, 0, name.Length);
 
-			if (extra.Length > 0)
-			{
-				stream.Write(extra, 0, extra.Length);
-			}
+            if (extra.Length > 0)
+                stream.Write(extra, 0, extra.Length);
 
-			if (entryComment.Length > 0)
-			{
-				stream.Write(entryComment, 0, entryComment.Length);
-			}
+            if (entryComment.Length > 0)
+                stream.Write(entryComment, 0, entryComment.Length);
 
-			return ZipConstants.CentralHeaderBaseSize + name.Length + extra.Length + entryComment.Length;
+            return ZipConstants.CentralHeaderBaseSize + name.Length + extra.Length + entryComment.Length;
 		}
 
 		internal static void AddExtraDataAES(ZipEntry entry, ZipExtraData extraData)
@@ -542,11 +468,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			if (entry.LocalHeaderRequiresZip64)
 			{
 				if (patchData.SizePatchOffset == -1)
-				{
-					throw new ZipException("Entry requires zip64 but this has been turned off");
-				}
-				// Seek to the Zip64 Extra Data
-				stream.Seek(patchData.SizePatchOffset, SeekOrigin.Begin);
+                    throw new ZipException("Entry requires zip64 but this has been turned off");
+
+                // Seek to the Zip64 Extra Data
+                stream.Seek(patchData.SizePatchOffset, SeekOrigin.Begin);
 
 				// Note: The order of the size fields is reversed when compared to the local header!
 				await stream.WriteLELongAsync(entry.Size, ct).ConfigureAwait(false);
@@ -571,12 +496,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			if (entry.LocalHeaderRequiresZip64)
 			{
 				if (patchData.SizePatchOffset == -1)
-				{
-					throw new ZipException("Entry requires zip64 but this has been turned off");
-				}
+                    throw new ZipException("Entry requires zip64 but this has been turned off");
 
-				// Seek to the Zip64 Extra Data
-				stream.Seek(patchData.SizePatchOffset, SeekOrigin.Begin);
+                // Seek to the Zip64 Extra Data
+                stream.Seek(patchData.SizePatchOffset, SeekOrigin.Begin);
 
 				// Note: The order of the size fields is reversed when compared to the local header!
 				stream.WriteLELong(entry.Size);

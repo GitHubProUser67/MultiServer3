@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption
 {
 	/// <summary>
 	/// Encrypts and decrypts AES ZIP

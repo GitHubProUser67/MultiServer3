@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Core
 {
 	internal class StringBuilderPool
 	{

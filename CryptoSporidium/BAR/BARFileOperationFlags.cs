@@ -1,4 +1,4 @@
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     [Flags]
     public enum BARFileOperationFlags

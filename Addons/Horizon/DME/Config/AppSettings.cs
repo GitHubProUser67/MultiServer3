@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.DME.Config
+﻿namespace MultiServer.Addons.Horizon.DME.Config
 {
     public class AppSettings
     {

@@ -1,0 +1,85 @@
+<SCENELIST>
+  <!-- Japanese region scenes -->
+  <REGION Name="ja-JP">
+    <SCENE ID="Home Square" desc="SCE_HomeSquare/JHomeSquare_T003.sdc" Type="PublicLobby" version="19" config="environments/home_internal_scej/home_lobbies/jhome_square_win/jhome_square_nova_win.scene" ChannelID="1" sha1="5FC7829A0E40F2517DE7B6B16EFE017D067ADD64" />
+    <SCENE ID="Game Space" desc="SCE_GameSpace/JGameSpace_T002.sdc" Type="PublicLobby" version="16" config="Environments/Home_internal_SCEJ/Home_Lobbies/JGame_Space/JGame_Space_Nova.scene" ChannelID="2" sha1="6A80BE123273EFB8E5117461A25BE26D341C8555" />
+    <SCENE ID="Cinema" desc="SCE_Cinema/JCinema_T003.sdc" Type="PublicLobby" version="15" config="Environments/Home_internal_SCEJ/Home_Lobbies/JCinema/JCinema_Nova.scene" ChannelID="16" sha1="3D387B490AF05CD99F47361A5F00152BDE5404A4" />
+    <SCENE Name="Marketplace" Type="PublicLobby" desc="SCE_Marketplace/jmarketplace_T001.sdc" version="8" config="Environments/Home_internal_SCEJ/Home_Lobbies/marketplace/Marketplace.scene" ChannelID="4" sha1="53C5F33D6E85D2A10E78E316160535E08BD9C185" />
+    <SCENE ID="homecafe" Type="PublicLobby" desc="SCE_Cafe/jcafe_nova_T002.sdc" version="6" config="environments/home_internal_scej/home_lobbies/jcafe/jcafe_nova.scene" SceneID="1823966b-13cc-5573-e398-c504319ff85e" sha1="A72404BA43EF47F8CDA52BB77B1729B3A6101339" />
+    <SCENE ID="jcinema_auditorium_1" desc="SCE_Cinema/jcinema_auditorium_1.sdc" Type="PublicLobby" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" ChannelID="c93dc9cb-d3a0-00a6-30bb-019f308deccb" sha1="AEBB1340207C9577295EF6EA3166E7C51F8C53DA" />
+    <SCENE ID="jcinema_auditorium_2" desc="SCE_Cinema/jcinema_auditorium_2.sdc" Type="PublicLobby" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" ChannelID="d2fc5252-a294-0da7-13e2-596f88a5b8b5" sha1="2BA554F63E6D09200E858B360B396FA888C5439D" />
+    <SCENE ID="jcinema_auditorium_3" desc="SCE_Cinema/jcinema_auditorium_3.sdc" Type="PublicLobby" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" ChannelID="05ffff16-db64-0bf4-231e-b01bbbb31ae2" sha1="528767159B6C7490E06C0F3D42DD3487C37CE893" />
+    <SCENE ID="jcinema_auditorium_4" desc="SCE_Cinema/jcinema_auditorium_4.sdc" Type="PublicLobby" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" ChannelID="c7645866-dc0b-03ee-bc5e-3721e4bb79d5" sha1="95D51A7639CC5927E8436FEA4741025E63CF2175" />
+    <SCENE ID="SIREN_1_jp" desc="SIREN_1_jp/siren_hos_entrance.sdc" Type="PublicLobby" version="1" config="environments/siren_hos_entrance/siren_hos_entrance.scene" ChannelID="78e1e195-e388-551c-deb0-bcc6f3e15bdc" sha1="09E58EC779DE2009F9686AD6A6B6FE1446136712" />
+    <SCENE ID="mingol_1_jp" desc="mingol_1_jp/gr_mgl_T001.sdc" Type="PublicLobby" version="5" config="environments/mg_lounge/gr_mgl.scene" ChannelID="822d3255-cc94-03a3-02f2-f71ae282f0c3" sha1="F19749AFCC838B798CB6CB6C422B214D6236D5D3" />
+    <SCENE ID="NMCommCarrot1_4A80_F95C" Type="PublicLobby" desc="NM_Comm/NM_Comm_Carrot/NM_Comm_Carrot.sdc" version="1" config="environments/bng_carrot3/bng_carrot3.scene" SceneID="e083eb2b-9004-5df9-2784-3f2b1479c60b" sha1="1AA4471D82E2BEC7FC2B40798825F777A7D675B5"/>
+    <SCENE ID="NMCommPlaymax1_5488_9EB5" Type="PublicLobby" desc="NM_Comm/NM_Comm_Playmax/NM_Comm_Playmax.sdc" version="1" config="environments/playmax1/playmax1.scene" SceneID=" 4223ac40-c09c-074f-1780-b2ee9d61d1d9" sha1="B192F405D997C88D80D7C40BBE3E04BEBAFDD777"/>
+  </REGION>
+  <!-- Korean region scenes -->
+  <REGION Name="ko-KR">
+    <SCENE ID="Home Square" desc="SCE_HomeSquare/sceasia_homesquare_T002.sdc" Type="PublicLobby" version="9" config="environments/home_internal_scej/home_lobbies/jhome_square_win/jhome_square_nova_win.scene" ChannelID="1" sha1="4EF01E451EF31847E4CD4E205EFA2507ACFD4713" />
+    <SCENE ID="Game Space" desc="SCE_GameSpace/sceasia_gamespace_T001.sdc" Type="PublicLobby" version="6" config="Environments/Home_internal_SCEJ/Home_Lobbies/JGame_Space/JGame_Space_Nova.scene" ChannelID="2" sha1="34787C6807984238C215D0BA4C68139A38A0605E" />
+    <SCENE ID="Cinema" desc="SCE_Cinema/sceasia_cinema_T002.sdc" Type="PublicLobby" version="6" config="Environments/Home_internal_SCEJ/Home_Lobbies/JCinema/JCinema_Nova.scene" ChannelID="16" sha1="BADC2588E8CD05BB67CD4FC80C7CDBB293DAAF2A" />
+    <SCENE Name="Marketplace" Type="PublicLobby" desc="SCE_Marketplace/sceasia_marketplace_T001.sdc" version="8" config="Environments/Home_internal_SCEJ/Home_Lobbies/marketplace/Marketplace.scene" ChannelID="4" sha1="FFE072A48D1E0D03F1F62900AC9DAEBC996F5950" />
+    <SCENE Name="homecafe_asia" Type="PublicLobby" desc="SCE_Cafe/sceasia_cafe.sdc" version="2" config="environments/home_internal_scej/home_lobbies/jcafe/jcafe_nova.scene" ChannelID="20" sha1="FADCDCE56F7FD15504FE66F7A484A4D96F0D7969" />
+    <SCENE ID="jcinema_auditorium_Asia_1" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_1.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="48c57a21-3d42-5540-d198-402ec4342696" sha1="C7D8E173515A32555FEA4EBCDF43C1964F91067B" />
+    <SCENE ID="jcinema_auditorium_Asia_2" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_2.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="765db9f8-4df8-049c-1d85-5233b1c9ac5f" sha1="2A1F5AF3415DBE98B65C588C35202A140050A097" />
+  </REGION>
+  <!-- Chinese Taiwan -->
+  <REGION Name="zh-TW">
+    <SCENE ID="Home Square" desc="SCE_HomeSquare/sceasia_homesquare_T002.sdc" Type="PublicLobby" version="9" config="environments/home_internal_scej/home_lobbies/jhome_square_win/jhome_square_nova_win.scene" ChannelID="1" sha1="4EF01E451EF31847E4CD4E205EFA2507ACFD4713" />
+    <SCENE ID="Game Space" desc="SCE_GameSpace/sceasia_gamespace_T001.sdc" Type="PublicLobby" version="6" config="Environments/Home_internal_SCEJ/Home_Lobbies/JGame_Space/JGame_Space_Nova.scene" ChannelID="2" sha1="34787C6807984238C215D0BA4C68139A38A0605E" />
+    <SCENE ID="Cinema" desc="SCE_Cinema/sceasia_cinema_T002.sdc" Type="PublicLobby" version="5" config="Environments/Home_internal_SCEJ/Home_Lobbies/JCinema/JCinema_Nova.scene" ChannelID="16" sha1="BADC2588E8CD05BB67CD4FC80C7CDBB293DAAF2A" />
+    <SCENE Name="Marketplace" Type="PublicLobby" desc="SCE_Marketplace/sceasia_marketplace_T001.sdc" version="8" config="Environments/Home_internal_SCEJ/Home_Lobbies/marketplace/Marketplace.scene" ChannelID="4" sha1="FFE072A48D1E0D03F1F62900AC9DAEBC996F5950" />
+    <SCENE Name="homecafe_asia" Type="PublicLobby" desc="SCE_Cafe/sceasia_cafe.sdc" version="2" config="environments/home_internal_scej/home_lobbies/jcafe/jcafe_nova.scene" ChannelID="20" sha1="FADCDCE56F7FD15504FE66F7A484A4D96F0D7969" />
+    <SCENE ID="jcinema_auditorium_Asia_1" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_1.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="48c57a21-3d42-5540-d198-402ec4342696" sha1="C7D8E173515A32555FEA4EBCDF43C1964F91067B" />
+    <SCENE ID="jcinema_auditorium_Asia_2" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_2.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="765db9f8-4df8-049c-1d85-5233b1c9ac5f" sha1="2A1F5AF3415DBE98B65C588C35202A140050A097" />
+  </REGION>
+  <!-- Chinese Hong Kong -->
+  <REGION Name="zh-HK">
+    <SCENE ID="Home Square" desc="SCE_HomeSquare/sceasia_homesquare_T002.sdc" Type="PublicLobby" version="9" config="environments/home_internal_scej/home_lobbies/jhome_square_win/jhome_square_nova_win.scene" ChannelID="1" sha1="4EF01E451EF31847E4CD4E205EFA2507ACFD4713" />
+    <SCENE ID="Game Space" desc="SCE_GameSpace/sceasia_gamespace_T001.sdc" Type="PublicLobby" version="6" config="Environments/Home_internal_SCEJ/Home_Lobbies/JGame_Space/JGame_Space_Nova.scene" ChannelID="2" sha1="34787C6807984238C215D0BA4C68139A38A0605E" />
+    <SCENE ID="Cinema" desc="SCE_Cinema/sceasia_cinema_T002.sdc" Type="PublicLobby" version="4" config="Environments/Home_internal_SCEJ/Home_Lobbies/JCinema/JCinema_Nova.scene" ChannelID="16" sha1="BADC2588E8CD05BB67CD4FC80C7CDBB293DAAF2A" />
+    <SCENE Name="Marketplace" Type="PublicLobby" desc="SCE_Marketplace/sceasia_marketplace_T001.sdc" version="8" config="Environments/Home_internal_SCEJ/Home_Lobbies/marketplace/Marketplace.scene" ChannelID="4" sha1="FFE072A48D1E0D03F1F62900AC9DAEBC996F5950" />
+    <SCENE Name="homecafe_asia" Type="PublicLobby" desc="SCE_Cafe/sceasia_cafe.sdc" version="2" config="environments/home_internal_scej/home_lobbies/jcafe/jcafe_nova.scene" ChannelID="20" sha1="FADCDCE56F7FD15504FE66F7A484A4D96F0D7969" />
+    <SCENE ID="jcinema_auditorium_Asia_1" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_1.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="48c57a21-3d42-5540-d198-402ec4342696" sha1="C7D8E173515A32555FEA4EBCDF43C1964F91067B" />
+    <SCENE ID="jcinema_auditorium_Asia_2" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_2.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="765db9f8-4df8-049c-1d85-5233b1c9ac5f" sha1="2A1F5AF3415DBE98B65C588C35202A140050A097" />
+  </REGION>
+  <!-- Asia-singapore -->
+  <REGION Name="en-SG">
+    <SCENE ID="Home Square" desc="SCE_HomeSquare/sceasia_homesquare_T002.sdc" Type="PublicLobby" version="9" config="environments/home_internal_scej/home_lobbies/jhome_square_win/jhome_square_nova_win.scene" ChannelID="1" sha1="4EF01E451EF31847E4CD4E205EFA2507ACFD4713" />
+    <SCENE ID="Game Space" desc="SCE_GameSpace/sceasia_gamespace_T001.sdc" Type="PublicLobby" version="6" config="Environments/Home_internal_SCEJ/Home_Lobbies/JGame_Space/JGame_Space_Nova.scene" ChannelID="2" sha1="34787C6807984238C215D0BA4C68139A38A0605E" />
+    <SCENE ID="Cinema" desc="SCE_Cinema/sceasia_cinema_T002.sdc" Type="PublicLobby" version="6" config="Environments/Home_internal_SCEJ/Home_Lobbies/JCinema/JCinema_Nova.scene" ChannelID="16" sha1="BADC2588E8CD05BB67CD4FC80C7CDBB293DAAF2A" />
+    <SCENE Name="Marketplace" Type="PublicLobby" desc="SCE_Marketplace/sceasia_marketplace_T001.sdc" version="8" config="Environments/Home_internal_SCEJ/Home_Lobbies/marketplace/Marketplace.scene" ChannelID="4" sha1="FFE072A48D1E0D03F1F62900AC9DAEBC996F5950" />
+    <SCENE Name="homecafe_asia" Type="PublicLobby" desc="SCE_Cafe/sceasia_cafe.sdc" version="2" config="environments/home_internal_scej/home_lobbies/jcafe/jcafe_nova.scene" ChannelID="20" sha1="FADCDCE56F7FD15504FE66F7A484A4D96F0D7969" />
+    <SCENE ID="jcinema_auditorium_Asia_1" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_1.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="48c57a21-3d42-5540-d198-402ec4342696" sha1="C7D8E173515A32555FEA4EBCDF43C1964F91067B" />
+    <SCENE ID="jcinema_auditorium_Asia_2" Type="PublicLobby" desc="SCE_Cinema/jcinema_auditorium_Asia_2.sdc" version="1" config="environments/home_internal_scej/home_lobbies/jcinema_auditorium/jcinema_auditorium_nova.scene" SceneID="765db9f8-4df8-049c-1d85-5233b1c9ac5f" sha1="2A1F5AF3415DBE98B65C588C35202A140050A097" />
+  </REGION>
+  <!-- America region scenes -->
+  <REGION Name="en-US">
+    <SCENE ID="Home Square" desc="SCE_HomeSquare/home_plaza_T003.sdc" Type="PublicLobby" version="11" config="environments/scea_plaza/scea_plaza.scene" ChannelID="1" sha1="5155E12CFCC9150D0E5CE872BD4E01D1AAD825C9" />
+    <SCENE ID="Game Space" desc="SCE_GameSpace/game_space_us_T002.sdc" Type="PublicLobby" version="11" config="environments/home_internal_scea/home_lobbies/game_space/game_space.scene" ChannelID="2" sha1="BEB1E317117752155818F3A72D9E58269A7CCB51" />
+    <SCENE ID="Cinema" desc="SCE_Cinema/cinema_auditorium_us_T001.sdc" Type="PublicLobby" version="14" config="environments/home_internal_scea/home_lobbies/cinema/cinema_auditorium_us.scene" ChannelID="16" sha1="6335E53465F55D5B998EC26ED7713B0A5244D0CA" />
+    <SCENE Name="Marketplace" Type="PublicLobby" desc="SCE_Marketplace/US_marketplace_T002.sdc" version="12" config="environments/home_internal_scea/home_lobbies/marketplace/marketplace.scene" ChannelID="4" sha1="BF7585C45ACF9F5477D00C583146551E5710DBD5" />
+    <SCENE ID="FC2_Trainstation" desc="FarCry2TrainStation/farcry_trainstation_c15.sdc" Type="PublicLobby" version="6" config="environments/farcry_trainstation_b/farcry_trainstation_c15.scene" ChannelID="1408" sha1="B51207B28FCBDC9BF8612015D1547E3D0FA2FF19" />
+    <SCENE ID="FC2_reubensroom" desc="FarCry2ReubensRoom/farcry2_reubensroom_v03.sdc" Type="PublicLobby" version="3" config="environments/farcry2_reubensroom/farcry2_reubensroom_v03.scene" ChannelID="1536" sha1="61135F71F57778841BF90A955CB21B43996090FB" />
+    <SCENE ID="Uncharted_TheBar" desc="Uncharted/unchartedbar.sdc" Type="PublicLobby" version="5" config="environments/unchartedbar/unchartedbar.scene" ChannelID="256" sha1="78EC9D018FC51DD345BF3C9991D71868ABFEED9A" />
+    <SCENE ID="Uncharted_TheRoomBehind" desc="UnchartedRoomBehind/unchartedroombehind.sdc" Type="PublicLobby" version="4" config="environments/unchartedroombehind/unchartedroombehind.scene" ChannelID="512" sha1="D1E67617B9B6A36DFD4B26D53596E6ACA60692B0" />
+    <SCENE ID="Uncharted_TheArtifactRoom" desc="UnchartedArtifactRoom/unchartedartifactroom.sdc" Type="PublicLobby" version="3" config="environments/unchartedartifactroom/unchartedartifactroom.scene" ChannelID="768" sha1="5F06EC9CEAC88B95D916BED05CCC646EDDB97E50" />
+    <SCENE ID="Uncharted_SmugDen" desc="UnchartedSmugglersDen/unchartedsmugglersden.sdc" Type="PublicLobby" version="4" config="environments/unchartedsmugglersden/unchartedsmugglersden.scene" ChannelID="1280" sha1="FC18A0694422389144C1015CF5A3A097F877DE19" />
+  </REGION>
+  <!-- ALL OTHER (DEFAULT) REGIONS -->
+  <!-- SCENES CONTAINED IN PACKAGE -->
+  <SCENE ID="BasicApartment" desc="PackagedScenes/basic_apartment_T002.sdc" Type="Home" HOMEUID="0" version="0" config="Environments/Home_internal_SCEE/Personal_Spaces/Basic_Apartment/Basic_Apartment.scene" ChannelID="64" sha1="BFB81D538FBBB26CE727F62A7CBD1EDAD81FAC40" />
+  <SCENE ID="Cinema Auditorium" desc="PackagedScenes/cinema_auditorium_T001.sdc" Type="CinemaAuditorium" version="0" config="Environments/Home_internal_SCEE/Home_Lobbies/Cinema/Cinema_Auditorium_nova.scene" ChannelID="32" sha1="2F41F381CAE3CC5590DED105D2363B16BD492369" />
+  <!-- DOWNLOADED SCENES -->
+  <SCENE ID="Home Square" desc="SCE_HomeSquare/EU_HomeSquare_T001.sdc" Type="PublicLobby" version="16" config="environments/home_internal_scee/home_lobbies/home_square/home_square.scene" ChannelID="1" sha1="90135CEA2B2BFD562425EFC059210347171F438A" />
+  <SCENE ID="Game Space" desc="SCE_GameSpace/EU_GameSpace_T001.sdc" Type="PublicLobby" version="13" config="Environments/Home_internal_SCEE/Home_Lobbies/Game_Space/Game_Space.scene" ChannelID="2" sha1="92EB438BA3C338F4EA152DD06B32EFE0FF9797E0" />
+  <SCENE ID="Cinema" desc="SCE_Cinema/EU_Cinema_T002.sdc" Type="PublicLobby" version="19" config="Environments/Home_internal_SCEE/Home_Lobbies/Cinema/cinema_nova.scene" ChannelID="16" sha1="F6CF82624A0D4D9925F498A8332026CB9772BDE1" />
+  <SCENE ID="redbullairrace" desc="redbullairrace/redbullairrace.sdc" Type="PublicLobby" version="1" config="environments/red_bull/redbullairrace.scene" ChannelID="f5060513-a1bb-0ab2-091e-fb89b1d5cb88" sha1="1B57174BD4ED6601E7D21D2671FD1195F5F046F6" />
+  <SCENE Name="Marketplace" desc="SCE_Marketplace/marketplace_T001.sdc" Type="PublicLobby" version="26" config="Environments/Home_internal_SCEE/Home_Lobbies/Marketplace/Marketplace.scene" ChannelID="4" sha1="8E74257F66946205753B2BA30CF841560463E1E2" />
+  <!-- HOME SPACES  -->
+  <SCENE ID="SummerHouse" desc="SCE_Summerhouse/summerhouse_T002.sdc" Type="Home" HOMEUID="6" version="14" Group="Apartments" KEYWORDS="Home" config="environments/home_internal_scee/personal_spaces/summerhouse/summerhouse.scene" ChannelID="64" sha1="A5AC91BD83E0DED5294579A38277FC9F24A72900" />
+  <!-- CLUBHOUSES -->
+  <SCENE Name="club_house" desc="SCE_BasicClubhouse/club_house_v1_T003.sdc" Type="Clubhouse" version="15" config="environments/home_internal_scee/home_lobbies/club_houses/club_house_v1/club_house_v1.scene" ChannelID="10" sha1="6BADFD84AFD6469310803B1876D89F0C72977960" />
+</SCENELIST>

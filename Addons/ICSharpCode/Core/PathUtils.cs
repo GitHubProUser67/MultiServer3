@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Core
 {
 	/// <summary>
 	/// PathUtils provides simple utilities for handling paths.

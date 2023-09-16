@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.UniverseVariableInformationResponse)]
     public class MediusUniverseVariableInformationResponse : BaseLobbyExtMessage, IMediusResponse
@@ -83,10 +83,8 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
             //writer.Write(new byte[3]);
@@ -127,14 +125,34 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
 
             if (approvedList.Contains(writer.AppId))
             {
-                if (MUIS.MUIS.SVOUrl)
+                if (writer.AppId == 20374)
+                {
+                    if (MUIS.MUIS.homeretailver >= 01.21)
+                    {
+                        ServerConfiguration.LogInfo("Setting SVOURL");
+                        if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
+                            writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
+                    }
+                    else
+                        ServerConfiguration.LogInfo("Not writing SVOURL");
+                }
+                else if (writer.AppId == 20371)
+                {
+                    if (MUIS.MUIS.homebetaver >= 01.21)
+                    {
+                        ServerConfiguration.LogInfo("Setting SVOURL");
+                        if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
+                            writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
+                    }
+                    else
+                        ServerConfiguration.LogInfo("Not writing SVOURL");
+                }
+                else
                 {
                     ServerConfiguration.LogInfo("Setting SVOURL");
                     if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                         writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
                 }
-                else
-                    ServerConfiguration.LogInfo("Not writing SVOURL");
             }
             else
                 ServerConfiguration.LogInfo("Not writing SVOURL");

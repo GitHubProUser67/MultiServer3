@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Lzw
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Lzw
 {
 	/// <summary>
 	/// LzwException represents exceptions specific to LZW classes and code.

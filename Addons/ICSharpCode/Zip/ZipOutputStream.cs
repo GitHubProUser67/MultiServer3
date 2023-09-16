@@ -1,11 +1,11 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Security.Cryptography;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// This is a DeflaterOutputStream that writes the files into a zip
@@ -126,7 +126,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// Level specified is not supported.
 		/// </exception>
-		/// <see cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Deflater"/>
+		/// <see cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Deflater"/>
 		public void SetLevel(int level)
 		{
 			deflater_.SetLevel(level);

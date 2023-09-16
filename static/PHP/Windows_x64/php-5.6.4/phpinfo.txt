@@ -1,0 +1,2533 @@
+PHP 5.6.4 (cli) (built: Jan  5 2015 12:02:18) 
+Copyright (c) 1997-2014 The PHP Group
+Zend Engine v2.6.0, Copyright (c) 1998-2014 Zend Technologies
+    with XCache v3.2.0, Copyright (c) 2005-2014, by mOo
+    with Zend OPcache v7.0.4-dev, Copyright (c) 1999-2014, by Zend Technologies
+    with Xdebug v2.2.6, Copyright (c) 2002-2014, by Derick Rethans
+    with QB v2.4.0, Copyright (c) 2013-2014, by Chung Leong
+    with XCache Optimizer v3.2.0, Copyright (c) 2005-2014, by mOo
+    with XCache Cacher v3.2.0, Copyright (c) 2005-2014, by mOo
+    with XCache Coverager v3.2.0, Copyright (c) 2005-2014, by mOo
+ Volume in drive C is Windows7_OS
+ Volume Serial Number is A6DB-07E9
+
+ Directory of C:\php-sdk\php56dev\x64\Release_TS\php-5.6.4
+
+05/01/15  12:23            57.856 php-cgi.exe
+05/01/15  12:23            30.720 php-win.exe
+05/01/15  12:23            79.360 php.exe
+               3 File(s)        167.936 bytes
+
+     Total Files Listed:
+               3 File(s)        167.936 bytes
+               0 Dir(s)   9.174.102.016 bytes free
+ Volume in drive C is Windows7_OS
+ Volume Serial Number is A6DB-07E9
+
+ Directory of C:\php-sdk\php56dev\x64\Release_TS\php-5.6.4
+
+05/01/15  12:23            31.744 php5apache2_2.dll
+05/01/15  12:23            31.744 php5apache2_4.dll
+05/01/15  12:23           187.392 php5phpdbg.dll
+05/01/15  12:23         8.729.088 php5ts.dll
+               4 File(s)      8.979.968 bytes
+
+ Directory of C:\php-sdk\php56dev\x64\Release_TS\php-5.6.4\ext
+
+05/01/15  12:23            83.968 php_apcu.dll
+05/01/15  12:23            49.152 php_av.dll
+05/01/15  12:23            23.040 php_blenc.dll
+05/01/15  12:23            79.360 php_bz2.dll
+05/01/15  12:23            89.088 php_com_dotnet.dll
+05/01/15  12:23           141.824 php_couchbase.dll
+05/01/15  12:23           526.848 php_couchdb.dll
+05/01/15  12:23            58.368 php_crypto.dll
+05/01/15  12:23           557.568 php_curl.dll
+05/01/15  12:23         1.466.880 php_dba.dll
+05/01/15  12:23            31.744 php_dbase.dll
+05/01/15  12:23            24.064 php_dio.dll
+05/01/15  12:23            81.920 php_discount.dll
+05/01/15  12:23            19.968 php_doublemetaphone.dll
+05/01/15  12:23            22.016 php_enchant.dll
+05/01/15  12:23           309.760 php_event.dll
+05/01/15  12:23           115.200 php_excel.dll
+05/01/15  12:23            58.880 php_exif.dll
+05/01/15  12:23            39.424 php_ffmpeg.dll
+05/01/15  12:23         2.901.504 php_fileinfo.dll
+05/01/15  12:23            97.280 php_fribidi.dll
+05/01/15  12:23         1.801.216 php_gd2.dll
+05/01/15  12:23         5.871.616 php_gender.dll
+05/01/15  12:23           270.848 php_geoip.dll
+05/01/15  12:23            49.664 php_gettext.dll
+05/01/15  12:23           350.720 php_gmp.dll
+05/01/15  12:23           866.816 php_haru.dll
+05/01/15  12:23            13.824 php_hrtime.dll
+05/01/15  12:23            16.384 php_htscanner.dll
+05/01/15  12:23           945.152 php_http.dll
+05/01/15  12:23           102.400 php_igbinary.dll
+05/01/15  12:23           276.992 php_imagick.dll
+05/01/15  12:23           928.256 php_imap.dll
+05/01/15  12:23            81.408 php_interbase.dll
+05/01/15  12:23           354.304 php_intl.dll
+05/01/15  12:23            12.800 php_jsmin.dll
+05/01/15  12:23           281.600 php_judy.dll
+05/01/15  12:23           215.552 php_ldap.dll
+05/01/15  12:23            14.848 php_lzf.dll
+05/01/15  12:23            52.736 php_mailparse.dll
+05/01/15  12:23         1.469.952 php_mbstring.dll
+05/01/15  12:23            56.320 php_mdbtools.dll
+05/01/15  12:23            58.368 php_memcache.dll
+05/01/15  12:23           337.408 php_mongo.dll
+05/01/15  12:23            93.696 php_msgpack.dll
+05/01/15  12:23            45.568 php_mysql.dll
+05/01/15  12:23           125.440 php_mysqli.dll
+05/01/15  12:23           114.688 php_mysqlnd_qc.dll
+05/01/15  12:23           558.592 php_oauth.dll
+05/01/15  12:23           144.896 php_oci8.dll
+05/01/15  12:23           145.920 php_oci8_11g.dll
+05/01/15  12:23           146.944 php_oci8_12c.dll
+05/01/15  12:23           153.600 php_opcache.dll
+05/01/15  12:23           115.200 php_openssl.dll
+05/01/15  12:23            20.992 php_pcsc.dll
+05/01/15  12:23           168.960 php_pdflib.dll
+05/01/15  12:23            24.576 php_pdo_firebird.dll
+05/01/15  12:23            28.672 php_pdo_mysql.dll
+05/01/15  12:23            28.160 php_pdo_oci.dll
+05/01/15  12:23            24.064 php_pdo_odbc.dll
+05/01/15  12:23            39.936 php_pdo_pgsql.dll
+05/01/15  12:23           873.472 php_pdo_sqlite.dll
+05/01/15  12:23           206.848 php_pdo_sqlsrv.dll
+05/01/15  12:23           115.200 php_pgsql.dll
+05/01/15  12:23            19.456 php_pop3.dll
+05/01/15  12:23            44.544 php_printer.dll
+05/01/15  12:23            17.920 php_propro.dll
+05/01/15  12:23            21.504 php_pspell.dll
+05/01/15  12:23            93.696 php_pthreads.dll
+05/01/15  12:23         1.736.704 php_qb.dll
+05/01/15  12:23            46.592 php_radius.dll
+05/01/15  12:23            22.528 php_raphf.dll
+05/01/15  12:23           240.640 php_rar.dll
+05/01/15  12:23           246.784 php_redis.dll
+05/01/15  12:23            50.176 php_rsync.dll
+05/01/15  12:23            13.824 php_shmop.dll
+05/01/15  12:23            14.336 php_smtp.dll
+05/01/15  12:23           418.816 php_snmp.dll
+05/01/15  12:23           299.008 php_soap.dll
+05/01/15  12:23            80.384 php_sockets.dll
+05/01/15  12:23           664.064 php_solr.dll
+05/01/15  12:23           889.344 php_sqlite3.dll
+05/01/15  12:23           232.960 php_sqlsrv.dll
+05/01/15  12:23             9.728 php_ssdeep.dll
+05/01/15  12:23           183.296 php_ssh2.dll
+05/01/15  12:23           158.208 php_stats.dll
+05/01/15  12:23            40.960 php_stomp.dll
+05/01/15  12:23            65.536 php_svn.dll
+05/01/15  12:23            38.912 php_sybase_ct.dll
+05/01/15  12:23            17.920 php_sync.dll
+05/01/15  12:23           282.112 php_tidy.dll
+05/01/15  12:23           293.888 php_timezonedb.dll
+05/01/15  12:23           579.072 php_translit.dll
+05/01/15  12:23            13.824 php_uploadprogress.dll
+05/01/15  12:23            28.160 php_uprofiler.dll
+05/01/15  12:23            34.304 php_varnish.dll
+05/01/15  12:23            18.432 php_wfio.dll
+05/01/15  12:23            13.312 php_win32ps.dll
+05/01/15  12:23            26.624 php_win32service.dll
+05/01/15  12:23           178.688 php_xcache.dll
+05/01/15  12:23           194.560 php_xdebug.dll
+05/01/15  12:23           105.984 php_xmldiff.dll
+05/01/15  12:23            80.896 php_xmlrpc.dll
+05/01/15  12:23           290.304 php_xsl.dll
+05/01/15  12:23           289.280 php_xslcache.dll
+             105 File(s)     32.479.744 bytes
+
+     Total Files Listed:
+             109 File(s)     41.459.712 bytes
+               0 Dir(s)   9.174.089.728 bytes free
+[PHP Modules]
+apc
+apcu
+av
+bcmath
+blenc
+bz2
+calendar
+com_dotnet
+Core
+couchbase
+couchdb
+crypto
+ctype
+curl
+date
+dba
+dbase
+dio
+discount
+dom
+doublemetaphone
+ereg
+event
+excel
+exif
+ffmpeg
+fileinfo
+filter
+fribidi
+ftp
+gd
+gender
+geoip
+gettext
+gmp
+haru
+hash
+hrtime
+htscanner
+http
+iconv
+igbinary
+imagick
+imap
+interbase
+intl
+jsmin
+json
+judy
+ldap
+libxml
+lzf
+mailparse
+mbstring
+mcrypt
+mdbtools
+memcache
+mhash
+mongo
+msgpack
+mysql
+mysqli
+mysqlnd
+mysqlnd_qc
+OAuth
+oci8
+odbc
+openssl
+PC/SC
+pcre
+PDFlib
+PDO
+PDO_Firebird
+pdo_mysql
+PDO_OCI
+PDO_ODBC
+pdo_pgsql
+pdo_sqlite
+pdo_sqlsrv
+pgsql
+Phar
+pop3
+printer
+propro
+pspell
+pthreads
+qb
+radius
+raphf
+rar
+redis
+Reflection
+rsync
+session
+shmop
+SimpleXML
+smtp
+snmp
+soap
+sockets
+solr
+SPL
+sqlite3
+sqlsrv
+ssdeep
+ssh2
+standard
+stats
+Stomp
+svn
+sybase_ct
+sync
+tidy
+timezonedb
+tokenizer
+translit
+uploadprogress
+uprofiler
+varnish
+wddx
+wfio
+win32ps
+win32service
+XCache
+XCache Cacher
+XCache Coverager
+XCache Optimizer
+xdebug
+xml
+xmldiff
+xmlreader
+xmlrpc
+xmlwriter
+xsl
+xslcache
+Zend OPcache
+zip
+zlib
+
+[Zend Modules]
+QB
+XCache
+XCache Cacher
+XCache Coverager
+XCache Optimizer
+Xdebug
+Zend OPcache
+
+phpinfo()
+PHP Version => 5.6.4
+
+System => Windows NT X220 6.1 build 7601 (Windows 7 Business Edition Service Pack 1) AMD64
+Build Date => Jan  5 2015 11:59:30
+Compiler => MSVC11 (Visual C++ 2012)
+Architecture => x64
+Configure Command => cscript /nologo configure.js  "--enable-debug-pack" "--enable-embed" "--enable-cli-win32" "--enable-apache2-2handler" "--enable-apache2-4handler" "--with-mysql=shared" "--with-mysqli=shared" "--enable-mysqlnd-qc=shared" "--disable-mysqlnd-qc-apc" "--disable-mysqlnd-qc-sqlite" "--enable-pdo" "--with-pdo-mysql=shared" "--with-pgsql=shared" "--with-pdo-pgsql=shared" "--with-mcrypt=static" "--with-openssl=shared" "--with-crypto=shared" "--enable-blenc=shared" "--enable-phar-native-ssl" "--enable-sockets=shared" "--enable-intl=shared" "--with-wfio=shared" "--enable-mbstring=shared" "--enable-mbregex" "--enable-translit=shared" "--enable-exif=shared" "--with-xmlrpc=shared" "--with-xmldiff=shared" "--with-xsl=shared" "--with-xslcache=shared" "--enable-solr=shared" "--enable-solr-debug" "--with-curl=shared" "--enable-stomp=shared" "--with-tidy=shared" "--enable-jsmin=shared" "--with-bz2=shared" "--enable-lzf=shared" "--enable-rar=shared" "--enable-fileinfo=shared" "--with-gettext=shared" "--with-mhash" "--with-ssdeep=shared" "--with-ldap=shared" "--with-radius=shared" "--enable-redis=shared" "--enable-igbinary=shared" "--enable-redis-igbinary" "--enable-com-dotnet=shared" "--enable-soap=shared" "--enable-shmop=shared" "--enable-sync=shared" "--with-gmp=shared" "--with-interbase=shared" "--with-pdo-firebird=shared" "--with-sqlite3=shared" "--with-pdo-sqlite=shared" "--with-pdo-odbc=shared" "--enable-sqlsrv=shared" "--with-pdo-sqlsrv=shared" "--with-pdo-oci=C:\php-sdk\oracle\x64\instantclient_10_2\sdk,shared" "--with-oci8=C:\php-sdk\oracle\x64\instantclient_10_2\sdk,shared" "--with-oci8-11g=C:\php-sdk\oracle\x64\instantclient_11_2\sdk,shared" "--with-oci8-12c=C:\php-sdk\oracle\x64\instantclient_12_1\sdk,shared" "--with-sybase-ct=shared" "--enable-couchdb=shared" "--with-couchbase=shared" "--enable-mongo=shared" "--with-mongo-sasl" "--with-imap=shared" "--enable-mailparse=shared" "--enable-pop3=shared" "--with-smtp=shared" "--with-oauth=shared" "--with-pcsc=shared" "--with-dba=shared" "--enable-dbase=shared" "--with-mdbtools=shared" "--enable-stats=shared" "--with-judy=shared" "--enable-gender=shared" "--with-ssh2=shared" "--with-snmp=shared" "--enable-msgpack=shared" "--enable-uploadprogress=shared" "--enable-htscanner=shared" "--enable-http=shared" "--enable-propro=shared" "--enable-raphf=shared" "--with-imagick=shared" "--enable-discount=shared" "--enable-uprofiler=shared" "--with-pdflib=shared" "--with-haru=shared" "--enable-qb=shared" "--with-excel=shared" "--with-enchant=shared" "--with-fribidi=shared" "--with-pspell=shared" "--with-doublemetaphone=shared" "--enable-printer=shared" "--enable-dio=shared" "--with-geoip=shared" "--enable-timezonedb=shared" "--enable-hrtime=shared" "--with-svn=shared" "--with-rsync=shared" "--with-xdebug=shared" "--enable-win32ps=shared" "--enable-win32service=shared" "--enable-memcache=shared" "--enable-apcu=shared" "--enable-apcu-debug" "--enable-opcache=shared" "--enable-xcache=shared" "--enable-xcache-optimizer" "--enable-xcache-coverager" "--enable-varnish=shared" "--enable-ffmpeg=shared" "--with-av=shared" "--with-event=shared" "--enable-phpdbgs" "--with-pthreads=shared"
+Server API => Command Line Interface
+Virtual Directory Support => enabled
+Configuration File (php.ini) Path => C:\Windows
+Loaded Configuration File => C:\php-sdk\php56dev\x64\Release_TS\php-5.6.4\php.ini
+Scan this dir for additional .ini files => (none)
+Additional .ini files parsed => (none)
+PHP API => 20131106
+PHP Extension => 20131226
+Zend Extension => 220131226
+Zend Extension Build => API220131226,TS,VC11
+PHP Extension Build => API20131226,TS,VC11
+Debug Build => no
+Thread Safety => enabled
+Zend Signal Handling => disabled
+Zend Memory Manager => enabled
+Zend Multibyte Support => provided by mbstring
+IPv6 Support => enabled
+DTrace Support => disabled
+
+Registered PHP Streams => php, file, glob, data, http, ftp, zip, compress.zlib, compress.bzip2, https, ftps, dio.raw, dio.serial, phar, crypto.file, rar, sqlsrv, ssh2.shell, ssh2.exec, ssh2.tunnel, ssh2.scp, ssh2.sftp, wfio
+Registered Stream Socket Transports => tcp, udp, ssl, sslv3, sslv2, tls, tlsv1.0, tlsv1.1, tlsv1.2
+Registered Stream Filters => convert.iconv.*, mcrypt.*, mdecrypt.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk, zlib.*, bzip2.*, http.*, lzf.compress, lzf.decompress
+
+This program makes use of the Zend Scripting Language Engine:
+Zend Engine v2.6.0, Copyright (c) 1998-2014 Zend Technologies
+    with XCache v3.2.0, Copyright (c) 2005-2014, by mOo
+    with Zend OPcache v7.0.4-dev, Copyright (c) 1999-2014, by Zend Technologies
+    with Xdebug v2.2.6, Copyright (c) 2002-2014, by Derick Rethans
+    with QB v2.4.0, Copyright (c) 2013-2014, by Chung Leong
+    with XCache Optimizer v3.2.0, Copyright (c) 2005-2014, by mOo
+    with XCache Cacher v3.2.0, Copyright (c) 2005-2014, by mOo
+    with XCache Coverager v3.2.0, Copyright (c) 2005-2014, by mOo
+
+
+ _______________________________________________________________________
+
+
+Configuration
+
+apc
+
+APC support => Emulated
+
+apcu
+
+APCu Support => Disabled
+Version => 4.0.8
+APCu Debugging => Disabled
+MMAP Support => Disabled
+Serialization Support => Disabled
+Revision => $Revision: 328290 $
+Build Date => Jan  5 2015 12:03:00
+
+Directive => Local Value => Master Value
+apc.coredump_unmap => Off => Off
+apc.enable_cli => Off => Off
+apc.enabled => On => On
+apc.entries_hint => 4096 => 4096
+apc.gc_ttl => 18000 => 18000
+apc.preload_path => no value => no value
+apc.rfc1867 => On => On
+apc.rfc1867_freq => 0 => 0
+apc.rfc1867_name => APC_UPLOAD_PROGRESS => APC_UPLOAD_PROGRESS
+apc.rfc1867_prefix => upload_ => upload_
+apc.rfc1867_ttl => 18000 => 18000
+apc.serializer => php => php
+apc.shm_segments => 1 => 1
+apc.shm_size => 32M => 32M
+apc.slam_defense => On => On
+apc.smart => 0 => 0
+apc.ttl => 0 => 0
+apc.use_request_time => On => On
+apc.writable => /tmp => /tmp
+
+av
+
+av support => enabled
+Version => 1.3
+
+Directive => Local Value => Master Value
+av.max_threads_per_stream => 2 => 2
+av.optimize_output => 1 => 1
+av.threads_per_audio_stream => 2 => 2
+av.threads_per_video_stream => 2 => 2
+av.verbose_reporting => 0 => 0
+
+                              Output formats                              
+Name => Short name => MIME type => Extensions
+a64 - video for Commodore 64 => a64 =>  a64, A64
+raw AC-3 => ac3 => audio/x-ac3 => ac3
+ADTS AAC (Advanced Audio Coding) => adts => audio/aac => aac, adts
+CRI ADX => adx =>  adx
+Audio IFF => aiff => audio/aiff => aif, aiff, afc, aifc
+3GPP AMR => amr => audio/amr => amr
+ASF (Advanced / Active Streaming Format) => asf => video/x-ms-asf => asf, wmv, wma
+SSA (SubStation Alpha) subtitle => ass => text/x-ssa => ass, ssa
+AST (Audio Stream) => ast =>  ast
+ASF (Advanced / Active Streaming Format) => asf_stream => video/x-ms-asf => asf, wmv, wma
+Sun AU => au => audio/basic => au
+AVI (Audio Video Interleaved) => avi => video/x-msvideo => avi
+SWF (ShockWave Flash) (AVM2) => avm2 => application/x-shockwave-flash =>  
+G.729 BIT file format => bit => audio/bit => bit
+Apple CAF (Core Audio Format) => caf => audio/x-caf => caf
+raw Chinese AVS (Audio Video Standard) video => cavsvideo =>  cavs
+CRC testing => crc =>   
+DASH Muxer => dash =>   
+raw data => data =>   
+D-Cinema audio => daud =>  302
+raw Dirac => dirac =>  drc
+raw DNxHD (SMPTE VC-3) => dnxhd =>  dnxhd
+raw DTS => dts => audio/x-dca => dts
+DV (Digital Video) => dv =>  dv
+raw E-AC-3 => eac3 => audio/x-eac3 => eac3
+F4V Adobe Flash Video => f4v => application/f4v => f4v
+FFM (FFserver live feed) => ffm =>  ffm
+FFmpeg metadata in text => ffmetadata =>  ffmeta
+Adobe Filmstrip => filmstrip =>  flm
+raw FLAC => flac => audio/x-flac => flac
+FLV (Flash Video) => flv => video/x-flv => flv
+framecrc testing => framecrc =>   
+Per-frame MD5 testing => framemd5 =>   
+raw G.722 => g722 => audio/G722 => g722
+raw G.723.1 => g723_1 => audio/g723 => tco, rco
+GIF Animation => gif => image/gif => gif
+GXF (General eXchange Format) => gxf =>  gxf
+raw H.261 => h261 => video/x-h261 => h261
+raw H.263 => h263 => video/x-h263 => h263
+raw H.264 video => h264 =>  h264
+HDS Muxer => hds =>   
+raw HEVC video => hevc =>  hevc
+Apple HTTP Live Streaming => hls =>  m3u8
+Microsoft Windows ICO => ico => image/vnd.microsoft.icon => ico
+iLBC storage => ilbc => audio/iLBC => lbc
+image2 sequence => image2 =>  bmp, dpx, jls, jpeg, jpg, ljpg, pam, pbm, pcx, pgm, pgmyuv, png, ppm, sgi, tga, tif, tiff, jp2, j2c, j2k, xwd, sun, ras, rs, im1, im8, im24, sunras, xbm, xface, pix, y
+piped image2 sequence => image2pipe =>   
+iPod H.264 MP4 (MPEG-4 Part 14) => ipod => application/mp4 => m4v, m4a
+Berkeley/IRCAM/CARL Sound Format => ircam =>  sf, ircam
+ISMV/ISMA (Smooth Streaming) => ismv => application/mp4 => ismv, isma
+On2 IVF => ivf =>  ivf
+JACOsub subtitle format => jacosub => text/x-jacosub => jss, js
+LOAS/LATM => latm => audio/MP4A-LATM => latm, loas
+LRC lyrics => lrc =>  lrc
+raw MPEG-4 video => m4v =>  m4v
+MD5 testing => md5 =>   
+Matroska => matroska => video/x-matroska => mkv
+Matroska Audio => matroska => audio/x-matroska => mka
+MicroDVD subtitle format => microdvd => text/x-microdvd => sub
+raw MJPEG video => mjpeg => video/x-mjpeg => mjpg, mjpeg
+raw MLP => mlp =>  mlp
+Yamaha SMAF => mmf => application/vnd.smaf => mmf
+QuickTime / MOV => mov =>  mov
+MP2 (MPEG audio layer 2) => mp2 => audio/mpeg => mp2, m2a, mpa
+MP3 (MPEG audio layer 3) => mp3 => audio/mpeg => mp3
+MP4 (MPEG-4 Part 14) => mp4 => application/mp4 => mp4
+MPEG-1 Systems / MPEG program stream => mpeg => video/mpeg => mpg, mpeg
+MPEG-1 Systems / MPEG program stream (VCD) => vcd => video/mpeg =>  
+raw MPEG-1 video => mpeg1video => video/mpeg => mpg, mpeg, m1v
+MPEG-2 PS (DVD VOB) => dvd => video/mpeg => dvd
+MPEG-2 PS (SVCD) => svcd => video/mpeg => vob
+raw MPEG-2 video => mpeg2video =>  m2v
+MPEG-2 PS (VOB) => vob => video/mpeg => vob
+MPEG-TS (MPEG-2 Transport Stream) => mpegts => video/MP2T => ts, m2t, m2ts, mts
+MIME multipart JPEG => mpjpeg => multipart/x-mixed-replace;boundary=ffserver => mjpg
+MXF (Material eXchange Format) => mxf => application/mxf => mxf
+MXF (Material eXchange Format) D-10 Mapping => mxf_d10 => application/mxf =>  
+raw null video => null =>   
+NUT => nut => video/x-nut => nut
+Ogg Audio => oga => audio/ogg => oga
+Ogg => ogg => application/ogg => ogg, ogv
+Sony OpenMG audio => oma => audio/x-oma => oma
+Ogg Opus => opus => audio/ogg => opus
+PCM A-law => alaw =>  al
+PCM mu-law => mulaw =>  ul
+PCM 64-bit floating-point big-endian => f64be =>   
+PCM 64-bit floating-point little-endian => f64le =>   
+PCM 32-bit floating-point big-endian => f32be =>   
+PCM 32-bit floating-point little-endian => f32le =>   
+PCM signed 32-bit big-endian => s32be =>   
+PCM signed 32-bit little-endian => s32le =>   
+PCM signed 24-bit big-endian => s24be =>   
+PCM signed 24-bit little-endian => s24le =>   
+PCM signed 16-bit big-endian => s16be =>   
+PCM signed 16-bit little-endian => s16le =>  sw
+PCM signed 8-bit => s8 =>  sb
+PCM unsigned 32-bit big-endian => u32be =>   
+PCM unsigned 32-bit little-endian => u32le =>   
+PCM unsigned 24-bit big-endian => u24be =>   
+PCM unsigned 24-bit little-endian => u24le =>   
+PCM unsigned 16-bit big-endian => u16be =>   
+PCM unsigned 16-bit little-endian => u16le =>  uw
+PCM unsigned 8-bit => u8 =>  ub
+PSP MP4 (MPEG-4 Part 14) => psp =>  mp4, psp
+raw video => rawvideo =>  yuv, rgb
+RealMedia => rm => application/vnd.rn-realmedia => rm, ra
+raw id RoQ => roq =>  roq
+Lego Mindstorms RSO => rso =>  rso
+RTP output => rtp =>   
+RTSP output => rtsp =>   
+SAP output => sap =>   
+segment => segment =>   
+streaming segment muxer => stream_segment, ssegment =>   
+Loki SDL MJPEG => smjpeg =>   
+Smooth Streaming Muxer => smoothstreaming =>   
+SoX native => sox =>  sox
+Ogg Speex => spx => audio/ogg => spx
+IEC 61937 (used on S/PDIF - IEC958) => spdif =>  spdif
+SubRip subtitle => srt => application/x-subrip => srt
+SWF (ShockWave Flash) => swf => application/x-shockwave-flash => swf
+Multiple muxer tee => tee =>   
+3GP2 (3GPP2 file format) => 3g2 =>  3g2
+3GP (3GPP file format) => 3gp =>  3gp
+extract pts as timecode v2 format, as defined by mkvtoolnix => mkvtimestamp_v2 =>   
+raw TrueHD => truehd =>  thd
+uncoded framecrc testing => uncodedframecrc =>   
+raw VC-1 video => vc1 =>  vc1
+VC-1 test bitstream => vc1test =>  rcv
+Creative Voice => voc => audio/x-voc => voc
+Sony Wave64 => w64 =>  w64
+WAV / WAVE (Waveform Audio) => wav => audio/x-wav => wav
+WebM => webm => video/webm => webm
+WebM DASH Manifest => webm_dash_manifest => application/xml => xml
+WebP => webp =>  webp
+WebVTT subtitle => webvtt => text/vtt => vtt
+Windows Television (WTV) => wtv =>  wtv
+raw WavPack => wv => audio/x-wavpack => wv
+YUV4MPEG pipe => yuv4mpegpipe =>  y4m
+
+                              Input formats                              
+Name => Short name => Extensions
+raw ADTS AAC (Advanced Audio Coding) => aac => aac
+raw AC-3 => ac3 => ac3
+ACT Voice file format => act =>  
+Artworx Data Format => adf => adf
+ADP => adp => adp, dtk
+CRI ADX => adx => adx
+MD STUDIO audio => aea => aea
+AFC => afc => afc
+Audio IFF => aiff =>  
+3GPP AMR => amr =>  
+Deluxe Paint Animation => anm =>  
+CRYO APC => apc =>  
+Monkey's Audio => ape => ape, apl, mac
+Animated Portable Network Graphics => apng =>  
+AQTitle subtitles => aqtitle => aqt
+ASF (Advanced / Active Streaming Format) => asf =>  
+SSA (SubStation Alpha) subtitle => ass =>  
+AST (Audio Stream) => ast => ast
+Sun AU => au =>  
+AVI (Audio Video Interleaved) => avi => avi
+AviSynth script => avisynth => avs
+AVR (Audio Visual Research) => avr => avr
+AVS => avs =>  
+Bethesda Softworks VID => bethsoftvid =>  
+Brute Force & Ignorance => bfi =>  
+Binary text => bin => bin
+Bink => bink =>  
+G.729 BIT file format => bit => bit
+Discworld II BMV => bmv => bmv
+BRSTM (Binary Revolution Stream) => brstm => brstm
+Black Ops Audio => boa =>  
+Interplay C93 => c93 =>  
+Apple CAF (Core Audio Format) => caf =>  
+raw Chinese AVS (Audio Video Standard) => cavsvideo =>  
+CD Graphics => cdg => cdg
+Commodore CDXL video => cdxl => cdxl, xl
+Phantom Cine => cine =>  
+Virtual concatenation script => concat =>  
+raw data => data =>  
+D-Cinema audio => daud => 302, daud
+Chronomaster DFA => dfa =>  
+raw Dirac => dirac =>  
+raw DNxHD (SMPTE VC-3) => dnxhd =>  
+DSD Stream File (DSF) => dsf =>  
+Delphine Software International CIN => dsicin =>  
+raw DTS => dts => dts
+raw DTS-HD => dtshd => dtshd
+DV (Digital Video) => dv => dv, dif
+DXA => dxa =>  
+Electronic Arts Multimedia => ea =>  
+Electronic Arts cdata => ea_cdata => cdata
+raw E-AC-3 => eac3 => eac3
+Ensoniq Paris Audio File => epaf => paf, fap
+FFM (FFserver live feed) => ffm =>  
+FFmpeg metadata in text => ffmetadata =>  
+Adobe Filmstrip => filmstrip => flm
+raw FLAC => flac => flac
+FLI/FLC/FLX animation => flic =>  
+FLV (Flash Video) => flv => flv
+live RTMP FLV (Flash Video) => live_flv => flv
+4X Technologies => 4xm =>  
+Megalux Frame => frm =>  
+raw G.722 => g722 => g722, 722
+G.723.1 => g723_1 => tco, rco, g723_1
+G.729 raw format demuxer => g729 => g729
+CompuServe Graphics Interchange Format (GIF) => gif =>  
+raw GSM => gsm => gsm
+GXF (General eXchange Format) => gxf =>  
+raw H.261 => h261 => h261
+raw H.263 => h263 =>  
+raw H.264 video => h264 => h26l, h264, 264, avc
+raw HEVC video => hevc => hevc, h265, 265
+Apple HTTP Live Streaming => hls, applehttp =>  
+Cryo HNM v4 => hnm =>  
+Microsoft Windows ICO => ico =>  
+id Cinematic => idcin =>  
+iCE Draw File => idf => idf
+IFF (Interchange File Format) => iff =>  
+iLBC storage => ilbc =>  
+image2 sequence => image2 =>  
+piped image2 sequence => image2pipe =>  
+Alias/Wavefront PIX image => alias_pix =>  
+BRender PIX image => brender_pix =>  
+raw Ingenient MJPEG => ingenient => cgi
+Interplay MVE => ipmovie =>  
+Berkeley/IRCAM/CARL Sound Format => ircam => sf, ircam
+Funcom ISS => iss =>  
+IndigoVision 8000 video => iv8 =>  
+On2 IVF => ivf =>  
+JACOsub subtitle format => jacosub =>  
+Bitmap Brothers JV => jv =>  
+raw LOAS/LATM => latm => latm
+raw lmlm4 => lmlm4 =>  
+LOAS AudioSyncStream => loas =>  
+LRC lyrics => lrc =>  
+LVF => lvf => lvf
+VR native stream (LXF) => lxf =>  
+raw MPEG-4 video => m4v => m4v
+Matroska / WebM => matroska, webm => mkv, mk3d, mka, mks
+Metal Gear Solid: The Twin Snakes => mgsts =>  
+MicroDVD subtitle format => microdvd =>  
+raw MJPEG video => mjpeg => mjpg, mjpeg, mpo
+raw MLP => mlp => mlp
+Magic Lantern Video (MLV) => mlv =>  
+American Laser Games MM => mm =>  
+Yamaha SMAF => mmf =>  
+QuickTime / MOV => mov, mp4, m4a, 3gp, 3g2, mj2 => mov, mp4, m4a, 3gp, 3g2, mj2
+MP2/3 (MPEG audio layer 2/3) => mp3 => mp2, mp3, m2a, mpa
+Musepack => mpc => mpc
+Musepack SV8 => mpc8 =>  
+MPEG-PS (MPEG-2 Program Stream) => mpeg =>  
+MPEG-TS (MPEG-2 Transport Stream) => mpegts =>  
+raw MPEG-TS (MPEG-2 Transport Stream) => mpegtsraw =>  
+raw MPEG video => mpegvideo =>  
+MPL2 subtitles => mpl2 => txt, mpl2
+MPlayer subtitles => mpsub => sub
+MSN TCP Webcam stream => msnwctcp =>  
+MTV => mtv =>  
+Silicon Graphics Movie => mv =>  
+Motion Pixels MVI => mvi => mvi
+MXF (Material eXchange Format) => mxf =>  
+MxPEG clip => mxg => mxg
+NC camera feed => nc => v
+NIST SPeech HEader REsources => nistsphere => nist, sph
+Nullsoft Streaming Video => nsv =>  
+NUT => nut => nut
+NuppelVideo => nuv =>  
+Ogg => ogg => ogg
+Sony OpenMG audio => oma => oma, omg, aa3
+Amazing Studio Packed Animation File => paf =>  
+PCM A-law => alaw => al
+PCM mu-law => mulaw => ul
+PCM 64-bit floating-point big-endian => f64be =>  
+PCM 64-bit floating-point little-endian => f64le =>  
+PCM 32-bit floating-point big-endian => f32be =>  
+PCM 32-bit floating-point little-endian => f32le =>  
+PCM signed 32-bit big-endian => s32be =>  
+PCM signed 32-bit little-endian => s32le =>  
+PCM signed 24-bit big-endian => s24be =>  
+PCM signed 24-bit little-endian => s24le =>  
+PCM signed 16-bit big-endian => s16be =>  
+PCM signed 16-bit little-endian => s16le => sw
+PCM signed 8-bit => s8 => sb
+PCM unsigned 32-bit big-endian => u32be =>  
+PCM unsigned 32-bit little-endian => u32le =>  
+PCM unsigned 24-bit big-endian => u24be =>  
+PCM unsigned 24-bit little-endian => u24le =>  
+PCM unsigned 16-bit big-endian => u16be =>  
+PCM unsigned 16-bit little-endian => u16le => uw
+PCM unsigned 8-bit => u8 => ub
+PJS (Phoenix Japanimation Society) subtitles => pjs => pjs
+Playstation Portable PMP => pmp =>  
+TechnoTrend PVA => pva =>  
+PVF (Portable Voice Format) => pvf => pvf
+QCP => qcp =>  
+REDCODE R3D => r3d =>  
+raw video => rawvideo => yuv, cif, qcif, rgb
+RealText subtitle format => realtext => rt
+RedSpark => redspark => rsd
+RL2 => rl2 =>  
+RealMedia => rm =>  
+id RoQ => roq =>  
+RPL / ARMovie => rpl =>  
+GameCube RSD => rsd => rsd
+Lego Mindstorms RSO => rso => rso
+RTP input => rtp =>  
+RTSP input => rtsp =>  
+SAMI subtitle format => sami => smi, sami
+SAP input => sap =>  
+SBaGen binaural beats script => sbg => sbg
+SDP => sdp =>  
+SDR2 => sdr2 => sdr2
+Sega FILM / CPK => film_cpk =>  
+raw Shorten => shn => shn
+Beam Software SIFF => siff => vb, son
+Asterisk raw pcm => sln => sln
+Smacker => smk =>  
+Loki SDL MJPEG => smjpeg => mjpg
+LucasArts Smush => smush =>  
+Sierra SOL => sol =>  
+SoX native => sox =>  
+IEC 61937 (compressed data in S/PDIF) => spdif =>  
+SubRip subtitle => srt =>  
+Sony Playstation STR => psxstr =>  
+Spruce subtitle format => stl => stl
+SubViewer v1 subtitle format => subviewer1 => sub
+SubViewer subtitle format => subviewer => sub
+raw HDMV Presentation Graphic Stream subtitles => sup => sup
+SWF (ShockWave Flash) => swf =>  
+raw TAK => tak => tak
+TED Talks captions => tedcaptions =>  
+THP => thp =>  
+Tiertex Limited SEQ => tiertexseq =>  
+8088flex TMV => tmv =>  
+raw TrueHD => truehd => thd
+TTA (True Audio) => tta => tta
+Renderware TeXture Dictionary => txd =>  
+Tele-typewriter => tty => ans, art, asc, diz, ice, nfo, txt, vt
+raw VC-1 => vc1 => vc1
+VC-1 test bitstream => vc1test =>  
+Vivo => vivo => viv
+Sierra VMD => vmd =>  
+VobSub subtitle format => vobsub => idx
+Creative Voice => voc =>  
+VPlayer subtitles => vplayer => txt
+Nippon Telegraph and Telephone Corporation (NTT) TwinVQ => vqf => vqf, vql, vqe
+Sony Wave64 => w64 =>  
+WAV / WAVE (Waveform Audio) => wav =>  
+Wing Commander III movie => wc3movie =>  
+WebM DASH Manifest => webm_dash_manifest =>  
+WebVTT subtitle => webvtt => vtt
+Westwood Studios audio => wsaud =>  
+Westwood Studios VQA => wsvqa =>  
+Windows Television (WTV) => wtv =>  
+WavPack => wv =>  
+Maxis XA => xa =>  
+eXtended BINary text (XBIN) => xbin =>  
+Microsoft XMV => xmv =>  
+Microsoft xWMA => xwma =>  
+Psygnosis YOP => yop => yop
+YUV4MPEG pipe => yuv4mpegpipe => y4m
+piped bmp sequence => bmp_pipe =>  
+piped dpx sequence => dpx_pipe =>  
+piped exr sequence => exr_pipe =>  
+piped j2k sequence => j2k_pipe =>  
+piped jpeg sequence => jpeg_pipe =>  
+piped jpegls sequence => jpegls_pipe =>  
+piped pictor sequence => pictor_pipe =>  
+piped png sequence => png_pipe =>  
+piped sgi sequence => sgi_pipe =>  
+piped sunrast sequence => sunrast_pipe =>  
+piped tiff sequence => tiff_pipe =>  
+piped webp sequence => webp_pipe =>  
+Game Music Emu demuxer => libgme =>  
+ModPlug demuxer => libmodplug => 669, abc, amf, ams, dbm, dmf, dsm, far, it, mdl, med, mid, mod, mt2, mtm, okt, psm, ptm, s3m, stm, ult, umx, xm, itgz, itr, itz, mdgz, mdr, mdz, s3gz, s3r, s3z, xmgz, xmr, xmz
+
+bcmath
+
+BCMath support => enabled
+
+Directive => Local Value => Master Value
+bcmath.scale => 0 => 0
+
+blenc
+
+Blenc support => Enabled
+Blenc version => 1.1.4b
+Blenc expire date => 99-99-9999
+
+Directive => Local Value => Master Value
+blenc.key_file => /usr/local/etc/blenckeys => /usr/local/etc/blenckeys
+
+bz2
+
+BZip2 Support => Enabled
+Stream Wrapper support => compress.bzip2://
+Stream Filter support => bzip2.decompress, bzip2.compress
+BZip2 Version => 1.0.6, 6-Sept-2010
+
+calendar
+
+Calendar support => enabled
+
+com_dotnet
+
+COM support => enabled
+DCOM support => disabled
+.Net support => enabled
+
+Directive => Local Value => Master Value
+com.allow_dcom => 0 => 0
+com.autoregister_casesensitive => 1 => 1
+com.autoregister_typelib => 0 => 0
+com.autoregister_verbose => 0 => 0
+com.code_page => no value => no value
+com.typelib_file => no value => no value
+
+Core
+
+PHP Version => 5.6.4
+
+Directive => Local Value => Master Value
+allow_url_fopen => On => On
+allow_url_include => Off => Off
+always_populate_raw_post_data => 0 => 0
+arg_separator.input => & => &
+arg_separator.output => & => &
+asp_tags => Off => Off
+auto_append_file => no value => no value
+auto_globals_jit => On => On
+auto_prepend_file => no value => no value
+browscap => no value => no value
+default_charset => UTF-8 => UTF-8
+default_mimetype => text/html => text/html
+disable_classes => no value => no value
+disable_functions => no value => no value
+display_errors => Off => Off
+display_startup_errors => Off => Off
+doc_root => no value => no value
+docref_ext => no value => no value
+docref_root => no value => no value
+enable_dl => Off => Off
+enable_post_data_reading => On => On
+error_append_string => no value => no value
+error_log => php_errors.log => php_errors.log
+error_prepend_string => no value => no value
+error_reporting => 22527 => 22527
+exit_on_timeout => Off => Off
+expose_php => On => On
+extension_dir => ext => ext
+file_uploads => On => On
+highlight.comment => <font style="color: #FF8000">#FF8000</font> => <font style="color: #FF8000">#FF8000</font>
+highlight.default => <font style="color: #0000BB">#0000BB</font> => <font style="color: #0000BB">#0000BB</font>
+highlight.html => <font style="color: #000000">#000000</font> => <font style="color: #000000">#000000</font>
+highlight.keyword => <font style="color: #007700">#007700</font> => <font style="color: #007700">#007700</font>
+highlight.string => <font style="color: #DD0000">#DD0000</font> => <font style="color: #DD0000">#DD0000</font>
+html_errors => Off => Off
+ignore_repeated_errors => Off => Off
+ignore_repeated_source => Off => Off
+ignore_user_abort => Off => Off
+implicit_flush => On => On
+include_path => .;C:\php\pear => .;C:\php\pear
+input_encoding => no value => no value
+internal_encoding => no value => no value
+log_errors => On => On
+log_errors_max_len => 1024 => 1024
+mail.add_x_header => On => On
+mail.force_extra_parameters => no value => no value
+mail.log => no value => no value
+max_execution_time => 0 => 0
+max_file_uploads => 20 => 20
+max_input_nesting_level => 64 => 64
+max_input_time => -1 => -1
+max_input_vars => 1000 => 1000
+memory_limit => 128M => 128M
+open_basedir => no value => no value
+output_buffering => 0 => 0
+output_encoding => no value => no value
+output_handler => no value => no value
+post_max_size => 8M => 8M
+precision => 14 => 14
+realpath_cache_size => 16K => 16K
+realpath_cache_ttl => 120 => 120
+register_argc_argv => On => On
+report_memleaks => On => On
+report_zend_debug => Off => Off
+request_order => GP => GP
+sendmail_from => no value => no value
+sendmail_path => no value => no value
+serialize_precision => 17 => 17
+short_open_tag => Off => Off
+SMTP => localhost => localhost
+smtp_port => 25 => 25
+sql.safe_mode => Off => Off
+sys_temp_dir => no value => no value
+track_errors => Off => Off
+unserialize_callback_func => no value => no value
+upload_max_filesize => 2M => 2M
+upload_tmp_dir => no value => no value
+user_dir => no value => no value
+user_ini.cache_ttl => 300 => 300
+user_ini.filename => .user.ini => .user.ini
+variables_order => GPCS => GPCS
+windows.show_crt_warning => Off => Off
+xmlrpc_error_number => 0 => 0
+xmlrpc_errors => Off => Off
+zend.detect_unicode => On => On
+zend.enable_gc => On => On
+zend.multibyte => Off => Off
+zend.script_encoding => no value => no value
+
+couchbase
+
+couchbase support => enabled
+version => 1.2.0
+libcouchbase version => 2.4.3
+json support => yes
+fastlz support => yes
+zlib support => no
+igbinary support => no
+
+Directive => Local Value => Master Value
+couchbase.compression_factor => 1.3 => 1.3
+couchbase.compression_threshold => 2000 => 2000
+couchbase.compressor => none => none
+couchbase.config_cache => no value => no value
+couchbase.durability_default_poll_interval => 100000 => 100000
+couchbase.durability_default_timeout => 40000000 => 40000000
+couchbase.instance.persistent => On => On
+couchbase.restflush => On => On
+couchbase.serializer => php => php
+couchbase.skip_config_errors_on_connect => Off => Off
+couchbase.view_timeout => 75 => 75
+
+couchdb
+
+couchdb => enabled
+Version => 0.0.2
+
+crypto
+
+Crypto Support => enabled
+Crypto Version => 0.1.1
+OpenSSL Library Version => OpenSSL 1.0.1j-fips 15 Oct 2014
+OpenSSL Header Version => OpenSSL 1.0.1j-fips 15 Oct 2014
+
+ctype
+
+ctype functions => enabled
+
+curl
+
+cURL support => enabled
+cURL Information => 7.39.0
+Age => 3
+Features
+AsynchDNS => Yes
+CharConv => No
+Debug => No
+GSS-Negotiate => No
+IDN => Yes
+IPv6 => Yes
+krb4 => No
+Largefile => Yes
+libz => No
+NTLM => Yes
+NTLMWB => No
+SPNEGO => Yes
+SSL => Yes
+SSPI => Yes
+TLS-SRP => No
+Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, pop3, pop3s, rtsp, scp, sftp, smtp, smtps, telnet, tftp
+Host => x86_64-pc-win32
+SSL Version => OpenSSL/1.0.1j
+libSSH Version => libssh2/1.4.3
+
+date
+
+date/time support => enabled
+"Olson" Timezone Database Version => 2014.10
+Timezone Database => internal
+Default timezone => Europe/Amsterdam
+
+Directive => Local Value => Master Value
+date.default_latitude => 31.7667 => 31.7667
+date.default_longitude => 35.2333 => 35.2333
+date.sunrise_zenith => 90.583333 => 90.583333
+date.sunset_zenith => 90.583333 => 90.583333
+date.timezone => Europe/Amsterdam => Europe/Amsterdam
+
+dba
+
+DBA support => enabled
+Supported handlers => cdb cdb_make db3 inifile flatfile 
+
+Directive => Local Value => Master Value
+dba.default_handler => flatfile => flatfile
+
+dbase
+
+Version => 5.1.0
+
+dio
+
+dio support => enabled
+version => 0.0.7
+
+discount
+
+Discount markdown => enabled
+Discount Ext. version => 1.0.0
+Discount lib version => 2.1.3.1-dev DL=BOTH ID-ANCHOR GITHUB-TAGS FENCED-CODE
+
+dom
+
+DOM/XML => enabled
+DOM/XML API Version => 20031129
+libxml Version => 2.9.1
+HTML Support => enabled
+XPath Support => enabled
+XPointer Support => enabled
+Schema Support => enabled
+RelaxNG Support => enabled
+
+doublemetaphone
+
+Double Metaphone support => enabled
+version => 1.0.1
+                        compiled as dynamic module                        
+
+ereg
+
+Regex Library => Bundled library enabled
+
+event
+
+Event support => enabled
+Sockets support => enabled
+Debug support => disabled
+Extra functionality support including HTTP, DNS, and RPC => enabled
+OpenSSL support => enabled
+Thread safety support => enabled
+Extension version => 1.11.2
+libevent2 headers version => 2.1.4-alpha-dev
+
+excel
+
+excel support => enabled
+Excel Version => 1.0.1dev
+LibXL Version => 3060101
+
+exif
+
+EXIF Support => enabled
+EXIF Version => 1.4 $Id: ab2a50435139d06a6aaac1b47adb458267625069 $
+Supported EXIF Version => 0220
+Supported filetypes => JPEG,TIFF
+
+Directive => Local Value => Master Value
+exif.decode_jis_intel => JIS => JIS
+exif.decode_jis_motorola => JIS => JIS
+exif.decode_unicode_intel => UCS-2LE => UCS-2LE
+exif.decode_unicode_motorola => UCS-2BE => UCS-2BE
+exif.encode_jis => no value => no value
+exif.encode_unicode => ISO-8859-15 => ISO-8859-15
+
+ffmpeg
+
+ffmpeg-php version => 0.7.16
+ffmpeg-php built on => Jan  5 2015 12:05:15
+ffmpeg-php gd support  => enabled
+ffmpeg libavcodec version => Lavc52.123.0
+ffmpeg libavformat version => Lavf52.111.0
+ffmpeg swscaler version => SwS0.14.1
+
+Directive => Local Value => Master Value
+ffmpeg.allow_persistent => 0 => 0
+ffmpeg.show_warnings => 0 => 0
+
+fileinfo
+
+fileinfo support => enabled
+version => 1.0.5
+libmagic => 517
+
+filter
+
+Input Validation and Filtering => enabled
+Revision => $Id: a408ee30dc87767f918de9439364deec6760290c $
+
+Directive => Local Value => Master Value
+filter.default => unsafe_raw => unsafe_raw
+filter.default_flags => no value => no value
+
+fribidi
+
+FriBidi support => enabled
+FriBidi version => 0.19.5
+Extension version => 1.2
+
+ftp
+
+FTP support => enabled
+
+gd
+
+GD Support => enabled
+GD Version => bundled (2.1.0 compatible)
+FreeType Support => enabled
+FreeType Linkage => with freetype
+FreeType Version => 2.5.4
+T1Lib Support => enabled
+GIF Read Support => enabled
+GIF Create Support => enabled
+JPEG Support => enabled
+libJPEG Version => 9 compatible
+PNG Support => enabled
+libPNG Version => 1.6.15
+WBMP Support => enabled
+XPM Support => enabled
+libXpm Version => 30511
+XBM Support => enabled
+WebP Support => enabled
+
+Directive => Local Value => Master Value
+gd.jpeg_ignore_warning => 0 => 0
+
+gender
+
+gender support => enabled
+Version  => 1.0.0
+Gender API  => version 1.2.1, 2013-06-02
+
+geoip
+
+geoip support => enabled
+geoip extension version => 1.1.1-dev
+geoip library version => 1004008
+
+Directive => Local Value => Master Value
+geoip.custom_directory => no value => no value
+
+gettext
+
+GetText Support => enabled
+
+gmp
+
+gmp support => enabled
+MPIR version => 2.6.0
+
+haru
+
+Haru PDF support => enabled
+Version => 1.0.5
+libharu version => 2.3.0RC2
+
+hash
+
+hash support => enabled
+Hashing Engines => md2 md4 md5 sha1 sha224 sha256 sha384 sha512 ripemd128 ripemd160 ripemd256 ripemd320 whirlpool tiger128,3 tiger160,3 tiger192,3 tiger128,4 tiger160,4 tiger192,4 snefru snefru256 gost gost-crypto adler32 crc32 crc32b fnv132 fnv1a32 fnv164 fnv1a64 joaat haval128,3 haval160,3 haval192,3 haval224,3 haval256,3 haval128,4 haval160,4 haval192,4 haval224,4 haval256,4 haval128,5 haval160,5 haval192,5 haval224,5 haval256,5 
+
+hrtime
+
+hrtime support => enabled
+Version => 0.5.0
+
+htscanner
+
+htscanner support => enabled
+PECL Module version => 1.0.2-dev ($Id: htscanner.c 312503 2011-06-26 17:56:58Z derick $)
+
+Directive => Local Value => Master Value
+htscanner.config_file => .htaccess => .htaccess
+htscanner.default_docroot => / => /
+htscanner.default_ttl => 300 => 300
+htscanner.stop_on_error => 0 => 0
+htscanner.verbose => 0 => 0
+
+http
+
+HTTP Support => enabled
+Extension Version => 2.1.4
+
+Used Library => Compiled => Linked
+libz => 1.2.8 => 1.2.8
+libcurl => 7.39.0 => 7.39.0
+libevent => 2.1.4-alpha-dev => 2.1.4-alpha-dev
+
+Directive => Local Value => Master Value
+http.etag.mode => crc32b => crc32b
+
+iconv
+
+iconv support => enabled
+iconv implementation => "libiconv"
+iconv library version => 1.14
+
+Directive => Local Value => Master Value
+iconv.input_encoding => no value => no value
+iconv.internal_encoding => no value => no value
+iconv.output_encoding => no value => no value
+
+igbinary
+
+igbinary support => enabled
+igbinary version => 1.1.2-dev
+igbinary APC serializer ABI => no
+igbinary session support => yes
+
+Directive => Local Value => Master Value
+igbinary.compact_strings => On => On
+
+imagick
+
+imagick module => enabled
+imagick module version => 3.2-dev
+imagick classes => Imagick, ImagickDraw, ImagickPixel, ImagickPixelIterator
+ImageMagick version => ImageMagick 6.9.0-0 Q16 x64 2014-11-14 http://www.imagemagick.org
+ImageMagick copyright => Copyright (C) 1999-2014 ImageMagick Studio LLC
+ImageMagick release date => 2014-11-14
+ImageMagick number of supported formats:  => 225
+ImageMagick supported formats => 3FR, AAI, AI, ART, ARW, AVI, AVS, BGR, BGRA, BIE, BMP, BMP2, BMP3, BRF, CAL, CALS, CANVAS, CAPTION, CIN, CIP, CLIP, CLIPBOARD, CMYK, CMYKA, CR2, CRW, CUR, CUT, DCM, DCR, DCX, DDS, DFONT, DJVU, DNG, DOT, DPS, DPX, DXT1, DXT5, EMF, EPDF, EPI, EPS, EPS2, EPS3, EPSF, EPSI, EPT, EPT2, EPT3, ERF, EXR, FAX, FITS, FPX, FRACTAL, FTS, G3, GIF, GIF87, GRADIENT, GRAY, GROUP4, GV, HALD, HDR, HISTOGRAM, HRZ, HTM, HTML, ICB, ICO, ICON, IIQ, INFO, INLINE, IPL, ISOBRL, J2C, J2K, JBG, JBIG, JNG, JNX, JP2, JPC, JPEG, JPG, JPM, JPT, JSON, K25, KDC, LABEL, M2V, M4V, MAC, MAP, MASK, MAT, MATTE, MEF, MIFF, MNG, MONO, MOV, MP4, MPC, MPEG, MPG, MRW, MSL, MSVG, MTV, MVG, NEF, NRW, NULL, ORF, OTB, OTF, PAL, PALM, PAM, PANGO, PATTERN, PBM, PCD, PCDS, PCL, PCT, PCX, PDB, PDF, PDFA, PEF, PES, PFA, PFB, PFM, PGM, PICON, PICT, PIX, PJPEG, PLASMA, PNG, PNG00, PNG24, PNG32, PNG48, PNG64, PNG8, PNM, PPM, PREVIEW, PS, PS2, PS3, PSB, PSD, PTIF, PWP, RADIAL-GRADIENT, RAF, RAS, RAW, RGB, RGBA, RGBO, RGF, RLA, RLE, RMF, RW2, SCR, SCREENSHOT, SCT, SFW, SGI, SHTML, SIX, SIXEL, SPARSE-COLOR, SR2, SRF, STEGANO, SUN, SVG, SVGZ, TEXT, TGA, THUMBNAIL, TIFF, TIFF64, TILE, TIM, TTC, TTF, TXT, UBRL, UIL, UYVY, VDA, VICAR, VID, VIFF, VIPS, VST, WBMP, WEBP, WMF, WMV, WPG, X3F, XBM, XC, XCF, XPM, XPS, XV, YCbCr, YCbCrA, YUV
+
+Directive => Local Value => Master Value
+imagick.locale_fix => 0 => 0
+imagick.progress_monitor => 0 => 0
+
+imap
+
+IMAP c-Client Version => 2007f
+SSL Support => enabled
+
+interbase
+
+Firebird/InterBase Support => dynamic
+Compile-time Client Library Version => Firebird API version 25
+Run-time Client Library Version => WI-V6.3.2.26539 Firebird 2.5
+
+Directive => Local Value => Master Value
+ibase.allow_persistent => On => On
+ibase.dateformat => %Y-%m-%d => %Y-%m-%d
+ibase.default_charset => no value => no value
+ibase.default_db => no value => no value
+ibase.default_password => no value => no value
+ibase.default_user => no value => no value
+ibase.max_links => Unlimited => Unlimited
+ibase.max_persistent => Unlimited => Unlimited
+ibase.timeformat => %H:%M:%S => %H:%M:%S
+ibase.timestampformat => %Y-%m-%d %H:%M:%S => %Y-%m-%d %H:%M:%S
+
+intl
+
+Internationalization support => enabled
+version => 1.1.0
+ICU version => 53.1
+ICU Data version => 53.1
+
+Directive => Local Value => Master Value
+intl.default_locale => no value => no value
+intl.error_level => 0 => 0
+intl.use_exceptions => 0 => 0
+
+jsmin
+
+jsmin support => enabled
+jsmin version => 1.0.0
+jsmin notes => Port of Douglas Crockford's JSMin
+
+json
+
+json support => enabled
+json version => 1.2.1
+
+judy
+
+Judy support => enabled
+PHP Judy version => 1.0.2
+
+Directive => Local Value => Master Value
+judy.string.maxlength => 65536 => 65536
+
+ldap
+
+LDAP Support => enabled
+RCS Version => $Id: 8a141c006667d9ddbf2303cdd8b290a22052ec22 $
+Total Links => 0/unlimited
+API Version => 3001
+Vendor Name => OpenLDAP
+Vendor Version => 20433
+SASL Support => Enabled
+
+Directive => Local Value => Master Value
+ldap.max_links => Unlimited => Unlimited
+
+libxml
+
+libXML support => active
+libXML Compiled Version => 2.9.1
+libXML Loaded Version => 20901
+libXML streams => enabled
+
+lzf
+
+lzf support => enabled
+version => 1.6.2
+optimized for => speed
+
+mailparse
+
+mailparse support => enabled
+Extension Version => 2.1.6
+Revision => $Revision: 305002 $
+
+Directive => Local Value => Master Value
+mailparse.def_charset => us-ascii => us-ascii
+
+mbstring
+
+Multibyte Support => enabled
+Multibyte string engine => libmbfl
+HTTP input encoding translation => disabled
+libmbfl version => 1.3.2
+
+mbstring extension makes use of "streamable kanji code filter and converter", which is distributed under the GNU Lesser General Public License version 2.1.
+
+Multibyte (japanese) regex support => enabled
+Multibyte regex (oniguruma) version => 5.9.5
+
+Directive => Local Value => Master Value
+mbstring.detect_order => no value => no value
+mbstring.encoding_translation => Off => Off
+mbstring.func_overload => 0 => 0
+mbstring.http_input => no value => no value
+mbstring.http_output => no value => no value
+mbstring.http_output_conv_mimetypes => ^(text/|application/xhtml\+xml) => ^(text/|application/xhtml\+xml)
+mbstring.internal_encoding => no value => no value
+mbstring.language => neutral => neutral
+mbstring.strict_detection => Off => Off
+mbstring.substitute_character => no value => no value
+
+mcrypt
+
+mcrypt support => enabled
+mcrypt_filter support => enabled
+Version => 2.5.8
+Api No => 20021217
+Supported ciphers => cast-128 gost rijndael-128 twofish cast-256 loki97 rijndael-192 saferplus wake blowfish-compat des rijndael-256 serpent xtea blowfish enigma rc2 tripledes arcfour 
+Supported modes => cbc cfb ctr ecb ncfb nofb ofb stream 
+
+Directive => Local Value => Master Value
+mcrypt.algorithms_dir => no value => no value
+mcrypt.modes_dir => no value => no value
+
+mdbtools
+MDB data file access library
+
+Version => 1.0.0 (stable)
+Released => 2007-11-27
+CVS Revision => $Id: mdbtools.c 297236 2010-03-31 20:39:48Z johannes $
+Authors => Hartmut Holzgraefe 'hartmut@php.net' (lead)
+
+
+memcache
+
+memcache support => enabled
+Active persistent connections => 0
+Version => 2.2.7
+Revision => $Revision: 328234 $
+
+Directive => Local Value => Master Value
+memcache.allow_failover => 1 => 1
+memcache.chunk_size => 8192 => 8192
+memcache.default_port => 11211 => 11211
+memcache.default_timeout_ms => 1000 => 1000
+memcache.hash_function => crc32 => crc32
+memcache.hash_strategy => standard => standard
+memcache.max_failover_attempts => 20 => 20
+
+mhash
+
+MHASH support => Enabled
+MHASH API Version => Emulated Support
+
+mongo
+
+MongoDB Support => enabled
+Version => 1.5.8
+Streams Support => enabled
+SSL Support => supported
+                   Supported Authentication Mechanisms                   
+MONGODB-CR (default) => enabled
+MONGODB-X509 => enabled
+GSSAPI (Kerberos) => enabled
+PLAIN => enabled
+
+Directive => Local Value => Master Value
+mongo.allow_empty_keys => 0 => 0
+mongo.chunk_size => 261120 => 261120
+mongo.cmd => $ => $
+mongo.default_host => localhost => localhost
+mongo.default_port => 27017 => 27017
+mongo.is_master_interval => 15 => 15
+mongo.long_as_object => 0 => 0
+mongo.native_long => 0 => 0
+mongo.ping_interval => 5 => 5
+
+msgpack
+
+MessagePack Support => enabled
+Session Support => enabled
+extension Version => 0.5.6-dev
+header Version => 0.5.4
+
+Directive => Local Value => Master Value
+msgpack.error_display => On => On
+msgpack.illegal_key_insert => Off => Off
+msgpack.php_only => On => On
+
+mysql
+
+MySQL Support => enabled
+Active Persistent Links => 0
+Active Links => 0
+Client API version => mysqlnd 5.0.11-dev - 20120503 - $Id: f373ea5dd5538761406a8022a4b8a374418b240e $
+
+Directive => Local Value => Master Value
+mysql.allow_local_infile => On => On
+mysql.allow_persistent => On => On
+mysql.connect_timeout => 60 => 60
+mysql.default_host => no value => no value
+mysql.default_password => no value => no value
+mysql.default_port => no value => no value
+mysql.default_socket => no value => no value
+mysql.default_user => no value => no value
+mysql.max_links => Unlimited => Unlimited
+mysql.max_persistent => Unlimited => Unlimited
+mysql.trace_mode => Off => Off
+
+mysqli
+
+MysqlI Support => enabled
+Client API library version => mysqlnd 5.0.11-dev - 20120503 - $Id: f373ea5dd5538761406a8022a4b8a374418b240e $
+Active Persistent Links => 0
+Inactive Persistent Links => 0
+Active Links => 0
+
+Directive => Local Value => Master Value
+mysqli.allow_local_infile => On => On
+mysqli.allow_persistent => On => On
+mysqli.default_host => no value => no value
+mysqli.default_port => 3306 => 3306
+mysqli.default_pw => no value => no value
+mysqli.default_socket => no value => no value
+mysqli.default_user => no value => no value
+mysqli.max_links => Unlimited => Unlimited
+mysqli.max_persistent => Unlimited => Unlimited
+mysqli.reconnect => Off => Off
+mysqli.rollback_on_cached_plink => Off => Off
+
+mysqlnd
+
+mysqlnd => enabled
+Version => mysqlnd 5.0.11-dev - 20120503 - $Id: f373ea5dd5538761406a8022a4b8a374418b240e $
+Compression => supported
+core SSL => supported
+extended SSL => not supported
+Command buffer size => 4096
+Read buffer size => 32768
+Read timeout => 31536000
+Collecting statistics => Yes
+Collecting memory statistics => No
+Tracing => n/a
+Loaded plugins => mysqlnd,debug_trace,auth_plugin_mysql_native_password,auth_plugin_mysql_clear_password
+API Extensions => mysql,mysqli,pdo_mysql
+
+mysqlnd statistics =>  
+bytes_sent => 0
+bytes_received => 0
+packets_sent => 0
+packets_received => 0
+protocol_overhead_in => 0
+protocol_overhead_out => 0
+bytes_received_ok_packet => 0
+bytes_received_eof_packet => 0
+bytes_received_rset_header_packet => 0
+bytes_received_rset_field_meta_packet => 0
+bytes_received_rset_row_packet => 0
+bytes_received_prepare_response_packet => 0
+bytes_received_change_user_packet => 0
+packets_sent_command => 0
+packets_received_ok => 0
+packets_received_eof => 0
+packets_received_rset_header => 0
+packets_received_rset_field_meta => 0
+packets_received_rset_row => 0
+packets_received_prepare_response => 0
+packets_received_change_user => 0
+result_set_queries => 0
+non_result_set_queries => 0
+no_index_used => 0
+bad_index_used => 0
+slow_queries => 0
+buffered_sets => 0
+unbuffered_sets => 0
+ps_buffered_sets => 0
+ps_unbuffered_sets => 0
+flushed_normal_sets => 0
+flushed_ps_sets => 0
+ps_prepared_never_executed => 0
+ps_prepared_once_executed => 0
+rows_fetched_from_server_normal => 0
+rows_fetched_from_server_ps => 0
+rows_buffered_from_client_normal => 0
+rows_buffered_from_client_ps => 0
+rows_fetched_from_client_normal_buffered => 0
+rows_fetched_from_client_normal_unbuffered => 0
+rows_fetched_from_client_ps_buffered => 0
+rows_fetched_from_client_ps_unbuffered => 0
+rows_fetched_from_client_ps_cursor => 0
+rows_affected_normal => 0
+rows_affected_ps => 0
+rows_skipped_normal => 0
+rows_skipped_ps => 0
+copy_on_write_saved => 0
+copy_on_write_performed => 0
+command_buffer_too_small => 0
+connect_success => 0
+connect_failure => 0
+connection_reused => 0
+reconnect => 0
+pconnect_success => 0
+active_connections => 0
+active_persistent_connections => 0
+explicit_close => 0
+implicit_close => 0
+disconnect_close => 0
+in_middle_of_command_close => 0
+explicit_free_result => 0
+implicit_free_result => 0
+explicit_stmt_close => 0
+implicit_stmt_close => 0
+mem_emalloc_count => 0
+mem_emalloc_amount => 0
+mem_ecalloc_count => 0
+mem_ecalloc_amount => 0
+mem_erealloc_count => 0
+mem_erealloc_amount => 0
+mem_efree_count => 0
+mem_efree_amount => 0
+mem_malloc_count => 0
+mem_malloc_amount => 0
+mem_calloc_count => 0
+mem_calloc_amount => 0
+mem_realloc_count => 0
+mem_realloc_amount => 0
+mem_free_count => 0
+mem_free_amount => 0
+mem_estrndup_count => 0
+mem_strndup_count => 0
+mem_estndup_count => 0
+mem_strdup_count => 0
+proto_text_fetched_null => 0
+proto_text_fetched_bit => 0
+proto_text_fetched_tinyint => 0
+proto_text_fetched_short => 0
+proto_text_fetched_int24 => 0
+proto_text_fetched_int => 0
+proto_text_fetched_bigint => 0
+proto_text_fetched_decimal => 0
+proto_text_fetched_float => 0
+proto_text_fetched_double => 0
+proto_text_fetched_date => 0
+proto_text_fetched_year => 0
+proto_text_fetched_time => 0
+proto_text_fetched_datetime => 0
+proto_text_fetched_timestamp => 0
+proto_text_fetched_string => 0
+proto_text_fetched_blob => 0
+proto_text_fetched_enum => 0
+proto_text_fetched_set => 0
+proto_text_fetched_geometry => 0
+proto_text_fetched_other => 0
+proto_binary_fetched_null => 0
+proto_binary_fetched_bit => 0
+proto_binary_fetched_tinyint => 0
+proto_binary_fetched_short => 0
+proto_binary_fetched_int24 => 0
+proto_binary_fetched_int => 0
+proto_binary_fetched_bigint => 0
+proto_binary_fetched_decimal => 0
+proto_binary_fetched_float => 0
+proto_binary_fetched_double => 0
+proto_binary_fetched_date => 0
+proto_binary_fetched_year => 0
+proto_binary_fetched_time => 0
+proto_binary_fetched_datetime => 0
+proto_binary_fetched_timestamp => 0
+proto_binary_fetched_string => 0
+proto_binary_fetched_blob => 0
+proto_binary_fetched_enum => 0
+proto_binary_fetched_set => 0
+proto_binary_fetched_geometry => 0
+proto_binary_fetched_other => 0
+init_command_executed_count => 0
+init_command_failed_count => 0
+com_quit => 0
+com_init_db => 0
+com_query => 0
+com_field_list => 0
+com_create_db => 0
+com_drop_db => 0
+com_refresh => 0
+com_shutdown => 0
+com_statistics => 0
+com_process_info => 0
+com_connect => 0
+com_process_kill => 0
+com_debug => 0
+com_ping => 0
+com_time => 0
+com_delayed_insert => 0
+com_change_user => 0
+com_binlog_dump => 0
+com_table_dump => 0
+com_connect_out => 0
+com_register_slave => 0
+com_stmt_prepare => 0
+com_stmt_execute => 0
+com_stmt_send_long_data => 0
+com_stmt_close => 0
+com_stmt_reset => 0
+com_stmt_set_option => 0
+com_stmt_fetch => 0
+com_deamon => 0
+bytes_received_real_data_normal => 0
+bytes_received_real_data_ps => 0
+
+mysqlnd_qc
+
+mysqlnd_qc support => enabled
+Mysqlnd Query Cache (mysqlnd_qc) => 1.2.0-alpha (10200)
+enabled => Yes
+Cache by default? => No
+Cache no table? => No
+
+Handler =>  
+default => default
+nop => enabled
+user => enabled
+object => enabled
+
+Statistics =>  
+cache_hit => 0
+cache_miss => 0
+cache_put => 0
+query_should_cache => 0
+query_should_not_cache => 0
+query_not_cached => 0
+query_could_cache => 0
+query_found_in_cache => 0
+query_uncached_other => 0
+query_uncached_no_table => 0
+query_uncached_no_result => 0
+query_uncached_use_result => 0
+query_aggr_run_time_cache_hit => 0
+query_aggr_run_time_cache_put => 0
+query_aggr_run_time_total => 0
+query_aggr_store_time_cache_hit => 0
+query_aggr_store_time_cache_put => 0
+query_aggr_store_time_total => 0
+receive_bytes_recorded => 0
+receive_bytes_replayed => 0
+send_bytes_recorded => 0
+send_bytes_replayed => 0
+slam_stale_refresh => 0
+slam_stale_hit => 0
+
+Directive => Local Value => Master Value
+mysqlnd_qc.cache_by_default => 0 => 0
+mysqlnd_qc.cache_no_table => 0 => 0
+mysqlnd_qc.collect_normalized_query_trace => 0 => 0
+mysqlnd_qc.collect_query_trace => 0 => 0
+mysqlnd_qc.collect_statistics => 0 => 0
+mysqlnd_qc.collect_statistics_log_file => /tmp/mysqlnd_qc.stats => /tmp/mysqlnd_qc.stats
+mysqlnd_qc.enable_qc => 1 => 1
+mysqlnd_qc.ignore_sql_comments => 1 => 1
+mysqlnd_qc.query_trace_bt_depth => 3 => 3
+mysqlnd_qc.slam_defense => 0 => 0
+mysqlnd_qc.slam_defense_ttl => 30 => 30
+mysqlnd_qc.std_data_copy => 0 => 0
+mysqlnd_qc.time_statistics => 1 => 1
+mysqlnd_qc.ttl => 30 => 30
+mysqlnd_qc.use_request_time => 0 => 0
+
+OAuth
+
+OAuth support => enabled
+PLAINTEXT support => enabled
+RSA-SHA1 support => not supported
+HMAC-SHA1 support => enabled
+Request engine support => php_streams, curl
+source version => $Id: oauth.c 325799 2012-05-24 21:07:51Z jawed $
+version => 1.2.3
+
+oci8
+
+OCI8 Support => enabled
+OCI8 DTrace Support => disabled
+OCI8 Version => 2.0.9
+Revision => $Id: 74e302c766329dcc183df9ea0359f733df8d192c $
+Oracle Run-time Client Library Version => 0.0.0.0.0
+Oracle Compile-time Instant Client Version => 12.1
+
+Directive => Local Value => Master Value
+oci8.connection_class => no value => no value
+oci8.default_prefetch => 100 => 100
+oci8.events => Off => Off
+oci8.max_persistent => -1 => -1
+oci8.old_oci_close_semantics => Off => Off
+oci8.persistent_timeout => -1 => -1
+oci8.ping_interval => 60 => 60
+oci8.privileged_connect => Off => Off
+oci8.statement_cache_size => 20 => 20
+
+Statistics =>  
+Active Persistent Connections => 0
+Active Connections => 0
+
+odbc
+
+ODBC Support => enabled
+Active Persistent Links => 0
+Active Links => 0
+ODBC library => Win32
+
+Directive => Local Value => Master Value
+odbc.allow_persistent => On => On
+odbc.check_persistent => On => On
+odbc.default_cursortype => Static cursor => Static cursor
+odbc.default_db => no value => no value
+odbc.default_pw => no value => no value
+odbc.default_user => no value => no value
+odbc.defaultbinmode => return as is => return as is
+odbc.defaultlrl => return up to 4096 bytes => return up to 4096 bytes
+odbc.max_links => Unlimited => Unlimited
+odbc.max_persistent => Unlimited => Unlimited
+
+openssl
+
+OpenSSL support => enabled
+OpenSSL Library Version => OpenSSL 1.0.1j-fips 15 Oct 2014
+OpenSSL Header Version => OpenSSL 1.0.1j-fips 15 Oct 2014
+
+Directive => Local Value => Master Value
+openssl.cafile => no value => no value
+openssl.capath => no value => no value
+
+PC/SC
+
+PC/SC support => enabled
+
+pcre
+
+PCRE (Perl Compatible Regular Expressions) Support => enabled
+PCRE Library Version => 8.34 2013-12-15
+
+Directive => Local Value => Master Value
+pcre.backtrack_limit => 1000000 => 1000000
+pcre.recursion_limit => 100000 => 100000
+
+PDFlib
+
+PDFlib Support => enabled
+PDFlib GmbH Version => 9.0.2
+PECL Version => 3.0.4
+Revision => $Revision: 332628 $
+
+PDO
+
+PDO support => enabled
+PDO drivers => firebird, mysql, oci, odbc, pgsql, sqlite, sqlsrv
+
+PDO_Firebird
+
+PDO Driver for Firebird => enabled
+
+pdo_mysql
+
+PDO Driver for MySQL => enabled
+Client API version => mysqlnd 5.0.11-dev - 20120503 - $Id: f373ea5dd5538761406a8022a4b8a374418b240e $
+
+PDO_OCI
+
+PDO Driver for OCI 8 and later => enabled
+
+PDO_ODBC
+
+PDO Driver for ODBC (Win32) => enabled
+ODBC Connection Pooling => Enabled, strict matching
+
+pdo_pgsql
+
+PDO Driver for PostgreSQL => enabled
+PostgreSQL(libpq) Version => 9.3.3
+Module version => 1.0.2
+Revision =>  $Id: fe003f8ab9041c47e97784d215c2488c4bda724d $ 
+
+pdo_sqlite
+
+PDO Driver for SQLite 3.x => enabled
+SQLite Library => 3.8.4.3
+
+pdo_sqlsrv
+
+pdo_sqlsrv support => enabled
+
+Directive => Local Value => Master Value
+pdo_sqlsrv.client_buffer_max_kb_size => 10240 => 10240
+pdo_sqlsrv.log_severity => 0 => 0
+
+pgsql
+
+PostgreSQL Support => enabled
+PostgreSQL(libpq) Version => 9.3.3
+PostgreSQL(libpq)  => PostgreSQL 9.3.3, compiled by Visual C++ build 1700, 64-bit
+Multibyte character support => enabled
+SSL support => enabled
+Active Persistent Links => 0
+Active Links => 0
+
+Directive => Local Value => Master Value
+pgsql.allow_persistent => On => On
+pgsql.auto_reset_persistent => Off => Off
+pgsql.ignore_notice => Off => Off
+pgsql.log_notice => Off => Off
+pgsql.max_links => Unlimited => Unlimited
+pgsql.max_persistent => Unlimited => Unlimited
+
+Phar
+
+Phar: PHP Archive support => enabled
+Phar EXT version => 2.0.2
+Phar API version => 1.1.1
+SVN revision => $Id: ac6bd272c417316cc97fd46ea4f8372dcf054406 $
+Phar-based phar archives => enabled
+Tar-based phar archives => enabled
+ZIP-based phar archives => enabled
+gzip compression => enabled
+bzip2 compression => enabled
+Native OpenSSL support => enabled
+
+
+Phar based on pear/PHP_Archive, original concept by Davey Shafik.
+Phar fully realized by Gregory Beaver and Marcus Boerger.
+Portions of tar implementation Copyright (c) 2003-2009 Tim Kientzle.
+Directive => Local Value => Master Value
+phar.cache_list => no value => no value
+phar.readonly => On => On
+phar.require_hash => On => On
+
+pop3
+
+pop3 support => enabled
+Extension version => 1.0.3-dev - $id$
+
+printer
+
+Printer Support => enabled
+Version => 0.1.0-dev
+Default printing device => PDFCreator
+Module state => working
+RCS Version => $Id: printer.c 331404 2013-09-15 10:51:05Z ab $
+
+Directive => Local Value => Master Value
+printer.default_printer => no value => no value
+
+propro
+
+Property proxy support => enabled
+Extension version => 1.0.1
+
+pspell
+
+PSpell Support => enabled
+
+pthreads
+
+Version => 2.0.11
+
+qb
+
+qb support => enabled
+Version => 2.4.0
+Release Name => Basia D.
+CPU count => 4
+CPU architecture => x86-64
+                               Diagnostics                               
+Integer addition throughput => 248 million operations per second
+Integer multiplication throughput => 271 million operations per second
+Integer division throughput => 111 million operations per second
+Integer multiply-accumulate throughput => 271 million operations per second
+Floating point addition throughput => 270 million operations per second
+Floating point multiplication throughput => 270 million operations per second
+Floating point division throughput => 135 million operations per second
+Floating point multiply-accumulate throughput => 270 million operations per second
+Vector addition throughput => 134 million operations per second
+Vector multiplication throughput => 134 million operations per second
+Vector division throughput => 53 million operations per second
+Vector multiply-accumulate throughput => 94 million operations per second
+
+Directive => Local Value => Master Value
+qb.allow_bytecode_interpretation => On => On
+qb.allow_debug_backtrace => Off => Off
+qb.allow_debugger_inspection => On => On
+qb.allow_memory_map => On => On
+qb.allow_native_compilation => Off => Off
+qb.column_major_matrix => Off => Off
+qb.compile_to_native => Off => Off
+qb.compiler_env_path => no value => no value
+qb.compiler_path => no value => no value
+qb.debug_with_exact_type => Off => Off
+qb.error_exception => 0 => 0
+qb.execution_log_path => no value => no value
+qb.native_code_cache_path => no value => no value
+qb.show_compiler_errors => Off => Off
+qb.show_native_source => Off => Off
+qb.show_opcodes => Off => Off
+qb.show_source_opcodes => Off => Off
+qb.tab_width => 4 => 4
+qb.thread_count => 0 => 0
+
+radius
+
+radius support => enabled
+version => 1.3.0b1
+
+raphf
+
+Resource and persistent handle factory support => enabled
+Extension version => 1.0.4
+
+                    Persistent handles in this thread                    
+Provider => Ident => Used => Free
+
+Directive => Local Value => Master Value
+raphf.persistent_handle.limit => -1 => -1
+
+rar
+
+RAR support => enabled
+RAR EXT version => 3.0.0
+Revision => $Revision: 312082 $
+UnRAR version => 4.10 beta1 patch1 2011-11-02
+UnRAR API version => 5 extension 1
+
+redis
+
+Redis Support => enabled
+Redis Version => 2.2.5
+
+Reflection
+
+Reflection => enabled
+Version => $Id: b2a30058688ac580cb2883c4283c19fd0e00d535 $
+
+rsync
+
+rsync support => enabled
+Version => 0.1.0
+Librsync Version => librsync 0.9.8pre
+
+Directive => Local Value => Master Value
+rsync.block_length => 2048 => 2048
+rsync.log_stats => 0 => 0
+rsync.strong_length => 8 => 8
+
+session
+
+Session Support => enabled
+Registered save handlers => files user redis memcache 
+Registered serializer handlers => php_serialize php php_binary wddx igbinary msgpack 
+
+Directive => Local Value => Master Value
+session.auto_start => Off => Off
+session.cache_expire => 180 => 180
+session.cache_limiter => nocache => nocache
+session.cookie_domain => no value => no value
+session.cookie_httponly => Off => Off
+session.cookie_lifetime => 0 => 0
+session.cookie_path => / => /
+session.cookie_secure => Off => Off
+session.entropy_file => no value => no value
+session.entropy_length => 0 => 0
+session.gc_divisor => 1000 => 1000
+session.gc_maxlifetime => 1440 => 1440
+session.gc_probability => 1 => 1
+session.hash_bits_per_character => 5 => 5
+session.hash_function => 0 => 0
+session.name => PHPSESSID => PHPSESSID
+session.referer_check => no value => no value
+session.save_handler => files => files
+session.save_path => no value => no value
+session.serialize_handler => php => php
+session.upload_progress.cleanup => On => On
+session.upload_progress.enabled => On => On
+session.upload_progress.freq => 1% => 1%
+session.upload_progress.min_freq => 1 => 1
+session.upload_progress.name => PHP_SESSION_UPLOAD_PROGRESS => PHP_SESSION_UPLOAD_PROGRESS
+session.upload_progress.prefix => upload_progress_ => upload_progress_
+session.use_cookies => On => On
+session.use_only_cookies => On => On
+session.use_strict_mode => Off => Off
+session.use_trans_sid => 0 => 0
+
+shmop
+
+shmop support => enabled
+
+SimpleXML
+
+Simplexml support => enabled
+Revision => $Id: a915862ec47f9589309acc4996ca8f6179788746 $
+Schema support => enabled
+
+smtp
+
+SMTP Support => Enabled
+Version => 0.2.0-dev
+
+snmp
+
+NET-SNMP Support => enabled
+NET-SNMP Version => 5.7.2.1
+PHP SNMP Version => 0.1
+
+soap
+
+Soap Client => enabled
+Soap Server => enabled
+
+Directive => Local Value => Master Value
+soap.wsdl_cache => 1 => 1
+soap.wsdl_cache_dir => /tmp => /tmp
+soap.wsdl_cache_enabled => 1 => 1
+soap.wsdl_cache_limit => 5 => 5
+soap.wsdl_cache_ttl => 86400 => 86400
+
+sockets
+
+Sockets Support => enabled
+
+solr
+
+Solr Extension Version => 2.0.0
+Solr Extension Revision Id => $Revision$
+Last Build Date => Jan  5 2015
+Last Build Time => 12:21:50
+SolrObject => enabled
+SolrDocument => enabled
+SolrDocumentField => enabled
+SolrInputDocument => enabled
+SolrClient => enabled
+SolrParams => enabled
+SolrQuery => enabled
+SolrModifiableParams => enabled
+SolrResponse => enabled
+SolrQueryResponse => enabled
+SolrUpdateResponse => enabled
+SolrPingResponse => enabled
+SolrGenericResponse => enabled
+SolrUtils => enabled
+SolrException => enabled
+SolrIllegalOperationException => enabled
+SolrIllegalArgumentException => enabled
+SolrClientException => enabled
+
+SPL
+
+SPL support => enabled
+Interfaces => Countable, OuterIterator, RecursiveIterator, SeekableIterator, SplObserver, SplSubject
+Classes => AppendIterator, ArrayIterator, ArrayObject, BadFunctionCallException, BadMethodCallException, CachingIterator, CallbackFilterIterator, DirectoryIterator, DomainException, EmptyIterator, FilesystemIterator, FilterIterator, GlobIterator, InfiniteIterator, InvalidArgumentException, IteratorIterator, LengthException, LimitIterator, LogicException, MultipleIterator, NoRewindIterator, OutOfBoundsException, OutOfRangeException, OverflowException, ParentIterator, RangeException, RecursiveArrayIterator, RecursiveCachingIterator, RecursiveCallbackFilterIterator, RecursiveDirectoryIterator, RecursiveFilterIterator, RecursiveIteratorIterator, RecursiveRegexIterator, RecursiveTreeIterator, RegexIterator, RuntimeException, SplDoublyLinkedList, SplFileInfo, SplFileObject, SplFixedArray, SplHeap, SplMinHeap, SplMaxHeap, SplObjectStorage, SplPriorityQueue, SplQueue, SplStack, SplTempFileObject, UnderflowException, UnexpectedValueException
+
+sqlite3
+
+SQLite3 support => enabled
+SQLite3 module version => 0.7-dev
+SQLite Library => 3.8.4.3
+
+Directive => Local Value => Master Value
+sqlite3.extension_dir => no value => no value
+
+sqlsrv
+
+sqlsrv support => enabled
+
+Directive => Local Value => Master Value
+sqlsrv.ClientBufferMaxKBSize => 10240 => 10240
+sqlsrv.LogSeverity => 0 => 0
+sqlsrv.LogSubsystems => 0 => 0
+sqlsrv.WarningsReturnAsErrors => On => On
+
+ssdeep
+
+ssdeep Module => enabled
+version => 1.0.4
+By => Simon Holywell
+http://www.simonholywell.com
+
+ssh2
+
+SSH2 support => enabled
+extension version => 0.12
+libssh2 version => 1.4.3
+banner => SSH-2.0-libssh2_1.4.3
+
+standard
+
+Dynamic Library Support => enabled
+Internal Sendmail Support for Windows => enabled
+
+Directive => Local Value => Master Value
+assert.active => 1 => 1
+assert.bail => 0 => 0
+assert.callback => no value => no value
+assert.quiet_eval => 0 => 0
+assert.warning => 1 => 1
+auto_detect_line_endings => 0 => 0
+default_socket_timeout => 60 => 60
+from => no value => no value
+url_rewriter.tags => a=href,area=href,frame=src,input=src,form=fakeentry => a=href,area=href,frame=src,input=src,form=fakeentry
+user_agent => no value => no value
+
+stats
+
+Statistics Support => enabled
+Version => 1.0.3-dev
+
+Stomp
+
+Stomp => enabled
+API version => 1.0.6-dev
+SSL Support => enabled
+
+Directive => Local Value => Master Value
+stomp.default_broker => tcp://localhost:61613 => tcp://localhost:61613
+stomp.default_connection_timeout_sec => 2 => 2
+stomp.default_connection_timeout_usec => 0 => 0
+stomp.default_password => no value => no value
+stomp.default_read_timeout_sec => 2 => 2
+stomp.default_read_timeout_usec => 0 => 0
+stomp.default_username => no value => no value
+
+svn
+
+svn support => enabled
+svn client version => 1.8.10
+svn extension version => 1.0.3-dev
+
+sybase_ct
+
+Sybase_CT Support => enabled
+Active Persistent Links => 0
+Active Links => 0
+Min server severity => 10
+Min client severity => 10
+Application Name => PHP 5.6.4
+Deadlock retry count => 0
+
+Directive => Local Value => Master Value
+sybct.allow_persistent => On => On
+sybct.deadlock_retry_count => 0 => 0
+sybct.hostname => no value => no value
+sybct.login_timeout => -1 => -1
+sybct.max_links => Unlimited => Unlimited
+sybct.max_persistent => Unlimited => Unlimited
+sybct.min_client_severity => 10 => 10
+sybct.min_server_severity => 10 => 10
+
+sync
+
+sync support => enabled
+
+tidy
+
+Tidy support => enabled
+libTidy Release => 25 March 2009
+Extension Version => 2.0 ($Id: 14aff36094bdd63f1d0adee006215e5e553294ea $)
+
+Directive => Local Value => Master Value
+tidy.clean_output => no value => no value
+tidy.default_config => no value => no value
+
+timezonedb
+
+Alternative Timezone Database => enabled
+Timezone Database Version => 2014.10
+
+tokenizer
+
+Tokenizer Support => enabled
+
+translit
+
+Transliteration support => enabled
+Version => 0.6.0
+
+uploadprogress
+
+uploadprogress support => enabled
+Version => 1.0.3.1
+
+Directive => Local Value => Master Value
+uploadprogress.file.contents_template => \/upload_contents_%s => \/upload_contents_%s
+uploadprogress.file.filename_template => \/upt_%s.txt => \/upt_%s.txt
+uploadprogress.get_contents => 0 => 0
+
+uprofiler
+
+uprofiler => enabled
+uprofiler => 0.11.0
+CPU num => 4
+process bound to CPU => 0
+CPU logical id =>  Clock Rate (MHz) 
+ CPU 0  => 1540
+ CPU 1  => 2463
+ CPU 2  => 2481
+ CPU 3  => 2498
+
+varnish
+
+varnish support => enabled
+Version => 1.2.0
+Revision => $Id: varnish.c 333458 2014-05-01 17:04:55Z ab $
+
+wddx
+
+WDDX Support => enabled
+WDDX Session Serializer => enabled
+
+wfio
+
+wfio support => enabled
+
+win32ps
+
+Win32 Process Status Support => enabled
+Extension Version => 1.0.2-dev
+
+win32service
+
+Win32 Service support => enabled
+Version => 0.1.1-dev
+
+XCache
+
+XCache Version => 3.2.0
+Modules Built => cacher optimizer coverager
+
+Directive => Local Value => Master Value
+xcache.coredump_directory => no value => no value
+xcache.coredump_type => 0 => 0
+xcache.disable_on_crash => Off => Off
+xcache.experimental => Off => Off
+xcache.test => Off => Off
+
+XCache Cacher
+
+XCache Cacher Module => enabled
+Readonly Protection => disabled
+Page Request Time => 2015-01-05 12:26:31
+Cache Init Time => 2015-01-05 12:26:31
+Cache Instance Id => 4708.3992
+Opcode Cache => disabled
+Variable Cache => enabled, 4,194,304 bytes, 1 split(s), with 8192 slots each
+Shared Memory Schemes => mmap
+
+Directive => Local Value => Master Value
+xcache.admin.enable_auth => On => On
+xcache.allocator => bestfit => bestfit
+xcache.cacher => On => On
+xcache.count => 1 => 1
+xcache.gc_interval => 0 => 0
+xcache.mmap_path => /temp => /temp
+xcache.readonly_protection => Off => Off
+xcache.shm_scheme => mmap => mmap
+xcache.size => 60M => 60M
+xcache.slots => 8K => 8K
+xcache.stat => On => On
+xcache.ttl => 0 => 0
+xcache.var_allocator => bestfit => bestfit
+xcache.var_count => 1 => 1
+xcache.var_gc_interval => 300 => 300
+xcache.var_maxttl => 0 => 0
+xcache.var_namespace => no value => no value
+xcache.var_namespace_mode => 0 => 0
+xcache.var_size => 4M => 4M
+xcache.var_slots => 8K => 8K
+xcache.var_ttl => 0 => 0
+
+XCache Coverager
+
+XCache Coverager Module => enabled
+Coverage Started => Off
+
+Directive => Local Value => Master Value
+xcache.coveragedump_directory => no value => no value
+xcache.coverager => Off => Off
+xcache.coverager_autostart => On => On
+
+XCache Optimizer
+
+XCache Optimizer Module => enabled
+
+Directive => Local Value => Master Value
+xcache.optimizer => Off => Off
+
+xdebug
+
+xdebug support => enabled
+Version => 2.2.6
+IDE Key =>  
+
+Supported protocols => Revision
+DBGp - Common DeBuGger Protocol => $Revision: 1.145 $
+
+Directive => Local Value => Master Value
+xdebug.auto_trace => Off => Off
+xdebug.cli_color => 0 => 0
+xdebug.collect_assignments => Off => Off
+xdebug.collect_includes => On => On
+xdebug.collect_params => 0 => 0
+xdebug.collect_return => Off => Off
+xdebug.collect_vars => Off => Off
+xdebug.coverage_enable => On => On
+xdebug.default_enable => On => On
+xdebug.dump.COOKIE => no value => no value
+xdebug.dump.ENV => no value => no value
+xdebug.dump.FILES => no value => no value
+xdebug.dump.GET => no value => no value
+xdebug.dump.POST => no value => no value
+xdebug.dump.REQUEST => no value => no value
+xdebug.dump.SERVER => no value => no value
+xdebug.dump.SESSION => no value => no value
+xdebug.dump_globals => On => On
+xdebug.dump_once => On => On
+xdebug.dump_undefined => Off => Off
+xdebug.extended_info => On => On
+xdebug.file_link_format => no value => no value
+xdebug.idekey => no value => no value
+xdebug.max_nesting_level => 100 => 100
+xdebug.overload_var_dump => On => On
+xdebug.profiler_aggregate => Off => Off
+xdebug.profiler_append => Off => Off
+xdebug.profiler_enable => Off => Off
+xdebug.profiler_enable_trigger => Off => Off
+xdebug.profiler_output_dir => \ => \
+xdebug.profiler_output_name => cachegrind.out.%p => cachegrind.out.%p
+xdebug.remote_autostart => Off => Off
+xdebug.remote_connect_back => Off => Off
+xdebug.remote_cookie_expire_time => 3600 => 3600
+xdebug.remote_enable => Off => Off
+xdebug.remote_handler => dbgp => dbgp
+xdebug.remote_host => localhost => localhost
+xdebug.remote_log => no value => no value
+xdebug.remote_mode => req => req
+xdebug.remote_port => 9000 => 9000
+xdebug.scream => Off => Off
+xdebug.show_exception_trace => Off => Off
+xdebug.show_local_vars => Off => Off
+xdebug.show_mem_delta => Off => Off
+xdebug.trace_enable_trigger => Off => Off
+xdebug.trace_format => 0 => 0
+xdebug.trace_options => 0 => 0
+xdebug.trace_output_dir => \ => \
+xdebug.trace_output_name => trace.%c => trace.%c
+xdebug.var_display_max_children => 128 => 128
+xdebug.var_display_max_data => 512 => 512
+xdebug.var_display_max_depth => 3 => 3
+
+xml
+
+XML Support => active
+XML Namespace Support => active
+libxml2 Version => 2.9.1
+
+xmldiff
+
+xmldiff support => enabled
+xmldiff version => 0.9.2
+diffmark library => 0.10 bundled
+Revision => $Id: xmldiff.cpp 332040 2013-11-01 06:30:12Z remi $
+
+xmlreader
+
+XMLReader => enabled
+
+xmlrpc
+
+core library version => xmlrpc-epi v. 0.51
+php extension version => 0.51
+author => Dan Libby
+homepage => http://xmlrpc-epi.sourceforge.net
+open sourced by => Epinions.com
+
+xmlwriter
+
+XMLWriter => enabled
+
+xsl
+
+XSL => enabled
+libxslt Version => 1.1.28
+libxslt compiled against libxml Version => 2.8.0
+EXSLT => enabled
+libexslt Version => 0.8.16
+
+xslcache
+
+XSLCACHE => enabled
+libxslt Version => 1.1.28
+libxslt compiled against libxml Version => 2.8.0
+EXSLT => enabled
+libexslt Version => 0.8.16
+
+Zend OPcache
+
+Opcode Caching => Up and Running
+Optimization => Enabled
+Startup => OK
+Shared memory model => win32
+Cache hits => 0
+Cache misses => 1
+Used memory => 450240
+Free memory => 133767488
+Wasted memory => 0
+Cached scripts => 1
+Cached keys => 2
+Max keys => 7963
+OOM restarts => 0
+Hash keys restarts => 0
+Manual restarts => 0
+
+Directive => Local Value => Master Value
+opcache.blacklist_filename => no value => no value
+opcache.consistency_checks => 0 => 0
+opcache.dups_fix => Off => Off
+opcache.enable => On => On
+opcache.enable_cli => On => On
+opcache.enable_file_override => Off => Off
+opcache.error_log => no value => no value
+opcache.fast_shutdown => 1 => 1
+opcache.file_update_protection => 2 => 2
+opcache.force_restart_timeout => 180 => 180
+opcache.inherited_hack => On => On
+opcache.interned_strings_buffer => 8 => 8
+opcache.load_comments => 1 => 1
+opcache.log_verbosity_level => 1 => 1
+opcache.max_accelerated_files => 4000 => 4000
+opcache.max_file_size => 0 => 0
+opcache.max_wasted_percentage => 5 => 5
+opcache.memory_consumption => 128 => 128
+opcache.mmap_base => no value => no value
+opcache.optimization_level => 0xFFFFFFFF => 0xFFFFFFFF
+opcache.preferred_memory_model => no value => no value
+opcache.protect_memory => 0 => 0
+opcache.restrict_api => no value => no value
+opcache.revalidate_freq => 60 => 60
+opcache.revalidate_path => Off => Off
+opcache.save_comments => 1 => 1
+opcache.use_cwd => On => On
+opcache.validate_timestamps => On => On
+
+zip
+
+Zip => enabled
+Extension Version => $Id: a9a55a8aeff3110d7c004145748c9adbf990eec3 $
+Zip version => 1.12.4
+Libzip version => 0.11.2
+
+zlib
+
+ZLib Support => enabled
+Stream Wrapper => compress.zlib://
+Stream Filter => zlib.inflate, zlib.deflate
+Compiled Version => 1.2.8
+Linked Version => 1.2.8
+
+Directive => Local Value => Master Value
+zlib.output_compression => Off => Off
+zlib.output_compression_level => -1 => -1
+zlib.output_handler => no value => no value
+
+Additional Modules
+
+Module Name
+
+Environment
+
+Variable => Value
+CommandPromptType => Cross
+ComSpec => C:\Windows\system32\cmd.exe
+Path => .
+Platform => x64
+SystemDrive => C:
+SystemRoot => C:\Windows
+
+PHP Variables
+
+Variable => Value
+_SERVER["CommandPromptType"] => Cross
+_SERVER["ComSpec"] => C:\Windows\system32\cmd.exe
+_SERVER["Path"] => .
+_SERVER["Platform"] => x64
+_SERVER["SystemDrive"] => C:
+_SERVER["SystemRoot"] => C:\Windows
+_SERVER["PHP_SELF"] => phpinfo.php
+_SERVER["SCRIPT_NAME"] => phpinfo.php
+_SERVER["SCRIPT_FILENAME"] => phpinfo.php
+_SERVER["PATH_TRANSLATED"] => phpinfo.php
+_SERVER["DOCUMENT_ROOT"] => 
+_SERVER["REQUEST_TIME_FLOAT"] => 1420457191.1935
+_SERVER["REQUEST_TIME"] => 1420457191
+_SERVER["argv"] => Array
+(
+    [0] => phpinfo.php
+)
+
+_SERVER["argc"] => 1
+
+PHP License
+This program is free software; you can redistribute it and/or modify
+it under the terms of the PHP License as published by the PHP Group
+and included in the distribution in the file:  LICENSE
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+If you did not receive a copy of the PHP license, or have any
+questions about PHP licensing, please contact license@php.net.

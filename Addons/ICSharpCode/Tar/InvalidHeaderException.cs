@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Tar
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Tar
 {
 	/// <summary>
 	/// This exception is used to indicate that there is a problem

@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.Horizon.RT.Models.DME
+namespace MultiServer.Addons.Horizon.RT.Models.DME
 {
     internal class TypeRequestServers
     {

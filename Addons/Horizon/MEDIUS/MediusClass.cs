@@ -1,98 +1,61 @@
-﻿using DotNetty.Common.Internal.Logging;
-using Newtonsoft.Json;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database;
-using PSMultiServer.Addons.Horizon.MEDIUS.Config;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
-using PSMultiServer.Addons.Horizon.Server.Plugins;
+﻿using Newtonsoft.Json;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database;
+using MultiServer.Addons.Horizon.MEDIUS.Config;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using PSMultiServer.Addons.Horizon.Server.libAntiCheat;
+using MultiServer.Addons.Horizon.LIBRARY.libAntiCheat;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS
+namespace MultiServer.Addons.Horizon.MEDIUS
 {
     public class MediusClass
     {
-        public static string CONFIG_FILE => Path.Combine("./static/MEDIUS", "medius.json");
-        public static string DB_CONFIG_FILE => Path.Combine("./static/MEDIUS", "db.config.json");
+        private static string CONFIG_FILE => Directory.GetCurrentDirectory() + $"/{ServerConfiguration.MEDIUSConfig}";
 
         public static RSA_KEY GlobalAuthPublic = null;
 
         public static ServerSettings Settings = new();
         public static DbController Database = null;
 
-        //public static Init libAntiCheat = new Init();
-
         public static IPAddress SERVER_IP;
         public static string IP_TYPE;
 
-        public static Medius.MediusManager Manager = new Medius.MediusManager();
+        public static Medius.MediusManager Manager = new();
         public static PluginsManager Plugins = null;
 
         public SECURITY_MODE eSecurityMode = SECURITY_MODE.MODE_UNKNOWN;
 
-        public static Medius.MAPS ProfileServer = new Medius.MAPS();
-        public static Medius.MMS MatchmakingServer = new Medius.MMS();
-        public static Medius.MAS AuthenticationServer = new Medius.MAS();
-        public static Medius.MLS LobbyServer = new Medius.MLS();
-        public static Medius.MPS ProxyServer = new Medius.MPS();
+        public static Medius.MAPS ProfileServer = new();
+        public static Medius.MMS MatchmakingServer = new();
+        public static Medius.MAS AuthenticationServer = new();
+        public static Medius.MLS LobbyServer = new();
+        public static Medius.MPS ProxyServer = new();
 
-        public static AntiCheat AntiCheatPlugin = new AntiCheat();
-        public static Server.libAntiCheat.Models.ClientObject AntiCheatClient = new Server.libAntiCheat.Models.ClientObject();
-
-        public static int TickMS => 1000 / (Settings?.TickRate ?? 10);
+        public static AntiCheat AntiCheatPlugin = new();
+        public static LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
 
         private static Dictionary<int, AppSettings> _appSettings = new Dictionary<int, AppSettings>();
-        private static AppSettings _defaultAppSettings = new AppSettings(0);
+        private static AppSettings _defaultAppSettings = new(0);
         private static ulong _sessionKeyCounter = 0;
-        private static int sleepMS = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
         private static DateTime? _lastSuccessfulDbAuth = null;
         private static DateTime _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
         private static DateTime _lastComponentLog = Utils.GetHighPrecisionUtcTime();
 
-        private static int _ticks = 0;
-        private static Stopwatch _sw = new Stopwatch();
-        private static Timer.HighResolutionTimer _timer;
-
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MediusClass>();
+        public static bool started = false;
 
         private static async Task TickAsync()
         {
             try
             {
-#if DEBUG || RELEASE
-                if (!_sw.IsRunning)
-                    _sw.Start();
-#endif
-
-#if DEBUG || RELEASE
-                ++_ticks;
-                if (_sw.Elapsed.TotalSeconds > 5f)
-                {
-                    // 
-                    _sw.Stop();
-                    float tps = _ticks / (float)_sw.Elapsed.TotalSeconds;
-                    float error = MathF.Abs(Settings.TickRate - tps) / Settings.TickRate;
-
-                    if (error > 0.1f)
-                        ServerConfiguration.LogError($"Average TickRate Per Second: {tps} is {error * 100}% off of target {Settings.TickRate}");
-                    //var dt = DateTime.UtcNow - Utils.GetHighPrecisionUtcTime();
-                    //if (Math.Abs(dt.TotalMilliseconds) > 50)
-                    //    ServerConfiguration.LogError($"System clock and local clock are out of sync! delta ms: {dt.TotalMilliseconds}");
-
-                    _sw.Restart();
-                    _ticks = 0;
-                }
-#endif
-
                 // Attempt to authenticate with the db middleware
                 // We do this every 24 hours to get a fresh new token
-                if ((_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24))
+                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
                     if (!await Database.Authenticate())
                     {
@@ -113,24 +76,21 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
 
                         #region Check Cache Server Simulated
                         if (Database._settings.SimulatedMode != true)
-                        {
                             ServerConfiguration.LogInfo("Connected to Cache Server");
-                        }
                         else
-                        {
                             ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
-                        }
                         #endregion
                     }
                 }
 
                 // Tick
-                await Task.WhenAll(
-                    AuthenticationServer.Tick(),
-                    LobbyServer.Tick(),
-                    ProxyServer.Tick(),
-                    ProfileServer.Tick(),
-                    MatchmakingServer.Tick());
+                Parallel.Invoke(
+                   async () => await AuthenticationServer.Tick(),
+                   async () => await LobbyServer.Tick(),
+                   async () => await ProxyServer.Tick(),
+                   async () => await ProfileServer.Tick(),
+                   async () => await MatchmakingServer.Tick()
+                );
 
                 // Tick manager
                 await Manager.Tick();
@@ -151,25 +111,36 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 // Reload config
                 if ((Utils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
                 {
-                    await RefreshConfig();
+                    RefreshConfig();
                     _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
                 }
             }
             catch (Exception ex)
             {
                 ServerConfiguration.LogError(ex);
-
-                await AuthenticationServer.Stop();
-                await LobbyServer.Stop();
-                await ProxyServer.Stop();
-                await ProfileServer.Stop();
-                await MatchmakingServer.Stop();
             }
+        }
+
+        private static async Task LoopServer()
+        {
+            // iterate
+            while (started)
+            {
+                // tick
+                await TickAsync();
+
+                await Task.Delay(100);
+            }
+
+            await AuthenticationServer.Stop();
+            await LobbyServer.Stop();
+            await ProxyServer.Stop();
+            await ProfileServer.Stop();
+            await MatchmakingServer.Stop();
         }
 
         private static async Task StartServerAsync()
         {
-            int waitMs = sleepMS;
             string AppIdArray = null; //string.Join(", ", Settings.ApplicationIds);
 
             ServerConfiguration.LogInfo("Initializing medius components...");
@@ -186,39 +157,23 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             ServerConfiguration.LogInfo($"* Process ID: {currentProcess.Id}");
 
             if (Database._settings.SimulatedMode == true)
-            {
                 ServerConfiguration.LogInfo("* Database Disabled Medius Stack");
-            }
             else
-            {
                 ServerConfiguration.LogInfo("* Database Enabled Medius Stack");
-            }
-
-            #region KeyMaster
-            //Use PublicKeyType
-            //ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
-
-            #endregion
 
             #region Remote Log Viewing
             if (Settings.RemoteLogViewPort == 0)
-            {
                 //* Remote log viewing setup failure with port %d.
                 ServerConfiguration.LogInfo("* Remote log viewing disabled.");
-            }
             else if (Settings.RemoteLogViewPort > 0)
-            {
                 ServerConfiguration.LogInfo($"* Remote log viewing enabled at port {Settings.RemoteLogViewPort}.");
-            }
             #endregion
 
             ServerConfiguration.LogInfo("**************************************************");
 
             #region Anti-Cheat Init (WIP)
             if (Settings.AntiCheatOn == true)
-            {
                 await AntiCheatPlugin.AntiCheatInit(LM_SEVERITY_LEVEL.LM_INFO, Settings.AntiCheatOn);
-            }
             #endregion
 
             #region MediusGetVersion
@@ -379,15 +334,11 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 ServerConfiguration.LogInfo("Using Game Specific Server Versions");
             }
 
-
             #region NAT
             //Get NATIp
             if (Settings.NATIp == null)
-            {
                 ServerConfiguration.LogError("[MEDIUS] - No NAT ip found! Errors can happen.");
-            }
             #endregion
-
 
             //* Diagnostic Profiling Enabled: %d Counts
 
@@ -513,7 +464,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
 
             #endregion
 
-            ServerConfiguration.LogInfo("Medius Stacks Initialized");
+            ServerConfiguration.LogInfo("Medius Initialized.");
+
             /*
             #region MFS
             if (!GetAppSettingsOrDefault(appId).EnableMediusFileServices == true)
@@ -528,75 +480,32 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             #endregion
             */
 
-            await Task.Run(async () =>
-            {
-                #region Timer
-                // start timer
-                _timer = new Timer.HighResolutionTimer();
-                _timer.SetPeriod(waitMs);
-                _timer.Start();
+            started = true;
 
-                // iterate
-                while (true)
-                {
-                    // handle tick rate change
-                    if (sleepMS != waitMs)
-                    {
-                        waitMs = sleepMS;
-                        _timer.Stop();
-                        _timer.SetPeriod(waitMs);
-                        _timer.Start();
-                    }
-
-                    // tick
-                    await TickAsync();
-
-                    // wait for next tick
-                    _timer.WaitForTrigger();
-                }
-
-                #endregion
-            });
+            _ = Task.Run(LoopServer);
         }
 
+        private static void setupdatabase()
+        {
+            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
+        }
 
         public static void MediusMain()
         {
-            Database = new DbController(DB_CONFIG_FILE);
-
-            _ = Initialize();
-
+            setupdatabase();
+            RefreshConfig();
             // Initialize plugins
-            Plugins = new PluginsManager(Settings.PluginsPath);
-
+            Plugins = new PluginsManager(Server.pluginspath);
             _ = StartServerAsync();
-
-            return;
-        }
-
-        private static async Task Initialize()
-        {
-            await RefreshConfig().ContinueWith(r =>
-            {
-                if (r.IsCompletedSuccessfully && r.IsCompleted)
-                {
-                    ServerConfiguration.LogInfo("Reloading Config File");
-                }
-                else
-                {
-                    ServerConfiguration.LogInfo($"ConfigManager Cannot Reload Configuration File {CONFIG_FILE}");
-                }
-            });
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static Task RefreshConfig()
+        private static void RefreshConfig()
         {
             var usePublicIp = Settings.UsePublicIp;
 
-            // 
             var serializerSettings = new JsonSerializerSettings()
             {
                 MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -605,7 +514,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             #region Check Config.json
             // Create Defaults if File doesn't exist
             if (!File.Exists(CONFIG_FILE))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
                 File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+            }
             else
                 // Populate existing object
                 JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
@@ -619,24 +531,17 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 Settings.NATIp = SERVER_IP.ToString();
 
             // Update default rsa key
-            Server.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
-
-            //
-            _ = RefreshAppSettings();
-
-            // Load tick time into sleep ms for main loop
-            sleepMS = TickMS;
-            return Task.CompletedTask;
         }
 
         private static async Task RefreshAppSettings()
         {
             try
             {
-                if (!await Database.AmIAuthenticated())
+                if (!Database.AmIAuthenticated())
                     return;
 
                 // get supported app ids
@@ -653,9 +558,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                         if (settings != null)
                         {
                             if (_appSettings.TryGetValue(appId, out var appSettings))
-                            {
                                 appSettings.SetSettings(settings);
-                            }
                             else
                             {
                                 appSettings = new AppSettings(appId);
@@ -713,9 +616,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
                 {
-                    SERVER_IP = IPAddress.Parse(Utils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(Misc.GetPublicIPAddress());
                     IP_TYPE = "Public";
-
                 }
                 else
                 {
@@ -724,8 +626,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
                 }
             }
             #endregion
-
-            return;
         }
 
         /// <summary>
@@ -819,7 +719,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS
 
             if (!Directory.Exists(path))
             {
-                Logger.Warn($"Path being created! {path} for appId {appId}");
+                ServerConfiguration.LogWarn($"Path being created! {path} for appId {appId}");
                 Directory.CreateDirectory(path);
             }
 

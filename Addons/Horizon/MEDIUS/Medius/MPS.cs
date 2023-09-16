@@ -1,25 +1,20 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Transport.Channels;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.MEDIUS.Config;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Attribute;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+﻿using DotNetty.Transport.Channels;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.MEDIUS.Config;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
+using MultiServer.Addons.Horizon.MEDIUS.PluginArgs;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Attribute;
 using System.Net;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 {
     public class MPS : BaseMediusComponent
     {
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<MPS>();
-
-        protected override IInternalLogger Logger => _logger;
         public override int TCPPort => MediusClass.Settings.MPSPort;
-
         public override int UDPPort => 00000;
 
         DateTime lastSend = Utils.GetHighPrecisionUtcTime();
@@ -36,9 +31,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         protected override Task OnConnected(IChannel clientChannel)
         {
             // Get ScertClient data
-            if (!clientChannel.HasAttribute(Server.Pipeline.Constants.SCERT_CLIENT))
-                clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (!clientChannel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = MediusClass.Settings.MPSKey;
             scertClient.CipherService.GenerateCipher(MediusClass.Settings.MPSKey);
 
@@ -52,7 +47,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             channel = clientChannel;
 
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.CipherService.EnableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
 
@@ -105,9 +100,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerConnect = new List<int>() { 10683, 10190, 10114, 10124, 10284, 10330, 10334, 10540, 10680 };
-                        List<int> pre108NoServerConnect = new List<int>() { 10782 };
-
+                        List<int> pre108ServerConnect = new List<int>() { 10683, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108NoServerConnect = new List<int>() { 10010, 10031, 10274 };
 
                         if (clientConnectTcp.AccessToken != null)
                         {
@@ -132,9 +126,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         #region 108 SERVER_CONNECT_COMPLETE
                         // Depending on game, complete connection or not.
                         if (scertClient.MediusVersion == 108 || !pre108NoServerConnect.Contains(scertClient.ApplicationID) && pre108ServerConnect.Contains(scertClient.ApplicationID))
-                        {
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                        }
                         #endregion
 
                         break;
@@ -171,12 +163,12 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {
                         data.State = ClientState.DISCONNECTED;
-                        _ = clientChannel.CloseAsync();
+                        await clientChannel.CloseAsync();
                         break;
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED RT MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED RT MESSAGE: {message}");
                         break;
                     }
             }
@@ -188,7 +180,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         {
             if (message == null)
                 return;
-
 
             switch (message)
             {
@@ -203,10 +194,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         dme.BeginSession();
                         MediusClass.Manager.AddDmeClient(dme);
 
-                        // 
                         data.ClientObject = dme;
 
-                        // 
                         data.ClientObject.OnConnected();
 
                         Queue(new RT_MSG_SERVER_APP()
@@ -262,15 +251,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                 // Send to plugins
                                 await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_CREATED, new OnPlayerGameArgs() { Player = rClient, Game = game });
-
                             }
-
-
-
                         }
                         else
                         {
-
                             if (!createGameWithAttrResponse.IsSuccess)
                             {
                                 rClient?.Queue(new MediusCreateGameResponse()
@@ -294,7 +278,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                 // Send to plugins
                                 await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_CREATED, new OnPlayerGameArgs() { Player = rClient, Game = game });
-
                             }
                         }
 
@@ -311,7 +294,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         var game = MediusClass.Manager.GetGameByGameId(gameId);
                         var rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
 
-
                         if (!joinGameResponse.IsSuccess)
                         {
                             rClient?.Queue(new MediusJoinGameResponse()
@@ -322,18 +304,15 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {
-
                             if (gameId != 0)
                             {
                                 #region P2P
                                 if (game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer &&
                                     game.netAddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
                                 {
-
                                     // Join game P2P
                                     await rClient?.JoinGameP2P(game);
 
-                                    // 
                                     rClient?.Queue(new MediusJoinGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
@@ -365,7 +344,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                     // Join game P2P
                                     await rClient?.JoinGameP2P(game);
 
-                                    // 
                                     rClient?.Queue(new MediusJoinGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
@@ -398,7 +376,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                     // Join game P2P
                                     await rClient?.JoinGameP2P(game);
 
-                                    // 
                                     rClient?.Queue(new MediusJoinGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
@@ -441,7 +418,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                     // Join game DME
                                     await rClient?.JoinGame(game, joinGameResponse.DmeClientIndex);
 
-                                    // 
                                     rClient?.Queue(new MediusJoinGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
@@ -470,7 +446,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                     // Join game DME
                                     await rClient?.JoinGame(game, joinGameResponse.DmeClientIndex);
 
-                                    // 
                                     rClient?.Queue(new MediusJoinGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
@@ -498,12 +473,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 /// For Legacy Medius v1.50 clients that DO NOT 
                                 /// send a ServerConnectNotificationConnect when creating a game
                                 if (data.ClientObject.MediusVersion < 109 && data.ClientObject.ApplicationId != 10394)
-                                {
                                     await game.OnMediusJoinGameResponse(rClient.SessionKey);
-                                }
                             }
-
-
 
                             /*
 
@@ -637,7 +608,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         dme.BeginSession();
                         MediusClass.Manager.AddDmeClient(dme);
 
-                        // 
                         data.ClientObject.OnConnected();
 
                         // validate name
@@ -692,14 +662,12 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 #region MediusServerCreateGameOnMeRequest   
                 case MediusServerCreateGameOnMeRequest serverCreateGameOnMeRequest:
                     {
-                        ;
                         // Create DME object
                         var dme = new DMEObject(serverCreateGameOnMeRequest);
 
                         dme.BeginSession();
                         MediusClass.Manager.AddDmeClient(dme);
 
-                        //
                         data.ClientObject.OnConnected();
 
                         // validate name
@@ -771,8 +739,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 /// </summary>
                 case MediusServerEndGameOnMeRequest serverEndGameOnMeRequest:
                     {
-
-
                         data.ClientObject.Queue(new MediusServerEndGameOnMeResponse()
                         {
                             MessageID = serverEndGameOnMeRequest.MessageID,
@@ -865,7 +831,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         //DmeServerGetConnectKeys
                         if (data.ClientObject.SessionKey == null)
                         {
-                            Logger.Warn($"MediusServerSessionEndRequestHandler: DmeServerGetConnectKeys error {data.ClientObject.SessionKey} is null");
+                            ServerConfiguration.LogWarn($"MediusServerSessionEndRequestHandler: DmeServerGetConnectKeys error {data.ClientObject.SessionKey} is null");
                             data?.ClientObject.Queue(new MediusServerSessionEndResponse()
                             {
                                 MessageID = sessionEndRequest.MessageID,
@@ -874,7 +840,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {
-
                             data?.ClientObject.KeepAliveUntilNextConnection();
 
                             //Success
@@ -892,7 +857,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                 default:
                     {
-                        Logger.Warn($"Unhandled Medius Message: {message}");
+                        ServerConfiguration.LogWarn($"Unhandled Medius Message: {message}");
                         break;
                     }
             }
@@ -905,7 +870,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 return _scertHandler.Group
                     .Select(x => _channelDatas[x.Id.AsLongText()]?.ClientObject)
                     .Where(x => x is DMEObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
-                    .MinByMedius(x => (x as DMEObject).CurrentWorlds) as DMEObject;
+                    .MinByAlt(x => (x as DMEObject).CurrentWorlds) as DMEObject;
             }
             catch (Exception e)
             {

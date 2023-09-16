@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     /// <summary>
     /// Report from every player of a game to the Medius Lobby Server, preferably every 30 seconds

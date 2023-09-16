@@ -1,4 +1,4 @@
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public static class CompressionFactory
     {
@@ -18,28 +18,18 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             CompressionBase result = null;
             if (method == CompressionMethod.Uncompressed)
-            {
                 result = new NoCompression();
-            }
             else if (method == CompressionMethod.ZLib)
             {
                 if ((flags & ArchiveFlags.Bar_Flag_LeanZLib) == ArchiveFlags.Bar_Flag_LeanZLib)
-                {
                     result = new LeanZLibCompression();
-                }
                 else
-                {
                     result = new ZLibCompression();
-                }
             }
             else if (method == CompressionMethod.EdgeZLib)
-            {
                 result = new EdgeZLibCompression_ICSharp();
-            }
             else if (method == CompressionMethod.Encrypted)
-            {
                 result = new NoCompression();
-            }
             return result;
         }
 
@@ -47,9 +37,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             CompressionBase compressionBase = Create(method, flags);
             if (compressionBase != null)
-            {
                 return compressionBase.Compress(inData);
-            }
             return null;
         }
 
@@ -57,9 +45,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             CompressionBase compressionBase = Create(method, flags);
             if (compressionBase != null)
-            {
                 return compressionBase.Decompress(inData);
-            }
             return null;
         }
 
@@ -67,13 +53,9 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             CompressionBase compressionBase = Create(method, flags);
             if (compressionBase == null)
-            {
                 return null;
-            }
             if (method == CompressionMethod.Encrypted)
-            {
                 return compressionBase.Decrypt(te);
-            }
             return compressionBase.Decompress(te.RawData);
         }
 
@@ -81,9 +63,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             CompressionBase compressionBase = Create(method, flags);
             if (compressionBase != null)
-            {
                 return compressionBase.Compress(te);
-            }
             return null;
         }
 

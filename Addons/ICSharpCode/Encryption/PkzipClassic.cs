@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
 using System.Security.Cryptography;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption
 {
 	/// <summary>
 	/// PkzipClassic embodies the classic or original encryption facilities used in Pkzip archives.

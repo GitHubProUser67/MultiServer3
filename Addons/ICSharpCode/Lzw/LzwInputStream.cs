@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Lzw
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Lzw
 {
 	/// <summary>
 	/// This filter stream is used to decompress a LZW format stream.

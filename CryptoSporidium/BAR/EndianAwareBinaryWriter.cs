@@ -1,4 +1,4 @@
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public abstract class EndianAwareBinaryWriter
     {
@@ -10,9 +10,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         public static EndianAwareBinaryWriter Create(Stream output, EndianType endian)
         {
             if (endian == EndianType.LittleEndian)
-            {
                 return new LEBinaryWriter(output);
-            }
             return new BEBinaryWriter(output);
         }
 

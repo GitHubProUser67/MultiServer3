@@ -1,19 +1,16 @@
-﻿using System.Text;
+﻿using System.Buffers.Binary;
+using System.Text;
 
-namespace PSMultiServer.CryptoSporidium
+namespace MultiServer.CryptoSporidium
 {
     public class EDGELZMA
     {
         public static byte[] Compress(byte[] data, bool TLZC)
         {
             if (TLZC)
-            {
                 return new EDGE().Compress(data, true);
-            }
             else
-            {
                 return new EDGE().Compress(data, false);
-            }
         }
 
         public static byte[] Decompress(byte[] data)
@@ -36,18 +33,31 @@ namespace PSMultiServer.CryptoSporidium
 
                 BinaryWriter bw = new BinaryWriter(result);
 
-                bw.Write(new byte[] { 0x54, 0x4C, 0x5A, 0x43 });
-                bw.Write((byte)0x01);
-                bw.Write((byte)0x04);
-                bw.Write((byte)0x00);
-                bw.Write((byte)0x00);
-                bw.Write(0);   // compressed size - we'll fill this in once we know it
-                bw.Write(buffer.Length);   // decompressed size
-                bw.Write(0);   // unknown, 0
-                bw.Write(0);   // unknown, 0
-                                    // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
-
-                var encoder = new SevenZip.Compression.LZMA.Encoder();
+                if (TLZC) // EdgeLZMA Version 4.
+                {
+                    bw.Write(new byte[] { 0x54, 0x4C, 0x5A, 0x43 });
+                    bw.Write((byte)0x01);
+                    bw.Write((byte)0x04);
+                    bw.Write((byte)0x00);
+                    bw.Write((byte)0x00);
+                    bw.Write(0);   // compressed size - we'll fill this in once we know it
+                    bw.Write(buffer.Length);   // decompressed size
+                    bw.Write(0);   // unknown, 0
+                    bw.Write(0);   // unknown, 0
+                }
+                else // EdgeLZMA Version 5.
+                {
+                    bw.Write(new byte[] { 0x73, 0x65, 0x67, 0x73 }); // Home Magic.
+                    bw.Write((byte)0x01);
+                    bw.Write((byte)0x05); // Home expect version 5.
+                    bw.Write(new byte[] { 0x00, 0x02 }); // Num of segments, we will set it later.
+                    bw.Write(0); // Decompressed size, we will set it later.
+                    bw.Write(0); // Unknown.
+                    bw.Write(0); // Unknown.
+                    bw.Write(0); // Unknown.
+                    // Compressed size in coder properties, aka , 12th byte.
+                }
+                var encoder = new SevenZip.Compression.LZMA.Encoder(); // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
                 var props = new Dictionary<SevenZip.CoderPropID, object>();
                 props[SevenZip.CoderPropID.DictionarySize] = 0x10000;
                 props[SevenZip.CoderPropID.MatchFinder] = "BT4";
@@ -74,6 +84,8 @@ namespace PSMultiServer.CryptoSporidium
 
                 List<int> streamSizes = new List<int>();
 
+                ushort segmentnumber = 0;
+
                 for (int i = 0; i < streamCount; i++)
                 {
                     long preLength = result.Length;
@@ -83,7 +95,7 @@ namespace PSMultiServer.CryptoSporidium
                     int streamSize = (int)(result.Length - preLength);
                     if (streamSize >= 0x10000)
                     {
-                        System.Diagnostics.Trace.WriteLine("Warning! stream did not compress at all. This will cause a different code path to be executed on the PS3 whose operation is assumed and not tested!");
+                        ServerConfiguration.LogDebug("[EdgeLzma] - Warning - Stream did not compress.");
                         result.Position = preLength;
                         result.SetLength(preLength);
                         result.Write(buffer, offset, Math.Min(inSize, 0x10000));
@@ -93,11 +105,27 @@ namespace PSMultiServer.CryptoSporidium
                     inSize -= 0x10000;
                     offset += 0x10000;
                     streamSizes.Add(streamSize);
+
+                    segmentnumber =+ 1;
                 }
 
-                // fill in compressed size
-                result.Position = 8;
-                bw.Write((int)result.Length);
+                if (TLZC) // EdgeLZMA Version 4.
+                {
+                    // fill in compressed size
+                    result.Position = 8;
+                    bw.Write((int)result.Length); // Endian swap handled internally.
+                }
+                else // EdgeLZMA Version 5.
+                {
+                    result.Position = 6;
+                    bw.Write(endianSwap(BitConverter.GetBytes(segmentnumber)));
+
+                    result.Position = 8;
+                    bw.Write(BinaryPrimitives.ReverseEndianness(buffer.Length));
+
+                    result.Position = 12;
+                    bw.Write(BinaryPrimitives.ReverseEndianness((int)result.Length));
+                }
 
                 byte[] temp = result.ToArray();
 
@@ -108,53 +136,55 @@ namespace PSMultiServer.CryptoSporidium
                     temp[6 + 0x18 + i * 2] = (byte)(streamSizes[i] >> 8);
                 }
 
-                if (!TLZC) // Yeah, a bit ... mhee ... but it works for now ^^.
-                {
-                    byte[] dst = new byte[temp.Length - 4];
-
-                    Array.Copy(temp, 4, dst, 0, dst.Length);
-
-                    return dst;
-                }
-                else
-                {
-                    return temp;
-
-                }
+                return temp;
             }
 
             public byte[] Decompress(byte[] inbuffer)
             {
-                byte[] buffer;
+                bool TLZC = false;
 
-                if (inbuffer[0] != 'T' && inbuffer[1] != 'L' && inbuffer[2] != 'Z' && inbuffer[3] != 'C')
-                {
-                    buffer = Misc.Combinebytearay(Encoding.UTF8.GetBytes("TLZC"), inbuffer);
-                }
-                else
-                    buffer = inbuffer;
+                if (inbuffer[0] == 'T' && inbuffer[1] == 'L' && inbuffer[2] == 'Z' && inbuffer[3] == 'C')
+                    TLZC = true;
 
                 MemoryStream result = new MemoryStream();
-                int outSize = BitConverter.ToInt32(buffer, 12);
+                int outSize = 0;
+
+                if (TLZC)
+                    outSize = BitConverter.ToInt32(inbuffer, 12);
+                else
+                    outSize = BinaryPrimitives.ReverseEndianness(BitConverter.ToInt32(inbuffer, 8));
+
                 int streamCount = (outSize + 0xffff) >> 16;
                 int offset = 0x18 + streamCount * 2 + 5;
 
                 var decoder = new SevenZip.Compression.LZMA.Decoder();
-                decoder.SetDecoderProperties(new MemoryStream(buffer, 0x18, 5).ToArray());
+                decoder.SetDecoderProperties(new MemoryStream(inbuffer, 0x18, 5).ToArray());
 
                 for (int i = 0; i < streamCount; i++)
                 {
-                    int streamSize = (buffer[5 + 0x18 + i * 2]) + (buffer[6 + 0x18 + i * 2] << 8);
+                    int streamSize = inbuffer[5 + 0x18 + i * 2] + (inbuffer[6 + 0x18 + i * 2] << 8);
                     if (streamSize != 0)
-                        decoder.Code(new MemoryStream(buffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
+                        decoder.Code(new MemoryStream(inbuffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
                     else
-                        result.Write(buffer, offset, streamSize = Math.Min(outSize, 0x10000));
+                        result.Write(inbuffer, offset, streamSize = Math.Min(outSize, 0x10000));
                     outSize -= 0x10000;
                     offset += streamSize;
                 }
 
                 return result.ToArray();
+            }
 
+            public static byte[] endianSwap(byte[] input)
+            {
+                int length = input.Length;
+                byte[] swapped = new byte[length];
+
+                for (int i = 0; i < length; i++)
+                {
+                    swapped[i] = input[length - i - 1];
+                }
+
+                return swapped;
             }
         }
     }

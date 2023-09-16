@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Tar
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Tar
 {
 	/// <summary>
 	/// The TarOutputStream writes a UNIX tar archive as an OutputStream.

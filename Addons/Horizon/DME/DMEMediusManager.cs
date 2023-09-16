@@ -1,23 +1,20 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Transport.Bootstrapping;
+﻿using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Tcp;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.DME.Models;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Attribute;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Attribute;
 
-namespace PSMultiServer.Addons.Horizon.DME
+namespace MultiServer.Addons.Horizon.DME
 {
     public class DMEMediusManager
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<DMEMediusManager>();
-
         public bool IsConnected => _mpsChannel != null && _mpsChannel.IsActive && _mpsState > 0;
         public DateTime? TimeLostConnection { get; set; } = null;
         public int ApplicationId { get; } = 0;
@@ -99,7 +96,6 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         #endregion
 
-
         #region MPS Client
 
         public async Task Start()
@@ -131,7 +127,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
                 // Log if id is set
                 if (message.CanLog())
-                    Logger.Debug($"MPS {channel}: {message}");
+                    ServerConfiguration.LogDebug($"MPS {channel}: {message}");
             };
 
             _bootstrap = new Bootstrap();
@@ -160,7 +156,6 @@ namespace PSMultiServer.Addons.Horizon.DME
             await _mpsChannel.DisconnectAsync();
             await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
 
-            // 
             _worlds.Clear();
             _removeWorldQueue.Clear();
             _mpsRecvQueue.Clear();
@@ -168,41 +163,42 @@ namespace PSMultiServer.Addons.Horizon.DME
             _mpsState = MPSConnectionState.NO_CONNECTION;
         }
 
-        public async Task HandleIncomingMessages()
+        public async Task<bool> HandleIncomingMessages()
         {
             if (_mpsChannel == null)
-                return;
+                return false;
 
-            //
             if (_mpsState == MPSConnectionState.FAILED ||
                 (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
-                throw new Exception("Failed to authenticate with the MPS server.");
-
-            await DmeClass.TimeAsync("mm incoming", async () =>
             {
-                try
-                {
-                    // Process all messages in queue
-                    while (_mpsRecvQueue.TryDequeue(out var message))
-                    {
-                        try
-                        {
-                            await ProcessMessage(message, _mpsChannel);
-                        }
-                        catch (Exception e)
-                        {
-                            ServerConfiguration.LogError(e);
-                        }
-                    }
+                ServerConfiguration.LogError("[DME Medius Manager] - HandleIncomingMessages() - Failed to authenticate with the MPS server, aborting listener...");
+                return false;
+            }
 
-                    // Handle incoming for each world
-                    await Task.WhenAll(_worlds.Select(x => x.HandleIncomingMessages()));
-                }
-                catch (Exception e)
+            try
+            {
+                // Process all messages in queue
+                while (_mpsRecvQueue.TryDequeue(out var message))
                 {
-                    ServerConfiguration.LogError(e);
+                    try
+                    {
+                        await ProcessMessage(message, _mpsChannel);
+                    }
+                    catch (Exception e)
+                    {
+                        ServerConfiguration.LogError(e);
+                    }
                 }
-            });
+
+                // Handle incoming for each world
+                await Task.WhenAll(_worlds.Select(x => x.HandleIncomingMessages()));
+            }
+            catch (Exception e)
+            {
+                ServerConfiguration.LogError(e);
+            }
+
+            return true;
         }
 
         public async Task HandleOutgoingMessages()
@@ -210,10 +206,8 @@ namespace PSMultiServer.Addons.Horizon.DME
             if (_mpsChannel == null)
                 return;
 
-            // 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
 
-            //
             if (_mpsState == MPSConnectionState.FAILED ||
                 (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
                 throw new Exception("Failed to authenticate with the MPS server.");
@@ -234,7 +228,6 @@ namespace PSMultiServer.Addons.Horizon.DME
                     while (_mpsSendQueue.TryDequeue(out var message))
                         responses.Add(message);
 
-                    //
                     if (responses.Count > 0)
                         await _mpsChannel.WriteAndFlushAsync(responses);
                 }
@@ -267,14 +260,12 @@ namespace PSMultiServer.Addons.Horizon.DME
 
             _mpsState = MPSConnectionState.CONNECTED;
 
-            // 
-            if (!_mpsChannel.HasAttribute(Server.Pipeline.Constants.SCERT_CLIENT))
-                _mpsChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = _mpsChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (!_mpsChannel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                _mpsChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = _mpsChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
             scertClient.CipherService.GenerateCipher(scertClient.RsaAuthKey);
 
-            //
             var clientHello = new RT_MSG_CLIENT_HELLO()
             {
                 Parameters = new ushort[]
@@ -296,9 +287,8 @@ namespace PSMultiServer.Addons.Horizon.DME
         private async Task ProcessMessage(BaseScertMessage message, IChannel serverChannel)
         {
             // Get ScertClient data
-            var scertClient = serverChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = serverChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
-            // 
             switch (message)
             {
                 // Authentication
@@ -356,7 +346,6 @@ namespace PSMultiServer.Addons.Horizon.DME
                         break;
                     }
 
-                // 
                 case RT_MSG_SERVER_ECHO serverEcho:
                     {
                         Enqueue(serverEcho);
@@ -382,7 +371,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED MESSAGE: {message}");
 
                         break;
                     }
@@ -428,7 +417,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                         }
                         catch (Exception e)
                         {
-                            Logger.Warn($"error at {e}");
+                            ServerConfiguration.LogWarn($"error at {e}");
                         };
 
                         break;
@@ -478,12 +467,14 @@ namespace PSMultiServer.Addons.Horizon.DME
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED MESSAGE: {message}");
 
                         break;
                     }
             }
         }
+
+        #endregion
 
         #region Queue
 
@@ -505,9 +496,6 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         #endregion
 
-
-        #endregion
-
         #region World Manager
 
         public void RemoveWorld(World world)
@@ -517,6 +505,5 @@ namespace PSMultiServer.Addons.Horizon.DME
         }
 
         #endregion
-
     }
 }

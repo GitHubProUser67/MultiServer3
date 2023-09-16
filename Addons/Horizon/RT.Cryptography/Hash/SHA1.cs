@@ -1,6 +1,6 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
+﻿using MultiServer.Addons.Org.BouncyCastle.Crypto.Digests;
 
-namespace PSMultiServer.Addons.Horizon.RT.Cryptography.Hash
+namespace MultiServer.Addons.Horizon.RT.Cryptography.Hash
 {
     public static class SHA1
     {

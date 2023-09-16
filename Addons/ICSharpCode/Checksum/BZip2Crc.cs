@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
 {
 	/// <summary>
 	/// CRC-32 with unreversed data and reversed output

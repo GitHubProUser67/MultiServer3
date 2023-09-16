@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Core
 {
 	/// <summary>
 	/// InvalidNameException is thrown for invalid names such as directory traversal paths and names with invalid characters

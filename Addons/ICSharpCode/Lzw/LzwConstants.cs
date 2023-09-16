@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Lzw
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Lzw
 {
 	/// <summary>
 	/// This class contains constants used for LZW

@@ -1,18 +1,15 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database.Models;
+using MultiServer.Addons.Horizon.MEDIUS.PluginArgs;
 using System.Data;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 {
     public class Party
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<Game>();
-
         public static int IdCounter = 1;
 
         public class PartyClient
@@ -87,23 +84,23 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
                 AppId = ApplicationId,
                 PartyCreateDt = utcTimeCreated,
                 PartyEndDt = utcTimeEnded,
-                PartyStartDt = this.utcTimeStarted,
-                GameHostType = this.PartyHostType.ToString(),
+                PartyStartDt = utcTimeStarted,
+                GameHostType = PartyHostType.ToString(),
                 PartyId = Id,
                 PartyName = PartyName,
                 PartyPassword = PartyPassword,
-                GenericField1 = this.GenericField1,
-                GenericField2 = this.GenericField2,
-                GenericField3 = this.GenericField3,
-                GenericField4 = this.GenericField4,
-                GenericField5 = this.GenericField5,
-                GenericField6 = this.GenericField6,
-                GenericField7 = this.GenericField7,
-                GenericField8 = this.GenericField8,
-                MaxPlayers = this.MaxPlayers,
-                MinPlayers = this.MinPlayers,
-                Metadata = this.Metadata,
-                Destroyed = this.destroyed
+                GenericField1 = GenericField1,
+                GenericField2 = GenericField2,
+                GenericField3 = GenericField3,
+                GenericField4 = GenericField4,
+                GenericField5 = GenericField5,
+                GenericField6 = GenericField6,
+                GenericField7 = GenericField7,
+                GenericField8 = GenericField8,
+                MaxPlayers = MaxPlayers,
+                MinPlayers = MinPlayers,
+                Metadata = Metadata,
+                Destroyed = destroyed
             };
         }
 
@@ -131,7 +128,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             return string.Join(",", Clients?.Select(x => x.Client.AccountId.ToString()).Where(x => x != null));
         }
 
-        public virtual async Task Tick()
+        public virtual Task Tick()
         {
             // Remove timedout clients
             for (int i = 0; i < Clients.Count; ++i)
@@ -147,9 +144,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
             // Auto close when everyone leaves or if host fails to connect after timeout time
             if (!utcTimeEmpty.HasValue && Clients.Count(x => x.InGame) == 0 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
-            {
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
-            }
+
+            return Task.CompletedTask;
         }
 
         public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification notification)
@@ -173,12 +170,14 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             }
         }
 
-        protected virtual async Task OnPlayerJoined(PartyClient player)
+        protected virtual Task OnPlayerJoined(PartyClient player)
         {
             player.InGame = true;
 
             if (player.Client == Host)
                 hasHostJoined = true;
+
+            return Task.CompletedTask;
         }
 
         public virtual void AddPlayer(ClientObject client)

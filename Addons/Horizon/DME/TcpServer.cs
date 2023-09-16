@@ -1,27 +1,24 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Handlers.Logging;
+﻿using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Tcp;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.DME.Models;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using DotNetty.Handlers.Timeout;
-using PSMultiServer.Addons.Horizon.DME.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+using MultiServer.Addons.Horizon.DME.PluginArgs;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.DME
+namespace MultiServer.Addons.Horizon.DME
 {
     public class TcpServer
     {
         public static Random RNG = new Random();
-
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<TcpServer>();
 
         public bool IsRunning => _boundChannel != null && _boundChannel.IsActive;
 
@@ -60,7 +57,6 @@ namespace PSMultiServer.Addons.Horizon.DME
         /// </summary>
         public virtual async void Start()
         {
-            //
             _bossGroup = new MultithreadEventLoopGroup(1);
             _workerGroup = new MultithreadEventLoopGroup();
             _scertHandler = new ScertServerHandler();
@@ -115,7 +111,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
                 // Log if id is set
                 if (message.CanLog())
-                    Logger.Debug($"TCP {data?.ClientObject},{channel}: {message}");
+                    ServerConfiguration.LogDebug($"TCP {data?.ClientObject},{channel}: {message}");
             };
 
             var bootstrap = new ServerBootstrap();
@@ -165,7 +161,7 @@ namespace PSMultiServer.Addons.Horizon.DME
             if (_scertHandler == null || _scertHandler.Group == null)
                 return;
 
-            await DmeClass.TimeAsync("tcp incoming", () => Task.WhenAll(_scertHandler.Group.Select(c => HandleIncomingMessages(c))));
+            await Task.WhenAll(_scertHandler.Group.Select(c => HandleIncomingMessages(c)));
         }
 
         /// <summary>
@@ -186,7 +182,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
                 // Remove
                 _channelDatas.TryRemove(channel.Id.AsLongText(), out var d);
-                Logger.Warn($"REMOVING CHANNEL {channel},{d},{d?.ClientObject}");
+                ServerConfiguration.LogWarn($"REMOVING CHANNEL {channel},{d},{d?.ClientObject}");
 
                 // close after 5 seconds
                 _ = Task.Run(async () =>
@@ -206,12 +202,10 @@ namespace PSMultiServer.Addons.Horizon.DME
             if (clientChannel == null)
                 return;
 
-            // 
             string key = clientChannel.Id.AsLongText();
 
             try
             {
-                // 
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
                     // Process all messages in queue
@@ -241,13 +235,11 @@ namespace PSMultiServer.Addons.Horizon.DME
             if (clientChannel == null)
                 return;
 
-            // 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
             string key = clientChannel.Id.AsLongText();
 
             try
             {
-                // 
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
                     // Destroy
@@ -291,7 +283,6 @@ namespace PSMultiServer.Addons.Horizon.DME
                                         responses.Add(message);
                         }
 
-                        //
                         if (responses.Count > 0)
                             _ = clientChannel.WriteAndFlushAsync(responses);
                     }
@@ -308,11 +299,10 @@ namespace PSMultiServer.Addons.Horizon.DME
         protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
-            // 
             switch (message)
             {
                 case RT_MSG_CLIENT_HELLO clientHello:
@@ -368,15 +358,10 @@ namespace PSMultiServer.Addons.Horizon.DME
                         // start udp server
                         data.ClientObject.BeginUdp();
 
-
                         if (scertClient.IsPS3Client)
-                        {
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = 584, MaxUdpPacketSize = 584 }, clientChannel);
-                        }
                         else if (scertClient.MediusVersion > 108)
-                        {
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = 584, MaxUdpPacketSize = 584 }, clientChannel);
-                        }
                         else
                         {
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
@@ -401,9 +386,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcp.AccessToken);
 
                         if (!scertClient.IsPS3Client && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION))
-                        {
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        }
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = (ushort)data.ClientObject.DmeId,
@@ -460,12 +443,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                         }, clientChannel);
 
                         //MSPR doesn't need this packet sent
-                        if (scertClient.MediusVersion > 108
-                            && data.ApplicationId == 24000
-                            && data.ApplicationId == 20095
-                            && data.ApplicationId != 20364
-                            && data.ApplicationId != 20764
-                            && data.ApplicationId != 21624)
+                        if (scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 20095))
                         {
                             Queue(new RT_MSG_SERVER_APP()
                             {
@@ -573,7 +551,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED RT MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED RT MESSAGE: {message}");
 
                         break;
                     }
@@ -623,8 +601,6 @@ namespace PSMultiServer.Addons.Horizon.DME
                         */
                         break;
                     }
-
-
             }
 
             return Task.CompletedTask;
@@ -637,9 +613,7 @@ namespace PSMultiServer.Addons.Horizon.DME
             bool isTokenValid = rt_token_is_valid(clientTokenMsg.targetToken);
 
             if (!isTokenValid)
-            {
                 ServerConfiguration.LogInfo($"rt_msg_server_process_client_token_msg: bad target token {clientTokenMsg.targetToken}");
-            }
             else
             {
                 switch (clientTokenMsg.RT_TOKEN_MESSAGE_TYPE)
@@ -670,7 +644,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
                     default:
                         {
-                            Logger.Warn($"UNHANDLED RT TOKEN MESSAGE: {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}");
+                            ServerConfiguration.LogWarn($"UNHANDLED RT TOKEN MESSAGE: {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}");
                             break;
                         }
                 }
@@ -702,10 +676,6 @@ namespace PSMultiServer.Addons.Horizon.DME
             catch
             {
                 // Silence exception since the client probably just closed the socket before we could write to it
-            }
-            finally
-            {
-
             }
         }
 
@@ -744,7 +714,6 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         #region Plugins
 
-
         protected async Task<bool> PassMessageToPlugins(IChannel clientChannel, ChannelData data, BaseScertMessage message, bool isIncoming)
         {
             var onMsg = new OnMessageArgs(isIncoming)
@@ -758,8 +727,6 @@ namespace PSMultiServer.Addons.Horizon.DME
             await DmeClass.Plugins.OnMessageEvent(message.Id, onMsg);
             if (onMsg.Ignore)
                 return true;
-
-
 
             // Send medius message to plugins
             if (message is RT_MSG_CLIENT_APP_TOSERVER clientApp)
@@ -826,9 +793,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                 */
             }
             else
-            {
-                Logger.Warn("((RT_TOKEN_CLIENT_QUERY == MsgType) || (RT_TOKEN_CLIENT_REQUEST == MsgType) || (RT_TOKEN_CLIENT_RELEASE == MsgType) || (RT_TOKEN_SERVER_OWNED == MsgType) || (RT_TOKEN_SERVER_GRANTED == MsgType) || (RT_TOKEN_SERVER_RELEASED == MsgType) || (RT_TOKEN_SERVER_FREED == MsgType))");
-            }
+                ServerConfiguration.LogWarn("((RT_TOKEN_CLIENT_QUERY == MsgType) || (RT_TOKEN_CLIENT_REQUEST == MsgType) || (RT_TOKEN_CLIENT_RELEASE == MsgType) || (RT_TOKEN_SERVER_OWNED == MsgType) || (RT_TOKEN_SERVER_GRANTED == MsgType) || (RT_TOKEN_SERVER_RELEASED == MsgType) || (RT_TOKEN_SERVER_FREED == MsgType))");
         }
     }
 }

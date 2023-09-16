@@ -1,9 +1,9 @@
-﻿using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
+﻿using MultiServer.Addons.Org.BouncyCastle.Crypto.Generators;
+using MultiServer.Addons.Org.BouncyCastle.Crypto.Parameters;
+using MultiServer.Addons.Org.BouncyCastle.Math;
+using MultiServer.Addons.Org.BouncyCastle.Security;
 
-namespace PSMultiServer.Addons.Horizon.RT.Cryptography
+namespace MultiServer.Addons.Horizon.RT.Cryptography
 {
     public class PS3CipherFactory : ICipherFactory
     {

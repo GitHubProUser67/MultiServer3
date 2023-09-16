@@ -8,7 +8,7 @@ namespace SevenZip.Buffer
 		uint m_Pos;
 		uint m_Limit;
 		uint m_BufferSize;
-		System.IO.Stream m_Stream;
+		Stream m_Stream;
 		bool m_StreamWasExhausted;
 		ulong m_ProcessedSize;
 
@@ -18,7 +18,7 @@ namespace SevenZip.Buffer
 			m_BufferSize = bufferSize;
 		}
 
-		public void Init(System.IO.Stream stream)
+		public void Init(Stream stream)
 		{
 			m_Stream = stream;
 			m_ProcessedSize = 0;

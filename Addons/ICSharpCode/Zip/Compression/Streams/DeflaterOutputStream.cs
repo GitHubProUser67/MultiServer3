@@ -1,8 +1,8 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams
 {
 	/// <summary>
 	/// A special stream deflating or compressing the bytes that are

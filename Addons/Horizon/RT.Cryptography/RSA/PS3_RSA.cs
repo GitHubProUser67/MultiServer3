@@ -1,6 +1,6 @@
-﻿using Org.BouncyCastle.Math;
+﻿using MultiServer.Addons.Org.BouncyCastle.Math;
 
-namespace PSMultiServer.Addons.Horizon.RT.Cryptography.RSA
+namespace MultiServer.Addons.Horizon.RT.Cryptography.RSA
 {
     public class PS3_RSA : PS2_RSA
     {

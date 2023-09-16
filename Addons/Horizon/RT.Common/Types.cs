@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.RT.Common
+﻿namespace MultiServer.Addons.Horizon.RT.Common
 {
     #region RT_MSG
     public enum RT_MSG_TYPE : byte

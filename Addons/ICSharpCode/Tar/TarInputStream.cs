@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Text;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Tar
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Tar
 {
 	/// <summary>
 	/// The TarInputStream reads a UNIX tar archive as an InputStream.

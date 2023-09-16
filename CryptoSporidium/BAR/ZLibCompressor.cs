@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ComponentAce.Compression.Libs.zlib;
+using MultiServer.Addons.ComponentAce.Compression.Libs.zlib;
 
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     internal static class ZLibCompressor
     {

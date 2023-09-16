@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// WindowsNameTransform transforms <see cref="ZipFile"/> names to windows compatible ones.

@@ -1,8 +1,8 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 using System.Text;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     /// <summary>
     /// Makes a PostRequest to the Medius Lobby Server on Connect sending the SCE_NPID_MAXLEN data blob

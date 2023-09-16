@@ -1,17 +1,14 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.DME.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.DME.PluginArgs;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.DME.Models
+namespace MultiServer.Addons.Horizon.DME.Models
 {
     public class World : IDisposable
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<World>();
-
         public const int MAX_WORLDS = 256;
         public const int MAX_CLIENTS_PER_WORLD = 256; //Max number of Clients per Game Session
 
@@ -84,6 +81,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
         public bool ForceDestruct { get; protected set; } = false;
 
         public bool Destroy => ((WorldTimer.Elapsed.TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) || SelfDestructFlag) && Clients.Count == 0;
+
         public bool Destroyed { get; protected set; } = false;
 
         public Stopwatch WorldTimer { get; protected set; } = Stopwatch.StartNew();
@@ -274,8 +272,6 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
 
         #region Message Handlers
 
-
-
         public void OnEndGameRequest(MediusServerEndGameRequest request)
         {
             SelfDestructFlag = true;
@@ -333,7 +329,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
                 if (player.DmeId == SessionMaster)
                 {
                     SessionMaster++;
-                    Logger.Warn($"Session master migrated to client {SessionMaster}");
+                    ServerConfiguration.LogWarn($"Session master migrated to client {SessionMaster}");
                 }
             }
 
@@ -359,7 +355,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
                 ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_DISCONNECT
             });
         }
-
+#pragma warning disable
         public async Task<MediusServerJoinGameResponse> OnJoinGameRequest(MediusServerJoinGameRequest request)
         {
             ClientObject newClient;
@@ -381,7 +377,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
             // If world is full then fail
             if (Clients.Count >= MAX_CLIENTS_PER_WORLD)
             {
-                Logger.Warn($"Player attempted to join world {this} but there is no room!");
+                ServerConfiguration.LogWarn($"Player attempted to join world {this} but there is no room!");
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -407,7 +403,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
             }
             else
             {
-                Logger.Warn($"Player attempted to join world {this} but unable to add player!");
+                ServerConfiguration.LogWarn($"Player attempted to join world {this} but unable to add player!");
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -426,13 +422,7 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
                 Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
             };
         }
-
+#pragma warning restore
         #endregion
-
-        public override string ToString()
-        {
-            return $"WorldId: {WorldId}, ClientCount: {Clients.Count}";
-        }
-
     }
 }

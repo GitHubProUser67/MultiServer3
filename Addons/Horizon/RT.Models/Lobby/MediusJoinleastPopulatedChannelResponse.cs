@@ -1,7 +1,7 @@
-﻿using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models.Lobby
+namespace MultiServer.Addons.Horizon.RT.Models.Lobby
 {
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.JoinLeastPopulatedChannelResponse)]
     public class MediusJoinLeastPopulatedChannelResponse : BaseLobbyMessage, IMediusResponse

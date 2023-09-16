@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Tar
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Tar
 {
 	internal static class TarStringExtension
 	{

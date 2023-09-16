@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// ZipNameTransform transforms names as per the Zip file naming convention.
@@ -184,19 +184,13 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		{
 			bool result = (name != null);
 
-			if (result)
+			if (result && name != null) // Net 6.0 and up requires this EVEN STILL.
 			{
 				if (relaxed)
-				{
-					result = name.IndexOfAny(InvalidEntryCharsRelaxed) < 0;
-				}
-				else
-				{
-					result =
-						(name.IndexOfAny(InvalidEntryChars) < 0) &&
-						(name.IndexOf('/') != 0);
-				}
-			}
+                    result = name.IndexOfAny(InvalidEntryCharsRelaxed) < 0;
+                else
+                    result = (name.IndexOfAny(InvalidEntryChars) < 0) && (name.IndexOf('/') != 0);
+            }
 
 			return result;
 		}
@@ -262,14 +256,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			if (name.Length > 0)
 			{
 				if (!name.EndsWith("/", StringComparison.Ordinal))
-				{
 					name += "/";
-				}
 			}
 			else
-			{
 				throw new ZipException("Cannot have an empty directory name");
-			}
 
 			return name;
 		}
@@ -301,9 +291,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 				}
 			}
 			else
-			{
 				name = string.Empty;
-			}
 
 			return name;
 		}

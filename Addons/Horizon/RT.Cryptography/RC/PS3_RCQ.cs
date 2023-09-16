@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.RT.Cryptography.RC
+﻿namespace MultiServer.Addons.Horizon.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
     {

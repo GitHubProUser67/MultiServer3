@@ -1,17 +1,13 @@
-using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.Server.Common.Logging;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     public abstract class BaseScertMessage
     {
         public const int HEADER_SIZE = 3;
         public const int HASH_SIZE = 4;
-
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<BaseScertMessage>();
 
         /// <summary>
         /// Message id.

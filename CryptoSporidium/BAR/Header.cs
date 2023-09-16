@@ -1,4 +1,4 @@
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public class Header
     {
@@ -26,6 +26,18 @@ namespace PSMultiServer.CryptoSporidium.BAR
             }
         }
 
+        public byte[] IV
+        {
+            get
+            {
+                return m_iv;
+            }
+            set
+            {
+                m_iv = value;
+            }
+        }
+
         public int Priority
         {
             get
@@ -38,7 +50,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
             }
         }
 
-        public int Id
+        public int UserData
         {
             get
             {
@@ -62,6 +74,18 @@ namespace PSMultiServer.CryptoSporidium.BAR
             }
         }
 
+        public byte[] Key
+        {
+            get
+            {
+                return m_key;
+            }
+            set
+            {
+                m_key = value;
+            }
+        }
+
         public ArchiveFlags Flags
         {
             get
@@ -78,7 +102,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         {
             m_magic = 2918127585U;
             m_version = 256;
-            m_id = (int)DateTime.Now.ToFileTime();
+            UserData = (int)DateTime.Now.ToFileTime();
             m_priority = 0;
             m_numFiles = 0U;
         }
@@ -87,17 +111,21 @@ namespace PSMultiServer.CryptoSporidium.BAR
 
         public const uint LITTLE_MAGIC = 3776442285U;
 
-        public const ushort AFS_VERSION = 256;
+        public const ushort AFS_VERSION = 256; // BAR Version 1 with ZTOC
 
         private uint m_magic;
 
         private ushort m_version;
+
+        private byte[] m_iv;
 
         private int m_priority;
 
         private int m_id;
 
         private uint m_numFiles;
+
+        private byte[] m_key;
 
         private ArchiveFlags m_flags;
     }

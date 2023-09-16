@@ -1,20 +1,16 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Transport.Channels;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Udp;
+﻿using DotNetty.Transport.Channels;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.DME.Models
+namespace MultiServer.Addons.Horizon.DME.Models
 {
     public class ClientObject
     {
         protected static Random RNG = new Random();
-
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<ClientObject>();
-        protected virtual IInternalLogger Logger => _logger;
 
         /// <summary>
         /// 
@@ -150,9 +146,9 @@ namespace PSMultiServer.Addons.Horizon.DME.Models
             SessionKey = sessionKey;
 
             // 
-            this.DmeId = dmeId;
-            this.DmeWorld = dmeWorld;
-            this.AggTimeMs = DmeClass.GetAppSettingsOrDefault(ApplicationId).DefaultClientWorldAggTime;
+            DmeId = dmeId;
+            DmeWorld = dmeWorld;
+            AggTimeMs = DmeClass.GetAppSettingsOrDefault(ApplicationId).DefaultClientWorldAggTime;
 
             // Generate new token
             byte[] tokenBuf = new byte[12];

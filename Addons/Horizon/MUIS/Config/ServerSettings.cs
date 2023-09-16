@@ -1,7 +1,7 @@
-﻿using Org.BouncyCastle.Math;
-using PSMultiServer.Addons.Horizon.RT.Cryptography.RSA;
+﻿using MultiServer.Addons.Org.BouncyCastle.Math;
+using MultiServer.Addons.Horizon.RT.Cryptography.RSA;
 
-namespace PSMultiServer.Addons.Horizon.MUIS.Config
+namespace MultiServer.Addons.Horizon.MUIS.Config
 {
     public class ServerSettings
     {

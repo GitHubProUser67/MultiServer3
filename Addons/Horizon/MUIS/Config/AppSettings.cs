@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.MUIS.Config
+﻿namespace MultiServer.Addons.Horizon.MUIS.Config
 {
     public class AppSettings
     {

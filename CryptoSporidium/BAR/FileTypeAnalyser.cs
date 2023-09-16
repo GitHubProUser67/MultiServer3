@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public class FileTypeAnalyser
     {
@@ -9,9 +9,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
             get
             {
                 if (m_instance == null)
-                {
                     m_instance = new FileTypeAnalyser();
-                }
                 return m_instance;
             }
         }
@@ -116,17 +114,11 @@ namespace PSMultiServer.CryptoSporidium.BAR
                 }
                 string text3 = textReader.ReadToEnd();
                 if (Regex.IsMatch(text3, "function[\\s\\w\\d]+()"))
-                {
                     result = HomeFileType.LUASource;
-                }
                 else if (text3.Contains("LoadLibrary"))
-                {
                     result = HomeFileType.LUASource;
-                }
                 else if (Regex.IsMatch(text3, ";{}"))
-                {
                     result = HomeFileType.LUASource;
-                }
                 textReader.Close();
             }
             catch (Exception)

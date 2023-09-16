@@ -1,23 +1,17 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Transport.Channels;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.RT.Models.ServerPlugins;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
+﻿using DotNetty.Transport.Channels;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.RT.Models.ServerPlugins;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 {
     public class MAPS : BaseMediusComponent
     {
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<MAPS>();
-
-        protected override IInternalLogger Logger => _logger;
-
         public override int TCPPort => MediusClass.Settings.MAPSTCPPort;
         public override int UDPPort => MediusClass.Settings.MAPSUDPPort;
-
 
         public MAPS()
         {
@@ -27,11 +21,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
-            // 
             switch (message)
             {
                 case RT_MSG_CLIENT_HELLO clientHello:
@@ -68,9 +61,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
                         if (!scertClient.IsPS3Client)
-                        {
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        }
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,
@@ -126,7 +117,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED RT MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED RT MESSAGE: {message}");
 
                         break;
                     }
@@ -135,10 +126,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
         protected virtual void ProcessMediusPluginMessage(BaseMediusPluginMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
             {
-                Logger.Warn($"MessageType is Null!");
+                ServerConfiguration.LogWarn($"MessageType is Null!");
                 return;
             }
 
@@ -153,7 +144,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
                         data.ClientObject.OnConnected();
-
 
                         var ProtoBytesReversed = ReverseBytesUInt(1958);
                         var BuildNumber = ReverseBytesUInt(10);
@@ -172,7 +162,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         //Time
                         DateTime time = DateTime.Now;
                         var timeBS = time.Ticks >> 1;
-
 
                         //bool finBs = true >> 1;
                         //Content string bitshift
@@ -219,7 +208,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                 default:
                     {
-                        Logger.Warn($"Unhandled Medius Plugin Message: {message}");
+                        ServerConfiguration.LogWarn($"Unhandled Medius Plugin Message: {message}");
                         break;
                     }
             }

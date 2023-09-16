@@ -1,19 +1,16 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database.Models;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using IChannel = DotNetty.Transport.Channels.IChannel;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 {
     public class MediusManager
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<MediusManager>();
-
         class QuickLookup
         {
             public Dictionary<int, ClientObject> AccountIdToClient = new Dictionary<int, ClientObject>();
@@ -43,8 +40,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new List<MediusFileMetaData>();
 
         private ConcurrentQueue<ClientObject> _addQueue = new ConcurrentQueue<ClientObject>();
-
-
 
         #region Clients
         public List<ClientObject> GetClients(int appId)
@@ -165,7 +160,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 quickLookup.AccessTokenToDmeClient.Add(dmeClient.Token, dmeClient);
                 quickLookup.SessionKeyToDmeClient.Add(dmeClient.SessionKey, dmeClient);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 // clean up
                 if (dmeClient != null)
@@ -177,7 +172,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         quickLookup.SessionKeyToDmeClient.Remove(dmeClient.SessionKey);
                 }
 
-                throw e;
+                ServerConfiguration.LogError($"[DMECLIENT] - An Error was thrown {ex}");
             }
         }
 
@@ -724,7 +719,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 });
                 return;
             }
-            Logger.Debug("NON-DME SUPPORTED CLIENT**\n  NOT CHECKING FOR FREE DME SERVER");
+
+            ServerConfiguration.LogDebug("NON-DME SUPPORTED CLIENT**\n  NOT CHECKING FOR FREE DME SERVER");
 
             // Try to get next free dme server
             // If none exist, return error to clist
@@ -814,7 +810,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             var game = GetGameByGameId(request.MediusWorldID); // MUM original fetches GameWorldData
             if (game == null)
             {
-                Logger.Warn($"Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
                 client.Queue(new MediusJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -825,7 +821,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             #region Password
             else if (game.GamePassword != null && game.GamePassword != string.Empty && game.GamePassword != request.GamePassword)
             {
-                Logger.Warn($"Join Game Request Handler Error: This game's password {game.GamePassword} doesn't match the requested GamePassword {request.GamePassword}");
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: This game's password {game.GamePassword} doesn't match the requested GamePassword {request.GamePassword}");
                 client.Queue(new MediusJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -837,7 +833,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             #region MaxPlayers
             else if (game.PlayerCount >= game.MaxPlayers)
             {
-                Logger.Warn($"Join Game Request Handler Error: This game does not allow more than {game.MaxPlayers}. Current player count: {game.PlayerCount}");
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: This game does not allow more than {game.MaxPlayers}. Current player count: {game.PlayerCount}");
                 client.Queue(new MediusJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -849,7 +845,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             #region GameHostType check
             else if (request.GameHostType != game.GameHostType)
             {
-                Logger.Warn($"Join Game Request Handler Error: This games HostType {game.GameHostType} does not match the Requests HostType {request.GameHostType}");
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: This games HostType {game.GameHostType} does not match the Requests HostType {request.GameHostType}");
                 client.Queue(new MediusJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -860,9 +856,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
             #region JoinType.MediusJoinAsMassSpectator
             else if (request.JoinType == MediusJoinType.MediusJoinAsMassSpectator && (Convert.ToInt32(game.Attributes) & 2) == 0)
-            {
-                Logger.Warn($"Join Game Request Handler Error: This game does not allow mass spectators. Attributes: {game.Attributes}");
-            }
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: This game does not allow mass spectators. Attributes: {game.Attributes}");
+
             #endregion
 
             else
@@ -1269,7 +1264,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             var party = GetPartyByPartyId(request.MediusWorldID); // MUM original fetches GameWorldData
             if (party == null)
             {
-                Logger.Warn($"Join Game Request Handler Error: Error in retrieving party info from MUM cache [{request.MediusWorldID}]");
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: Error in retrieving party info from MUM cache [{request.MediusWorldID}]");
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
                     MessageID = request.MessageID,
@@ -1280,7 +1275,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             #region Password
             else if (party.PartyPassword != null && party.PartyPassword != string.Empty && party.PartyPassword != request.PartyPassword)
             {
-                Logger.Warn($"Join Game Request Handler Error: This party's password {party.PartyPassword} doesn't match the requested party Password {request.PartyPassword}");
+                ServerConfiguration.LogWarn($"Join Game Request Handler Error: This party's password {party.PartyPassword} doesn't match the requested party Password {request.PartyPassword}");
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
                     MessageID = request.MessageID,
@@ -1304,7 +1299,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             #region GameHostType check
             else if (request.PartyHostType != party.PartyHostType)
             {
-                Logger.Warn($"PartyJoinByIndex Request Handler Error: This party's HostType {party.PartyHostType} does not match the Requests HostType {request.PartyHostType}");
+                ServerConfiguration.LogWarn($"PartyJoinByIndex Request Handler Error: This party's HostType {party.PartyHostType} does not match the Requests HostType {request.PartyHostType}");
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
                     MessageID = request.MessageID,
@@ -1587,7 +1582,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                     catch (Exception e)
                     {
-                        Logger.Warn($"MFS FileList Exception:\n{e}");
+                        ServerConfiguration.LogWarn($"MFS FileList Exception:\n{e}");
                     }
                 }
                 return _mediusFiles;
@@ -1646,7 +1641,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         catch (Exception e)
                         {
-                            Logger.Warn($"MFS FileListExt Exception:\n{e}");
+                            ServerConfiguration.LogWarn($"MFS FileListExt Exception:\n{e}");
                         }
                     }
                     return _mediusFiles;
@@ -1696,7 +1691,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         catch (Exception e)
                         {
-                            Logger.Warn($"MFS FileListExt Exception:\n{e}");
+                            ServerConfiguration.LogWarn($"MFS FileListExt Exception:\n{e}");
                         }
                     }
                     return _mediusFiles;
@@ -1732,7 +1727,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn($"MFS UpdateMetaData Exception:\n{e}");
+                    ServerConfiguration.LogWarn($"MFS UpdateMetaData Exception:\n{e}");
                 }
 
                 return _mediusFilesToUpdateMetaData;
@@ -1814,139 +1809,159 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
         private async Task TickChannels()
         {
-            Queue<(QuickLookup, int)> channelsToRemove = new Queue<(QuickLookup, int)>();
-
-            // Tick channels
-            foreach (var quickLookup in _lookupsByAppId)
+            try
             {
-                foreach (var channelKeyPair in quickLookup.Value.ChannelIdToChannel)
+                Queue<(QuickLookup, int)> channelsToRemove = new Queue<(QuickLookup, int)>();
+
+                // Tick channels
+                foreach (var quickLookup in _lookupsByAppId)
                 {
-                    if (channelKeyPair.Value.ReadyToDestroy)
+                    foreach (var channelKeyPair in quickLookup.Value.ChannelIdToChannel)
                     {
-                        ServerConfiguration.LogInfo($"Destroying Channel {channelKeyPair.Value}");
-                        channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
-                    }
-                    else
-                    {
-                        await channelKeyPair.Value.Tick();
+                        if (channelKeyPair.Value.ReadyToDestroy)
+                        {
+                            ServerConfiguration.LogInfo($"Destroying Channel {channelKeyPair.Value}");
+                            channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
+                        }
+                        else
+                        {
+                            await channelKeyPair.Value.Tick();
+                        }
                     }
                 }
-            }
 
-            // Remove channels
-            while (channelsToRemove.TryDequeue(out var lookupAndChannelId))
-                lookupAndChannelId.Item1.ChannelIdToChannel.Remove(lookupAndChannelId.Item2);
+                // Remove channels
+                while (channelsToRemove.TryDequeue(out var lookupAndChannelId))
+                    lookupAndChannelId.Item1.ChannelIdToChannel.Remove(lookupAndChannelId.Item2);
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[MediusManager] - Error in TickChannels {ex}");
+            }
         }
 
         private async Task TickGames()
         {
-            Queue<(QuickLookup, int)> gamesToRemove = new Queue<(QuickLookup, int)>();
-
-            // Tick games
-            foreach (var quickLookup in _lookupsByAppId)
+            try
             {
-                foreach (var gameKeyPair in quickLookup.Value.GameIdToGame)
+                Queue<(QuickLookup, int)> gamesToRemove = new Queue<(QuickLookup, int)>();
+
+                // Tick games
+                foreach (var quickLookup in _lookupsByAppId)
                 {
-                    if (gameKeyPair.Value.ReadyToDestroy)
+                    foreach (var gameKeyPair in quickLookup.Value.GameIdToGame)
                     {
-                        ServerConfiguration.LogInfo($"Destroying Game {gameKeyPair.Value}");
-                        await gameKeyPair.Value.EndGame();
-                        gamesToRemove.Enqueue((quickLookup.Value, gameKeyPair.Key));
-                    }
-                    else
-                    {
-                        await gameKeyPair.Value.Tick();
+                        if (gameKeyPair.Value.ReadyToDestroy)
+                        {
+                            ServerConfiguration.LogInfo($"Destroying Game {gameKeyPair.Value}");
+                            await gameKeyPair.Value.EndGame();
+                            gamesToRemove.Enqueue((quickLookup.Value, gameKeyPair.Key));
+                        }
+                        else
+                        {
+                            await gameKeyPair.Value.Tick();
+                        }
                     }
                 }
-            }
 
-            // Remove games
-            while (gamesToRemove.TryDequeue(out var lookupAndGameId))
-                lookupAndGameId.Item1.GameIdToGame.Remove(lookupAndGameId.Item2);
+                // Remove games
+                while (gamesToRemove.TryDequeue(out var lookupAndGameId))
+                    lookupAndGameId.Item1.GameIdToGame.Remove(lookupAndGameId.Item2);
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[MediusManager] - Error in TickGames {ex}");
+            }
         }
 
         private async Task TickClients()
         {
-            Queue<(int, string)> clientsToRemove = new Queue<(int, string)>();
-
-
-            while (_addQueue.TryDequeue(out var newClient))
-            {
-                if (!_lookupsByAppId.TryGetValue(newClient.ApplicationId, out var quickLookup))
-                    _lookupsByAppId.Add(newClient.ApplicationId, quickLookup = new QuickLookup());
-
-                try
-                {
-                    quickLookup.AccountIdToClient.Add(newClient.AccountId, newClient);
-                    quickLookup.AccountNameToClient.Add(newClient.AccountName.ToLower(), newClient);
-                    quickLookup.AccessTokenToClient.Add(newClient.Token, newClient);
-                    quickLookup.SessionKeyToClient.Add(newClient.SessionKey, newClient);
-                }
-                catch (Exception e)
-                {
-                    // clean up
-                    if (newClient != null)
-                    {
-                        quickLookup.AccountIdToClient.Remove(newClient.AccountId);
-
-                        if (newClient.AccountName != null)
-                            quickLookup.AccountNameToClient.Remove(newClient.AccountName.ToLower());
-
-                        if (newClient.Token != null)
-                            quickLookup.AccessTokenToClient.Remove(newClient.Token);
-
-                        if (newClient.SessionKey != null)
-                            quickLookup.SessionKeyToClient.Remove(newClient.SessionKey);
-                    }
-
-                    ServerConfiguration.LogError(e);
-                    //throw e;
-                }
-            }
-
-            foreach (var quickLookup in _lookupsByAppId)
-            {
-                foreach (var clientKeyPair in quickLookup.Value.SessionKeyToClient)
-                {
-                    if (!clientKeyPair.Value.IsConnected)
-                    {
-                        if (clientKeyPair.Value.Timedout)
-                            Logger.Warn($"Timing out client {clientKeyPair.Value}");
-                        else
-                            ServerConfiguration.LogInfo($"Destroying Client {clientKeyPair.Value}");
-
-                        // Logout and end session
-                        await clientKeyPair.Value.Logout();
-                        clientKeyPair.Value.EndSession();
-
-                        clientsToRemove.Enqueue((quickLookup.Key, clientKeyPair.Key));
-                    }
-                }
-            }
-
-            // Remove
-            while (clientsToRemove.TryDequeue(out var appIdAndSessionKey))
-            {
-                if (_lookupsByAppId.TryGetValue(appIdAndSessionKey.Item1, out var quickLookup))
-                {
-                    if (quickLookup.SessionKeyToClient.Remove(appIdAndSessionKey.Item2, out var clientObject))
-                    {
-                        quickLookup.AccountIdToClient.Remove(clientObject.AccountId);
-                        quickLookup.AccessTokenToClient.Remove(clientObject.Token);
-                        quickLookup.AccountNameToClient.Remove(clientObject.AccountName.ToLower());
-                    }
-                }
-            }
-
-            /*
             try
             {
+                Queue<(int, string)> clientsToRemove = new Queue<(int, string)>();
 
-            } catch (Exception e)
-            {
-                Logger.Warn(e);
+                while (_addQueue.TryDequeue(out var newClient))
+                {
+                    if (!_lookupsByAppId.TryGetValue(newClient.ApplicationId, out var quickLookup))
+                        _lookupsByAppId.Add(newClient.ApplicationId, quickLookup = new QuickLookup());
+
+                    try
+                    {
+                        quickLookup.AccountIdToClient.Add(newClient.AccountId, newClient);
+                        quickLookup.AccountNameToClient.Add(newClient.AccountName.ToLower(), newClient);
+                        quickLookup.AccessTokenToClient.Add(newClient.Token, newClient);
+                        quickLookup.SessionKeyToClient.Add(newClient.SessionKey, newClient);
+                    }
+                    catch (Exception e)
+                    {
+                        // clean up
+                        if (newClient != null)
+                        {
+                            quickLookup.AccountIdToClient.Remove(newClient.AccountId);
+
+                            if (newClient.AccountName != null)
+                                quickLookup.AccountNameToClient.Remove(newClient.AccountName.ToLower());
+
+                            if (newClient.Token != null)
+                                quickLookup.AccessTokenToClient.Remove(newClient.Token);
+
+                            if (newClient.SessionKey != null)
+                                quickLookup.SessionKeyToClient.Remove(newClient.SessionKey);
+                        }
+
+                        ServerConfiguration.LogError(e);
+                        //throw e;
+                    }
+                }
+
+                foreach (var quickLookup in _lookupsByAppId)
+                {
+                    foreach (var clientKeyPair in quickLookup.Value.SessionKeyToClient)
+                    {
+                        if (!clientKeyPair.Value.IsConnected)
+                        {
+                            if (clientKeyPair.Value.Timedout)
+                                ServerConfiguration.LogWarn($"Timing out client {clientKeyPair.Value}");
+                            else
+                                ServerConfiguration.LogInfo($"Destroying Client {clientKeyPair.Value}");
+
+                            // Logout and end session
+                            await clientKeyPair.Value.Logout();
+                            clientKeyPair.Value.EndSession();
+
+                            clientsToRemove.Enqueue((quickLookup.Key, clientKeyPair.Key));
+                        }
+                    }
+                }
+
+                // Remove
+                while (clientsToRemove.TryDequeue(out var appIdAndSessionKey))
+                {
+                    if (_lookupsByAppId.TryGetValue(appIdAndSessionKey.Item1, out var quickLookup))
+                    {
+                        if (quickLookup.SessionKeyToClient.Remove(appIdAndSessionKey.Item2, out var clientObject))
+                        {
+                            quickLookup.AccountIdToClient.Remove(clientObject.AccountId);
+                            quickLookup.AccessTokenToClient.Remove(clientObject.Token);
+                            quickLookup.AccountNameToClient.Remove(clientObject.AccountName.ToLower());
+                        }
+                    }
+                }
+
+                /*
+                try
+                {
+
+                } catch (Exception e)
+                {
+                    Logger.Warn(e);
+                }
+                */
             }
-            */
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[MediusManager] - Error in TickClients {ex}");
+            }
         }
 
         private void TickDme()
@@ -2075,34 +2090,23 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 FileInfo fi = new FileInfo(filename);
 
                 if (fi.Extension == "cl")
-                {
                     classifier = read_classifier(stream);
-                }
                 else
-                {
-                    Logger.Warn($"Unknown file type in {rootPath}.\n");
-                }
+                    ServerConfiguration.LogWarn($"Unknown file type in {rootPath}.\n");
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
-                Logger.Warn($"Cannot open {rootPath + "/" + filename}.\n");
-
+                ServerConfiguration.LogWarn($"Cannot open {rootPath + "/" + filename}.\n");
             }
 
         }
 
         public int read_classifier(FileStream fileClassifier)
         {
-
-
             if (fileClassifier.Length == 20398493)
             {
-                switch (fileClassifier.Length)
-                {
 
-                }
             }
 
             return 0;

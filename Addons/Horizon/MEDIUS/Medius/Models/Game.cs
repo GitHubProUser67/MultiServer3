@@ -1,18 +1,15 @@
-﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+﻿using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database.Models;
+using MultiServer.Addons.Horizon.MEDIUS.PluginArgs;
 using System.Data;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 {
     public class Game
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<Game>();
-
         public static int IdCounter = 1;
 
         public class GameClient
@@ -314,7 +311,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
                 if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.Id != Id)
                 {
-                    Logger.Warn($"REMOVING CLIENT: {client}\n IS: {client.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client.Client.IsConnected}\nClient CurrentGame ID: {client.Client.CurrentGame?.Id}\nGameId: {Id}\nMatch?: {client.Client.CurrentGame?.Id != Id}");
+                    ServerConfiguration.LogWarn($"REMOVING CLIENT: {client}\n IS: {client.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client.Client.IsConnected}\nClient CurrentGame ID: {client.Client.CurrentGame?.Id}\nGameId: {Id}\nMatch?: {client.Client.CurrentGame?.Id != Id}");
                     Clients.RemoveAt(i);
                     --i;
                 }
@@ -323,7 +320,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // Auto close when everyone leaves or if host fails to connect after timeout time
             if (!utcTimeEmpty.HasValue && Clients.Count(x => x.InGame) == 0 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
             {
-                Logger.Warn("AUTO CLOSING WORLD");
+                ServerConfiguration.LogWarn("AUTO CLOSING WORLD");
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
                 await SetWorldStatus(MediusWorldStatus.WorldClosed);
             }
@@ -373,11 +370,11 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
         public virtual async Task OnPlayerJoined(GameClient player)
         {
             player.InGame = true;
-            Logger.Warn("Player joined!");
+            ServerConfiguration.LogWarn("Player joined!");
 
             if (player.Client == Host)
             {
-                Logger.Warn("Player added as HOST!");
+                ServerConfiguration.LogWarn("Player added as HOST!");
                 hasHostJoined = true;
             }
 
@@ -454,7 +451,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             }
             catch (Exception e)
             {
-                Logger.Warn($"Couldn't perform local delete of game world [{report.MediusWorldID}] with exception: {e}");
+                ServerConfiguration.LogWarn($"Couldn't perform local delete of game world [{report.MediusWorldID}] with exception: {e}");
             }
         }
 

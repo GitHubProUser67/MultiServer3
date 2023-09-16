@@ -4,7 +4,7 @@ namespace SevenZip.Compression.LZ
 {
 	interface IInWindowStream
 	{
-		void SetStream(System.IO.Stream inStream);
+		void SetStream(Stream inStream);
 		void Init();
 		void ReleaseStream();
 		Byte GetIndexByte(Int32 index);

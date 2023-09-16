@@ -1,9 +1,9 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using static PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Deflater;
-using static PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipEntryFactory;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using static MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Deflater;
+using static MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipEntryFactory;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// FastZipEvents supports all events applicable to <see cref="FastZip">FastZip</see> operations.
@@ -851,15 +851,11 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			if (doExtraction)
 			{
 				if (entry.IsFile)
-				{
-					targetName = extractNameTransform_.TransformFile(targetName);
-				}
-				else if (entry.IsDirectory)
-				{
-					targetName = extractNameTransform_.TransformDirectory(targetName);
-				}
+                    targetName = extractNameTransform_.TransformFile(targetName);
+                else if (entry.IsDirectory)
+                    targetName = extractNameTransform_.TransformDirectory(targetName);
 
-				doExtraction = !(string.IsNullOrEmpty(targetName));
+                doExtraction = !(string.IsNullOrEmpty(targetName));
 			}
 
 			// TODO: Fire delegate/throw exception were compression method not supported, or name is invalid?
@@ -869,16 +865,12 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 			if (doExtraction)
 			{
 				if (entry.IsDirectory)
-				{
-					dirName = targetName;
-				}
-				else
-				{
-					dirName = Path.GetDirectoryName(Path.GetFullPath(targetName));
-				}
-			}
+                    dirName = targetName;
+                else
+                    dirName = Path.GetDirectoryName(Path.GetFullPath(targetName));
+            }
 
-			if (doExtraction && !Directory.Exists(dirName))
+            if (doExtraction && !Directory.Exists(dirName))
 			{
 				if (!entry.IsDirectory || CreateEmptyDirectories)
 				{
@@ -926,9 +918,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 							}
 						}
 						else
-						{
 							doExtraction = false;
-						}
 					}
 					catch (Exception ex)
 					{
@@ -936,13 +926,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 						if (events_ != null)
 						{
 							if (entry.IsDirectory)
-							{
 								continueRunning_ = events_.OnDirectoryFailure(targetName, ex);
-							}
 							else
-							{
 								continueRunning_ = events_.OnFileFailure(targetName, ex);
-							}
 						}
 						else
 						{

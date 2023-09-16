@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
 {
 	internal class InflaterDynHeader
 	{

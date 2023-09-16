@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.CryptoSporidium.UnBAR
+﻿namespace MultiServer.CryptoSporidium.UnBAR
 {
     internal abstract class Hash
     {

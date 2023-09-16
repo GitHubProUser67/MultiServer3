@@ -1,8 +1,7 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
-using PSMultiServer.Addons.Horizon.Server.Common.Logging;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     #region MediusMessageAttribute
     [AttributeUsage(AttributeTargets.Class)]
@@ -89,25 +88,6 @@ namespace PSMultiServer.Addons.Horizon.RT.Models
         public virtual void Serialize(MessageWriter writer)
         {
 
-        }
-
-        #endregion
-
-        #region Logging
-
-        /// <summary>
-        /// Whether or not this message passes the log filter.
-        /// </summary>
-        public virtual bool CanLog()
-        {
-            switch (PacketClass)
-            {
-                case NetMessageClass.MessageClassDME: return LogSettings.Singleton?.IsLog((MediusDmeMessageIds)this.PacketType) ?? false;
-                case NetMessageClass.MessageClassLobby: return LogSettings.Singleton?.IsLog((MediusLobbyMessageIds)this.PacketType) ?? false;
-                case NetMessageClass.MessageClassLobbyReport: return LogSettings.Singleton?.IsLog((MediusMGCLMessageIds)this.PacketType) ?? false;
-                case NetMessageClass.MessageClassLobbyExt: return LogSettings.Singleton?.IsLog((MediusLobbyExtMessageIds)this.PacketType) ?? false;
-                default: return true;
-            }
         }
 
         #endregion

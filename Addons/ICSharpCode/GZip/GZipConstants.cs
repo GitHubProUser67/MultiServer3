@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.GZip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.GZip
 {
 	/// <summary>
 	/// This class contains constants used for gzip.

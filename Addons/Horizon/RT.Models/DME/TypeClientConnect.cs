@@ -1,8 +1,8 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Stream;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models
+namespace MultiServer.Addons.Horizon.RT.Models
 {
     [MediusMessage(NetMessageClass.MessageClassDME, MediusDmeMessageIds.ClientConnect)]
     public class TypeClientConnect : BaseDMEMessage

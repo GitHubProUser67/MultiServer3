@@ -1,13 +1,13 @@
 ﻿using DotNetty.Common.Internal.Logging;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
-using PSMultiServer.Addons.Horizon.MUIS.PluginArgs;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database.Models;
+using MultiServer.Addons.Horizon.MUIS.PluginArgs;
 using System.Data;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.MUIS.Models
+namespace MultiServer.Addons.Horizon.MUIS.Models
 {
     public class Game
     {

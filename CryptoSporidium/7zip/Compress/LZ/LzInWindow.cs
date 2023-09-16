@@ -5,7 +5,7 @@ namespace SevenZip.Compression.LZ
 	public class InWindow
 	{
 		public Byte[] _bufferBase = null; // pointer to buffer with data
-		System.IO.Stream _stream;
+		Stream _stream;
 		UInt32 _posLimit; // offset (from _buffer) of first byte when new block reading must be done
 		bool _streamEndWasReached; // if (true) then _streamPos shows real end of stream
 
@@ -76,7 +76,7 @@ namespace SevenZip.Compression.LZ
 			_pointerToLastSafePosition = _blockSize - keepSizeAfter;
 		}
 
-		public void SetStream(System.IO.Stream stream) { _stream = stream; }
+		public void SetStream(Stream stream) { _stream = stream; }
 		public void ReleaseStream() { _stream = null; }
 
 		public void Init()

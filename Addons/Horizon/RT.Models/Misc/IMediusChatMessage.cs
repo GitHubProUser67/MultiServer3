@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Common;
 
-namespace PSMultiServer.Addons.Horizon.RT.Models.Misc
+namespace MultiServer.Addons.Horizon.RT.Models.Misc
 {
     public interface IMediusChatMessage
     {

@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core;
-using static PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipEntryFactory;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Core;
+using static MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.ZipEntryFactory;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// Defines factory methods for creating new <see cref="ZipEntry"></see> values.

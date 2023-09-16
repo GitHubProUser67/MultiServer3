@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Security.Cryptography;
 
-namespace PSMultiServer.CryptoSporidium.UnBAR
+namespace MultiServer.CryptoSporidium.UnBAR
 {
     internal class ToolsImpl
     {
@@ -99,7 +99,7 @@ namespace PSMultiServer.CryptoSporidium.UnBAR
         {
             try
             {
-                RijndaelManaged rijndaelManaged = new RijndaelManaged();
+                Aes rijndaelManaged = Aes.Create();
                 rijndaelManaged.Padding = padding;
                 rijndaelManaged.Mode = mode;
                 rijndaelManaged.KeySize = 128;

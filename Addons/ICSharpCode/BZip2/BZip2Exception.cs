@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 {
 	/// <summary>
 	/// BZip2Exception represents exceptions specific to BZip2 classes and code.

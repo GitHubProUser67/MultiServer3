@@ -1,7 +1,7 @@
-﻿using Org.BouncyCastle.Math;
-using PSMultiServer.Addons.Horizon.RT.Cryptography.RSA;
+﻿using MultiServer.Addons.Org.BouncyCastle.Math;
+using MultiServer.Addons.Horizon.RT.Cryptography.RSA;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
+namespace MultiServer.Addons.Horizon.MEDIUS.Config
 {
     public class ServerSettings
     {
@@ -9,11 +9,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         /// How many milliseconds before refreshing the config.
         /// </summary>
         public int RefreshConfigInterval = 5000;
-
-        /// <summary>
-        /// Path to the plugins directory.
-        /// </summary>
-        public string PluginsPath { get; set; } = "plugins/";
 
         #region PublicIp
         /// <summary>
@@ -28,11 +23,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         /// </summary>
         public string PublicIpOverride { get; set; } = string.Empty;
         #endregion
-
-        /// <summary>
-        /// Number of ticks per second.
-        /// </summary>
-        public int TickRate { get; set; } = 10;
 
         /// <summary>
         /// LocationID of this Medius Stack, applies to MAS, and MLS
@@ -131,7 +121,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         /// Provide the IP, Port and WorldID of the MUM that will control this MLS
         /// (no valid defaults)
         /// </summary>
-        public string MUMIp { get; set; } = Server.Common.Utils.GetLocalIPAddress().ToString();
+        public string MUMIp { get; set; } = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
         public int MUMPort { get; set; } = 10076;
         public int MUMWorldID { get; set; } = 1;
         #endregion
@@ -199,7 +189,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         /// <summary>
         /// Set the hostname to the ApacheWebServerHostname
         /// </summary>
-        public string MFSTransferURI { get; set; } = $"http://{Server.Common.Utils.GetLocalIPAddress().ToString()}/";
+        public string MFSTransferURI { get; set; } = $"http://{LIBRARY.Common.Utils.GetLocalIPAddress().ToString()}/";
 
         /// <summary>
         /// Max number of download requests in the download queue
@@ -250,7 +240,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         // (no valid defaults)
         // Uncomment MUCG params to enable connectivity to MUCG
 
-        public string MUCGServerIP = Server.Common.Utils.GetLocalIPAddress().ToString();
+        public string MUCGServerIP = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
         public int MUCGServerPort = 10072;
         public int MUCGWorldID = 1;
         #endregion
@@ -284,7 +274,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Config
         // IP Address and port of the billing service provider.
         // This is the SCE-RT Product Service if the billing provider is SCE-RT
         // Or the SCEK connection if the provider is SCEK
-        public string BillingProviderIpAddr = Server.Common.Utils.GetLocalIPAddress().ToString();
+        public string BillingProviderIpAddr = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
         public int BillingServiceProviderPort = 2222;
 
         // Billing security settings

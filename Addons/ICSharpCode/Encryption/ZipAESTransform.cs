@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption
 {
 	/// <summary>
 	/// Transforms stream using AES in CTR mode

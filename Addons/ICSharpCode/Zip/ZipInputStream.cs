@@ -1,12 +1,12 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Encryption;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 {
 	/// <summary>
 	/// This is an InflaterInputStream that reads the files baseInputStream an zip archive

@@ -1,7 +1,7 @@
-﻿using PSMultiServer.Addons.Horizon.DME.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Udp;
+﻿using MultiServer.Addons.Horizon.DME.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp;
 
-namespace PSMultiServer.Addons.Horizon.DME.PluginArgs
+namespace MultiServer.Addons.Horizon.DME.PluginArgs
 {
     public class OnUdpMsg
     {

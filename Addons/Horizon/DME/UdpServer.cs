@@ -1,24 +1,21 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Handlers.Logging;
+﻿using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Udp;
-using PSMultiServer.Addons.Horizon.DME.Models;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp;
+using MultiServer.Addons.Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
-using PSMultiServer.Addons.Horizon.DME.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Attribute;
+using MultiServer.Addons.Horizon.DME.PluginArgs;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Attribute;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.DME
+namespace MultiServer.Addons.Horizon.DME
 {
     public class UdpServer
     {
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<UdpServer>();
-
         public int Port { get; protected set; } = -1;
 
         protected IEventLoopGroup _workerGroup = null;
@@ -67,17 +64,15 @@ namespace PSMultiServer.Addons.Horizon.DME
         /// </summary>
         public virtual async Task Start()
         {
-            //
             _workerGroup = new MultithreadEventLoopGroup();
             _scertHandler = new ScertDatagramHandler();
 
-            //
             _scertHandler.OnChannelActive = channel =>
             {
                 // get scert client
-                if (!channel.HasAttribute(Server.Pipeline.Constants.SCERT_CLIENT))
-                    channel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-                var scertClient = channel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+                if (!channel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                    channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+                var scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
                 // pass medius version
                 scertClient.MediusVersion = ClientObject.MediusVersion;
@@ -111,7 +106,6 @@ namespace PSMultiServer.Addons.Horizon.DME
                     pipeline.AddLast(new ScertDatagramEncoder(Constants.MEDIUS_UDP_MESSAGE_MAXLEN));
                     pipeline.AddLast(new ScertDatagramIEnumerableEncoder(Constants.MEDIUS_UDP_MESSAGE_MAXLEN));
                     pipeline.AddLast(new ScertDatagramDecoder());
-                    //pipeline.AddLast(new ScertDecoder());
                     pipeline.AddLast(new ScertDatagramMultiAppDecoder());
                     pipeline.AddLast(_scertHandler);
                 }));
@@ -223,7 +217,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                     }
                 default:
                     {
-                        Logger.Warn($"UNHANDLED MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED MESSAGE: {message}");
 
                         break;
                     }
@@ -334,7 +328,6 @@ namespace PSMultiServer.Addons.Horizon.DME
                             responses.Add(message);
                     }
 
-                    //
                     if (responses.Count > 0)
                         await _boundChannel.WriteAndFlushAsync(responses);
                 }
@@ -360,8 +353,6 @@ namespace PSMultiServer.Addons.Horizon.DME
             await DmeClass.Plugins.OnMessageEvent(message.Id, onMsg);
             if (onMsg.Ignore)
                 return true;
-
-
 
             // Send medius message to plugins
             if (message is RT_MSG_CLIENT_APP_TOSERVER clientApp)

@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 {
 	/// <summary>
 	/// Defines internal values for both compression and decompression

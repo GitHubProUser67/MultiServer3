@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Core
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Core
 {
 	/// <summary>
 	/// INameTransform defines how file system names are transformed for use with archives, or vice versa.

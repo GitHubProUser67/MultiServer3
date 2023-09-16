@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace PSMultiServer.CryptoSporidium.UnBAR
+namespace MultiServer.CryptoSporidium.UnBAR
 {
     internal class HMACGenerator : HashGenerator
     {
@@ -18,7 +18,7 @@ namespace PSMultiServer.CryptoSporidium.UnBAR
             }
             catch (Exception ex)
             {
-                throw ex;
+                ServerConfiguration.LogError($"[HMACGenerator] - doInit thrown an exception {ex}");
             }
         }
 

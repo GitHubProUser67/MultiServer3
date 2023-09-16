@@ -1,4 +1,4 @@
-﻿namespace PSMultiServer.Addons.Horizon.RT.Cryptography
+﻿namespace MultiServer.Addons.Horizon.RT.Cryptography
 {
     /// <summary>
     /// The highest 3 bits of the hash.

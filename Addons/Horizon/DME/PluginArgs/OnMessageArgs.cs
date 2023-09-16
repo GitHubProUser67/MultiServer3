@@ -1,8 +1,8 @@
 ﻿using DotNetty.Transport.Channels;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.DME.Models;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.DME.Models;
 
-namespace PSMultiServer.Addons.Horizon.DME.PluginArgs
+namespace MultiServer.Addons.Horizon.DME.PluginArgs
 {
     public class OnMessageArgs
     {
@@ -20,15 +20,6 @@ namespace PSMultiServer.Addons.Horizon.DME.PluginArgs
         public OnMessageArgs(bool isIncoming)
         {
             IsIncoming = isIncoming;
-        }
-
-        public override string ToString()
-        {
-            return base.ToString() + " " +
-                $"Player:{Player} " +
-                $"Channel:{Channel} " +
-                $"Message:{Message} " +
-                $"Ignore:{Ignore}";
         }
     }
 }

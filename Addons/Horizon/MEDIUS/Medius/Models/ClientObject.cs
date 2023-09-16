@@ -1,24 +1,20 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Transport.Channels;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Database.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Pipeline.Udp;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+﻿using DotNetty.Transport.Channels;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database.Models;
+using MultiServer.Addons.Horizon.MEDIUS.PluginArgs;
+using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
-using static PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models.Game;
+using static MultiServer.Addons.Horizon.MEDIUS.Medius.Models.Game;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 {
     public class ClientObject
     {
         protected static Random RNG = new Random();
-
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<ClientObject>();
-        protected virtual IInternalLogger Logger => _logger;
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
         public List<GameClient> Clients = new List<GameClient>();
@@ -707,13 +703,15 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             }
         }
 
-        private async Task LeaveCurrentChannel()
+        private Task LeaveCurrentChannel()
         {
             if (CurrentChannel != null)
             {
                 CurrentChannel.OnPlayerLeft(this);
                 CurrentChannel = null;
             }
+
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -891,13 +889,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             if (NetConnectionType == NetConnectionType.NetConnectionTypeClientListenerTCP ||
                NetConnectionType == NetConnectionType.NetConnectionTypeClientListenerTCPAuxUDP ||
                NetConnectionType == NetConnectionType.NetConnectionTypeClientListenerUDP)
-            {
-                Logger.Warn("\"Can't send on a client listener connection type\"");
-            }
+                ServerConfiguration.LogWarn("\"Can't send on a client listener connection type\"");
             else
-            {
                 Queue(new RT_MSG_SERVER_APP() { Message = message });
-            }
         }
 
         public void Queue(BaseMediusPluginMessage message)
@@ -935,6 +929,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             }
         }
         #endregion
+
         /*
         public Task<RT_RESULT> rt_msg_server_check_protocol_compatibility(ushort clientVersion, int p_compatible)
         {
@@ -946,6 +941,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models
             return 
         }
         */
+
         public override string ToString()
         {
             return $"({AccountId}:{AccountName}:{ApplicationId})";

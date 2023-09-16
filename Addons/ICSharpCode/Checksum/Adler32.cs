@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
 {
 	/// <summary>
 	/// Computes Adler32 checksum for a stream of data. An Adler32
@@ -44,8 +44,8 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
 	///    checked separately. (Any sequence of zeroes has a Fletcher
 	///    checksum of zero.)"
 	/// </summary>
-	/// <see cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream"/>
-	/// <see cref="PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams.DeflaterOutputStream"/>
+	/// <see cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream"/>
+	/// <see cref="MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams.DeflaterOutputStream"/>
 	public sealed class Adler32 : IChecksum
 	{
 		#region Instance Fields

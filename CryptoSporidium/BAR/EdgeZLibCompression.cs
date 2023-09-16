@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ComponentAce.Compression.Libs.zlib;
+using MultiServer.Addons.ComponentAce.Compression.Libs.zlib;
 
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public class EdgeZLibCompression : CompressionBase
     {
@@ -41,13 +41,9 @@ namespace PSMultiServer.CryptoSporidium.BAR
             byte[] array = memoryStream.ToArray();
             byte[] array2;
             if (array.Length >= InData.Length)
-            {
                 array2 = InData;
-            }
             else
-            {
                 array2 = array;
-            }
             byte[] array3 = new byte[array2.Length + 4];
             Array.Copy(array2, 0, array3, 4, array2.Length);
             ChunkHeader chunkHeader = default;
@@ -83,9 +79,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         private byte[] DecompressChunk(byte[] inData, ChunkHeader header)
         {
             if (header.CompressedSize == header.SourceSize)
-            {
                 return inData;
-            }
             MemoryStream memoryStream = new MemoryStream();
             ZOutputStream zoutputStream = new ZOutputStream(memoryStream, true);
             byte[] array = new byte[inData.Length];

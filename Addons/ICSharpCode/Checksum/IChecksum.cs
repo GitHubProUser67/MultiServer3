@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum
 {
 	/// <summary>
 	/// Interface to compute a data checksum used by checked input/output streams.

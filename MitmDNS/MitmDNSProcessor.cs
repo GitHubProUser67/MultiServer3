@@ -1,14 +1,13 @@
 ﻿using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using System.Text.RegularExpressions;
 
-namespace PSMultiServer.MitmDNS
+namespace MultiServer.MitmDNS
 {
     public class MitmDNSProcessor
     {
-        public static bool FireEvents;
+        public static bool DnsStarted = false;
+        public static bool FireEvents = false;
         public static bool DenyNotInRules = false;
         public static event ConnectionRequestHandler ConnectionRequest;
         public static event ResolvedIpHandler ResolvedIp;
@@ -23,12 +22,15 @@ namespace PSMultiServer.MitmDNS
         private static Socket soc = null;
         private static EndPoint endpoint = null;
 
-        public async static void RunDns()
+        public static void RunDns()
         {
             if (setup())
             {
                 ServerConfiguration.LogInfo($"[DNS] - Server started on port {ServerConfiguration.DNSPort}");
-                await Task.Run(async () => await DnsMainLoop());
+
+                DnsStarted = true;
+
+                _ = Task.Run(DnsMainLoop);
             }
         }
 
@@ -50,19 +52,21 @@ namespace PSMultiServer.MitmDNS
             }
         }
 
-        public static async Task DnsMainLoop()
+        public static Task DnsMainLoop()
         {
-            while (true)
+            while (DnsStarted)
             {
                 byte[] data = new byte[1024];
                 soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
-                data = Helper.TrimArray(data);
+                data = Misc.TrimArray(data);
 
                 procRequest(data);
             }
+
+            return Task.CompletedTask;
         }
 
-        public static async void procRequest(byte[] data)
+        public static void procRequest(byte[] data)
         {
             string fullname = string.Join(".", GetName(data).ToArray());
             if (FireEvents && ConnectionRequest != null)
@@ -111,9 +115,7 @@ namespace PSMultiServer.MitmDNS
                 {
                     IPAddress address;
                     if (!IPAddress.TryParse(url, out address))
-                    {
                         ip = Dns.GetHostEntry(url).AddressList[0];
-                    }
                     else ip = address;
                 }
                 catch
@@ -145,7 +147,7 @@ namespace PSMultiServer.MitmDNS
                 {
                     byte[] tmp = new byte[i + lenght];
                     Buffer.BlockCopy(Req, i + 1, tmp, 0, lenght);
-                    string partialaddr = Helper.TrimString(tmp);
+                    string partialaddr = Misc.TrimString(tmp);
                     if (partialaddr != null) addr.Add(partialaddr);
                     i += (lenght + 1);
                     lenght = Req[i];
@@ -204,51 +206,5 @@ namespace PSMultiServer.MitmDNS
         Deny,
         Allow,
         Redirect
-    }
-
-    public static class Helper
-    {
-        public static Dictionary<string, string> GetIPs()
-        {
-            Dictionary<string, string> addresses = new Dictionary<string, string>();
-            NetworkInterface[] allInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface n in allInterfaces)
-            {
-                if (n.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 || n.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                {
-                    foreach (UnicastIPAddressInformation ip in n.GetIPProperties().UnicastAddresses)
-                    {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            addresses.Add(ip.Address.ToString(), n.Name);
-                        }
-                    }
-                }
-            }
-            return addresses;
-        }
-
-        public static byte[] TrimArray(byte[] arr)
-        {
-            int i = arr.Length - 1;
-            while (arr[i] == 0) i--;
-            byte[] data = new byte[i + 1];
-            Array.Copy(arr, data, i + 1);
-            return data;
-        }
-
-        public static string TrimString(byte[] str)
-        {
-            int i = str.Length - 1;
-            while (str[i] == 0)
-            {
-                Array.Resize(ref str, i);
-                i -= 1;
-            }
-            string res = Encoding.ASCII.GetString(str);
-            //if (res.ToLower() == "www") return null; Some sites do not work without www
-            /* else*/
-            return res;
-        }
     }
 }

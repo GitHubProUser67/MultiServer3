@@ -1,6 +1,6 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 {
 	/// <summary>
 	/// An output stream that compresses into the BZip2 format
@@ -137,15 +137,11 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 
 			workFactor = 50;
 			if (blockSize > 9)
-			{
-				blockSize = 9;
-			}
+                blockSize = 9;
 
-			if (blockSize < 1)
-			{
-				blockSize = 1;
-			}
-			blockSize100k = blockSize;
+            if (blockSize < 1)
+                blockSize = 1;
+            blockSize100k = blockSize;
 			AllocateCompressStructures();
 			Initialize();
 			InitBlock();
@@ -278,26 +274,18 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 		public override void Write(byte[] buffer, int offset, int count)
 		{
 			if (buffer == null)
-			{
-				throw new ArgumentNullException(nameof(buffer));
-			}
+                throw new ArgumentNullException(nameof(buffer));
 
-			if (offset < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(offset));
-			}
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException(nameof(offset));
 
-			if (count < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(count));
-			}
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
 
-			if (buffer.Length - offset < count)
-			{
-				throw new ArgumentException("Offset/count out of range");
-			}
+            if (buffer.Length - offset < count)
+                throw new ArgumentException("Offset/count out of range");
 
-			for (int i = 0; i < count; ++i)
+            for (int i = 0; i < count; ++i)
 			{
 				WriteByte(buffer[offset + i]);
 			}
@@ -433,11 +421,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 						disposed_ = true;
 
 						if (runLength > 0)
-						{
-							WriteRun();
-						}
+                            WriteRun();
 
-						currentChar = -1;
+                        currentChar = -1;
 						EndBlock();
 						EndCompression();
 						Flush();
@@ -448,11 +434,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					if (disposing)
 					{
 						if (IsStreamOwner)
-						{
-							baseStream.Dispose();
-						}
-					}
-				}
+                            baseStream.Dispose();
+                    }
+                }
 			}
 			catch
 			{
@@ -502,11 +486,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 		private void EndBlock()
 		{
 			if (last < 0)
-			{       // dont do anything for empty files, (makes empty files compatible with original Bzip)
-				return;
-			}
+                // dont do anything for empty files, (makes empty files compatible with original Bzip)
+                return;
 
-			blockCRC = unchecked((uint)mCrc.Value);
+            blockCRC = unchecked((uint)mCrc.Value);
 			combinedCRC = (combinedCRC << 1) | (combinedCRC >> 31);
 			combinedCRC ^= blockCRC;
 
@@ -546,12 +529,10 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				nBlocksRandomised++;
 			}
 			else
-			{
-				BsW(1, 0);
-			}
+                BsW(1, 0);
 
-			/*-- Finally, block's contents proper. --*/
-			MoveToFrontCodeAndSend();
+            /*-- Finally, block's contents proper. --*/
+            MoveToFrontCodeAndSend();
 		}
 
 		private void EndCompression()
@@ -645,33 +626,21 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 
 			/*--- Decide how many coding tables to use ---*/
 			if (nMTF <= 0)
-			{
-				Panic();
-			}
+                Panic();
 
-			if (nMTF < 200)
-			{
-				nGroups = 2;
-			}
-			else if (nMTF < 600)
-			{
-				nGroups = 3;
-			}
-			else if (nMTF < 1200)
-			{
-				nGroups = 4;
-			}
-			else if (nMTF < 2400)
-			{
-				nGroups = 5;
-			}
-			else
-			{
-				nGroups = 6;
-			}
+            if (nMTF < 200)
+                nGroups = 2;
+            else if (nMTF < 600)
+                nGroups = 3;
+            else if (nMTF < 1200)
+                nGroups = 4;
+            else if (nMTF < 2400)
+                nGroups = 5;
+            else
+                nGroups = 6;
 
-			/*--- Generate an initial set of coding tables ---*/
-			int nPart = nGroups;
+            /*--- Generate an initial set of coding tables ---*/
+            int nPart = nGroups;
 			int remF = nMTF;
 			gs = 0;
 			while (nPart > 0)
@@ -694,16 +663,12 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				for (int v = 0; v < alphaSize; v++)
 				{
 					if (v >= gs && v <= ge)
-					{
-						len[nPart - 1][v] = (char)LESSER_ICOST;
-					}
-					else
-					{
-						len[nPart - 1][v] = (char)GREATER_ICOST;
-					}
-				}
+                        len[nPart - 1][v] = (char)LESSER_ICOST;
+                    else
+                        len[nPart - 1][v] = (char)GREATER_ICOST;
+                }
 
-				nPart--;
+                nPart--;
 				gs = ge + 1;
 				remF -= aFreq;
 			}
@@ -741,20 +706,16 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				{
 					/*--- Set group start & end marks. --*/
 					if (gs >= nMTF)
-					{
-						break;
-					}
-					ge = gs + BZip2Constants.GroupSize - 1;
+                        break;
+                    ge = gs + BZip2Constants.GroupSize - 1;
 					if (ge >= nMTF)
-					{
-						ge = nMTF - 1;
-					}
+                        ge = nMTF - 1;
 
-					/*--
+                    /*--
 					Calculate the cost of this group as coded
 					by each of the coding tables.
 					--*/
-					for (int t = 0; t < nGroups; t++)
+                    for (int t = 0; t < nGroups; t++)
 					{
 						cost[t] = 0;
 					}
@@ -836,17 +797,13 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			cost = null;
 
 			if (!(nGroups < 8))
-			{
-				Panic();
-			}
+                Panic();
 
-			if (!(nSelectors < 32768 && nSelectors <= (2 + (900000 / BZip2Constants.GroupSize))))
-			{
-				Panic();
-			}
+            if (!(nSelectors < 32768 && nSelectors <= (2 + (900000 / BZip2Constants.GroupSize))))
+                Panic();
 
-			/*--- Compute MTF values for the selectors. ---*/
-			char[] pos = new char[BZip2Constants.GroupCount];
+            /*--- Compute MTF values for the selectors. ---*/
+            char[] pos = new char[BZip2Constants.GroupCount];
 			char ll_i, tmp2, tmp;
 
 			for (int i = 0; i < nGroups; i++)
@@ -885,23 +842,15 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				for (int i = 0; i < alphaSize; i++)
 				{
 					if (len[t][i] > maxLen)
-					{
-						maxLen = len[t][i];
-					}
-					if (len[t][i] < minLen)
-					{
-						minLen = len[t][i];
-					}
-				}
+                        maxLen = len[t][i];
+                    if (len[t][i] < minLen)
+                        minLen = len[t][i];
+                }
 				if (maxLen > 20)
-				{
-					Panic();
-				}
-				if (minLen < 1)
-				{
-					Panic();
-				}
-				HbAssignCodes(code[t], len[t], minLen, maxLen, alphaSize);
+                    Panic();
+                if (minLen < 1)
+                    Panic();
+                HbAssignCodes(code[t], len[t], minLen, maxLen, alphaSize);
 			}
 
 			/*--- Transmit the mapping table. ---*/
@@ -912,40 +861,30 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				for (int j = 0; j < 16; ++j)
 				{
 					if (inUse[i * 16 + j])
-					{
-						inUse16[i] = true;
-					}
-				}
-			}
+                        inUse16[i] = true;
+                }
+            }
 
 			for (int i = 0; i < 16; ++i)
 			{
 				if (inUse16[i])
-				{
-					BsW(1, 1);
-				}
-				else
-				{
-					BsW(1, 0);
-				}
-			}
+                    BsW(1, 1);
+                else
+                    BsW(1, 0);
+            }
 
-			for (int i = 0; i < 16; ++i)
+            for (int i = 0; i < 16; ++i)
 			{
 				if (inUse16[i])
 				{
 					for (int j = 0; j < 16; ++j)
 					{
 						if (inUse[i * 16 + j])
-						{
-							BsW(1, 1);
-						}
-						else
-						{
-							BsW(1, 0);
-						}
-					}
-				}
+                            BsW(1, 1);
+                        else
+                            BsW(1, 0);
+                    }
+                }
 			}
 
 			/*--- Now the selectors. ---*/
@@ -987,16 +926,12 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			while (true)
 			{
 				if (gs >= nMTF)
-				{
-					break;
-				}
-				ge = gs + BZip2Constants.GroupSize - 1;
+                    break;
+                ge = gs + BZip2Constants.GroupSize - 1;
 				if (ge >= nMTF)
-				{
-					ge = nMTF - 1;
-				}
+                    ge = nMTF - 1;
 
-				for (int i = gs; i <= ge; i++)
+                for (int i = gs; i <= ge; i++)
 				{
 					BsW(len[selector[selCtr]][szptr[i]], code[selector[selCtr]][szptr[i]]);
 				}
@@ -1024,11 +959,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 
 			bigN = hi - lo + 1;
 			if (bigN < 2)
-			{
-				return;
-			}
+                return;
 
-			hp = 0;
+            hp = 0;
 			while (increments[hp] < bigN)
 			{
 				hp++;
@@ -1059,48 +992,38 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 
 					/*-- copy 2 --*/
 					if (i > hi)
-					{
-						break;
-					}
-					v = zptr[i];
+                        break;
+                    v = zptr[i];
 					j = i;
 					while (FullGtU(zptr[j - h] + d, v + d))
 					{
 						zptr[j] = zptr[j - h];
 						j = j - h;
 						if (j <= (lo + h - 1))
-						{
-							break;
-						}
-					}
-					zptr[j] = v;
+                            break;
+                    }
+                    zptr[j] = v;
 					i++;
 
 					/*-- copy 3 --*/
 					if (i > hi)
-					{
-						break;
-					}
-					v = zptr[i];
+                        break;
+                    v = zptr[i];
 					j = i;
 					while (FullGtU(zptr[j - h] + d, v + d))
 					{
 						zptr[j] = zptr[j - h];
 						j = j - h;
 						if (j <= (lo + h - 1))
-						{
-							break;
-						}
-					}
-					zptr[j] = v;
+                            break;
+                    }
+                    zptr[j] = v;
 					i++;
 
 					if (workDone > workLimit && firstAttempt)
-					{
-						return;
-					}
-				}
-			}
+                        return;
+                }
+            }
 		}
 
 		private void Vswap(int p1, int p2, int n)
@@ -1134,11 +1057,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			while (sp > 0)
 			{
 				if (sp >= QSORT_STACK_SIZE)
-				{
-					Panic();
-				}
+                    Panic();
 
-				sp--;
+                sp--;
 				lo = stack[sp].ll;
 				hi = stack[sp].hh;
 				d = stack[sp].dd;
@@ -1147,10 +1068,8 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				{
 					SimpleSort(lo, hi, d);
 					if (workDone > workLimit && firstAttempt)
-					{
-						return;
-					}
-					continue;
+                        return;
+                    continue;
 				}
 
 				med = Med3(block[zptr[lo] + d + 1],
@@ -1165,10 +1084,8 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					while (true)
 					{
 						if (unLo > unHi)
-						{
-							break;
-						}
-						n = ((int)block[zptr[unLo] + d + 1]) - med;
+                            break;
+                        n = ((int)block[zptr[unLo] + d + 1]) - med;
 						if (n == 0)
 						{
 							int temp = zptr[unLo];
@@ -1179,19 +1096,15 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 							continue;
 						}
 						if (n > 0)
-						{
-							break;
-						}
-						unLo++;
+                            break;
+                        unLo++;
 					}
 
 					while (true)
 					{
 						if (unLo > unHi)
-						{
-							break;
-						}
-						n = ((int)block[zptr[unHi] + d + 1]) - med;
+                            break;
+                        n = ((int)block[zptr[unHi] + d + 1]) - med;
 						if (n == 0)
 						{
 							int temp = zptr[unHi];
@@ -1202,19 +1115,15 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 							continue;
 						}
 						if (n < 0)
-						{
-							break;
-						}
-						unHi--;
+                            break;
+                        unHi--;
 					}
 
 					if (unLo > unHi)
-					{
-						break;
-					}
+                        break;
 
-					{
-						int temp = zptr[unLo];
+                    {
+                        int temp = zptr[unLo];
 						zptr[unLo] = zptr[unHi];
 						zptr[unHi] = temp;
 						unLo++;
@@ -1365,9 +1274,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 							runningOrder[j] = runningOrder[j - h];
 							j = j - h;
 							if (j <= (h - 1))
-							{
 								break;
-							}
 						}
 						runningOrder[j] = vv;
 					}
@@ -1402,11 +1309,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 								QSort3(lo, hi, 2);
 								numQSorted += (hi - lo + 1);
 								if (workDone > workLimit && firstAttempt)
-								{
-									return;
-								}
-							}
-							ftab[sb] |= SETMASK;
+                                    return;
+                            }
+                            ftab[sb] |= SETMASK;
 						}
 					}
 
@@ -1437,22 +1342,18 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 							int qVal = (j >> shifts);
 							quadrant[a2update] = qVal;
 							if (a2update < BZip2Constants.OvershootBytes)
-							{
 								quadrant[a2update + last + 1] = qVal;
-							}
 						}
 
 						if (!(((bbSize - 1) >> shifts) <= 65535))
-						{
-							Panic();
-						}
-					}
+                            Panic();
+                    }
 
-					/*--
+                    /*--
 					Now scan this big bucket so as to synthesise the
 					sorted order for small buckets [t, ss] for all t != ss.
 					--*/
-					for (j = 0; j <= 255; j++)
+                    for (j = 0; j <= 255; j++)
 					{
 						copy[j] = ftab[(j << 8) + ss] & CLEARMASK;
 					}
@@ -1492,11 +1393,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					rNToGo = (int)BZip2Constants.RandomNumbers[rTPos];
 					rTPos++;
 					if (rTPos == 512)
-					{
-						rTPos = 0;
-					}
-				}
-				rNToGo--;
+                        rTPos = 0;
+                }
+                rNToGo--;
 				block[i + 1] ^= (byte)((rNToGo == 1) ? 1 : 0);
 				// handle 16 bit signed numbers
 				block[i + 1] &= 0xFF;
@@ -1534,9 +1433,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			}
 
 			if (origPtr == -1)
-			{
 				Panic();
-			}
 		}
 
 		private bool FullGtU(int i1, int i2)
@@ -1548,55 +1445,43 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 			c1 = block[i1 + 1];
 			c2 = block[i2 + 1];
 			if (c1 != c2)
-			{
+                return c1 > c2;
+            i1++;
+			i2++;
+
+			c1 = block[i1 + 1];
+			c2 = block[i2 + 1];
+			if (c1 != c2)
 				return c1 > c2;
-			}
 			i1++;
 			i2++;
 
 			c1 = block[i1 + 1];
 			c2 = block[i2 + 1];
 			if (c1 != c2)
-			{
-				return c1 > c2;
-			}
-			i1++;
+                return c1 > c2;
+            i1++;
 			i2++;
 
 			c1 = block[i1 + 1];
 			c2 = block[i2 + 1];
 			if (c1 != c2)
-			{
-				return c1 > c2;
-			}
-			i1++;
+                return c1 > c2;
+            i1++;
 			i2++;
 
 			c1 = block[i1 + 1];
 			c2 = block[i2 + 1];
 			if (c1 != c2)
-			{
-				return c1 > c2;
-			}
-			i1++;
+                return c1 > c2;
+            i1++;
 			i2++;
 
 			c1 = block[i1 + 1];
 			c2 = block[i2 + 1];
 			if (c1 != c2)
-			{
-				return c1 > c2;
-			}
-			i1++;
-			i2++;
-
-			c1 = block[i1 + 1];
-			c2 = block[i2 + 1];
-			if (c1 != c2)
-			{
-				return c1 > c2;
-			}
-			i1++;
+                return c1 > c2;
+            i1++;
 			i2++;
 
 			k = last + 1;
@@ -1606,60 +1491,44 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				c1 = block[i1 + 1];
 				c2 = block[i2 + 1];
 				if (c1 != c2)
-				{
-					return c1 > c2;
-				}
-				s1 = quadrant[i1];
+                    return c1 > c2;
+                s1 = quadrant[i1];
 				s2 = quadrant[i2];
 				if (s1 != s2)
-				{
+                    return s1 > s2;
+                i1++;
+				i2++;
+
+				c1 = block[i1 + 1];
+				c2 = block[i2 + 1];
+				if (c1 != c2)
+                    return c1 > c2;
+                s1 = quadrant[i1];
+				s2 = quadrant[i2];
+				if (s1 != s2)
 					return s1 > s2;
-				}
 				i1++;
 				i2++;
 
 				c1 = block[i1 + 1];
 				c2 = block[i2 + 1];
 				if (c1 != c2)
-				{
-					return c1 > c2;
-				}
-				s1 = quadrant[i1];
+                    return c1 > c2;
+                s1 = quadrant[i1];
 				s2 = quadrant[i2];
 				if (s1 != s2)
-				{
-					return s1 > s2;
-				}
-				i1++;
+                    return s1 > s2;
+                i1++;
 				i2++;
 
 				c1 = block[i1 + 1];
 				c2 = block[i2 + 1];
 				if (c1 != c2)
-				{
 					return c1 > c2;
-				}
 				s1 = quadrant[i1];
 				s2 = quadrant[i2];
 				if (s1 != s2)
-				{
 					return s1 > s2;
-				}
-				i1++;
-				i2++;
-
-				c1 = block[i1 + 1];
-				c2 = block[i2 + 1];
-				if (c1 != c2)
-				{
-					return c1 > c2;
-				}
-				s1 = quadrant[i1];
-				s2 = quadrant[i2];
-				if (s1 != s2)
-				{
-					return s1 > s2;
-				}
 				i1++;
 				i2++;
 
@@ -1753,11 +1622,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				yy[0] = tmp;
 
 				if (j == 0)
-				{
-					zPend++;
-				}
-				else
-				{
+                    zPend++;
+                else
+                {
 					if (zPend > 0)
 					{
 						zPend--;
@@ -1888,19 +1755,13 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					{
 						yy = zz << 1;
 						if (yy > nHeap)
-						{
-							break;
-						}
-						if (yy < nHeap && weight[heap[yy + 1]] < weight[heap[yy]])
-						{
-							yy++;
-						}
-						if (weight[tmp] < weight[heap[yy]])
-						{
-							break;
-						}
+                            break;
+                        if (yy < nHeap && weight[heap[yy + 1]] < weight[heap[yy]])
+                            yy++;
+                        if (weight[tmp] < weight[heap[yy]])
+                            break;
 
-						heap[zz] = heap[yy];
+                        heap[zz] = heap[yy];
 						zz = yy;
 					}
 					heap[zz] = tmp;
@@ -1915,18 +1776,12 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					{
 						yy = zz << 1;
 						if (yy > nHeap)
-						{
-							break;
-						}
-						if (yy < nHeap && weight[heap[yy + 1]] < weight[heap[yy]])
-						{
-							yy++;
-						}
-						if (weight[tmp] < weight[heap[yy]])
-						{
-							break;
-						}
-						heap[zz] = heap[yy];
+                            break;
+                        if (yy < nHeap && weight[heap[yy + 1]] < weight[heap[yy]])
+                            yy++;
+                        if (weight[tmp] < weight[heap[yy]])
+                            break;
+                        heap[zz] = heap[yy];
 						zz = yy;
 					}
 					heap[zz] = tmp;
@@ -1950,11 +1805,9 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 					heap[zz] = tmp;
 				}
 				if (!(nNodes < (BZip2Constants.MaximumAlphaSize * 2)))
-				{
-					Panic();
-				}
+                    Panic();
 
-				tooLong = false;
+                tooLong = false;
 				for (int i = 1; i <= alphaSize; ++i)
 				{
 					j = 0;
@@ -1969,9 +1822,7 @@ namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.BZip2
 				}
 
 				if (!tooLong)
-				{
 					break;
-				}
 
 				for (int i = 1; i < alphaSize; ++i)
 				{

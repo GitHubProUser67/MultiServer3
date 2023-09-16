@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Math;
+using MultiServer.Addons.Org.BouncyCastle.Math;
 
-namespace PSMultiServer.Addons.Horizon.RT.Cryptography.RSA
+namespace MultiServer.Addons.Horizon.RT.Cryptography.RSA
 {
     [JsonConverter(typeof(RSAConverter))]
     public class PS2_RSA : ICipher

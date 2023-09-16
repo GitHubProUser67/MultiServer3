@@ -1,8 +1,8 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.GZip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.GZip
 {
 	/// <summary>
 	/// This filter stream is used to compress a stream into a "GZIP" stream.

@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.GZip
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.GZip
 {
 	/// <summary>
 	/// GZipException represents exceptions specific to GZip classes and code.

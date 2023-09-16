@@ -1,4 +1,4 @@
-namespace PSMultiServer.CryptoSporidium.BAR
+namespace MultiServer.CryptoSporidium.BAR
 {
     public abstract class EndianAwareBinaryReader
     {
@@ -10,9 +10,7 @@ namespace PSMultiServer.CryptoSporidium.BAR
         public static EndianAwareBinaryReader Create(Stream input, EndianType endian)
         {
             if (endian == EndianType.LittleEndian)
-            {
                 return new LEBinaryReader(input);
-            }
             return new BEBinaryReader(input);
         }
 

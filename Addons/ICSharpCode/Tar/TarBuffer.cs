@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Tar
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Tar
 {
 	/// <summary>
 	/// The TarBuffer class implements the tar archive concept

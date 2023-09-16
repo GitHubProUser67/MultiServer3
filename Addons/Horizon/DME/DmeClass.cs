@@ -1,21 +1,17 @@
-﻿using DotNetty.Common.Internal.Logging;
-using Newtonsoft.Json;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.Server.Common.Logging;
-using PSMultiServer.Addons.Horizon.Server.Database;
-using PSMultiServer.Addons.Horizon.DME.Config;
-using PSMultiServer.Addons.Horizon.DME.Models;
-using PSMultiServer.Addons.Horizon.Server.Plugins;
+﻿using Newtonsoft.Json;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.LIBRARY.Database;
+using MultiServer.Addons.Horizon.DME.Config;
+using MultiServer.Addons.Horizon.DME.Models;
 using System.Diagnostics;
 using System.Net;
 
-namespace PSMultiServer.Addons.Horizon.DME
+namespace MultiServer.Addons.Horizon.DME
 {
     public class DmeClass
     {
-        public static string CONFIG_FILE => Path.Combine("./static/DME", "dme.json");
-        public static string DB_CONFIG_FILE => Path.Combine("./static/DME", "db.config.json");
+        private static string CONFIG_FILE => Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DMEConfig}";
 
         public static RSA_KEY GlobalAuthPublic = null;
 
@@ -24,7 +20,7 @@ namespace PSMultiServer.Addons.Horizon.DME
 
         public static ServerSettings Settings = new ServerSettings();
         private static Dictionary<int, AppSettings> _appSettings = new Dictionary<int, AppSettings>();
-        private static AppSettings _defaultAppSettings = new AppSettings(0);
+        private static AppSettings _defaultAppSettings = new(0);
 
         public static IPAddress SERVER_IP;
         public static string IP_TYPE;
@@ -32,47 +28,20 @@ namespace PSMultiServer.Addons.Horizon.DME
         public static string DME_SERVER_VERSION = "3.05.0000";
 
         public static Dictionary<int, DMEMediusManager> Managers = new Dictionary<int, DMEMediusManager>();
-        public static TcpServer TcpServer = new TcpServer();
+        public static TcpServer TcpServer = new();
         public static PluginsManager Plugins = null;
 
-        private static ulong _sessionKeyCounter = 0;
-        private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
         private static DateTime _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
 
-        private static int _ticks = 0;
-        private static Stopwatch _sw = new Stopwatch();
-        private static Timer.HighResolutionTimer _timer;
         private static DateTime _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
         private static DateTime? _lastSuccessfulDbAuth = null;
 
-        static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<DmeClass>();
-
-        static int metricCooldownTicks = 0;
-        static string metricPrintString = null;
-        static int metricIndent = 0;
+        public static bool started = false;
 
         private static async Task TickAsync()
         {
             try
             {
-#if DEBUG
-                if (!_sw.IsRunning)
-                    _sw.Start();
-#endif
-
-#if DEBUG
-                ++_ticks;
-                if (_sw.Elapsed.TotalSeconds > 5f)
-                {
-                    _sw.Stop();
-                    var averageMsPerTick = 1000 * (_sw.Elapsed.TotalSeconds / _ticks);
-                    var error = Math.Abs(Settings.MainLoopSleepMs - averageMsPerTick) / Settings.MainLoopSleepMs;
-
-                    _sw.Restart();
-                    _ticks = 0;
-                }
-#endif
-
                 // Attempt to authenticate with the db middleware
                 // We do this every 24 hours to get a fresh new token
                 if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
@@ -87,7 +56,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                             if (manager.Value != null && manager.Value.IsConnected)
                                 await manager.Value.Stop();
 
-                        await Task.Delay(5000); // delay loop to give time before next authentication request
+                        await Task.Delay(4900); // delay loop to give time before next authentication request
                         return;
                     }
                     else
@@ -104,60 +73,18 @@ namespace PSMultiServer.Addons.Horizon.DME
                     }
                 }
 
-                await TimeAsync("in", async () =>
+                // Tick
+                Parallel.Invoke(
+                    async () => await HandleInMessages(),
+                    async () => await HandleOutMessages()
+                );
+
+                // Tick plugins
+                if ((Utils.GetHighPrecisionUtcTime() - _timeLastPluginTick).TotalMilliseconds > Settings.PluginTickIntervalMs)
                 {
-                    // handle incoming
-                    {
-                        var tasks = new List<Task>()
-                    {
-                        TcpServer.HandleIncomingMessages()
-                    };
-
-                        foreach (var manager in Managers)
-                        {
-                            if (manager.Value.IsConnected)
-                            {
-                                tasks.Add(manager.Value.HandleIncomingMessages());
-                            }
-                        }
-
-                        await Task.WhenAll(tasks);
-                    }
-                });
-
-                await TimeAsync("plugins", async () =>
-                {
-                    // Tick plugins
-                    if ((Utils.GetHighPrecisionUtcTime() - _timeLastPluginTick).TotalMilliseconds > Settings.PluginTickIntervalMs)
-                    {
-                        _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
-                        await Plugins.Tick();
-                    }
-                });
-
-                await TimeAsync("out", async () =>
-                {
-                    // handle outgoing
-                    {
-                        var tasks = new List<Task>()
-                        {
-                            TcpServer.HandleOutgoingMessages()
-                        };
-                        foreach (var manager in Managers)
-                        {
-                            if (manager.Value.IsConnected)
-                            {
-                                tasks.Add(manager.Value.HandleOutgoingMessages());
-                            }
-                            else if ((Utils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.MPSReconnectInterval)
-                            {
-                                tasks.Add(manager.Value.Start());
-                            }
-                        }
-
-                        await Task.WhenAll(tasks);
-                    }
-                });
+                    _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
+                    await Plugins.Tick();
+                }
 
                 // Reload config
                 if ((Utils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
@@ -169,17 +96,71 @@ namespace PSMultiServer.Addons.Horizon.DME
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogError(ex);
+                if (ex.Message.ToLower().Contains("Failed to authenticate with the MPS server")) // This can happen if network unreachable, harmless as we must reconnect to MPS instead of being infinitly stuck.
+                {
+                    // disconnect from MPS
+                    foreach (var manager in Managers)
+                        if (manager.Value != null && manager.Value.IsConnected)
+                            await manager.Value.Stop();
 
-                await TcpServer.Stop();
-                await Task.WhenAll(Managers.Select(x => x.Value.Stop()));
+                    await Task.Delay(4900); // delay loop to give time before next authentication request
+                }
+                else
+                    ServerConfiguration.LogError(ex);
             }
         }
 
-        private static async Task StartServerAsync()
+        private static async Task HandleInMessages()
         {
-            int waitMs = Settings.MainLoopSleepMs;
+            // handle incoming
+            var InRequestsTasks = new List<Task>()
+                {
+                     TcpServer.HandleIncomingMessages()
+                };
+            foreach (var manager in Managers)
+            {
+                if (manager.Value.IsConnected)
+                    InRequestsTasks.Add(manager.Value.HandleIncomingMessages());
+            }
 
+            await Task.WhenAll(InRequestsTasks);
+        }
+
+        private static async Task HandleOutMessages()
+        {
+            // handle outgoing
+            var OutRequestsTasks = new List<Task>()
+                {
+                     TcpServer.HandleOutgoingMessages()
+                };
+            foreach (var manager in Managers)
+            {
+                if (manager.Value.IsConnected)
+                    OutRequestsTasks.Add(manager.Value.HandleOutgoingMessages());
+                else if ((Utils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.MPSReconnectInterval)
+                    OutRequestsTasks.Add(manager.Value.Start());
+            }
+
+            await Task.WhenAll(OutRequestsTasks);
+        }
+
+        private static async Task LoopServer()
+        {
+            // iterate
+            while (started)
+            {
+                // tick
+                await TickAsync();
+
+                await Task.Delay(100);
+            }
+
+            await TcpServer.Stop();
+            await Task.WhenAll(Managers.Select(x => x.Value.Stop()));
+        }
+
+        private static Task StartServerAsync()
+        {
             ServerConfiguration.LogInfo("Initializing DME components...");
             ServerConfiguration.LogInfo("*****************************************************************");
             ServerConfiguration.LogInfo($"DME Message Router Version {DME_SERVER_VERSION}");
@@ -201,13 +182,9 @@ namespace PSMultiServer.Addons.Horizon.DME
             #region ConfigAuxUDP Check
 
             if (Settings.EnableAuxUDP)
-            {
                 ServerConfiguration.LogInfo("Auxilary UDP is ENABLED!\n");
-            }
             else
-            {
                 ServerConfiguration.LogInfo("Auxilary UDP is DISABLED!\n");
-            }
 
             #endregion
 
@@ -224,78 +201,33 @@ namespace PSMultiServer.Addons.Horizon.DME
                 Managers.Add(applicationId, manager);
             }
 
-            // 
             ServerConfiguration.LogInfo("DME Initalized.");
 
-            // start timer
-            _timer = new Timer.HighResolutionTimer();
-            _timer.SetPeriod(waitMs);
-            _timer.Start();
+            started = true;
 
-            // iterate
-            while (true)
-            {
-                // 
-                if (metricCooldownTicks > 0)
-                    metricCooldownTicks--;
-                else
-                    metricCooldownTicks = 1000 * 5 / waitMs; // 5 seconds
+            _ = Task.Run(LoopServer);
 
-                // handle tick rate change
-                if (Settings.MainLoopSleepMs != waitMs)
-                {
-                    waitMs = Settings.MainLoopSleepMs;
-                    _timer.Stop();
-                    _timer.SetPeriod(waitMs);
-                    _timer.Start();
-                }
+            return Task.CompletedTask;
+        }
 
-                // tick
-                await TimeAsync("tick", TickAsync);
-
-                if (GetLogs.Logging.LogMetrics && !String.IsNullOrEmpty(metricPrintString))
-                {
-                    if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                        ServerConfiguration.LogInfo("\n" + metricPrintString);
-                    else
-                        ServerConfiguration.LogInfo(metricPrintString);
-                    metricPrintString = "";
-                }
-
-                var l1 = Stopwatch.ElapsedMilliseconds;
-
-                // wait for next tick
-                _timer.WaitForTrigger();
-                //Thread.Sleep(TimeSpan.FromTicks((long)(TimeSpan.TicksPerMillisecond * 0.9)));
-
-                var l2 = Stopwatch.ElapsedMilliseconds;
-
-                if (l2 - l1 > 1)
-                {
-                    //ServerConfiguration.LogError($"LOOP DT {l2 - l1}");
-                }
-            }
+        private static void setupdatabase()
+        {
+            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
         }
 
         public static void DmeMain()
         {
-            Database = new DbController(DB_CONFIG_FILE);
-
+            setupdatabase();
             Initialize();
-
             // Initialize plugins
-            Plugins = new PluginsManager(Settings.PluginsPath);
-
+            Plugins = new PluginsManager(Server.pluginspath);
             _ = StartServerAsync();
-
-            return;
         }
 
         private static void Initialize()
         {
             RefreshServerIp();
             RefreshConfig();
-            return;
         }
 
         /// <summary>
@@ -305,7 +237,6 @@ namespace PSMultiServer.Addons.Horizon.DME
         {
             var usePublicIp = Settings.UsePublicIp;
 
-            // 
             var serializerSettings = new JsonSerializerSettings()
             {
                 MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -328,11 +259,13 @@ namespace PSMultiServer.Addons.Horizon.DME
                     10984, 10782, 10421, 10130, 24000, 24180
                 });
 
+                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
+
                 File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
 
             // Update default rsa key
-            Server.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
@@ -341,18 +274,15 @@ namespace PSMultiServer.Addons.Horizon.DME
             if (usePublicIp != Settings.UsePublicIp)
                 RefreshServerIp();
 
-
             // refresh app settings
             _ = RefreshAppSettings();
-
-            return;
         }
 
         private static async Task RefreshAppSettings()
         {
             try
             {
-                if (!await Database.AmIAuthenticated())
+                if (!Database.AmIAuthenticated())
                     return;
 
                 // get supported app ids
@@ -369,9 +299,7 @@ namespace PSMultiServer.Addons.Horizon.DME
                         if (settings != null)
                         {
                             if (_appSettings.TryGetValue(appId, out var appSettings))
-                            {
                                 appSettings.SetSettings(settings);
-                            }
                             else
                             {
                                 appSettings = new AppSettings(appId);
@@ -395,18 +323,14 @@ namespace PSMultiServer.Addons.Horizon.DME
         private static void RefreshServerIp()
         {
             if (!Settings.UsePublicIp)
-            {
                 SERVER_IP = Utils.GetLocalIPAddress();
-            }
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(Utils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(Misc.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }
-
-            return;
         }
 
         public static ClientObject GetClientByAccessToken(string accessToken)
@@ -421,47 +345,5 @@ namespace PSMultiServer.Addons.Horizon.DME
 
             return _defaultAppSettings;
         }
-
-        #region Metrics
-
-        public static async Task TimeAsync(string name, Func<Task> action)
-        {
-            if (metricCooldownTicks > 0)
-            {
-                await action();
-                return;
-            }
-
-            // 
-            long ticksAtStart = Stopwatch.ElapsedTicks;
-
-            // insert row before action
-            metricPrintString += $"({"".PadRight(metricIndent * 2, ' ') + name,-32}:    {100:#.000} ms)\n";
-            int stringIndex = metricPrintString.Length - 5 - 7;
-
-            // run
-            ++metricIndent;
-            try
-            {
-                await action();
-            }
-            finally
-            {
-                --metricIndent;
-            }
-
-            //
-            long ticksAfterAction = Stopwatch.ElapsedTicks;
-            var actionDurationMs = 1000f * (ticksAfterAction - ticksAtStart) / Stopwatch.Frequency;
-
-            //
-            var replacementString = actionDurationMs.ToString("#.000").PadLeft(7, ' ').Substring(0, 7);
-            char[] charArr = metricPrintString.ToCharArray();
-            replacementString.CopyTo(0, charArr, stringIndex, replacementString.Length);
-            metricPrintString = new string(charArr);
-        }
-
-        #endregion
-
     }
 }

@@ -1,4 +1,4 @@
-# PSMultiServer
+# MultiServer
  A Unified Server Software with PlayStation Online games in mind.
  
 ![image](https://github.com/GitHubProUser67/PSMultiServer/assets/127040195/b4c10194-5e0f-4822-9987-7fd20106fd6b)

@@ -1,7 +1,7 @@
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
-using PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Checksum;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression
 {
 	/// <summary>
 	/// Inflater is used to decompress data that has been compressed according

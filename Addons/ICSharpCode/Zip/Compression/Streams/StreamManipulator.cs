@@ -1,4 +1,4 @@
-namespace PSMultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams
+namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams
 {
 	/// <summary>
 	/// This class allows us to retrieve a specified number of bits from

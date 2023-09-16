@@ -1,25 +1,20 @@
-﻿using DotNetty.Common.Internal.Logging;
-using DotNetty.Transport.Channels;
-using PSMultiServer.Addons.Horizon.RT.Common;
-using PSMultiServer.Addons.Horizon.RT.Cryptography;
-using PSMultiServer.Addons.Horizon.RT.Cryptography.RSA;
-using PSMultiServer.Addons.Horizon.RT.Models;
-using PSMultiServer.Addons.Horizon.Server.Common;
-using PSMultiServer.Addons.Horizon.MEDIUS.Config;
-using PSMultiServer.Addons.Horizon.MEDIUS.Medius.Models;
-using PSMultiServer.Addons.Horizon.MEDIUS.PluginArgs;
-using PSMultiServer.Addons.Horizon.Server.Plugins.Interface;
+﻿using DotNetty.Transport.Channels;
+using MultiServer.Addons.Horizon.RT.Common;
+using MultiServer.Addons.Horizon.RT.Cryptography;
+using MultiServer.Addons.Horizon.RT.Cryptography.RSA;
+using MultiServer.Addons.Horizon.RT.Models;
+using MultiServer.Addons.Horizon.LIBRARY.Common;
+using MultiServer.Addons.Horizon.MEDIUS.Config;
+using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
+using MultiServer.Addons.Horizon.MEDIUS.PluginArgs;
 using System.Net;
+using MultiServer.PluginManager;
 
-namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
+namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 {
     public class MAS : BaseMediusComponent
     {
-        static readonly IInternalLogger _logger = InternalLoggerFactory.GetInstance<MAS>();
         static readonly TimeSpan _defaultTimeout = TimeSpan.FromMilliseconds(3000);
-
-        protected override IInternalLogger Logger => _logger;
-
         public override int TCPPort => MediusClass.Settings.MASPort;
         public override int UDPPort => 00000;
 
@@ -40,11 +35,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
-            // 
             switch (message)
             {
                 case RT_MSG_CLIENT_HELLO clientHello:
@@ -83,7 +77,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             var clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
                             data.ClientObject = clientObjects.FirstOrDefault();
 
-                            Logger.Warn($"clientobject: {data.ClientObject}");
+                            ServerConfiguration.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                         }
 
                         //If this is a PS3 client
@@ -103,14 +97,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }, clientChannel);
 
                         if (scertClient.RsaAuthKey != null)
-                        {
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        }
 
                         if (pre108ServerComplete.Contains(data.ApplicationId))
-                        {
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                        }
 
                         break;
                     }
@@ -118,9 +108,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
                         if (scertClient.RsaAuthKey != null)
-                        {
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        }
 
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
@@ -169,14 +157,14 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {
                         data.State = ClientState.DISCONNECTED;
-                        _ = clientChannel.CloseAsync();
+                        await clientChannel.CloseAsync();
                         break;
                     }
                 #endregion
 
                 default:
                     {
-                        Logger.Warn($"UNHANDLED RT MESSAGE: {message}");
+                        ServerConfiguration.LogWarn($"UNHANDLED RT MESSAGE: {message}");
                         break;
                     }
             }
@@ -186,7 +174,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
         protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(Server.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
                 return;
 
@@ -207,11 +195,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest);
                         }
 
-
                         //If Message Routing App id
                         if (data.ApplicationId == 120)
                         {
-
                             data.ClientObject = new ClientObject();
                             data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(mgclSessionBeginRequest);
                         }
@@ -235,10 +221,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {
-
                             if (nonSecure.Contains(data.ClientObject.ApplicationId))
                             {
-
                                 //TM:BO Reply
                                 data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                 {
@@ -264,7 +248,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             }
                             else
                             {
-
                                 // Default Reply
                                 data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                 {
@@ -289,9 +272,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 });
                             }
                         }
-
-
-
                         break;
                     }
 
@@ -300,7 +280,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         // Create DME object
                         //data.ClientObject = Program.ProxyServer.ReserveDMEObject(serverSessionBeginRequest1);
 
-                        //
                         data.ClientObject.ServerType = serverSessionBeginRequest1.ServerType;
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
@@ -338,9 +317,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         // Create DME object
                         //data.ClientObject = Program.ProxyServer.ReserveDMEObject(serverSessionBeginRequest2);
 
-                        Logger.Warn($"Client {data.ClientObject.AccountName}");
+                        ServerConfiguration.LogWarn($"Client {data.ClientObject.AccountName}");
 
-                        //
                         data.ClientObject.ServerType = serverSessionBeginRequest2.ServerType;
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
@@ -399,16 +377,11 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             data.ClientObject.SetIp(BinaryIp);
                         }
                         else
-                        {
                             // NetAddressTypeExternal
                             data.ClientObject.SetIp(mgclAuthRequest.AddressList.AddressList[0].Address);
-                        }
-
-
 
                         if (nonSecure.Contains(data.ClientObject.ApplicationId))
                         {
-
                             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
 
                             data.ClientObject.Queue(new MediusServerAuthenticationResponse()
@@ -439,7 +412,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {
-
                             data.ClientObject.Queue(new MediusServerAuthenticationResponse()
                             {
                                 MessageID = mgclAuthRequest.MessageID,
@@ -467,7 +439,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             data.ClientObject.KeepAliveUntilNextConnection();
                         }
 
-
                         /*
                         var appIdList = Program.Database.GetAppIds();
                         if(appIdList.Result)
@@ -491,7 +462,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         var dmeObject = data.ClientObject as DMEObject;
                         if (dmeObject == null)
-                            throw new InvalidOperationException($"Non-DME Client sending MGCL messages.");
+                            ServerConfiguration.LogError($"Non-DME Client sending MGCL messages.");
 
                         // Reply with success
                         dmeObject.Queue(new MediusServerSetAttributesResponse()
@@ -522,7 +493,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                 #endregion
 
-
                 #region Session
 
                 case MediusExtendedSessionBeginRequest extendedSessionBeginRequest:
@@ -534,8 +504,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
                         data.ClientObject.OnConnected();
 
-
-                        _ = MediusClass.Database.GetServerFlags().ContinueWith((r) =>
+                        await MediusClass.Database.GetServerFlags().ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                             {
@@ -568,12 +537,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                     {
 
                         if (data.ApplicationId != 10442)
-                        { // if this is Killzone PS2, DON'T make the Session here 
-
                             // Create client object
                             data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest);
-                        }
-
 
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
@@ -582,11 +547,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                         ServerConfiguration.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
-                        _ = MediusClass.Database.GetServerFlags().ContinueWith((r) =>
+                        await MediusClass.Database.GetServerFlags().ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                             {
-
                                 #region Maintenance Mode?
                                 // Ensure that maintenance is active
                                 // Ensure that we're past the from date
@@ -595,9 +559,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                      && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                      && (!r.Result.MaintenanceMode.ToDt.HasValue
                                          || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
-                                {
                                     QueueBanMessage(data, "Server in maintenance mode.");
-                                }
                                 #endregion
 
                                 #region Send Response
@@ -626,8 +588,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
                         data.ClientObject.OnConnected();
 
-
-
                         ServerConfiguration.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
                         #region SystemMessageSingleTest Disabled?
@@ -641,7 +601,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                         else
                         {
-                            _ = MediusClass.Database.GetServerFlags().ContinueWith((r) =>
+                            await MediusClass.Database.GetServerFlags().ContinueWith((r) =>
                             {
                                 if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                                 {
@@ -653,9 +613,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                          && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                          && (!r.Result.MaintenanceMode.ToDt.HasValue
                                              || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
-                                    {
                                         QueueBanMessage(data, "Server in maintenance mode.");
-                                    }
+
                                     #endregion
 
                                     #region Send Response
@@ -800,7 +759,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         if (!data.ClientObject.IsLoggedIn)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getTotalChannelsRequest} without being logged in.");
 
-
                         data.ClientObject.Queue(new MediusGetTotalChannelsResponse()
                         {
                             MessageID = getTotalChannelsRequest.MessageID,
@@ -839,7 +797,6 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             }
                         });
 
-
                         break;
                     }
                 #endregion
@@ -857,7 +814,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                             // Then post to the Database if logged in
                             if (data.ClientObject?.IsLoggedIn ?? false)
-                                _ = MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+                                await MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
                         }
                         else
                         {
@@ -880,21 +837,14 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                 // Then post to the Database if logged in
                                 if (data.ClientObject?.IsLoggedIn ?? false)
-                                    _ = MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+                                    await MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
                             }
 
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasTitleID)
-                            {
                                 ServerConfiguration.LogInfo($"DnasSignaturePost Error - Invalid SignatureType");
 
-                            }
-
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasDiskID)
-                            {
-
                                 ServerConfiguration.LogInfo($"Posting DiskID - DiskSigSize={dnasSignaturePost.DnasSignatureLength}");
-
-                            }
                         }
                         else
                         {
@@ -1116,10 +1066,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             return;
                         }
 
-                        _ = MediusClass.Database.CreateAccount(new Server.Database.Models.CreateAccountDTO()
+                        await MediusClass.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
-                            AccountPassword = Utils.ComputeSHA256(accountRegRequest.Password),
+                            AccountPassword = Misc.ComputeSHA256(accountRegRequest.Password),
                             MachineId = data.MachineId,
                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                             AppId = data.ClientObject.ApplicationId
@@ -1152,7 +1102,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         if (data.ClientObject == null)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountGetIdRequest} without a session.");
 
-                        _ = MediusClass.Database.GetAccountByName(accountGetIdRequest.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                        await MediusClass.Database.GetAccountByName(accountGetIdRequest.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null)
                             {
@@ -1188,7 +1138,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         if (!data.ClientObject.IsLoggedIn)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountDeleteRequest} without being logged in.");
 
-                        _ = MediusClass.Database.DeleteAccount(data.ClientObject.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                        await MediusClass.Database.DeleteAccount(data.ClientObject.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result)
                             {
@@ -1204,7 +1154,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             }
                             else
                             {
-                                Logger.Warn($"Logout FAILED for {data?.ClientObject?.AccountName}'s account\nData still persistent on Medius Server");
+                                ServerConfiguration.LogWarn($"Logout FAILED for {data?.ClientObject?.AccountName}'s account\nData still persistent on Medius Server");
 
                                 data?.ClientObject?.Queue(new MediusAccountDeleteResponse()
                                 {
@@ -1257,7 +1207,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             else
                             {
 
-                                _ = MediusClass.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                await MediusClass.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                 {
                                     if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                         return;
@@ -1297,10 +1247,8 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                             });
                                         }
 
-                                        else if (Utils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
-                                        {
+                                        else if (Misc.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
                                             await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
-                                        }
                                         else
                                         {
                                             // Incorrect password
@@ -1343,10 +1291,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                             Request = accountLoginRequest
                                         });
 
-                                        _ = MediusClass.Database.CreateAccount(new Server.Database.Models.CreateAccountDTO()
+                                        await MediusClass.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                                         {
                                             AccountName = accountLoginRequest.Username,
-                                            AccountPassword = Utils.ComputeSHA256(accountLoginRequest.Password),
+                                            AccountPassword = Misc.ComputeSHA256(accountLoginRequest.Password),
                                             MachineId = data.MachineId,
                                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                             AppId = data.ClientObject.ApplicationId
@@ -1398,7 +1346,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountUpdatePasswordRequest} without being logged in.");
 
                         // Post New Password to Database
-                        _ = MediusClass.Database.PostAccountUpdatePassword(data.ClientObject.AccountId, accountUpdatePasswordRequest.OldPassword, accountUpdatePasswordRequest.NewPassword).ContinueWith((r) =>
+                        await MediusClass.Database.PostAccountUpdatePassword(data.ClientObject.AccountId, accountUpdatePasswordRequest.OldPassword, accountUpdatePasswordRequest.NewPassword).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1459,7 +1407,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         if (!data.ClientObject.IsLoggedIn)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountUpdateStatsRequest} without being logged in.");
 
-                        _ = MediusClass.Database.PostMediusStats(data.ClientObject.AccountId, Convert.ToBase64String(accountUpdateStatsRequest.Stats)).ContinueWith((r) =>
+                        await MediusClass.Database.PostMediusStats(data.ClientObject.AccountId, Convert.ToBase64String(accountUpdateStatsRequest.Stats)).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1501,11 +1449,10 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {   //Check if their MacBanned
-                            _ = MediusClass.Database.GetIsMacBanned(data.MachineId).ContinueWith((r) =>
+                            await MediusClass.Database.GetIsMacBanned(data.MachineId).ContinueWith((r) =>
                             {
                                 if (r.IsCompletedSuccessfully && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                 {
-
                                     #region isBanned?
                                     ServerConfiguration.LogInfo($"Is Connected User MAC Banned: {r.Result}");
 
@@ -1589,7 +1536,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                                             ServerConfiguration.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
 
-                                            _ = MediusClass.Database.CreateAccount(new Server.Database.Models.CreateAccountDTO()
+                                            await MediusClass.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                                             {
                                                 AccountName = ticketLoginRequest.UserOnlineId,
                                                 AccountPassword = "UNSET",
@@ -1601,9 +1548,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                                 ServerConfiguration.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
 
                                                 if (r.IsCompletedSuccessfully && r.Result != null)
-                                                {
                                                     await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
-                                                }
                                                 else
                                                 {
                                                     // Reply error
@@ -1648,7 +1593,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             Request = getAllAnnouncementsRequest
                         });
 
-                        _ = MediusClass.Database.GetLatestAnnouncements(data.ApplicationId).ContinueWith((r) =>
+                        await MediusClass.Database.GetLatestAnnouncements(data.ApplicationId).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1695,7 +1640,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                             Request = getAnnouncementsRequest
                         });
 
-                        _ = MediusClass.Database.GetLatestAnnouncement(data.ApplicationId).ContinueWith((r) =>
+                        await MediusClass.Database.GetLatestAnnouncement(data.ApplicationId).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1739,7 +1684,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         {
                             case MediusPolicyType.Privacy:
                                 {
-                                    _ = MediusClass.Database.GetPolicy((int)MediusPolicyType.Privacy, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                    await MediusClass.Database.GetPolicy((int)MediusPolicyType.Privacy, data.ClientObject.ApplicationId).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1760,7 +1705,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             case MediusPolicyType.Usage:
                                 {
-                                    _ = MediusClass.Database.GetPolicy((int)MediusPolicyType.Usage, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                    await MediusClass.Database.GetPolicy((int)MediusPolicyType.Usage, data.ClientObject.ApplicationId).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1802,7 +1747,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         {
                             case MediusLadderType.MediusLadderTypePlayer:
                                 {
-                                    _ = MediusClass.Database.GetAccountById(getLadderStatsRequest.AccountID_or_ClanID).ContinueWith((r) =>
+                                    await MediusClass.Database.GetAccountById(getLadderStatsRequest.AccountID_or_ClanID).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1829,7 +1774,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             case MediusLadderType.MediusLadderTypeClan:
                                 {
-                                    _ = MediusClass.Database.GetClanById(getLadderStatsRequest.AccountID_or_ClanID,
+                                    await MediusClass.Database.GetClanById(getLadderStatsRequest.AccountID_or_ClanID,
                                         data.ClientObject.ApplicationId)
                                     .ContinueWith((r) =>
                                     {
@@ -1858,7 +1803,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             default:
                                 {
-                                    Logger.Warn($"Unhandled MediusGetLadderStatsRequest {getLadderStatsRequest}");
+                                    ServerConfiguration.LogWarn($"Unhandled MediusGetLadderStatsRequest {getLadderStatsRequest}");
                                     break;
                                 }
                         }
@@ -1879,7 +1824,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                         {
                             case MediusLadderType.MediusLadderTypePlayer:
                                 {
-                                    _ = MediusClass.Database.GetAccountById(getLadderStatsWideRequest.AccountID_or_ClanID).ContinueWith((r) =>
+                                    await MediusClass.Database.GetAccountById(getLadderStatsWideRequest.AccountID_or_ClanID).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1907,7 +1852,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             case MediusLadderType.MediusLadderTypeClan:
                                 {
-                                    _ = MediusClass.Database.GetClanById(getLadderStatsWideRequest.AccountID_or_ClanID,
+                                    await MediusClass.Database.GetClanById(getLadderStatsWideRequest.AccountID_or_ClanID,
                                         data.ClientObject.ApplicationId)
                                     .ContinueWith((r) =>
                                     {
@@ -1937,7 +1882,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             default:
                                 {
-                                    Logger.Warn($"Unhandled MediusGetLadderStatsWideRequest {getLadderStatsWideRequest}");
+                                    ServerConfiguration.LogWarn($"Unhandled MediusGetLadderStatsWideRequest {getLadderStatsWideRequest}");
                                     break;
                                 }
                         }
@@ -2117,7 +2062,7 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                         var time = DateTime.Now;
 
-                        _ = GetTimeZone(time).ContinueWith((r) =>
+                        await GetTimeZone(time).ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully)
                             {
@@ -2234,14 +2179,14 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
 
                 default:
                     {
-                        Logger.Warn($"Unhandled Medius Message: {message}");
+                        ServerConfiguration.LogWarn($"Unhandled Medius Message: {message}");
                         break;
                     }
             }
         }
 
         #region Login
-        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, Server.Database.Models.AccountDTO accountDto, bool ticket)
+        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, LIBRARY.Database.Models.AccountDTO accountDto, bool ticket)
         {
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
@@ -2251,9 +2196,9 @@ namespace PSMultiServer.Addons.Horizon.MEDIUS.Medius
             await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID
-            _ = MediusClass.Database.PostAccountIp(accountDto.AccountId, (clientChannel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString());
+            await MediusClass.Database.PostAccountIp(accountDto.AccountId, (clientChannel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString());
             if (!string.IsNullOrEmpty(data.MachineId))
-                _ = MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+                await MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
             #endregion
 
             // Add to logged in clients

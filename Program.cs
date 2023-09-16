@@ -1,29 +1,34 @@
-﻿using PSMultiServer.Addons.Horizon.Server.Common.Logging;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using NReco.Logging.File;
+using MultiServer.HTTPService;
+using MultiServer.PluginManager;
+using MultiServer.Addons.Horizon.DME;
+using MultiServer.Addons.Horizon.MEDIUS;
+using MultiServer.Addons.Horizon.MUIS;
+using Newtonsoft.Json;
 
-namespace PSMultiServer
+namespace MultiServer
 {
     public static class ServerConfiguration
     {
-		public static string CLIENT_ID { get; set; } = null;
-        public static string CLIENT_SECRET { get; set; } = null;
-        public static string REFRESH_TOKEN { get; set; } = null;
+#nullable enable
+        public static string ConsoleMode { get; set; } = "";
+        public static string PluginsFolder { get; set; } = "/static/plugins/";
         public static string PHPVersion { get; set; } = "8.25";
         public static string PHPStaticFolder { get; set; } = "/static/PHP/";
         public static bool PHPDebugErrors { get; set; } = false;
-		public static string DNSConfig { get; set; } = "static/routes.txt";
+		public static string DNSConfig { get; set; } = "/static/routes.txt";
         public static string DNSOnlineConfig { get; set; } = "";
         public static int DNSPort { get; set; } = 53;
         public static string? SSFWPrivateKey { get; set; }
         public static bool SSFWCrossSave { get; set; } = true;
         public static string? SSFWStaticFolder { get; set; } = "/static/wwwssfwroot/";
         public static string? HTTPPrivateKey { get; set; }
-		public static bool HTTPS { get; set; } = false;
-        public static string? HTTPSBindIp { get; set; }
         public static int HTTPPort { get; set; } = 80;
         public static string? HTTPStaticFolder { get; set; } = "/static/wwwroot/";
+        public static string? HomeToolsHelperStaticFolder { get; set; } = "/static/XmlHelper/";
         public static string SSFWMinibase { get; set; } = "[]";
         public static string VersionBetaHDK { get; set; } = "01.60";
         public static string VersionRetail { get; set; } = "01.83";
@@ -42,44 +47,100 @@ namespace PSMultiServer
             "</SVML>";
 		public static bool EnableDNSServer { get; set; } = true;
         public static bool EnableHttpServer { get; set; } = true;
+        public static bool EnableHomeTools { get; set; } = true;
+        public static bool EnableHttpsServer { get; set; } = true;
+        public static bool EnableUpscale { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
         public static bool MediusDebugLogs { get; set; } = false;
         public static bool EnableSVO { get; set; } = true;
-        public static string? SVODatabaseConfig { get; set; } = "static/db.config.json";
+        public static string? DMEConfig { get; set; } = "/static/medius.json";
+        public static string? MEDIUSConfig { get; set; } = "/static/muis.json";
+        public static string? MUISConfig { get; set; } = "/static/muis.json";
+        public static string? DatabaseConfig { get; set; } = "static/medius.db.config.json";
         public static string? SVOStaticFolder { get; set; } = "/static/wwwsvoroot/";
-        public static int SVODBTickrate { get; set; } = 20;
 
+        public static IpsData? IpsData; // Global variable to store banned IPs
+#nullable disable
         public static ILogger Logger { get; set; }
+
+        public static FileLoggerProvider _fileLogger = null;
 
         /// <summary>
         /// Instantiate the global logger.
         /// </summary>
-        public static void SetupLogger()
+        public static void SetupServer()
         {
-            using ILoggerFactory loggerFactory =
-                LoggerFactory.Create(builder =>
-                    builder.AddSimpleConsole(options => { options.SingleLine = true; }));
+            RefreshVariables($"{Directory.GetCurrentDirectory()}/static/config.json");
 
-            Logger = loggerFactory.CreateLogger(string.Empty);
+            if (ConsoleMode.ToLower() == "json")
+            {
+                var loggingOptions = new FileLoggerOptions()
+                {
+                    Append = false,
+                    FileSizeLimitBytes = 4096 * 4096 * 1,
+                    MaxRollingFiles = 100,
+                    FormatLogEntry = (msg) => {
+                        var sb = new System.Text.StringBuilder();
+                        StringWriter sw = new StringWriter(sb);
+                        var jsonWriter = new Newtonsoft.Json.JsonTextWriter(sw);
+                        jsonWriter.WriteStartArray();
+                        jsonWriter.WriteValue(DateTime.Now.ToString("o"));
+                        jsonWriter.WriteValue(msg.LogLevel.ToString());
+                        jsonWriter.WriteValue(msg.LogName);
+                        jsonWriter.WriteValue(msg.EventId.Id);
+                        jsonWriter.WriteValue(msg.Message);
+                        jsonWriter.WriteValue(msg.Exception?.ToString());
+                        jsonWriter.WriteEndArray();
+                        return sb.ToString();
+                    }
+                };
 
-            // Set LogSettings singleton
-            LogSettings.Singleton = GetLogs.Logging;
+                using ILoggerFactory loggerFactory =
+                    LoggerFactory.Create(builder =>
+                    {
+                        builder.AddJsonConsole();
 
-            // Update file logger min level
-            if (GetLogs._fileLogger != null)
-                GetLogs._fileLogger.MinLevel = GetLogs.Logging.LogLevel;
+                        builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + "/MultiServer_log.json", loggingOptions));
+                        _fileLogger.MinLevel = LogLevel.Information;
+                    });
 
-            GetLogs.StartPooling(); // We have so many threads racing to the end when starting medius server, we must do it as soon as possible.
+                Logger = loggerFactory.CreateLogger(string.Empty);
+            }
+            else
+            {
+                var loggingOptions = new FileLoggerOptions()
+                {
+                    Append = false,
+                    FileSizeLimitBytes = 2147483648, // 2 GB in bytes
+                    MaxRollingFiles = 100
+                };
+
+                using ILoggerFactory loggerFactory =
+                    LoggerFactory.Create(builder =>
+                    {
+                        if (ConsoleMode.ToLower() == "systemd")
+                            builder.AddSystemdConsole();
+                        else
+                            builder.AddSimpleConsole(options => { options.SingleLine = true; });
+
+                        builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + "/MultiServer.log", loggingOptions));
+                        _fileLogger.MinLevel = LogLevel.Information;
+                    });
+
+                Logger = loggerFactory.CreateLogger(string.Empty);
+            }
+
+            new Server().Start();
         }
 
-#nullable enable
+#pragma warning disable
         public static void LogInfo(string? message, params object[]? args) { Logger.LogInformation(message, args); }
         public static void LogWarn(string? message, params object[]? args) { Logger.LogWarning(message, args); }
         public static void LogError(string? message, params object[]? args) { Logger.LogError(message, args); }
         public static void LogError(Exception exception) { Logger.LogError(exception.ToString()); }
         public static void LogDebug(string? message, params object[]? args) { Logger.LogDebug(message, args); }
-#nullable disable
+#pragma warning restore
 
         /// <summary>
         /// Tries to load the specified configuration file.
@@ -87,7 +148,7 @@ namespace PSMultiServer
         /// </summary>
         /// <param name="configPath"></param>
         /// <exception cref="FileNotFoundException"></exception>
-        public static void Initialize(string configPath)
+        public static void RefreshVariables(string configPath)
         {
             // Make sure the file exists
             if (!File.Exists(configPath))
@@ -98,13 +159,23 @@ namespace PSMultiServer
 
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
-			
-			CLIENT_ID = config.youtube.client_id;
-            CLIENT_SECRET = config.youtube.client_secret;
-            REFRESH_TOKEN = config.youtube.refresh_token;
+
+            ConsoleMode = config.logging_mode;
+
+            PluginsFolder = config.plugins_folder;
 
             PHPVersion = config.php.version;
-            PHPStaticFolder = config.php.static_folder;
+
+            if (Misc.IsWindows())
+            {
+                if (Environment.Is64BitOperatingSystem)
+                    PHPStaticFolder = config.php.static_folder + "Windows_x64/";
+                else
+                    PHPStaticFolder = config.php.static_folder + "Windows/";
+            }
+            else
+                PHPStaticFolder = config.php.static_folder;
+
             PHPDebugErrors = config.php.debug_errors;
 			
 			EnableDNSServer = config.dns.enabled;
@@ -119,22 +190,27 @@ namespace PSMultiServer
             SSFWStaticFolder = config.ssfw.static_folder;
 
             EnableHttpServer = config.http.enabled;
+            EnableHttpsServer = config.http.https.enabled;
+            EnableHomeTools = config.http.home_tools;
+            EnableUpscale = config.http.upscale;
             HTTPPrivateKey = config.http.private_key;
-			HTTPS = config.http.https.enabled;
-            HTTPSBindIp = config.http.https.bind_ip;
             HTTPStaticFolder = config.http.static_folder;
+            HomeToolsHelperStaticFolder = config.http.hometools_helper_static_folder;
             HTTPPort = config.http.port;
-
+			
             EnableMedius = config.medius.enabled;
+            DMEConfig = config.medius.dme_config;
+            MEDIUSConfig = config.medius.medius_config;
+            MUISConfig = config.medius.muis_config;
             MediusDebugLogs = config.medius.debug_log;
+
+            DatabaseConfig = config.medius_database.database_config;
 
             VersionBetaHDK = config.home.beta_version;
             VersionRetail = config.home.retail_version;
 
             EnableSVO = config.svo.enabled;
-            SVODatabaseConfig = config.svo.database_config;
             SVOStaticFolder = config.svo.static_folder;
-            SVODBTickrate = config.svo.db_tick_rate;
 
             // Look for the MOTD xml file.
             string motd_file = config.home.motd_file;
@@ -143,121 +219,122 @@ namespace PSMultiServer
 
             MOTD = File.ReadAllText(motd_file);
 
-            new Server().Start();
+            LoadIPs();
         }
+
+        private static void LoadIPs()
+        {
+            try
+            {
+                IpsData = JsonConvert.DeserializeObject<IpsData>(File.ReadAllText($"{Directory.GetCurrentDirectory()}/static/config.json"));
+            }
+            catch (Exception ex)
+            {
+                LogError($"Error loading IPs: {ex}");
+            }
+        }
+
+        public static bool IsIPBanned(string ipAddress)
+        {
+            return IpsData?.BannedIPs.Contains(ipAddress) ?? false;
+        }
+
+        public static bool IsIPAllowed(string ipAddress)
+        {
+            return IpsData?.HomeToolsAllowedIPs.Contains(ipAddress) ?? false;
+        }
+
+        public static Task RefreshConfig()
+        {
+            while (true)
+            {
+                // Sleep for 5 minutes (300,000 milliseconds)
+                Thread.Sleep(5 * 60 * 1000);
+
+                // Your task logic goes here
+                LogInfo("Config Refresh at - " + DateTime.Now);
+
+                RefreshVariables($"{Directory.GetCurrentDirectory()}/static/config.json");
+            }
+        }
+    }
+
+    public class IpsData
+    {
+        public List<string> BannedIPs { get; set; }
+        public List<string> HomeToolsAllowedIPs { get; set; }
     }
 
     public class Server
     {
-        public void Start()
+        public static string pluginspath = Directory.GetCurrentDirectory() + ServerConfiguration.PluginsFolder;
+
+        public static List<IPlugin> plugins = PluginLoader.LoadPluginsFromFolder(pluginspath);
+
+        public Task HorizonStarter()
         {
-            string currentDir = Directory.GetCurrentDirectory();
-			
-			if (ServerConfiguration.EnableDNSServer)
+            if (ServerConfiguration.EnableMedius)
             {
-                MitmDNS.MitmDNSClass.MitmDNSMain();
+                MediusClass.MediusMain();
+                MuisClass.MuisMain();
+                DmeClass.DmeMain();
             }
+
+            return Task.CompletedTask;
+        }
+
+        public Task ServerStarter()
+        {
+            if (ServerConfiguration.EnableDNSServer)
+                MitmDNS.MitmDNSClass.MitmDNSMain();
+
+            string currentDir = Directory.GetCurrentDirectory();
+
+            if (ServerConfiguration.EnableHttpsServer && File.Exists(currentDir + "/static/RootCA.pfx"))
+                Task.Run(async () => await HTTPService.LowLevelEngine.HTTPSClass.StartHTTPSServer(443));
+
+            if (Misc.IsWindows())
+                if (!Misc.IsAdministrator())
+                    return Task.CompletedTask;
 
             if (ServerConfiguration.EnableHttpServer)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
-
-                PoodleHTTP.HTTPPrivateKey.setup();
-
-                PoodleHTTP.Addons.PlayStationHome.PrepareFolder.Prepare();
-
-                if (ServerConfiguration.HTTPS)
-                {
-                    if (!File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/RootCA.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/RootCA.pfx") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/RootCA.key")
-                        || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/net.cer") || !File.Exists(Directory.GetCurrentDirectory() + "/static/SSL/com.cer"))
-                    {
-                        PoodleHTTP.HTTPSCertificateGenerator.MakeSelfSignedCert(Directory.GetCurrentDirectory() + "/static/SSL", PoodleHTTP.HTTPSCertificateGenerator.DefaultCASubject, System.Security.Cryptography.HashAlgorithmName.SHA256);
-
-                        ServerConfiguration.LogWarn("[HTTPS] - Certificate has been generated, make sure to bind it to the correct ip/port bind interface!");
-                    }
-
-                    var server = new PoodleHTTP.Server(ServerConfiguration.HTTPSBindIp, 443);
-
-                    server
-                        .Use(PoodleHTTP.Middlewares.Log)
-                        .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", null));
-
-                    server.Start();
-                }
-                else
-                {
-                    var server = new PoodleHTTP.Server("*", ServerConfiguration.HTTPPort);
-
-                    server
-                        .Use(PoodleHTTP.Middlewares.Log)
-                        .Use(PoodleHTTP.Middlewares.Execute)
-                        .Use(PoodleHTTP.Middlewares.StaticRoot("/", null));
-
-                    server.Start();
-                }
-
-                var serverhomebetacdn = new PoodleHTTP.Server("*", 10010);
-
-                serverhomebetacdn
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Middlewares.StaticRoot("/", null));
-
-                serverhomebetacdn.Start();
+                Task.Run(async () => await HTTPClass.HTTPstart(ServerConfiguration.HTTPPort));
             }
 
             if (ServerConfiguration.EnableSSFW)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.SSFWStaticFolder}");
-
-                PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
-
-                var server = new PoodleHTTP.Server("*", 10443);
-
-                server
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Addons.PlayStationHome.SSFW.SSFWClass.StaticSSFWRoot("/", "PSHome"));
-
-                server.Start();
+                Task.Run(HTTPService.Addons.PlayStationHome.SSFW.SSFWClass.SSFWstart);
             }
 
             if (ServerConfiguration.EnableSVO)
             {
-                PoodleHTTP.Addons.SVO.PrepareFolder.Prepare();
+                HTTPService.Addons.SVO.SVOClass.setupdatabase();
 
-                PoodleHTTP.Addons.SVO.SVOClass.setupdatabase();
-
-                var server = new PoodleHTTP.Server("*", 10060);
-
-                server
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
-
-                server.Start();
-
-                var server2 = new PoodleHTTP.Server("*", 10061);
-
-                server2
-                    .Use(PoodleHTTP.Middlewares.Log)
-                    .Use(PoodleHTTP.Middlewares.Execute)
-                    .Use(PoodleHTTP.Addons.SVO.SVOClass.StaticSVORoot("/", null));
-
-                server2.Start();
-
-                Task.Run(PoodleHTTP.Addons.SVO.SVOClass.StartTickPooling);
+                if (File.Exists(currentDir + "/static/RootCA.pfx"))
+                    Parallel.Invoke(
+                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(),
+                       async () => await HTTPService.Addons.SVO.SVOHTTPSClass.StartSVOHTTPSServer(),
+                       async () => await HTTPService.Addons.SVO.SVOClass.StartTickPooling()
+                    );
+                else
+                    Parallel.Invoke(
+                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(),
+                       async () => await HTTPService.Addons.SVO.SVOClass.StartTickPooling()
+                    );
             }
 
-            if (ServerConfiguration.EnableMedius)
-            {
-                Addons.Horizon.MUIS.MuisClass.MuisMain();
-                Addons.Horizon.MEDIUS.MediusClass.MediusMain();
-                Addons.Horizon.DME.DmeClass.DmeMain();
-            }
+            return Task.CompletedTask;
+        }
 
-            return;
+        public void Start()
+        {
+            Parallel.Invoke(
+                   async () => await ServerStarter(),
+                   async () => await HorizonStarter()
+               );
         }
     }
 
@@ -276,22 +353,19 @@ namespace PSMultiServer
                         Environment.Exit(0);
                 }
 
-            ServerConfiguration.SetupLogger();
-
             try
             {
-                string currentDir = Directory.GetCurrentDirectory();
-                ServerConfiguration.LogInfo($"[PSMultiServer] - Current working directory: {currentDir}");
+                Console.WriteLine($"Current working directory: {Directory.GetCurrentDirectory()}");
 
-                ServerConfiguration.Initialize($"{currentDir}/static/config.json");
+                ServerConfiguration.SetupServer();
 
-                ServerConfiguration.LogInfo("[PSMultiServer] - Guid : {1E2D1A3C-6165-406C-BC69-0F64CA319EF7}");
+                _ = Task.Run(ServerConfiguration.RefreshConfig);
 
                 if (Misc.IsWindows())
                 {
                     while (true)
                     {
-                        Console.WriteLine("\nPress any key to shutdown the server. . .");
+                        ServerConfiguration.LogInfo("Press any key to shutdown the server. . .");
 
                         Console.ReadLine();
 
@@ -307,22 +381,20 @@ namespace PSMultiServer
                 }
                 else
                 {
-                    Console.WriteLine("\nConsole Inputs are locked while server is running. . .");
+                    ServerConfiguration.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-                    while (true) // Linux is amazing, it bugs out when trying to ReadLine()...
-                    {
-                        
-                    }
+                    Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
                 }
             }
             catch (Exception ex)
             {
-                // Handle any errors.
-                ServerConfiguration.LogError(ex);
+                // Handle any errors using writeline,
+                // as the server init can also fail, thus, causing our logger to be null.
+                Console.WriteLine($"\n{ex}");
 
                 if (Misc.IsWindows())
                 {
-                    Console.WriteLine("\nPress any key to shutdown the server. . .");
+                    Console.WriteLine("\nA Fatal Error occured, press any key to shutdown the server. . .");
 
                     Console.ReadLine();
                 }
