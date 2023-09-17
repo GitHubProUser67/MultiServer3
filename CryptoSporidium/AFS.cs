@@ -30,7 +30,7 @@ namespace MultiServer.CryptoSporidium
             }
         }
 
-        public static byte[] InitiateLUACryptoContext(byte[] Headerdata, byte[] SignatureIV)
+        public static byte[] DecryptLUASHA1Header(byte[] Headerdata, byte[] SignatureIV)
         {
             if (SignatureIV != null && SignatureIV.Length == 8 && Headerdata.Length == 24)
             {
@@ -59,8 +59,7 @@ namespace MultiServer.CryptoSporidium
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
 
-                // We set this to true because for some ... reasons, the decrypt mode doesn't want to apply padding.
-                cipher.Init(true, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), SHA1IV)); // Doesn't matter in that case, since CTR is a bi-directional crypto.
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), SHA1IV)); // Doesn't matter in that case, since CTR is a bi-directional crypto.
 
                 // Encrypt the plaintext
                 byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
@@ -77,9 +76,6 @@ namespace MultiServer.CryptoSporidium
 
         public static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA)
         {
-            if (fileBytes.Length >= 4 && fileBytes[0] == 0xBE && fileBytes[1] == 0xE5 && fileBytes[2] == 0xBE && fileBytes[3] == 0xE5) // INF Magic header.
-                return fileBytes;
-
             StringBuilder hexStr = new StringBuilder();
 
             if (IVA != null && IVA.Length >= 8)
@@ -354,12 +350,17 @@ namespace MultiServer.CryptoSporidium
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, XTEA Proxy and INF files.
         {
-            byte[] destinationArray = new byte[fileBytes.Length - 4]; // New array size after removing 4 elements
+            if (fileBytes[0] == 0x00 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x01)
+            {
+                byte[] destinationArray = new byte[fileBytes.Length - 4]; // New array size after removing 4 elements
 
-            // Copy the portion of the source array starting from index 4 to the destination array
-            Array.Copy(fileBytes, 4, destinationArray, 0, destinationArray.Length);
+                // Copy the portion of the source array starting from index 4 to the destination array
+                Array.Copy(fileBytes, 4, destinationArray, 0, destinationArray.Length);
 
-            return destinationArray;
+                return destinationArray;
+            }
+            else
+                return fileBytes;
         }
     }
 }
