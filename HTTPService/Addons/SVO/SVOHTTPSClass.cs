@@ -101,9 +101,10 @@ namespace MultiServer.HTTPService.Addons.SVO
         {
             try
             {
+#pragma warning disable
                 // Create and prepare a new SSL server context
-                var context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/RootCA.pfx", "qwerty"));
-
+                var context = new SslContext(SslProtocols.Ssl3, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/RootCA.pfx", "qwerty"));
+#pragma warning restore
                 // Create a new HTTP server
                 server = new HttpsCacheServer(context, IPAddress.Any, 10061);
                 server.OptionDualMode = true;
