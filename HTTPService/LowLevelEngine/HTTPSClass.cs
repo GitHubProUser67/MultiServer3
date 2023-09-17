@@ -103,7 +103,7 @@ namespace MultiServer.HTTPService.LowLevelEngine
             try
             {
                 // Create and prepare a new SSL server context
-                var context = new SslContext(SslProtocols.Tls13, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/RootCA.pfx", "qwerty"));
+                var context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/RootCA.pfx", "qwerty"));
 
                 // Create a new HTTP server
                 server = new HttpsCacheServer(context, IPAddress.Any, port);
