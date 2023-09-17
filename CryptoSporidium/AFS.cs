@@ -30,7 +30,7 @@ namespace MultiServer.CryptoSporidium
             }
         }
 
-        public static byte[] DecryptLUASHA1Header(byte[] Headerdata, byte[] SignatureIV)
+        public static byte[] EncryptionProxyInit(byte[] Headerdata, byte[] SignatureIV)
         {
             if (SignatureIV != null && SignatureIV.Length == 8 && Headerdata.Length == 24)
             {
@@ -52,7 +52,7 @@ namespace MultiServer.CryptoSporidium
             return null;
         }
 
-        public static byte[] Encrypt_DecryptCDSContent(byte[] FileBytes, byte[] SHA1IV)
+        public static byte[] Crypt_DecryptCDSContent(byte[] FileBytes, byte[] SHA1IV)
         {
             if (FileBytes != null && SHA1IV != null && SHA1IV.Length == 8)
             {

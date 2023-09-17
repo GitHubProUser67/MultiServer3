@@ -99,7 +99,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
                  Path.GetFileName(path)
             });
 
-            if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01)
+            if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && tableOfContent.Compression == CompressionMethod.Encrypted)
             {
                 if (File.Exists(outDir + "/timestamp.txt"))
                 {
@@ -133,7 +133,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
                         // Copy the first 24 bytes from the source array to the destination array
                         Array.Copy(data, 0, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
 
-                        byte[] SHA1DATA = AFSBLOWFISH.DecryptLUASHA1Header(EncryptedHeaderSHA1, byteSignatureIV);
+                        byte[] SHA1DATA = AFSBLOWFISH.EncryptionProxyInit(EncryptedHeaderSHA1, byteSignatureIV);
 
                         if (SHA1DATA != null)
                         {
@@ -151,7 +151,8 @@ namespace MultiServer.CryptoSporidium.UnBAR
                             {
                                 ServerConfiguration.LogInfo("[RunUnBAR] - Lua file has not been tempered with.");
 
-                                // Todo, something related to compression is happening after.
+                                // Todo, something related to encryption is happening after.
+                                // It seems it want the default key and a default context size then decrypt file bytes with this.
 
                                 //byte[] buffer = CompressionFactory.Decompress(newFileBytes, CompressionMethod.EdgeZLib, ArchiveFlags.Bar_Flag_ZTOC); // Not good!
                             }
