@@ -339,7 +339,7 @@ namespace MultiServer
             Directory.CreateDirectory(currentDir + "/static/SSL");
 
             if (!File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
-                CertificateUtils.CreateSelfSignedCert(currentDir + "/static/SSL/MultiServer.pfx", "secure.cprod.homeps3.online.scee.com");
+                CertificateUtils.CreateHomeCertificatesFile(CertificateUtils.CreateSelfSignedCert(currentDir + "/static/SSL/MultiServer.pfx", "secure.cprod.homeps3.online.scee.com"), currentDir + "/static/CERTIFICATES.TXT");
 
             if (!File.Exists(currentDir + "/static/SSL/SVO.pfx"))
                 CertificateUtils.CreateLegacySelfSignedCert(currentDir + "/static/SSL/SVO.pfx", "root.com");

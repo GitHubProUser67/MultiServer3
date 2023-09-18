@@ -14,7 +14,7 @@ namespace MultiServer.HTTPService
         public const string PUBLIC_KEY_HEADER = "-----BEGIN RSA PUBLIC KEY-----\n";
         public const string PUBLIC_KEY_FOOTER = "\n-----END RSA PUBLIC KEY-----";
 
-        public static void CreateSelfSignedCert(string PfxFileName, string CN)
+        public static string CreateSelfSignedCert(string PfxFileName, string CN)
         {
             // Generate a new RSA key pair
             using (RSA rsa = RSA.Create())
@@ -69,6 +69,8 @@ namespace MultiServer.HTTPService
                 CSRPemWriter.WriteObject(x509cert);
                 CSRPemWriter.Writer.Flush();
                 File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}.pem", CertPem.ToString());
+
+                return CertPem.ToString();
             }
         }
 
@@ -141,6 +143,52 @@ namespace MultiServer.HTTPService
             X509CertificateEntry certEntry = store.GetCertificate(alias);
             MultiServer.Addons.Org.BouncyCastle.X509.X509Certificate x509cert = certEntry.Certificate;
             return x509cert;
+        }
+
+        public static void CreateHomeCertificatesFile(string pemSubject, string FileName)
+        {
+            File.WriteAllText(FileName, pemSubject + "-----BEGIN CERTIFICATE-----\r\n" +
+                    "MIIDnjCCAwegAwIBAgIBADANBgkqhkiG9w0BAQQFADCBlzELMAkGA1UEBhMCVUsx\r\nEDAOBgNVBAgTB0VuZ2xhbmQxDzANBgNVBAcTBkxvbmRvbjENMAsGA1UEChMEU0NF\r\n" +
+                    "RTERMA8GA1UECxMIU0NFRSBNSVMxIjAgBgNVBAMTGUluZm9ybWF0aW9uIFNlY3Vy\r\naXR5IFRlYW0xHzAdBgkqhkiG9w0BCQEWEGluZm9zZWNAc2NlZS5uZXQwHhcNMDIw\r\n" +
+                    "OTE5MTIyMDA4WhcNMTIwOTE2MTIyMDA4WjCBlzELMAkGA1UEBhMCVUsxEDAOBgNV\r\nBAgTB0VuZ2xhbmQxDzANBgNVBAcTBkxvbmRvbjENMAsGA1UEChMEU0NFRTERMA8G\r\n" +
+                    "A1UECxMIU0NFRSBNSVMxIjAgBgNVBAMTGUluZm9ybWF0aW9uIFNlY3VyaXR5IFRl\r\nYW0xHzAdBgkqhkiG9w0BCQEWEGluZm9zZWNAc2NlZS5uZXQwgZ8wDQYJKoZIhvcN\r\n" +
+                    "AQEBBQADgY0AMIGJAoGBAND5EoLkymyFmIkFUAABGHAsxPaAKQ8x3vsfPQL52ABB\r\nwXm/Ri5Lt1hBkmz1VX69V7ICEh1auJeE7U5WXdcQEWrb7G6QjDGKrWM1OLUNZeuR\r\n" +
+                    "sOdKOKf+2PnxP//rgwJP1/Ak91n/cep20ZqYrIzdUWYHoitKDBgdd33JU5jDdmaV\r\nAgMBAAGjgfcwgfQwHQYDVR0OBBYEFM1w9QQ/Of65jHPpMwfQeji93yPgMIHEBgNV\r\n" +
+                    "HSMEgbwwgbmAFM1w9QQ/Of65jHPpMwfQeji93yPgoYGdpIGaMIGXMQswCQYDVQQG\r\nEwJVSzEQMA4GA1UECBMHRW5nbGFuZDEPMA0GA1UEBxMGTG9uZG9uMQ0wCwYDVQQK\r\n" +
+                    "EwRTQ0VFMREwDwYDVQQLEwhTQ0VFIE1JUzEiMCAGA1UEAxMZSW5mb3JtYXRpb24g\r\nU2VjdXJpdHkgVGVhbTEfMB0GCSqGSIb3DQEJARYQaW5mb3NlY0BzY2VlLm5ldIIB\r\n" +
+                    "ADAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBAUAA4GBAJ7Zb6RGXTy047tFBlcO\r\nS0n8dLfa2WWP19LSUycsaa1jOHxfTYl72SKa3YFsEEduFDo+Yn1qMab19JM8Hwad\r\n" +
+                    "yDxEwU8eepA9EgRM/O52sq4JHLnHtxo7cOoFBpp7Ce2fZXYr6s/SLYgBkE3c/qfr\r\nULtk73R6RoUIRBDu2LuCRy9V\r\n-----END CERTIFICATE-----\r\n" +
+                    "-----BEGIN CERTIFICATE-----\r\nMIIDOzCCAqSgAwIBAgIBADANBgkqhkiG9w0BAQUFADCBrDELMAkGA1UEBhMCR0Ix\r\nEDAOBgNVBAgTB0VuZ2xhbmQxMzAxBgNVBAoTKlNvbnkgQ29tcHV0ZXIgRW50ZXJ0\r\n" +
+                    "YWlubWVudCBFdXJvcGUgTGltaXRlZDEkMCIGA1UECxMbTWFuYWdlZCBJbmZvcm1h\r\ndGlvbiBTeXN0ZW1zMRMwEQYDVQQDEwpTQ0VFIENBIHYyMRswGQYJKoZIhvcNAQkB\r\n" +
+                    "FgxuaXNAc2NlZS5uZXQwHhcNMDkwNjI2MTQ1MDQwWhcNMjQwMjA4MTQ1MDQwWjCB\r\nrDELMAkGA1UEBhMCR0IxEDAOBgNVBAgTB0VuZ2xhbmQxMzAxBgNVBAoTKlNvbnkg\r\n" +
+                    "Q29tcHV0ZXIgRW50ZXJ0YWlubWVudCBFdXJvcGUgTGltaXRlZDEkMCIGA1UECxMb\r\nTWFuYWdlZCBJbmZvcm1hdGlvbiBTeXN0ZW1zMRMwEQYDVQQDEwpTQ0VFIENBIHYy\r\n" +
+                    "MRswGQYJKoZIhvcNAQkBFgxuaXNAc2NlZS5uZXQwgZ8wDQYJKoZIhvcNAQEBBQAD\r\ngY0AMIGJAoGBAM+Tq92BuFIf8xWI9aNIak+wtMzniaK1ROOjKbidnrh00grQAbv6\r\n" +
+                    "+Ah41J62bPjSSEejvhjpP9pUJSVz46uFI3YPAUTOFetL9id2KncQMPuvPg2hFwlM\r\nDvDHv12zjdMNmkGGkwX2rb+5o+cqwfuFP4Y6Zh0G0Ib4/k66Kv1CkmAJAgMBAAGj\r\n" +
+                    "azBpMAwGA1UdEwQFMAMBAf8wGQYJYIZIAYb4QgENBAwWClNDRUUgQ0EgdjIwHQYD\r\nVR0OBBYEFMm1nicPEPtfiCyICjYj1RPtfrNRMB8GA1UdIwQYMBaAFMm1nicPEPtf\r\n" +
+                    "iCyICjYj1RPtfrNRMA0GCSqGSIb3DQEBBQUAA4GBAH8l0wo7Nl9ydWUjX76UBch1\r\n5NChsZIJSbg4n55tY3Nf0XXTkRcmXeNnwhpqjpa41ajSxFot64rFe6Rf+GZxdfKj\r\n" +
+                    "giZN7QlzsOsyeAYGKazMrOoEghqVwXMHmIyahkR9dFtxxRFNXTyZD3dSqcIp1vI2\r\nmNnq2JyWx1Qg9ZQk5ZJa\r\n-----END CERTIFICATE-----\r\n-----BEGIN CERTIFICATE-----\r\n" +
+                    "MIIDujCCAqKgAwIBAgIUAQAAAAAAAAAAAAAAAAAAAAAAAAAwDQYJKoZIhvcNAQEF\r\nBQAwgZYxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTESMBAGA1UEBxMJU2FuIERp\r\n" +
+                    "ZWdvMTEwLwYDVQQKEyhTT05ZIENvbXB1dGVyIEVudGVydGFpbm1lbnQgQW1lcmlj\r\nYSBJbmMuMRQwEgYDVQQLEwtTQ0VSVCBHcm91cDEdMBsGA1UEAxMUU0NFUlQgUm9v\r\n" +
+                    "dCBBdXRob3JpdHkwHhcNMDUwMTAxMTIwMDAwWhcNMzQxMjMxMjM1OTU5WjCBljEL\r\nMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRIwEAYDVQQHEwlTYW4gRGllZ28xMTAv\r\n" +
+                    "BgNVBAoTKFNPTlkgQ29tcHV0ZXIgRW50ZXJ0YWlubWVudCBBbWVyaWNhIEluYy4x\r\nFDASBgNVBAsTC1NDRVJUIEdyb3VwMR0wGwYDVQQDExRTQ0VSVCBSb290IEF1dGhv\r\n" +
+                    "cml0eTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKc0nZ71kfvzujJ\r\nUeegRB6ZIK64dwY4HXm6b8q0i7YQWeCPT5uOPoQUC2gLtyUxn2vwhNWv4Zf/Dn/R\r\n" +
+                    "RSz7AbqD2KlcbwryIbQMBx6lOnG80baC0pCRFWCpxYRgrndxXYeotSceGD4t0+xc\r\nT7qaR4X+z8s2M3zfpLtXiCQ6L9Fqzy+ZV3mEokkO26nG5LicnwSiPGO7yrkHFZGn\r\n" +
+                    "x30oLv7rhTh18iUUgd0Wzp7t+39OkcUo2mJnG9yMEtphA0JW0/LFZTsuIGWy4H6P\r\nLl9fvX/+ZZzx2+cTeGym6y7bIxorRAr246payX2v0ZmNyzz/SD4XC/ui0QNzuL0r\r\n" +
+                    "joG48o0CAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAOgopH+NM7SJTvVDS90pS0vKY\r\nAgMNi0o5wp8VKAvqFusZULN/dz+gXSwfwydzCJteZfTw8Xs+iYIRgGqqAuTaV1xT\r\n" +
+                    "TGDaHYgCw1EUF4chNKtQ8PjFb7nOFJOGd25Aedr4W09g2sTAtz7htsED0703odZM\r\nFTk9g6Q1wrP/ZWRIYKHSXYMSwssmMpgMeb7v0z7tgqizbppnu9BC/BcaST2yliLO\r\n" +
+                    "rrlrBCNoL34oHSz9Wd9JexamZ4JQkiU8ViIyRfaey9/qGZRdVv/sJkxFv4zqGk/t\r\niRmeyTsNzoS+i+Fk3qbajbJcAd3TesHckyWcODi46+jf4VZxqIZLNXRqvJmanw==\r\n-" +
+                    "----END CERTIFICATE-----\r\n-----BEGIN CERTIFICATE-----\r\nMIIEKjCCAxKgAwIBAgIEOGPe+DANBgkqhkiG9w0BAQUFADCBtDEUMBIGA1UEChML\r\n" +
+                    "RW50cnVzdC5uZXQxQDA+BgNVBAsUN3d3dy5lbnRydXN0Lm5ldC9DUFNfMjA0OCBp\r\nbmNvcnAuIGJ5IHJlZi4gKGxpbWl0cyBsaWFiLikxJTAjBgNVBAsTHChjKSAxOTk5\r\n" +
+                    "IEVudHJ1c3QubmV0IExpbWl0ZWQxMzAxBgNVBAMTKkVudHJ1c3QubmV0IENlcnRp\r\nZmljYXRpb24gQXV0aG9yaXR5ICgyMDQ4KTAeFw05OTEyMjQxNzUwNTFaFw0yOTA3\r\n" +
+                    "MjQxNDE1MTJaMIG0MRQwEgYDVQQKEwtFbnRydXN0Lm5ldDFAMD4GA1UECxQ3d3d3\r\nLmVudHJ1c3QubmV0L0NQU18yMDQ4IGluY29ycC4gYnkgcmVmLiAobGltaXRzIGxp\r\n" +
+                    "YWIuKTElMCMGA1UECxMcKGMpIDE5OTkgRW50cnVzdC5uZXQgTGltaXRlZDEzMDEG\r\nA1UEAxMqRW50cnVzdC5uZXQgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkgKDIwNDgp\r\n" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArU1LqRKGsuqjIAcVFmQq\r\nK0vRvwtKTY7tgHalZ7d4QMBzQshowNtTK91euHaYNZOLGp18EzoOH1u3Hs/lJBQe\r\n" +
+                    "sYGpjX24zGtLA/ECDNyrpUAkAH90lKGdCCmziAv1h3edVc3kw37XamSrhRSGlVuX\r\nMlBvPci6Zgzj/L24ScF2iUkZ/cCovYmjZy/Gn7xxGWC4LeksyZB2ZnuU4q941mVT\r\n" +
+                    "XTzWnLLPKQP5L6RQstRIzgUyVYr9smRMDuSYB3Xbf9+5CFVghTAp+XtIpGmG4zU/\r\nHoZdenoVve8AjhUiVBcAkCaTvA5JaJG/+EfTnZVCwQ5N328mz8MYIWJmQ3DW1cAH\r\n" +
+                    "4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNV\r\nHQ4EFgQUVeSB0RGAvtiJuQijMfmhJAkWuXAwDQYJKoZIhvcNAQEFBQADggEBADub\r\n" +
+                    "j1abMOdTmXx6eadNl9cZlZD7Bh/KM3xGY4+WZiT6QBshJ8rmcnPyT/4xmf3IDExo\r\nU8aAghOY+rat2l098c5u9hURlIIM7j+VrxGrD9cv3h8Dj1csHsm7mhpElesYT6Yf\r\n" +
+                    "zX1XEC+bBAlahLVu2B064dae0Wx5XnkcFMXj0EyTO2U87d89vqbllRrDtRnDvV5b\r\nu/8j72gZyxKTJ1wDLW8w0B62GqzeWvfRqqgnpv55gcR5mTNXuhKwqeBCbJPKVt7+\r\n" +
+                    "bYQLCIt+jerXmCHG8+c8eS9enNFMFY3h7CI3zJpDC5fcgJCNs2ebb0gIFVbPv/Er\r\nfF6adulZkMV8gzURZVE=\r\n-----END CERTIFICATE-----"); // For PSHome clients.
         }
     }
 
