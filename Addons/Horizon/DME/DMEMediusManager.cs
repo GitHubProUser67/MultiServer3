@@ -201,16 +201,19 @@ namespace MultiServer.Addons.Horizon.DME
             return true;
         }
 
-        public async Task HandleOutgoingMessages()
+        public async Task<bool> HandleOutgoingMessages()
         {
             if (_mpsChannel == null)
-                return;
+                return false;
 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
 
             if (_mpsState == MPSConnectionState.FAILED ||
                 (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
-                ServerConfiguration.LogError("Failed to authenticate with the MPS server.");
+            {
+                ServerConfiguration.LogError("[DME Medius Manager] - HandleIncomingMessages() - Failed to authenticate with the MPS server, aborting listener...");
+                return false;
+            }
 
             try
             {
@@ -236,6 +239,8 @@ namespace MultiServer.Addons.Horizon.DME
             {
                 ServerConfiguration.LogError(e);
             }
+
+            return true;
         }
 
         private async Task ConnectMPS()
