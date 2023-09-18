@@ -93,17 +93,27 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
         public ScertTcpFrameDecoder(ByteOrder byteOrderLocal, int maxFrameLengthLocal, int lengthFieldOffsetLocal, int lengthFieldLengthLocal, int lengthAdjustmentLocal, int initialBytesToStripLocal, bool failFastLocal)
         {
             if (maxFrameLengthLocal <= 0)
+            {
                 ServerConfiguration.LogError(nameof(maxFrameLengthLocal), "maxFrameLength must be a positive integer: " + maxFrameLengthLocal);
+                return;
+            }
             if (lengthFieldOffsetLocal < 0)
+            {
                 ServerConfiguration.LogError(nameof(lengthFieldOffsetLocal), "lengthFieldOffset must be a non-negative integer: " + lengthFieldOffsetLocal);
+                return;
+            }
             if (initialBytesToStripLocal < 0)
+            {
                 ServerConfiguration.LogError(nameof(initialBytesToStripLocal), "initialBytesToStrip must be a non-negative integer: " + initialBytesToStripLocal);
+                return;
+            }
             if (lengthFieldOffsetLocal > maxFrameLengthLocal - lengthFieldLengthLocal)
             {
                 ServerConfiguration.LogError(nameof(maxFrameLengthLocal), "maxFrameLength (" + maxFrameLengthLocal + ") " +
                     "must be equal to or greater than " +
                     "lengthFieldOffset (" + lengthFieldOffsetLocal + ") + " +
                     "lengthFieldLength (" + lengthFieldLengthLocal + ").");
+                return;
             }
 
             byteOrder = byteOrderLocal;
