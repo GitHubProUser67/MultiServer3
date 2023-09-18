@@ -10,7 +10,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
 
         public IChannelGroup Group = null;
 
-
         public Action<IChannel> OnChannelActive;
         public Action<IChannel> OnChannelInactive;
         public Action<IChannel, BaseScertMessage> OnChannelMessage;
@@ -32,7 +31,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
             // Detect when client disconnects
             ctx.Channel.CloseCompletion.ContinueWith((x) =>
             {
-                ServerConfiguration.LogWarn("Channel Closed");
+                ServerConfiguration.LogWarn("[TCP] - Channel Closed");
                 g?.Remove(ctx.Channel);
                 OnChannelInactive?.Invoke(ctx.Channel);
             });
@@ -50,7 +49,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
         {
             IChannelGroup g = Group;
 
-            ServerConfiguration.LogWarn("Client disconnected");
+            ServerConfiguration.LogWarn("[TCP] - Client disconnected");
 
             // Remove
             g?.Remove(ctx.Channel);

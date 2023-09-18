@@ -15,6 +15,6 @@ namespace MultiServer.CryptoSporidium.ChannelID
 
     public SceneKey SceneKey => m_SceneKey;
 
-    public override string Message => string.Format("Scene ID {0} is not a valid Home developer scene ID", (object) m_SceneID);
+    public override string Message => string.Format("Scene ID {0} is not a valid Home scene ID", (object) m_SceneID);
   }
 }

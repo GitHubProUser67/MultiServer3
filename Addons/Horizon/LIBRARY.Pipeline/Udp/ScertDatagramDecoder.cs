@@ -71,7 +71,10 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp
             }
 
             if (frameLength < 0)
-                throw new CorruptedFrameException("negative pre-adjustment length field: " + frameLength);
+            {
+                ServerConfiguration.LogError("negative pre-adjustment length field: " + frameLength);
+                return null;
+            }
 
             // never overflows because it's less than maxFrameLength
             int frameLengthInt = (int)frameLength;

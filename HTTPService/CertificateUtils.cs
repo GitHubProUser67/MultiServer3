@@ -1,129 +1,146 @@
-﻿using System.Security.Cryptography;
+﻿using System.Net;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using MultiServer.Addons.Org.BouncyCastle.OpenSsl;
+using MultiServer.Addons.Org.BouncyCastle.Pkcs;
 
 namespace MultiServer.HTTPService
 {
-    /// <summary>
-    /// Utilities for manipulating TLS/SSL Certificates and Keys.
-    /// </summary>
     public class CertificateUtils
     {
-        private static DateTimeOffset currentdatetime = DateTimeOffset.Now;
+        public const string PRIVATE_KEY_HEADER = "-----BEGIN RSA PRIVATE KEY-----\n";
+        public const string PRIVATE_KEY_FOOTER = "\n-----END RSA PRIVATE KEY-----";
+        public const string PUBLIC_KEY_HEADER = "-----BEGIN RSA PUBLIC KEY-----\n";
+        public const string PUBLIC_KEY_FOOTER = "\n-----END RSA PUBLIC KEY-----";
 
-        // Based on ideas from:
-        // https://github.com/wheever/ProxHTTPSProxyMII/blob/master/CertTool.py#L58
-        // https://github.com/rwatjen/AzureIoTDPSCertificates/blob/master/src/DPSCertificateTool/CertificateUtil.cs#L46
-
-        public const string DefaultCASubject = "C=SU, O=PoodleHTTP, OU=This is not really secure connection, CN=MultiServer Certificate Authority";
-
-        /// <summary>
-        /// Create a self-signed SSL certificate and private key, and save them to CER files.
-        /// </summary>
-        /// <param name="directory">Path of the certificates.</param>
-        /// <param name="certSubject">Certificate subject.</param>
-        /// <param name="certHashAlgorithm">Certificate hash algorithm.</param>
-        public static void MakeSelfSignedCert(string directory, string certSubject, HashAlgorithmName certHashAlgorithm)
+        public static void CreateSelfSignedCert(string PfxFileName, string CN)
         {
-            Directory.CreateDirectory(directory);
+            // Generate a new RSA key pair
+            using (RSA rsa = RSA.Create())
+            {
+                // Create a certificate request with the RSA key pair
+                CertificateRequest request = new CertificateRequest($"CN={CN}, OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
-            // PEM file headers.
-            const string CRT_HEADER = "-----BEGIN CERTIFICATE-----\n";
-            const string CRT_FOOTER = "\n-----END CERTIFICATE-----";
+                // Set additional properties of the certificate
+                request.CertificateExtensions.Add(
+                    new X509BasicConstraintsExtension(false, false, 0, true));
 
-            const string KEY_HEADER = "-----BEGIN RSA PRIVATE KEY-----\n";
-            const string KEY_FOOTER = "\n-----END RSA PRIVATE KEY-----";
+                request.CertificateExtensions.Add(
+                    new X509EnhancedKeyUsageExtension(
+                        new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, true));
 
-            // Append unique ID of certificate in its CN if it's default.
-            // This prevents "sec_error_bad_signature" error in Firefox.
-            if (certSubject == DefaultCASubject) certSubject += " [" + new Random().NextInt64(100, 999) + "]";
+                // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
+                var sanBuilder = new SubjectAlternativeNameBuilder();
+                sanBuilder.AddDnsName(CN);
+                if (ServerConfiguration.HttpsDns != null)
+                {
+                    foreach (string str in ServerConfiguration.HttpsDns.HttpsDnsList)
+                    {
+                        sanBuilder.AddDnsName(str);
+                    }
+                }
+                sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
+                sanBuilder.AddEmailAddress("MultiServer@gmail.com");
+                request.CertificateExtensions.Add(sanBuilder.Build());
 
-            // Set up a certificate creation request.
-            using RSA rsa = RSA.Create();
-            CertificateRequest certRequest = new(certSubject, rsa, certHashAlgorithm, RSASignaturePadding.Pkcs1);
+                // Set the validity period of the certificate
+                DateTimeOffset notBefore = DateTimeOffset.UtcNow;
+                DateTimeOffset notAfter = notBefore.AddYears(1000);
 
-            // Configure the certificate as CA.
-            certRequest.CertificateExtensions.Add(
-                   new X509BasicConstraintsExtension(true, true, 12, true));
+                // Create a self-signed certificate from the certificate request
+                X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
 
-            // Configure the certificate for Digital Signature and Key Encipherment.
-            certRequest.CertificateExtensions.Add(
-                new X509KeyUsageExtension(
-                    X509KeyUsageFlags.KeyCertSign,
-                    true));
+                string certPassword = "qwerty"; // Set a password to protect the private key
+                File.WriteAllBytes(PfxFileName, certificate.Export(X509ContentType.Pfx, certPassword));
 
-            // Issue & self-sign the certificate.
-            X509Certificate2 certificate;
-            byte[] certSerialNumber = new byte[16];
-            new Random().NextBytes(certSerialNumber);
+                // Export the private key.
+                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
+                File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}.Key", PRIVATE_KEY_HEADER + privateKey + PRIVATE_KEY_FOOTER);
 
-            X500DistinguishedName certName = new(certSubject);
-            RsaPkcs1SignatureGenerator customSignatureGenerator = new(rsa);
-            certificate = certRequest.Create(
-                certName,
-                customSignatureGenerator,
-                currentdatetime,
-                currentdatetime.AddDays(21900),
-                certSerialNumber);
+                // Export the public key.
+                string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks);
+                File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}.PubKey", PUBLIC_KEY_HEADER + publicKey + PUBLIC_KEY_FOOTER);
 
-            // Export the private key.
-            string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(directory + "/RootCA.key", KEY_HEADER + privateKey + KEY_FOOTER);
+                MultiServer.Addons.Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(PfxFileName, certPassword);
 
-            // Export the certificate.
-            byte[] exportData = certificate.Export(X509ContentType.Cert);
-            string crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(directory + "/RootCA.cer", CRT_HEADER + crt + CRT_FOOTER);
-
-            byte[] certData = certificate.Export(X509ContentType.Pfx);
-            File.WriteAllBytes(directory + "/RootCA.pfx", certData);
-
-            X509Certificate2 RootCertificate = new X509Certificate2(X509Certificate2.CreateFromPemFile(directory + "/RootCA.cer", directory + "/RootCA.key").Export(X509ContentType.Pkcs12));
-
-            X509Certificate2 ComCertificate = MakeChainSignedCert("CN=" + "*.com", RootCertificate);
-
-            exportData = ComCertificate.Export(X509ContentType.Cert);
-            crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(directory + "/com.cer", CRT_HEADER + crt + CRT_FOOTER);
-
-            X509Certificate2 NetCertificate = MakeChainSignedCert("CN=" + "*.net", RootCertificate);
-
-            exportData = NetCertificate.Export(X509ContentType.Cert);
-            crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(directory + "/net.cer", CRT_HEADER + crt + CRT_FOOTER);
+                StringBuilder CertPem = new StringBuilder();
+                PemWriter CSRPemWriter = new PemWriter(new StringWriter(CertPem));
+                CSRPemWriter.WriteObject(x509cert);
+                CSRPemWriter.Writer.Flush();
+                File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}.pem", CertPem.ToString());
+            }
         }
 
-        /// <summary>
-        /// Issue a chain-signed SSL certificate with private key.
-        /// </summary>
-        /// <param name="certSubject">Certificate subject (domain name).</param>
-        /// <param name="issuerCertificate">Authority's certificate used to sign this certificate.</param>
-        /// <param name="certHashAlgorithm">Certificate hash algorithm.</param>
-        /// <returns>Signed chain of SSL Certificates.</returns>
-        public static X509Certificate2 MakeChainSignedCert(string certSubject, X509Certificate2 issuerCertificate)
+        public static void CreateLegacySelfSignedCert(string FileName, string CN)
         {
-            // If not, initialize private key generator & set up a certificate creation request.
-            using RSA rsa = RSA.Create();
+            // Generate a new RSA key pair
+            using (RSA rsa = RSA.Create())
+            {
+                // Create a certificate request with the RSA key pair
+                CertificateRequest request = new CertificateRequest($"CN={CN}, OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
 
-            // Generate an unique serial number.
-            byte[] certSerialNumber = new byte[16];
-            new Random().NextBytes(certSerialNumber);
+                // Set additional properties of the certificate
+                request.CertificateExtensions.Add(
+                    new X509BasicConstraintsExtension(false, false, 0, true));
 
-            // Issue & sign the certificate.
-            X509Certificate2 certificate;
-            // strange, RsaPkcs1SignatureGenerator gives a "sec_error_bad_signature", so use .NET signature generator & SHA256 in some cases.
-            // set up a certificate creation request.
-            CertificateRequest certRequestSha256 = new(certSubject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            certificate = certRequestSha256.Create(
-                issuerCertificate,
-                currentdatetime,
-                currentdatetime.AddDays(21900),
-                certSerialNumber
-            );
+                request.CertificateExtensions.Add(
+                    new X509EnhancedKeyUsageExtension(
+                        new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, true));
 
-            // Export the issued certificate with private key.
-            X509Certificate2 certificateWithKey = new(certificate.CopyWithPrivateKey(rsa).Export(X509ContentType.Pkcs12));
+                // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
+                var sanBuilder = new SubjectAlternativeNameBuilder();
+                sanBuilder.AddDnsName(CN);
+                sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
+                sanBuilder.AddEmailAddress("MultiServer@gmail.com");
+                request.CertificateExtensions.Add(sanBuilder.Build());
 
-            return certificateWithKey;
+                // Set the validity period of the certificate
+                DateTimeOffset notBefore = DateTimeOffset.UtcNow;
+                DateTimeOffset notAfter = notBefore.AddYears(1000);
+
+                RsaPkcs1SignatureGenerator customSignatureGenerator = new(rsa);
+
+                byte[] certSerialNumber = new byte[16];
+                new Random().NextBytes(certSerialNumber);
+
+                X500DistinguishedName certName = new($"CN={CN}, OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States");
+
+                // Create a self-signed certificate from the certificate request
+                X509Certificate2 certificate = request.Create(
+                    certName,
+                    customSignatureGenerator,
+                    notBefore,
+                    notAfter,
+                    certSerialNumber);
+
+                string certPassword = "qwerty"; // Set a password to protect the private key
+                File.WriteAllBytes(FileName, certificate.Export(X509ContentType.Pfx, certPassword));
+
+                // Export the private key.
+                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.Key", PRIVATE_KEY_HEADER + privateKey + PRIVATE_KEY_FOOTER);
+
+                // Export the public key.
+                string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.PubKey", PUBLIC_KEY_HEADER + publicKey + PUBLIC_KEY_FOOTER);
+            }
+        }
+
+        public static MultiServer.Addons.Org.BouncyCastle.X509.X509Certificate ImportCertFromPfx(string path, string password)
+        {
+            Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+            store.Load(File.OpenRead(path), password.ToCharArray());
+            string alias = null;
+            foreach (string str in store.Aliases)
+            {
+                if (store.IsKeyEntry(str))
+                    alias = str;
+            }
+
+            X509CertificateEntry certEntry = store.GetCertificate(alias);
+            MultiServer.Addons.Org.BouncyCastle.X509.X509Certificate x509cert = certEntry.Certificate;
+            return x509cert;
         }
     }
 
@@ -143,7 +160,7 @@ namespace MultiServer.HTTPService
 
         internal RsaPkcs1SignatureGenerator(RSA rsa)
         {
-            _realRsaGenerator = X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1);
+            _realRsaGenerator = CreateForRSA(rsa, RSASignaturePadding.Pkcs1);
         }
 
         protected override PublicKey BuildPublicKey() => _realRsaGenerator.PublicKey;

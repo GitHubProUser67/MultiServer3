@@ -22,7 +22,6 @@ namespace MultiServer.HTTPService
                 }
                 foreach (MappedList mappedList in mappedListList)
                 {
-                    string refcdataname = null;
                     string text = Regex.Replace(mappedList.file, "file:(\\/+)resource_root\\/build\\/", "", RegexOptions.IgnoreCase);
                     text = Regex.Replace(text, "file:", "", RegexOptions.IgnoreCase);
                     text = Regex.Replace(text, "///", "", RegexOptions.IgnoreCase);
@@ -50,9 +49,6 @@ namespace MultiServer.HTTPService
                     text = Regex.Replace(text, "update.svml", "host_svml\\update.svml", RegexOptions.IgnoreCase);
                     text = Regex.Replace(text, "nekomuis.svml", "host_svml\\nekomuis.svml", RegexOptions.IgnoreCase);
 
-                    if (text.ToLower().EndsWith(".atmos"))
-                        refcdataname = text;
-
                     string str = ComputeHash(prefix + text).ToString("X8");
 
                     foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(str + ".*"))
@@ -68,9 +64,9 @@ namespace MultiServer.HTTPService
                         }
                     }
 
-                    if (refcdataname != null)
+                    if (text.ToLower().EndsWith(".atmos"))
                     {
-                        string cdatafromatmos = refcdataname.Remove(refcdataname.Length - 6) + ".cdata";
+                        string cdatafromatmos = text.Remove(text.Length - 6) + ".cdata";
 
                         string str2 = ComputeHash(cdatafromatmos).ToString("X8");
 

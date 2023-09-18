@@ -226,27 +226,26 @@ namespace MultiServer.Addons.Horizon.RT.Models
             if (hash != null)
             {
                 if (cipherService.Decrypt(messageBuffer, hash, out var plain))
-                {
                     msg = Instantiate(classType, id, plain, mediusVersion, appId);
-                }
                 else
-                {
                     ServerConfiguration.LogError($"Unable to decrypt {id}, HASH:{BitConverter.ToString(hash)} DATA:{BitConverter.ToString(messageBuffer).Replace("-", "")}");
-                }
             }
             else
-            {
                 msg = Instantiate(classType, id, messageBuffer, mediusVersion, appId);
-            }
 
             return msg;
         }
 
         private static BaseScertMessage Instantiate(Type classType, RT_MSG_TYPE id, byte[] plain, int mediusVersion, int appId)
         {
+            if (plain == null)
+            {
+                ServerConfiguration.LogError("[BaseScertMessage-Instantiate] - null plain given to function!");
+                return null;
+            }
+
             BaseScertMessage msg = null;
 
-            // 
             using (var stream = new MemoryStream(plain))
             {
                 using (var reader = new MessageReader(stream) { MediusVersion = mediusVersion, AppId = appId })
@@ -262,8 +261,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Error deserializing {id} {BitConverter.ToString(plain)}");
-                        Console.WriteLine(e);
+                        ServerConfiguration.LogError($"Error deserializing {id} {BitConverter.ToString(plain)}");
+                        ServerConfiguration.LogError(e);
                     }
                 }
             }

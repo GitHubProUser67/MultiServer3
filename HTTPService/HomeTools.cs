@@ -693,28 +693,41 @@ namespace MultiServer.HTTPService
                         // Read the contents of the memory stream into the byte array
                         filedata.Read(buffer, 0, contentLength);
 
-                        if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0x00 && buffer[3] == 0x01)
+                        filename = multipartfile.FileName;
+
+                        string guid = Misc.generatedynamiccacheguid(filename);
+
+                        string tempdir = $"{maindir}/{guid}";
+
+                        if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0x00 && buffer[3] == 0x01 && AFSBLOWFISH.INFIVA != null)
                         {
-                            filename = multipartfile.FileName;
-
-                            string guid = Misc.generatedynamiccacheguid(filename);
-
-                            string tempdir = $"{maindir}/{guid}";
-
                             Directory.CreateDirectory(tempdir);
 
                             buffer = AFSMISC.RemovePaddingPrefix(buffer);
 
-                            if (AFSBLOWFISH.INFIVA != null)
+                            byte[] decryptedfilebytes = AFSBLOWFISH.Crypt_Decrypt(buffer, AFSBLOWFISH.INFIVA);
+
+                            if (decryptedfilebytes != null)
                             {
-                                byte[] decryptedfilebytes = AFSBLOWFISH.Crypt_Decrypt(buffer, AFSBLOWFISH.INFIVA);
+                                File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", decryptedfilebytes);
 
-                                if (decryptedfilebytes != null)
-                                {
-                                    File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", decryptedfilebytes);
+                                await FileHelper.HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
+                            }
 
-                                    await FileHelper.HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
-                                }
+                            if (Directory.Exists(tempdir))
+                                Directory.Delete(tempdir, true);
+                        }
+                        else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5 && AFSBLOWFISH.INFIVA != null)
+                        {
+                            Directory.CreateDirectory(tempdir);
+
+                            byte[] decryptedfilebytes = AFSBLOWFISH.Crypt_Decrypt(buffer, AFSBLOWFISH.INFIVA);
+
+                            if (decryptedfilebytes != null)
+                            {
+                                File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", AFSMISC.ApplyPaddingPrefix(decryptedfilebytes));
+
+                                await FileHelper.HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
                             }
 
                             if (Directory.Exists(tempdir))
@@ -789,7 +802,7 @@ namespace MultiServer.HTTPService
                         string tempdir = $"{maindir}/{guid}";
 
                         if (sha1.Length < 16)
-                            ServerConfiguration.LogError($"[HomeTools] - CDSProcess - Invalid SHA1 given via interface.");
+                            ServerConfiguration.LogWarn($"[HomeTools] - CDSProcess - Invalid SHA1 given via interface.");
                         else
                         {
                             Directory.CreateDirectory(tempdir);
@@ -799,7 +812,7 @@ namespace MultiServer.HTTPService
                             if (!BitConverter.IsLittleEndian)
                                 Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
 
-                            byte[] FileBytes = AFSBLOWFISH.Encrypt_DecryptCDSContent(buffer, tranformedSHA1);
+                            byte[] FileBytes = AFSBLOWFISH.Crypt_DecryptCDSContent(buffer, tranformedSHA1);
 
                             if (FileBytes != null)
                             {

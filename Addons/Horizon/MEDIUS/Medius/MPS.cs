@@ -51,13 +51,15 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             scertClient.CipherService.EnableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
 
-            // 
             switch (message)
             {
                 case RT_MSG_CLIENT_HELLO clientHello:
                     {
                         if (data.State > ClientState.HELLO)
-                            throw new Exception($"Unexpected RT_MSG_CLIENT_HELLO from {clientChannel.RemoteAddress}: {clientHello}");
+                        {
+                            ServerConfiguration.LogError($"Unexpected RT_MSG_CLIENT_HELLO from {clientChannel.RemoteAddress}: {clientHello}");
+                            break;
+                        }
 
                         data.State = ClientState.HELLO;
                         Queue(new RT_MSG_SERVER_HELLO() { RsaPublicKey = enableEncryption ? MediusClass.Settings.DefaultKey.N : Org.BouncyCastle.Math.BigInteger.Zero }, clientChannel);
@@ -66,7 +68,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
                     {
                         if (data.State > ClientState.HANDSHAKE)
-                            throw new Exception($"Unexpected RT_MSG_CLIENT_CRYPTKEY_PUBLIC from {clientChannel.RemoteAddress}: {clientCryptKeyPublic}");
+                        {
+                            ServerConfiguration.LogError($"Unexpected RT_MSG_CLIENT_CRYPTKEY_PUBLIC from {clientChannel.RemoteAddress}: {clientCryptKeyPublic}");
+                            break;
+                        }
 
                         /*
                         // Ensure key is correct
@@ -91,7 +96,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
                         if (data.State > ClientState.CONNECT_1)
-                            throw new Exception($"Unexpected RT_MSG_CLIENT_CONNECT_TCP from {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                        {
+                            ServerConfiguration.LogError($"Unexpected RT_MSG_CLIENT_CONNECT_TCP from {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                            break;
+                        }
                         /*
                         if (clientConnectTcp.AccessToken == null)
                             throw new Exception($"AccessToken in RT_MSG_CLIENT_CONNECT_TCP from {clientChannel.RemoteAddress}: {clientConnectTcp} is null");
@@ -150,7 +158,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
                     {
                         if (data.State != ClientState.AUTHENTICATED)
-                            throw new Exception($"Unexpected RT_MSG_CLIENT_APP_TOSERVER from {clientChannel.RemoteAddress}: {clientAppToServer}");
+                        {
+                            ServerConfiguration.LogError($"Unexpected RT_MSG_CLIENT_APP_TOSERVER from {clientChannel.RemoteAddress}: {clientAppToServer}");
+                            break;
+                        }
 
                         await ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
                         break;

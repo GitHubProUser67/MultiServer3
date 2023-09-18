@@ -41,14 +41,14 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                 {
                     // Populate existing object
                     try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
-                    catch (Exception e) { ServerConfiguration.LogError(e); }
+                    catch (Exception ex) { ServerConfiguration.LogError(ex); }
                 }
                 else
                 {
                     File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings));
                     // Populate existing object
                     try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
-                    catch (Exception e) { ServerConfiguration.LogError(e); }
+                    catch (Exception ex) { ServerConfiguration.LogError(ex); }
                 }
             }
         }
@@ -247,9 +247,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         });
                     }
                     else
-                    {
-                        throw new Exception($"Account creation failed account name already exists!");
-                    }
+                        ServerConfiguration.LogError($"Account creation failed account name already exists!");
                 }
                 else
                 {
@@ -260,9 +258,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         result = JsonConvert.DeserializeObject<AccountDTO>(await response.Content.ReadAsStringAsync());
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -1568,9 +1566,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         creatorAccount.ClanId = result.ClanId;
                     }
                     else
-                    {
-                        throw new Exception($"Clan creation failed clan name already exists!");
-                    }
+                        ServerConfiguration.LogError($"Clan creation failed clan name already exists!");
                 }
                 else
                 {
@@ -1581,9 +1577,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         result = JsonConvert.DeserializeObject<ClanDTO>(await response.Content.ReadAsStringAsync());
                 }
             }
-            catch (Exception e)
-            {
-                ServerConfiguration.LogError(e);
+            catch (Exception ex)
+            { 
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -1602,7 +1598,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    // 
                     var clan = await GetClanById(clanId, appId);
                     if (clan == null || clan.ClanLeaderAccount.AccountId != accountId)
                         return false;
@@ -1811,7 +1806,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     // get clans
                     var clans = _simulatedClans.Where(x => x.ClanMemberInvitations.Any(y => y.TargetAccountId == accountId));
 
-                    // 
                     result = clans
                         .Select(x => new AccountClanInvitationDTO()
                         {
@@ -1874,7 +1868,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     if (invite.ResponseStatus != 0)
                         return false;
 
-                    // 
                     invite.ResponseMessage = message;
                     invite.ResponseStatus = responseStatus;
                     invite.ResponseTime = (int)Utils.GetUnixTime();
@@ -1941,7 +1934,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     if (invite.ResponseStatus != 0)
                         return false;
 
-                    // 
                     invite.ResponseStatus = 3;
 
                     result = true;
@@ -1976,7 +1968,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     var clan = await GetClanById(clanId, appId);
                     if (clan != null)
                     {
-                        // 
                         result = clan.ClanMessages
                             .Skip(startIndex * pageSize)
                             .Take(pageSize)
@@ -1984,13 +1975,11 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = await GetDbAsync<List<ClanMessageDTO>>($"Clan/messages?accountId={accountId}&clanId={clanId}&start={startIndex}&pageSize={pageSize}");
-                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2020,7 +2009,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     if (clan.ClanLeaderAccount.AccountId != accountId)
                         return false;
 
-                    //
                     clan.ClanMessages.Add(new ClanMessageDTO()
                     {
                         Id = _simulatedClanMessageIdCounter++,
@@ -2037,9 +2025,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     })).IsSuccessStatusCode;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2075,7 +2063,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     if (clanMessage == null)
                         return false;
 
-                    //
                     clanMessage.Message = message;
 
                     result = true;
@@ -2089,9 +2076,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     })).IsSuccessStatusCode;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2126,7 +2113,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     if (clanMessage == null)
                         return false;
 
-                    //
                     clanMessage.Message = null;
 
                     result = true;
@@ -2139,9 +2125,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     })).IsSuccessStatusCode;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2171,8 +2157,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     // validate leader
                     if (clan.ClanLeaderAccount.AccountId != accountId)
                         return null;
-
-
 
                     result = null; //_simulatedClans.FirstOrDefault(x => x.AppId == appId && x.ClanId == clanId);
                 }
@@ -2209,18 +2193,14 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     if (clan.ClanLeaderAccount.AccountId != accountId)
                         return null;
 
-
-
                     result = null; //_simulatedClans.FirstOrDefault(x => x.AppId == appId && x.ClanId == clanId);
                 }
                 else
-                {
                     result = await GetDbAsync<List<ClanTeamChallengeDTO>>($"Clan/getClanTeamChallenges?clanId={clanId}&accountId={accountId}&clanChallengeStatus={(int)clanChallengeStatus}&appId={appId}&start={startIdx}&pageSize={pageSize}");
-                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2233,10 +2213,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
-
                     result = false; //_simulatedClans.FirstOrDefault(x => x.AppId == appId && x.ClanId == clanId);
-                }
                 else
                 {
                     result = (await PostDbAsync($"Clan/respondClanTeamChallenge?clanChallengeId={clanChallengeId}&clanChallengeStatus={(int)clanChallengeStatus}&accountId={accountId}&message={message}&appId={appId}", new ClanTeamChallengeDTO()
@@ -2245,9 +2222,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     })).IsSuccessStatusCode;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2260,10 +2237,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
-
                     result = false; //_simulatedClans.FirstOrDefault(x => x.AppId == appId && x.ClanId == clanId);
-                }
                 else
                 {
                     result = (await PostDbAsync($"Clan/revokeClanTeamChallenge?clanChallengeId={clanChallengeId}&accountId={accountId}&appId={appId}", new ClanTeamChallengeDTO()
@@ -2272,9 +2246,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     })).IsSuccessStatusCode;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServerConfiguration.LogError(e);
+                ServerConfiguration.LogError(ex);
             }
 
             return result;
@@ -2341,9 +2315,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     */
                 }
                 else
-                {
                     result = await GetDbAsync<DimAnnouncements[]>($"api/Keys/getAnnouncementsList?Dt={DateTime.UtcNow}&TakeSize={size}&AppId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -2377,9 +2349,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     */
                 }
                 else
-                {
                     result = await GetDbAsync<DimEula>($"api/Keys/getEULA?policyType={policyType}&appId={appId}&fromDt={DateTime.UtcNow}");
-                }
             }
             catch (Exception e)
             {

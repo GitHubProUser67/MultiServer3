@@ -112,7 +112,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
                         string content = File.ReadAllText(outDir + "/timestamp.txt");
                         int userData = BitConverter.ToInt32(Misc.HexStringToByteArray(content));
 
-                        ServerConfiguration.LogInfo("[RunUnBAR] - Encrypted Content Detected!, running signature decryption.");
+                        ServerConfiguration.LogInfo("[RunUnBAR] - Encrypted Content Detected!, running decryption.");
                         ServerConfiguration.LogInfo($"CompressedSize - {compressedSize}");
                         ServerConfiguration.LogInfo($"Size - {fileSize}");
                         ServerConfiguration.LogInfo($"dataStart - 0x{dataStart:X}");
@@ -152,9 +152,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
                                 ServerConfiguration.LogInfo("[RunUnBAR] - Lua file has not been tempered with.");
 
                                 // Todo, something related to encryption is happening after.
-                                // It seems it want the default key and a default context size then decrypt file bytes with this.
-
-                                //byte[] buffer = CompressionFactory.Decompress(newFileBytes, CompressionMethod.EdgeZLib, ArchiveFlags.Bar_Flag_ZTOC); // Not good!
+                                // It seems it want the default key and a default context size then decrypt file bytes with this, probably AES.
                             }
                             else
                                 ServerConfiguration.LogWarn($"[RunUnBAR] - Lua file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");

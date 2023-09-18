@@ -482,7 +482,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
         /// </summary>
         protected virtual void PostStatus()
         {
-            _ = MediusClass.Database.PostAccountStatus(new AccountStatusDTO()
+            _ = ServerConfiguration.Database.PostAccountStatus(new AccountStatusDTO()
             {
                 AppId = ApplicationId,
                 AccountId = AccountId,
@@ -572,7 +572,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             _loginTime = Utils.GetHighPrecisionUtcTime();
 
             // Update last sign in date
-            _ = MediusClass.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
+            _ = ServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
 
             // Update database status
             PostStatus();
@@ -580,7 +580,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
         public async Task RefreshAccount()
         {
-            var accountDto = await MediusClass.Database.GetAccountById(AccountId);
+            var accountDto = await ServerConfiguration.Database.GetAccountById(AccountId);
             if (accountDto != null)
             {
                 FriendsList = accountDto.Friends.ToDictionary(x => x.AccountId, x => x.AccountName);

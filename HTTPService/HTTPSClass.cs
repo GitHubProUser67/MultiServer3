@@ -4,11 +4,13 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using NetCoreServer;
 
-namespace MultiServer.HTTPService.LowLevelEngine
+namespace MultiServer.HTTPService
 {
     public class HTTPSClass
     {
         public static HttpsCacheServer server = null;
+
+        public static bool httpsstarted = false;
 
         private class HttpsCacheSession : HttpsSession
         {
@@ -36,7 +38,7 @@ namespace MultiServer.HTTPService.LowLevelEngine
                     if (request.Url != null && request.Url != "" && HTTPClass.httpstarted == true)
                     {
                         ServerConfiguration.LogInfo($"[HTTPS] - Received Request - {request.Url}");
-                        Response.SetBegin(302);
+                        Response.SetBegin(308);
                         Response.SetHeader("Location", $"http://{PublicIp}{request.Url}");
                     }
                     else
@@ -50,7 +52,7 @@ namespace MultiServer.HTTPService.LowLevelEngine
                     if (request.Url != null && request.Url != "" && HTTPClass.httpstarted == true)
                     {
                         ServerConfiguration.LogInfo($"[HTTPS] - Received Request - {request.Url}");
-                        Response.SetBegin(302);
+                        Response.SetBegin(308);
                         Response.SetHeader("Location", $"http://127.0.0.1{request.Url}");
                     }
                     else
@@ -93,6 +95,7 @@ namespace MultiServer.HTTPService.LowLevelEngine
             if (server != null && server.IsStarted)
             {
                 server.Stop();
+                httpsstarted = false;
                 ServerConfiguration.LogError($"[HTTPS] - server Stopped!");
             }
             return Task.CompletedTask;
@@ -103,7 +106,7 @@ namespace MultiServer.HTTPService.LowLevelEngine
             try
             {
                 // Create and prepare a new SSL server context
-                var context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/RootCA.pfx", "qwerty"));
+                var context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/SSL/MultiServer.pfx", "qwerty"));
 
                 // Create a new HTTP server
                 server = new HttpsCacheServer(context, IPAddress.Any, port);
@@ -112,7 +115,7 @@ namespace MultiServer.HTTPService.LowLevelEngine
 
                 // Start the server
                 server.Start();
-
+                httpsstarted = true;
                 ServerConfiguration.LogInfo($"[HTTPS] - server started on: {port}");
             }
             catch (Exception ex)

@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using MultiServer.Addons.Horizon.RT.Models;
 using MultiServer.Addons.Horizon.LIBRARY.Common;
-using MultiServer.Addons.Horizon.LIBRARY.Database;
 using MultiServer.Addons.Horizon.DME.Config;
 using MultiServer.Addons.Horizon.DME.Models;
 using System.Diagnostics;
@@ -16,7 +15,6 @@ namespace MultiServer.Addons.Horizon.DME
         public static RSA_KEY GlobalAuthPublic = null;
 
         public static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
-        public static DbController Database = null;
 
         public static ServerSettings Settings = new ServerSettings();
         private static Dictionary<int, AppSettings> _appSettings = new Dictionary<int, AppSettings>();
@@ -46,7 +44,7 @@ namespace MultiServer.Addons.Horizon.DME
                 // We do this every 24 hours to get a fresh new token
                 if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
-                    if (!await Database.Authenticate())
+                    if (!await ServerConfiguration.Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
                         ServerConfiguration.LogError("Unable to authenticate with the db middleware server");
@@ -210,18 +208,14 @@ namespace MultiServer.Addons.Horizon.DME
             return Task.CompletedTask;
         }
 
-        private static void setupdatabase()
+        public static Task DmeMain()
         {
-            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
-        }
-
-        public static void DmeMain()
-        {
-            setupdatabase();
             Initialize();
             // Initialize plugins
             Plugins = new PluginsManager(Server.pluginspath);
             _ = StartServerAsync();
+
+            return Task.CompletedTask;
         }
 
         private static void Initialize()
@@ -282,11 +276,11 @@ namespace MultiServer.Addons.Horizon.DME
         {
             try
             {
-                if (!Database.AmIAuthenticated())
+                if (!ServerConfiguration.Database.AmIAuthenticated())
                     return;
 
                 // get supported app ids
-                var appIdGroups = await Database.GetAppIds();
+                var appIdGroups = await ServerConfiguration.Database.GetAppIds();
                 if (appIdGroups == null)
                     return;
 
@@ -295,7 +289,7 @@ namespace MultiServer.Addons.Horizon.DME
                 {
                     foreach (var appId in appIdGroup.AppIds)
                     {
-                        var settings = await Database.GetServerSettings(appId);
+                        var settings = await ServerConfiguration.Database.GetServerSettings(appId);
                         if (settings != null)
                         {
                             if (_appSettings.TryGetValue(appId, out var appSettings))
@@ -308,7 +302,7 @@ namespace MultiServer.Addons.Horizon.DME
 
                                 // we also want to send this back to the server since this is new locally
                                 // and there might be new setting fields that aren't yet on the db
-                                await Database.SetServerSettings(appId, appSettings.GetSettings());
+                                await ServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                             }
                         }
                     }

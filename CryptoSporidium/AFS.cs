@@ -19,7 +19,7 @@ namespace MultiServer.CryptoSporidium
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
 
-                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.MetaDataV1Key), AFSMISC.MetaDataV1IV)); // Doesn't matter in that case, since CTR is a bi-directional crypto.
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.MetaDataV1Key), AFSMISC.MetaDataV1IV));
 
                 // Encrypt the plaintext
                 byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
@@ -32,12 +32,12 @@ namespace MultiServer.CryptoSporidium
 
         public static byte[] EncryptionProxyInit(byte[] Headerdata, byte[] SignatureIV)
         {
-            if (SignatureIV != null && SignatureIV.Length == 8 && Headerdata.Length == 24)
+            if (SignatureIV != null && SignatureIV.Length == 8 && Headerdata != null && Headerdata.Length == 24)
             {
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
 
-                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.SignatureKey), SignatureIV)); // Doesn't matter in that case, since CTR is a bi-directional crypto.
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.SignatureKey), SignatureIV));
 
                 // Encrypt the plaintext
                 byte[] ciphertextBytes = new byte[cipher.GetOutputSize(Headerdata.Length)];
@@ -59,7 +59,7 @@ namespace MultiServer.CryptoSporidium
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
 
-                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), SHA1IV)); // Doesn't matter in that case, since CTR is a bi-directional crypto.
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), SHA1IV));
 
                 // Encrypt the plaintext
                 byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
@@ -188,6 +188,81 @@ namespace MultiServer.CryptoSporidium
 
     public class AFSAES
     {
+        public static byte[] InitiateCTRBuffer(byte[] FileBytes, byte[] KeyBytes , byte[] m_iv) // IV 16 bytes, key 32 or 64 bytes -> 24 or 44 long base64
+        {
+            if (FileBytes != null && m_iv != null && m_iv.Length == 16)
+            {
+                // Create the cipher
+                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CTR/NOPADDING");
+
+                if (KeyBytes == null || KeyBytes.Length < 32)
+                    cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), m_iv));
+                else
+                    cipher.Init(false, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                return ciphertextBytes;
+            }
+            else
+                ServerConfiguration.LogError("[InitiateCTRBuffer] - No IV entered or invalid length!");
+
+            return null;
+        }
+
+        public static byte[] InitiateCBCDecryptBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv) // IV 16 bytes, key 32 or 64 bytes -> 24 or 44 long base64
+        {
+            if (FileBytes != null && m_iv != null && m_iv.Length == 16)
+            {
+                // Create the cipher
+                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/NOPADDING");
+
+                if (KeyBytes == null || KeyBytes.Length < 32)
+                    cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), m_iv));
+                else
+                    cipher.Init(false, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                return ciphertextBytes;
+            }
+            else
+                ServerConfiguration.LogError("[InitiateCBCDecryptBuffer] - No IV entered or invalid length!");
+
+            return null;
+        }
+
+        public static byte[] InitiateCBCEncryptBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv) // IV 16 bytes, key 32 or 64 bytes -> 24 or 44 long base64
+        {
+            if (FileBytes != null && m_iv != null && m_iv.Length == 16)
+            {
+                // Create the cipher
+                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/NOPADDING");
+
+                if (KeyBytes == null || KeyBytes.Length < 32)
+                    cipher.Init(true, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), m_iv));
+                else
+                    cipher.Init(true, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                return ciphertextBytes;
+            }
+            else
+                ServerConfiguration.LogError("[InitiateCBCEncryptBuffer] - No IV entered or invalid length!");
+
+            return null;
+        }
+
         public static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA)
         {
             StringBuilder hexStr = new StringBuilder();
@@ -258,13 +333,6 @@ namespace MultiServer.CryptoSporidium
             0x5a, 0xfc, 0x59, 0xe4, 0x8f, 0xe6, 0xc5, 0x93,
             0x7e, 0xbd, 0xff, 0xc1, 0xe3, 0x99, 0x9e, 0x62
         };
-        public static byte[] FakeSignatureKey = new byte[] // Insert Star Wars IT'S A TRAP here.
-        {
-            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F,
-            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F,
-            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F,
-            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F
-        };
         public static byte[] contentkey = new byte[]
         {
             47, 92, 237, 166, 58, 154, 103, 44,
@@ -286,8 +354,15 @@ namespace MultiServer.CryptoSporidium
             0x69, 0x5E, 0xFA, 0xD9, 0x97, 0x32, 0xEC, 0x56,
             0xB, 0x31, 0xE8, 0x5A, 0xD1, 0x85, 0x7C, 0x89
         };
-        public static byte[] BlowfishKey = new byte[]
-        {
+        public static byte[] HDKContentCreationSignatureKey = new byte[] // Insert "IT'S A TRAP" here, just made to make HDK Content Creation builds
+        {                                                                // not decrypt the EncryptionProxy Signature Header.
+            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F,
+            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F,
+            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F,
+            0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0x5C, 0x1F
+        };
+        public static byte[] BlowfishKey = new byte[] // Seems to be the equivalent of "DO NOT SEND THE SIGNAL" for the default key
+        {                                             // on HDK Content Creation builds.
             0xF1, 0xC5, 1, 0x23, 0x45, 0x67, 0x89, 0xAB,
             0xF1, 0xC5, 1, 0x23, 0x45, 0x67, 0x89, 0xAB,
             0xF1, 0xC5, 1, 0x23, 0x45, 0x67, 0x89, 0xAB,

@@ -6,7 +6,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Common.Stream
     {
         public int MediusVersion { get; set; }
         public int AppId { get; set; }
-
         public MessageWriter() : base() { }
         public MessageWriter(System.IO.Stream output) : base(output) { }
         public MessageWriter(System.IO.Stream output, Encoding encoding) : base(output, encoding) { }

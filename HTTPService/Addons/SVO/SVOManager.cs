@@ -153,13 +153,12 @@ namespace MultiServer.HTTPService.Addons.SVO
         }
         #endregion
 
-
         #region App Ids
 
         public async Task OnDatabaseAuthenticated()
         {
             // get supported app ids
-            var appids = await SVOClass.Database.GetAppIds();
+            var appids = await ServerConfiguration.Database.GetAppIds();
 
             // build dictionary of app ids from response
             _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());

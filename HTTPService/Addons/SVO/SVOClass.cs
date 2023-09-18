@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using MultiServer.Addons.Horizon.LIBRARY.Database;
 using HttpMultipartParser;
 using MultiServer.HTTPService.Addons.SVO.Games;
 using System.Text;
@@ -22,8 +21,6 @@ namespace MultiServer.HTTPService.Addons.SVO
 
         private static DateTime? _lastSuccessfulDbAuth;
 
-        public static DbController Database;
-
         public static SVOManager Manager = new();
 
         private static DateTime _lastComponentLog = MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime();
@@ -36,7 +33,7 @@ namespace MultiServer.HTTPService.Addons.SVO
                 // We do this every 24 hours to get a fresh new token
                 if (_lastSuccessfulDbAuth == null || (MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
-                    if (!await Database.Authenticate())
+                    if (!await ServerConfiguration.Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
                         ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
@@ -50,7 +47,7 @@ namespace MultiServer.HTTPService.Addons.SVO
                         await Manager.OnDatabaseAuthenticated();
 
                         #region Check Cache Server Simulated
-                        if (Database._settings.SimulatedMode != true)
+                        if (ServerConfiguration.Database._settings.SimulatedMode != true)
                             ServerConfiguration.LogInfo("Connected to Cache Server");
                         else
                             ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
@@ -79,12 +76,7 @@ namespace MultiServer.HTTPService.Addons.SVO
             }
         }
 
-        public static void setupdatabase()
-        {
-            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
-        }
-
-        public static Task SVOstart()
+        public static Task SVOstart(bool ssl)
         {
             svostarted = true;
 
@@ -93,18 +85,21 @@ namespace MultiServer.HTTPService.Addons.SVO
             stopserver = false;
             _keepGoing = true;
             if (_mainLoop != null && !_mainLoop.IsCompleted) return Task.CompletedTask; //Already started
-            _mainLoop = loopserver();
+            _mainLoop = loopserver(ssl);
 
             return Task.CompletedTask;
         }
 
-        private async static Task loopserver()
+        private async static Task loopserver(bool ssl)
         {
             listener.Prefixes.Add("http://*:10060/");
 
             ServerConfiguration.LogInfo($"SVO Server started - Listening for requests...");
 
             listener.Start();
+
+            if (ssl && !SVOHTTPSClass.httpsstarted)
+                _ = Task.Run(SVOHTTPSClass.StartSVOHTTPSServer);
 
             while (_keepGoing)
             {

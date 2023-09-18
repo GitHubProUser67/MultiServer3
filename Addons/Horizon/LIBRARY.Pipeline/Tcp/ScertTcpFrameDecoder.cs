@@ -93,14 +93,14 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
         public ScertTcpFrameDecoder(ByteOrder byteOrderLocal, int maxFrameLengthLocal, int lengthFieldOffsetLocal, int lengthFieldLengthLocal, int lengthAdjustmentLocal, int initialBytesToStripLocal, bool failFastLocal)
         {
             if (maxFrameLengthLocal <= 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFrameLengthLocal), "maxFrameLength must be a positive integer: " + maxFrameLengthLocal);
+                ServerConfiguration.LogError(nameof(maxFrameLengthLocal), "maxFrameLength must be a positive integer: " + maxFrameLengthLocal);
             if (lengthFieldOffsetLocal < 0)
-                throw new ArgumentOutOfRangeException(nameof(lengthFieldOffsetLocal), "lengthFieldOffset must be a non-negative integer: " + lengthFieldOffsetLocal);
+                ServerConfiguration.LogError(nameof(lengthFieldOffsetLocal), "lengthFieldOffset must be a non-negative integer: " + lengthFieldOffsetLocal);
             if (initialBytesToStripLocal < 0)
-                throw new ArgumentOutOfRangeException(nameof(initialBytesToStripLocal), "initialBytesToStrip must be a non-negative integer: " + initialBytesToStripLocal);
+                ServerConfiguration.LogError(nameof(initialBytesToStripLocal), "initialBytesToStrip must be a non-negative integer: " + initialBytesToStripLocal);
             if (lengthFieldOffsetLocal > maxFrameLengthLocal - lengthFieldLengthLocal)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxFrameLengthLocal), "maxFrameLength (" + maxFrameLengthLocal + ") " +
+                ServerConfiguration.LogError(nameof(maxFrameLengthLocal), "maxFrameLength (" + maxFrameLengthLocal + ") " +
                     "must be equal to or greater than " +
                     "lengthFieldOffset (" + lengthFieldOffsetLocal + ") + " +
                     "lengthFieldLength (" + lengthFieldLengthLocal + ").");
@@ -160,7 +160,8 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
             if (frameLength < 0)
             {
                 input.SkipBytes(lengthFieldEndOffset);
-                throw new CorruptedFrameException("negative pre-adjustment length field: " + frameLength);
+                ServerConfiguration.LogError("negative pre-adjustment length field: " + frameLength);
+                return null;
             }
 
             bool signed = input.GetByte(input.ReaderIndex) >= 0x80;
@@ -169,14 +170,15 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
             if (frameLength < lengthFieldEndOffset)
             {
                 input.SkipBytes(lengthFieldEndOffset);
-                throw new CorruptedFrameException("Adjusted frame length (" + frameLength + ") is less " +
-                    "than lengthFieldEndOffset: " + lengthFieldEndOffset);
+                ServerConfiguration.LogError("Adjusted frame length (" + frameLength + ") is less " + "than lengthFieldEndOffset: " + lengthFieldEndOffset);
+                return null;
             }
 
             if (frameLength > maxFrameLength)
             {
                 int startOff = (int)Math.Min(20, input.ArrayOffset);
-                throw new CorruptedFrameException($"{context.Channel.RemoteAddress} Frame Length exceeds max frame length on buffer: start:{startOff} {BitConverter.ToString(input.Array, input.ArrayOffset - startOff, startOff + input.ReadableBytes)}");
+                ServerConfiguration.LogError($"{context.Channel.RemoteAddress} Frame Length exceeds max frame length on buffer: start:{startOff} {BitConverter.ToString(input.Array, input.ArrayOffset - startOff, startOff + input.ReadableBytes)}");
+                return null;
             }
 
             // never overflows because it's less than maxFrameLength
@@ -187,8 +189,8 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
             if (initialBytesToStrip > frameLengthInt)
             {
                 input.SkipBytes(frameLengthInt);
-                throw new CorruptedFrameException("Adjusted frame length (" + frameLength + ") is less " +
-                    "than initialBytesToStrip: " + initialBytesToStrip);
+                ServerConfiguration.LogError("Adjusted frame length (" + frameLength + ") is less " + "than initialBytesToStrip: " + initialBytesToStrip);
+                return null;
             }
             input.SkipBytes(initialBytesToStrip);
 
@@ -215,7 +217,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
         /// <returns>A long integer that represents the unadjusted length of the next frame.</returns>
         protected virtual long GetUnadjustedFrameLength(IByteBuffer buffer, int offset, int length, ByteOrder order)
         {
-            long frameLength;
+            long frameLength = -1;
             switch (length)
             {
                 case 1:
@@ -234,7 +236,8 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
                     frameLength = order == ByteOrder.BigEndian ? buffer.GetLong(offset) : buffer.GetLongLE(offset);
                     break;
                 default:
-                    throw new DecoderException("unsupported lengthFieldLength: " + lengthFieldLength + " (expected: 1, 2, 3, 4, or 8)");
+                    ServerConfiguration.LogError("unsupported lengthFieldLength: " + lengthFieldLength + " (expected: 1, 2, 3, 4, or 8)");
+                    break;
             }
             return frameLength;
         }
@@ -270,9 +273,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Tcp
         void Fail(long frameLength)
         {
             if (frameLength > 0)
-                throw new TooLongFrameException("Adjusted frame length exceeds " + maxFrameLength + ": " + frameLength + " - discarded");
+                ServerConfiguration.LogError("Adjusted frame length exceeds " + maxFrameLength + ": " + frameLength + " - discarded");
             else
-                throw new TooLongFrameException("Adjusted frame length exceeds " + maxFrameLength + " - discarding");
+                ServerConfiguration.LogError("Adjusted frame length exceeds " + maxFrameLength + " - discarding");
         }
     }
 }

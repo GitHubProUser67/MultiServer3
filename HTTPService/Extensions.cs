@@ -14,7 +14,19 @@ namespace MultiServer.HTTPService
             response.ContentEncoding = Encoding.UTF8;
             response.ContentType = "text/html";
             response.ContentLength64 = bytes.Length;
-            response.OutputStream.Write(bytes, 0, bytes.Length);
+
+            if (response.OutputStream.CanWrite)
+            {
+                try
+                {
+                    response.OutputStream.Write(bytes, 0, bytes.Length);
+                    response.OutputStream.Close();
+                }
+                catch (Exception)
+                {
+                    // Not Important.
+                }
+            }
 
             return Task.CompletedTask;
         }

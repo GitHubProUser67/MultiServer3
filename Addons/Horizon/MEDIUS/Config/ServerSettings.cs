@@ -29,19 +29,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// </summary>
         public int LocationID = 0;
 
-        #region Database
-        //#####################################
-        //# Database Connection Configuration #
-        //#####################################
-
-        /// <summary>
-        /// Set to 1 to enable database connectivity, or 0 for simulated-DB mode (default 1)
-        /// </summary>
-        public int ConfigDBEnabled = 0;
-
-        public string DBInfoFileName = "dbinfo.txt";
-        #endregion
-
         #region Enable Select Servers
 
         /// <summary>
@@ -176,7 +163,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// <summary>
         /// Enable posting of machine signature to database (1 = enable, 0 = disable)
         /// </summary>
-        public bool DnasEnablePost { get; set; } = false;
+        public bool DnasEnablePost { get; set; } = true;
         #endregion
 
         #region Medius File Services - File Server Configuration
@@ -184,7 +171,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// <summary>
         /// Root path of the medius file service directory.
         /// </summary>
-        public string MediusFileServerRootPath { get; set; } = "Files";
+        public string MediusFileServerRootPath { get; set; } = "static/Files";
 
         /// <summary>
         /// Set the hostname to the ApacheWebServerHostname
@@ -324,7 +311,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// <summary>
         /// Key used to authenticate dme servers.
         /// </summary>
-        public RsaKeyPair MPSKey { get; set; } = new RsaKeyPair(
+        public RsaKeyPair MPSKey { get; set; } = new(
             new BigInteger("10315955513017997681600210131013411322695824559688299373570246338038100843097466504032586443986679280716603540690692615875074465586629501752500179100369237", 10),
             new BigInteger("17", 10),
             new BigInteger("4854567300243763614870687120476899445974505675147434999327174747312047455575182761195687859800492317495944895566174677168271650454805328075020357360662513", 10)
@@ -333,7 +320,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// <summary>
         /// Key used to authenticate clients.
         /// </summary>
-        public RsaKeyPair DefaultKey { get; set; } = new RsaKeyPair(
+        public RsaKeyPair DefaultKey { get; set; } = new(
             new BigInteger("10315955513017997681600210131013411322695824559688299373570246338038100843097466504032586443986679280716603540690692615875074465586629501752500179100369237", 10),
             new BigInteger("17", 10),
             new BigInteger("4854567300243763614870687120476899445974505675147434999327174747312047455575182761195687859800492317495944895566174677168271650454805328075020357360662513", 10)

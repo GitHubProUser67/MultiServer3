@@ -492,7 +492,7 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
 
                                     string langId = "0";
 
-                                    await SVOClass.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
+                                    await ServerConfiguration.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
                                     {
                                         //Found in database so keep.
                                         string langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);

@@ -3,7 +3,6 @@ using MultiServer.Addons.Horizon.LIBRARY.Common.Stream;
 
 namespace MultiServer.Addons.Horizon.RT.Models
 {
-
     #region BaseMediusPluginMessage
     public abstract class BaseMediusPluginMessage
     {

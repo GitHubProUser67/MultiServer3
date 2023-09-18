@@ -825,7 +825,7 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                     ms.Dispose();
                                 }
 
-                                await SVOClass.Database.GetAccountByName(psnname, 23360).ContinueWith((r) =>
+                                await ServerConfiguration.Database.GetAccountByName(psnname, 23360).ContinueWith((r) =>
                                 {
                                     //Found in database so keep.
                                     string langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);

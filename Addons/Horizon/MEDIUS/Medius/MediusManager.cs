@@ -149,7 +149,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
         public void AddDmeClient(DMEObject dmeClient)
         {
             if (!dmeClient.IsLoggedIn)
-                throw new InvalidOperationException($"Attempting to add DME client {dmeClient} to MediusManager but client has not yet logged in.");
+            {
+                ServerConfiguration.LogError($"Attempting to add DME client {dmeClient} to MediusManager but client has not yet logged in.");
+                return;
+            }
 
             if (!_lookupsByAppId.TryGetValue(dmeClient.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(dmeClient.ApplicationId, quickLookup = new QuickLookup());
@@ -179,7 +182,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
         public void AddClient(ClientObject client)
         {
             if (!client.IsLoggedIn)
-                throw new InvalidOperationException($"Attempting to add {client} to MediusManager but client has not yet logged in.");
+            {
+                ServerConfiguration.LogError($"Attempting to add {client} to MediusManager but client has not yet logged in.");
+                return;
+            }
 
             _addQueue.Enqueue(client);
         }
@@ -285,7 +291,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 _lookupsByAppId.Add(game.ApplicationId, quickLookup = new QuickLookup());
 
             quickLookup.GameIdToGame.Add(game.Id, game);
-            await MediusClass.Database.CreateGame(game.ToGameDTO());
+            await ServerConfiguration.Database.CreateGame(game.ToGameDTO());
         }
 
         public int GetGameCountAppId(int appId)
@@ -642,7 +648,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
         }
         #endregion
-
 
         #region Create Game P2P
 
@@ -1399,7 +1404,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 _lookupsByAppId.Add(party.ApplicationId, quickLookup = new QuickLookup());
 
             quickLookup.PartyIdToGame.Add(party.Id, party);
-            await MediusClass.Database.CreateParty(party.ToPartyDTO());
+            await ServerConfiguration.Database.CreateParty(party.ToPartyDTO());
         }
 
         public async Task CreateParty(ClientObject client, IMediusRequest request)
@@ -2005,7 +2010,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
         public async Task OnDatabaseAuthenticated()
         {
             // get supported app ids
-            var appids = await MediusClass.Database.GetAppIds();
+            var appids = await ServerConfiguration.Database.GetAppIds();
 
             // build dictionary of app ids from response
             _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());

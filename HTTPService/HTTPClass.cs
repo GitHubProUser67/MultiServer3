@@ -22,7 +22,7 @@ namespace MultiServer.HTTPService
 
         private static Task? _mainLoop;
 
-        public static Task HTTPstart(int port)
+        public static Task HTTPstart(int port, bool ssl)
         {
             httpstarted = true;
 
@@ -35,12 +35,20 @@ namespace MultiServer.HTTPService
             stopserver = false;
             _keepGoing = true;
             if (_mainLoop != null && !_mainLoop.IsCompleted) return Task.CompletedTask; //Already started
-            _mainLoop = loopserver(port);
+            _mainLoop = loopserver(port, ssl);
+
+            if (Server.plugins.Count > 0)
+            {
+                foreach (var plugin in Server.plugins)
+                {
+                    _ = plugin.HTTPStartPlugin("MultiServer", port);
+                }
+            }
 
             return Task.CompletedTask;
         }
 
-        private async static Task loopserver(int port)
+        private async static Task loopserver(int port, bool ssl)
         {
             listener.Prefixes.Add($"http://*:{port}/");
 
@@ -49,6 +57,9 @@ namespace MultiServer.HTTPService
             ServerConfiguration.LogInfo($"HTTP Server started - Listening for requests...");
 
             listener.Start();
+
+            if (ssl && !HTTPSClass.httpsstarted)
+                _ = Task.Run(async () => await HTTPSClass.StartHTTPSServer(443));
 
             while (_keepGoing)
             {
@@ -123,7 +134,7 @@ namespace MultiServer.HTTPService
             {
                 foreach (var plugin in Server.plugins)
                 {
-                    _ = plugin.HTTPExecute(ctx.Request, ctx.Response, ctx.Request.UserAgent);
+                    _ = plugin.HTTPExecute(ctx.Request, ctx.Request.UserAgent);
                 }
             }
 

@@ -7,6 +7,7 @@ using MultiServer.PluginManager;
 using MultiServer.Addons.Horizon.DME;
 using MultiServer.Addons.Horizon.MEDIUS;
 using MultiServer.Addons.Horizon.MUIS;
+using MultiServer.Addons.Horizon.LIBRARY.Database;
 using Newtonsoft.Json;
 
 namespace MultiServer
@@ -48,7 +49,6 @@ namespace MultiServer
 		public static bool EnableDNSServer { get; set; } = true;
         public static bool EnableHttpServer { get; set; } = true;
         public static bool EnableHomeTools { get; set; } = true;
-        public static bool EnableHttpsServer { get; set; } = true;
         public static bool EnableUpscale { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
@@ -61,7 +61,10 @@ namespace MultiServer
         public static string? SVOStaticFolder { get; set; } = "/static/wwwsvoroot/";
 
         public static IpsData? IpsData; // Global variable to store banned IPs
+
+        public static HttpsDns? HttpsDns; // Global variable to store HTTPS DNS list.
 #nullable disable
+        public static DbController Database = null;
         public static ILogger Logger { get; set; }
 
         public static FileLoggerProvider _fileLogger = null;
@@ -83,7 +86,7 @@ namespace MultiServer
                     FormatLogEntry = (msg) => {
                         var sb = new System.Text.StringBuilder();
                         StringWriter sw = new StringWriter(sb);
-                        var jsonWriter = new Newtonsoft.Json.JsonTextWriter(sw);
+                        var jsonWriter = new JsonTextWriter(sw);
                         jsonWriter.WriteStartArray();
                         jsonWriter.WriteValue(DateTime.Now.ToString("o"));
                         jsonWriter.WriteValue(msg.LogLevel.ToString());
@@ -190,7 +193,6 @@ namespace MultiServer
             SSFWStaticFolder = config.ssfw.static_folder;
 
             EnableHttpServer = config.http.enabled;
-            EnableHttpsServer = config.http.https.enabled;
             EnableHomeTools = config.http.home_tools;
             EnableUpscale = config.http.upscale;
             HTTPPrivateKey = config.http.private_key;
@@ -220,6 +222,8 @@ namespace MultiServer
             MOTD = File.ReadAllText(motd_file);
 
             LoadIPs();
+
+            LoadDNSs();
         }
 
         private static void LoadIPs()
@@ -234,14 +238,44 @@ namespace MultiServer
             }
         }
 
+        private static void LoadDNSs()
+        {
+            try
+            {
+                HttpsDns = JsonConvert.DeserializeObject<HttpsDns>(File.ReadAllText($"{Directory.GetCurrentDirectory()}/static/config.json"));
+            }
+            catch (Exception ex)
+            {
+                LogError($"Error loading HttpsDns entries: {ex}");
+            }
+        }
+
         public static bool IsIPBanned(string ipAddress)
         {
-            return IpsData?.BannedIPs.Contains(ipAddress) ?? false;
+            try
+            {
+                return IpsData?.BannedIPs.Contains(ipAddress) ?? false;
+            }
+            catch (Exception ex)
+            {
+                LogError($"Error loading Banned IPs: {ex}");
+            }
+
+            return true;
         }
 
         public static bool IsIPAllowed(string ipAddress)
         {
-            return IpsData?.HomeToolsAllowedIPs.Contains(ipAddress) ?? false;
+            try
+            {
+                return IpsData?.HomeToolsAllowedIPs.Contains(ipAddress) ?? false;
+            }
+            catch (Exception ex)
+            {
+                LogError($"Error loading Allowed IPs: {ex}");
+            }
+
+            return false;
         }
 
         public static Task RefreshConfig()
@@ -265,19 +299,31 @@ namespace MultiServer
         public List<string> HomeToolsAllowedIPs { get; set; }
     }
 
+    public class HttpsDns
+    {
+        public List<string> HttpsDnsList { get; set; }
+    }
+
     public class Server
     {
         public static string pluginspath = Directory.GetCurrentDirectory() + ServerConfiguration.PluginsFolder;
 
         public static List<IPlugin> plugins = PluginLoader.LoadPluginsFromFolder(pluginspath);
 
+        private static void setupdatabase()
+        {
+            ServerConfiguration.Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
+        }
+
         public Task HorizonStarter()
         {
             if (ServerConfiguration.EnableMedius)
             {
-                MediusClass.MediusMain();
-                MuisClass.MuisMain();
-                DmeClass.DmeMain();
+                Parallel.Invoke(
+                   async () => await MediusClass.MediusMain(),
+                   async () => await MuisClass.MuisMain(),
+                   async () => await DmeClass.DmeMain()
+               );
             }
 
             return Task.CompletedTask;
@@ -290,8 +336,13 @@ namespace MultiServer
 
             string currentDir = Directory.GetCurrentDirectory();
 
-            if (ServerConfiguration.EnableHttpsServer && File.Exists(currentDir + "/static/RootCA.pfx"))
-                Task.Run(async () => await HTTPService.LowLevelEngine.HTTPSClass.StartHTTPSServer(443));
+            Directory.CreateDirectory(currentDir + "/static/SSL");
+
+            if (!File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
+                CertificateUtils.CreateSelfSignedCert(currentDir + "/static/SSL/MultiServer.pfx", "secure.cprod.homeps3.online.scee.com");
+
+            if (!File.Exists(currentDir + "/static/SSL/SVO.pfx"))
+                CertificateUtils.CreateLegacySelfSignedCert(currentDir + "/static/SSL/SVO.pfx", "root.com");
 
             if (Misc.IsWindows())
                 if (!Misc.IsAdministrator())
@@ -300,7 +351,11 @@ namespace MultiServer
             if (ServerConfiguration.EnableHttpServer)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
-                Task.Run(async () => await HTTPClass.HTTPstart(ServerConfiguration.HTTPPort));
+
+                if (File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
+                    Task.Run(async () => await HTTPClass.HTTPstart(ServerConfiguration.HTTPPort, true));
+                else
+                    Task.Run(async () => await HTTPClass.HTTPstart(ServerConfiguration.HTTPPort, false));
             }
 
             if (ServerConfiguration.EnableSSFW)
@@ -311,17 +366,14 @@ namespace MultiServer
 
             if (ServerConfiguration.EnableSVO)
             {
-                HTTPService.Addons.SVO.SVOClass.setupdatabase();
-
-                if (File.Exists(currentDir + "/static/RootCA.pfx"))
+                if (File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
                     Parallel.Invoke(
-                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(),
-                       async () => await HTTPService.Addons.SVO.SVOHTTPSClass.StartSVOHTTPSServer(),
+                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(true),
                        async () => await HTTPService.Addons.SVO.SVOClass.StartTickPooling()
                     );
                 else
                     Parallel.Invoke(
-                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(),
+                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(false),
                        async () => await HTTPService.Addons.SVO.SVOClass.StartTickPooling()
                     );
             }
@@ -331,6 +383,8 @@ namespace MultiServer
 
         public void Start()
         {
+            setupdatabase();
+
             Parallel.Invoke(
                    async () => await ServerStarter(),
                    async () => await HorizonStarter()

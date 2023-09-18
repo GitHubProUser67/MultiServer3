@@ -492,7 +492,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             {
                 // Update db
                 if (!utcTimeEnded.HasValue)
-                    _ = MediusClass.Database.UpdateGame(ToGameDTO());
+                    _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
         }
 
@@ -526,7 +526,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             {
                 // Update db
                 if (!utcTimeEnded.HasValue)
-                    _ = MediusClass.Database.UpdateGame(ToGameDTO());
+                    _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
             ServerConfiguration.LogInfo("World Updated from World Report");
         }
@@ -570,7 +570,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             {
                 // Update db
                 if (!utcTimeEnded.HasValue)
-                    _ = MediusClass.Database.UpdateGame(ToGameDTO());
+                    _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
         }
 
@@ -622,11 +622,11 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
             {
-                _ = MediusClass.Database.DeleteGame(Id);
+                _ = ServerConfiguration.Database.DeleteGame(Id);
             }
             else
             {
-                _ = MediusClass.Database.UpdateGame(ToGameDTO());
+                _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
         }
 
@@ -661,7 +661,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
             // Update db
             if (!utcTimeEnded.HasValue)
-                _ = MediusClass.Database.UpdateGame(ToGameDTO());
+                _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
         }
     }
 }

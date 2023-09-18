@@ -10,6 +10,8 @@ namespace MultiServer.HTTPService.Addons.SVO
     {
         public static HttpsCacheServer server = null;
 
+        public static bool httpsstarted = false;
+
         private class HttpsCacheSession : HttpsSession
         {
             public HttpsCacheSession(HttpsServer server) : base(server) { }
@@ -36,7 +38,7 @@ namespace MultiServer.HTTPService.Addons.SVO
                     if (request.Url != null && request.Url != "" && HTTPClass.httpstarted == true)
                     {
                         ServerConfiguration.LogInfo($"[SVO-HTTPS] - Received Request - {request.Url}");
-                        Response.SetBegin(302);
+                        Response.SetBegin(307);
                         Response.SetHeader("Location", $"http://{PublicIp}:10060{request.Url}");
                     }
                     else
@@ -50,7 +52,7 @@ namespace MultiServer.HTTPService.Addons.SVO
                     if (request.Url != null && request.Url != "" && HTTPClass.httpstarted == true)
                     {
                         ServerConfiguration.LogInfo($"[SVO-HTTPS] - Received Request - {request.Url}");
-                        Response.SetBegin(302);
+                        Response.SetBegin(307);
                         Response.SetHeader("Location", $"http://127.0.0.1:10060{request.Url}");
                     }
                     else
@@ -92,6 +94,7 @@ namespace MultiServer.HTTPService.Addons.SVO
             if (server != null && server.IsStarted)
             {
                 server.Stop();
+                httpsstarted = false;
                 ServerConfiguration.LogError($"[SVO-HTTPS] - server Stopped!");
             }
             return Task.CompletedTask;
@@ -103,7 +106,7 @@ namespace MultiServer.HTTPService.Addons.SVO
             {
 #pragma warning disable
                 // Create and prepare a new SSL server context
-                var context = new SslContext(SslProtocols.Ssl3, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/RootCA.pfx", "qwerty"));
+                var context = new SslContext(SslProtocols.Ssl3, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/SSL/SVO.pfx", "qwerty"));
 #pragma warning restore
                 // Create a new HTTP server
                 server = new HttpsCacheServer(context, IPAddress.Any, 10061);
@@ -112,6 +115,7 @@ namespace MultiServer.HTTPService.Addons.SVO
 
                 // Start the server
                 server.Start();
+                httpsstarted = true;
                 ServerConfiguration.LogInfo($"[SVO-HTTPS] - server started on: 10061");
             }
             catch (Exception ex)

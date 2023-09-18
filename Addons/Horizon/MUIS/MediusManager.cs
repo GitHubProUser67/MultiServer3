@@ -284,7 +284,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                 _lookupsByAppId.Add(game.ApplicationId, quickLookup = new QuickLookup());
 
             quickLookup.GameIdToGame.Add(game.Id, game);
-            await MuisClass.Database.CreateGame(game.ToGameDTO());
+            await ServerConfiguration.Database.CreateGame(game.ToGameDTO());
         }
 
         public int GetGameCountAppId(int appId)
@@ -765,7 +765,7 @@ namespace MultiServer.Addons.Horizon.MUIS
         public async Task OnDatabaseAuthenticated()
         {
             // get supported app ids
-            var appids = await MuisClass.Database.GetAppIds();
+            var appids = await ServerConfiguration.Database.GetAppIds();
 
             // build dictionary of app ids from response
             _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());

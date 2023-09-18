@@ -2,7 +2,6 @@
 using MultiServer.Addons.Horizon.RT.Common;
 using MultiServer.Addons.Horizon.RT.Models;
 using MultiServer.Addons.Horizon.LIBRARY.Common;
-using MultiServer.Addons.Horizon.LIBRARY.Database;
 using MultiServer.Addons.Horizon.MEDIUS.Config;
 using MultiServer.Addons.Horizon.MEDIUS.Medius.Models;
 using System.Diagnostics;
@@ -20,7 +19,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS
         public static RSA_KEY GlobalAuthPublic = null;
 
         public static ServerSettings Settings = new();
-        public static DbController Database = null;
 
         public static IPAddress SERVER_IP;
         public static string IP_TYPE;
@@ -57,7 +55,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
                 // We do this every 24 hours to get a fresh new token
                 if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
-                    if (!await Database.Authenticate())
+                    if (!await ServerConfiguration.Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
                         ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
@@ -75,7 +73,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
                         await RefreshAppSettings();
 
                         #region Check Cache Server Simulated
-                        if (Database._settings.SimulatedMode != true)
+                        if (ServerConfiguration.Database._settings.SimulatedMode != true)
                             ServerConfiguration.LogInfo("Connected to Cache Server");
                         else
                             ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
@@ -156,7 +154,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             //Parent ProcessId
             ServerConfiguration.LogInfo($"* Process ID: {currentProcess.Id}");
 
-            if (Database._settings.SimulatedMode == true)
+            if (ServerConfiguration.Database._settings.SimulatedMode == true)
                 ServerConfiguration.LogInfo("* Database Disabled Medius Stack");
             else
                 ServerConfiguration.LogInfo("* Database Enabled Medius Stack");
@@ -485,18 +483,14 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             _ = Task.Run(LoopServer);
         }
 
-        private static void setupdatabase()
+        public static Task MediusMain()
         {
-            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
-        }
-
-        public static void MediusMain()
-        {
-            setupdatabase();
             RefreshConfig();
             // Initialize plugins
             Plugins = new PluginsManager(Server.pluginspath);
             _ = StartServerAsync();
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -541,11 +535,11 @@ namespace MultiServer.Addons.Horizon.MEDIUS
         {
             try
             {
-                if (!Database.AmIAuthenticated())
+                if (!ServerConfiguration.Database.AmIAuthenticated())
                     return;
 
                 // get supported app ids
-                var appIdGroups = await Database.GetAppIds();
+                var appIdGroups = await ServerConfiguration.Database.GetAppIds();
                 if (appIdGroups == null)
                     return;
 
@@ -554,7 +548,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
                 {
                     foreach (var appId in appIdGroup.AppIds)
                     {
-                        var settings = await Database.GetServerSettings(appId);
+                        var settings = await ServerConfiguration.Database.GetServerSettings(appId);
                         if (settings != null)
                         {
                             if (_appSettings.TryGetValue(appId, out var appSettings))
@@ -567,15 +561,15 @@ namespace MultiServer.Addons.Horizon.MEDIUS
 
                                 // we also want to send this back to the server since this is new locally
                                 // and there might be new setting fields that aren't yet on the db
-                                await Database.SetServerSettings(appId, appSettings.GetSettings());
+                                await ServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                             }
                         }
                     }
                 }
 
                 // get locations
-                var locations = await Database.GetLocations();
-                var channels = await Database.GetChannels();
+                var locations = await ServerConfiguration.Database.GetLocations();
+                var channels = await ServerConfiguration.Database.GetChannels();
 
                 // add new channels
                 foreach (var channel in channels)

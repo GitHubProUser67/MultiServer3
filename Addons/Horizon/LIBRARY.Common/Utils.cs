@@ -2,8 +2,6 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace MultiServer.Addons.Horizon.LIBRARY.Common
 {
@@ -149,7 +147,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Common
 
         public static uint ToUnixTime(this DateTime time)
         {
-            return (uint)(time.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            return (uint)time.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         }
 
         public static DateTime ToUtcDateTime(this uint unixTime)

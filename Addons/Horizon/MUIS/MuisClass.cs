@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using MultiServer.Addons.Horizon.RT.Models;
 using MultiServer.Addons.Horizon.LIBRARY.Common;
-using MultiServer.Addons.Horizon.LIBRARY.Database;
 using MultiServer.Addons.Horizon.MUIS.Config;
 using MultiServer.Addons.Horizon.DME;
 
@@ -12,7 +11,6 @@ namespace MultiServer.Addons.Horizon.MUIS
         private static string CONFIG_FILE => Directory.GetCurrentDirectory() + $"/{ServerConfiguration.MUISConfig}";
 
         public static ServerSettings Settings = new();
-        public static DbController Database = null;
 
         public static MediusManager Manager = new();
         public static PluginsManager Plugins = null;
@@ -39,7 +37,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                 // We do this every 24 hours to get a fresh new token
                 if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
-                    if (!await Database.Authenticate())
+                    if (!await ServerConfiguration.Database.Authenticate())
                     {
                         // Log and exit when unable to authenticate
                         ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
@@ -56,7 +54,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                         await RefreshAppSettings();
 
                         #region Check Cache Server Simulated
-                        if (Database._settings.SimulatedMode != true)
+                        if (ServerConfiguration.Database._settings.SimulatedMode != true)
                             ServerConfiguration.LogInfo("Connected to Cache Server");
                         else
                             ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
@@ -104,7 +102,7 @@ namespace MultiServer.Addons.Horizon.MUIS
             ServerConfiguration.LogInfo($"* Medius Universe Information Server Version {gpszVersionString}");
             ServerConfiguration.LogInfo($"* Launched on {datetime}");
 
-            if (Database._settings.SimulatedMode == true)
+            if (ServerConfiguration.Database._settings.SimulatedMode == true)
                 ServerConfiguration.LogInfo("* Database Disabled Medius Stack");
             else
                 ServerConfiguration.LogInfo("* Database Enabled Medius Stack");
@@ -112,9 +110,16 @@ namespace MultiServer.Addons.Horizon.MUIS
             UniverseInfoServers = new MUIS[Settings.Ports.Length];
             for (int i = 0; i < UniverseInfoServers.Length; ++i)
             {
-                ServerConfiguration.LogInfo($"* Enabling MUIS on TCP Port = {Settings.Ports[i]}.");
-                UniverseInfoServers[i] = new MUIS(Settings.Ports[i]);
-                UniverseInfoServers[i].Start();
+                try
+                {
+                    ServerConfiguration.LogInfo($"* Enabling MUIS on TCP Port = {Settings.Ports[i]}.");
+                    UniverseInfoServers[i] = new MUIS(Settings.Ports[i]);
+                    UniverseInfoServers[i].Start();
+                }
+                catch (Exception)
+                {
+                    ServerConfiguration.LogError($"MUIS failed to start on TCP Port = {Settings.Ports[i]}");
+                }
             }
 
             ServerConfiguration.LogInfo($"* Server Key Type: {Settings.EncryptMessages}");
@@ -157,16 +162,12 @@ namespace MultiServer.Addons.Horizon.MUIS
             return Task.CompletedTask;
         }
 
-        private static void setupdatabase()
+        public static Task MuisMain()
         {
-            Database = new(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DatabaseConfig}");
-        }
-
-        public static void MuisMain()
-        {
-            setupdatabase();
             RefreshConfig();
             _ = StartServerAsync();
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -908,7 +909,7 @@ namespace MultiServer.Addons.Horizon.MUIS
         public static async Task OnDatabaseAuthenticated()
         {
             // get supported app ids
-            var appids = await Database.GetAppIds();
+            var appids = await ServerConfiguration.Database.GetAppIds();
 
             // build dictionary of app ids from response
             _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
@@ -918,11 +919,11 @@ namespace MultiServer.Addons.Horizon.MUIS
         {
             try
             {
-                if (!Database.AmIAuthenticated())
+                if (!ServerConfiguration.Database.AmIAuthenticated())
                     return;
 
                 // get supported app ids
-                var appIdGroups = await Database.GetAppIds();
+                var appIdGroups = await ServerConfiguration.Database.GetAppIds();
                 if (appIdGroups == null)
                     return;
 
@@ -931,7 +932,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                 {
                     foreach (var appId in appIdGroup.AppIds)
                     {
-                        var settings = await Database.GetServerSettings(appId);
+                        var settings = await ServerConfiguration.Database.GetServerSettings(appId);
                         if (settings != null)
                         {
                             if (_appSettings.TryGetValue(appId, out var appSettings))
@@ -944,7 +945,7 @@ namespace MultiServer.Addons.Horizon.MUIS
 
                                 // we also want to send this back to the server since this is new locally
                                 // and there might be new setting fields that aren't yet on the db
-                                await Database.SetServerSettings(appId, appSettings.GetSettings());
+                                await ServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                             }
                         }
                     }

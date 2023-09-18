@@ -54,7 +54,10 @@
         {
             var cipher = _ciphers[context];
             if (cipher == null)
-                throw new KeyNotFoundException($"The CipherContext {context} does not have a cipher associated with it.");
+            {
+                ServerConfiguration.LogError($"The CipherContext {context} does not have a cipher associated with it.");
+                return null;
+            }
 
             return cipher.GetPublicKey();
         }
@@ -78,7 +81,11 @@
         public bool Decrypt(CipherContext context, byte[] input, byte[] hash, out byte[] plain)
         {
             if (!_ciphers.TryGetValue(context, out var cipher) || cipher == null)
-                throw new KeyNotFoundException($"The CipherContext {context} does not have a cipher associated with it.");
+            {
+                ServerConfiguration.LogError($"The CipherContext {context} does not have a cipher associated with it.");
+                plain = null;
+                return false;
+            }
 
             return cipher.Decrypt(input, hash, out plain);
         }

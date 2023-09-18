@@ -17,7 +17,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp
             // Detect when client disconnects
             ctx.Channel.CloseCompletion.ContinueWith((x) =>
             {
-                ServerConfiguration.LogInfo("Channel Closed");
+                ServerConfiguration.LogInfo("[UDP] - Channel Closed");
                 OnChannelInactive?.Invoke(ctx.Channel);
             });
 
@@ -28,7 +28,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Pipeline.Udp
         // The Channel is closed hence the connection is closed
         public override void ChannelInactive(IChannelHandlerContext ctx)
         {
-            ServerConfiguration.LogInfo("Client disconnected");
+            ServerConfiguration.LogInfo("[UDP] - Client disconnected");
 
             // Send event upstream
             OnChannelInactive?.Invoke(ctx.Channel);

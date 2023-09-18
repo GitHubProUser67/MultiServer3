@@ -19,7 +19,7 @@ namespace MultiServer
 		public static DateTimeOffset ToDateTimeOffset(string input)
         {
             //see for docs: https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.parse?view=net-6.0
-            return (input.ToLower() == "now" ? DateTimeOffset.Now : DateTimeOffset.Parse(input));
+            return input.ToLower() == "now" ? DateTimeOffset.Now : DateTimeOffset.Parse(input);
         }
 
         public static string GetCurrentDateTime()
@@ -76,7 +76,7 @@ namespace MultiServer
         /// <returns></returns>
         public static string GetPublicIPAddress()
         {
-            string address;
+            string address = string.Empty;
             WebRequest request = WebRequest.Create("http://checkip.dyndns.org/");
             using (WebResponse response = request.GetResponse())
             using (StreamReader stream = new StreamReader(response.GetResponseStream()))
@@ -160,9 +160,7 @@ namespace MultiServer
                             {
                                 PingReply reply = ping.Send(address);
                                 if (reply.Status == IPStatus.Success)
-                                {
                                     return address.ToString();
-                                }
                             }
                             catch (PingException)
                             {
@@ -184,9 +182,7 @@ namespace MultiServer
                             {
                                 PingReply reply = ping.Send(address);
                                 if (reply.Status == IPStatus.Success)
-                                {
                                     return address.ToString();
-                                }
                             }
                             catch (PingException)
                             {

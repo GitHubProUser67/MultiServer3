@@ -300,7 +300,10 @@ namespace MultiServer.Addons.Horizon.MUIS
                     {
                         // ERROR - Need a session
                         if (data == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {versionServerRequest} without channeldata.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {versionServerRequest} without channeldata.");
+                            break;
+                        }
 
                         if (Settings.MediusServerVersionOverride == true)
                         {

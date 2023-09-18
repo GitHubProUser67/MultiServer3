@@ -176,10 +176,15 @@ namespace MultiServer.HTTPService
                 ServerConfiguration.LogWarn($"[HTTP] : {request.UserAgent} Requested a non-existing file: '{filePath}'.");
                 if (request.UserAgent.Contains("PSHome"))
                     response.StatusCode = 404;
-                else
+                else if (request.Url != null)
                 {
                     response.StatusCode = 404;
                     await Extensions.ReturnNotFoundError(response, $"{request.Url.Scheme}://{request.Url.Authority}{request.RawUrl}");
+                }
+                else
+                {
+                    response.StatusCode = 404;
+                    await Extensions.ReturnNotFoundError(response, "Invalid Link");
                 }
             }
         }

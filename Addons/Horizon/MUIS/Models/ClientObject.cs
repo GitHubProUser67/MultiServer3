@@ -436,7 +436,7 @@ namespace MultiServer.Addons.Horizon.MUIS.Models
         /// </summary>
         protected virtual void PostStatus()
         {
-            _ = MuisClass.Database.PostAccountStatus(new AccountStatusDTO()
+            _ = ServerConfiguration.Database.PostAccountStatus(new AccountStatusDTO()
             {
                 AppId = ApplicationId,
                 AccountId = AccountId,
@@ -481,7 +481,7 @@ namespace MultiServer.Addons.Horizon.MUIS.Models
 
         public async Task RefreshAccount()
         {
-            var accountDto = await MuisClass.Database.GetAccountById(AccountId);
+            var accountDto = await ServerConfiguration.Database.GetAccountById(AccountId);
             if (accountDto != null)
             {
                 FriendsList = accountDto.Friends.ToDictionary(x => x.AccountId, x => x.AccountName);

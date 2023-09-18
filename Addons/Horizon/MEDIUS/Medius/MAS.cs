@@ -504,7 +504,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
                         data.ClientObject.OnConnected();
 
-                        await MediusClass.Database.GetServerFlags().ContinueWith((r) =>
+                        await ServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                             {
@@ -547,7 +547,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         ServerConfiguration.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
-                        await MediusClass.Database.GetServerFlags().ContinueWith((r) =>
+                        await ServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                             {
@@ -601,7 +601,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         else
                         {
-                            await MediusClass.Database.GetServerFlags().ContinueWith((r) =>
+                            await ServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
                             {
                                 if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                                 {
@@ -638,7 +638,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusSessionEndRequest sessionEndRequest:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} is trying to end session without an Client Object");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} is trying to end session without an Client Object");
+                            break;
+                        }
 
                         Queue(new RT_MSG_SERVER_APP()
                         {
@@ -669,7 +672,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusSetLocalizationParamsRequest setLocalizationParamsRequest:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {setLocalizationParamsRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {setLocalizationParamsRequest} without a session.");
+                            break;
+                        }
 
                         data.ClientObject.CharacterEncoding = setLocalizationParamsRequest.CharacterEncoding;
                         data.ClientObject.LanguageType = setLocalizationParamsRequest.Language;
@@ -687,7 +693,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusSetLocalizationParamsRequest1 setLocalizationParamsRequest1:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {setLocalizationParamsRequest1} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {setLocalizationParamsRequest1} without a session.");
+                            break;
+                        }
 
                         data.ClientObject.CharacterEncoding = setLocalizationParamsRequest1.CharacterEncoding;
                         data.ClientObject.LanguageType = setLocalizationParamsRequest1.Language;
@@ -706,7 +715,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusSetLocalizationParamsRequest2 setLocalizationParamsRequest2:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {setLocalizationParamsRequest2} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {setLocalizationParamsRequest2} without a session.");
+                            break;
+                        }
 
                         data.ClientObject.CharacterEncoding = setLocalizationParamsRequest2.CharacterEncoding;
                         data.ClientObject.LanguageType = setLocalizationParamsRequest2.Language;
@@ -730,11 +742,17 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getTotalGamesRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getTotalGamesRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getTotalGamesRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getTotalGamesRequest} without being logged in.");
+                            break;
+                        }
 
                         data.ClientObject.Queue(new MediusGetTotalGamesResponse()
                         {
@@ -753,11 +771,17 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getTotalChannelsRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getTotalChannelsRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getTotalChannelsRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getTotalChannelsRequest} without being logged in.");
+                            break;
+                        }
 
                         data.ClientObject.Queue(new MediusGetTotalChannelsResponse()
                         {
@@ -814,7 +838,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                             // Then post to the Database if logged in
                             if (data.ClientObject?.IsLoggedIn ?? false)
-                                await MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+                                await ServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
                         }
                         else
                         {
@@ -837,7 +861,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                                 // Then post to the Database if logged in
                                 if (data.ClientObject?.IsLoggedIn ?? false)
-                                    await MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+                                    await ServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
                             }
 
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasTitleID)
@@ -860,11 +884,17 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getAccessLevelInfoRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getAccessLevelInfoRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getAccessLevelInfoRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getAccessLevelInfoRequest} without being logged in.");
+                            break;
+                        }
 
                         //int adminAccessLevel = 4;
 
@@ -884,7 +914,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null && data.ApplicationId != 10442) // KILLZONE PS2 CREATES A SESSION HERE FIRST ON CONNECT
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {mediusVersionServerRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {mediusVersionServerRequest} without a session.");
+                            break;
+                        }
 
                         if (Settings.MediusServerVersionOverride == true)
                         {
@@ -967,10 +1000,13 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session but doesn't need to be logged in
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLocationsRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getLocationsRequest} without a session.");
+                            break;
+                        }
 
                         ServerConfiguration.LogInfo($"Get Locations Request Received Sessionkey: {getLocationsRequest.SessionKey}");
-                        await MediusClass.Database.GetLocations(data.ClientObject.ApplicationId).ContinueWith(r =>
+                        await ServerConfiguration.Database.GetLocations(data.ClientObject.ApplicationId).ContinueWith(r =>
                         {
                             var locations = r.Result;
 
@@ -1021,7 +1057,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {pickLocationRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {pickLocationRequest} without a session.");
+                            break;
+                        }
 
                         data.ClientObject.LocationId = pickLocationRequest.LocationID;
 
@@ -1040,7 +1079,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusAccountRegistrationRequest accountRegRequest:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountRegRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountRegRequest} without a session.");
+                            break;
+                        }
 
                         // Check that account creation is enabled
                         if (appSettings.DisableAccountCreation)
@@ -1066,7 +1108,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             return;
                         }
 
-                        await MediusClass.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                        await ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
                             AccountPassword = Misc.ComputeSHA256(accountRegRequest.Password),
@@ -1100,9 +1142,12 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusAccountGetIDRequest accountGetIdRequest:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountGetIdRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountGetIdRequest} without a session.");
+                            break;
+                        }
 
-                        await MediusClass.Database.GetAccountByName(accountGetIdRequest.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                        await ServerConfiguration.Database.GetAccountByName(accountGetIdRequest.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null)
                             {
@@ -1132,13 +1177,19 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountDeleteRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountDeleteRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountDeleteRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountDeleteRequest} without being logged in.");
+                            break;
+                        }
 
-                        await MediusClass.Database.DeleteAccount(data.ClientObject.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                        await ServerConfiguration.Database.DeleteAccount(data.ClientObject.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result)
                             {
@@ -1168,7 +1219,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusAnonymousLoginRequest anonymousLoginRequest:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {anonymousLoginRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {anonymousLoginRequest} without a session.");
+                            break;
+                        }
 
                         await LoginAnonymous(anonymousLoginRequest, clientChannel, data);
                         break;
@@ -1177,7 +1231,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountLoginRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountLoginRequest} without a session.");
+                            break;
+                        }
 
                         await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_ACCOUNT_LOGIN_REQUEST, new OnAccountLoginRequestArgs()
                         {
@@ -1207,7 +1264,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             else
                             {
 
-                                await MediusClass.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                await ServerConfiguration.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                 {
                                     if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                         return;
@@ -1291,7 +1348,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                             Request = accountLoginRequest
                                         });
 
-                                        await MediusClass.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                        await ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                                         {
                                             AccountName = accountLoginRequest.Username,
                                             AccountPassword = Misc.ComputeSHA256(accountLoginRequest.Password),
@@ -1339,14 +1396,20 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountUpdatePasswordRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountUpdatePasswordRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountUpdatePasswordRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountUpdatePasswordRequest} without being logged in.");
+                            break;
+                        }
 
                         // Post New Password to Database
-                        await MediusClass.Database.PostAccountUpdatePassword(data.ClientObject.AccountId, accountUpdatePasswordRequest.OldPassword, accountUpdatePasswordRequest.NewPassword).ContinueWith((r) =>
+                        await ServerConfiguration.Database.PostAccountUpdatePassword(data.ClientObject.AccountId, accountUpdatePasswordRequest.OldPassword, accountUpdatePasswordRequest.NewPassword).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1375,7 +1438,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountLogoutRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountLogoutRequest} without a session.");
+                            break;
+                        }
 
                         MediusCallbackStatus result = MediusCallbackStatus.MediusFail;
 
@@ -1401,13 +1467,19 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountUpdateStatsRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountUpdateStatsRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {accountUpdateStatsRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {accountUpdateStatsRequest} without being logged in.");
+                            break;
+                        }
 
-                        await MediusClass.Database.PostMediusStats(data.ClientObject.AccountId, Convert.ToBase64String(accountUpdateStatsRequest.Stats)).ContinueWith((r) =>
+                        await ServerConfiguration.Database.PostMediusStats(data.ClientObject.AccountId, Convert.ToBase64String(accountUpdateStatsRequest.Stats)).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1436,7 +1508,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {ticketLoginRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {ticketLoginRequest} without a session.");
+                            break;
+                        }
 
                         // Check the client isn't already logged in
                         if (MediusClass.Manager.GetClientByAccountName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId)?.IsLoggedIn ?? false)
@@ -1449,7 +1524,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {   //Check if their MacBanned
-                            await MediusClass.Database.GetIsMacBanned(data.MachineId).ContinueWith((r) =>
+                            await ServerConfiguration.Database.GetIsMacBanned(data.MachineId).ContinueWith((r) =>
                             {
                                 if (r.IsCompletedSuccessfully && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                 {
@@ -1472,7 +1547,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                     }
                                     #endregion
 
-                                    _ = MediusClass.Database.GetAccountByName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                    _ = ServerConfiguration.Database.GetAccountByName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                     {
 
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
@@ -1536,7 +1611,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                                             ServerConfiguration.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
 
-                                            await MediusClass.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                            await ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                                             {
                                                 AccountName = ticketLoginRequest.UserOnlineId,
                                                 AccountPassword = "UNSET",
@@ -1593,7 +1668,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             Request = getAllAnnouncementsRequest
                         });
 
-                        await MediusClass.Database.GetLatestAnnouncements(data.ApplicationId).ContinueWith((r) =>
+                        await ServerConfiguration.Database.GetLatestAnnouncements(data.ApplicationId).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1640,7 +1715,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             Request = getAnnouncementsRequest
                         });
 
-                        await MediusClass.Database.GetLatestAnnouncement(data.ApplicationId).ContinueWith((r) =>
+                        await ServerConfiguration.Database.GetLatestAnnouncement(data.ApplicationId).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;
@@ -1684,7 +1759,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         {
                             case MediusPolicyType.Privacy:
                                 {
-                                    await MediusClass.Database.GetPolicy((int)MediusPolicyType.Privacy, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                    await ServerConfiguration.Database.GetPolicy((int)MediusPolicyType.Privacy, data.ClientObject.ApplicationId).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1705,7 +1780,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             case MediusPolicyType.Usage:
                                 {
-                                    await MediusClass.Database.GetPolicy((int)MediusPolicyType.Usage, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                    await ServerConfiguration.Database.GetPolicy((int)MediusPolicyType.Usage, data.ClientObject.ApplicationId).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1737,17 +1812,23 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLadderStatsRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getLadderStatsRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLadderStatsRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getLadderStatsRequest} without being logged in.");
+                            break;
+                        }
 
                         switch (getLadderStatsRequest.LadderType)
                         {
                             case MediusLadderType.MediusLadderTypePlayer:
                                 {
-                                    await MediusClass.Database.GetAccountById(getLadderStatsRequest.AccountID_or_ClanID).ContinueWith((r) =>
+                                    await ServerConfiguration.Database.GetAccountById(getLadderStatsRequest.AccountID_or_ClanID).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1774,7 +1855,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             case MediusLadderType.MediusLadderTypeClan:
                                 {
-                                    await MediusClass.Database.GetClanById(getLadderStatsRequest.AccountID_or_ClanID,
+                                    await ServerConfiguration.Database.GetClanById(getLadderStatsRequest.AccountID_or_ClanID,
                                         data.ClientObject.ApplicationId)
                                     .ContinueWith((r) =>
                                     {
@@ -1814,17 +1895,23 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLadderStatsWideRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getLadderStatsWideRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getLadderStatsWideRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getLadderStatsWideRequest} without being logged in.");
+                            break;
+                        }
 
                         switch (getLadderStatsWideRequest.LadderType)
                         {
                             case MediusLadderType.MediusLadderTypePlayer:
                                 {
-                                    await MediusClass.Database.GetAccountById(getLadderStatsWideRequest.AccountID_or_ClanID).ContinueWith((r) =>
+                                    await ServerConfiguration.Database.GetAccountById(getLadderStatsWideRequest.AccountID_or_ClanID).ContinueWith((r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -1852,7 +1939,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 }
                             case MediusLadderType.MediusLadderTypeClan:
                                 {
-                                    await MediusClass.Database.GetClanById(getLadderStatsWideRequest.AccountID_or_ClanID,
+                                    await ServerConfiguration.Database.GetClanById(getLadderStatsWideRequest.AccountID_or_ClanID,
                                         data.ClientObject.ApplicationId)
                                     .ContinueWith((r) =>
                                     {
@@ -1897,11 +1984,17 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {channelListRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {channelListRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {channelListRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {channelListRequest} without being logged in.");
+                            break;
+                        }
 
                         List<MediusChannelListResponse> channelResponses = new List<MediusChannelListResponse>();
 
@@ -2002,7 +2095,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 case MediusTextFilterRequest textFilterRequest:
                     {
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {textFilterRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {textFilterRequest} without a session.");
+                            break;
+                        }
 
                         // Deny special characters
                         // Also trim any whitespace
@@ -2054,11 +2150,17 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getServerTimeRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getServerTimeRequest} without a session.");
+                            break;
+                        }
 
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getServerTimeRequest} without being logged in.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getServerTimeRequest} without being logged in.");
+                            break;
+                        }
 
                         var time = DateTime.Now;
 
@@ -2097,7 +2199,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getMyIpRequest} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {getMyIpRequest} without a session.");
+                            break;
+                        }
 
                         if (!data.ClientObject.IsLoggedIn && data.ClientObject.ApplicationId != 10411)
                         {
@@ -2148,7 +2253,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     {
                         // ERROR - Need a session
                         if (data.ClientObject == null)
-                            throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {updateUserState} without a session.");
+                        {
+                            ServerConfiguration.LogError($"INVALID OPERATION: {clientChannel} sent {updateUserState} without a session.");
+                            break;
+                        }
 
                         // ERROR - Needs to be logged in --Doesn't need to be logged in on older clients
 
@@ -2196,9 +2304,9 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID
-            await MediusClass.Database.PostAccountIp(accountDto.AccountId, (clientChannel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString());
+            await ServerConfiguration.Database.PostAccountIp(accountDto.AccountId, (clientChannel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString());
             if (!string.IsNullOrEmpty(data.MachineId))
-                await MediusClass.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+                await ServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
             #endregion
 
             // Add to logged in clients

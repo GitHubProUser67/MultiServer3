@@ -455,7 +455,7 @@ namespace MultiServer.Addons.Horizon.MUIS.Models
             {
                 // Update db
                 if (!utcTimeEnded.HasValue)
-                    _ = MuisClass.Database.UpdateGame(ToGameDTO());
+                    _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
         }
 
@@ -489,7 +489,7 @@ namespace MultiServer.Addons.Horizon.MUIS.Models
             {
                 // Update db
                 if (!utcTimeEnded.HasValue)
-                    _ = MuisClass.Database.UpdateGame(ToGameDTO());
+                    _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
         }
 
@@ -541,13 +541,9 @@ namespace MultiServer.Addons.Horizon.MUIS.Models
             // Delete db entry if game hasn't started
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
-            {
-                _ = MuisClass.Database.DeleteGame(Id);
-            }
+                _ = ServerConfiguration.Database.DeleteGame(Id);
             else
-            {
-                _ = MuisClass.Database.UpdateGame(ToGameDTO());
-            }
+                _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
         }
 
         public virtual async Task SetWorldStatus(MediusWorldStatus status)
@@ -581,7 +577,7 @@ namespace MultiServer.Addons.Horizon.MUIS.Models
 
             // Update db
             if (!utcTimeEnded.HasValue)
-                _ = MuisClass.Database.UpdateGame(ToGameDTO());
+                _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
         }
     }
 }

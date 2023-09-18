@@ -99,7 +99,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Common.Stream
             else if (type == typeof(string))
                 writer.Write((string)value);
             else
-                throw new Exception("Unable to serialize object " + value + " of type " + type);
+                ServerConfiguration.LogError("Unable to serialize object " + value + " of type " + type);
         }
     }
 }

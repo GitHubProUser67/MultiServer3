@@ -210,7 +210,7 @@ namespace MultiServer.Addons.Horizon.DME
 
             if (_mpsState == MPSConnectionState.FAILED ||
                 (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
-                throw new Exception("Failed to authenticate with the MPS server.");
+                ServerConfiguration.LogError("Failed to authenticate with the MPS server.");
 
             try
             {
@@ -235,7 +235,6 @@ namespace MultiServer.Addons.Horizon.DME
             catch (Exception e)
             {
                 ServerConfiguration.LogError(e);
-
             }
         }
 

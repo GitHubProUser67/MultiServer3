@@ -18,6 +18,36 @@
   "HomeToolsAllowedIPs": [
     "127.0.0.1"
   ],
+  "HttpsDnsList": [
+    "www.outso-srv1.com",
+	"sonyhome.thqsandbox.com",
+	"juggernaut-games.com",
+    "away.veemee.com",
+    "home.veemee.com",
+    "pshome.ndreams.net",
+    "stats.outso-srv1.com",
+    "s3.amazonaws.com",
+    "game2.hellfiregames.com",
+    "youtube.com",
+    "api.pottermore.com",
+    "cprod.homerewards.online.scee.com",
+	"api.stathat.com",
+	"hubps3.online.scee.com",
+	"homeps3.svo.online.scee.com",
+	"homeps3-content.online.scee.com",
+	"cprod.homeidentity.online.scee.com",
+	"homeps3.online.scee.com",
+	"scee-home.playstation.net",
+	"scea-home.playstation.net",
+	"update-prod.pfs.online.scee.com",
+	"cprod.homeserverservices.online.scee.com",
+	"wipeout2048.online.scee.com",
+	"mmgproject0001.com",
+	"massmedia.com",
+	"alpha.lootgear.com",
+	"prd.destinations.scea.com",
+	"root.pshomecasino.com"
+  ],
   "ssfw": {
     "enabled": true,
     "private_key": "",
@@ -27,9 +57,6 @@
   },
   "http": {
     "enabled": true,
-	"https": {
-		"enabled": true
-	},
 	"upscale": false,
     "private_key": "",
     "port": 80,

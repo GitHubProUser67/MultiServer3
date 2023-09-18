@@ -279,11 +279,11 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
             {
-                _ = MediusClass.Database.DeleteParty(Id);
+                _ = ServerConfiguration.Database.DeleteParty(Id);
             }
             else
             {
-                _ = MediusClass.Database.UpdateParty(ToPartyDTO());
+                _ = ServerConfiguration.Database.UpdateParty(ToPartyDTO());
             }
         }
     }
