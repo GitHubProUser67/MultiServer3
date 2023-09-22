@@ -6,7 +6,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.UFC
 {
     public class UFCClass
     {
-        public static Task processrequest(HttpListenerRequest request, HttpListenerResponse response)
+        public static Task ProcessRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             if (request.Url == null)
             {
@@ -15,9 +15,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.UFC
                 return Task.CompletedTask;
             }
 
-            string httpMethod = request.HttpMethod;
-
-            switch (httpMethod)
+            switch (request.HttpMethod)
             {
                 case "POST":
                     switch (request.Url.AbsolutePath)
@@ -72,9 +70,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.UFC
                                 }
 
                                 if (ticketData == null)
-                                {
                                     response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                }
                                 else
                                 {
                                     try
@@ -96,9 +92,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.UFC
                                     for (int i = 0; i < extractedData.Length; i++)
                                     {
                                         if (extractedData[i] == 0x00)
-                                        {
                                             extractedData[i] = 0x20;
-                                        }
                                     }
 
                                     // Convert the modified data to a string
@@ -139,9 +133,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.UFC
                                         }
                                     }
                                     else
-                                    {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    }
                                 }
 
                                 copyStream.Dispose();

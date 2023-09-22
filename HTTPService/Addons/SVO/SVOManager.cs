@@ -11,6 +11,63 @@ namespace MultiServer.HTTPService.Addons.SVO
 
         private List<MediusFile> _mediusFiles = new List<MediusFile>();
         private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new List<MediusFileMetaData>();
+#nullable enable
+        private static DateTime? _lastSuccessfulDbAuth;
+#nullable disable
+        public static SVOManager Manager = new();
+
+        private static DateTime _lastComponentLog = Utils.GetHighPrecisionUtcTime();
+
+        private static async Task TickAsync()
+        {
+            try
+            {
+                // Attempt to authenticate with the db middleware
+                // We do this every 24 hours to get a fresh new token
+                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
+                {
+                    if (!await ServerConfiguration.Database.Authenticate())
+                    {
+                        // Log and exit when unable to authenticate
+                        ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
+                        return;
+                    }
+                    else
+                    {
+                        _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
+
+                        // pass to manager
+                        await Manager.OnDatabaseAuthenticated();
+
+                        #region Check Cache Server Simulated
+                        if (ServerConfiguration.Database._settings.SimulatedMode != true)
+                            ServerConfiguration.LogInfo("Connected to Cache Server");
+                        else
+                            ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
+                        #endregion
+                    }
+                }
+
+                if ((Utils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
+                    _lastComponentLog = Utils.GetHighPrecisionUtcTime();
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError(ex);
+            }
+        }
+
+        public static async Task StartTickPooling()
+        {
+            // iterate
+            while (true)
+            {
+                // tick
+                await TickAsync();
+
+                await Task.Delay(100);
+            }
+        }
 
         #region MFS
         public IEnumerable<MediusFile> GetFilesList(string path, string filenameBeginsWith, uint pageSize, uint startingEntryNumber)
@@ -22,22 +79,14 @@ namespace MultiServer.HTTPService.Addons.SVO
                 int counter = 0;
 
                 if (filenameBeginsWith.ToString() == "*")
-                {
                     files = Directory.GetFiles(path).Select(file => Path.GetFileName(file)).ToArray();
-                }
                 else
-                {
                     files = Directory.GetFiles(path, Convert.ToString(filenameBeginsWith));
-                }
 
                 if (files.Length < pageSize)
-                {
                     counter = files.Count();
-                }
                 else
-                {
                     counter = (int)pageSize - 1;
-                }
 
                 for (int i = (int)startingEntryNumber - 1; i < counter; i++)
                 {
@@ -78,13 +127,9 @@ namespace MultiServer.HTTPService.Addons.SVO
                 //files = Directory.GetFiles(path).Select(file => Path.GetFileName(filenameBeginsWith)).ToArray();
 
                 if (filesArray.Length < pageSize)
-                {
                     counter = filesArray.Count() - 1;
-                }
                 else
-                {
                     counter = (int)pageSize - 1;
-                }
 
                 for (int i = (int)(startingEntryNumber - 1); i < counter; i++)
                 {

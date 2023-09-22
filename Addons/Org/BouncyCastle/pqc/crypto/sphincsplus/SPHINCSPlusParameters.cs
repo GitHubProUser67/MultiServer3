@@ -132,21 +132,27 @@ namespace MultiServer.Addons.Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         static SphincsPlusParameters()
         {
             SphincsPlusParameters[] all = new SphincsPlusParameters[]{
+#pragma warning disable
                 SphincsPlusParameters.sha2_128f, SphincsPlusParameters.sha2_128s,
                 SphincsPlusParameters.sha2_192f, SphincsPlusParameters.sha2_192s,
                 SphincsPlusParameters.sha2_256f, SphincsPlusParameters.sha2_256s,
+#pragma warning restore
                 SphincsPlusParameters.sha2_128f_simple, SphincsPlusParameters.sha2_128s_simple,
                 SphincsPlusParameters.sha2_192f_simple, SphincsPlusParameters.sha2_192s_simple,
                 SphincsPlusParameters.sha2_256f_simple, SphincsPlusParameters.sha2_256s_simple,
+#pragma warning disable
                 SphincsPlusParameters.shake_128f, SphincsPlusParameters.shake_128s,
                 SphincsPlusParameters.shake_192f, SphincsPlusParameters.shake_192s,
                 SphincsPlusParameters.shake_256f, SphincsPlusParameters.shake_256s,
+#pragma warning restore
                 SphincsPlusParameters.shake_128f_simple, SphincsPlusParameters.shake_128s_simple,
                 SphincsPlusParameters.shake_192f_simple, SphincsPlusParameters.shake_192s_simple,
                 SphincsPlusParameters.shake_256f_simple, SphincsPlusParameters.shake_256s_simple,
+#pragma warning disable
                 SphincsPlusParameters.haraka_128f, SphincsPlusParameters.haraka_128s,
                 SphincsPlusParameters.haraka_192f, SphincsPlusParameters.haraka_192s,
                 SphincsPlusParameters.haraka_256f, SphincsPlusParameters.haraka_256s,
+#pragma warning restore
                 SphincsPlusParameters.haraka_128f_simple, SphincsPlusParameters.haraka_128s_simple,
                 SphincsPlusParameters.haraka_192f_simple, SphincsPlusParameters.haraka_192s_simple,
                 SphincsPlusParameters.haraka_256f_simple, SphincsPlusParameters.haraka_256s_simple,

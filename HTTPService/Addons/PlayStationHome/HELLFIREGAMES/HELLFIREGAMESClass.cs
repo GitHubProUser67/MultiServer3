@@ -4,11 +4,11 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
 {
     public class HELLFIREGAMESClass
     {
-        public static async Task processrequest(HttpListenerRequest request, HttpListenerResponse response)
+        public static async Task ProcessRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             string url = "";
 
-            if (request.Url.LocalPath == null)
+            if (request.Url == null)
             {
                 response.StatusCode = (int)HttpStatusCode.Unauthorized;
 
@@ -33,19 +33,19 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
                     switch (absolutepath)
                     {
                         case "/HomeTycoon/Main_SCEE.php":
-                            await HomeTycconMain.Main(request, response);
+                            await HOMETYCOONMain.Main(request, response);
                             break;
                         case "/HomeTycoon/Main_SCEJ.php":
-                            await HomeTycconMain.Main(request, response);
+                            await HOMETYCOONMain.Main(request, response);
                             break;
                         case "/HomeTycoon/Main_SCEAsia.php":
-                            await HomeTycconMain.Main(request, response);
+                            await HOMETYCOONMain.Main(request, response);
                             break;
                         case "/HomeTycoon/Main.php":
-                            await HomeTycconMain.Main(request, response);
+                            await HOMETYCOONMain.Main(request, response);
                             break;
                         case "/Postcards/":
-                            await HomeTycconMain.PostCards(request, response);
+                            await HOMETYCOONMain.PostCards(request, response);
                             break;
                         default:
                             response.StatusCode = (int)HttpStatusCode.Forbidden;

@@ -1,9 +1,5 @@
 ﻿using MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES;
-using MultiServer.HTTPService.Addons.PlayStationHome.NDREAMS;
-using MultiServer.HTTPService.Addons.PlayStationHome.OHS;
-using MultiServer.HTTPService.Addons.PlayStationHome.POTTERMORE;
 using MultiServer.HTTPService.Addons.PlayStationHome.UFC;
-using MultiServer.HTTPService.Addons.PlayStationHome.VEEMEE;
 using System.Net;
 using System.Text;
 
@@ -19,23 +15,17 @@ namespace MultiServer.HTTPService
 
         // Create and start the HttpListener
         private static HttpListener listener = new();
-
+#nullable enable
         private static Task? _mainLoop;
-
-        public static Task HTTPstart(int port, bool ssl)
+#nullable disable
+        public static Task HTTPstart(int port)
         {
             httpstarted = true;
-
-            HTTPPrivateKey.setup();
-
-            CryptoSporidium.AFSBLOWFISH.InitiateINFCryptoContext();
-
-            Addons.PlayStationHome.PrepareFolder.Prepare();
 
             stopserver = false;
             _keepGoing = true;
             if (_mainLoop != null && !_mainLoop.IsCompleted) return Task.CompletedTask; //Already started
-            _mainLoop = loopserver(port, ssl);
+            _mainLoop = loopserver(port);
 
             if (Server.plugins.Count > 0)
             {
@@ -48,7 +38,7 @@ namespace MultiServer.HTTPService
             return Task.CompletedTask;
         }
 
-        private async static Task loopserver(int port, bool ssl)
+        private async static Task loopserver(int port)
         {
             listener.Prefixes.Add($"http://*:{port}/");
 
@@ -57,9 +47,6 @@ namespace MultiServer.HTTPService
             ServerConfiguration.LogInfo($"HTTP Server started - Listening for requests...");
 
             listener.Start();
-
-            if (ssl && !HTTPSClass.httpsstarted)
-                _ = Task.Run(async () => await HTTPSClass.StartHTTPSServer(443));
 
             while (_keepGoing)
             {
@@ -189,17 +176,11 @@ namespace MultiServer.HTTPService
                     string requesthost = ctx.Request.Headers["Host"];
 
                     if (requesthost != null && requesthost == "sonyhome.thqsandbox.com")
-                        await UFCClass.processrequest(ctx.Request, ctx.Response);
-                    else if (absolutepath.Contains("/ohs") || requesthost == "stats.outso-srv1.com")
-                        await OHSClass.processrequest(crc32, ctx.Request, ctx.Response);
-                    else if ((requesthost == "away.veemee.com" || requesthost == "home.veemee.com") && absolutepath.EndsWith(".php"))
-                        await VEEMEEClass.processrequest(ctx.Request, ctx.Response);
+                        await UFCClass.ProcessRequest(ctx.Request, ctx.Response);
                     else if ((requesthost == "game2.hellfiregames.com" && absolutepath.EndsWith(".php")) || absolutepath == "/Postcards/")
-                        await HELLFIREGAMESClass.processrequest(ctx.Request, ctx.Response);
-                    else if (requesthost == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
-                        await NDREAMSClass.processrequest(ctx.Request, ctx.Response);
-                    else if (requesthost == "api.pottermore.com")
-                        await POTTERMOREClass.processrequest(ctx.Request, ctx.Response);
+                        await HELLFIREGAMESClass.ProcessRequest(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/ohs") || requesthost == "stats.outso-srv1.com")
+                        await Addons.PlayStationHome.OHS.OHSClass.ProcessRequest(crc32, ctx.Request, ctx.Response);
                     else
                         specialrequest = false;
                 }

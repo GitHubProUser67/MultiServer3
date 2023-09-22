@@ -33,7 +33,6 @@
     "cprod.homerewards.online.scee.com",
 	"api.stathat.com",
 	"hubps3.online.scee.com",
-	"homeps3.svo.online.scee.com",
 	"homeps3-content.online.scee.com",
 	"cprod.homeidentity.online.scee.com",
 	"homeps3.online.scee.com",
@@ -46,7 +45,11 @@
 	"massmedia.com",
 	"alpha.lootgear.com",
 	"prd.destinations.scea.com",
-	"root.pshomecasino.com"
+	"root.pshomecasino.com",
+	"homeec.scej-nbs.jp",
+	"homeecqa.scej-nbs.jp",
+	"test.playstationhome.jp",
+	"hdc.cprod.homeps3.online.scee.com"
   ],
   "ssfw": {
     "enabled": true,

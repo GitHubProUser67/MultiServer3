@@ -118,7 +118,12 @@ namespace MultiServer.Addons.Horizon.DME
             foreach (var manager in Managers)
             {
                 if (manager.Value.IsConnected)
-                    InRequestsTasks.Add(manager.Value.HandleIncomingMessages());
+                {
+                    if (manager.Value.CheckMPSConnectivity())
+                        InRequestsTasks.Add(manager.Value.HandleIncomingMessages());
+                    else
+                        await manager.Value.Stop(); // No MPS so we abort.
+                }
             }
 
             await Task.WhenAll(InRequestsTasks);
@@ -134,7 +139,12 @@ namespace MultiServer.Addons.Horizon.DME
             foreach (var manager in Managers)
             {
                 if (manager.Value.IsConnected)
-                    OutRequestsTasks.Add(manager.Value.HandleOutgoingMessages());
+                {
+                    if (manager.Value.CheckMPSConnectivity())
+                        OutRequestsTasks.Add(manager.Value.HandleOutgoingMessages());
+                    else
+                        await manager.Value.Stop(); // No MPS so we abort.
+                }
                 else if ((Utils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.MPSReconnectInterval)
                     OutRequestsTasks.Add(manager.Value.Start());
             }
@@ -159,63 +169,68 @@ namespace MultiServer.Addons.Horizon.DME
 
         private static Task StartServerAsync()
         {
-            ServerConfiguration.LogInfo("Initializing DME components...");
-            ServerConfiguration.LogInfo("*****************************************************************");
-            ServerConfiguration.LogInfo($"DME Message Router Version {DME_SERVER_VERSION}");
-
-            int KM_GetSoftwareID = 120;
-            ServerConfiguration.LogInfo($"DME Message Router Application ID {KM_GetSoftwareID}");
-
-            #region DateTime
-            string date = DateTime.Now.ToString("MMMM/dd/yyyy");
-            string time = DateTime.Now.ToString("hh:mm:ss tt");
-            ServerConfiguration.LogInfo($"Date: {date}, Time: {time}");
-            #endregion
-
-            #region DME Server Info
-            ServerConfiguration.LogInfo($"Server IP = {SERVER_IP} [{IP_TYPE}]  TCP Port = {Settings.TCPPort}  UDP Port = {Settings.UDPPort}");
-            TcpServer.Start();
-            #endregion
-
-            #region ConfigAuxUDP Check
-
-            if (Settings.EnableAuxUDP)
-                ServerConfiguration.LogInfo("Auxilary UDP is ENABLED!\n");
-            else
-                ServerConfiguration.LogInfo("Auxilary UDP is DISABLED!\n");
-
-            #endregion
-
-            ServerConfiguration.LogInfo("*****************************************************************");
-            ServerConfiguration.LogInfo($"TCP started.");
-
-            // build and start medius managers per app id
-            foreach (var applicationId in Settings.ApplicationIds)
+            try
             {
-                var manager = new DMEMediusManager(applicationId);
-                //ogger.Info($"Starting MPS for appid {applicationId}.");
-                //await manager.Start();
-                //ServerConfiguration.LogInfo($"MPS started.");
-                Managers.Add(applicationId, manager);
+                ServerConfiguration.LogInfo("Initializing DME components...");
+                ServerConfiguration.LogInfo("*****************************************************************");
+                ServerConfiguration.LogInfo($"DME Message Router Version {DME_SERVER_VERSION}");
+
+                int KM_GetSoftwareID = 120;
+                ServerConfiguration.LogInfo($"DME Message Router Application ID {KM_GetSoftwareID}");
+
+                #region DateTime
+                string date = DateTime.Now.ToString("MMMM/dd/yyyy");
+                string time = DateTime.Now.ToString("hh:mm:ss tt");
+                ServerConfiguration.LogInfo($"Date: {date}, Time: {time}");
+                #endregion
+
+                #region DME Server Info
+                ServerConfiguration.LogInfo($"Server IP = {SERVER_IP} [{IP_TYPE}]  TCP Port = {Settings.TCPPort}  UDP Port = {Settings.UDPPort}");
+                TcpServer.Start();
+                #endregion
+
+                #region ConfigAuxUDP Check
+
+                if (Settings.EnableAuxUDP)
+                    ServerConfiguration.LogInfo("Auxilary UDP is ENABLED!\n");
+                else
+                    ServerConfiguration.LogInfo("Auxilary UDP is DISABLED!\n");
+
+                #endregion
+
+                ServerConfiguration.LogInfo("*****************************************************************");
+                ServerConfiguration.LogInfo($"TCP started.");
+
+                // build and start medius managers per app id
+                foreach (var applicationId in Settings.ApplicationIds)
+                {
+                    var manager = new DMEMediusManager(applicationId);
+                    //ogger.Info($"Starting MPS for appid {applicationId}.");
+                    //await manager.Start();
+                    //ServerConfiguration.LogInfo($"MPS started.");
+                    Managers.Add(applicationId, manager);
+                }
+
+                ServerConfiguration.LogInfo("DME Initalized.");
+
+                started = true;
+
+                _ = Task.Run(LoopServer);
             }
-
-            ServerConfiguration.LogInfo("DME Initalized.");
-
-            started = true;
-
-            _ = Task.Run(LoopServer);
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[DME] - Server failed to initialize with error - {ex}");
+            }
 
             return Task.CompletedTask;
         }
 
-        public static Task DmeMain()
+        public static void DmeMain()
         {
             Initialize();
             // Initialize plugins
             Plugins = new PluginsManager(Server.pluginspath);
             _ = StartServerAsync();
-
-            return Task.CompletedTask;
         }
 
         private static void Initialize()
@@ -247,7 +262,7 @@ namespace MultiServer.Addons.Horizon.DME
                 // Add the appids to the ApplicationIds list
                 Settings.ApplicationIds.AddRange(new List<int>
                 {
-                    10683, 11354, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
+                    10683, 10684, 11354, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
                     20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
                     20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
                     10984, 10782, 10421, 10130, 24000, 24180
@@ -317,7 +332,7 @@ namespace MultiServer.Addons.Horizon.DME
         private static void RefreshServerIp()
         {
             if (!Settings.UsePublicIp)
-                SERVER_IP = Utils.GetLocalIPAddress();
+                SERVER_IP = Misc.GetLocalIPAddress();
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))

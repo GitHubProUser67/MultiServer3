@@ -367,9 +367,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
                 UtcLastServerEchoReply = Utils.GetHighPrecisionUtcTime();
             }
             else
-            {
                 UtcLastServerEchoReply = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
-            }
         }
 
         public void QueueServerEcho()
@@ -416,7 +414,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
             AccountStats = report.Stats;
         }
-
 
         #region Send Queue
 
@@ -474,7 +471,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             if (IsInOtherUniverse)
                 return MediusPlayerStatus.MediusPlayerInOtherUniverse;
             */
-
         }
 
         /// <summary>
@@ -548,34 +544,36 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
         public async Task Login(AccountDTO account)
         {
-            if (IsLoggedIn)
-                throw new InvalidOperationException($"{this} attempting to log into {account} but is already logged in!");
+            if (!IsLoggedIn)
+            {
+                if (account != null)
+                {
+                    AccountId = account.AccountId;
+                    AccountName = account.AccountName;
+                    Metadata = account.Metadata;
+                    ClanId = account.ClanId;
+                    WideStats = account.AccountWideStats;
+                    CustomWideStats = account.AccountCustomWideStats;
 
-            if (account == null)
-                throw new InvalidOperationException($"{this} attempting to log into null account.");
+                    FriendsList = account.Friends?.ToDictionary(x => x.AccountId, x => x.AccountName) ?? new Dictionary<int, string>();
 
-            // 
-            AccountId = account.AccountId;
-            AccountName = account.AccountName;
-            Metadata = account.Metadata;
-            ClanId = account.ClanId;
-            WideStats = account.AccountWideStats;
-            CustomWideStats = account.AccountCustomWideStats;
+                    // Raise plugin event
+                    await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_LOGGED_IN, new OnPlayerArgs() { Player = this });
 
-            //
-            FriendsList = account.Friends?.ToDictionary(x => x.AccountId, x => x.AccountName) ?? new Dictionary<int, string>();
+                    // Login
+                    _loginTime = Utils.GetHighPrecisionUtcTime();
 
-            // Raise plugin event
-            await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_LOGGED_IN, new OnPlayerArgs() { Player = this });
+                    // Update last sign in date
+                    _ = ServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
 
-            // Login
-            _loginTime = Utils.GetHighPrecisionUtcTime();
-
-            // Update last sign in date
-            _ = ServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
-
-            // Update database status
-            PostStatus();
+                    // Update database status
+                    PostStatus();
+                }
+                else
+                    ServerConfiguration.LogError($"{this} attempting to log into null account.");
+            }
+            else
+                ServerConfiguration.LogError($"{this} attempting to log into {account} but is already logged in!");
         }
 
         public async Task RefreshAccount()

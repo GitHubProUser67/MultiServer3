@@ -82,7 +82,8 @@ namespace MultiServer.MitmDNS
             {
                 if (dicRules[fullname].Mode == HandleMode.Allow) url = fullname;
                 else if (dicRules[fullname].Mode == HandleMode.Redirect) url = dicRules[fullname].Address;
-                else url = "NXDOMAIN";
+                else if (dicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
+                else url = fullname;
                 treated = true;
             }
 
@@ -96,7 +97,8 @@ namespace MultiServer.MitmDNS
 
                     if (rule.Value.Mode == HandleMode.Allow) url = fullname;
                     else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address;
-                    else url = "NXDOMAIN";
+                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                    else url = fullname;
                     treated = true;
                     break;
                 }
@@ -118,7 +120,7 @@ namespace MultiServer.MitmDNS
                         ip = Dns.GetHostEntry(url).AddressList[0];
                     else ip = address;
                 }
-                catch
+                catch (Exception)
                 {
                     ip = IPAddress.None;
                 }

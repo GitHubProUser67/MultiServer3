@@ -3028,6 +3028,19 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
 
                         new ChannelDTO()
                         {
+                            AppId = 10684,
+                            Id = 1,
+                            Name = "CY00000000-00",
+                            MaxPlayers = 512,
+                            GenericField1 = 0,
+                            GenericField2 = 1,
+                            GenericField3 = 0,
+                            GenericField4 = 0,
+                            GenericFieldFilter = 32
+                        },
+
+                        new ChannelDTO()
+                        {
                             AppId = 20624,
                             Id = 1,
                             Name = "US",

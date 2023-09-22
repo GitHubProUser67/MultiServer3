@@ -1099,11 +1099,9 @@ namespace MultiServer.Addons.ICSharpCode.SharpZipLib.Zip
 		public static string CleanName(string name)
 		{
 			if (name == null)
-			{
-				return string.Empty;
-			}
+                return string.Empty;
 
-			if (Path.IsPathRooted(name))
+            if (Path.IsPathRooted(name))
 			{
 				// NOTE:
 				// for UNC names...  \\machine\share\zoom\beet.txt gives \zoom\beet.txt

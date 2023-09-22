@@ -14,20 +14,16 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             NetObjectBufferStart = reader.ReadInt16();
             NetDataStreamStart = reader.ReadInt16();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(NetObjectBufferStart);
             writer.Write(NetDataStreamStart);
         }

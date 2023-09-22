@@ -13,19 +13,15 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             Version = reader.ReadString(Constants.DME_VERSION_LENGTH);
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(Version, Constants.DME_VERSION_LENGTH);
         }
 

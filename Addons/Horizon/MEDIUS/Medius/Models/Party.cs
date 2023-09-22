@@ -186,7 +186,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             if (Clients.Any(x => x.Client == client))
                 return;
 
-            // 
             ServerConfiguration.LogInfo($"Party {Id}: {PartyName}: {client} added.");
 
             Clients.Add(new PartyClient()
@@ -201,10 +200,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
         protected virtual async Task OnPlayerLeft(PartyClient player)
         {
-            // 
             ServerConfiguration.LogInfo($"Game {Id}: {PartyName}: {player.Client} left.");
 
-            // 
             player.InGame = false;
 
             // Update player object
@@ -219,15 +216,11 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
         public virtual async Task RemovePlayer(ClientObject client)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            // 
             ServerConfiguration.LogInfo($"Party {Id}: {PartyName}: {client} removed.");
 
             // Remove host
             if (Host == client)
-            {
                 Host = null;
-            }
-
 
             // Remove from clients list
             Clients.RemoveAll(x => x.Client == client);
@@ -250,7 +243,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // destroy flag
             destroyed = true;
 
-            // 
             ServerConfiguration.LogInfo($"Game {Id}: {PartyName}: EndParty() called.");
 
             // Send to plugins
@@ -261,14 +253,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             {
                 var client = Clients[0].Client;
                 if (client == null)
-                {
                     Clients.RemoveAt(0);
-                }
                 else
-                {
                     await client.LeaveParty(this);
                     // client.LeaveChannel(ChatChannel);
-                }
             }
 
 
@@ -278,13 +266,9 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // Delete db entry if game hasn't started
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
-            {
                 _ = ServerConfiguration.Database.DeleteParty(Id);
-            }
             else
-            {
                 _ = ServerConfiguration.Database.UpdateParty(ToPartyDTO());
-            }
         }
     }
 }

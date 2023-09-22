@@ -16,90 +16,29 @@ namespace MultiServer.HTTPService.Addons.SVO
 
         // Create and start the HttpListener
         private static HttpListener listener = new();
-
+#nullable enable
         private static Task? _mainLoop;
+#nullable disable
 
-        private static DateTime? _lastSuccessfulDbAuth;
-
-        public static SVOManager Manager = new();
-
-        private static DateTime _lastComponentLog = MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime();
-
-        private static async Task TickAsync()
-        {
-            try
-            {
-                // Attempt to authenticate with the db middleware
-                // We do this every 24 hours to get a fresh new token
-                if (_lastSuccessfulDbAuth == null || (MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
-                {
-                    if (!await ServerConfiguration.Database.Authenticate())
-                    {
-                        // Log and exit when unable to authenticate
-                        ServerConfiguration.LogError($"Unable to authenticate connection to Cache Server.");
-                        return;
-                    }
-                    else
-                    {
-                        _lastSuccessfulDbAuth = MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime();
-
-                        // pass to manager
-                        await Manager.OnDatabaseAuthenticated();
-
-                        #region Check Cache Server Simulated
-                        if (ServerConfiguration.Database._settings.SimulatedMode != true)
-                            ServerConfiguration.LogInfo("Connected to Cache Server");
-                        else
-                            ServerConfiguration.LogInfo("Connected to Cache Server (Simulated)");
-                        #endregion
-                    }
-                }
-
-                if ((MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
-                    _lastComponentLog = MultiServer.Addons.Horizon.LIBRARY.Common.Utils.GetHighPrecisionUtcTime();
-            }
-            catch (Exception ex)
-            {
-                ServerConfiguration.LogError(ex);
-            }
-        }
-
-        public static async Task StartTickPooling()
-        {
-            // iterate
-            while (true)
-            {
-                // tick
-                await TickAsync();
-
-                await Task.Delay(100);
-            }
-        }
-
-        public static Task SVOstart(bool ssl)
+        public static Task SVOstart()
         {
             svostarted = true;
-
-            PrepareFolder.Prepare();
 
             stopserver = false;
             _keepGoing = true;
             if (_mainLoop != null && !_mainLoop.IsCompleted) return Task.CompletedTask; //Already started
-            _mainLoop = loopserver(ssl);
+            _mainLoop = loopserver();
 
             return Task.CompletedTask;
         }
 
-        private async static Task loopserver(bool ssl)
+        private async static Task loopserver()
         {
             listener.Prefixes.Add("http://*:10060/");
 
             ServerConfiguration.LogInfo($"SVO Server started - Listening for requests...");
 
             listener.Start();
-
-            if (ssl && !SVOHTTPSClass.httpsstarted)
-                _ = Task.Run(SVOHTTPSClass.StartSVOHTTPSServer);
 
             while (_keepGoing)
             {
@@ -177,60 +116,6 @@ namespace MultiServer.HTTPService.Addons.SVO
 
             switch (absolutepath)
             {
-                case "/dataloaderweb/queue":
-                    if (ctx.Request.ContentType != null && ctx.Request.ContentType.StartsWith("multipart/form-data"))
-                    {
-                        switch (ctx.Request.HttpMethod)
-                        {
-                            case "POST":
-                                ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                ctx.Response.Headers.Set("Content-Language", "");
-
-                                string boundary = Extensions.ExtractBoundary(ctx.Request.ContentType);
-
-                                var data = MultipartFormDataParser.Parse(ctx.Request.InputStream, boundary);
-
-                                byte[] datatooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("body"));
-
-                                DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + $"{ServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
-
-                                FileInfo[] files = directory.GetFiles();
-
-                                if (files.Length >= 20)
-                                {
-                                    FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
-                                    ServerConfiguration.LogInfo("[SVO] - Replacing log file: " + oldestFile.Name);
-
-                                    File.WriteAllBytes(oldestFile.FullName, datatooutput);
-                                }
-                                else
-                                    File.WriteAllBytes(Directory.GetCurrentDirectory() + $"{ServerConfiguration.SVOStaticFolder}/dataloaderweb/queue/{Guid.NewGuid()}.xml", datatooutput);
-
-                                ctx.Response.StatusCode = 200;
-                                ctx.Response.SendChunked = true;
-                                ctx.Response.ContentLength64 = datatooutput.Length;
-
-                                if (ctx.Response.OutputStream.CanWrite)
-                                {
-                                    try
-                                    {
-                                        ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
-                                        ctx.Response.OutputStream.Close();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        // Not Important.
-                                    }
-                                }
-                                break;
-                            default:
-                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                break;
-                        }
-                        break;
-                    }
-                    break;
-
                 default:
                     if (absolutepath.Contains("/HUBPS3_SVML/"))
                         await Games.PlayStationHome.Home_SVO(ctx.Request, ctx.Response);

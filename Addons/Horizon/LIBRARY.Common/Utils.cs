@@ -1,7 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 
 namespace MultiServer.Addons.Horizon.LIBRARY.Common
 {
@@ -125,7 +122,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Common
                 }
             }
 
-            return default(TSource);
+            return default;
         }
 
         #endregion
@@ -153,49 +150,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Common
         public static DateTime ToUtcDateTime(this uint unixTime)
         {
             return new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(unixTime);
-        }
-
-        #endregion
-
-        #region Ip
-
-        public static IPAddress GetIp(string hostname)
-        {
-            if (hostname == "localhost")
-                return IPAddress.Loopback;
-
-            switch (Uri.CheckHostName(hostname))
-            {
-                case UriHostNameType.IPv4: return IPAddress.Parse(hostname);
-                case UriHostNameType.Dns: return Dns.GetHostAddresses(hostname).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
-                default:
-                    {
-                        return null;
-                    }
-            }
-        }
-
-        public static IPAddress GetLocalIPAddress()
-        {
-            if (!NetworkInterface.GetIsNetworkAvailable())
-                return null;
-
-            // Get all active interfaces
-            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
-                .Where(c => c.NetworkInterfaceType != NetworkInterfaceType.Loopback && c.OperationalStatus == OperationalStatus.Up);
-
-            // Find our local ip
-            foreach (var i in interfaces)
-            {
-                var props = i.GetIPProperties();
-                var inter = props.UnicastAddresses.Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
-#pragma warning disable // Sometimes Visual Studio is weird.
-                if (inter != null && props.GatewayAddresses.Count > 0 && inter.Count() > 0)
-                    return inter.FirstOrDefault().Address;
-#pragma warning restore
-            }
-
-            return null;
         }
 
         #endregion

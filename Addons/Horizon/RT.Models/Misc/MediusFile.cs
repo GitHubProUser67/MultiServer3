@@ -55,7 +55,6 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public void Deserialize(BinaryReader reader)
         {
-            // 
             FileName = reader.ReadString(Constants.MEDIUS_FILE_MAX_FILENAME_LENGTH);
             ServerChecksum = reader.ReadString(Constants.MEDIUS_FILE_CHECKSUM_NUMBYTES);
             FileID = reader.ReadInt32();
@@ -71,7 +70,6 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public void Serialize(BinaryWriter writer)
         {
-            // 
             writer.Write(FileName, Constants.MEDIUS_FILE_MAX_FILENAME_LENGTH);
             writer.Write(ServerChecksum, Constants.MEDIUS_FILE_CHECKSUM_NUMBYTES);
             writer.Write(FileID);

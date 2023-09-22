@@ -27,7 +27,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return (int)HighestOneBit((uint)i);
         }
 
-        [CLSCompliant(false)]
         public static uint HighestOneBit(uint i)
         {
             i |= i >>  1;
@@ -43,7 +42,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return i & -i;
         }
 
-        [CLSCompliant(false)]
         public static uint LowestOneBit(uint i)
         {
             return (uint)LowestOneBit((int)i);
@@ -84,7 +82,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return PopCount((uint)i);
         }
 
-        [CLSCompliant(false)]
         public static int PopCount(uint u)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -105,7 +102,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return (int)Reverse((uint)i);
         }
 
-        [CLSCompliant(false)]
         public static uint Reverse(uint i)
         {
             i = Bits.BitPermuteStepSimple(i, 0x55555555U, 1);
@@ -123,7 +119,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
 #endif
         }
 
-        [CLSCompliant(false)]
         public static uint ReverseBytes(uint i)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -143,7 +138,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
 #endif
         }
 
-        [CLSCompliant(false)]
         public static uint RotateLeft(uint i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -162,7 +156,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
 #endif
         }
 
-        [CLSCompliant(false)]
         public static uint RotateRight(uint i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER

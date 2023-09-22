@@ -721,11 +721,11 @@ namespace MultiServer.HTTPService
                         {
                             Directory.CreateDirectory(tempdir);
 
-                            byte[] decryptedfilebytes = AFSBLOWFISH.Crypt_Decrypt(buffer, AFSBLOWFISH.INFIVA);
+                            byte[] encryptedfilebytes = AFSBLOWFISH.Crypt_Decrypt(buffer, AFSBLOWFISH.INFIVA);
 
-                            if (decryptedfilebytes != null)
+                            if (encryptedfilebytes != null)
                             {
-                                File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", AFSMISC.ApplyPaddingPrefix(decryptedfilebytes));
+                                File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", AFSMISC.ApplyPaddingPrefix(encryptedfilebytes));
 
                                 await FileHelper.HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
                             }

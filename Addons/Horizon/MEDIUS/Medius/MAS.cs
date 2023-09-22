@@ -58,7 +58,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10683, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerComplete = new List<int>() { 10683, 10684, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
@@ -80,14 +80,14 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             ServerConfiguration.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                         }
 
-                        //If this is a PS3 client
+                        // If this is a PS3 client
                         if (scertClient.IsPS3Client)
                         {
-                            //Send a Server_Connect_Require with no Password needed
+                            // Send a Server_Connect_Require with no Password needed
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
                         }
 
-                        //Do NOT send hereCryptKey Game
+                        // Do NOT send hereCryptKey Game
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,

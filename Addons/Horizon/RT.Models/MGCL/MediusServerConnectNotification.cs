@@ -27,10 +27,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             ConnectEventType = reader.Read<MGCL_EVENT_TYPE>();
             MediusWorldUID = reader.ReadUInt32();
             PlayerSessionKey = reader.ReadString(Constants.MGCL_SESSIONKEY_MAXLEN);
@@ -39,10 +37,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(ConnectEventType);
             writer.Write(MediusWorldUID);
             writer.Write(PlayerSessionKey, Constants.MGCL_SESSIONKEY_MAXLEN);

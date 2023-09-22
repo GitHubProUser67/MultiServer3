@@ -32,26 +32,20 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                 byte[] uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                         "<Start>" +
                                         "<DATA dataType=\"URI\" name=\"startURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/main/Start\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/account/TicketLogin\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/TicketLogin\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/account/TicketLogin\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/Friends\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/Friends\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/binary/Upload\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/binary/Upload\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/binary/Download\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/binary/Download\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/binary/Upload\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/binary/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"eulaURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/legal/Eula\"/>" +
                                         "<DATA dataType=\"URI\" name=\"announcementsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/legal/Announcements\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"postScoreURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostScore\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"postScoreURL\" value=\"http://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostScore\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"postWO2048ScoreURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostWO2048Score\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"postWO2048ScoreURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/games/PostWO2048Score\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"postScoreURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostScore\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"postWO2048ScoreURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostWO2048Score\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/{leaderboardId}\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardsListURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetList\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardsPageURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetPage\"/>" +
                                         "<DATA dataType=\"URI\" name=\"mediusStatsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetMediusStats\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/lb/GetPlayerTimes\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetPlayerTimes\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/lb/GetPlayerTimes\"/>" +
                                         "<DATA dataType=\"URI\" name=\"guessRankingURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GuessRanking\"/>" +
                                         "<DATA dataType=\"URI\" name=\"rankedConfigURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetRankedConfig\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardScoreRangeURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/GetLeaderboardRange\"/>" +
@@ -61,8 +55,7 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                         "<DATA dataType=\"URI\" name=\"ghostUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/ghost/Upload\"/>" +
                                         "<DATA dataType=\"URI\" name=\"ghostDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/ghost/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendActivitiesURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/activities/FriendActivities\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/activities/UploadEvents\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/activities/UploadEvents\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/activities/UploadEvents\"/>" +
                                         //"<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"http://43.194.208.246:10080/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
                                         "<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
                                         "</Start>");

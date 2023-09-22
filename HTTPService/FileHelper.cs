@@ -64,7 +64,7 @@ namespace MultiServer.HTTPService
             {
                 byte[] src = File.ReadAllBytes(filepath);
 
-                if (src[0] == 'T' && src[1] == 'L' && src[2] == 'Z' && src[3] == 'C')
+                if (src.Length >= 4 && src[0] == 'T' && src[1] == 'L' && src[2] == 'Z' && src[3] == 'C')
                 {
                     byte[] DecompressedData = CryptoSporidium.EDGELZMA.Decompress(src);
 

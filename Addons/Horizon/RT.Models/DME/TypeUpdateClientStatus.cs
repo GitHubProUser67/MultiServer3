@@ -20,10 +20,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             ClientStatus = reader.Read<NetClientStatus>();
             SourceClientIndex = reader.ReadByte();
             NetObjectBufferCount = reader.ReadInt16();
@@ -35,10 +33,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(ClientStatus);
             writer.Write(SourceClientIndex);
             writer.Write(NetObjectBufferCount);

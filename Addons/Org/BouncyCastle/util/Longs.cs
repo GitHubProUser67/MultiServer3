@@ -29,7 +29,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return (long)HighestOneBit((ulong)i);
         }
 
-        [CLSCompliant(false)]
         public static ulong HighestOneBit(ulong i)
         {
             i |= i >>  1;
@@ -46,7 +45,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return i & -i;
         }
 
-        [CLSCompliant(false)]
         public static ulong LowestOneBit(ulong i)
         {
             return (ulong)LowestOneBit((long)i);
@@ -83,7 +81,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
             return (long)Reverse((ulong)i);
         }
 
-        [CLSCompliant(false)]
         public static ulong Reverse(ulong i)
         {
             i = Bits.BitPermuteStepSimple(i, 0x5555555555555555UL, 1);
@@ -101,7 +98,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
 #endif
         }
 
-        [CLSCompliant(false)]
         public static ulong ReverseBytes(ulong i)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -123,7 +119,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
 #endif
         }
 
-        [CLSCompliant(false)]
         public static ulong RotateLeft(ulong i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -142,7 +137,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
 #endif
         }
 
-        [CLSCompliant(false)]
         public static ulong RotateRight(ulong i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER

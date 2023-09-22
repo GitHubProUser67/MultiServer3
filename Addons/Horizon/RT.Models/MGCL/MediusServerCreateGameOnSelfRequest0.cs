@@ -28,30 +28,20 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MessageID = reader.Read<MessageId>();
 
             if (reader.MediusVersion == 113)
-            {
                 GameName = reader.ReadString(Constants.MGCL_GAMENAME_MAXLEN1);
-            }
             else
-            {
                 GameName = reader.ReadString(Constants.MGCL_GAMENAME_MAXLEN);
-            }
             GameStats = reader.ReadBytes(Constants.MGCL_GAMESTATS_MAXLEN);
 
             if (reader.MediusVersion == 113)
-            {
                 GamePassword = reader.ReadString(Constants.MGCL_GAMEPASSWORD_MAXLEN1);
-            }
             else
-            {
                 GamePassword = reader.ReadString(Constants.MGCL_GAMEPASSWORD_MAXLEN);
-            }
             reader.ReadBytes(3);
             ApplicationID = reader.ReadInt32();
             MaxClients = reader.ReadInt32();
@@ -69,10 +59,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(GameName, Constants.MGCL_GAMENAME_MAXLEN);
             writer.Write(GameStats, Constants.MGCL_GAMESTATS_MAXLEN);

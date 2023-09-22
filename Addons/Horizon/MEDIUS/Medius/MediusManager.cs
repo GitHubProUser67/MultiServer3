@@ -1317,7 +1317,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             {
 
                 // Join game DME
-                client.JoinParty(party, party.Id);
+                _ = client.JoinParty(party, party.Id);
 
                 // 
                 client?.Queue(new MediusPartyJoinByIndexResponse()

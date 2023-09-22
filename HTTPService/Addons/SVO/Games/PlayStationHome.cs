@@ -90,7 +90,7 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                        $"    <DATA dataType=\"URI\" name=\"CommunityBetaTrialRoadmap\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n    \r\n" +
                                         "    <DATA dataType=\"DATA\" name=\"gameFinishURL\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n\t\r\n" +
                                         "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n\t\r\n\t" +
-                                        "<!--\r\n    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"https://homeps3.svo.online.scee.com:10061/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n       -->" + // TODO, make it optional to http it.
+                                        "<!--\r\n    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"https://homeps3.svo.online.scee.com:10061/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n       -->" +
                                        $"     \r\n    \r\n\t<REDIRECT href=\"eulaCheck.jsp?region={region}&amp\" name=\"redirect\"/>\r\n" +
                                         "      \r\n" +
                                         "</SVML>");

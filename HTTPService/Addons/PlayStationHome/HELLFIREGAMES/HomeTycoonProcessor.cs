@@ -1,13 +1,13 @@
 ﻿using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
-using MultiServer.HTTPService.Addons.PlayStationHome.SSFW;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using MultiServer.HTTPSecureService.Addons.PlayStationHome.SSFW;
 
 namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
 {
-    public class HomeTycoonProcessor
+    public class HOMETYCOONProcessor
     {
         public static byte[] RequestNPTicket(string boundary, MemoryStream copyStream)
         {
@@ -135,7 +135,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
             return Encoding.UTF8.GetBytes("<Response><GlobalHard>1</GlobalHard><GlobalWrinkles>1</GlobalWrinkles></Response>");
         }
 
-        public static async Task<byte[]> QueryPrices()
+        public static byte[] QueryPrices()
         {
             byte[] result = Encoding.UTF8.GetBytes("");
 
@@ -145,7 +145,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
             return Misc.Combinebytearay(Misc.Combinebytearay(Encoding.UTF8.GetBytes("<Response>"), result), Encoding.UTF8.GetBytes("</Response>"));
         }
 
-        public static async Task<byte[]> QueryBoosters()
+        public static byte[] QueryBoosters()
         {
             byte[] result = Encoding.UTF8.GetBytes("");
 
@@ -155,7 +155,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
             return Misc.Combinebytearay(Misc.Combinebytearay(Encoding.UTF8.GetBytes("<Response>"), result), Encoding.UTF8.GetBytes("</Response>"));
         }
 
-        public static async Task<byte[]> QueryHoldbacks()
+        public static byte[] QueryHoldbacks()
         {
             byte[] result = Encoding.UTF8.GetBytes("");
 
@@ -165,7 +165,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome.HELLFIREGAMES
             return Misc.Combinebytearay(Misc.Combinebytearay(Encoding.UTF8.GetBytes("<Response>"), result), Encoding.UTF8.GetBytes("</Response>"));
         }
 
-        public static async Task<byte[]> QueryRewards(string UserID)
+        public static byte[] QueryRewards(string UserID)
         {
             byte[] returnvalue = Encoding.UTF8.GetBytes("");
 

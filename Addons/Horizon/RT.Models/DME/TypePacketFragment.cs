@@ -21,10 +21,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             FragmentMessageClass = reader.ReadByte();
             FragmentMessageType = reader.ReadByte();
             SubPacketSize = reader.ReadUInt16();
@@ -39,10 +37,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(FragmentMessageClass);
             writer.Write(FragmentMessageType);
             writer.Write(SubPacketSize);
@@ -102,7 +98,6 @@ namespace MultiServer.Addons.Horizon.RT.Models
                 // Copy payload segment into fragment payload
                 Array.Copy(payload, i + index, frag.Payload, 0, subPacketSize);
 
-                // 
                 fragments.Add(frag);
 
                 // Increment i

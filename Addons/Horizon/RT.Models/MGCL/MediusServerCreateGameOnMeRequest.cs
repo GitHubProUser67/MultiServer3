@@ -34,10 +34,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MessageID = reader.Read<MessageId>();
 
             GameName = reader.ReadString(Constants.MGCL_GAMENAME_MAXLEN);
@@ -66,10 +64,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(GameName, Constants.MGCL_GAMENAME_MAXLEN);
             writer.Write(GameStats, Constants.MGCL_GAMESTATS_MAXLEN);

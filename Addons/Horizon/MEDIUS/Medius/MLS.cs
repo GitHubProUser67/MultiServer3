@@ -83,7 +83,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10683, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerComplete = new List<int>() { 10683, 10684, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
                         List<int> pre108NoServerComplete = new List<int>() { 10010, 10031, 10274 };
 
                         #region Compatible AppId
@@ -1236,7 +1236,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         // ERROR -- Need to be logged in
                         if (!data.ClientObject.IsLoggedIn)
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {getBuddyListRequest} without being logged in.");
-
 
                         if (data.ClientObject.MediusVersion < 112)
                         {
@@ -4778,23 +4777,20 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         int iCurrentMediusWorldID = -1;
                         int iNewMediusWorldID = -1;
+                        int result = data.ClientObject.CurrentGame.ReassignGameMediusWorldID(reassignGameMediusWorldID);
+                        if (result != 0)
+                        {
+                            iCurrentMediusWorldID = reassignGameMediusWorldID.OldMediusWorldID;
+                            iNewMediusWorldID = result;
 
-                        await data.ClientObject.CurrentGame.ReassignGameMediusWorldID(reassignGameMediusWorldID).ContinueWith(x => {
-
-                            if (x.IsCompletedSuccessfully && x.Result != 0)
+                            data.ClientObject.Queue(new MediusReassignGameMediusWorldID()
                             {
-                                iCurrentMediusWorldID = reassignGameMediusWorldID.OldMediusWorldID;
-                                iNewMediusWorldID = x.Result;
+                                OldMediusWorldID = iCurrentMediusWorldID,
+                                NewMediusWorldID = iNewMediusWorldID,
+                            });
 
-                                data.ClientObject.Queue(new MediusReassignGameMediusWorldID()
-                                {
-                                    OldMediusWorldID = iCurrentMediusWorldID,
-                                    NewMediusWorldID = iNewMediusWorldID,
-                                });
-
-                                ServerConfiguration.LogInfo($"Sent new MediusWorldID[{iNewMediusWorldID}]");
-                            }
-                        });
+                            ServerConfiguration.LogInfo($"Sent new MediusWorldID[{iNewMediusWorldID}]");
+                        }
                         break;
                     }
                 #endregion

@@ -17,10 +17,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             ConnectionIndex = reader.ReadByte();
             ConnectedClientIndex = reader.ReadByte();
             reader.ReadBytes(2);
@@ -30,10 +28,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(ConnectionIndex);
             writer.Write(ConnectedClientIndex);
             writer.Write(new byte[2]);

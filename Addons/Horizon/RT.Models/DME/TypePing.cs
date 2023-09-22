@@ -15,10 +15,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             TimeOfSend = reader.ReadUInt32();
             PingInstance = reader.ReadByte();
             RequestEcho = reader.ReadBoolean();
@@ -27,10 +25,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(TimeOfSend);
             writer.Write(PingInstance);
             writer.Write(RequestEcho);

@@ -1008,7 +1008,7 @@ namespace MultiServer.Addons.Org.BouncyCastle.Pkix
 					lastException = e;
 				}
 			}
-			if (!validCrlFound)
+			if (!validCrlFound && lastException != null)
 			{
 				throw lastException;
 			}

@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
@@ -17,11 +18,20 @@ namespace MultiServer.MitmDNS
                 ServerConfiguration.LogInfo("[DNS] - Downloading Configuration File...");
                 if (Misc.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                 MitmDNSProcessor.DenyNotInRules = false;
-                HttpWebRequest http = (HttpWebRequest)WebRequest.Create(ServerConfiguration.DNSOnlineConfig);
-                WebResponse response = http.GetResponse();
-                StreamReader sr = new StreamReader(response.GetResponseStream());
-                string content = sr.ReadToEnd();
-                ParseRules(content, out dicRules, out regRules, false);
+                string content = string.Empty;
+                try
+                {
+                    HttpClient client = new();
+                    HttpResponseMessage response = client.GetAsync(ServerConfiguration.DNSOnlineConfig).Result;
+                    response.EnsureSuccessStatusCode();
+                    content = response.Content.ReadAsStringAsync().Result;
+                    ParseRules(content, out dicRules, out regRules, false);
+                }
+                catch (Exception ex)
+                {
+                    ServerConfiguration.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
+                    return;
+                }
             }
             else if (dicRules == null)
             {

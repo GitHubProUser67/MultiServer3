@@ -286,7 +286,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             WorldID = serverCreateGameOnSelf0.WorldID;
         }
 
-        public virtual async Task<int> ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
+        public virtual int ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
         {
             // Ensure reassignedGame Old MediusWorldID matches current Game
             if (reassignGameMediusWorldID.OldMediusWorldID != WorldID)
@@ -519,9 +519,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // This gives the host a "Game Name Already Exists" when they try to remake with the same name.
             // This just fixes that. At the cost of the game not showing after a host leaves a game.
             if (WorldStatus != MediusWorldStatus.WorldClosed && WorldStatus != report.WorldStatus)
-            {
                 await SetWorldStatus(report.WorldStatus);
-            }
             else
             {
                 // Update db
@@ -621,13 +619,9 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // Delete db entry if game hasn't started
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
-            {
                 _ = ServerConfiguration.Database.DeleteGame(Id);
-            }
             else
-            {
                 _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
-            }
         }
 
         public virtual async Task SetWorldStatus(MediusWorldStatus status)

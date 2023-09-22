@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -70,44 +71,90 @@ namespace MultiServer
             return md5hash;
         }
 
-        /// <summary>
-        /// From https://www.c-sharpcorner.com/blogs/how-to-get-public-ip-address-using-c-sharp1
-        /// </summary>
-        /// <returns></returns>
         public static string GetPublicIPAddress()
         {
-            string address = string.Empty;
-            WebRequest request = WebRequest.Create("http://checkip.dyndns.org/");
-            using (WebResponse response = request.GetResponse())
-            using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+            using (HttpClient httpClient = new HttpClient())
             {
-                address = stream.ReadToEnd();
-            }
-
-            int first = address.IndexOf("Address: ") + 9;
-            int last = address.LastIndexOf("</body>");
-            address = address.Substring(first, last - first);
-
-            return address;
-        }
-
-        public static bool IsHTTPServerAccessible(string ip)
-        {
-            try
-            {
-                WebRequest request = WebRequest.Create($"http://{ip}/");
-                using (WebResponse response = request.GetResponse())
+                try
                 {
-                    // The IP is accessible if we can successfully get a response.
-                    return true;
+                    string response = httpClient.GetStringAsync("https://checkip.dyndns.org/").Result;
+                    int first = response.IndexOf("Address: ") + 9;
+                    int last = response.LastIndexOf("</body>");
+                    return response.Substring(first, last - first);
+                }
+                catch (Exception ex)
+                {
+                    ServerConfiguration.LogError("Failed to retrieve public IP address.", ex);
                 }
             }
-            catch (Exception)
+
+            return "127.0.0.1";
+        }
+
+        public static IPAddress GetPublicIPAddressAsync()
+        {
+            using (HttpClient httpClient = new HttpClient())
             {
-                // The IP is not accessible if an exception is thrown.
+                try
+                {
+                    string response = httpClient.GetStringAsync("https://checkip.dyndns.org/").Result;
+                    int first = response.IndexOf("Address: ") + 9;
+                    int last = response.LastIndexOf("</body>");
+                    string ipAddressString = response.Substring(first, last - first);
+
+                    if (IPAddress.TryParse(ipAddressString, out IPAddress ipAddress))
+                    {
+                        return ipAddress;
+                    }
+                    else
+                        ServerConfiguration.LogError("Failed to parse IP address.");
+                }
+                catch (Exception ex)
+                {
+                    ServerConfiguration.LogError("Failed to retrieve public IP address.", ex);
+                }
             }
 
-            return false;
+            return GetLocalIPAddress();
+        }
+
+        public static IPAddress GetLocalIPAddress()
+        {
+            if (!NetworkInterface.GetIsNetworkAvailable())
+                return null;
+
+            // Get all active interfaces
+            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(c => c.NetworkInterfaceType != NetworkInterfaceType.Loopback && c.OperationalStatus == OperationalStatus.Up);
+
+            // Find our local ip
+            foreach (var i in interfaces)
+            {
+                var props = i.GetIPProperties();
+                var inter = props.UnicastAddresses.Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
+#pragma warning disable // Sometimes Visual Studio is weird.
+                if (inter != null && props.GatewayAddresses.Count > 0 && inter.Count() > 0)
+                    return inter.FirstOrDefault().Address;
+#pragma warning restore
+            }
+
+            return null;
+        }
+
+        public static IPAddress GetIp(string hostname)
+        {
+            if (hostname == "localhost")
+                return IPAddress.Loopback;
+
+            switch (Uri.CheckHostName(hostname))
+            {
+                case UriHostNameType.IPv4: return IPAddress.Parse(hostname);
+                case UriHostNameType.Dns: return Dns.GetHostAddresses(hostname).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
+                default:
+                    {
+                        return null;
+                    }
+            }
         }
 
         public static bool IsFileOutdated(string filePath, TimeSpan maxAge)

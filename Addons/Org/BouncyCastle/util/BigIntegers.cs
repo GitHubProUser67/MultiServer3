@@ -17,7 +17,6 @@ namespace MultiServer.Addons.Org.BouncyCastle.Utilities
         private const int MaxIterations = 1000;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [CLSCompliant(false)]
         public static void AsUint32ArrayLittleEndian(BigInteger n, Span<uint> buf)
         {
             int uintsLength = n.GetLengthofUInt32Array();

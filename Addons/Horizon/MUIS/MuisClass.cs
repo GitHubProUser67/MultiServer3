@@ -162,12 +162,10 @@ namespace MultiServer.Addons.Horizon.MUIS
             return Task.CompletedTask;
         }
 
-        public static Task MuisMain()
+        public static void MuisMain()
         {
             RefreshConfig();
             _ = StartServerAsync();
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -200,7 +198,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                 if (DmeClass.Settings.UsePublicIp || MEDIUS.MediusClass.Settings.UsePublicIp)
                     iptofile = Misc.GetPublicIPAddress();
                 else
-                    iptofile = Utils.GetLocalIPAddress().ToString();
+                    iptofile = Misc.GetLocalIPAddress().ToString();
 
                 // Add default localhost entry
                 Settings.Universes.Add(0, new UniverseInfo[] {

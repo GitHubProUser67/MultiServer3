@@ -28,11 +28,12 @@ namespace MultiServer.Addons.Horizon.DME.Models
                 ++totalIdsCounted;
             }
 
-            // 
             if (totalIdsCounted == MAX_WORLDS)
-                throw new InvalidOperationException("Max worlds reached!");
+            {
+                ServerConfiguration.LogError("Max worlds reached!");
+                return;
+            }
 
-            // 
             WorldId = _idCounter++;
             _idToWorld.TryAdd(WorldId, this);
             ServerConfiguration.LogInfo($"Registered world with id {WorldId}");
@@ -359,6 +360,8 @@ namespace MultiServer.Addons.Horizon.DME.Models
         public async Task<MediusServerJoinGameResponse> OnJoinGameRequest(MediusServerJoinGameRequest request)
         {
             ClientObject newClient;
+
+            await Task.Delay(100);
 
             // find existing client and reuse
             var existingClient = Clients.FirstOrDefault(x => x.Value.SessionKey == request.ConnectInfo.SessionKey);

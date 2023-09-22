@@ -15,20 +15,16 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             Port = reader.ReadUInt32();
             IPAddress = reader.Read<IPAddress>();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(Port);
             writer.Write(IPAddress);
         }

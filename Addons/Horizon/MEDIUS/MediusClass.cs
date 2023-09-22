@@ -142,7 +142,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             string AppIdArray = null; //string.Join(", ", Settings.ApplicationIds);
 
             ServerConfiguration.LogInfo("Initializing medius components...");
-            //Program
+            // Program
             ServerConfiguration.LogInfo("**************************************************");
 
             string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");
@@ -483,14 +483,12 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             _ = Task.Run(LoopServer);
         }
 
-        public static Task MediusMain()
+        public static void MediusMain()
         {
             RefreshConfig();
             // Initialize plugins
             Plugins = new PluginsManager(Server.pluginspath);
             _ = StartServerAsync();
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -603,7 +601,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             #region Determine Server IP
             if (!Settings.UsePublicIp)
             {
-                SERVER_IP = Utils.GetLocalIPAddress();
+                SERVER_IP = Misc.GetLocalIPAddress();
                 IP_TYPE = "Local";
             }
             else

@@ -47,7 +47,7 @@ namespace MultiServer.CryptoSporidium
                 return ciphertextBytes;
             }
             else
-                ServerConfiguration.LogError("[AFS] - InitiateLUACryptoContext , parameter invalid!");
+                ServerConfiguration.LogError("[AFS] - EncryptionProxyInit, parameter invalid!");
 
             return null;
         }
@@ -69,7 +69,7 @@ namespace MultiServer.CryptoSporidium
                 return ciphertextBytes;
             }
             else
-                ServerConfiguration.LogError("[AFS] - Encrypt_DecryptCDSContent , parameter invalid!");
+                ServerConfiguration.LogError("[AFS] - Crypt_DecryptCDSContent, parameter invalid!");
 
             return null;
         }
@@ -122,7 +122,7 @@ namespace MultiServer.CryptoSporidium
                 return Misc.HexStringToByteArray(hexStr.ToString());
             }
             else
-                ServerConfiguration.LogError("[Encrypt_Decrypt] - No IV entered or invalid length!");
+                ServerConfiguration.LogError("[AFS] - Crypt_Decrypt - No IV entered or invalid length!");
 
             return null;
         }
@@ -130,7 +130,27 @@ namespace MultiServer.CryptoSporidium
 
     public class AFSXTEA
     {
-        // Todo - put profanity filter key
+        public static byte[] DecryptProfanityFilter(byte[] FileBytes, byte[] KeyBytes)
+        {
+            if (FileBytes != null && KeyBytes != null)
+            {
+                // Create the cipher
+                IBufferedCipher cipher = CipherUtilities.GetCipher("XTEA/ECB/NOPADDING");
+
+                cipher.Init(false, new KeyParameter(KeyBytes));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                return ciphertextBytes;
+            }
+            else
+                ServerConfiguration.LogError("[AFS] - DecryptProfanityFilter -  No IV entered or invalid length!");
+
+            return null;
+        }
 
         public static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA)
         {
@@ -180,7 +200,7 @@ namespace MultiServer.CryptoSporidium
                 return Misc.HexStringToByteArray(hexStr.ToString());
             }
             else
-                ServerConfiguration.LogError("[Encrypt_Decrypt] - No IV entered or invalid length!");
+                ServerConfiguration.LogError("[AFS] - Crypt_Decrypt - No IV entered or invalid length!");
 
             return null;
         }
@@ -208,7 +228,7 @@ namespace MultiServer.CryptoSporidium
                 return ciphertextBytes;
             }
             else
-                ServerConfiguration.LogError("[InitiateCTRBuffer] - No IV entered or invalid length!");
+                ServerConfiguration.LogError("[AFS] - InitiateCTRBuffer - No IV entered or invalid length!");
 
             return null;
         }
@@ -233,7 +253,7 @@ namespace MultiServer.CryptoSporidium
                 return ciphertextBytes;
             }
             else
-                ServerConfiguration.LogError("[InitiateCBCDecryptBuffer] - No IV entered or invalid length!");
+                ServerConfiguration.LogError("[AFS] - InitiateCBCDecryptBuffer - No IV entered or invalid length!");
 
             return null;
         }
@@ -258,7 +278,7 @@ namespace MultiServer.CryptoSporidium
                 return ciphertextBytes;
             }
             else
-                ServerConfiguration.LogError("[InitiateCBCEncryptBuffer] - No IV entered or invalid length!");
+                ServerConfiguration.LogError("[AFS] - InitiateCBCEncryptBuffer - No IV entered or invalid length!");
 
             return null;
         }
@@ -311,7 +331,7 @@ namespace MultiServer.CryptoSporidium
                 return Misc.HexStringToByteArray(hexStr.ToString());
             }
             else
-                ServerConfiguration.LogError("[Encrypt_Decrypt] - No IV entered or invalid length!");
+                ServerConfiguration.LogError("[AFS] - Crypt_Decrypt - No IV entered or invalid length!");
 
             return null;
         }

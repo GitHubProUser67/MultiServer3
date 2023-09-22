@@ -3192,13 +3192,11 @@ namespace MultiServer.Addons.Org.BouncyCastle.Math
             ToByteArray(false, output);
         }
 
-        [CLSCompliant(false)]
         public void ToUInt32ArrayBigEndian(Span<uint> output)
         {
             ToUInt32ArrayBigEndian(false, output);
         }
 
-        [CLSCompliant(false)]
         public void ToUInt32ArrayLittleEndian(Span<uint> output)
         {
             ToUInt32ArrayLittleEndian(false, output);
@@ -3216,13 +3214,11 @@ namespace MultiServer.Addons.Org.BouncyCastle.Math
             ToByteArray(true, output);
         }
 
-        [CLSCompliant(false)]
         public void ToUInt32ArrayBigEndianUnsigned(Span<uint> output)
         {
             ToUInt32ArrayBigEndian(true, output);
         }
 
-        [CLSCompliant(false)]
         public void ToUInt32ArrayLittleEndianUnsigned(Span<uint> output)
         {
             ToUInt32ArrayLittleEndian(true, output);

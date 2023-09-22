@@ -37,7 +37,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             scertClient.RsaAuthKey = MediusClass.Settings.MPSKey;
             scertClient.CipherService.GenerateCipher(MediusClass.Settings.MPSKey);
 
-
             return base.OnConnected(clientChannel);
         }
 
@@ -108,7 +107,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerConnect = new List<int>() { 10683, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerConnect = new List<int>() { 10683, 10684, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
                         List<int> pre108NoServerConnect = new List<int>() { 10010, 10031, 10274 };
 
                         if (clientConnectTcp.AccessToken != null)

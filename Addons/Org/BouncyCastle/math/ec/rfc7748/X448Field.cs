@@ -17,7 +17,6 @@ using MultiServer.Addons.Org.BouncyCastle.Math.Raw;
 
 namespace MultiServer.Addons.Org.BouncyCastle.Math.EC.Rfc7748
 {
-    [CLSCompliant(false)]
     public static class X448Field
     {
         public const int Size = 16;

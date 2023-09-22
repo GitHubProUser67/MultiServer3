@@ -25,9 +25,7 @@ namespace MultiServer.CryptoSporidium.BAR
                 num2 = 4;
                 int num3 = dataIn.Length - i;
                 if (num3 < 4)
-                {
                     num2 = num3;
-                }
                 Array.Reverse(array, i, num2);
             }
             return array;

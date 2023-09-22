@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using MultiServer.HTTPService;
 
 namespace MultiServer.HTTPService.Addons.PlayStationHome
 {
@@ -16,7 +17,7 @@ namespace MultiServer.HTTPService.Addons.PlayStationHome
                 await FileHelper.CryptoWriteAsync(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}HOME_TYCOON/DefaultProfile.xml", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes("<TotalCollected>0.000000</TotalCollected><Wallet>9999999.000000</Wallet><Workers>9999999.000000</Workers><GoldCoins>9999999.000000</GoldCoins><SilverCoins>9999999.000000</SilverCoins><Options><MusicVolume>1.0</MusicVolume></Options><Missions></Missions><Journal></Journal><Dialogs></Dialogs><Unlocked></Unlocked><Activities></Activities><Expansions></Expansions><Vehicles></Vehicles><Flags></Flags><Inventory></Inventory>"), false);
 
             if (!File.Exists(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}ohs_dev/naughtydog/Uncharted3/Global.json"))
-                await FileHelper.CryptoWriteAsync(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}ohs_dev/naughtydog/Uncharted3/Global.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes("{\"Key\":{\"global_data\":{\"unlocks\": \"WAVE3\",\"community_score\": 1,\"challenges\": {\"accuracy\": 1,}}}}"), false);
+                await FileHelper.CryptoWriteAsync(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}ohs_dev/naughtydog/Uncharted3/Global.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes("{\"key\":{\"global_data\":{\"unlocks\": \"WAVE3\",\"community_score\": 1,\"challenges\": {\"accuracy\": 1,}}}}"), false);
 
             if (!File.Exists(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml"))
                 await FileHelper.CryptoWriteAsync(Directory.GetCurrentDirectory() + $"{ServerConfiguration.HTTPStaticFolder}HOME_VEEMEE/Audi_Vrun/GeneralHSML.hsml", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes("<XML>\r\n<PAGE>\r\n<RECT X=\"0\" Y=\"1\" W=\"0\" H=\"0\" col=\"#C0C0C0\" /><RECT X=\"0\" Y=\"0\" W=\"1280\" H=\"720\" col=\"#000000\" /><TEXT X=\"57\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">EatFlammingDeath</TEXT><TEXT X=\"77\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">0.000000</TEXT><TEXT X=\"97\" Y=\"82\" col=\"#FFFFFF\" size=\"4\">3614.657715</TEXT>\r\n</PAGE>\r\n</XML>"), false);

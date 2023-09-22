@@ -163,17 +163,22 @@ namespace MultiServer.Addons.Horizon.DME
             _mpsState = MPSConnectionState.NO_CONNECTION;
         }
 
-        public async Task<bool> HandleIncomingMessages()
+        public bool CheckMPSConnectivity()
         {
-            if (_mpsChannel == null)
-                return false;
-
             if (_mpsState == MPSConnectionState.FAILED ||
                 (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
             {
-                ServerConfiguration.LogError("[DME Medius Manager] - HandleIncomingMessages() - Failed to authenticate with the MPS server, aborting listener...");
+                ServerConfiguration.LogError("[DMEMediusManager] - HandleIncomingMessages() - Failed to authenticate with the MPS server, aborting listener...");
                 return false;
             }
+            else
+                return true;
+        }
+
+        public async Task HandleIncomingMessages()
+        {
+            if (_mpsChannel == null)
+                return;
 
             try
             {
@@ -197,23 +202,14 @@ namespace MultiServer.Addons.Horizon.DME
             {
                 ServerConfiguration.LogError(e);
             }
-
-            return true;
         }
 
-        public async Task<bool> HandleOutgoingMessages()
+        public async Task HandleOutgoingMessages()
         {
             if (_mpsChannel == null)
-                return false;
+                return;
 
             List<BaseScertMessage> responses = new List<BaseScertMessage>();
-
-            if (_mpsState == MPSConnectionState.FAILED ||
-                (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
-            {
-                ServerConfiguration.LogError("[DME Medius Manager] - HandleIncomingMessages() - Failed to authenticate with the MPS server, aborting listener...");
-                return false;
-            }
 
             try
             {
@@ -239,8 +235,6 @@ namespace MultiServer.Addons.Horizon.DME
             {
                 ServerConfiguration.LogError(e);
             }
-
-            return true;
         }
 
         private async Task ConnectMPS()
@@ -250,7 +244,7 @@ namespace MultiServer.Addons.Horizon.DME
 
             try
             {
-                _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(Utils.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
+                _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(Misc.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
             }
             catch (Exception)
             {
@@ -391,7 +385,6 @@ namespace MultiServer.Addons.Horizon.DME
 
             switch (message)
             {
-                // 
                 case MediusServerSetAttributesResponse setAttributesResponse:
                     {
                         if (_mpsState != MPSConnectionState.SET_ATTRIBUTES)
@@ -404,7 +397,6 @@ namespace MultiServer.Addons.Horizon.DME
                         break;
                     }
 
-                //
                 case MediusServerCreateGameWithAttributesRequest createGameWithAttributesRequest:
                     {
                         try

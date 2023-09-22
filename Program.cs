@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using NReco.Logging.File;
-using MultiServer.HTTPService;
 using MultiServer.PluginManager;
 using MultiServer.Addons.Horizon.DME;
 using MultiServer.Addons.Horizon.MEDIUS;
@@ -319,11 +318,9 @@ namespace MultiServer
         {
             if (ServerConfiguration.EnableMedius)
             {
-                Parallel.Invoke(
-                   async () => await MediusClass.MediusMain(),
-                   async () => await MuisClass.MuisMain(),
-                   async () => await DmeClass.DmeMain()
-               );
+                MediusClass.MediusMain();
+                MuisClass.MuisMain();
+                DmeClass.DmeMain();
             }
 
             return Task.CompletedTask;
@@ -334,47 +331,70 @@ namespace MultiServer
             if (ServerConfiguration.EnableDNSServer)
                 MitmDNS.MitmDNSClass.MitmDNSMain();
 
+            if (Misc.IsWindows())
+                if (!Misc.IsAdministrator())
+                    return Task.CompletedTask;
+
             string currentDir = Directory.GetCurrentDirectory();
 
             Directory.CreateDirectory(currentDir + "/static/SSL");
 
+            string pemcert = string.Empty;
+            string svopemcert = string.Empty;
+
             if (!File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
-                CertificateUtils.CreateHomeCertificatesFile(CertificateUtils.CreateSelfSignedCert(currentDir + "/static/SSL/MultiServer.pfx", "secure.cprod.homeps3.online.scee.com"), currentDir + "/static/CERTIFICATES.TXT");
+                pemcert = HTTPSecureService.CertificateUtils.CreateSelfSignedCert(currentDir + "/static/SSL/MultiServer.pfx", "secure.cprod.homeps3.online.scee.com");
 
             if (!File.Exists(currentDir + "/static/SSL/SVO.pfx"))
-                CertificateUtils.CreateLegacySelfSignedCert(currentDir + "/static/SSL/SVO.pfx", "root.com");
+                svopemcert = HTTPSecureService.CertificateUtils.CreateLegacySelfSignedCert(currentDir + "/static/SSL/SVO.pfx", "homeps3.svo.online.scee.com");
 
-            if (Misc.IsWindows())
-                if (!Misc.IsAdministrator())
-                    return Task.CompletedTask;
+            if (pemcert != string.Empty && svopemcert != string.Empty) // If anything change, generate correct certificates.txt
+                HTTPSecureService.CertificateUtils.CreateHomeCertificatesFile(pemcert, svopemcert, currentDir + "/static/CERTIFICATES.TXT");
 
             if (ServerConfiguration.EnableHttpServer)
             {
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.HTTPStaticFolder}");
 
+                HTTPService.HTTPPrivateKey.setup();
+
+                CryptoSporidium.AFSBLOWFISH.InitiateINFCryptoContext();
+
+                HTTPService.Addons.PlayStationHome.PrepareFolder.Prepare();
+
                 if (File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
-                    Task.Run(async () => await HTTPClass.HTTPstart(ServerConfiguration.HTTPPort, true));
+                    Parallel.Invoke(
+                       async () => await HTTPService.HTTPClass.HTTPstart(ServerConfiguration.HTTPPort),
+                       async () => await HTTPSecureService.HTTPSClass.StartHTTPSServer(443)
+                    );
                 else
-                    Task.Run(async () => await HTTPClass.HTTPstart(ServerConfiguration.HTTPPort, false));
+                    Task.Run(async () => await HTTPService.HTTPClass.HTTPstart(ServerConfiguration.HTTPPort));
             }
 
             if (ServerConfiguration.EnableSSFW)
             {
+                HTTPSecureService.Addons.PlayStationHome.SSFW.SSFWPrivateKey.setup();
+
                 Directory.CreateDirectory($"{currentDir}{ServerConfiguration.SSFWStaticFolder}");
-                Task.Run(HTTPService.Addons.PlayStationHome.SSFW.SSFWClass.SSFWstart);
+
+                if (File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
+                    Task.Run(HTTPSecureService.Addons.PlayStationHome.SSFW.SecureSSFWClass.StartSSFWSecureServer);
             }
 
             if (ServerConfiguration.EnableSVO)
             {
-                if (File.Exists(currentDir + "/static/SSL/MultiServer.pfx"))
+                HTTPService.Addons.SVO.PrepareFolder.Prepare();
+
+                if (File.Exists(currentDir + "/static/SSL/SVO.pfx"))
                     Parallel.Invoke(
-                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(true),
-                       async () => await HTTPService.Addons.SVO.SVOClass.StartTickPooling()
+                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(),
+                       async () => await HTTPSecureService.Addons.SVO_OTG.OTGHTTPSClass.StartOTGHTTPSServer(),
+                       async () => await HTTPSecureService.Addons.SVO_OTG.SVOHTTPSClass.StartSVOHTTPSServer(),
+                       async () => await HTTPService.Addons.SVO.SVOManager.StartTickPooling()
                     );
                 else
                     Parallel.Invoke(
-                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(false),
-                       async () => await HTTPService.Addons.SVO.SVOClass.StartTickPooling()
+                       async () => await HTTPService.Addons.SVO.SVOClass.SVOstart(),
+                       async () => await HTTPService.Addons.SVO.SVOManager.StartTickPooling()
                     );
             }
 

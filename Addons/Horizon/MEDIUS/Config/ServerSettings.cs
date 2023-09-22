@@ -29,6 +29,19 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// </summary>
         public int LocationID = 0;
 
+        #region Database
+        //#####################################
+        //# Database Connection Configuration #
+        //#####################################
+
+        /// <summary>
+        /// Set to 1 to enable database connectivity, or 0 for simulated-DB mode (default 1)
+        /// </summary>
+        public int ConfigDBEnabled = 0;
+
+        public string DBInfoFileName = "dbinfo.txt";
+        #endregion
+
         #region Enable Select Servers
 
         /// <summary>
@@ -108,7 +121,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// Provide the IP, Port and WorldID of the MUM that will control this MLS
         /// (no valid defaults)
         /// </summary>
-        public string MUMIp { get; set; } = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
+        public string MUMIp { get; set; } = Misc.GetLocalIPAddress().ToString();
         public int MUMPort { get; set; } = 10076;
         public int MUMWorldID { get; set; } = 1;
         #endregion
@@ -176,7 +189,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         /// <summary>
         /// Set the hostname to the ApacheWebServerHostname
         /// </summary>
-        public string MFSTransferURI { get; set; } = $"http://{LIBRARY.Common.Utils.GetLocalIPAddress().ToString()}/";
+        public string MFSTransferURI { get; set; } = $"http://{Misc.GetLocalIPAddress().ToString()}/";
 
         /// <summary>
         /// Max number of download requests in the download queue
@@ -227,7 +240,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         // (no valid defaults)
         // Uncomment MUCG params to enable connectivity to MUCG
 
-        public string MUCGServerIP = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
+        public string MUCGServerIP = Misc.GetLocalIPAddress().ToString();
         public int MUCGServerPort = 10072;
         public int MUCGWorldID = 1;
         #endregion
@@ -261,7 +274,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Config
         // IP Address and port of the billing service provider.
         // This is the SCE-RT Product Service if the billing provider is SCE-RT
         // Or the SCEK connection if the provider is SCEK
-        public string BillingProviderIpAddr = LIBRARY.Common.Utils.GetLocalIPAddress().ToString();
+        public string BillingProviderIpAddr = Misc.GetLocalIPAddress().ToString();
         public int BillingServiceProviderPort = 2222;
 
         // Billing security settings

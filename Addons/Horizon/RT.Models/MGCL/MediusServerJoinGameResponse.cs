@@ -19,10 +19,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MessageID = reader.Read<MessageId>();
             Confirmation = reader.Read<MGCL_ERROR_CODE>();
             AccessKey = reader.ReadString(Constants.MGCL_ACCESSKEY_MAXLEN);
@@ -36,10 +34,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(Confirmation);
             writer.Write(AccessKey, Constants.MGCL_ACCESSKEY_MAXLEN);

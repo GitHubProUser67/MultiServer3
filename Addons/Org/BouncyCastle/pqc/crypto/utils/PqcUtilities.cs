@@ -214,7 +214,7 @@ namespace MultiServer.Addons.Org.BouncyCastle.Pqc.Crypto.Utilities
             hqcOids[HqcParameters.hqc128] = BCObjectIdentifiers.hqc128;
             hqcOids[HqcParameters.hqc192] = BCObjectIdentifiers.hqc192;
             hqcOids[HqcParameters.hqc256] = BCObjectIdentifiers.hqc256;
-
+#pragma warning disable // Soon to be obsolete.
             sphincsPlusOids[SphincsPlusParameters.sha2_128s] = BCObjectIdentifiers.sphincsPlus_sha2_128s_r3;
             sphincsPlusOids[SphincsPlusParameters.sha2_128f] = BCObjectIdentifiers.sphincsPlus_sha2_128f_r3;
             sphincsPlusOids[SphincsPlusParameters.shake_128s] = BCObjectIdentifiers.sphincsPlus_shake_128s_r3;
@@ -233,7 +233,7 @@ namespace MultiServer.Addons.Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusOids[SphincsPlusParameters.shake_256f] = BCObjectIdentifiers.sphincsPlus_shake_256f_r3;
             sphincsPlusOids[SphincsPlusParameters.haraka_256s] = BCObjectIdentifiers.sphincsPlus_haraka_256s_r3;
             sphincsPlusOids[SphincsPlusParameters.haraka_256f] = BCObjectIdentifiers.sphincsPlus_haraka_256f_r3;
-
+#pragma warning restore
             sphincsPlusOids[SphincsPlusParameters.sha2_128s_simple] = BCObjectIdentifiers.sphincsPlus_sha2_128s;
             sphincsPlusOids[SphincsPlusParameters.sha2_128f_simple] = BCObjectIdentifiers.sphincsPlus_sha2_128f;
             sphincsPlusOids[SphincsPlusParameters.shake_128s_simple] = BCObjectIdentifiers.sphincsPlus_shake_128s;
