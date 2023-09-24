@@ -32,20 +32,20 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                 byte[] uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                         "<Start>" +
                                         "<DATA dataType=\"URI\" name=\"startURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/main/Start\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/account/TicketLogin\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/TicketLogin\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/Friends\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/Friends\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/binary/Upload\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/binary/Download\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Upload\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"eulaURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/legal/Eula\"/>" +
                                         "<DATA dataType=\"URI\" name=\"announcementsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/legal/Announcements\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"postScoreURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostScore\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"postWO2048ScoreURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/games/PostWO2048Score\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"postScoreURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/games/PostScore\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"postWO2048ScoreURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/games/PostWO2048Score\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/{leaderboardId}\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardsListURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetList\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardsPageURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetPage\"/>" +
                                         "<DATA dataType=\"URI\" name=\"mediusStatsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetMediusStats\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/lb/GetPlayerTimes\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/lb/GetPlayerTimes\"/>" +
                                         "<DATA dataType=\"URI\" name=\"guessRankingURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GuessRanking\"/>" +
                                         "<DATA dataType=\"URI\" name=\"rankedConfigURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetRankedConfig\"/>" +
                                         "<DATA dataType=\"URI\" name=\"leaderboardScoreRangeURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/GetLeaderboardRange\"/>" +
@@ -55,7 +55,7 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                         "<DATA dataType=\"URI\" name=\"ghostUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/ghost/Upload\"/>" +
                                         "<DATA dataType=\"URI\" name=\"ghostDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/ghost/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendActivitiesURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/activities/FriendActivities\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"https://wipeout2048.online.scee.com:10061/wox_ws/rest/activities/UploadEvents\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/activities/UploadEvents\"/>" +
                                         //"<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"http://43.194.208.246:10080/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
                                         "<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
                                         "</Start>");
@@ -755,25 +755,15 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                     string value = Uri.UnescapeDataString(parts[1]);
 
                                     if (key == "signature")
-                                    {
                                         signature = value;
-                                    }
                                     else if (key == "signatureClass")
-                                    {
                                         signatureClass = value;
-                                    }
                                     else if (key == "userContext")
-                                    {
                                         userContext = value;
-                                    }
                                     else if (key == "languageId")
-                                    {
                                         languageId = value;
-                                    }
                                     else if (key == "timeZone")
-                                    {
                                         timeZone = value;
-                                    }
                                 }
 
                                 using (MemoryStream ms = new MemoryStream())
@@ -818,13 +808,21 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                     ms.Dispose();
                                 }
 
-                                await ServerConfiguration.Database.GetAccountByName(psnname, 23360).ContinueWith((r) =>
+                                try
                                 {
-                                    //Found in database so keep.
+                                    await ServerConfiguration.Database.GetAccountByName(psnname, 23360).ContinueWith((r) =>
+                                    {
+                                        //Found in database so keep.
+                                        string langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
+                                        string accountName = r.Result.AccountName;
+                                        accountId = r.Result.AccountId;
+                                    });
+                                }
+                                catch (Exception)
+                                {
                                     string langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                    string accountName = r.Result.AccountName;
-                                    accountId = r.Result.AccountId;
-                                });
+                                    accountId = 0;
+                                }
 
                                 response.AddHeader("Set-Cookie", $"id=ddb4fac6-f908-33e5-80f9-febd2e2ef58f; Path=/");
                                 response.AppendHeader("Set-Cookie", $"name={psnname}; Path=/");
@@ -940,29 +938,17 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
                                     string value = Uri.UnescapeDataString(parts[1]);
 
                                     if (key == "leaderboardId")
-                                    {
                                         leaderboardId = value;
-                                    }
                                     else if (key == "row")
-                                    {
                                         row = value;
-                                    }
                                     else if (key == "pageSize")
-                                    {
                                         pageSize = value;
-                                    }
                                     else if (key == "accountName")
-                                    {
                                         accountName = value;
-                                    }
                                     else if (key == "accountId")
-                                    {
                                         accountId = value;
-                                    }
                                     else if (key == "filterMode")
-                                    {
                                         filterMode = value;
-                                    }
                                 }
 
                                 response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");

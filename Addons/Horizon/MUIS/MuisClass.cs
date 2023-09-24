@@ -187,7 +187,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                 // Add the appids to the ApplicationIds list
                 Settings.CompatibleApplicationIds.AddRange(new List<int>
                 {
-                    11354, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
+                    11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
                     20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
                     20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
                     10984, 10782, 10421, 10130
@@ -225,6 +225,25 @@ namespace MultiServer.Addons.Horizon.MUIS
                     {
                         Name = "Hardware Online Arena Beta",
                         Description = "Beta Universe",
+                        Endpoint = iptofile,
+                        Port = 10075,
+                        UniverseId = 31,
+                        SvoURL = null,
+                        Status = 1,
+                        UserCount = 1,
+                        MaxUsers = 256,
+                        ExtendedInfo = null,
+                        UniverseBilling = "SCEA",
+                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System"
+                    }
+                });
+
+                Settings.Universes.Add(21914, new UniverseInfo[]
+                {
+                    new UniverseInfo()
+                    {
+                        Name = "PAIN",
+                        Description = "Here comes the PAIN",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 31,

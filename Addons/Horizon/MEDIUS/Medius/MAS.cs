@@ -2536,48 +2536,23 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
         #region TimeZone
         public Task<MediusTimeZone> GetTimeZone(DateTime time)
         {
-
             var tz = TimeZoneInfo.Local;
-            var tzInt = Convert.ToInt32(tz.Id);
-
-
             var tzStanName = tz.StandardName;
 
-            /*
-            if (tzTime. == 7200)
-            {
-
-            }
-            */
-
             if (tzStanName == "CEST")
-            {
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_CEST);
-            }
-            else if (tzInt == 83 && (tzInt + 1) == 83 && (tzInt + 2) == 84)
-            {
+            else if (tz.Id == "Swedish Standard Time")
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_SWEDISHST);
-            }
-            else if (tzInt == 70 && (tzInt + 1) == 83 && (tzInt + 2) == 84)
-            {
+            else if (tz.Id == "FST")
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_FST);
-            }
-            else if (tzInt == 67 && (tzInt + 1) == 65 && (tzInt + 2) == 84)
-            {
+            else if (tz.Id == "Central Africa Time")
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_CAT);
-            }
-            else if (tzStanName == "SAST")
-            {
+            else if (tzStanName == "South Africa Standard Time")
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_SAST);
-            }
-            else if (tzInt == 69 && (tzInt + 1) == 65 && (tzInt + 2) == 84)
-            {
+            else if (tz.Id == "EET")
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_EET);
-            }
-            else if (tzInt == 73 && (tzInt + 1) == 65 && (tzInt + 2) == 84)
-            {
+            else if (tz.Id == "Israel Standard Time")
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_ISRAELST);
-            }
 
             return Task.FromResult(MediusTimeZone.MediusTimeZone_GMT);
         }

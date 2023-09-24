@@ -49,7 +49,9 @@
 	"homeec.scej-nbs.jp",
 	"homeecqa.scej-nbs.jp",
 	"test.playstationhome.jp",
-	"hdc.cprod.homeps3.online.scee.com"
+	"hdc.cprod.homeps3.online.scee.com",
+	"download-prod.online.scea.com",
+	"us.ads.playstation.net"
   ],
   "ssfw": {
     "enabled": true,

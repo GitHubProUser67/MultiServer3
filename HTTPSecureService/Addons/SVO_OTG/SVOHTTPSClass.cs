@@ -106,19 +106,18 @@ namespace MultiServer.HTTPSecureService.Addons.SVO_OTG
             try
             {
 #pragma warning disable
-                // Create and prepare a new SSL server context, we need ssl2 because SVO clients expect it. Also, Port 10061 is in use for OTG SVO
-                // , and some games like socom fireteam bravo 3 uses hard-made links inside eboot for OTG, so we must use an other port (10062 here).
+                // Create and prepare a new SSL server context, we need ssl2 because SVO clients expect it.
                 var context = new SslContext(SslProtocols.Ssl2, new X509Certificate2(Directory.GetCurrentDirectory() + "/static/SSL/SVO.pfx", "qwerty"));
 #pragma warning restore
                 // Create a new HTTP server
-                server = new HttpsWebSocketRestServer(context, IPAddress.Any, 10062);
+                server = new HttpsWebSocketRestServer(context, IPAddress.Any, 10061);
                 server.OptionDualMode = true;
                 server.OptionKeepAlive = true;
 
                 // Start the server
                 server.Start();
                 httpsstarted = true;
-                ServerConfiguration.LogInfo($"[SVO - HTTPS] - server started on: 10062");
+                ServerConfiguration.LogInfo($"[SVO - HTTPS] - server started on: 10061");
             }
             catch (Exception ex)
             {

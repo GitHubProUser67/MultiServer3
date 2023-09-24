@@ -492,13 +492,21 @@ namespace MultiServer.HTTPService.Addons.SVO.Games
 
                                     string langId = "0";
 
-                                    await ServerConfiguration.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
+                                    try
                                     {
-                                        //Found in database so keep.
-                                        string langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                        string accountName = r.Result.AccountName;
-                                        accountId = r.Result.AccountId;
-                                    });
+                                        await ServerConfiguration.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
+                                        {
+                                            //Found in database so keep.
+                                            langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
+                                            string accountName = r.Result.AccountName;
+                                            accountId = r.Result.AccountId;
+                                        });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
+                                        accountId = 0;
+                                    }
 
                                     response.AddHeader("Set-Cookie", $"LangID={langId}; Path=/");
                                     response.AppendHeader("Set-Cookie", $"AcctID={accountId}; Path=/");
