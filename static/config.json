@@ -51,7 +51,9 @@
 	"test.playstationhome.jp",
 	"hdc.cprod.homeps3.online.scee.com",
 	"download-prod.online.scea.com",
-	"us.ads.playstation.net"
+	"us.ads.playstation.net",
+	"ww-prod-sec.destinations.scea.com",
+	"ll-100.ea.com"
   ],
   "ssfw": {
     "enabled": true,

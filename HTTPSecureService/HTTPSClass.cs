@@ -135,7 +135,7 @@ namespace MultiServer.HTTPSecureService
 
                 bool specialrequest = true;
 
-                string url = request.Url;
+                string url = RemoveQueryString(request.Url);
 
                 switch (url)
                 {

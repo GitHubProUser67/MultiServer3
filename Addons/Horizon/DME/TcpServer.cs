@@ -340,8 +340,6 @@ namespace MultiServer.Addons.Horizon.DME
                             }
                         }
 
-
-
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
                         /*

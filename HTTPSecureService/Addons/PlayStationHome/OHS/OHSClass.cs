@@ -15,7 +15,7 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
                 return;
             }
 
-            string url = request.Url;
+            string url = HTTPSClass.RemoveQueryString(request.Url);
 
             // Split the URL into segments
             string[] segments = url.Trim('/').Split('/');

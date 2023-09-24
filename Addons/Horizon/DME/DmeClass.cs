@@ -90,7 +90,6 @@ namespace MultiServer.Addons.Horizon.DME
                     RefreshConfig();
                     _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
                 }
-
             }
             catch (Exception ex)
             {
