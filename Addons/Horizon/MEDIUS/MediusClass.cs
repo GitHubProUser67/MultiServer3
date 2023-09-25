@@ -125,6 +125,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             {
                 // tick
                 await TickAsync();
+
+                await Task.Delay(80);
             }
 
             await AuthenticationServer.Stop();
