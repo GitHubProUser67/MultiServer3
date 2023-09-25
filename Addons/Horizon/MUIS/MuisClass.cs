@@ -84,8 +84,6 @@ namespace MultiServer.Addons.Horizon.MUIS
             {
                 // tick
                 await TickAsync();
-
-                await Task.Delay(100);
             }
 
             await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));

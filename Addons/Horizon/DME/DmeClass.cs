@@ -71,11 +71,7 @@ namespace MultiServer.Addons.Horizon.DME
                     }
                 }
 
-                // Tick
-                Parallel.Invoke(
-                    async () => await HandleInMessages(),
-                    async () => await HandleOutMessages()
-                );
+                await HandleInMessages();
 
                 // Tick plugins
                 if ((Utils.GetHighPrecisionUtcTime() - _timeLastPluginTick).TotalMilliseconds > Settings.PluginTickIntervalMs)
@@ -83,6 +79,8 @@ namespace MultiServer.Addons.Horizon.DME
                     _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
                     await Plugins.Tick();
                 }
+
+                await HandleOutMessages();
 
                 // Reload config
                 if ((Utils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
@@ -158,8 +156,6 @@ namespace MultiServer.Addons.Horizon.DME
             {
                 // tick
                 await TickAsync();
-
-                await Task.Delay(100);
             }
 
             await TcpServer.Stop();

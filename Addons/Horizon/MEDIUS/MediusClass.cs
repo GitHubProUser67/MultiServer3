@@ -82,13 +82,12 @@ namespace MultiServer.Addons.Horizon.MEDIUS
                 }
 
                 // Tick
-                Parallel.Invoke(
-                   async () => await AuthenticationServer.Tick(),
-                   async () => await LobbyServer.Tick(),
-                   async () => await ProxyServer.Tick(),
-                   async () => await ProfileServer.Tick(),
-                   async () => await MatchmakingServer.Tick()
-                );
+                await Task.WhenAll(
+                    AuthenticationServer.Tick(),
+                    LobbyServer.Tick(),
+                    ProxyServer.Tick(),
+                    ProfileServer.Tick(),
+                    MatchmakingServer.Tick());
 
                 // Tick manager
                 await Manager.Tick();
@@ -126,8 +125,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             {
                 // tick
                 await TickAsync();
-
-                await Task.Delay(100);
             }
 
             await AuthenticationServer.Stop();
