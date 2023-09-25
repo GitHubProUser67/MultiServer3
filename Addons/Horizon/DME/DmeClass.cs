@@ -54,7 +54,7 @@ namespace MultiServer.Addons.Horizon.DME
                             if (manager.Value != null && manager.Value.IsConnected)
                                 await manager.Value.Stop();
 
-                        await Task.Delay(4900); // delay loop to give time before next authentication request
+                        await Task.Delay(5000); // delay loop to give time before next authentication request
                         return;
                     }
                     else
@@ -91,14 +91,14 @@ namespace MultiServer.Addons.Horizon.DME
             }
             catch (Exception ex)
             {
-                if (ex.Message.ToLower().Contains("Failed to authenticate with the MPS server")) // This can happen if network unreachable, harmless as we must reconnect to MPS instead of being infinitly stuck.
+                if (ex.Message.ToLower().Contains("failed to authenticate with the mps server")) // This can happen if network unreachable, harmless as we must reconnect to MPS instead of being infinitly stuck.
                 {
                     // disconnect from MPS
                     foreach (var manager in Managers)
                         if (manager.Value != null && manager.Value.IsConnected)
                             await manager.Value.Stop();
 
-                    await Task.Delay(4900); // delay loop to give time before next authentication request
+                    await Task.Delay(5000); // delay loop to give time before next authentication request
                 }
                 else
                     ServerConfiguration.LogError(ex);
