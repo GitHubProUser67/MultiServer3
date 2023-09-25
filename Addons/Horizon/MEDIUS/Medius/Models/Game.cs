@@ -388,7 +388,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             if (Clients.Any(x => x.Client == client))
                 return;
 
-            // 
             ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {client} added.");
 
             Clients.Add(new GameClient()
@@ -403,10 +402,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
         protected virtual async Task OnPlayerLeft(GameClient player)
         {
-            // 
             ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {player.Client} left.");
 
-            // 
             player.InGame = false;
 
             // Update player object
@@ -535,7 +532,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             if (report.MediusWorldID != Id)
                 return;
 
-
             Id = report.MediusWorldID;
             ApplicationId = report.ApplicationID;
             GameName = report.GameName;
@@ -582,7 +578,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // destroy flag
             destroyed = true;
 
-            // 
             ServerConfiguration.LogInfo($"Game {Id}: {GameName}: EndGame() called.");
 
             // Send to plugins
@@ -593,14 +588,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             {
                 var client = Clients[0].Client;
                 if (client == null)
-                {
                     Clients.RemoveAt(0);
-                }
                 else
-                {
                     await client.LeaveGame(this);
                     //await client.LeaveChannel(ChatChannel);
-                }
             }
 
             // Unregister from channel

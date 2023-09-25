@@ -3068,6 +3068,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                             GenericField1 = 16,
                             GenericFieldFilter = 1
                         },
+
                         //Arc the Lad: End of Darkness
                         new ChannelDTO()
                         {
@@ -3246,7 +3247,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    if (appId == 2400 || appId == 10680 || appId == 10680 || appId == 10683 || appId == 10684)
+                    if (appId == 10680 || appId == 10683 || appId == 10684)
                     {
                         return new LocationDTO[]
                         {
@@ -3254,6 +3255,18 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                             {
                                 AppId = appId,
                                 Id = 40,
+                                Name = "Aquatos"
+                            }
+                        };
+                    }
+                    else if (appId == 24000)
+                    {
+                        return new LocationDTO[]
+                        {
+                            new LocationDTO()
+                            {
+                                AppId = appId,
+                                Id = 0,
                                 Name = "Aquatos"
                             }
                         };
