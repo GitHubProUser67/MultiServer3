@@ -54,7 +54,7 @@ namespace MultiServer.Addons.Horizon.DME
                             if (manager.Value != null && manager.Value.IsConnected)
                                 await manager.Value.Stop();
 
-                        await Task.Delay(4800); // delay loop to give time before next authentication request
+                        await Task.Delay(5000); // delay loop to give time before next authentication request
                         return;
                     }
                     else
@@ -98,7 +98,7 @@ namespace MultiServer.Addons.Horizon.DME
                         if (manager.Value != null && manager.Value.IsConnected)
                             await manager.Value.Stop();
 
-                    await Task.Delay(4800); // delay loop to give time before next authentication request
+                    await Task.Delay(5000); // delay loop to give time before next authentication request
                 }
                 else
                     ServerConfiguration.LogError(ex);
@@ -157,7 +157,7 @@ namespace MultiServer.Addons.Horizon.DME
                 // tick
                 await TickAsync();
 
-                await Task.Delay(80);
+                await Task.Delay(5);
             }
 
             await TcpServer.Stop();
