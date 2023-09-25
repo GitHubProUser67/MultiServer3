@@ -493,12 +493,12 @@ namespace MultiServer.HTTPService
 
                     if (newerhome == "on")
                     {
-                        SceneKey sceneKey = SIDKeyGenerator.Instance.Generate(Convert.ToUInt16(sceneid), true);
+                        SceneKey sceneKey = SIDKeyGenerator.Instance.GenerateNewerType(Convert.ToUInt16(sceneid));
                         Data = Encoding.UTF8.GetBytes(PreMadeWebPages.ChannelID.Replace("PUT_GUID_HERE", sceneKey.ToString()));
                     }
                     else
                     {
-                        SceneKey sceneKey = SIDKeyGenerator.Instance.Generate(Convert.ToUInt16(sceneid), false);
+                        SceneKey sceneKey = SIDKeyGenerator.Instance.Generate(Convert.ToUInt16(sceneid));
                         Data = Encoding.UTF8.GetBytes(PreMadeWebPages.ChannelID.Replace("PUT_GUID_HERE", sceneKey.ToString()));
                     }
 
@@ -570,72 +570,139 @@ namespace MultiServer.HTTPService
 
                     }
 
-                    SceneKey sceneKey = new SceneKey(channelid);
-
-                    try
+                    if (newerhome == "on")
                     {
-                        SIDKeyGenerator.Instance.Verify(sceneKey);
-                        ushort num = 0;
+                        SceneKey sceneKey = new SceneKey(channelid);
 
-                        if (newerhome == "on")
-                            num = SIDKeyGenerator.Instance.ExtractSceneID(sceneKey, true);
-                        else
-                            num = SIDKeyGenerator.Instance.ExtractSceneID(sceneKey, false);
-
-                        response.ContentType = "text/html";
-                        response.StatusCode = (int)HttpStatusCode.OK;
-
-                        byte[] Data = Encoding.UTF8.GetBytes(PreMadeWebPages.SceneID.Replace("PUT_SCENEID_HERE", num.ToString()));
-
-                        response.ContentLength64 = Data.Length;
-
-                        Stream ros = response.OutputStream;
-
-                        if (ros.CanWrite)
+                        try
                         {
-                            try
+                            SIDKeyGenerator.Instance.VerifyNewerKey(sceneKey);
+                            ushort num = 0;
+
+                            num = SIDKeyGenerator.Instance.ExtractSceneIDNewerType(sceneKey);
+
+                            response.ContentType = "text/html";
+                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                            byte[] Data = Encoding.UTF8.GetBytes(PreMadeWebPages.SceneID.Replace("PUT_SCENEID_HERE", num.ToString()));
+
+                            response.ContentLength64 = Data.Length;
+
+                            Stream ros = response.OutputStream;
+
+                            if (ros.CanWrite)
                             {
-                                response.ContentLength64 = Data.Length;
-                                ros.Write(Data, 0, Data.Length);
+                                try
+                                {
+                                    response.ContentLength64 = Data.Length;
+                                    ros.Write(Data, 0, Data.Length);
+                                }
+                                catch (Exception)
+                                {
+                                    // Not Important;
+                                }
                             }
-                            catch (Exception)
-                            {
-                                // Not Important;
-                            }
+
+                            ros.Dispose();
                         }
-
-                        ros.Dispose();
-                    }
-                    catch (SceneKeyException)
-                    {
-                        response.ContentType = "text/html";
-                        response.StatusCode = (int)HttpStatusCode.OK;
-
-                        byte[] Data = Encoding.UTF8.GetBytes(PreMadeWebPages.SceneID.Replace("PUT_SCENEID_HERE", "Invalid ChannelID or unsupported format"));
-
-                        response.ContentLength64 = Data.Length;
-
-                        Stream ros = response.OutputStream;
-
-                        if (ros.CanWrite)
+                        catch (SceneKeyException)
                         {
-                            try
-                            {
-                                response.ContentLength64 = Data.Length;
-                                ros.Write(Data, 0, Data.Length);
-                            }
-                            catch (Exception)
-                            {
-                                // Not Important;
-                            }
-                        }
+                            response.ContentType = "text/html";
+                            response.StatusCode = (int)HttpStatusCode.OK;
 
-                        ros.Dispose();
+                            byte[] Data = Encoding.UTF8.GetBytes(PreMadeWebPages.SceneID.Replace("PUT_SCENEID_HERE", "Invalid ChannelID or unsupported format"));
+
+                            response.ContentLength64 = Data.Length;
+
+                            Stream ros = response.OutputStream;
+
+                            if (ros.CanWrite)
+                            {
+                                try
+                                {
+                                    response.ContentLength64 = Data.Length;
+                                    ros.Write(Data, 0, Data.Length);
+                                }
+                                catch (Exception)
+                                {
+                                    // Not Important;
+                                }
+                            }
+
+                            ros.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            ServerConfiguration.LogError($"[HomeTools] - SceneID - SceneKey Check Errored out with this exception : {ex}");
+                            response.StatusCode = 500;
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        ServerConfiguration.LogError($"[HomeTools] - SceneID - SceneKey Check Errored out with this exception : {ex}");
-                        response.StatusCode = 500;
+                        SceneKey sceneKey = new SceneKey(channelid);
+
+                        try
+                        {
+                            SIDKeyGenerator.Instance.Verify(sceneKey);
+                            ushort num = 0;
+
+                            num = SIDKeyGenerator.Instance.ExtractSceneID(sceneKey);
+
+                            response.ContentType = "text/html";
+                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                            byte[] Data = Encoding.UTF8.GetBytes(PreMadeWebPages.SceneID.Replace("PUT_SCENEID_HERE", num.ToString()));
+
+                            response.ContentLength64 = Data.Length;
+
+                            Stream ros = response.OutputStream;
+
+                            if (ros.CanWrite)
+                            {
+                                try
+                                {
+                                    response.ContentLength64 = Data.Length;
+                                    ros.Write(Data, 0, Data.Length);
+                                }
+                                catch (Exception)
+                                {
+                                    // Not Important;
+                                }
+                            }
+
+                            ros.Dispose();
+                        }
+                        catch (SceneKeyException)
+                        {
+                            response.ContentType = "text/html";
+                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                            byte[] Data = Encoding.UTF8.GetBytes(PreMadeWebPages.SceneID.Replace("PUT_SCENEID_HERE", "Invalid ChannelID or unsupported format"));
+
+                            response.ContentLength64 = Data.Length;
+
+                            Stream ros = response.OutputStream;
+
+                            if (ros.CanWrite)
+                            {
+                                try
+                                {
+                                    response.ContentLength64 = Data.Length;
+                                    ros.Write(Data, 0, Data.Length);
+                                }
+                                catch (Exception)
+                                {
+                                    // Not Important;
+                                }
+                            }
+
+                            ros.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            ServerConfiguration.LogError($"[HomeTools] - SceneID - SceneKey Check Errored out with this exception : {ex}");
+                            response.StatusCode = 500;
+                        }
                     }
 
                     copyStream.Dispose();

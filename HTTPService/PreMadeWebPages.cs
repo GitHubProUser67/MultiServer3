@@ -226,7 +226,7 @@
                 <h1>ChannelID - Calculator</h1>
                 <form class=""upload-form"" enctype=""multipart/form-data"" action=""/!HomeTools/ChannelIDHandling/"" method=""POST"">
                   <label for=""sceneid"">Enter a Scene ID</label>
-                  <input type=""number"" id=""sceneid"" name=""sceneid"" min=""1"" max=""9000"" required>
+                  <input type=""number"" id=""sceneid"" name=""sceneid"" min=""0"" max""65535"" required>
                   <label for=""newerhome"">Newer Format</label>
                   <input type=""checkbox"" id=""newerhome"" name=""newerhome"">
                   <button class=""upload-button"" type=""submit"">Calculate</button>
