@@ -2281,7 +2281,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                             }
                         };
                     }
-                    else if (appId == 20095)
+                    else if (appId == 24180)
                     {
                         return new DimAnnouncements[]
                         {
