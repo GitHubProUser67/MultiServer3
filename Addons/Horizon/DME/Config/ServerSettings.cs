@@ -69,13 +69,6 @@ namespace MultiServer.Addons.Horizon.DME.Config
         public int UDPPort { get; set; } = 50000;
 
         /// <summary>
-        /// This configuration setting enables the "auxilary udp" protocol. When enabled
-        /// clients can optionally establish an unreliable udp channel in parallel to 
-        /// their primary tcp channel.
-        /// </summary>
-        public bool EnableAuxUDP = true; // (DEFAULT: 0)
-
-        /// <summary>
         /// The configuration setting determines whether or not the primary server thread 
         /// will sleep.Sleeps are recommended when running multiple instances of RTIME
         /// services on any given machine or when do any type of development on the same
@@ -85,7 +78,7 @@ namespace MultiServer.Addons.Horizon.DME.Config
         /// be multi-threaded.For most development, running the server as a single
         /// thread (setting DmeServerWorldsPerThread to "0") is recommended.
         /// </summary>
-        public bool EnableSleeps = false; // (DEFAULT: 1 for Win32; 0 for Linux)
+        public bool EnableSleeps = Misc.IsWindows(); // (DEFAULT: 1 for Win32; 0 for Linux)
         public bool UseThread = true; // (DEFAULT: 0)
 
         public bool EnableMedius = true; // (DEFAULT: 1)

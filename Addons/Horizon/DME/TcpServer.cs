@@ -322,14 +322,6 @@ namespace MultiServer.Addons.Horizon.DME
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP_AUX_UDP clientConnectTcpAuxUdp:
                     {
-                        #region Check EnableAuxUDP
-                        if (DmeClass.Settings.EnableAuxUDP != true)
-                        {
-                            ServerConfiguration.LogError("rt_msg_server_process_client_connect_aux_msg: AUX UDP not enabled");
-                            return;
-                        }
-                        #endregion
-
                         if (clientConnectTcpAuxUdp.Key == null)
                         {
                             scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
@@ -351,7 +343,10 @@ namespace MultiServer.Addons.Horizon.DME
                         data.ClientObject.ScertId = GenerateNewScertClientId();
                         data.ClientObject.MediusVersion = scertClient.MediusVersion;
                         if (!_scertIdToClient.TryAdd(data.ClientObject.ScertId, data.ClientObject))
-                            throw new Exception($"Duplicate scert client id");
+                        {
+                            ServerConfiguration.LogError($"Duplicate scert client id");
+                            break;
+                        }
 
                         // start udp server
                         data.ClientObject.BeginUdp();

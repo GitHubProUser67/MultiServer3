@@ -29,10 +29,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MediusWorldID = reader.ReadInt32();
             PlayerCount = reader.ReadInt32();
             GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
@@ -55,10 +53,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(MediusWorldID);
             writer.Write(PlayerCount);
             writer.Write(GameName, Constants.GAMENAME_MAXLEN);

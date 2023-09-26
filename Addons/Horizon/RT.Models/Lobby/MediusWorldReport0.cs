@@ -67,14 +67,11 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(3);
 
-            //
             MediusWorldID = reader.ReadInt32();
             PlayerCount = reader.ReadInt32();
             GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
@@ -92,14 +89,11 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(SessionKey);
             writer.Write(new byte[3]);
 
-            //
             writer.Write(MediusWorldID);
             writer.Write(PlayerCount);
             writer.Write(GameName, Constants.GAMENAME_MAXLEN);

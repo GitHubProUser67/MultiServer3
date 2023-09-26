@@ -672,9 +672,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Buddy/deleteBuddyInvitation", JsonConvert.SerializeObject(addBuddyInvite))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -704,9 +702,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = await GetDbAsync<List<AccountRelationInviteDTO>>($"Buddy/retrieveBuddyInvitations?appId={appId}&accountId={accountId}");
-                }
             }
             catch (Exception e)
             {
@@ -745,9 +741,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = (await PostDbAsync($"Buddy/addBuddy", JsonConvert.SerializeObject(addBuddy))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -787,9 +781,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = (await PostDbAsync($"Buddy/removeBuddy", JsonConvert.SerializeObject(removeBuddy))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -828,9 +820,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = (await PostDbAsync($"Buddy/addIgnored", JsonConvert.SerializeObject(addIgnored))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -870,9 +860,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = (await PostDbAsync($"Buddy/removeIgnored", JsonConvert.SerializeObject(removeIgnored))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -945,9 +933,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
                     result = await GetDbAsync<ClanStatPostDTO>($"Stats/getClanStats?ClanId={clanId}");
-                }
             }
             catch (Exception e)
             {
@@ -985,9 +971,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     };
                 }
                 else
-                {
                     result = await GetDbAsync<LeaderboardDTO>($"Stats/getPlayerLeaderboard?AccountId={accountId}");
-                }
             }
             catch (Exception e)
             {
@@ -1026,9 +1010,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     };
                 }
                 else
-                {
                     result = await GetDbAsync<LeaderboardDTO>($"Stats/getPlayerLeaderboardIndex?AccountId={accountId}&StatId={statId}&AppId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -1068,9 +1050,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     };
                 }
                 else
-                {
                     result = await GetDbAsync<ClanLeaderboardDTO>($"Stats/getClanLeaderboardIndex?ClanId={clanId}&StatId={statId + 1}&AppId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -1107,9 +1087,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }).ToArray();
                 }
                 else
-                {
                     result = await GetDbAsync<ClanLeaderboardDTO[]>($"Stats/getClanLeaderboard?StatId={statId + 1}&StartIndex={startIndex}&Size={size}&AppId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -1146,9 +1124,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }).ToArray();
                 }
                 else
-                {
                     result = await GetDbAsync<LeaderboardDTO[]>($"Stats/getLeaderboard?StatId={statId}&StartIndex={startIndex}&Size={size}&AppId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -1183,9 +1159,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     }).ToArray();
                 }
                 else
-                {
                     result = await GetDbAsync<LeaderboardDTO[]>($"Stats/getLeaderboard?Size={size}&AppId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -1216,9 +1190,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Stats/postStats", JsonConvert.SerializeObject(statPost))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -1249,9 +1221,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Stats/postStatsCustom", JsonConvert.SerializeObject(statPost))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -1368,9 +1338,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Account/postMediusStats?AccountId={accountId}", $"\"{stats}\""))?.IsSuccessStatusCode ?? false;
-                }
             }
             catch (Exception e)
             {
@@ -1402,9 +1370,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Clan/postClanMediusStats?ClanId={clanId}", $"\"{stats}\""))?.IsSuccessStatusCode ?? false;
-                }
             }
             catch (Exception e)
             {
@@ -1475,9 +1441,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
 
                 }
                 else
-                {
                     result = await GetDbAsync<ClanDTO>($"Clan/getClan?clanId={id}");
-                }
             }
             catch (Exception e)
             {
@@ -1520,9 +1484,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
 
                 }
                 else
-                {
                     result = await GetDbAsync<List<ClanDTO>>($"Clan/getClans?appId={appId}");
-                }
             }
             catch (Exception e)
             {
@@ -1614,9 +1576,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     return _simulatedClans.Remove(clan);
                 }
                 else
-                {
                     result = (await GetDbAsync($"Clan/deleteClan?accountId={accountId}&clanId={clanId}")).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -1711,9 +1671,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Clan/leaveClan?fromAccountId={fromAccountId}&clanId={clanId}&accountId={accountId}", null))?.IsSuccessStatusCode ?? false;
-                }
             }
             catch (Exception e)
             {
@@ -1817,9 +1775,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         .ToList();
                 }
                 else
-                {
                     result = (await GetDbAsync<List<AccountClanInvitationDTO>>($"Clan/invitations?accountId={accountId}"));
-                }
             }
             catch (Exception e)
             {
@@ -1939,9 +1895,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     result = true;
                 }
                 else
-                {
                     result = (await PostDbAsync($"Clan/revokeInvitation?fromAccountId={fromAccountId}&clanId={clanId}&targetAccountId={targetAccountId}", null)).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -2270,14 +2224,56 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode)
                 {
                     /*
-                    return new DimAnnouncements()
+                    if (appId == 24000)
                     {
-                        Id = 1,
-                        AnnouncementTitle = "Announcement Title",
-                        AnnouncementBody = "Announcement Body",
-                        CreateDt = DateTime.UtcNow,
-                    };
-                    */
+                        return new DimAnnouncements()
+                        {
+                            Id = 1,
+                            AnnouncementTitle = "MultiServer Up Your Arsenal HD Server",
+                            AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal HD Server!",
+                            CreateDt = DateTime.UtcNow,
+                        };
+                    }
+                    else if (appId == 10683 || appId == 10684)
+                    {
+                        return new DimAnnouncements()
+                        {
+                            Id = 1,
+                            AnnouncementTitle = "MultiServer Up Your Arsenal Server",
+                            AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Server!",
+                            CreateDt = DateTime.UtcNow,
+                        };
+                    }
+                    else if (appId == 10680)
+                    {
+                        return new DimAnnouncements()
+                        {
+                            Id = 1,
+                            AnnouncementTitle = "MultiServer Deadlocked HD Server",
+                            AnnouncementBody = "Welcome to the MultiServer Deadlocked HD Server!",
+                            CreateDt = DateTime.UtcNow,
+                        };
+                    }
+                    else if (appId == 11354)
+                    {
+                        return new DimAnnouncements()
+                        {
+                            Id = 1,
+                            AnnouncementTitle = "MultiServer Deadlocked Server",
+                            AnnouncementBody = "Welcome to the MultiServer Deadlocked Server!",
+                            CreateDt = DateTime.UtcNow,
+                        };
+                    }
+                    else
+                    {
+                        return new DimAnnouncements()
+                        {
+                            Id = 1,
+                            AnnouncementTitle = "Announcement Title",
+                            AnnouncementBody = "Announcement Body",
+                            CreateDt = DateTime.UtcNow,
+                        };
+                    }*/
                 }
                 else
                     result = await GetDbAsync<DimAnnouncements>($"api/Keys/getAnnouncements?fromDt={DateTime.UtcNow}&AppId={appId}");
@@ -2293,26 +2289,79 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
         /// <summary>
         /// Gets the latest announcements.
         /// </summary>
-        public async Task<DimAnnouncements[]> GetLatestAnnouncements(int appId, int size = 10)
+        public async Task<DimAnnouncements[]> GetLatestAnnouncementsList(int appId, int size = 10)
         {
             DimAnnouncements[] result = null;
 
             try
             {
                 if (_settings.SimulatedMode)
-                {/*
-                    return new DimAnnouncements[]
+                {
+                    if (appId == 24000)
                     {
-                        new DimAnnouncements()
+                        return new DimAnnouncements[]
                         {
-                            Id = 1,
-                            AnnouncementTitle = "Announcement Title",
-                            AnnouncementBody = "Announcement Body",
-							CreateDt = DateTime.UtcNow,
-
-                        }
-                    };
-                    */
+                            new DimAnnouncements()
+                            {
+                                Id = 1,
+                                AnnouncementTitle = "MultiServer Announcement! ",
+                                AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal HD Server!",
+                                CreateDt = DateTime.UtcNow,
+                            }
+                        };
+                    }
+                    else if (appId == 10683 || appId == 10684)
+                    {
+                        return new DimAnnouncements[]
+                        {
+                            new DimAnnouncements()
+                            {
+                                Id = 1,
+                                AnnouncementTitle = "MultiServer Announcement! ",
+                                AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Server!",
+                                CreateDt = DateTime.UtcNow,
+                            }
+                        };
+                    }
+                    else if (appId == 10680)
+                    {
+                        return new DimAnnouncements[]
+                        {
+                            new DimAnnouncements()
+                            {
+                                Id = 1,
+                                AnnouncementTitle = "MultiServer Announcement! ",
+                                AnnouncementBody = "Welcome to the MultiServer Deadlocked HD Server!",
+                                CreateDt = DateTime.UtcNow,
+                            }
+                        };
+                    }
+                    else if (appId == 11354)
+                    {
+                        return new DimAnnouncements[]
+                        {
+                            new DimAnnouncements()
+                            {
+                                Id = 1,
+                                AnnouncementTitle = "MultiServer Announcement! ",
+                                AnnouncementBody = "Welcome to the MultiServer Deadlocked Server!",
+                                CreateDt = DateTime.UtcNow,
+                            }
+                        };
+                    }
+                    else
+                    {
+                        return new DimAnnouncements[]
+                        {
+                            new DimAnnouncements()
+                            {
+                                Id = 1,
+                                AnnouncementTitle = "Announcement Title",
+                                AnnouncementBody = "Announcement Body",
+                                CreateDt = DateTime.UtcNow,
+                            }
+                        };
+                    }
                 }
                 else
                     result = await GetDbAsync<DimAnnouncements[]>($"api/Keys/getAnnouncementsList?Dt={DateTime.UtcNow}&TakeSize={size}&AppId={appId}");
@@ -2336,7 +2385,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    /*
                     return new DimEula()
                     {
                         Id = 1,
@@ -2344,9 +2392,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         PolicyType = policyType,
                         EulaTitle = "Eula Test",
                         EulaBody = "Eula Body",
-
                     };
-                    */
                 }
                 else
                     result = await GetDbAsync<DimEula>($"api/Keys/getEULA?policyType={policyType}&appId={appId}&fromDt={DateTime.UtcNow}");
@@ -2843,10 +2889,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             return results;
         }
 
-
-
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -2858,13 +2900,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
                     result = true;
-                }
                 else
-                {
                     result = (await PostDbAsync($"api/Game/create", JsonConvert.SerializeObject(game))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -2885,13 +2923,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
                     result = true;
-                }
                 else
-                {
                     result = (await PutDbAsync($"api/Game/update/{game.GameId}", JsonConvert.SerializeObject(game))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -2913,13 +2947,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
                     result = true;
-                }
                 else
-                {
                     result = (await PutDbAsync($"api/Game/updateMetaData/{gameId}", JsonConvert.SerializeObject(metadata))).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -2941,13 +2971,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
                     result = true;
-                }
                 else
-                {
                     result = (await DeleteDbAsync($"api/Game/delete/{gameId}")).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -2968,13 +2994,9 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                {
                     result = true;
-                }
                 else
-                {
                     result = (await DeleteDbAsync($"api/Game/clear")).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -3166,9 +3188,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     };
                 }
                 else
-                {
                     results = await GetDbAsync<ChannelDTO[]>($"api/World/getChannels");
-                }
             }
             catch (Exception ex)
             {
@@ -3227,9 +3247,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                     };
                 }
                 else
-                {
                     results = await GetDbAsync<LocationDTO[]>($"api/World/getLocations");
-                }
             }
             catch (Exception ex)
             {

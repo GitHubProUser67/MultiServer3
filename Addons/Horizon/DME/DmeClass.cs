@@ -186,15 +186,6 @@ namespace MultiServer.Addons.Horizon.DME
                 TcpServer.Start();
                 #endregion
 
-                #region ConfigAuxUDP Check
-
-                if (Settings.EnableAuxUDP)
-                    ServerConfiguration.LogInfo("Auxilary UDP is ENABLED!\n");
-                else
-                    ServerConfiguration.LogInfo("Auxilary UDP is DISABLED!\n");
-
-                #endregion
-
                 ServerConfiguration.LogInfo("*****************************************************************");
                 ServerConfiguration.LogInfo($"TCP started.");
 

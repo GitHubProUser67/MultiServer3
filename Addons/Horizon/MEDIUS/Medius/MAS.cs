@@ -1668,7 +1668,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             Request = getAllAnnouncementsRequest
                         });
 
-                        await ServerConfiguration.Database.GetLatestAnnouncements(data.ApplicationId).ContinueWith((r) =>
+                        await ServerConfiguration.Database.GetLatestAnnouncementsList(data.ApplicationId).ContinueWith((r) =>
                         {
                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                 return;

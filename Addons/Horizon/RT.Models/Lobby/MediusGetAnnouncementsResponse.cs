@@ -19,27 +19,20 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            //
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
             AnnouncementID = reader.ReadInt32();
 
-                
-            // && reader.AppId == 24000 && reader.AppId == 24180 && reader.AppId == 20095 && reader.AppId != 22920 && reader.AppId != 21743 && reader.AppId == 10984
             if (reader.MediusVersion <= 112)
-            {
                 Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
-            } else if (reader.MediusVersion == 113 /*&& reader.AppId == 21731 && reader.AppId == 21741 && reader.AppId == 21834 && reader.AppId == 20174*/) {
+            else if (reader.MediusVersion == 113)
                 Announcement = reader.ReadString(Constants.ANNOUNCEMENT1_MAXLEN);
-            } else {
+            else
                 Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
-            }
 
             EndOfList = reader.ReadBoolean();
             reader.ReadBytes(3);
@@ -47,27 +40,20 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(StatusCode);
             writer.Write(AnnouncementID);
 
-            
-            // && writer.AppId == 24000 && writer.AppId == 24180 && writer.AppId == 20095 && writer.AppId != 22920 && writer.AppId != 21743 && writer.AppId == 10984
             if (writer.MediusVersion <= 112)
-            {
                 writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
-            } else if (writer.MediusVersion == 113 /*&& writer.AppId == 21731 && writer.AppId == 21741 && writer.AppId == 22920 && writer.AppId == 21834 && writer.AppId == 20174*/) {
+            else if (writer.MediusVersion == 113)
                 writer.Write(Announcement, Constants.ANNOUNCEMENT1_MAXLEN);
-            } else {
+            else
                 writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
-            }
             writer.Write(EndOfList);
             writer.Write(new byte[3]);
         }

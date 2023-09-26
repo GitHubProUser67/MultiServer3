@@ -419,7 +419,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
         public virtual async Task RemovePlayer(ClientObject client)
         {
-            // 
             ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {client} removed.");
 
             // Remove host
@@ -457,7 +456,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // Ensure report is for correct game world
             if (report.MediusWorldID != Id)
                 return;
-
 
             //Id = report.MediusWorldID;
             GameName = report.GameName;
@@ -523,6 +521,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
                 if (!utcTimeEnded.HasValue)
                     _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
+
             ServerConfiguration.LogInfo("World Updated from World Report");
         }
 
