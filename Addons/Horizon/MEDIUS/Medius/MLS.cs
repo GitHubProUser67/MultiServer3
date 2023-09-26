@@ -3097,7 +3097,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             });
                         }
 
-
                         break;
                     }
 
@@ -4922,7 +4921,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {gameList_ExtraInfoRequest} without being logged in.");
 
                         List<int> FilteredGameLists = new List<int>() { 21924, 10994, 11203, 11204 };
-                        List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920 };
+                        List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920, 24000 };
 
                         //By Filter
                         if (FilteredGameLists.Contains(data.ClientObject.ApplicationId))
@@ -4982,9 +4981,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         // Size Matters  20770, CAC 20623, 20624
                         else if (NonFilteredGameLists.Contains(data.ClientObject.ApplicationId))
                         {
-
                             int Count = MediusClass.Manager.GetGameCountAppId(data.ClientObject.ApplicationId);
-                            ServerConfiguration.LogWarn($"Count: {Count}");
+                            ServerConfiguration.LogWarn($"[MLS] - Game Non-Filtered - {data.ClientObject.ApplicationId.ToString()} - Count: {Count}");
 
                             var gameList = MediusClass.Manager.GetGameListAppId(
                                 data.ClientObject.ApplicationId,
@@ -5041,7 +5039,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         else
                         {
                             int Count = MediusClass.Manager.GetGameCountAppId(data.ClientObject.ApplicationId);
-                            ServerConfiguration.LogWarn($"Count: {Count}");
+                            ServerConfiguration.LogWarn($"[MLS] - Game Non-Filtered - {data.ClientObject.ApplicationId.ToString()} - Count: {Count}");
 
                             var gameList = MediusClass.Manager.GetGameListAppId(
                                 data.ClientObject.ApplicationId,
@@ -5326,7 +5324,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         List<MediusLobbyWorldPlayerListResponse> lobbyWorldPlayerListResponses = new List<MediusLobbyWorldPlayerListResponse>();
 
-
                         var channel = MediusClass.Manager.GetChannelByChannelId(lobbyWorldPlayerListRequest.MediusWorldID, data.ClientObject.ApplicationId);
                         if (channel == null)
                         {
@@ -5377,8 +5374,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                         });
                                     }
                                 });
-
-
                             }
 
                             if (lobbyWorldPlayerListResponses.Count == 0)
@@ -5397,7 +5392,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             }
                             else
                             {
-
                                 // Set last end of list
                                 lobbyWorldPlayerListResponses[lobbyWorldPlayerListResponses.Count - 1].EndOfList = true;
                                 data.ClientObject.Queue(lobbyWorldPlayerListResponses);
@@ -6714,8 +6708,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         IEnumerable<Channel> lobbyChannels = null;
 
-                        //If PS Home Dev/Retail we Filter
-                        if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                        //If PS Home Dev/Retail or UYA HD, we Filter
+                        if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374 || data.ClientObject.ApplicationId == 24000)
                         {
                             lobbyChannels = MediusClass.Manager.GetChannelListFiltered(
                                 data.ClientObject.ApplicationId,
@@ -6739,7 +6733,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 ChannelType.Lobby
                             );
                         }
-
 
                         foreach (var channel in lobbyChannels)
                         {
@@ -6772,7 +6765,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             // Add to responses
                             data.ClientObject.Queue(channelResponses);
                         }
-
 
                         break;
                     }

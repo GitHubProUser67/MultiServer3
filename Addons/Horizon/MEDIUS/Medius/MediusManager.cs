@@ -375,11 +375,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                if (client.ApplicationId == 10994)
-                {
-
-                }
-
                 var game = new Game(client, request, client.CurrentChannel, dme);
                 await AddGame(game);
 
@@ -395,7 +390,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             }
             catch (Exception e)
             {
-                // 
                 ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason
@@ -470,7 +464,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             }
             catch (Exception e)
             {
-                // 
                 ServerConfiguration.LogError(e);
 
                 // Failure adding game for some reason

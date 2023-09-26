@@ -27,10 +27,9 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            if(writer.MediusVersion == 109)
-            {
+            if (writer.MediusVersion == 109)
                 writer.Write(SourceIn);
-            } else
+            else
             {
                 // Determine size of bitmask in bytes
                 byte size = 1;
@@ -46,6 +45,7 @@ namespace MultiServer.Addons.Horizon.RT.Models
                 writer.Write(size);
                 writer.Write(mask);
             }
+
             writer.Write(Payload);
         }
 
