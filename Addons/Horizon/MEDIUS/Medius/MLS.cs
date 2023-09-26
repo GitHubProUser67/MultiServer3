@@ -4921,7 +4921,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {gameList_ExtraInfoRequest} without being logged in.");
 
                         List<int> FilteredGameLists = new List<int>() { 21924, 10994, 11203, 11204 };
-                        List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920, 24000, 24180 };
+                        List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920 };
 
                         //By Filter
                         if (FilteredGameLists.Contains(data.ClientObject.ApplicationId))
