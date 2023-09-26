@@ -142,10 +142,8 @@ namespace MultiServer.Addons.Horizon.DME.Models
 
         public ClientObject(string sessionKey, World dmeWorld, int dmeId)
         {
-            // 
             SessionKey = sessionKey;
 
-            // 
             DmeId = dmeId;
             DmeWorld = dmeWorld;
             AggTimeMs = DmeClass.GetAppSettingsOrDefault(ApplicationId).DefaultClientWorldAggTime;
@@ -334,6 +332,5 @@ namespace MultiServer.Addons.Horizon.DME.Models
         {
             return $"(worldId: {DmeWorld.WorldId}, clientId: {DmeId})";
         }
-
     }
 }

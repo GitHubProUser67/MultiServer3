@@ -6708,8 +6708,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         IEnumerable<Channel> lobbyChannels = null;
 
-                        //If PS Home Dev/Retail or UYA HD, we Filter
-                        if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374 || data.ClientObject.ApplicationId == 24000)
+                        //If PS Home Dev/Retail, we Filter
+                        if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
                         {
                             lobbyChannels = MediusClass.Manager.GetChannelListFiltered(
                                 data.ClientObject.ApplicationId,
