@@ -71,11 +71,19 @@
 	"hometools_helper_static_folder": "/static/XmlHelper/",
 	"home_tools": true
   },
-  "medius": {
-    "enabled": true,
-	"dme_config": "/static/dme.json",
-	"medius_config": "/static/medius.json",
-	"muis_config": "/static/muis.json",
+  "horizon": {
+	"medius" : {
+		"enabled": true,
+		"medius_config": "/static/medius.json"
+	},
+	"DME" : {
+		"enabled": true,
+		"dme_config": "/static/dme.json"
+	},
+	"muis" : {
+		"enabled": true,
+		"muis_config": "/static/muis.json"
+	},
 	"debug_log": false
   },
   "medius_database":{

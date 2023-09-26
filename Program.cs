@@ -51,6 +51,8 @@ namespace MultiServer
         public static bool EnableUpscale { get; set; } = true;
         public static bool EnableSSFW { get; set; } = true;
         public static bool EnableMedius { get; set; } = true;
+        public static bool EnableDME { get; set; } = true;
+        public static bool EnableMuis { get; set; } = true;
         public static bool MediusDebugLogs { get; set; } = false;
         public static bool EnableSVO { get; set; } = true;
         public static string? DMEConfig { get; set; } = "/static/medius.json";
@@ -199,11 +201,13 @@ namespace MultiServer
             HomeToolsHelperStaticFolder = config.http.hometools_helper_static_folder;
             HTTPPort = config.http.port;
 			
-            EnableMedius = config.medius.enabled;
-            DMEConfig = config.medius.dme_config;
-            MEDIUSConfig = config.medius.medius_config;
-            MUISConfig = config.medius.muis_config;
-            MediusDebugLogs = config.medius.debug_log;
+            EnableMedius = config.horizon.medius.enabled;
+            EnableDME = config.horizon.DME.enabled;
+            EnableMuis = config.horizon.muis.enabled;
+            DMEConfig = config.horizon.DME.dme_config;
+            MEDIUSConfig = config.horizon.medius.medius_config;
+            MUISConfig = config.horizon.muis.muis_config;
+            MediusDebugLogs = config.horizon.debug_log;
 
             DatabaseConfig = config.medius_database.database_config;
 
@@ -317,11 +321,13 @@ namespace MultiServer
         public Task HorizonStarter()
         {
             if (ServerConfiguration.EnableMedius)
-            {
                 MediusClass.MediusMain();
+
+            if (ServerConfiguration.EnableMuis)
                 MuisClass.MuisMain();
+
+            if (ServerConfiguration.EnableDME)
                 DmeClass.DmeMain();
-            }
 
             return Task.CompletedTask;
         }

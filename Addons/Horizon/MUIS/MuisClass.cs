@@ -85,7 +85,7 @@ namespace MultiServer.Addons.Horizon.MUIS
                 // tick
                 await TickAsync();
 
-                await Task.Delay(5);
+                await Task.Delay(100); // this value is the one used in Horizon by default.
             }
 
             await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));

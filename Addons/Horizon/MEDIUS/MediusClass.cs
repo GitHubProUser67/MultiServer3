@@ -126,7 +126,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS
                 // tick
                 await TickAsync();
 
-                await Task.Delay(5);
+                await Task.Delay(1000 / 10); // We not want to many refresh, else, timing issues can happen (UYA HD), this value is the one used in Horizon by default.
             }
 
             await AuthenticationServer.Stop();

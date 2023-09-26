@@ -157,7 +157,7 @@ namespace MultiServer.Addons.Horizon.DME
                 // tick
                 await TickAsync();
 
-                await Task.Delay(5);
+                await Task.Delay(5); // this value is the one used in Horizon by default.
             }
 
             await TcpServer.Stop();
@@ -202,9 +202,6 @@ namespace MultiServer.Addons.Horizon.DME
                 foreach (var applicationId in Settings.ApplicationIds)
                 {
                     var manager = new DMEMediusManager(applicationId);
-                    //ogger.Info($"Starting MPS for appid {applicationId}.");
-                    //await manager.Start();
-                    //ServerConfiguration.LogInfo($"MPS started.");
                     Managers.Add(applicationId, manager);
                 }
 
