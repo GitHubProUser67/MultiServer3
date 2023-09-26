@@ -2224,48 +2224,6 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode)
                 {
                     /*
-                    if (appId == 24000)
-                    {
-                        return new DimAnnouncements()
-                        {
-                            Id = 1,
-                            AnnouncementTitle = "MultiServer Up Your Arsenal HD Server",
-                            AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal HD Server!",
-                            CreateDt = DateTime.UtcNow,
-                        };
-                    }
-                    else if (appId == 10683 || appId == 10684)
-                    {
-                        return new DimAnnouncements()
-                        {
-                            Id = 1,
-                            AnnouncementTitle = "MultiServer Up Your Arsenal Server",
-                            AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Server!",
-                            CreateDt = DateTime.UtcNow,
-                        };
-                    }
-                    else if (appId == 10680)
-                    {
-                        return new DimAnnouncements()
-                        {
-                            Id = 1,
-                            AnnouncementTitle = "MultiServer Deadlocked HD Server",
-                            AnnouncementBody = "Welcome to the MultiServer Deadlocked HD Server!",
-                            CreateDt = DateTime.UtcNow,
-                        };
-                    }
-                    else if (appId == 11354)
-                    {
-                        return new DimAnnouncements()
-                        {
-                            Id = 1,
-                            AnnouncementTitle = "MultiServer Deadlocked Server",
-                            AnnouncementBody = "Welcome to the MultiServer Deadlocked Server!",
-                            CreateDt = DateTime.UtcNow,
-                        };
-                    }
-                    else
-                    {
                         return new DimAnnouncements()
                         {
                             Id = 1,
@@ -2323,7 +2281,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                             }
                         };
                     }
-                    else if (appId == 10680)
+                    else if (appId == 20095)
                     {
                         return new DimAnnouncements[]
                         {
