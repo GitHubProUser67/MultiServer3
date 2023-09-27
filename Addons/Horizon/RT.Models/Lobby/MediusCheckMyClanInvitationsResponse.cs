@@ -24,25 +24,19 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
             ClanInvitationID = reader.ReadInt32();
             ClanID = reader.ReadInt32();
             ResponseStatus = reader.Read<MediusClanInvitationsResponseStatus>();
-            if(reader.MediusVersion >= 112)
-            {
+            if(reader.MediusVersion == 113)
                 Message = reader.ReadString(Constants.CLANMSG_MAXLEN_113);
-            } else
-            {
+            else
                 Message = reader.ReadString(Constants.CLANMSG_MAXLEN);
-            }
             LeaderAccountID = reader.ReadInt32();
             LeaderAccountName = reader.ReadString(Constants.ACCOUNTNAME_MAXLEN);
             EndOfList = reader.ReadBoolean();
@@ -51,25 +45,19 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(StatusCode);
             writer.Write(ClanInvitationID);
             writer.Write(ClanID);
             writer.Write(ResponseStatus);
-            if(writer.MediusVersion >= 112)
-            {
+            if(writer.MediusVersion == 113)
                 writer.Write(Message, Constants.CLANMSG_MAXLEN_113);
-            } else
-            {
+            else
                 writer.Write(Message, Constants.CLANMSG_MAXLEN);
-            }
             writer.Write(LeaderAccountID);
             writer.Write(LeaderAccountName, Constants.ACCOUNTNAME_MAXLEN);
             writer.Write(EndOfList);

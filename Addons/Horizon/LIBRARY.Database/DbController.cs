@@ -139,42 +139,44 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    /*
-                    //Simulated Resistance 2 beta Account for Matchmaking
-                    AccountDTO R2PuBeta;
-                    _simulatedAccounts.Add(R2PuBeta = new AccountDTO()
+                    if (name == "gameRecorder_r2_pubeta_master" && appId == 21731)
                     {
-                        AccountId = 2,
-                        AccountName = "gameRecorder_r2_pubeta_master",
-                        AccountPassword = "",
-                        AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
-                        AccountCustomWideStats = new int[1000],
-                        AppId = 21731,
-                        MachineId = "",
-                        MediusStats = "",
-                        Friends = new AccountRelationDTO[0],
-                        Ignored = new AccountRelationDTO[0],
-                        IsBanned = false
-                    });
-                    */
-
-                    AccountDTO ftb3Mod;
-                    _simulatedAccounts.Add(ftb3Mod = new AccountDTO()
+                        AccountDTO R2PuBeta;
+                        _simulatedAccounts.Add(R2PuBeta = new AccountDTO()
+                        {
+                            AccountId = 2,
+                            AccountName = "gameRecorder_r2_pubeta_master",
+                            AccountPassword = "",
+                            AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
+                            AccountCustomWideStats = new int[1000],
+                            AppId = 21731,
+                            MachineId = "",
+                            MediusStats = "",
+                            Friends = new AccountRelationDTO[0],
+                            Ignored = new AccountRelationDTO[0],
+                            IsBanned = false
+                        });
+                    }
+                    else if (name == "ftb3 Moderator_0" && appId == 21694)
                     {
-                        AccountId = 2,
-                        AccountName = "ftb3 Moderator_0",
-                        AccountPassword = "",
-                        AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
-                        AccountCustomWideStats = new int[1000],
-                        AppId = 21694,
-                        MachineId = "",
-                        MediusStats = "",
-                        Friends = new AccountRelationDTO[0],
-                        Ignored = new AccountRelationDTO[0],
-                        IsBanned = false
-                    });
-
-                    result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && x.AccountName.ToLower() == name.ToLower());
+                        AccountDTO ftb3Mod;
+                        _simulatedAccounts.Add(ftb3Mod = new AccountDTO()
+                        {
+                            AccountId = 2,
+                            AccountName = "ftb3 Moderator_0",
+                            AccountPassword = "",
+                            AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
+                            AccountCustomWideStats = new int[1000],
+                            AppId = 21694,
+                            MachineId = "",
+                            MediusStats = "",
+                            Friends = new AccountRelationDTO[0],
+                            Ignored = new AccountRelationDTO[0],
+                            IsBanned = false
+                        });
+                    }
+                    else
+                        result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && x.AccountName.ToLower() == name.ToLower());
                 }
                 else
                 {
@@ -557,7 +559,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         IpAddress = ip
                     };
                     System.Text.Json.JsonSerializer.Serialize(IpBanArray);
-                    result = await PostDbAsync<bool>($"Account/getIpIsBanned", IpBanArray);
+                    result = (await GetDbAsync($"Account/getIpIsBanned?ipAddress={ip}")).IsSuccessStatusCode;
                 }
             }
             catch (Exception e)
@@ -587,7 +589,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         MacAddress = mac
                     };
                     System.Text.Json.JsonSerializer.Serialize(MacBanArray);
-                    result = await PostDbAsync<bool>($"Account/getMacIsBanned", MacBanArray);
+                    result = (await GetDbAsync($"Account/getMacIsBanned?macAddress={mac}")).IsSuccessStatusCode;
                 }
             }
             catch (Exception e)

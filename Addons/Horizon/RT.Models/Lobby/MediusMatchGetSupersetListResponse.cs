@@ -8,10 +8,11 @@ namespace MultiServer.Addons.Horizon.RT.Models
     /// StatusCode: MediusNoResult, MediusSuccess
     /// </summary>
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.MatchGetSupersetListResponse)]
-    public class MediusMatchGetSupersetListResponse : BaseLobbyExtMessage, IMediusRequest
+    public class MediusMatchGetSupersetListResponse : BaseLobbyExtMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.MatchGetSupersetListResponse;
+
+        public bool IsSuccess => StatusCode >= 0;
 
         /// <summary>
         /// Message ID
@@ -28,7 +29,7 @@ namespace MultiServer.Addons.Horizon.RT.Models
         /// <summary>
         /// Superset ID
         /// </summary>
-        public long SupersetID;
+        public uint SupersetID;
         /// <summary>
         /// Superset Name
         /// </summary>
@@ -44,18 +45,14 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            //
             StatusCode = reader.Read<MediusCallbackStatus>();
             EndOfList = reader.Read<bool>();
 
-            //
-            SupersetID = reader.ReadInt32();
+            SupersetID = reader.ReadUInt32();
             SupersetName = reader.ReadString(Constants.SUPERSETNAME_MAXLEN);
             SupersetDescription = reader.ReadString(Constants.SUPERSETDESCRIPTION_MAXLEN);
             ExtraInfo = reader.ReadString(Constants.SUPERSETEXTRAINFO_MAXLEN);
@@ -63,17 +60,13 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(StatusCode);
             writer.Write(EndOfList);
 
-            //
             writer.Write(SupersetID);
             writer.Write(SupersetName, Constants.SUPERSETNAME_MAXLEN);
             writer.Write(SupersetDescription, Constants.SUPERSETDESCRIPTION_MAXLEN);

@@ -107,7 +107,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerConnect = new List<int>() { 10683, 10684, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerConnect = new List<int>() { 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680, 10683, 10684 };
                         List<int> pre108NoServerConnect = new List<int>() { 10010, 10031, 10274 };
 
                         if (clientConnectTcp.AccessToken != null)
@@ -304,6 +304,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         var game = MediusClass.Manager.GetGameByGameId(gameId);
                         var rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
 
+                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
+
                         if (!joinGameResponse.IsSuccess)
                         {
                             rClient?.Queue(new MediusJoinGameResponse()
@@ -444,7 +446,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                                 {
                                                     new NetAddress() { Address = (data.ClientObject as DMEObject).IP.MapToIPv4().ToString(), Port = (data.ClientObject as DMEObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                                    new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                                 }
                                             },
                                             Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -472,7 +474,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                             {
                                                         new NetAddress() { Address = (data.ClientObject as DMEObject).IP.MapToIPv4().ToString(), Port = (data.ClientObject as DMEObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                                        new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                             }
                                             },
                                             Type = NetConnectionType.NetConnectionTypeClientServerTCPAuxUDP
@@ -880,7 +882,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 return _scertHandler.Group
                     .Select(x => _channelDatas[x.Id.AsLongText()]?.ClientObject)
                     .Where(x => x is DMEObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
-                    .MinByAlt(x => (x as DMEObject).CurrentWorlds) as DMEObject;
+                    .MediusMinBy(x => (x as DMEObject).CurrentWorlds) as DMEObject;
             }
             catch (Exception e)
             {

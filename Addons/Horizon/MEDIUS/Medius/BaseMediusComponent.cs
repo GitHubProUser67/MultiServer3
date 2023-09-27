@@ -92,6 +92,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                 OnConnected(channel);
 
+                /*
                 // Check if IP is banned
                 ServerConfiguration.Database.GetIsIpBanned((channel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString()).ContinueWith((r) =>
                 {
@@ -99,6 +100,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     if (data.IsBanned == true)
                         QueueBanMessage(data, "Your IP has been banned!");
                 });
+                */
             };
             // Remove client on disconnect
             _scertHandler.OnChannelInactive += async (channel) =>
@@ -315,7 +317,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             }
         }
 
-        protected virtual void QueueBanMessage(ChannelData data, string msg = "You have been banned!")
+        protected virtual Task QueueBanMessage(ChannelData data, string msg = "You have been banned!")
         {
             // Send ban message
             data.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
@@ -326,6 +328,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                 EndOfMessage = true,
                 Message = msg
             });
+
+            return Task.CompletedTask;
         }
 
         protected virtual void QueueClanKickMessage(ChannelData data, string msg)

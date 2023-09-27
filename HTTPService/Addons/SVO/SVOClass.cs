@@ -122,7 +122,7 @@ namespace MultiServer.HTTPService.Addons.SVO
                     else if (absolutepath.Contains("/motorstorm3ps3_xml/"))
                         await MotorStormApocalypse.MSApocalypse_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/wox_ws/"))
-                        await WipeoutHD.WipeoutHD_SVO(ctx.Request, ctx.Response);
+                        await WipeoutHD.WipeoutHD_OTG(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BUZZPS3_SVML/"))
                         await BuzzQuizGame.BuzzQuizGame_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BOURBON_XML/"))

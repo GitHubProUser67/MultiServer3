@@ -11,7 +11,7 @@ namespace MultiServer.Addons.Horizon.RT.Models
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_HELLO;
 
         //PS2
-        public ushort protocolVersion = 0x007A;
+        public ushort protocolVersion = 0x006D;
         public ushort encryptionVersion = 0x0001;
 
         //PS3 

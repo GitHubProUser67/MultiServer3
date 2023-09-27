@@ -1,8 +1,11 @@
-﻿using System.Net;
+﻿using System.Collections.Specialized;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Web;
 using NetCoreServer;
 
 namespace MultiServer.HTTPSecureService.Addons.SVO_OTG
@@ -12,6 +15,28 @@ namespace MultiServer.HTTPSecureService.Addons.SVO_OTG
         public static HttpsWebSocketRestServer server = null;
 
         public static bool httpsstarted = false;
+
+        public static int ExtractLanguageId(string inputString)
+        {
+            // Define a regex pattern to match the entire query string and extract the languageId parameter
+            string pattern = @"languageId=(\d+)";
+
+            // Use Regex.Match to find the match in the input string
+            Match match = Regex.Match(inputString, pattern);
+
+            if (match.Success)
+            {
+                // Extract the captured group and parse it as an integer
+                string languageIdStr = match.Groups[1].Value;
+                if (int.TryParse(languageIdStr, out int languageId))
+                    return languageId;
+            }
+
+            // Return a default value or throw an exception if languageId is not found or cannot be parsed
+            ServerConfiguration.LogError("languageId not found or invalid in the input string.");
+
+            return -1;
+        }
 
         private class HttpsWebSocketRestSession : WssSession
         {

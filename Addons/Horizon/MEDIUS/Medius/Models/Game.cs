@@ -32,6 +32,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
         public MediusGameHostType GameHostType;
         public MGCL_GAME_HOST_TYPE GAME_HOST_TYPE;
         public NetAddressList netAddressList;
+        public RSA_KEY pubKey = new RSA_KEY();
         public int WorldID;
         public int AccountID;
         public int MinPlayers;
@@ -244,7 +245,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             GAME_HOST_TYPE = serverCreateGameOnMe.GameHostType;
             netAddressList = serverCreateGameOnMe.AddressList;
             WorldID = serverCreateGameOnMe.WorldID;
-            AccountID = serverCreateGameOnMe.AccountID;
         }
 
         private void FromCreateGameOnSelfRequest(MediusServerCreateGameOnSelfRequest serverCreateGameOnSelf)
@@ -412,9 +412,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
             // Remove from collection
             if (player.Client.CurrentGame != null)
-            {
                 await RemovePlayer(player.Client);
-            }
         }
 
         public virtual async Task RemovePlayer(ClientObject client)
@@ -451,7 +449,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             }
         }
 
-        public virtual async Task OnWorldReport(MediusWorldReport report)
+        public virtual async Task OnWorldReport(MediusWorldReport report, int AppId)
         {
             // Ensure report is for correct game world
             if (report.MediusWorldID != Id)
@@ -522,7 +520,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
                     _ = ServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
 
-            ServerConfiguration.LogInfo("World Updated from World Report");
+            ServerConfiguration.LogInfo("[Medius Game] - World Updated from World Report");
         }
 
         public virtual async Task OnWorldReportOnMe(MediusServerWorldReportOnMe report)
@@ -556,9 +554,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             // This gives the host a "Game Name Already Exists" when they try to remake with the same name.
             // This just fixes that. At the cost of the game not showing after a host leaves a game.
             if (WorldStatus != MediusWorldStatus.WorldClosed && WorldStatus != report.WorldStatus)
-            {
                 await SetWorldStatus(report.WorldStatus);
-            }
             else
             {
                 // Update db
@@ -589,8 +585,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
                 if (client == null)
                     Clients.RemoveAt(0);
                 else
+                {
                     await client.LeaveGame(this);
-                    //await client.LeaveChannel(ChatChannel);
+                    await client.LeaveChannel(ChatChannel);
+                }
             }
 
             // Unregister from channel
@@ -601,7 +599,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
             {
                 DMEServer?.Queue(new MediusServerEndGameRequest()
                 {
-                    WorldID = this.DMEWorldId,
+                    WorldID = DMEWorldId,
                     BrutalFlag = false
                 });
             }

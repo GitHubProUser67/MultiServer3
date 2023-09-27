@@ -18,17 +18,12 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             NumEntries = reader.ReadInt32();
-
-
 
             List = new string[NumEntries];
             for (int i = 0; i < NumEntries; i++)
@@ -40,13 +35,10 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(NumEntries);
             for (int i = 0; i < NumEntries; i++)
@@ -62,7 +54,7 @@ namespace MultiServer.Addons.Horizon.RT.Models
                 $"MessageID: {MessageID} " +
                 $"SessionKey: {SessionKey} " +
                 $"NumEntries: {NumEntries} " +
-                $"List: {Convert.ToString(List)}";
+                $"List: {string.Join(" ", List)}";
         }
     }
 }

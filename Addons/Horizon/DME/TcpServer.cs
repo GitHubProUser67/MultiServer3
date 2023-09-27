@@ -322,6 +322,7 @@ namespace MultiServer.Addons.Horizon.DME
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP_AUX_UDP clientConnectTcpAuxUdp:
                     {
+                        /*
                         if (clientConnectTcpAuxUdp.Key == null)
                         {
                             scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
@@ -331,6 +332,7 @@ namespace MultiServer.Addons.Horizon.DME
                                 Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                             }
                         }
+                        */
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
@@ -352,9 +354,9 @@ namespace MultiServer.Addons.Horizon.DME
                         data.ClientObject.BeginUdp();
 
                         if (scertClient.IsPS3Client)
-                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = 584, MaxUdpPacketSize = 584 }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         else if (scertClient.MediusVersion > 108)
-                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = 584, MaxUdpPacketSize = 584 }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         else
                         {
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
@@ -379,7 +381,10 @@ namespace MultiServer.Addons.Horizon.DME
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcp.AccessToken);
 
                         if (!scertClient.IsPS3Client && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION))
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        {
+                            //Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        }
+
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = (ushort)data.ClientObject.DmeId,
@@ -388,7 +393,7 @@ namespace MultiServer.Addons.Horizon.DME
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
 
-                        if (scertClient.MediusVersion == 108)
+                        if (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684)
                         {
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
                             {
@@ -436,7 +441,7 @@ namespace MultiServer.Addons.Horizon.DME
                         }, clientChannel);
 
                         //MSPR doesn't need this packet sent
-                        if (scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 20095))
+                        if (scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 24180))
                         {
                             Queue(new RT_MSG_SERVER_APP()
                             {
@@ -539,7 +544,7 @@ namespace MultiServer.Addons.Horizon.DME
                 case RT_MSG_CLIENT_DISCONNECT _:
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON _:
                     {
-                        //_ = clientChannel.CloseAsync();
+                        _ = clientChannel.CloseAsync();
                         break;
                     }
                 default:

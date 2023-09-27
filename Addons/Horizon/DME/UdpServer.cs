@@ -11,6 +11,7 @@ using System.Net;
 using MultiServer.Addons.Horizon.DME.PluginArgs;
 using MultiServer.Addons.Horizon.LIBRARY.Pipeline.Attribute;
 using MultiServer.PluginManager;
+using MultiServer.Addons.Org.BouncyCastle.Crypto;
 
 namespace MultiServer.Addons.Horizon.DME
 {
@@ -66,16 +67,17 @@ namespace MultiServer.Addons.Horizon.DME
         {
             _workerGroup = new MultithreadEventLoopGroup();
             _scertHandler = new ScertDatagramHandler();
+            var _scertClient = new ScertClientAttribute();
 
             _scertHandler.OnChannelActive = channel =>
             {
                 // get scert client
                 if (!channel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
                     channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-                var scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+                _scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
                 // pass medius version
-                scertClient.MediusVersion = ClientObject.MediusVersion;
+                _scertClient.MediusVersion = ClientObject.MediusVersion;
             };
 
             // Queue all incoming messages

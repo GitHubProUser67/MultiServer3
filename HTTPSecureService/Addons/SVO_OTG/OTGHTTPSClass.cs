@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using HttpMultipartParser;
 using System.Text;
 using NetCoreServer;
+using MultiServer.HTTPSecureService.Addons.SVO_OTG.Games;
 
 namespace MultiServer.HTTPSecureService.Addons.SVO_OTG
 {
@@ -80,7 +81,7 @@ namespace MultiServer.HTTPSecureService.Addons.SVO_OTG
                                         if (files.Length >= 20)
                                         {
                                             FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
-                                            ServerConfiguration.LogInfo("[SVO] - Replacing log file: " + oldestFile.Name);
+                                            ServerConfiguration.LogInfo("[OTG - HTTPS] - Replacing log file: " + oldestFile.Name);
 
                                             File.WriteAllBytes(oldestFile.FullName, datatooutput);
                                         }
@@ -102,8 +103,13 @@ namespace MultiServer.HTTPSecureService.Addons.SVO_OTG
                         }
                         break;
                     default:
-                        response.SetBegin((int)HttpStatusCode.Forbidden);
-                        response.SetBody();
+                        if (HTTPSClass.TrimPort(HTTPSClass.GetHeaderValue(Headers, "Host")) == "wipeout2048.online.scee.com")
+                            WipeoutHD.WipeoutHD_OTG(request, response, Headers);
+                        else
+                        {
+                            response.SetBegin((int)HttpStatusCode.Forbidden);
+                            response.SetBody();
+                        }
                         break;
                 }
 

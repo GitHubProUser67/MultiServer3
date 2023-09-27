@@ -428,7 +428,6 @@ namespace MultiServer.Addons.Horizon.DME
                                 World worldHome = new World(this, 20371, 256);
                                 _worlds.Add(worldHome);
 
-
                                 Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
                             }
                             else if (ApplicationId == 20374)
@@ -436,12 +435,10 @@ namespace MultiServer.Addons.Horizon.DME
                                 World worldHome = new World(this, 20374, 256);
                                 _worlds.Add(worldHome);
 
-
                                 Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
                             }
                             else
                             {
-
                                 Enqueue(new MediusServerJoinGameResponse()
                                 {
                                     MessageID = joinGameRequest.MessageID,
@@ -450,9 +447,7 @@ namespace MultiServer.Addons.Horizon.DME
                             }
                         }
                         else
-                        {
                             Enqueue(await world.OnJoinGameRequest(joinGameRequest));
-                        }
                         break;
                     }
                 case MediusServerEndGameRequest endGameRequest:

@@ -17,13 +17,10 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             reader.ReadBytes(3);
             AccountID = reader.ReadInt32();
             StatusCode = reader.Read<MediusCallbackStatus>();
@@ -31,13 +28,10 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(AccountID);
             writer.Write(StatusCode);
@@ -48,8 +42,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID:{MessageID} " +
-             $"AccountID:{AccountID} " +
-$"StatusCode:{StatusCode}";
+                $"AccountID:{AccountID} " +
+                $"StatusCode:{StatusCode}";
         }
     }
 }

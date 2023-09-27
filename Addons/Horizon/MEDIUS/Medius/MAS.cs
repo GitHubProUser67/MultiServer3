@@ -58,7 +58,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10683, 10684, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerComplete = new List<int>() { 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680, 10683, 10684 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
@@ -86,15 +86,17 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             // Send a Server_Connect_Require with no Password needed
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
                         }
-
-                        // Do NOT send hereCryptKey Game
-                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                        else
                         {
-                            PlayerId = 0,
-                            ScertId = GenerateNewScertClientId(),
-                            PlayerCount = 0x0001,
-                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                        }, clientChannel);
+                            // Do NOT send hereCryptKey Game
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                            {
+                                PlayerId = 0,
+                                ScertId = GenerateNewScertClientId(),
+                                PlayerCount = 0x0001,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                            }, clientChannel);
+                        }
 
                         if (scertClient.RsaAuthKey != null)
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
@@ -223,7 +225,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         {
                             if (nonSecure.Contains(data.ClientObject.ApplicationId))
                             {
-                                //TM:BO Reply
+                                //TM:BO Reply unencrypted
                                 data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                 {
                                     MessageID = mgclSessionBeginRequest.MessageID,
@@ -1256,15 +1258,14 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             #region SystemMessageSingleTest Disabled?
                             if (MediusClass.Settings.SystemMessageSingleTest != false)
                             {
-                                QueueBanMessage(data, "MAS.Notification Test:\nYou have been banned from this server.");
+                                await QueueBanMessage(data, "MAS.Notification Test:\nYou have been banned from this server.");
 
                                 await data.ClientObject.Logout();
                             }
                             #endregion
                             else
                             {
-
-                                await ServerConfiguration.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                _ = ServerConfiguration.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                 {
                                     if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                         return;
@@ -1275,7 +1276,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                         if (r.Result.IsBanned)
                                         {
                                             // Send ban message
-                                            QueueBanMessage(data);
+                                            //await QueueBanMessage(data);
 
                                             // Account is banned
                                             // Temporary solution is to tell the client the login failed
@@ -1305,7 +1306,9 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                         }
 
                                         else if (Misc.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
+                                        {
                                             await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
+                                        }
                                         else
                                         {
                                             // Incorrect password
@@ -1348,7 +1351,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                             Request = accountLoginRequest
                                         });
 
-                                        await ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                        _ = ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
                                         {
                                             AccountName = accountLoginRequest.Username,
                                             AccountPassword = Misc.ComputeSHA256(accountLoginRequest.Password),
@@ -1448,7 +1451,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         // Check token
                         if (data.ClientObject.IsLoggedIn && accountLogoutRequest.SessionKey == data.ClientObject.SessionKey)
                         {
-                            // 
                             result = MediusCallbackStatus.MediusSuccess;
 
                             // Logout
@@ -1506,6 +1508,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                 case MediusTicketLoginRequest ticketLoginRequest:
                     {
+
                         // ERROR - Need a session
                         if (data.ClientObject == null)
                         {
@@ -1523,131 +1526,136 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             });
                         }
                         else
-                        {   //Check if their MacBanned
-                            await ServerConfiguration.Database.GetIsMacBanned(data.MachineId).ContinueWith((r) =>
+                        {
+                            //Check if their MacBanned
+                            await ServerConfiguration.Database.GetIsMacBanned(data.MachineId).ContinueWith(async (r) =>
                             {
                                 if (r.IsCompletedSuccessfully && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                 {
-                                    #region isBanned?
-                                    ServerConfiguration.LogInfo($"Is Connected User MAC Banned: {r.Result}");
+                                    data.IsBanned = r.IsCompletedSuccessfully && r.Result;
 
-                                    if (r.Result)
+                                    #region isBanned?
+                                    ServerConfiguration.LogInfo($"Is Connected User MAC Banned: {data.IsBanned}");
+
+                                    if (data.IsBanned == true)
                                     {
+                                        ServerConfiguration.LogInfo($"Account MachineID {data.MachineId} is BANNED!");
 
                                         // Account is banned
                                         // Temporary solution is to tell the client the login failed
                                         data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                         {
                                             MessageID = ticketLoginRequest.MessageID,
-                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountBanned
+                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusMachineBanned
                                         });
 
                                         // Send ban message
-                                        QueueBanMessage(data);
+                                        //await QueueBanMessage(data);
                                     }
-                                    #endregion
-
-                                    _ = ServerConfiguration.Database.GetAccountByName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                    else
                                     {
-
-                                        if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
-                                            return;
-
-                                        if (r.IsCompletedSuccessfully && r.Result != null && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
+                                        await ServerConfiguration.Database.GetAccountByName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                         {
-
-                                            ServerConfiguration.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
-
-                                            if (r.Result.IsBanned == true)
-                                            {
-                                                // Account is banned
-                                                // Respond with Statuscode MediusAccountBanned
-                                                data?.ClientObject?.Queue(new MediusTicketLoginResponse()
-                                                {
-                                                    MessageID = ticketLoginRequest.MessageID,
-                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountBanned
-                                                });
-
-                                                // Then queue send ban message
-                                                QueueBanMessage(data, "Your CID has been banned");
-                                            }
-
-                                            #region AccountWhitelist Check
-                                            else if (appSettings.EnableAccountWhitelist && !appSettings.AccountIdWhitelist.Contains(r.Result.AccountId))
-                                            {
-
-                                                ServerConfiguration.LogError($"AppId {data.ClientObject.ApplicationId} has EnableAccountWhitelist enabled or\n" +
-                                                    $"Contains a AccountIdWhitelist!");
-
-                                                // Account not allowed to sign in
-                                                data?.ClientObject?.Queue(new MediusTicketLoginResponse()
-                                                {
-                                                    MessageID = ticketLoginRequest.MessageID,
-                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusFail
-                                                });
-                                            }
-                                            #endregion
-
-                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
-                                        }
-                                        else
-                                        {
-                                            // Account not found, create new and login
-                                            #region AccountCreationDisabled?
-                                            // Check that account creation is enabled
-                                            if (appSettings.DisableAccountCreation)
-                                            {
-                                                ServerConfiguration.LogError($"AppId {data.ClientObject.ApplicationId} has DisableAllowCreation enabled!");
-
-                                                // Reply error
-                                                data.ClientObject.Queue(new MediusTicketLoginResponse()
-                                                {
-                                                    MessageID = ticketLoginRequest.MessageID,
-                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusFail,
-                                                });
+                                            if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                                 return;
-                                            }
-                                            #endregion
 
-                                            ServerConfiguration.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
-
-                                            await ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                            if (r.IsCompletedSuccessfully && r.Result != null && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                             {
-                                                AccountName = ticketLoginRequest.UserOnlineId,
-                                                AccountPassword = "UNSET",
-                                                MachineId = data.MachineId,
-                                                MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
-                                                AppId = data.ClientObject.ApplicationId
-                                            }).ContinueWith(async (r) =>
-                                            {
-                                                ServerConfiguration.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
 
-                                                if (r.IsCompletedSuccessfully && r.Result != null)
-                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                ServerConfiguration.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
+
+                                                if (r.Result.IsBanned == true)
+                                                {
+                                                    // Account is banned
+                                                    // Respond with Statuscode MediusAccountBanned
+                                                    data?.ClientObject?.Queue(new MediusTicketLoginResponse()
+                                                    {
+                                                        MessageID = ticketLoginRequest.MessageID,
+                                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountBanned
+                                                    });
+
+                                                    // Then queue send ban message
+                                                    await QueueBanMessage(data, "Your CID has been banned");
+                                                }
                                                 else
                                                 {
+                                                    #region AccountWhitelist Check
+                                                    if (appSettings.EnableAccountWhitelist && !appSettings.AccountIdWhitelist.Contains(r.Result.AccountId))
+                                                    {
+                                                        ServerConfiguration.LogError($"AppId {data.ClientObject.ApplicationId} has EnableAccountWhitelist enabled or\n" +
+                                                            $"Contains a AccountIdWhitelist!");
+
+                                                        // Account not allowed to sign in
+                                                        data?.ClientObject?.Queue(new MediusTicketLoginResponse()
+                                                        {
+                                                            MessageID = ticketLoginRequest.MessageID,
+                                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusFail
+                                                        });
+                                                    }
+                                                    #endregion
+
+                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                // Account not found, create new and login
+                                                #region AccountCreationDisabled?
+                                                // Check that account creation is enabled
+                                                if (appSettings.DisableAccountCreation)
+                                                {
+                                                    ServerConfiguration.LogError($"AppId {data.ClientObject.ApplicationId} has DisableAllowCreation enabled!");
+
                                                     // Reply error
                                                     data.ClientObject.Queue(new MediusTicketLoginResponse()
                                                     {
                                                         MessageID = ticketLoginRequest.MessageID,
-                                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
+                                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusFail,
                                                     });
+                                                    return;
                                                 }
+                                                #endregion
 
-                                            });
-                                        }
-                                    });
+                                                ServerConfiguration.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
 
+                                                _ = ServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                                {
+                                                    AccountName = ticketLoginRequest.UserOnlineId,
+                                                    AccountPassword = "UNSET",
+                                                    MachineId = data.MachineId,
+                                                    MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
+                                                    AppId = data.ClientObject.ApplicationId
+                                                }).ContinueWith(async (r) =>
+                                                {
+                                                    ServerConfiguration.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
+
+                                                    if (r.IsCompletedSuccessfully && r.Result != null)
+                                                        await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                    else
+                                                    {
+                                                        // Reply error
+                                                        data.ClientObject.Queue(new MediusTicketLoginResponse()
+                                                        {
+                                                            MessageID = ticketLoginRequest.MessageID,
+                                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
+                                                        });
+                                                    }
+
+                                                });
+                                            }
+                                        });
+                                    }
+                                    #endregion
                                 }
                                 else
                                 {
-                                    ServerConfiguration.LogInfo($"Account MachineID {data.MachineId} is BANNED!");
 
                                     // Reply error
                                     data.ClientObject.Queue(new MediusTicketLoginResponse()
                                     {
                                         MessageID = ticketLoginRequest.MessageID,
-                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusMachineBanned,
+                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError,
                                     });
                                 }
                             });
@@ -2299,7 +2307,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
-            List<int> pre108Secure = new List<int>() { 10683, 10124, 10680 };
+            List<int> pre108Secure = new List<int>() { 10124, 10680, 10683, 10684 };
 
             await data.ClientObject.Login(accountDto);
 
@@ -2402,13 +2410,12 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             else
             {
                 // Put client in default channel
-                await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+                //await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
 
                 #region If PS2/PSP
 
                 if (data.ClientObject.MediusVersion > 108 || pre108Secure.Contains(data.ClientObject.ApplicationId))
                 {
-
                     data.ClientObject.Queue(new MediusAccountLoginResponse()
                     {
                         MessageID = messageId,
@@ -2426,8 +2433,35 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                }
+                            },
+                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        },
+                    });
+                }
+                else if (data.ClientObject.ApplicationId == 10683 || data.ClientObject.ApplicationId == 10684)
+                {
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
+                    {
+                        MessageID = messageId,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                        AccountID = data.ClientObject.AccountId,
+                        AccountType = MediusAccountType.MediusMasterAccount,
+                        MediusWorldID = 1,
+                        ConnectInfo = new NetConnectionInfo()
+                        {
+                            AccessKey = data.ClientObject.Token,
+                            SessionKey = data.ClientObject.SessionKey,
+                            WorldID = 1,
+                            ServerKey = MediusClass.GlobalAuthPublic,
+                            AddressList = new NetAddressList()
+                            {
+                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                {
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                 }
                             },
                             Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -2454,8 +2488,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                 }
                             },
                             Type = NetConnectionType.NetConnectionTypeClientServerTCP

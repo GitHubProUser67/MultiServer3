@@ -524,7 +524,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     client.appDataSize = matchCreateGameRequest.ApplicationDataSize;
                     client.appData = matchCreateGameRequest.ApplicationData;
 
-                    // Try to get next free dme server
+                    // Try to get next free MPS server
                     // If none exist, return error to clist
                     //var dme = MediusStarter.ProxyServer.GetFreeDme(client.ApplicationId);
                     MPS mps = MediusClass.GetMPS();
@@ -539,8 +539,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         return;
                     }
 
-                    //mps.SendServerCreateGameWithAttributesRequest(matchCreateGameRequest.MessageID.ToString(), game.Id, (int)game.Attributes, client.ApplicationId, game.MaxPlayers);
-
+                    mps.SendServerCreateGameWithAttributesRequest(matchCreateGameRequest.MessageID.ToString(), game.Id, (int)game.Attributes, client.ApplicationId, game.MaxPlayers);
 
                     /*
                     // Send create game request to dme server
@@ -554,6 +553,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     });
                     */
 
+                    /*
                     client.Queue(new MediusMatchCreateGameResponse()
                     {
                         MessageID = matchCreateGameRequest.MessageID,
@@ -564,6 +564,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         ApplicationDataSize = matchCreateGameRequest.ApplicationDataSize,
                         ApplicationData = matchCreateGameRequest.ApplicationData,
                     });
+                    */
 
                     return;
                 }
@@ -584,8 +585,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
             else
             //DME
             {
-
-
                 // Try to get next free dme server
                 // If none exist, return error to clist
                 var dme = MediusClass.ProxyServer.GetFreeDme(client.ApplicationId);
@@ -1066,21 +1065,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
         #region Channels
 
-        /// <summary>
-        /// Filter Worlds by AppId Least populated
-        /// </summary>
-        /// <param name="appId">ApplicationId</param>
-        /// <returns></returns>
-        public Channel GetChannelLeastPoplated(int appId)
-        {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            return _lookupsByAppId
-                .Where(x => appIdsInGroup.Contains(x.Key))
-                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
-                .Where(x => x.ApplicationId == appId).OrderBy(kvp => kvp.PlayerCount).First();
-        }
-
         public Channel GetChannelByChannelId(int channelId, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
@@ -1238,6 +1222,21 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     x.ApplicationId == appId)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize);
+        }
+
+        /// <summary>
+        /// Filter Worlds by AppId
+        /// </summary>
+        /// <param name="appId">ApplicationId</param>
+        /// <returns></returns>
+        public Channel GetChannelLeastPoplated(int appId)
+        {
+            var appIdsInGroup = GetAppIdsInGroup(appId);
+
+            return _lookupsByAppId
+                .Where(x => appIdsInGroup.Contains(x.Key))
+                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
+                .Where(x => x.ApplicationId == appId).OrderBy(kvp => kvp.PlayerCount).First();
         }
         #endregion
 

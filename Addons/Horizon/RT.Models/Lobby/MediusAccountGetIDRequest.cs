@@ -24,26 +24,20 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             AccountName = reader.ReadString(Constants.ACCOUNTNAME_MAXLEN);
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(AccountName, Constants.ACCOUNTNAME_MAXLEN);
         }
@@ -53,8 +47,8 @@ namespace MultiServer.Addons.Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID:{MessageID} " +
-             $"SessionKey:{SessionKey} " +
-$"AccountName:{AccountName}";
+                $"SessionKey:{SessionKey} " +
+                $"AccountName:{AccountName}";
         }
     }
 }

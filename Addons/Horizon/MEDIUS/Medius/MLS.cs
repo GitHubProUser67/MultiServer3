@@ -83,7 +83,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10683, 10684, 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680 };
+                        List<int> pre108ServerComplete = new List<int>() { 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680, 10683, 10684 };
                         List<int> pre108NoServerComplete = new List<int>() { 10010, 10031, 10274 };
 
                         #region Compatible AppId
@@ -812,7 +812,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         {
                             MessageID = matchGetSupersetListRequest.MessageID,
                             StatusCode = MediusCallbackStatus.MediusSuccess,
-                            EndOfList = true,
+                            SupersetID = 1,
+                            SupersetName = "Test",
+                            SupersetDescription = "Test",
+                            EndOfList = true
                         });
 
                         break;
@@ -861,17 +864,15 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                         if (gameCount == 0)
                         {
-
                             // Tell the client their now MatchingInProgress
                             data.ClientObject.Queue(new MediusMatchFindGameStatusResponse()
                             {
                                 MessageID = matchFindGameRequest.MessageID,
-                                StatusCode = MediusCallbackStatus.MediusRequestAccepted,
+                                StatusCode = MediusCallbackStatus.MediusMatchingInProgress,
                             });
                         }
                         else
                         {
-
                             // Tell the client their now MatchingInProgress
                             data.ClientObject.Queue(new MediusMatchFindGameStatusResponse()
                             {
@@ -1402,7 +1403,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         if (data.ClientObject.FriendsListPS3 == null)
                         {
                             //If Friends list from NP is actually null, send No Result
-                            data.ClientObject.Queue(new MediusBuddySetListResponse()
+                            data.ClientObject.Queue(new MediusIgnoreSetListStatusResponse()
                             {
                                 MessageID = buddySetListRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusNoResult,
@@ -1411,7 +1412,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         else
                         {
                             // Success NP Buddy List is NOT NULL - Return Success!
-                            data.ClientObject.Queue(new MediusBuddySetListResponse()
+                            data.ClientObject.Queue(new MediusIgnoreSetListStatusResponse()
                             {
                                 MessageID = buddySetListRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusSuccess,
@@ -1449,10 +1450,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                     //Found in database so keep.
                                 }
                                 else
-                                {
                                     //NotFound in Database so remove from list
                                     dblist.Remove(accountName);
-                                }
                             });
                         }
 
@@ -1796,7 +1795,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                                     OnlineState = new MediusPlayerOnlineState()
                                                     {
                                                         ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
-                                                        MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                                        MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? -1, /*Program.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id*/
                                                         MediusGameWorldID = friendClient?.CurrentGame?.Id ?? -1,
                                                         GameName = friendClient?.CurrentGame?.GameName ?? "",
                                                         LobbyName = friendClient?.CurrentChannel?.Name ?? ""
@@ -3050,7 +3049,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 ApplicationID = data.ApplicationId,
                                 PlayerStatus = MediusPlayerStatus.MediusPlayerDisconnected,
                                 ConnectionClass = MediusConnectionType.Modem,
-                                Stats = null
+                                Stats = new byte[Constants.ACCOUNTSTATS_MAXLEN]
                             });
 
                             ServerConfiguration.LogInfo($"playerInfo response sent");
@@ -3091,7 +3090,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                         ApplicationID = data.ApplicationId,
                                         PlayerStatus = MediusPlayerStatus.MediusPlayerDisconnected,
                                         ConnectionClass = MediusConnectionType.Modem,
-                                        Stats = null
+                                        Stats = new byte[Constants.ACCOUNTSTATS_MAXLEN]
                                     });
                                 }
                             });
@@ -6016,7 +6015,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {worldReport} without being logged in.");
 
                         if (data.ClientObject.CurrentGame != null)
-                            await data.ClientObject.CurrentGame.OnWorldReport(worldReport);
+                            await data.ClientObject.CurrentGame.OnWorldReport(worldReport, data.ClientObject.ApplicationId);
                         break;
                     }
 
@@ -6503,6 +6502,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                             throw new InvalidOperationException($"INVALID OPERATION: {clientChannel} sent {joinChannelRequest} without being logged in.");
 
                         List<int> notSecure = new List<int>() { 10010, 10190 };
+                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
 
                         var channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId);
                         if (channel == null)
@@ -6549,8 +6549,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                         {
                                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                             {
-                                                new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                                new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
+                                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                             }
                                         },
                                         Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -6573,8 +6573,8 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                         {
                                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                             {
-                                            new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                            new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                                new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
+                                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                             }
                                         },
                                         Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -6639,7 +6639,6 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                     Type = NetConnectionType.NetConnectionTypeClientServerTCP
                                 }
                             });
-
                         }
                         break;
                     }
@@ -7539,7 +7538,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                     data.ClientObject.Queue(new MediusFileGetMetaDataResponse()
                                     {
                                         MessageID = fileGetMetaDataRequest.MessageID,
-                                        StatusCode = MediusCallbackStatus.MediusDBError,
+                                        StatusCode = MediusCallbackStatus.MediusNoResult,
                                         MediusFileInfo = new MediusFile
                                         {
 
@@ -8255,18 +8254,34 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 if (len > Constants.MEDIUS_FILE_MAX_DOWNLOAD_DATA_SIZE)
                                     len = Constants.MEDIUS_FILE_MAX_DOWNLOAD_DATA_SIZE;
 
-                                var msg = new MediusFileDownloadResponse()
+                                if (len < Constants.MEDIUS_FILE_MAX_DOWNLOAD_DATA_SIZE)
                                 {
-                                    MessageID = fileDownloadRequest.MessageID,
-                                    iDataSize = len,
-                                    iPacketNumber = j,
-                                    iXferStatus = j == 0 ? MediusFileXferStatus.Initial : ((len + i) >= bytes.Length ? MediusFileXferStatus.End : MediusFileXferStatus.Mid),
-                                    iStartByteIndex = i,
-                                    StatusCode = MediusCallbackStatus.MediusSuccess
-                                };
-                                Array.Copy(bytes, i, msg.Data, 0, len);
-
-                                data.ClientObject.Queue(msg);
+                                    var msg = new MediusFileDownloadResponse()
+                                    {
+                                        MessageID = fileDownloadRequest.MessageID,
+                                        iDataSize = len,
+                                        iPacketNumber = j,
+                                        iXferStatus = MediusFileXferStatus.End,
+                                        iStartByteIndex = i,
+                                        StatusCode = MediusCallbackStatus.MediusSuccess
+                                    };
+                                    Array.Copy(bytes, i, msg.Data, 0, len);
+                                    data.ClientObject.Queue(msg);
+                                }
+                                else
+                                {
+                                    var msg = new MediusFileDownloadResponse()
+                                    {
+                                        MessageID = fileDownloadRequest.MessageID,
+                                        iDataSize = len,
+                                        iPacketNumber = j,
+                                        iXferStatus = j == 0 ? MediusFileXferStatus.Initial : ((len + i) >= bytes.Length ? MediusFileXferStatus.End : MediusFileXferStatus.Mid),
+                                        iStartByteIndex = i,
+                                        StatusCode = MediusCallbackStatus.MediusSuccess
+                                    };
+                                    Array.Copy(bytes, i, msg.Data, 0, len);
+                                    data.ClientObject.Queue(msg);
+                                }
 
                                 ++j;
                             }

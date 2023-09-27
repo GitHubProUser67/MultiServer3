@@ -98,6 +98,19 @@ namespace MultiServer.HTTPSecureService
             return segments.ToArray();
         }
 
+        public static string TrimPort(string inputString)
+        {
+            // Split the input string using ":" as the delimiter
+            string[] parts = inputString.Split(':');
+
+            // If there are two parts (host and port), return only the first part (host)
+            if (parts.Length == 2)
+                return parts[0];
+
+            // If there's only one part or more than two parts, return the original string
+            return inputString;
+        }
+
         private class HttpsRestSession : HttpsSession
         {
             public HttpsRestSession(HttpsServer server) : base(server) { }

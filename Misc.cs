@@ -143,18 +143,27 @@ namespace MultiServer
 
         public static IPAddress GetIp(string hostname)
         {
-            if (hostname == "localhost")
-                return IPAddress.Loopback;
-
-            switch (Uri.CheckHostName(hostname))
+            try
             {
-                case UriHostNameType.IPv4: return IPAddress.Parse(hostname);
-                case UriHostNameType.Dns: return Dns.GetHostAddresses(hostname).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
-                default:
-                    {
-                        return null;
-                    }
+
+                if (hostname == "localhost")
+                    return IPAddress.Loopback;
+                switch (Uri.CheckHostName(hostname))
+                {
+                    case UriHostNameType.IPv4: return IPAddress.Parse(hostname);
+                    case UriHostNameType.Dns: return Dns.GetHostAddresses(hostname).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
+                    default:
+                        {
+                            return null;
+                        }
+                }
             }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[GetIp] - An Error Occured - {ex}");
+            }
+
+            return null;
         }
 
         public static bool IsFileOutdated(string filePath, TimeSpan maxAge)

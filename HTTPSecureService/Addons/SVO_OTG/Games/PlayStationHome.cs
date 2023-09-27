@@ -4,6 +4,7 @@ using System.Text;
 using System.Web;
 using MultiServer.HTTPService.Addons.SVO;
 using NetCoreServer;
+using System.Security.Policy;
 
 namespace MultiServer.HTTPSecureService.Addons.SVO_OTG.Games
 {
@@ -18,7 +19,7 @@ namespace MultiServer.HTTPSecureService.Addons.SVO_OTG.Games
                 return;
             }
 
-            switch (request.Url)
+            switch (HTTPSClass.RemoveQueryString(request.Url))
             {
                 #region HOME
                 case "/HUBPS3_SVML/account/SP_Login_Submit.jsp":
@@ -72,7 +73,7 @@ namespace MultiServer.HTTPSecureService.Addons.SVO_OTG.Games
                                 await ServerConfiguration.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
                                 {
                                     //Found in database so keep.
-                                    string langId = HTTPSClass.GetQueryFromUri(request.Url).Substring(94, HTTPSClass.GetQueryFromUri(request.Url).Length - 94);
+                                    string langId = SVOHTTPSClass.ExtractLanguageId(request.Url).ToString();
                                     string accountName = r.Result.AccountName;
                                     accountId = r.Result.AccountId;
                                 });

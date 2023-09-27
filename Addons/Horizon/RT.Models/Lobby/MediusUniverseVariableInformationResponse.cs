@@ -28,17 +28,14 @@ namespace MultiServer.Addons.Horizon.RT.Models
         public string SvoURL; // UNIVERSE_SVO_URL_MAXLEN
         public bool EndOfList;
 
-        public List<int> approvedList = new List<int> { 21694, 20371, 20374, 21624, 21834, 22920, 10994 };
+        public List<int> approvedList = new List<int> { 10994, 20043, 21093, 21624, 21834, 20371, 20374, 20464, 22500, 22920 };
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             StatusCode = reader.Read<MediusCallbackStatus>();
             InfoFilter = reader.Read<MediusUniverseVariableInformationInfoFilter>();
 
@@ -47,7 +44,6 @@ namespace MultiServer.Addons.Horizon.RT.Models
 
             if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_NAME))
                 UniverseName = reader.ReadString(Constants.UNIVERSENAME_MAXLEN);
-
 
             if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_DNS))
             {
@@ -129,33 +125,33 @@ namespace MultiServer.Addons.Horizon.RT.Models
                 {
                     if (MUIS.MUIS.homeretailver >= 01.21)
                     {
-                        ServerConfiguration.LogInfo("Setting SVOURL");
+                        ServerConfiguration.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
                         if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                             writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
                     }
                     else
-                        ServerConfiguration.LogInfo("Not writing SVOURL");
+                        ServerConfiguration.LogInfo("[MediusUniverseVariableInformationResponse] - Not writing SVOURL");
                 }
                 else if (writer.AppId == 20371)
                 {
                     if (MUIS.MUIS.homebetaver >= 01.21)
                     {
-                        ServerConfiguration.LogInfo("Setting SVOURL");
+                        ServerConfiguration.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
                         if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                             writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
                     }
                     else
-                        ServerConfiguration.LogInfo("Not writing SVOURL");
+                        ServerConfiguration.LogInfo("[MediusUniverseVariableInformationResponse] - Not writing SVOURL");
                 }
                 else
                 {
-                    ServerConfiguration.LogInfo("Setting SVOURL");
+                    ServerConfiguration.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
                     if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                         writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
                 }
             }
             else
-                ServerConfiguration.LogInfo("Not writing SVOURL");
+                ServerConfiguration.LogInfo("[MediusUniverseVariableInformationResponse] - Not writing SVOURL");
 
             writer.Write(EndOfList);
         }
