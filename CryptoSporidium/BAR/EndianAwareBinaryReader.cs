@@ -26,7 +26,6 @@ namespace MultiServer.CryptoSporidium.BAR
 
         public abstract float ReadSingle();
 
-        // Token: 0x0400003D RID: 61
         protected BinaryReader m_br;
     }
 }
