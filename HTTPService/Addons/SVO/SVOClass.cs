@@ -1,7 +1,5 @@
 ﻿using System.Net;
-using HttpMultipartParser;
 using MultiServer.HTTPService.Addons.SVO.Games;
-using System.Text;
 
 namespace MultiServer.HTTPService.Addons.SVO
 {

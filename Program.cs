@@ -3,9 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using NReco.Logging.File;
 using MultiServer.PluginManager;
-using MultiServer.Addons.Horizon.DME;
-using MultiServer.Addons.Horizon.MEDIUS;
-using MultiServer.Addons.Horizon.MUIS;
 using MultiServer.Addons.Horizon.LIBRARY.Database;
 using Newtonsoft.Json;
 
@@ -53,11 +50,13 @@ namespace MultiServer
         public static bool EnableMedius { get; set; } = true;
         public static bool EnableDME { get; set; } = true;
         public static bool EnableMuis { get; set; } = true;
+        public static bool EnableBWPS { get; set; } = true;
         public static bool MediusDebugLogs { get; set; } = false;
         public static bool EnableSVO { get; set; } = true;
-        public static string? DMEConfig { get; set; } = "/static/medius.json";
-        public static string? MEDIUSConfig { get; set; } = "/static/muis.json";
+        public static string? DMEConfig { get; set; } = "/static/dme.json";
+        public static string? MEDIUSConfig { get; set; } = "/static/medius.json";
         public static string? MUISConfig { get; set; } = "/static/muis.json";
+        public static string? BWPSConfig { get; set; } = "/static/bwps.json";
         public static string? DatabaseConfig { get; set; } = "static/medius.db.config.json";
         public static string? SVOStaticFolder { get; set; } = "/static/wwwsvoroot/";
 
@@ -209,6 +208,9 @@ namespace MultiServer
             MUISConfig = config.horizon.muis.muis_config;
             MediusDebugLogs = config.horizon.debug_log;
 
+            EnableBWPS = config.horizon.BWPS.enabled;
+            BWPSConfig = config.horizon.BWPS.bwps_config;
+
             DatabaseConfig = config.medius_database.database_config;
 
             VersionBetaHDK = config.home.beta_version;
@@ -320,14 +322,17 @@ namespace MultiServer
 
         public Task HorizonStarter()
         {
+            if (ServerConfiguration.EnableBWPS)
+                Addons.Horizon.BWPS.BWPSClass.BWPSMain();
+
             if (ServerConfiguration.EnableMedius)
-                MediusClass.MediusMain();
+                Addons.Horizon.MEDIUS.MediusClass.MediusMain();
 
             if (ServerConfiguration.EnableMuis)
-                MuisClass.MuisMain();
+                Addons.Horizon.MUIS.MuisClass.MuisMain();
 
             if (ServerConfiguration.EnableDME)
-                DmeClass.DmeMain();
+                Addons.Horizon.DME.DmeClass.DmeMain();
 
             return Task.CompletedTask;
         }
@@ -420,6 +425,12 @@ namespace MultiServer
 
     internal class Program
     {
+        // Gereftish ;)
+        static void GlobalUnhandledException(object sender, UnhandledExceptionEventArgs ex)
+        {
+            Console.WriteLine($"[GlobalUnhandledException] - A very bad exception was thrown, this can cause app instability, report this exception to GitHub! {ex}");
+        }
+
         /// <summary>
         /// Entry point of the server.
         /// </summary>
@@ -432,6 +443,9 @@ namespace MultiServer
                     if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                         Environment.Exit(0);
                 }
+
+            // Bind your handler asap aap starts
+            AppDomain.CurrentDomain.UnhandledException += GlobalUnhandledException;
 
             try
             {

@@ -72,6 +72,10 @@
 	"home_tools": true
   },
   "horizon": {
+	"BWPS" : {
+		"enabled": true,
+		"bwps_config": "/static/bwps.json"
+	},
 	"medius" : {
 		"enabled": true,
 		"medius_config": "/static/medius.json"

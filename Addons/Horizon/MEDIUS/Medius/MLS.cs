@@ -5626,7 +5626,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            ServerConfiguration.LogWarn($"Game Clients in {game.GameName} : {game.Clients.Count()}:{game.Clients.FirstOrDefault().Client.AccountName}");
+                            ServerConfiguration.LogWarn($"Game Clients in {game.GameName} : {game.Clients.Count()}");
 
                             var playerList = game.Clients.Where(x => x != null || x.InGame && x.Client.IsConnected).Select(x => new MediusGameWorldPlayerListResponse()
                             {
@@ -5641,7 +5641,14 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
 
                             // Set last end of list
                             if (playerList.Length > 0)
+                            {
+                                for (int i = 0; i < playerList.Length; i++)
+                                {
+                                    ServerConfiguration.LogInfo($"{game.ApplicationId} - {game.GameName} -> Slot {i.ToString()} - {playerList[i].AccountName}");
+                                }
+
                                 playerList[playerList.Length - 1].EndOfList = true;
+                            }
 
                             data.ClientObject.Queue(playerList);
                         }

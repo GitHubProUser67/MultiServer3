@@ -370,13 +370,14 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
         public virtual async Task OnPlayerJoined(GameClient player)
         {
             player.InGame = true;
-            ServerConfiguration.LogWarn("Player joined!");
 
             if (player.Client == Host)
             {
-                ServerConfiguration.LogWarn("Player added as HOST!");
+                ServerConfiguration.LogInfo($"[Game] -> OnHostJoined -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
                 hasHostJoined = true;
             }
+            else
+                ServerConfiguration.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_JOINED_GAME, new OnPlayerGameArgs() { Player = player.Client, Game = this });
@@ -402,7 +403,7 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius.Models
 
         protected virtual async Task OnPlayerLeft(GameClient player)
         {
-            ServerConfiguration.LogInfo($"Game {Id}: {GameName}: {player.Client} left.");
+            ServerConfiguration.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
 
             player.InGame = false;
 

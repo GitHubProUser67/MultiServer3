@@ -3188,6 +3188,12 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
                         },
                         new LocationDTO()
                         {
+                            AppId = 24180,
+                            Id = 40,
+                            Name = "Aquatos"
+                        },
+                        new LocationDTO()
+                        {
                             AppId = 10680,
                             Id = 40,
                             Name = "Aquatos"
@@ -3225,7 +3231,7 @@ namespace MultiServer.Addons.Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    if (appId == 24000 || appId == 10680 || appId == 10683 || appId == 10684)
+                    if (appId == 24000 || appId == 24180 || appId == 10680 || appId == 10683 || appId == 10684)
                     {
                         return new LocationDTO[]
                         {
