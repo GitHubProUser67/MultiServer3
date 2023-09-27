@@ -3081,6 +3081,10 @@ namespace MultiServer.Addons.Horizon.MEDIUS.Medius
                                 {
 
                                     ServerConfiguration.LogInfo($"playerInfo accountId not found!!");
+									
+									// TODO! Found out why there is players not found very often.
+									// Same problem in SVO Database.
+									// I suspect the simulated DB not register them properly.
 
                                     data?.ClientObject?.Queue(new MediusPlayerInfoResponse()
                                     {

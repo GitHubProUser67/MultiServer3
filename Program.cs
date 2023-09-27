@@ -51,12 +51,15 @@ namespace MultiServer
         public static bool EnableDME { get; set; } = true;
         public static bool EnableMuis { get; set; } = true;
         public static bool EnableBWPS { get; set; } = true;
+        public static bool EnableNAT { get; set; } = true;
         public static bool MediusDebugLogs { get; set; } = false;
+        public static bool UseSonyNAT { get; set; } = true;
         public static bool EnableSVO { get; set; } = true;
         public static string? DMEConfig { get; set; } = "/static/dme.json";
         public static string? MEDIUSConfig { get; set; } = "/static/medius.json";
         public static string? MUISConfig { get; set; } = "/static/muis.json";
         public static string? BWPSConfig { get; set; } = "/static/bwps.json";
+        public static string? NATConfig { get; set; } = "/static/nat.json";
         public static string? DatabaseConfig { get; set; } = "static/medius.db.config.json";
         public static string? SVOStaticFolder { get; set; } = "/static/wwwsvoroot/";
 
@@ -207,9 +210,13 @@ namespace MultiServer
             MEDIUSConfig = config.horizon.medius.medius_config;
             MUISConfig = config.horizon.muis.muis_config;
             MediusDebugLogs = config.horizon.debug_log;
+            UseSonyNAT = config.horizon.use_sony_nat;
 
             EnableBWPS = config.horizon.BWPS.enabled;
             BWPSConfig = config.horizon.BWPS.bwps_config;
+
+            EnableNAT = config.horizon.NAT.enabled;
+            NATConfig = config.horizon.NAT.nat_config;
 
             DatabaseConfig = config.medius_database.database_config;
 
@@ -322,6 +329,9 @@ namespace MultiServer
 
         public Task HorizonStarter()
         {
+            if (ServerConfiguration.EnableNAT)
+                Addons.Horizon.NAT.NATClass.NATMain();
+
             if (ServerConfiguration.EnableBWPS)
                 Addons.Horizon.BWPS.BWPSClass.BWPSMain();
 

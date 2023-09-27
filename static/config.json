@@ -72,8 +72,14 @@
 	"home_tools": true
   },
   "horizon": {
+	"use_sony_nat": true,
+	"debug_log": false,
+	"NAT" : {
+		"enabled": false,
+		"nat_config": "/static/nat.json"
+	},
 	"BWPS" : {
-		"enabled": true,
+		"enabled": false,
 		"bwps_config": "/static/bwps.json"
 	},
 	"medius" : {
@@ -87,8 +93,7 @@
 	"muis" : {
 		"enabled": true,
 		"muis_config": "/static/muis.json"
-	},
-	"debug_log": false
+	}
   },
   "medius_database":{
 	"database_config": "static/medius.db.config.json"

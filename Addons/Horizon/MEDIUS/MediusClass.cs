@@ -517,8 +517,9 @@ namespace MultiServer.Addons.Horizon.MEDIUS
             // Determine server ip
             RefreshServerIp();
 
-            // Update NAT Ip with server ip if null
-            if (string.IsNullOrEmpty(Settings.NATIp))
+            if (ServerConfiguration.UseSonyNAT)
+                Settings.NATIp = Misc.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
+            else if (string.IsNullOrEmpty(Settings.NATIp)) // Update NAT Ip with server ip if null
                 Settings.NATIp = SERVER_IP.ToString();
 
             // Update default rsa key
