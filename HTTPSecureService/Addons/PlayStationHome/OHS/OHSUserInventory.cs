@@ -43,14 +43,21 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
                 }
             }
 
-            string globalinvdatastring = directorypath + $"Global_Variables.json";
-
-            if (File.Exists(globalinvdatastring))
+            try
             {
-                string filedata = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(globalinvdatastring, HTTPPrivateKey.HTTPPrivatekey));
+                string globalinvdatastring = directorypath + $"Global_Variables.json";
 
-                if (filedata != null)
-                    output = "{ " + OHSProcessor.ConvertToLuaTable(JToken.Parse(filedata), false) + " }";
+                if (File.Exists(globalinvdatastring))
+                {
+                    string filedata = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(globalinvdatastring, HTTPPrivateKey.HTTPPrivatekey));
+
+                    if (filedata != null)
+                        output = "{ " + OHSProcessor.ConvertToLuaTable(JToken.Parse(filedata), false) + " }";
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSUserInventory] - Json Format Error - {ex}");
             }
 
             if (batchparams != string.Empty)
@@ -123,40 +130,58 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
             else
                 dataforohs = batchparams;
 
-            // Deserialize the JSON data into a JObject
-            JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
-
-            if (jObject != null)
+            try
             {
-                string user = jObject.Value<string>("user");
-                string region = jObject.Value<string>("region");
-                string inventorypath = directorypath + $"User_Inventory/{user}_{region}/";
+                // Deserialize the JSON data into a JObject
+                JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
-                StringBuilder resultBuilder = new StringBuilder();
-
-                if (Directory.Exists(inventorypath))
+                if (jObject != null)
                 {
-                    JToken keyToken = jObject.GetValue("inventory_names");
+                    string user = jObject.Value<string>("user");
+                    string region = jObject.Value<string>("region");
+                    string inventorypath = directorypath + $"User_Inventory/{user}_{region}/";
 
-                    if (keyToken != null)
+                    StringBuilder resultBuilder = new StringBuilder();
+
+                    if (Directory.Exists(inventorypath))
                     {
-                        foreach (string key in keyToken)
+                        JToken keyToken = jObject.GetValue("inventory_names");
+
+                        if (keyToken != null)
                         {
-                            if (File.Exists(inventorypath + key + ".json"))
+                            foreach (string key in keyToken)
                             {
-                                string inventorydata = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(inventorypath + key + ".json", HTTPPrivateKey.HTTPPrivatekey));
-
-                                if (inventorydata != null)
+                                if (File.Exists(inventorypath + key + ".json"))
                                 {
-                                    string datafrominventory = OHSProcessor.ConvertToLuaTable(JToken.Parse(inventorydata), false);
+                                    string inventorydata = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(inventorypath + key + ".json", HTTPPrivateKey.HTTPPrivatekey));
 
+                                    if (inventorydata != null)
+                                    {
+                                        string datafrominventory = OHSProcessor.ConvertToLuaTable(JToken.Parse(inventorydata), false);
+
+                                        if (resultBuilder.Length == 0)
+                                            resultBuilder.Append($"{{ [\"{key}\"] = {datafrominventory}");
+                                        else
+                                            resultBuilder.Append($", [\"{key}\"] = {datafrominventory}");
+                                    }
+                                }
+                                else
+                                {
                                     if (resultBuilder.Length == 0)
-                                        resultBuilder.Append($"{{ [\"{key}\"] = {datafrominventory}");
+                                        resultBuilder.Append($"{{ [\"{key}\"] = {{ }}");
                                     else
-                                        resultBuilder.Append($", [\"{key}\"] = {datafrominventory}");
+                                        resultBuilder.Append($", [\"{key}\"] = {{ }}");
                                 }
                             }
-                            else
+                        }
+                    }
+                    else
+                    {
+                        JToken keyToken = jObject.GetValue("inventory_names");
+
+                        if (keyToken != null)
+                        {
+                            foreach (string key in keyToken)
                             {
                                 if (resultBuilder.Length == 0)
                                     resultBuilder.Append($"{{ [\"{key}\"] = {{ }}");
@@ -165,30 +190,19 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
                             }
                         }
                     }
-                }
-                else
-                {
-                    JToken keyToken = jObject.GetValue("inventory_names");
 
-                    if (keyToken != null)
+                    if (resultBuilder.Length != 0)
                     {
-                        foreach (string key in keyToken)
-                        {
-                            if (resultBuilder.Length == 0)
-                                resultBuilder.Append($"{{ [\"{key}\"] = {{ }}");
-                            else
-                                resultBuilder.Append($", [\"{key}\"] = {{ }}");
-                        }
+                        resultBuilder.Append(" }");
+                        dataforohs = resultBuilder.ToString();
                     }
+                    else
+                        dataforohs = string.Empty;
                 }
-
-                if (resultBuilder.Length != 0)
-                {
-                    resultBuilder.Append(" }");
-                    dataforohs = resultBuilder.ToString();
-                }
-                else
-                    dataforohs = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSUserInventory] - Json Format Error - {ex}");
             }
 
             if (batchparams != string.Empty)

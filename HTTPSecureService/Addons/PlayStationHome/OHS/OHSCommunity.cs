@@ -45,25 +45,33 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
             else
                 dataforohs = batchparams;
 
-            JToken Token = JToken.Parse(dataforohs);
-
-            object key = OHSProcessor.GetValueFromJToken(Token, "key");
-
-            if (File.Exists(directorypath + $"/Community_Profiles/{dataforohs}.json"))
+            try
             {
-                string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey));
+                JToken Token = JToken.Parse(dataforohs);
 
-                JObject jObject = JObject.Parse(tempreader);
+                object key = OHSProcessor.GetValueFromJToken(Token, "key");
 
-                if (jObject != null)
+                if (File.Exists(directorypath + $"/Community_Profiles/{dataforohs}.json"))
                 {
-                    // Check if the key name already exists in the JSON
-                    JToken existingKey = jObject.SelectToken($"$..{key}");
+                    string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey));
 
-                    if (existingKey != null)
-                        // Get the value of the existing key
-                        value = existingKey.Value<int>();
+                    JObject jObject = JObject.Parse(tempreader);
+
+                    if (jObject != null)
+                    {
+                        // Check if the key name already exists in the JSON
+                        JToken existingKey = jObject.SelectToken($"$..{key}");
+
+                        if (existingKey != null)
+                            // Get the value of the existing key
+                            value = existingKey.Value<int>();
+                    }
                 }
+
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSCommunity] - Json Format Error - {ex}");
             }
 
             if (batchparams != string.Empty)
@@ -124,42 +132,49 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
             else
                 dataforohs = batchparams;
 
-            JToken Token = JToken.Parse(dataforohs);
-
-            object key = OHSProcessor.GetValueFromJToken(Token, "key");
-
-            object inc = OHSProcessor.GetValueFromJToken(Token, "inc");
-
-            if (File.Exists(directorypath + $"/Community_Profiles/{dataforohs}.json"))
+            try
             {
-                string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey));
+                JToken Token = JToken.Parse(dataforohs);
 
-                JObject jObject = JObject.Parse(tempreader);
+                object key = OHSProcessor.GetValueFromJToken(Token, "key");
 
-                if (jObject != null)
+                object inc = OHSProcessor.GetValueFromJToken(Token, "inc");
+
+                if (File.Exists(directorypath + $"/Community_Profiles/{dataforohs}.json"))
                 {
-                    // Check if the key name already exists in the JSON
-                    JToken existingKey = jObject.SelectToken($"$..{key}");
+                    string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey));
 
-                    if (existingKey != null)
-                        // Get the value of the existing key
-                        existingKey[key] = existingKey.Value<int>() + increment;
-                    else
+                    JObject jObject = JObject.Parse(tempreader);
+
+                    if (jObject != null)
                     {
-                        string keyname = key.ToString();
+                        // Check if the key name already exists in the JSON
+                        JToken existingKey = jObject.SelectToken($"$..{key}");
 
-                        if (keyname != null)
-                            // If the key doesn't exist, add it with the increment value
-                            jObject.Add(new JProperty(keyname, increment));
+                        if (existingKey != null)
+                            // Get the value of the existing key
+                            existingKey[key] = existingKey.Value<int>() + increment;
+                        else
+                        {
+                            string keyname = key.ToString();
+
+                            if (keyname != null)
+                                // If the key doesn't exist, add it with the increment value
+                                jObject.Add(new JProperty(keyname, increment));
+                        }
                     }
-                }
 
-                FileHelper.CryptoWriteAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jObject, Formatting.Indented)), false).Wait();
+                    FileHelper.CryptoWriteAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jObject, Formatting.Indented)), false).Wait();
+                }
+                else
+                {
+                    FileHelper.CryptoWriteAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes($"{{ \"Key\":{increment} }}"), false).Wait();
+                    value = increment;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                FileHelper.CryptoWriteAsync(directorypath + $"/Community_Profiles/{dataforohs}.json", HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes($"{{ \"Key\":{increment} }}"), false).Wait();
-                value = increment;
+                ServerConfiguration.LogError($"[OHSCommunity] - Json Format Error - {ex}");
             }
 
             if (batchparams != string.Empty)

@@ -36,169 +36,176 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
                 ms.Dispose();
             }
 
-            // Deserialize the JSON data into a list of commands.
-            var commands = JsonConvert.DeserializeObject<BatchCommand[]>(dataforohs);
-
-            if (commands != null)
+            try
             {
-                int i = 0;
+                // Deserialize the JSON data into a list of commands.
+                var commands = JsonConvert.DeserializeObject<BatchCommand[]>(dataforohs);
 
-                StringBuilder resultBuilder = new StringBuilder();
-
-                foreach (var command in commands)
+                if (commands != null)
                 {
-                    i = i + 1;
+                    int i = 0;
 
-                    string resultfromcommand = "";
+                    StringBuilder resultBuilder = new StringBuilder();
 
-                    string method = command.Method;
-                    string project = command.Project;
-                    string data = command.Data.ToString(Formatting.None);
-
-                    if (project == "<dummy>")
-                        project = "dummy";
-
-                    ServerConfiguration.LogInfo($"[OHS] : {HTTPSClass.GetHeaderValue(Headers, "User-Agent")} Requested a /batch/ method, here are the details : method | {method} - project | {project} - data | {data}");
-
-                    switch (method)
+                    foreach (var command in commands)
                     {
-                        case "community/getscore/":
+                        i = i + 1;
 
-                            resultfromcommand = OHSCommunity.Community_Getscore(directorypath + $"/{project}/", data, request, response, Headers);
+                        string resultfromcommand = "";
 
-                            break;
+                        string method = command.Method;
+                        string project = command.Project;
+                        string data = command.Data.ToString(Formatting.None);
 
-                        case "community/updatescore/":
+                        if (project == "<dummy>")
+                            project = "dummy";
 
-                            resultfromcommand = OHSCommunity.Community_UpdateScore(directorypath + $"/{project}/", data, request, response, Headers);
+                        ServerConfiguration.LogInfo($"[OHS] : {HTTPSClass.GetHeaderValue(Headers, "User-Agent")} Requested a /batch/ method, here are the details : method | {method} - project | {project} - data | {data}");
 
-                            break;
-                        case "global/getall/":
+                        switch (method)
+                        {
+                            case "community/getscore/":
 
-                            resultfromcommand = OHSUser.Get_All(directorypath + $"/{project}/", data, true, request, response, Headers);
+                                resultfromcommand = OHSCommunity.Community_Getscore(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            break;
+                                break;
 
-                        case "global/get/":
+                            case "community/updatescore/":
 
-                            resultfromcommand = OHSUser.Get(directorypath + $"/{project}/", data, true, request, response, Headers);
+                                resultfromcommand = OHSCommunity.Community_UpdateScore(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            break;
+                                break;
+                            case "global/getall/":
 
-                        case "global/set/":
+                                resultfromcommand = OHSUser.Get_All(directorypath + $"/{project}/", data, true, request, response, Headers);
 
-                            resultfromcommand = OHSUser.Set(directorypath + $"/{project}/", data, true, request, response, Headers);
+                                break;
 
-                            break;
+                            case "global/get/":
 
-                        case "userid/":
+                                resultfromcommand = OHSUser.Get(directorypath + $"/{project}/", data, true, request, response, Headers);
 
-                            resultfromcommand = OHSUser.User_Id(data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "global/set/":
 
-                        case "user/getall/":
+                                resultfromcommand = OHSUser.Set(directorypath + $"/{project}/", data, true, request, response, Headers);
 
-                            resultfromcommand = OHSUser.Get_All(directorypath + $"/{project}/", data, false, request, response, Headers);
+                                break;
 
-                            break;
+                            case "userid/":
 
-                        case "user/get/":
+                                resultfromcommand = OHSUser.User_Id(data, request, response, Headers);
 
-                            resultfromcommand = OHSUser.Get(directorypath + $"/{project}/", data, false, request, response, Headers);
+                                break;
 
-                            break;
+                            case "user/getall/":
 
-                        case "user/set/":
+                                resultfromcommand = OHSUser.Get_All(directorypath + $"/{project}/", data, false, request, response, Headers);
 
-                            resultfromcommand = OHSUser.Set(directorypath + $"/{project}/", data, false, request, response, Headers);
+                                break;
 
-                            break;
+                            case "user/get/":
 
-                        case "user/getwritekey/":
+                                resultfromcommand = OHSUser.Get(directorypath + $"/{project}/", data, false, request, response, Headers);
 
-                            resultfromcommand = OHSUser.User_GetWritekey(data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "user/set/":
 
-                        case "leaderboard/requestbyusers/":
+                                resultfromcommand = OHSUser.Set(directorypath + $"/{project}/", data, false, request, response, Headers);
 
-                            resultfromcommand = OHSLeaderboard.Leaderboard_RequestByUsers(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "user/getwritekey/":
 
-                        case "leaderboard/requestbyrank/":
+                                resultfromcommand = OHSUser.User_GetWritekey(data, request, response, Headers);
 
-                            resultfromcommand = OHSLeaderboard.Leaderboard_RequestByRank(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "leaderboard/requestbyusers/":
 
-                        case "leaderboard/update/":
+                                resultfromcommand = OHSLeaderboard.Leaderboard_RequestByUsers(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSLeaderboard.Leaderboard_Update(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "leaderboard/requestbyrank/":
 
-                        case "leaderboard/updatessameentry/":
+                                resultfromcommand = OHSLeaderboard.Leaderboard_RequestByRank(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSLeaderboard.Leaderboard_UpdatesSameEntry(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "leaderboard/update/":
 
-                        case "usercounter/set/":
+                                resultfromcommand = OHSLeaderboard.Leaderboard_Update(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSUserCounter.Set(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "leaderboard/updatessameentry/":
 
-                        case "usercounter/getall/":
+                                resultfromcommand = OHSLeaderboard.Leaderboard_UpdatesSameEntry(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSUserCounter.Get_All(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "usercounter/set/":
 
-                        case "usercounter/get/":
+                                resultfromcommand = OHSUserCounter.Set(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSUserCounter.Get(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "usercounter/getall/":
 
-                        case "userinventory/getglobalitems/":
+                                resultfromcommand = OHSUserCounter.Get_All(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSUserInventory.GetGlobalItems(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "usercounter/get/":
 
-                        case "userinventory/getuserinventory/":
+                                resultfromcommand = OHSUserCounter.Get(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            resultfromcommand = OHSUserInventory.GetUserInventory(directorypath + $"/{project}/", data, request, response, Headers);
+                                break;
 
-                            break;
+                            case "userinventory/getglobalitems/":
 
-                        default:
+                                resultfromcommand = OHSUserInventory.GetGlobalItems(directorypath + $"/{project}/", data, request, response, Headers);
 
-                            ServerConfiguration.LogWarn($"OHS Server : Batch requested a method I don't know about, please report it to GITHUB {method} in {project} with data {data}");
+                                break;
 
-                            break;
+                            case "userinventory/getuserinventory/":
+
+                                resultfromcommand = OHSUserInventory.GetUserInventory(directorypath + $"/{project}/", data, request, response, Headers);
+
+                                break;
+
+                            default:
+
+                                ServerConfiguration.LogWarn($"OHS Server : Batch requested a method I don't know about, please report it to GITHUB {method} in {project} with data {data}");
+
+                                break;
+                        }
+
+                        if (resultfromcommand == "")
+                            resultfromcommand = "{ [\"status\"] = \"fail\" }";
+
+                        if (resultBuilder.Length == 0)
+                            resultBuilder.Append($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [{i}] = {resultfromcommand}");
+                        else
+                            resultBuilder.Append($", [{i}] = {resultfromcommand}");
                     }
 
-                    if (resultfromcommand == "")
-                        resultfromcommand = "{ [\"status\"] = \"fail\" }";
+                    resultBuilder.Append(" } }");
 
-                    if (resultBuilder.Length == 0)
-                        resultBuilder.Append($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [{i}] = {resultfromcommand}");
-                    else
-                        resultBuilder.Append($", [{i}] = {resultfromcommand}");
+                    dataforohs = resultBuilder.ToString();
+
+                    Console.WriteLine(dataforohs);
                 }
-
-                resultBuilder.Append(" } }");
-
-                dataforohs = resultBuilder.ToString();
-
-                Console.WriteLine(dataforohs);
+                else
+                    dataforohs = "{ [\"status\"] = \"fail\" }";
             }
-            else
-                dataforohs = "{ [\"status\"] = \"fail\" }";
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSBatch] - Json Format Error - {ex}");
+            }
 
             dataforohs = OHSProcessor.JaminFormat(dataforohs);
 

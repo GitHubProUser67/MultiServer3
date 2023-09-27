@@ -45,6 +45,7 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
             else
                 dataforohs = batchparams;
 
+
             JToken Token = JToken.Parse(dataforohs);
 
             object value = OHSProcessor.GetValueFromJToken(Token, "value");
@@ -53,52 +54,60 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
 
             object user = OHSProcessor.GetValueFromJToken(Token, "user");
 
-            string profiledatastring = directorypath + $"/User_Profiles/{user}_Currency.json";
-
-            if (File.Exists(profiledatastring))
+            try
             {
-                JObject jObject = JObject.Parse(Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(profiledatastring, HTTPPrivateKey.HTTPPrivatekey)));
+                string profiledatastring = directorypath + $"/User_Profiles/{user}_Currency.json";
 
-                if (jObject != null)
+                if (File.Exists(profiledatastring))
                 {
-                    // Check if the key name already exists in the JSON
-                    JToken existingKey = jObject.SelectToken($"$..{key}");
+                    JObject jObject = JObject.Parse(Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(profiledatastring, HTTPPrivateKey.HTTPPrivatekey)));
 
-                    if (existingKey != null)
-                        // Update the value of the existing key
-                        existingKey.Replace(JToken.FromObject(value));
-                    else
+                    if (jObject != null)
                     {
-                        JToken KeyEntry = jObject["key"];
+                        // Check if the key name already exists in the JSON
+                        JToken existingKey = jObject.SelectToken($"$..{key}");
 
-                        if (KeyEntry != null)
-                            // Step 2: Add a new entry to the "Key" object
-                            KeyEntry[key] = JToken.FromObject(value);
+                        if (existingKey != null)
+                            // Update the value of the existing key
+                            existingKey.Replace(JToken.FromObject(value));
+                        else
+                        {
+                            JToken KeyEntry = jObject["key"];
+
+                            if (KeyEntry != null)
+                                // Step 2: Add a new entry to the "Key" object
+                                KeyEntry[key] = JToken.FromObject(value);
+                        }
+
+                        FileHelper.CryptoWriteAsync(profiledatastring, HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(jObject.ToString(Formatting.None)), false).Wait();
                     }
-
-                    FileHelper.CryptoWriteAsync(profiledatastring, HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(jObject.ToString(Formatting.None)), false).Wait();
                 }
-            }
-            else
-            {
-                string keystring = key.ToString();
-
-                if (keystring != null)
+                else
                 {
-                    // Create a new profile with the key field
-                    OHSUserProfile newProfile = new OHSUserProfile
+                    string keystring = key.ToString();
+
+                    if (keystring != null)
                     {
-                        user = user.ToString(),
-                        key = new JObject { { keystring, JToken.FromObject(value) } }
-                    };
+                        // Create a new profile with the key field
+                        OHSUserProfile newProfile = new OHSUserProfile
+                        {
+                            user = user.ToString(),
+                            key = new JObject { { keystring, JToken.FromObject(value) } }
+                        };
 
-                    FileHelper.CryptoWriteAsync(profiledatastring, HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(newProfile)), false).Wait();
+                        FileHelper.CryptoWriteAsync(profiledatastring, HTTPPrivateKey.HTTPPrivatekey, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(newProfile)), false).Wait();
+                    }
                 }
-            }
 
-            if (JToken.FromObject(value).Type == JTokenType.Integer)
-                // Handle integer type
-                output = JToken.FromObject(value).ToString();
+                if (JToken.FromObject(value).Type == JTokenType.Integer)
+                    // Handle integer type
+                    output = JToken.FromObject(value).ToString();
+
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSUserCounter] - Json Format Error - {ex}");
+            }
 
             if (batchparams != "")
                 return $"{{ [\"{key}\"] = {output} }}";
@@ -156,26 +165,34 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
             else
                 dataforohs = batchparams;
 
-            // Parsing the JSON string
-            JObject jsonObject = JObject.Parse(dataforohs);
-
-            // Getting the value of the "user" field
-            dataforohs = (string)jsonObject["user"];
-
-            if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
+            try
             {
-                string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/User_Profiles/{dataforohs}_Currency.json", HTTPPrivateKey.HTTPPrivatekey));
+                // Parsing the JSON string
+                JObject jsonObject = JObject.Parse(dataforohs);
 
-                if (tempreader != null)
+                // Getting the value of the "user" field
+                dataforohs = (string)jsonObject["user"];
+
+                if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
                 {
-                    // Parse the JSON string to a JObject
-                    jsonObject = JObject.Parse(tempreader);
+                    string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/User_Profiles/{dataforohs}_Currency.json", HTTPPrivateKey.HTTPPrivatekey));
 
-                    // Check if the "key" property exists and if it is an object
-                    if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                        // Convert the JToken to a Lua table-like string
-                        value = OHSProcessor.ConvertToLuaTable(keyValueToken, false);
+                    if (tempreader != null)
+                    {
+                        // Parse the JSON string to a JObject
+                        jsonObject = JObject.Parse(tempreader);
+
+                        // Check if the "key" property exists and if it is an object
+                        if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                            // Convert the JToken to a Lua table-like string
+                            value = OHSProcessor.ConvertToLuaTable(keyValueToken, false);
+                    }
                 }
+
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSUserCounter] - Json Format Error - {ex}");
             }
 
             if (value == string.Empty)
@@ -237,26 +254,34 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
             else
                 dataforohs = batchparams;
 
-            // Parsing the JSON string
-            JObject jsonObject = JObject.Parse(dataforohs);
-
-            // Getting the value of the "user" field
-            dataforohs = (string)jsonObject["user"];
-
-            if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
+            try
             {
-                string currencydata = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/User_Profiles/{dataforohs}_Currency.json", HTTPPrivateKey.HTTPPrivatekey));
+                // Parsing the JSON string
+                JObject jsonObject = JObject.Parse(dataforohs);
 
-                if (currencydata != null)
+                // Getting the value of the "user" field
+                dataforohs = (string)jsonObject["user"];
+
+                if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
                 {
-                    // Parse the JSON string to a JObject
-                    jsonObject = JObject.Parse(currencydata);
+                    string currencydata = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(directorypath + $"/User_Profiles/{dataforohs}_Currency.json", HTTPPrivateKey.HTTPPrivatekey));
 
-                    // Check if the "Key" property exists and if it is an object
-                    if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                        // Convert the JToken to a Lua table-like string
-                        value = OHSProcessor.ConvertToLuaTable(keyValueToken, false);
+                    if (currencydata != null)
+                    {
+                        // Parse the JSON string to a JObject
+                        jsonObject = JObject.Parse(currencydata);
+
+                        // Check if the "Key" property exists and if it is an object
+                        if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                            // Convert the JToken to a Lua table-like string
+                            value = OHSProcessor.ConvertToLuaTable(keyValueToken, false);
+                    }
                 }
+
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSUserCounter] - Json Format Error - {ex}");
             }
 
             if (value == string.Empty)

@@ -156,25 +156,34 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
                 dataforohs = batchparams;
             // TODO! writekey must be somewhere.
 
-            // Deserialize the JSON string
-            ScoreBoardUpdate rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdate>(dataforohs);
-
-            if (rootObject != null)
+            try
             {
-                // Extract the values
-                string user = rootObject.user;
-                int score = rootObject.score;
-                string key = rootObject.key;
 
-                string scoreboardfile = directorypath + $"/scoreboard_{key}.json";
+                // Deserialize the JSON string
+                ScoreBoardUpdate rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdate>(dataforohs);
 
-                if (File.Exists(scoreboardfile))
+                if (rootObject != null)
                 {
-                    string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(scoreboardfile, HTTPPrivateKey.HTTPPrivatekey));
+                    // Extract the values
+                    string user = rootObject.user;
+                    int score = rootObject.score;
+                    string key = rootObject.key;
 
-                    if (tempreader != null)
-                        dataforohs = OHSProcessor.UpdateScoreboard(tempreader, user, score, scoreboardfile);
+                    string scoreboardfile = directorypath + $"/scoreboard_{key}.json";
+
+                    if (File.Exists(scoreboardfile))
+                    {
+                        string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(scoreboardfile, HTTPPrivateKey.HTTPPrivatekey));
+
+                        if (tempreader != null)
+                            dataforohs = OHSProcessor.UpdateScoreboard(tempreader, user, score, scoreboardfile);
+                    }
                 }
+
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSLeaderboard] - Json Format Error - {ex}");
             }
 
             if (batchparams != string.Empty)
@@ -244,35 +253,42 @@ namespace MultiServer.HTTPSecureService.Addons.PlayStationHome.OHS
                 dataforohs = batchparams;
             // TODO! writekey must be somewhere.
 
-            // Deserialize the JSON string
-            ScoreBoardUpdateSameEntry rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdateSameEntry>(dataforohs);
-
             StringBuilder resultBuilder = new StringBuilder();
 
-            if (rootObject != null)
+            try
             {
-                // Extract the values
-                string user = rootObject.user;
-                int score = rootObject.score;
-                string[] keys = rootObject.keys;
+                // Deserialize the JSON string
+                ScoreBoardUpdateSameEntry rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdateSameEntry>(dataforohs);
 
-                foreach (var key in keys)
+                if (rootObject != null)
                 {
-                    string scoreboardfile = directorypath + $"/scoreboard_{key}.json";
+                    // Extract the values
+                    string user = rootObject.user;
+                    int score = rootObject.score;
+                    string[] keys = rootObject.keys;
 
-                    if (File.Exists(scoreboardfile))
+                    foreach (var key in keys)
                     {
-                        string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(scoreboardfile, HTTPPrivateKey.HTTPPrivatekey));
+                        string scoreboardfile = directorypath + $"/scoreboard_{key}.json";
 
-                        if (tempreader != null)
+                        if (File.Exists(scoreboardfile))
                         {
-                            if (resultBuilder.Length == 0)
-                                resultBuilder.Append(OHSProcessor.UpdateScoreboard(tempreader, user, score, scoreboardfile));
-                            else
-                                resultBuilder.Append(", " + OHSProcessor.UpdateScoreboard(tempreader, user, score, scoreboardfile));
+                            string tempreader = Encoding.UTF8.GetString(FileHelper.CryptoReadAsync(scoreboardfile, HTTPPrivateKey.HTTPPrivatekey));
+
+                            if (tempreader != null)
+                            {
+                                if (resultBuilder.Length == 0)
+                                    resultBuilder.Append(OHSProcessor.UpdateScoreboard(tempreader, user, score, scoreboardfile));
+                                else
+                                    resultBuilder.Append(", " + OHSProcessor.UpdateScoreboard(tempreader, user, score, scoreboardfile));
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                ServerConfiguration.LogError($"[OHSLeaderboard] - Json Format Error - {ex}");
             }
 
             if (batchparams != string.Empty)
