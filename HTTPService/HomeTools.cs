@@ -263,6 +263,8 @@ namespace MultiServer.HTTPService
 
                     var data = MultipartFormDataParser.Parse(copyStream, boundary);
 
+                    string options = data.GetParameterValue("options");
+
                     string prefix = data.GetParameterValue("prefix");
 
                     string subfolder = "";
@@ -290,6 +292,13 @@ namespace MultiServer.HTTPService
                     string filename = "";
 
                     string ogfilename = "";
+
+                    if (options == "cdn1")
+                        options = AFSMISC.base64CDNKey1;
+                    else if (options == "cdn2")
+                        options = AFSMISC.base64CDNKey2;
+                    else
+                        options = Convert.ToBase64String(AFSMISC.DefaultKey); // Not good probably. An other key seems in use.
 
                     foreach (var multipartfile in data.Files)
                     {
@@ -322,19 +331,19 @@ namespace MultiServer.HTTPService
 
                         if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
                         {
-                            RunUnBAR.Run(barfile, unbardir, false);
+                            RunUnBAR.Run(barfile, unbardir, false, options);
                             ogfilename = filename;
                             filename = filename.Substring(0, filename.Length - 4).ToUpper();
                         }
                         else if (filename.ToLower().EndsWith(".sharc"))
                         {
-                            RunUnBAR.Run(barfile, unbardir, false);
+                            RunUnBAR.Run(barfile, unbardir, false, options);
                             ogfilename = filename;
                             filename = filename.Substring(0, filename.Length - 4).ToUpper();
                         }
                         else if (filename.ToLower().EndsWith(".sdat"))
                         {
-                            RunUnBAR.Run(barfile, unbardir, true);
+                            RunUnBAR.Run(barfile, unbardir, true, options);
                             ogfilename = filename;
                             filename = filename.Substring(0, filename.Length - 5).ToUpper();
                         }

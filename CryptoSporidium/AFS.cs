@@ -233,56 +233,6 @@ namespace MultiServer.CryptoSporidium
             return null;
         }
 
-        public static byte[] InitiateCBCDecryptBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv) // IV 16 bytes, key 32 or 64 bytes -> 24 or 44 long base64
-        {
-            if (FileBytes != null && m_iv != null && m_iv.Length == 16)
-            {
-                // Create the cipher
-                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/NOPADDING");
-
-                if (KeyBytes == null || KeyBytes.Length < 32)
-                    cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), m_iv));
-                else
-                    cipher.Init(false, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
-
-                // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
-                cipher.DoFinal(ciphertextBytes, ciphertextLength);
-
-                return ciphertextBytes;
-            }
-            else
-                ServerConfiguration.LogError("[AFS] - InitiateCBCDecryptBuffer - No IV entered or invalid length!");
-
-            return null;
-        }
-
-        public static byte[] InitiateCBCEncryptBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv) // IV 16 bytes, key 32 or 64 bytes -> 24 or 44 long base64
-        {
-            if (FileBytes != null && m_iv != null && m_iv.Length == 16)
-            {
-                // Create the cipher
-                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/NOPADDING");
-
-                if (KeyBytes == null || KeyBytes.Length < 32)
-                    cipher.Init(true, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), m_iv));
-                else
-                    cipher.Init(true, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
-
-                // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
-                cipher.DoFinal(ciphertextBytes, ciphertextLength);
-
-                return ciphertextBytes;
-            }
-            else
-                ServerConfiguration.LogError("[AFS] - InitiateCBCEncryptBuffer - No IV entered or invalid length!");
-
-            return null;
-        }
-
         public static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA)
         {
             StringBuilder hexStr = new StringBuilder();
@@ -339,6 +289,10 @@ namespace MultiServer.CryptoSporidium
 
     public class AFSMISC
     {
+        public static string base64CDNKey1 = "8243a3b10f1f1660a7fc934aac263c9c5161092dc25=";
+
+        public static string base64CDNKey2 = "8b9qT7u6XQ7Sf0GKSIivMEeG7NROLTZGgNtN8iI6n1Y=";
+
         public static byte[] DefaultKey = new byte[]
         {
             0x80, 0x6d, 0x79, 0x16, 0x23, 0x42, 0xa1, 0x0e,

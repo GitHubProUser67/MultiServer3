@@ -446,42 +446,7 @@ namespace MultiServer.CryptoSporidium.BAR
             }
             if (m_header.Version == 512) // SHARC.
             {
-                ServerConfiguration.LogInfo("BAR Version 2 Detected - Not Supported yet", m_sourceFile);
-
-                // We use a more traditional parser.
-
-                inStream.Position = 0;
-
-                // Create a memory stream to copy the content
-                using (MemoryStream copyStream = new MemoryStream())
-                {
-                    // Copy the input stream to the memory stream
-                    inStream.CopyTo(copyStream);
-
-                    // Reset the position of the copy stream to the beginning
-                    copyStream.Position = 0;
-
-                    // Find the number of bytes in the stream
-                    int contentLength = (int)copyStream.Length;
-
-                    // Create a byte array
-                    byte[] buffer = new byte[contentLength];
-
-                    // Read the contents of the memory stream into the byte array
-                    copyStream.Read(buffer, 0, contentLength);
-
-                    byte[] HeaderIV = ExtractSHARCHeaderIV(buffer);
-
-                    ServerConfiguration.LogInfo($"[ReadHeader] - SHARC Header IV -> {Misc.ByteArrayToHexString(HeaderIV)}");
-                }
-
-                // Header is encrypted using AES 128 or AES 256, can't use it just yet.
-
-                /*m_header.IV = endianAwareBinaryReader.ReadBytes(16);
-                m_header.Priority = endianAwareBinaryReader.ReadInt32();
-                m_header.User = endianAwareBinaryReader.ReadInt32();
-                m_header.NumFiles = endianAwareBinaryReader.ReadUInt32();
-                m_header.Key = endianAwareBinaryReader.ReadBytes(32);*/
+                ServerConfiguration.LogInfo("BAR Version 2 Detected - Not Supported via loadbar", m_sourceFile);
 
                 return false;
             }
@@ -499,33 +464,6 @@ namespace MultiServer.CryptoSporidium.BAR
                 m_asyncOp.Post(d, this);
 
             return true;
-        }
-
-        private byte[] ExtractSHARCHeaderIV(byte[] input)
-        {
-            // Check if the input has at least 24 bytes (8 for the pattern and 16 to copy)
-            if (input.Length < 24)
-            {
-                ServerConfiguration.LogError("[ExtractSHARCHeaderIV] - Input byte array must have at least 24 bytes.");
-                return null;
-            }
-
-            // Check if the first 8 bytes match the specified pattern
-            byte[] pattern = new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 };
-            for (int i = 0; i < 8; i++)
-            {
-                if (input[i] != pattern[i])
-                {
-                    ServerConfiguration.LogError("[ExtractSHARCHeaderIV] - The first 8 bytes do not match the SHARC pattern.");
-                    return null;
-                }
-            }
-
-            // Copy the next 16 bytes to a new array
-            byte[] copiedBytes = new byte[16];
-            Array.Copy(input, 8, copiedBytes, 0, 16);
-
-            return copiedBytes;
         }
 
         private void ReadTOC(Stream inStream, EndianType endian)

@@ -321,6 +321,23 @@ namespace MultiServer
             }
         }
 
+        public static byte[] TrimStart(byte[] byteArray, int index)
+        {
+            if (index >= byteArray.Length)
+            {
+                // If the index is greater than or equal to the length of the array,
+                // return an empty byte array.
+                return new byte[0];
+            }
+            else
+            {
+                // Create a new byte array starting from the specified index.
+                byte[] trimmedArray = new byte[byteArray.Length - index];
+                Array.Copy(byteArray, index, trimmedArray, 0, trimmedArray.Length);
+                return trimmedArray;
+            }
+        }
+
         public static byte[] HexStringToByteArray(string hex)
         {
             int len = hex.Length;

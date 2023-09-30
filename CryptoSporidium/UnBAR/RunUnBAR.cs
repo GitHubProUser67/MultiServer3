@@ -4,12 +4,12 @@ namespace MultiServer.CryptoSporidium.UnBAR
 {
     internal class RunUnBAR
     {
-        public static void Run(string inputfile, string outputpath, bool edat)
+        public static void Run(string inputfile, string outputpath, bool edat, string options)
         {
             if (edat)
-                RunDecrypt(inputfile, outputpath);
+                RunDecrypt(inputfile, outputpath, options);
             else
-                RunExtract(inputfile, outputpath);
+                RunExtract(inputfile, outputpath, options);
         }
 
         public static void RunEncrypt(string filePath, string sdatfilePath, string sdatnpdcopyfile)
@@ -17,14 +17,14 @@ namespace MultiServer.CryptoSporidium.UnBAR
             new EDAT().encryptFile(filePath, sdatfilePath, sdatnpdcopyfile);
         }
 
-        private static void RunDecrypt(string filePath, string outDir)
+        private static void RunDecrypt(string filePath, string outDir, string options)
         {
             new EDAT().decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
 
-            RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir);
+            RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir, options);
         }
 
-        private static void RunExtract(string filePath, string outDir)
+        private static void RunExtract(string filePath, string outDir, string options)
         {
             ServerConfiguration.LogInfo("Loading BAR/dat: {0}", filePath);
 
@@ -36,13 +36,26 @@ namespace MultiServer.CryptoSporidium.UnBAR
                 {
                     RawBarData = File.ReadAllBytes(filePath);
 
-                    byte[] data = Misc.ReadBinaryFile(filePath, 0x0C, 4); // Read 4 bytes from offset 0x0C to 0x0F
+                    byte[] HeaderIV = ExtractSHARCHeaderIV(RawBarData);
 
-                    string formattedData = BitConverter.ToString(data).Replace("-", ""); // Convert byte array to hex string
+                    if (HeaderIV != null)
+                    {
+                        ServerConfiguration.LogInfo($"[RunExtract] - SHARC Header IV -> {Misc.ByteArrayToHexString(HeaderIV)}");
 
-                    Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                        byte[] DecryptedTOC = AFSAES.InitiateCTRBuffer(ExtractSHARCHeader(RawBarData), Convert.FromBase64String(options), HeaderIV);
 
-                    File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", formattedData);
+                        ServerConfiguration.LogInfo($"[RunExtract] - DECRYPTED SHARC Header -> {Misc.ByteArrayToHexString(DecryptedTOC)}");
+                    }
+                    else
+                    {
+                        byte[] data = Misc.ReadBinaryFile(filePath, 0x0C, 4); // Read 4 bytes from offset 0x0C to 0x0F
+
+                        string formattedData = BitConverter.ToString(data).Replace("-", ""); // Convert byte array to hex string
+
+                        Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+
+                        File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", formattedData);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -74,6 +87,60 @@ namespace MultiServer.CryptoSporidium.UnBAR
             {
                 ServerConfiguration.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
             }
+        }
+
+        public static byte[] ExtractSHARCHeaderIV(byte[] input)
+        {
+            // Check if the input has at least 24 bytes (8 for the pattern and 16 to copy)
+            if (input.Length < 24)
+            {
+                ServerConfiguration.LogError("[ExtractSHARCHeaderIV] - Input byte array must have at least 24 bytes.");
+                return null;
+            }
+
+            // Check if the first 8 bytes match the specified pattern
+            byte[] pattern = new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 };
+            for (int i = 0; i < 8; i++)
+            {
+                if (input[i] != pattern[i])
+                {
+                    ServerConfiguration.LogError("[ExtractSHARCHeaderIV] - The first 8 bytes do not match the SHARC pattern.");
+                    return null;
+                }
+            }
+
+            // Copy the next 16 bytes to a new array
+            byte[] copiedBytes = new byte[16];
+            Array.Copy(input, 8, copiedBytes, 0, copiedBytes.Length);
+
+            return copiedBytes;
+        }
+
+        public static byte[] ExtractSHARCHeader(byte[] input)
+        {
+            // Check if the input has at least 52 bytes (8 for the pattern and 16 for the Header IV, and 28 for the Header)
+            if (input.Length < 52)
+            {
+                ServerConfiguration.LogError("[ExtractSHARCHeader] - Input byte array must have at least 52 bytes.");
+                return null;
+            }
+
+            // Check if the first 8 bytes match the specified pattern
+            byte[] pattern = new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 };
+            for (int i = 0; i < 8; i++)
+            {
+                if (input[i] != pattern[i])
+                {
+                    ServerConfiguration.LogError("[ExtractSHARCHeader] - The first 8 bytes do not match the SHARC pattern.");
+                    return null;
+                }
+            }
+
+            // Copy the next 28 bytes to a new array
+            byte[] copiedBytes = new byte[28];
+            Array.Copy(input, 24, copiedBytes, 0, copiedBytes.Length);
+
+            return copiedBytes;
         }
 
         public static void ExtractToFile(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)

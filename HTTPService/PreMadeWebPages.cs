@@ -157,6 +157,12 @@
             "      <div class=\"centered-input\">\r\n" +
             "        <input type=\"file\" name=\"files[]\" accept=\".zip, .bar, .sharc, .dat, .sdat\" required>\r\n" +
             "      </div>\r\n\t" +
+            "      <label for=\"options\">Select an option (SHARC Only):</label>\r\n\r\n" +
+            "      <select id=\"options\" name=\"options\">\r\n" +
+            "      <option value=\"default\" default>Default Key</option>\r\n\r\n" +
+            "      <option value=\"cdn1\">CDN Key 1</option>\r\n" +
+            "      <option value=\"cdn2\">CDN Key 2</option>\r\n\r\n" +
+            "      </select>\r\n\r\n" +
             "      <label for=\"prefix\">Path Prefix (if any required):</label>\r\n" +
             "      <input type=\"text\" id=\"prefix\" name=\"prefix\">\r\n\r\n" +
             "      <label for=\"subfolder\">Subfolder mode:</label>\r\n" +
