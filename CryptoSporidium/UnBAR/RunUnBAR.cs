@@ -45,6 +45,10 @@ namespace MultiServer.CryptoSporidium.UnBAR
                         byte[] DecryptedTOC = AFSAES.InitiateCTRBuffer(ExtractSHARCHeader(RawBarData), Convert.FromBase64String(options), HeaderIV);
 
                         ServerConfiguration.LogInfo($"[RunExtract] - DECRYPTED SHARC Header -> {Misc.ByteArrayToHexString(DecryptedTOC)}");
+
+                        byte[] EncryptedFileBytes = Misc.TrimStart(RawBarData, 52);
+
+                        // File is decrypted using AES again, but a bit differently.
                     }
                     else
                     {
