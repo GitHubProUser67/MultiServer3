@@ -289,6 +289,8 @@ namespace MultiServer.CryptoSporidium
 
     public class AFSMISC
     {
+        public static string base64DefaultKey = "L1ztpjqaZywDTBLh5CX6gRYWrhzmbeuVt+a/IUBHAtw=";
+
         public static string base64CDNKey1 = "8243a3b10f1f1660a7fc934aac263c9c5161092dc25=";
 
         public static string base64CDNKey2 = "8b9qT7u6XQ7Sf0GKSIivMEeG7NROLTZGgNtN8iI6n1Y=";

@@ -298,7 +298,7 @@ namespace MultiServer.HTTPService
                     else if (options == "cdn2")
                         options = AFSMISC.base64CDNKey2;
                     else
-                        options = Convert.ToBase64String(AFSMISC.DefaultKey); // Not good probably. An other key seems in use.
+                        options = AFSMISC.base64DefaultKey;
 
                     foreach (var multipartfile in data.Files)
                     {
