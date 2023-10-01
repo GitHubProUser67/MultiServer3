@@ -52,6 +52,28 @@ namespace MultiServer.CryptoSporidium
             return null;
         }
 
+        public static byte[] EncryptionProxyProcessMemory(byte[] Data, byte[] IV)
+        {
+            if (IV != null && IV.Length == 8 && Data != null)
+            {
+                // Create the cipher
+                IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
+
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(AFSMISC.DefaultKey), IV));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(Data.Length)];
+                int ciphertextLength = cipher.ProcessBytes(Data, 0, Data.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                return ciphertextBytes;
+            }
+            else
+                ServerConfiguration.LogError("[AFS] - EncryptionProxyProcessMemory, parameter invalid!");
+
+            return null;
+        }
+
         public static byte[] Crypt_DecryptCDSContent(byte[] FileBytes, byte[] SHA1IV)
         {
             if (FileBytes != null && SHA1IV != null && SHA1IV.Length == 8)
@@ -250,7 +272,7 @@ namespace MultiServer.CryptoSporidium
                     int blockLength = Math.Min(16, fileBytes.Length - (i - 16)); // Determine the block length, considering remaining bytes.
                     Array.Copy(fileBytes, i - 16, block, 0, blockLength);
 
-                    // If the block length is less than 8, pad with ISO97971 bytes.
+                    // If the block length is less than 16, pad with ISO97971 bytes.
                     if (blockLength < 16)
                     {
                         int BytesToFill = 16 - blockLength;
@@ -294,6 +316,8 @@ namespace MultiServer.CryptoSporidium
         public static string base64CDNKey1 = "8243a3b10f1f1660a7fc934aac263c9c5161092dc25=";
 
         public static string base64CDNKey2 = "8b9qT7u6XQ7Sf0GKSIivMEeG7NROLTZGgNtN8iI6n1Y=";
+
+        public static int DefaultContextSize = 4236;
 
         public static byte[] DefaultKey = new byte[]
         {

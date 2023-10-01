@@ -1,4 +1,6 @@
 ﻿using MultiServer.CryptoSporidium.BAR;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
+using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace MultiServer.CryptoSporidium.UnBAR
 {
@@ -77,13 +79,13 @@ namespace MultiServer.CryptoSporidium.UnBAR
                     try
                     {
                         string registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
-                        ExtractToFile(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), registeredExtension);
+                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), registeredExtension);
                     }
                     catch (Exception ex)
                     {
                         ServerConfiguration.LogWarn(ex.ToString());
                         string fileType = ".unknown";
-                        ExtractToFile(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), fileType);
+                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), fileType);
                     }
                 }
             }
@@ -147,7 +149,9 @@ namespace MultiServer.CryptoSporidium.UnBAR
             return copiedBytes;
         }
 
-        public static void ExtractToFile(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
+        // Todo, separate the crypto implementation in the file designed for it.
+
+        public static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
         {
             TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string empty = string.Empty;
@@ -163,13 +167,6 @@ namespace MultiServer.CryptoSporidium.UnBAR
             Directory.CreateDirectory(outdirectory);
             FileStream fileStream = File.Open(path, (FileMode)2);
             byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
-            fileStream.Write(data, 0, data.Length);
-            fileStream.Close();
-            ServerConfiguration.LogInfo("Extracted file {0}", new object[1]
-            {
-                 Path.GetFileName(path)
-            });
-
             if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && tableOfContent.Compression == CompressionMethod.Encrypted)
             {
                 if (File.Exists(outDir + "/timestamp.txt"))
@@ -183,19 +180,17 @@ namespace MultiServer.CryptoSporidium.UnBAR
                         string content = File.ReadAllText(outDir + "/timestamp.txt");
                         int userData = BitConverter.ToInt32(Misc.HexStringToByteArray(content));
 
-                        ServerConfiguration.LogInfo("[RunUnBAR] - Encrypted Content Detected!, running decryption.");
+                        ServerConfiguration.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
                         ServerConfiguration.LogInfo($"CompressedSize - {compressedSize}");
                         ServerConfiguration.LogInfo($"Size - {fileSize}");
                         ServerConfiguration.LogInfo($"dataStart - 0x{dataStart:X}");
                         ServerConfiguration.LogInfo($"UserData - 0x{userData:X}");
 
-                        byte[] byteSignatureIV = BitConverter.GetBytes(AFSMISC.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
+                        byte[] SignatureIV = BitConverter.GetBytes(AFSMISC.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
 
                         // If you want to ensure little-endian byte order explicitly, you can reverse the array
                         if (BitConverter.IsLittleEndian)
-                            Array.Reverse(byteSignatureIV);
-
-                        ServerConfiguration.LogInfo($"SignatureIV - {Misc.ByteArrayToHexString(byteSignatureIV)}");
+                            Array.Reverse(SignatureIV);
 
                         data = AFSMISC.RemovePaddingPrefix(data);
 
@@ -204,37 +199,140 @@ namespace MultiServer.CryptoSporidium.UnBAR
                         // Copy the first 24 bytes from the source array to the destination array
                         Array.Copy(data, 0, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
 
-                        byte[] SHA1DATA = AFSBLOWFISH.EncryptionProxyInit(EncryptedHeaderSHA1, byteSignatureIV);
+                        byte[] SHA1DATA = AFSBLOWFISH.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
 
                         if (SHA1DATA != null)
                         {
                             string verificationsha1 = Misc.ByteArrayToHexString(SHA1DATA);
 
                             // Create a new byte array to store the remaining content
-                            byte[] newFileBytes = new byte[data.Length - 24];
+                            byte[] FileBytes = new byte[data.Length - 24];
 
                             // Copy the content after the first 24 bytes to the new array
-                            Array.Copy(data, 24, newFileBytes, 0, newFileBytes.Length);
+                            Array.Copy(data, 24, FileBytes, 0, FileBytes.Length);
 
-                            string sha1 = AFSMISC.ValidateSha1(newFileBytes);
+                            string sha1 = AFSMISC.ValidateSha1(FileBytes);
 
                             if (sha1 == verificationsha1.Substring(0, verificationsha1.Length - 8))
                             {
-                                ServerConfiguration.LogInfo("[RunUnBAR] - Lua file has not been tempered with.");
+                                int newvalue = SignatureIV[7] += 3;
 
-                                // Todo, something related to encryption is happening after.
-                                // It seems it want the default key and a default context size then decrypt file bytes with this, probably AES.
+                                SignatureIV[7] = (byte)newvalue;
+
+                                FileBytes = Decompress(AFSBLOWFISH.EncryptionProxyProcessMemory(FileBytes, SignatureIV));
+
+                                fileStream.Write(FileBytes, 0, FileBytes.Length);
+                                fileStream.Close();
                             }
                             else
+                            {
                                 ServerConfiguration.LogWarn($"[RunUnBAR] - Lua file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                fileStream.Write(data, 0, data.Length);
+                                fileStream.Close();
+                            }
                         }
                     }
                     else
+                    {
                         ServerConfiguration.LogError("[RunUnBAR] - Encrypted data not found in BAR or false positive! Decryption has failed.");
+                        fileStream.Write(data, 0, data.Length);
+                        fileStream.Close();
+                    }
                 }
                 else
+                {
                     ServerConfiguration.LogError("[RunUnBAR] - No TimeStamp Found! Decryption has failed.");
+                    fileStream.Write(data, 0, data.Length);
+                    fileStream.Close();
+                }
             }
+            else
+            {
+                fileStream.Write(data, 0, data.Length);
+                fileStream.Close();
+            }
+            ServerConfiguration.LogInfo("Extracted file {0}", new object[1]
+            {
+                 Path.GetFileName(path)
+            });
+        }
+
+        private static byte[] Decompress(byte[] inData)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            MemoryStream memoryStream2 = new MemoryStream(inData);
+            byte[] array = new byte[ChunkHeader.SizeOf];
+            while (memoryStream2.Position < memoryStream2.Length)
+            {
+                memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
+                array = Utils.EndianSwap(array);
+                ChunkHeader header = ChunkHeader.FromBytes(array);
+                int compressedSize = header.CompressedSize;
+                byte[] array2 = new byte[compressedSize];
+                memoryStream2.Read(array2, 0, compressedSize);
+                byte[] array3 = DecompressChunk(array2, header);
+                memoryStream.Write(array3, 0, array3.Length);
+            }
+            memoryStream2.Close();
+            memoryStream.Close();
+            return memoryStream.ToArray();
+        }
+
+        private static byte[] DecompressChunk(byte[] inData, ChunkHeader header)
+        {
+            if (header.CompressedSize == header.SourceSize)
+                return inData;
+            MemoryStream baseInputStream = new MemoryStream(inData);
+            Inflater inf = new Inflater(true);
+            InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, inf);
+            MemoryStream memoryStream = new MemoryStream();
+            byte[] array = new byte[4096];
+            for (; ; )
+            {
+                int num = inflaterInputStream.Read(array, 0, array.Length);
+                if (num <= 0)
+                    break;
+                memoryStream.Write(array, 0, num);
+            }
+            inflaterInputStream.Close();
+            return memoryStream.ToArray();
+        }
+
+        internal struct ChunkHeader
+        {
+            internal byte[] GetBytes()
+            {
+                byte[] array = new byte[4];
+                Array.Copy(BitConverter.GetBytes(SourceSize), 0, array, 2, 2);
+                Array.Copy(BitConverter.GetBytes(CompressedSize), 0, array, 0, 2);
+                return array;
+            }
+
+            internal static int SizeOf
+            {
+                get
+                {
+                    return 4;
+                }
+            }
+
+            internal static ChunkHeader FromBytes(byte[] inData)
+            {
+                ChunkHeader result = default;
+                byte[] array = inData;
+                if (inData.Length > SizeOf)
+                {
+                    array = new byte[4];
+                    Array.Copy(inData, array, 4);
+                }
+                result.SourceSize = BitConverter.ToUInt16(array, 2);
+                result.CompressedSize = BitConverter.ToUInt16(array, 0);
+                return result;
+            }
+
+            internal ushort SourceSize;
+
+            internal ushort CompressedSize;
         }
     }
 }

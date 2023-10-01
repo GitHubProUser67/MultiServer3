@@ -142,10 +142,8 @@ namespace MultiServer.CryptoSporidium.BAR
                 return result;
             }
 
-            // Token: 0x0400003B RID: 59
             internal ushort SourceSize;
 
-            // Token: 0x0400003C RID: 60
             internal ushort CompressedSize;
         }
     }
