@@ -1,6 +1,6 @@
-using MultiServer.Addons.ComponentAce.Compression.Libs.zlib;
+using ComponentAce.Compression.Libs.zlib;
 
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public class EdgeZLibCompression : CompressionBase
     {

@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public class TOCEntry
     {
@@ -116,6 +116,7 @@ namespace MultiServer.CryptoSporidium.BAR
             m_tocIndex = -1;
             m_fileType = HomeFileType.Unknown;
             m_path = string.Empty;
+            m_iv = null;
         }
 
         public TOCEntry(HashedFileName fileName, uint size) : this()
@@ -133,6 +134,15 @@ namespace MultiServer.CryptoSporidium.BAR
             m_compressedSize = compressedSize;
         }
 
+        public TOCEntry(int fileName, uint size, uint compressedSize, uint offset, byte[] IV) : this()
+        {
+            m_size = size;
+            m_fileNameHash = (HashedFileName)fileName;
+            m_dataOffset = offset;
+            m_compressedSize = compressedSize;
+            m_iv = IV;
+        }
+
         internal byte[] GetRawDataWithEndianSwap()
         {
             return Utils.EndianSwap(m_data);
@@ -145,16 +155,34 @@ namespace MultiServer.CryptoSporidium.BAR
 
         public byte[] GetData(ArchiveFlags flags)
         {
-            byte[] array = CompressionFactory.Decompress(this, Compression, flags);
-            byte[] array2;
-            if (array.Length > (long)(ulong)m_size)
+            byte[] array2 = null;
+            try
             {
-                array2 = new byte[m_size];
-                Array.Copy(array, array2, (long)(ulong)m_size);
+                byte[] array = null;
+
+                try
+                {
+                    array = CompressionFactory.Decompress(this, Compression, flags);
+
+                    if (array.Length > (long)(ulong)m_size)
+                    {
+                        array2 = new byte[m_size];
+                        Array.Copy(array, array2, (long)(ulong)m_size);
+                    }
+                    else
+                        array2 = array;
+                }
+                catch (Exception)
+                {
+                    // Coredata.sharc file was not done right, so some entries are pure non-sense
+                    // (EdgeZlib while plaintext...)
+
+                    array2 = RawData;
+                }
             }
-            else
+            catch (Exception)
             {
-                array2 = array;
+                array2 = null;
             }
             return array2;
         }
@@ -168,6 +196,18 @@ namespace MultiServer.CryptoSporidium.BAR
             set
             {
                 m_data = value;
+            }
+        }
+
+        public byte[] IV
+        {
+            get
+            {
+                return m_iv;
+            }
+            set
+            {
+                m_iv = value;
             }
         }
 
@@ -193,5 +233,7 @@ namespace MultiServer.CryptoSporidium.BAR
         private uint m_dataOffset;
 
         private byte[] m_data;
+
+        private byte[] m_iv;
     }
 }

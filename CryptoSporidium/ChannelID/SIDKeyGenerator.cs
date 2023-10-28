@@ -1,10 +1,10 @@
 using System.Collections;
 
-namespace MultiServer.CryptoSporidium.ChannelID
+namespace CryptoSporidium.ChannelID
 {
   public class SIDKeyGenerator
   {
-        private static SIDKeyGenerator m_Instance;
+        private static SIDKeyGenerator? m_Instance;
         private short m_SIDMin = 0;
         private int m_SIDMax = 65535;
         private int[,] m_ScatterTable = new int[16, 2]
@@ -145,18 +145,18 @@ namespace MultiServer.CryptoSporidium.ChannelID
 
         public static SIDKeyGenerator Instance
         {
-          get
-          {
-            if (m_Instance == null)
-              m_Instance = new();
-            return m_Instance;
-          }
+            get
+            {
+                if (m_Instance == null)
+                    m_Instance = new();
+                return m_Instance;
+            }
         }
 
         public short MinSID
         {
-          get => m_SIDMin;
-          set => m_SIDMin = value;
+            get => m_SIDMin;
+            set => m_SIDMin = value;
         }
 
         public int MaxSID
@@ -167,19 +167,19 @@ namespace MultiServer.CryptoSporidium.ChannelID
 
         public SceneKey Generate(ushort SceneID)
         {
-          byte[] bytes1 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
-          byte[] bytes2 = BitConverter.GetBytes(SceneID);
-          byte[] bytes3 = SceneKey.New().GetBytes();
-          int index1 = (int) bytes3[0] & 15;
-          int index2 = m_ScatterTable[index1, 0];
-          int index3 = m_ScatterTable[index1, 1];
-          bytes3[index2] = bytes2[0];
-          bytes3[index3] = bytes2[1];
-          byte[] numArray = new byte[16];
-          new BitArray(bytes3).Xor(new BitArray(bytes1)).CopyTo(numArray, 0);
-          byte num = CRC.Create(numArray, 0, 15);
-          numArray[15] = num;
-          return new SceneKey(numArray);
+            byte[] bytes1 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
+            byte[] bytes2 = BitConverter.GetBytes(SceneID);
+            byte[] bytes3 = SceneKey.New().GetBytes();
+            int index1 = (int) bytes3[0] & 15;
+            int index2 = m_ScatterTable[index1, 0];
+            int index3 = m_ScatterTable[index1, 1];
+            bytes3[index2] = bytes2[0];
+            bytes3[index3] = bytes2[1];
+            byte[] numArray = new byte[16];
+            new BitArray(bytes3).Xor(new BitArray(bytes1)).CopyTo(numArray, 0);
+            byte num = CRC.Create(numArray, 0, 15);
+            numArray[15] = num;
+            return new SceneKey(numArray);
         }
 
         public SceneKey GenerateNewerType(ushort SceneID)
@@ -202,17 +202,17 @@ namespace MultiServer.CryptoSporidium.ChannelID
 
         public ushort ExtractSceneID(SceneKey Key)
         {
-          byte[] bytes1 = Key.GetBytes();
-          byte[] bytes2 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
-          byte[] numArray = new byte[16];
-          new BitArray(bytes1).Xor(new BitArray(bytes2)).CopyTo(numArray, 0);
-          int index1 = (int) numArray[0] & 15;
-          int index2 = m_ScatterTable[index1, 0];
-          int index3 = m_ScatterTable[index1, 1];
-          ushort sceneID = (ushort) ((uint) numArray[index2] | (uint) numArray[index3] << 8);
-          if ((int) sceneID < (int) m_SIDMin || (int)sceneID > m_SIDMax)
-            throw new InvalidSceneIDException(Key, sceneID);
-          return sceneID;
+            byte[] bytes1 = Key.GetBytes();
+            byte[] bytes2 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
+            byte[] numArray = new byte[16];
+            new BitArray(bytes1).Xor(new BitArray(bytes2)).CopyTo(numArray, 0);
+            int index1 = (int) numArray[0] & 15;
+            int index2 = m_ScatterTable[index1, 0];
+            int index3 = m_ScatterTable[index1, 1];
+            ushort sceneID = (ushort) ((uint) numArray[index2] | (uint) numArray[index3] << 8);
+            if ((int) sceneID < (int) m_SIDMin || (int)sceneID > m_SIDMax)
+                throw new InvalidSceneIDException(Key, sceneID);
+            return sceneID;
         }
 
         public ushort ExtractSceneIDNewerType(SceneKey Key)
@@ -232,10 +232,10 @@ namespace MultiServer.CryptoSporidium.ChannelID
 
         public void Verify(SceneKey Key)
         {
-          byte[] data = !(Key.ToString() == "00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
-          byte num = data[15];
-          if ((int) CRC.Create(data, 0, 15) != (int) num)
-            throw new InvalidSceneIDKeyException(Key);
+            byte[] data = !(Key.ToString() == "00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
+            byte num = data[15];
+            if ((int) CRC.Create(data, 0, 15) != (int) num)
+                throw new InvalidSceneIDKeyException(Key);
         }
 
         public void VerifyNewerKey(SceneKey Key)
@@ -245,23 +245,5 @@ namespace MultiServer.CryptoSporidium.ChannelID
             if (CRC16.CalcCcittCRC16(data, 14) != crc16Value)
                 throw new InvalidSceneIDKeyException(Key);
         }
-
-        /*public byte[] ConvertGuidStringToBinary(string guidString) // Thanks to Home eboot reversing
-        {
-            string sanitizedInput = guidString.Replace("-", ""); // Remove hyphens
-
-            // Check if the string length is even (each byte is represented by two hex characters)
-            if (sanitizedInput.Length % 2 != 0)
-            {
-                ServerConfiguration.LogError("Invalid input length.");
-                return null;
-            }
-
-            byte[] byteArray = Enumerable.Range(0, sanitizedInput.Length / 2)
-                .Select(x => Convert.ToByte(sanitizedInput.Substring(x * 2, 2), 16))
-                .ToArray();
-
-            return byteArray;
-        }*/
     }
 }

@@ -1,11 +1,11 @@
-﻿using System.Buffers.Binary;
-using System.Text;
+using CustomLogger;
+using System.Buffers.Binary;
 
-namespace MultiServer.CryptoSporidium
+namespace CryptoSporidium
 {
     public class EDGELZMA
     {
-        public static byte[] Compress(byte[] data, bool TLZC)
+        public byte[] Compress(byte[] data, bool TLZC)
         {
             if (TLZC)
                 return new EDGE().Compress(data, true);
@@ -13,7 +13,7 @@ namespace MultiServer.CryptoSporidium
                 return new EDGE().Compress(data, false);
         }
 
-        public static byte[] Decompress(byte[] data)
+        public byte[] Decompress(byte[] data)
         {
             return new EDGE().Decompress(data);
         }
@@ -95,7 +95,7 @@ namespace MultiServer.CryptoSporidium
                     int streamSize = (int)(result.Length - preLength);
                     if (streamSize >= 0x10000)
                     {
-                        ServerConfiguration.LogDebug("[EdgeLzma] - Warning - Stream did not compress.");
+                        LoggerAccessor.LogDebug("[EdgeLzma] - Warning - Stream did not compress.");
                         result.Position = preLength;
                         result.SetLength(preLength);
                         result.Write(buffer, offset, Math.Min(inSize, 0x10000));
@@ -118,7 +118,9 @@ namespace MultiServer.CryptoSporidium
                 else // EdgeLZMA Version 5.
                 {
                     result.Position = 6;
-                    bw.Write(endianSwap(BitConverter.GetBytes(segmentnumber)));
+                    Utils? utils = new();
+                    bw.Write(utils.endianSwap(BitConverter.GetBytes(segmentnumber)));
+                    utils = null;
 
                     result.Position = 8;
                     bw.Write(BinaryPrimitives.ReverseEndianness(buffer.Length));
@@ -172,19 +174,6 @@ namespace MultiServer.CryptoSporidium
                 }
 
                 return result.ToArray();
-            }
-
-            public static byte[] endianSwap(byte[] input)
-            {
-                int length = input.Length;
-                byte[] swapped = new byte[length];
-
-                for (int i = 0; i < length; i++)
-                {
-                    swapped[i] = input[length - i - 1];
-                }
-
-                return swapped;
             }
         }
     }

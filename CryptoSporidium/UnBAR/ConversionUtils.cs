@@ -1,27 +1,28 @@
-﻿using System.Numerics;
+using CustomLogger;
+using System.Numerics;
 
-namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class ConversionUtils
     {
         private static byte[] HEX_CHAR_TABLE = new byte[16]
         {
-       48,
-       49,
-       50,
-       51,
-       52,
-       53,
-       54,
-       55,
-       56,
-       57,
-       97,
-       98,
-       99,
-       100,
-       101,
-       102
+           48,
+           49,
+           50,
+           51,
+           52,
+           53,
+           54,
+           55,
+           56,
+           57,
+           97,
+           98,
+           99,
+           100,
+           101,
+           102
         };
 
         public static BigInteger be64(byte[] buffer, int initOffset)
@@ -136,7 +137,12 @@ namespace MultiServer.CryptoSporidium.UnBAR
         protected static int toDigit(char ch, int index)
         {
             int integerValue = GetIntegerValue(ch, 16);
-            return integerValue != -1 ? integerValue : throw new Exception("Illegal hexadecimal character " + ch.ToString() + " at index " + index.ToString());
+            if (integerValue != -1)
+                return integerValue;
+            else
+                LoggerAccessor.LogError("Illegal hexadecimal character " + ch.ToString() + " at index " + index.ToString());
+
+            return -1;
         }
     }
 }

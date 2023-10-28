@@ -1,6 +1,6 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 
-namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class AESCBC128Decrypt : Decryptor
     {

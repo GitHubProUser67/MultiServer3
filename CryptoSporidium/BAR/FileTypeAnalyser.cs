@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public class FileTypeAnalyser
     {
@@ -123,7 +123,7 @@ namespace MultiServer.CryptoSporidium.BAR
             }
             catch (Exception)
             {
-                throw;
+                result = HomeFileType.Unknown;
             }
             return result;
         }

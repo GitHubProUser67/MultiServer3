@@ -1,43 +1,46 @@
-﻿using System.Net;
+using CustomLogger;
+using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
-namespace MultiServer.MitmDNS
+namespace MitmDNS
 {
     public class MitmDNSProcessor
     {
         public static bool DnsStarted = false;
-        public static bool FireEvents = false;
-        public static bool DenyNotInRules = false;
-        public static event ConnectionRequestHandler ConnectionRequest;
-        public static event ResolvedIpHandler ResolvedIp;
+        public bool FireEvents = false;
+        public bool DenyNotInRules = false;
+        public event ConnectionRequestHandler? ConnectionRequest;
+        public event ResolvedIpHandler? ResolvedIp;
         public delegate void ServerReadyHandler(Dictionary<string, string> e);
         public delegate void ConnectionRequestHandler(DnsConnectionRequestEventArgs e);
         public delegate void ResolvedIpHandler(DnsEventArgs e);
         public delegate void SocketExceptionHandler(SocketException ex);
-        public static Dictionary<string, DnsSettings> dicRules = new Dictionary<string, DnsSettings>();
-        public static List<KeyValuePair<string, DnsSettings>> regRules = new List<KeyValuePair<string, DnsSettings>>();
-        public static IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
+        public Dictionary<string, DnsSettings> dicRules = new Dictionary<string, DnsSettings>();
+        public List<KeyValuePair<string, DnsSettings>> regRules = new List<KeyValuePair<string, DnsSettings>>();
+        public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
-        private static Socket soc = null;
-        private static EndPoint endpoint = null;
+        private static Socket? soc = null;
+        private static EndPoint? endpoint = null;
 
-        public static void RunDns()
+        public Task RunDns()
         {
             if (setup())
             {
-                ServerConfiguration.LogInfo($"[DNS] - Server started on port {ServerConfiguration.DNSPort}");
+                LoggerAccessor.LogInfo($"[DNS] - Server started on port 53");
 
                 DnsStarted = true;
 
                 _ = Task.Run(DnsMainLoop);
             }
+
+            return Task.CompletedTask;
         }
 
-        public static bool setup()
+        public bool setup()
         {
             soc = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            endpoint = new IPEndPoint(IPAddress.Any, ServerConfiguration.DNSPort);
+            endpoint = new IPEndPoint(IPAddress.Any, 53);
             soc.ReceiveBufferSize = 1023;
             try
             {
@@ -46,27 +49,31 @@ namespace MultiServer.MitmDNS
             }
             catch (SocketException)
             {
-                ServerConfiguration.LogError($"[DNS] - Server failed to start - Couldn't bind to port {ServerConfiguration.DNSPort}.\r\nIt may be already in use, on windows check with \"netstat -ano\" or disable HyperV " +
+                LoggerAccessor.LogError($"[DNS] - Server failed to start - Couldn't bind to port 53.\r\nIt may be already in use, on windows check with \"netstat -ano\" or disable HyperV " +
                 $"(known to cause conflicts)\r\nIf you're on linux make sure to run with sudo");
                 return false;
             }
         }
 
-        public static Task DnsMainLoop()
+        public Task DnsMainLoop()
         {
+            CryptoSporidium.Utils? utils = new();
+
             while (DnsStarted)
             {
                 byte[] data = new byte[1024];
                 soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
-                data = Misc.TrimArray(data);
+                data = utils.TrimArray(data);
 
                 procRequest(data);
             }
 
+            utils = null;
+
             return Task.CompletedTask;
         }
 
-        public static void procRequest(byte[] data)
+        public void procRequest(byte[] data)
         {
             string fullname = string.Join(".", GetName(data).ToArray());
             if (FireEvents && ConnectionRequest != null)
@@ -137,28 +144,30 @@ namespace MultiServer.MitmDNS
             }
         }
 
-        public static List<string> GetName(byte[] Req)
+        public List<string> GetName(byte[] Req)
         {
             List<string> addr = new List<string>();
             int type = (Req[2] >> 3) & 0xF;
             if (type == 0)
             {
+                CryptoSporidium.Utils? utils = new();
                 int lenght = Req[12];
                 int i = 12;
                 while (lenght > 0)
                 {
                     byte[] tmp = new byte[i + lenght];
                     Buffer.BlockCopy(Req, i + 1, tmp, 0, lenght);
-                    string partialaddr = Misc.TrimString(tmp);
+                    string partialaddr = utils.TrimString(tmp);
                     if (partialaddr != null) addr.Add(partialaddr);
                     i += (lenght + 1);
                     lenght = Req[i];
                 }
+                utils = null;
             }
             return addr;
         }
 
-        public static byte[] MakeResponsePacket(byte[] Req, IPAddress Ip)
+        public byte[] MakeResponsePacket(byte[] Req, IPAddress Ip)
         {
             List<byte> ans = new List<byte>();
             //http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf

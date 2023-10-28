@@ -1,12 +1,13 @@
-﻿using MultiServer.Addons.Org.BouncyCastle.Crypto.Parameters;
-using MultiServer.Addons.Org.BouncyCastle.Crypto;
-using MultiServer.Addons.Org.BouncyCastle.Security;
+﻿using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 using System.Security.Cryptography;
 using System.Text;
+using CustomLogger;
 
-namespace MultiServer.CryptoSporidium.FileHelper
+namespace CryptoSporidium.FileHelper
 {
-    internal class FileHelperCryptoClass
+    public class FileHelperCryptoClass
     {
         /// <summary>
         /// Gets an encryption key from rave secret key.
@@ -41,8 +42,12 @@ namespace MultiServer.CryptoSporidium.FileHelper
             return Encoding.UTF8.GetString(combineKey);
         }
 
-        public static byte[] EncryptData(string encryptionKey, byte[] data)
+        public static byte[]? EncryptData(string encryptionKey, byte[] data)
         {
+            Utils? utils = new();
+            CustomXTEA? xtea = new();
+            byte[]? encryptedDataBytes = null;
+
             try
             {
                 byte[] xteakey = new byte[16];
@@ -57,36 +62,43 @@ namespace MultiServer.CryptoSporidium.FileHelper
                 Array.Copy(des.Key, 0, xteakey, 0, xteakey.Length);
 
                 ICryptoTransform cryptoTransform = des.CreateEncryptor();
-                byte[] encryptedDataBytes = cryptoTransform.TransformFinalBlock(data, 0, data.Length);
+                encryptedDataBytes = cryptoTransform.TransformFinalBlock(data, 0, data.Length);
 
-                // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
+                cryptoTransform.Dispose();
 
-                cipheredkey = InitiateCustomXTEACipheredKey(xteakey, Misc.ReverseByteArray(xteakey));
+                // TripleDes is improved with a custom crypto on top.
+
+                cipheredkey = InitiateCustomXTEACipheredKey(xteakey, utils.ReverseByteArray(xteakey));
 
                 if (cipheredkey != null)
                 {
                     byte[] outfile = new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 };
 
-                    byte[] cipheredbytes = CustomXTEA.Encrypt(encryptedDataBytes, cipheredkey);
+                    byte[]? cipheredbytes = xtea.Encrypt(encryptedDataBytes, cipheredkey);
 
                     if (cipheredbytes != null)
-                        encryptedDataBytes = Misc.Combinebytearay(outfile, cipheredbytes);
+                        encryptedDataBytes = utils.Combinebytearay(outfile, cipheredbytes);
                 }
 
                 des.Dispose();
-
-                return encryptedDataBytes;
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogInfo($"[FileHelperCryptoClass] : has throw an exception in EncryptData - {ex}");
+                LoggerAccessor.LogInfo($"[FileHelperCryptoClass] : has throw an exception in EncryptData - {ex}");
             }
 
-            return null;
+            utils = null;
+            xtea = null;
+
+            return encryptedDataBytes;
         }
 
-        public static byte[] DecryptData(byte[] encryptedData, string encryptionKey)
+        public static byte[]? DecryptData(byte[] encryptedData, string encryptionKey)
         {
+            Utils? utils = new();
+            CustomXTEA? xtea = new();
+            byte[]? plainDataBytes = null;
+
             try
             {
                 TripleDES des = TripleDES.Create();
@@ -98,7 +110,7 @@ namespace MultiServer.CryptoSporidium.FileHelper
 
                 Array.Copy(encryptedData, 0, firstSixBytes, 0, firstSixBytes.Length);
 
-                if (Misc.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
+                if (utils.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
                 {
                     byte[] xteakey = new byte[16];
 
@@ -108,7 +120,7 @@ namespace MultiServer.CryptoSporidium.FileHelper
 
                     // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, Misc.ReverseByteArray(xteakey));
+                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, utils.ReverseByteArray(xteakey));
 
                     if (cipheredkey != null)
                     {
@@ -116,34 +128,45 @@ namespace MultiServer.CryptoSporidium.FileHelper
 
                         Array.Copy(encryptedData, 6, dst, 0, dst.Length);
 
-                        encryptedData = CustomXTEA.Decrypt(dst, cipheredkey);
+                        encryptedData = xtea.Decrypt(dst, cipheredkey);
 
                         if (encryptedData == null)
+                        {
+                            utils = null;
+                            xtea = null;
                             return null;
+                        }
                     }
                     else
+                    {
+                        utils = null;
+                        xtea = null;
                         return null;
+                    }
                 }
 
                 ICryptoTransform cryptoTransform = des.CreateDecryptor();
-                byte[] plainDataBytes = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+                plainDataBytes = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+
+                cryptoTransform.Dispose();
 
                 des.Dispose();
-
-                return plainDataBytes;
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogInfo($"[FileHelperCryptoClass] : has throw an exception in DecryptData - {ex}");
+                LoggerAccessor.LogInfo($"[FileHelperCryptoClass] : has throw an exception in DecryptData - {ex}");
             }
 
-            return null;
+            utils = null;
+            xtea = null;
+
+            return plainDataBytes;
         }
 
         public static byte[] InitiateCustomXTEACipheredKey(byte[] KeyBytes, byte[] Key)
         {
             // Create the cipher
-            IBufferedCipher cipher = CipherUtilities.GetCipher("AES/ECB/NOPADDING");
+            IBufferedCipher? cipher = CipherUtilities.GetCipher("AES/ECB/NOPADDING");
 
             cipher.Init(true, new KeyParameter(Key));
 
@@ -151,6 +174,8 @@ namespace MultiServer.CryptoSporidium.FileHelper
             byte[] ciphertextBytes = new byte[cipher.GetOutputSize(KeyBytes.Length)];
             int ciphertextLength = cipher.ProcessBytes(KeyBytes, 0, KeyBytes.Length, ciphertextBytes, 0);
             cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+            cipher = null;
 
             return ciphertextBytes;
         }

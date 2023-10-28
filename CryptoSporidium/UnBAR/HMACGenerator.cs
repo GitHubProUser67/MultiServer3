@@ -1,6 +1,7 @@
-﻿using System.Security.Cryptography;
+using CustomLogger;
+using System.Security.Cryptography;
 
-namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class HMACGenerator : HashGenerator
     {
@@ -18,7 +19,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogError($"[HMACGenerator] - doInit thrown an exception {ex}");
+                LoggerAccessor.LogError($"[HMACGenerator] - doInit thrown an exception {ex}");
             }
         }
 

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace MultiServer.CryptoSporidium.ChannelID
+namespace CryptoSporidium.ChannelID
 {
   public class SceneKey
   {

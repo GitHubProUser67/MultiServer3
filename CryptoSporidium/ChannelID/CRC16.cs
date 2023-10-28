@@ -1,4 +1,4 @@
-﻿namespace MultiServer.CryptoSporidium.ChannelID
+namespace CryptoSporidium.ChannelID
 {
     public class CRC16
     {

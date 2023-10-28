@@ -1,6 +1,7 @@
-﻿using System.Security.Cryptography;
+using CustomLogger;
+using System.Security.Cryptography;
 
-namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class HMAC : Hash
     {
@@ -18,7 +19,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogError($"[UnBAR] - HMACSHA1 Failed - {ex}");
+                LoggerAccessor.LogError($"[UnBAR] - HMACSHA1 Failed - {ex}");
             }
         }
 

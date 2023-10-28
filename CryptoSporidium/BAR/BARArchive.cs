@@ -1,3 +1,5 @@
+using CustomLogger;
+using CryptoSporidium.UnBAR;
 using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
@@ -5,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
 
     public class BARArchive
@@ -159,7 +161,7 @@ namespace MultiServer.CryptoSporidium.BAR
             else if (options == BARAddFileOptions.Default)
             {
                 string a = Path.GetExtension(filePath).ToLower();
-                if (a == ".mp3" || a == ".mp4" || a == ".bar")
+                if (a == ".mp3" || a == ".mp4" || a == ".bar" || a == ".sharc")
                     result = false;
             }
             return result;
@@ -215,6 +217,9 @@ namespace MultiServer.CryptoSporidium.BAR
                 if (ReadHeader(dataReadStream))
                 {
                     uint num = 20U;
+                    if (m_header.Version == 512)
+                        num = 52U;
+
                     bool flag = (ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1;
                     if (flag)
                     {
@@ -225,16 +230,33 @@ namespace MultiServer.CryptoSporidium.BAR
                         CompressionMethod method = CompressionMethod.ZLib;
                         byte[] buffer = CompressionFactory.Decompress(inData, method, m_header.Flags);
                         MemoryStream inStream = new MemoryStream(buffer);
-                        ReadTOC(inStream, m_endian);
-                        m_toc.CompressedSize = num2;
-                        uint num3 = (uint)Utils.GetFourByteAligned((long)(ulong)num2) - num2;
-                        uint num4 = num2 + 4U + num3;
-                        num += num4;
+                        if (ReadTOC(inStream, m_endian))
+                        {
+                            m_toc.CompressedSize = num2;
+                            uint num3 = (uint)Utils.GetFourByteAligned((long)(ulong)num2) - num2;
+                            uint num4 = num2 + 4U + num3;
+                            num += num4;
+                        }
+                        else
+                        {
+                            dataReadStream.Close();
+                            return false;
+                        }
                     }
                     else
                     {
-                        ReadTOC(dataReadStream, m_endian);
-                        num += m_toc.Size;
+                        if (ReadTOC(dataReadStream, m_endian))
+                        {
+                            if (m_header.Version == 512)
+                                num += m_toc.Version2Size;
+                            else
+                                num += m_toc.Size;
+                        }
+                        else
+                        {
+                            dataReadStream.Close();
+                            return false;
+                        }
                     }
                     ProgressMessage("Loading file data", new object[0]);
                     foreach (object obj in m_toc)
@@ -242,7 +264,7 @@ namespace MultiServer.CryptoSporidium.BAR
                         TOCEntry tocentry = (TOCEntry)obj;
                         dataReadStream.Seek((long)(ulong)(num + tocentry.DataOffset), SeekOrigin.Begin);
                         EndianAwareBinaryReader endianAwareBinaryReader3 = EndianAwareBinaryReader.Create(dataReadStream, EndianType.LittleEndian);
-                        byte[] array;
+                        byte[] array = null;
                         if (tocentry.CompressedSize <= 4194304UL)
                             array = endianAwareBinaryReader3.ReadBytes((int)tocentry.CompressedSize);
                         else
@@ -262,10 +284,13 @@ namespace MultiServer.CryptoSporidium.BAR
                     ok = true;
                 }
             }
-            finally
+            catch (Exception ex)
             {
-                dataReadStream.Close();
+                LoggerAccessor.LogError($"[BARArchive - An Error happened when processing data - {ex}]");
+                ok = false;
             }
+
+            dataReadStream.Close();
 
             if (ok)
                 return true;
@@ -296,11 +321,18 @@ namespace MultiServer.CryptoSporidium.BAR
         {
             foreach (object obj in m_toc)
             {
-                TOCEntry tocentry = (TOCEntry)obj;
-                byte[] data = tocentry.GetData(m_header.Flags);
-                MemoryStream memoryStream = new MemoryStream(data);
-                tocentry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
-                memoryStream.Close();
+                try
+                {
+                    TOCEntry tocentry = (TOCEntry)obj;
+                    byte[] data = tocentry.GetData(m_header.Flags);
+                    MemoryStream memoryStream = new MemoryStream(data);
+                    tocentry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                    memoryStream.Close();
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[BARArchive] - Failed to Analyse File - {ex}");
+                }
             }
         }
 
@@ -346,7 +378,10 @@ namespace MultiServer.CryptoSporidium.BAR
                 string value = Path.Combine(Path.GetDirectoryName(mapFileName), Path.GetFileNameWithoutExtension(mapFileName));
                 textWriter.WriteLine(value);
                 textWriter.WriteLine("\n== Header ==");
-                textWriter.WriteLine("size: {0}", 20U);
+                if (m_header.Version == 512)
+                    textWriter.WriteLine("size: {0}", 52U);
+                else
+                    textWriter.WriteLine("size: {0}", 20U);
                 uint num = 0U;
                 textWriter.WriteLine("{0:X8} Magic: {1:X4}", num, m_header.Magic);
                 num += 4U;
@@ -354,38 +389,68 @@ namespace MultiServer.CryptoSporidium.BAR
                 num += 4U;
                 textWriter.WriteLine("{0:X8} Priority: {1:X8}", num, m_header.Priority);
                 num += 4U;
+                if (m_header.Version == 512)
+                {
+                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, new CryptoSporidium.Utils().ByteArrayToHexString(m_header.IV));
+                    num += 16U;
+                }
                 textWriter.WriteLine("{0:X8} User: {1}", num, m_header.UserData);
                 num += 4U;
                 textWriter.WriteLine("{0:X8} Number of files: {1}", num, m_header.NumFiles);
                 num += 4U;
+                if (m_header.Version == 512)
+                {
+                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, new CryptoSporidium.Utils().ByteArrayToHexString(m_header.Key));
+                    num += 16U;
+                }
                 textWriter.WriteLine("\n== Table of Contents ==");
                 if ((ushort)(GetHeader().Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1)
                     textWriter.WriteLine("size: {0} (compressed)", m_toc.CompressedSize);
                 else
-                    textWriter.WriteLine("size: {0}", m_toc.Size);
+                {
+                    if (m_header.Version == 512)
+                        textWriter.WriteLine("size: {0}", m_toc.Version2Size);
+                    else
+                        textWriter.WriteLine("size: {0}", m_toc.Size);
+                }
                 foreach (object obj in m_toc)
                 {
                     TOCEntry tocentry = (TOCEntry)obj;
-                    if ((ushort)(GetHeader().Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1)
+                    if (m_header.Version == 512)
                     {
-                        textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3}", new object[]
+                        textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3} IV={4}", new object[]
                         {
+                        num,
+                        tocentry.Path,
+                        (uint)tocentry.FileName.Value,
+                        tocentry.Size,
+                        new CryptoSporidium.Utils().ByteArrayToHexString(tocentry.IV)
+                        });
+                        num += 24U;
+                    }
+                    else
+                    {
+                        if ((ushort)(GetHeader().Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1)
+                        {
+                            textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3}", new object[]
+                            {
                             0,
                             tocentry.Path,
                             (uint)tocentry.FileName.Value,
                             tocentry.Size
-                        });
-                    }
-                    else
-                    {
-                        textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3}", new object[]
+                            });
+                        }
+                        else
                         {
+                            textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3}", new object[]
+                            {
                             num,
                             tocentry.Path,
                             (uint)tocentry.FileName.Value,
                             tocentry.Size
-                        });
-                        num += 16U;
+                            });
+                            num += 16U;
+                        }
                     }
                 }
                 textWriter.WriteLine("\n== File Data ==");
@@ -413,13 +478,18 @@ namespace MultiServer.CryptoSporidium.BAR
             }
         }
 
-        private void WriteMap(string BARFileName)
+        public void WriteMap(string BARFileName)
         {
             string mapFileName;
             if (KeepExtension)
                 mapFileName = BARFileName + ".map";
             else
-                mapFileName = Path.ChangeExtension(BARFileName, ".bar") + ".map";
+            {
+                if (m_header.Version == 512)
+                    mapFileName = Path.ChangeExtension(BARFileName, ".sharc") + ".map";
+                else
+                    mapFileName = Path.ChangeExtension(BARFileName, ".bar") + ".map";
+            }
             WriteMapAs(mapFileName);
         }
 
@@ -429,7 +499,7 @@ namespace MultiServer.CryptoSporidium.BAR
             m_header.Magic = endianAwareBinaryReader.ReadUInt32();
             if (m_header.Magic != 2918127585U)
             {
-                ServerConfiguration.LogWarn("File is not a BAR File or the header is corrupt", m_sourceFile);
+                LoggerAccessor.LogWarn("File is not a BAR File or the header is corrupt", m_sourceFile);
                 return false;
             }
             uint num = endianAwareBinaryReader.ReadUInt32();
@@ -439,20 +509,29 @@ namespace MultiServer.CryptoSporidium.BAR
             m_header.Version = version;
             if (m_header.Version <= 256)
             {
-                ServerConfiguration.LogInfo("BAR Version 1 Detected", m_sourceFile);
+                LoggerAccessor.LogInfo("BAR Version 1 Detected", m_sourceFile);
                 m_header.Priority = endianAwareBinaryReader.ReadInt32();
                 m_header.UserData = endianAwareBinaryReader.ReadInt32();
                 m_header.NumFiles = endianAwareBinaryReader.ReadUInt32();
             }
-            if (m_header.Version == 512) // SHARC.
+            if (m_header.Version == 512)
             {
-                ServerConfiguration.LogInfo("BAR Version 2 Detected - Not Supported via loadbar", m_sourceFile);
-
-                return false;
+                LoggerAccessor.LogInfo("BAR Version 2 Detected", m_sourceFile);
+                if (m_endian == EndianType.BigEndian)
+                    m_header.IV = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(endianAwareBinaryReader.ReadBytes(16), 4);
+                else
+                    m_header.IV = endianAwareBinaryReader.ReadBytes(16);
+                m_header.Priority = endianAwareBinaryReader.ReadInt32();
+                m_header.UserData = endianAwareBinaryReader.ReadInt32();
+                m_header.NumFiles = endianAwareBinaryReader.ReadUInt32();
+                if (m_endian == EndianType.BigEndian)
+                    m_header.Key = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(endianAwareBinaryReader.ReadBytes(16), 4);
+                else
+                    m_header.Key = endianAwareBinaryReader.ReadBytes(16);
             }
             else if (m_header.Version > 512)
             {
-                ServerConfiguration.LogWarn("Invalid BAR File Version", m_sourceFile);
+                LoggerAccessor.LogWarn("Invalid BAR File Version", m_sourceFile);
                 return false;
             }
             SendOrPostCallback d = delegate (object sender)
@@ -466,31 +545,53 @@ namespace MultiServer.CryptoSporidium.BAR
             return true;
         }
 
-        private void ReadTOC(Stream inStream, EndianType endian)
+        private bool ReadTOC(Stream inStream, EndianType endian)
         {
-            ProgressMessage("Loading Table of Contents", new object[0]);
-            EndianAwareBinaryReader endianAwareBinaryReader = EndianAwareBinaryReader.Create(inStream, endian);
-            m_toc.Clear();
-            int num = 0;
-            while (num < (long)(ulong)m_header.NumFiles)
+            bool isok = true;
+            try
             {
-                int fileName = endianAwareBinaryReader.ReadInt32();
-                uint num2 = endianAwareBinaryReader.ReadUInt32();
-                uint offset = num2 & 4294967292U;
-                uint num3 = num2 & 3U;
-                CompressionMethod compression = (CompressionMethod)num3;
-                uint size = endianAwareBinaryReader.ReadUInt32();
-                uint compressedSize = endianAwareBinaryReader.ReadUInt32();
-                TOCEntry tocentry = new TOCEntry(fileName, size, compressedSize, offset);
-                tocentry.Compression = compression;
-                tocentry.Index = num;
-                m_toc.Add(tocentry);
-                ProgressMessage("Loaded file {0}", new object[]
+                ProgressMessage("Loading Table of Contents", new object[0]);
+                EndianAwareBinaryReader endianAwareBinaryReader = EndianAwareBinaryReader.Create(inStream, endian);
+                m_toc.Clear();
+                int num = 0;
+                while (num < (long)(ulong)m_header.NumFiles)
                 {
-                    ((int)tocentry.FileName).ToString("X")
-                });
-                num++;
+                    int fileName = endianAwareBinaryReader.ReadInt32();
+                    uint num2 = endianAwareBinaryReader.ReadUInt32();
+                    uint offset = num2 & 4294967292U;
+                    uint num3 = num2 & 3U;
+                    CompressionMethod compression = (CompressionMethod)num3;
+                    uint size = endianAwareBinaryReader.ReadUInt32();
+                    uint compressedSize = endianAwareBinaryReader.ReadUInt32();
+                    TOCEntry tocentry = null;
+                    if (m_header.Version == 512)
+                    {
+                        byte[] IV = null;
+                        if (m_endian == EndianType.BigEndian)
+                            IV = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(endianAwareBinaryReader.ReadBytes(8), 4);
+                        else
+                            IV = endianAwareBinaryReader.ReadBytes(8);
+                        tocentry = new TOCEntry(fileName, size, compressedSize, offset, IV);
+                    }
+                    else
+                        tocentry = new TOCEntry(fileName, size, compressedSize, offset);
+                    tocentry.Compression = compression;
+                    tocentry.Index = num;
+                    m_toc.Add(tocentry);
+                    ProgressMessage("Loaded file {0}", new object[]
+                    {
+                        ((int)tocentry.FileName).ToString("X")
+                    });
+                    num++;
+                }
             }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[BARArchive] - ReadTOC Failed with error - {ex}");
+                isok = false;
+            }
+
+            return isok;
         }
 
         private void WriteHeader(EndianAwareBinaryWriter writer)
@@ -508,7 +609,10 @@ namespace MultiServer.CryptoSporidium.BAR
         {
             string text = GetInBARPath(filePath).Trim();
             if (!m_allowWhitespaceInFilenames && text.Contains(" "))
-                throw new ArgumentException(string.Format("File paths cannot contain whitespace: {0}", text));
+            {
+                LoggerAccessor.LogError(string.Format("File paths cannot contain whitespace: {0}", text));
+                return null;
+            }
             AfsHash afsHash = new AfsHash(text);
             bool flag = false;
             int num;
@@ -533,7 +637,7 @@ namespace MultiServer.CryptoSporidium.BAR
         {
             CompressionMethod compressionMethod = compress ? DefaultCompression : CompressionMethod.Uncompressed;
             byte[] array = new byte[(int)inStream.Length];
-            byte[] array2 = array;
+            byte[]? array2 = array;
             tocEntry.Size = (uint)inStream.Length;
             if (inStream.Length == 0L)
                 compressionMethod = CompressionMethod.Uncompressed;
@@ -552,14 +656,35 @@ namespace MultiServer.CryptoSporidium.BAR
                     }
                 }
             }
-            tocEntry.Compression = compressionMethod;
-            tocEntry.CompressedSize = (uint)array2.Length;
-            MemoryStream memoryStream = new MemoryStream(array);
-            tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
-            memoryStream.Close();
-            int count = (int)m_toc.Count;
-            tocEntry.Index = count;
-            tocEntry.RawData = array2;
+
+            if (m_header.Version == 512)
+            {
+                tocEntry.CompressedSize = (uint)array2.Length;
+                using (MemoryStream memoryStream = new MemoryStream(array))
+                {
+                    tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                    memoryStream.Close();
+                }
+                array2 = new LIBSECURE().ProcessXTEABlocks(array2, m_header.Key, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                tocEntry.Compression = CompressionMethod.Encrypted;
+                int count = (int)m_toc.Count;
+                tocEntry.Index = count;
+                tocEntry.RawData = array2;
+                tocEntry.IV = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            }
+            else
+            {
+                tocEntry.Compression = compressionMethod;
+                tocEntry.CompressedSize = (uint)array2.Length;
+                using (MemoryStream memoryStream = new MemoryStream(array))
+                {
+                    tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                    memoryStream.Close();
+                }
+                int count = (int)m_toc.Count;
+                tocEntry.Index = count;
+                tocEntry.RawData = array2;
+            }
         }
 
         public void VerifyFileIsInDirectory(DirectoryInfo directory, string filePath)
@@ -582,7 +707,7 @@ namespace MultiServer.CryptoSporidium.BAR
                 directoryInfo2 = directoryInfo2.Parent;
             }
             if (!flag)
-                throw new FileNotFoundException(string.Format("{0} is not under the build root {1}.", filePath, directory.FullName));
+                LoggerAccessor.LogError(string.Format("{0} is not under the build root {1}.", filePath, directory.FullName));
         }
 
         public static BARArchive CreateEmpty(string resourceRoot)
@@ -623,14 +748,12 @@ namespace MultiServer.CryptoSporidium.BAR
                 {
                     AddFile(filePath, fileStream, options);
                 }
-                catch
+                catch (Exception)
                 {
-                    throw;
+                    
                 }
-                finally
-                {
-                    fileStream.Close();
-                }
+
+                fileStream.Close();
             }
         }
 
@@ -697,7 +820,7 @@ namespace MultiServer.CryptoSporidium.BAR
                 Dirty = true;
                 return;
             }
-            throw new Exception("Undelete failed - cannot find specified file");
+            LoggerAccessor.LogError("Undelete failed - cannot find specified file");
         }
 
         public void Load()
@@ -721,31 +844,35 @@ namespace MultiServer.CryptoSporidium.BAR
             }
             catch (BARLoadException)
             {
-                throw;
+                LoggerAccessor.LogError("[LoadAsync] - Failed to load BAR.");
             }
         }
 
         public void LoadCompleted(IAsyncResult ar)
         {
             LoadBARDelegate loadBARDelegate = (LoadBARDelegate)ar.AsyncState;
-            try
+
+            if (loadBARDelegate != null)
             {
-                loadBARDelegate.EndInvoke(ar);
-                SendOrPostCallback d = delegate (object state)
+                try
                 {
-                    if (OnLoadComplete != null)
-                        OnLoadComplete(this, new BAREventArgs(m_sourceFile));
-                };
-                if (m_asyncOp != null)
-                    m_asyncOp.PostOperationCompleted(d, this);
-            }
-            catch (BARLoadException)
-            {
-                throw;
-            }
-            finally
-            {
-                EndUpdate();
+                    loadBARDelegate.EndInvoke(ar);
+                    SendOrPostCallback d = delegate (object state)
+                    {
+                        if (OnLoadComplete != null)
+                            OnLoadComplete(this, new BAREventArgs(m_sourceFile));
+                    };
+                    if (m_asyncOp != null)
+                        m_asyncOp.PostOperationCompleted(d, this);
+                }
+                catch (BARLoadException)
+                {
+                    LoggerAccessor.LogError("[LoadCompleted] - Failed to Load Complete");
+                }
+                finally
+                {
+                    EndUpdate();
+                }
             }
         }
 
@@ -754,7 +881,7 @@ namespace MultiServer.CryptoSporidium.BAR
             SaveAs(FileName);
         }
 
-        public void SaveAs(string fileName)
+        public void SaveAs(string fileName) // Version 1 only.
         {
             RunCrypto();
             Stream dataWriterStream = GetDataWriterStream(fileName);
@@ -953,31 +1080,35 @@ namespace MultiServer.CryptoSporidium.BAR
             }
             catch (Exception ex)
             {
-                throw new BARRecompressException(ex.Message, m_sourceFile);
+                LoggerAccessor.LogError(ex.Message, m_sourceFile);
             }
         }
 
         public void RecompressCompleted(IAsyncResult ar)
         {
             BarRecompressDelegate barRecompressDelegate = (BarRecompressDelegate)ar.AsyncState;
-            try
+
+            if (barRecompressDelegate != null)
             {
-                barRecompressDelegate.EndInvoke(ar);
-                SendOrPostCallback d = delegate (object state)
+                try
                 {
-                    if (OnRecompressComplete != null)
-                        OnRecompressComplete(this, new BAREventArgs(m_sourceFile));
-                };
-                if (m_asyncOp != null)
-                    m_asyncOp.PostOperationCompleted(d, this);
-            }
-            catch
-            {
-                throw;
-            }
-            finally
-            {
-                EndUpdate();
+                    barRecompressDelegate.EndInvoke(ar);
+                    SendOrPostCallback d = delegate (object state)
+                    {
+                        if (OnRecompressComplete != null)
+                            OnRecompressComplete(this, new BAREventArgs(m_sourceFile));
+                    };
+                    if (m_asyncOp != null)
+                        m_asyncOp.PostOperationCompleted(d, this);
+                }
+                catch
+                {
+                    LoggerAccessor.LogError("[RecompressCompleted] - Failed to Recompress Completed");
+                }
+                finally
+                {
+                    EndUpdate();
+                }
             }
         }
 
@@ -1039,24 +1170,28 @@ namespace MultiServer.CryptoSporidium.BAR
         public void ExtractCompleted(IAsyncResult ar)
         {
             BarExtractAllDelegate barExtractAllDelegate = (BarExtractAllDelegate)ar.AsyncState;
-            try
+
+            if (barExtractAllDelegate != null )
             {
-                barExtractAllDelegate.EndInvoke(ar);
-                SendOrPostCallback d = delegate (object state)
+                try
                 {
-                    if (OnExtractComplete != null)
-                        OnExtractComplete(this, new BAREventArgs(m_sourceFile));
-                };
-                if (m_asyncOp != null)
-                    m_asyncOp.PostOperationCompleted(d, this);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                EndUpdate();
+                    barExtractAllDelegate.EndInvoke(ar);
+                    SendOrPostCallback d = delegate (object state)
+                    {
+                        if (OnExtractComplete != null)
+                            OnExtractComplete(this, new BAREventArgs(m_sourceFile));
+                    };
+                    if (m_asyncOp != null)
+                        m_asyncOp.PostOperationCompleted(d, this);
+                }
+                catch (Exception)
+                {
+                    LoggerAccessor.LogError("[ExtractCompleted] - Failed to Extract Completed");
+                }
+                finally
+                {
+                    EndUpdate();
+                }
             }
         }
 

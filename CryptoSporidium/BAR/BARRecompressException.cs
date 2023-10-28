@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public class BARRecompressException : BARException
     {

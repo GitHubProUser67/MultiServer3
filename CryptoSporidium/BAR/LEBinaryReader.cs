@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     internal class LEBinaryReader : EndianAwareBinaryReader
     {
@@ -34,6 +34,16 @@ namespace MultiServer.CryptoSporidium.BAR
         public override uint ReadUInt32()
         {
             return m_br.ReadUInt32();
+        }
+
+        public override long ReadInt64()
+        {
+            return m_br.ReadInt64();
+        }
+
+        public override ulong ReadUInt64()
+        {
+            return m_br.ReadUInt64();
         }
     }
 }

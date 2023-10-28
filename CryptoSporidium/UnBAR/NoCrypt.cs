@@ -1,4 +1,4 @@
-﻿namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class NoCrypt : Decryptor
     {

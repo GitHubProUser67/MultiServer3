@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public class TOC
     {
@@ -164,11 +164,37 @@ namespace MultiServer.CryptoSporidium.BAR
             return memoryStream.ToArray();
         }
 
+        public byte[] GetBytesVersion2()
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
+            foreach (TOCEntry tocentry in m_entries.Values)
+            {
+                binaryWriter.Write((int)tocentry.FileName);
+                uint num = tocentry.DataOffset;
+                num |= (uint)tocentry.Compression;
+                binaryWriter.Write(num);
+                binaryWriter.Write(tocentry.Size);
+                binaryWriter.Write(tocentry.CompressedSize);
+                binaryWriter.Write(tocentry.IV);
+            }
+            binaryWriter.Close();
+            return memoryStream.ToArray();
+        }
+
         public uint Size
         {
             get
             {
                 return (uint)(m_entries.Values.Count * 16L);
+            }
+        }
+
+        public uint Version2Size
+        {
+            get
+            {
+                return (uint)(m_entries.Values.Count * 24L);
             }
         }
 

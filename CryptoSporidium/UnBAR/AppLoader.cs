@@ -1,4 +1,4 @@
-﻿namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class AppLoader
     {
@@ -8,6 +8,7 @@
 
         public bool doAll(
           int hashFlag,
+          int version,
           int cryptoFlag,
           byte[] i,
           int inOffset,
@@ -20,18 +21,18 @@
           byte[] expectedHash,
           int hashOffset)
         {
-            doInit(hashFlag, cryptoFlag, key, iv, hash);
+            doInit(hashFlag, version, cryptoFlag, key, iv, hash);
             doUpdate(i, inOffset, o, outOffset, len);
             return doFinal(expectedHash, hashOffset);
         }
 
-        public void doInit(int hashFlag, int cryptoFlag, byte[] key, byte[] iv, byte[] hashKey)
+        public void doInit(int hashFlag, int version, int cryptoFlag, byte[] key, byte[] iv, byte[] hashKey)
         {
             byte[] numArray1 = new byte[key.Length];
             byte[] numArray2 = new byte[iv.Length];
             byte[] numArray3 = new byte[hashKey.Length];
-            getCryptoKeys(cryptoFlag, numArray1, numArray2, key, iv);
-            getHashKeys(hashFlag, numArray3, hashKey);
+            getCryptoKeys(cryptoFlag, version, numArray1, numArray2, key, iv);
+            getHashKeys(hashFlag, version, numArray3, hashKey);
             setDecryptor(cryptoFlag);
             setHash(hashFlag);
             dec.doInit(numArray1, numArray2);
@@ -50,6 +51,7 @@
 
         private void getCryptoKeys(
           int cryptoFlag,
+          int version,
           byte[] calculatedKey,
           byte[] calculatedIV,
           byte[] key,
@@ -62,11 +64,17 @@
                     ConversionUtils.arraycopy(iv, 0, calculatedIV, 0L, calculatedIV.Length);
                     break;
                 case 268435456:
-                    ToolsImpl.aescbcDecrypt(EDATKeys.EDATKEY, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
+                    if (version == 4)
+                        ToolsImpl.aescbcDecrypt(EDATKeys.EDATKEY1, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
+                    else
+                        ToolsImpl.aescbcDecrypt(EDATKeys.EDATKEY0, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
                     ConversionUtils.arraycopy(iv, 0, calculatedIV, 0L, calculatedIV.Length);
                     break;
                 case 536870912:
-                    ConversionUtils.arraycopy(EDATKeys.EDATKEY, 0, calculatedKey, 0L, calculatedKey.Length);
+                    if (version == 4)
+                        ConversionUtils.arraycopy(EDATKeys.EDATKEY1, 0, calculatedKey, 0L, calculatedKey.Length);
+                    else
+                        ConversionUtils.arraycopy(EDATKeys.EDATKEY0, 0, calculatedKey, 0L, calculatedKey.Length);
                     ConversionUtils.arraycopy(EDATKeys.EDATIV, 0, calculatedIV, 0L, calculatedIV.Length);
                     break;
                 default:
@@ -74,7 +82,7 @@
             }
         }
 
-        private void getHashKeys(int hashFlag, byte[] calculatedHash, byte[] hash)
+        private void getHashKeys(int hashFlag, int version, byte[] calculatedHash, byte[] hash)
         {
             switch ((uint)(hashFlag & -268435456))
             {
@@ -82,10 +90,16 @@
                     ConversionUtils.arraycopy(hash, 0, calculatedHash, 0L, calculatedHash.Length);
                     break;
                 case 268435456:
-                    ToolsImpl.aescbcDecrypt(EDATKeys.EDATKEY, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
+                    if (version == 4)
+                        ToolsImpl.aescbcDecrypt(EDATKeys.EDATKEY1, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
+                    else
+                        ToolsImpl.aescbcDecrypt(EDATKeys.EDATKEY0, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
                     break;
                 case 536870912:
-                    ConversionUtils.arraycopy(EDATKeys.EDATHASH, 0, calculatedHash, 0L, calculatedHash.Length);
+                    if (version == 4)
+                        ConversionUtils.arraycopy(EDATKeys.EDATHASH1, 0, calculatedHash, 0L, calculatedHash.Length);
+                    else
+                        ConversionUtils.arraycopy(EDATKeys.EDATHASH0, 0, calculatedHash, 0L, calculatedHash.Length);
                     break;
                 default:
                     throw new Exception("Hash mode is not valid: Undefined keys calculator");

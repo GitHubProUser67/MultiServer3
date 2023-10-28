@@ -1,36 +1,58 @@
-﻿using MultiServer.CryptoSporidium.BAR;
-using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using CustomLogger;
+using CryptoSporidium.BAR;
 
-namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
-    internal class RunUnBAR
+    public class RunUnBAR
     {
-        public static void Run(string inputfile, string outputpath, bool edat, string options)
+        public async Task Run(string inputfile, string outputpath, bool edat, string options)
         {
+            RunUnBAR? run = new();
+
             if (edat)
-                RunDecrypt(inputfile, outputpath, options);
+                await RunDecrypt(inputfile, outputpath, options);
             else
-                RunExtract(inputfile, outputpath, options);
+                await run.RunExtract(inputfile, outputpath, options);
+
+            run = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        public static void RunEncrypt(string filePath, string sdatfilePath, string sdatnpdcopyfile)
+        public void RunEncrypt(string filePath, string sdatfilePath, string? sdatnpdcopyfile)
         {
             new EDAT().encryptFile(filePath, sdatfilePath, sdatnpdcopyfile);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        private static void RunDecrypt(string filePath, string outDir, string options)
+        private async Task RunDecrypt(string filePath, string outDir, string options)
         {
-            new EDAT().decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
+            EDAT? edatInstance = new();
 
-            RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir, options);
+            RunUnBAR? run = new();
+
+            int status = edatInstance.decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
+
+            if (status == 0)
+                await run.RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir, options);
+            else
+                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {status}");
+
+            edatInstance = null;
+
+            run = null;
         }
 
-        private static void RunExtract(string filePath, string outDir, string options)
+        private async Task RunExtract(string filePath, string outDir, string options)
         {
-            ServerConfiguration.LogInfo("Loading BAR/dat: {0}", filePath);
-
-            byte[] RawBarData = null;
+            bool isSharc = true;
+            byte[]? RawBarData = null;
+            Utils? utils = new();
 
             if (File.Exists(filePath))
             {
@@ -38,123 +60,147 @@ namespace MultiServer.CryptoSporidium.UnBAR
                 {
                     RawBarData = File.ReadAllBytes(filePath);
 
-                    byte[] HeaderIV = ExtractSHARCHeaderIV(RawBarData);
-
-                    if (HeaderIV != null)
+                    // Check if the first 8 bytes match the specified pattern
+                    byte[] pattern = new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 };
+                    for (int i = 0; i < 8; i++)
                     {
-                        ServerConfiguration.LogInfo($"[RunExtract] - SHARC Header IV -> {Misc.ByteArrayToHexString(HeaderIV)}");
+                        if (RawBarData[i] != pattern[i])
+                        {
+                            isSharc = false;
+                            break;
+                        }
+                    }
 
-                        byte[] DecryptedTOC = AFSAES.InitiateCTRBuffer(ExtractSHARCHeader(RawBarData), Convert.FromBase64String(options), HeaderIV);
+                    if (isSharc)
+                    {
+                        AESCTR256EncryptDecrypt? aes256 = new();
+                        ToolsImpl? toolsImpl = new();
 
-                        ServerConfiguration.LogInfo($"[RunExtract] - DECRYPTED SHARC Header -> {Misc.ByteArrayToHexString(DecryptedTOC)}");
+                        try
+                        {
+                            byte[] HeaderIV = ExtractSHARCHeaderIV(RawBarData);
 
-                        byte[] EncryptedFileBytes = Misc.TrimStart(RawBarData, 52);
+                            byte[]? DecryptedHeader = aes256.InitiateCTRBuffer(ExtractEncryptedSharcHeaderData(RawBarData),
+                                 Convert.FromBase64String(options), HeaderIV);
 
-                        // File is decrypted using AES again, but a bit differently.
+                            toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+
+                            uint TOCSize = 24 * BitConverter.ToUInt32(ExtractNumOfFiles(DecryptedHeader), 0);
+
+                            byte[]? EncryptedTOC = utils.CopyBytes(utils.TrimStart(RawBarData, 52), TOCSize);
+
+                            if (EncryptedTOC != null)
+                            {
+                                byte[]? DecryptedTOC = aes256.InitiateCTRBuffer(utils.CopyBytes(utils.TrimStart(RawBarData, 52), TOCSize), Convert.FromBase64String(options), HeaderIV);
+
+                                byte[] FileBytes = utils.Combinebytearay(pattern,
+                                    utils.Combinebytearay(HeaderIV, utils.Combinebytearay(DecryptedHeader,
+                                    utils.Combinebytearay(DecryptedTOC, utils.TrimBytes(utils.TrimStart(RawBarData, 52), TOCSize)))));
+
+                                Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+
+                                File.WriteAllBytes(filePath, FileBytes);
+
+                                File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                                    BitConverter.ToString(utils.ReadBinaryFile(filePath, 0x1C, 4)).Replace("-", ""));
+
+                                File.WriteAllBytes(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/decrypted.dat", FileBytes);
+
+                                LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[RunUnBAR] - TOC Decryption failed! with error - {ex}");
+                        }
+
+                        aes256 = null;
+                        toolsImpl = null;
                     }
                     else
                     {
-                        byte[] data = Misc.ReadBinaryFile(filePath, 0x0C, 4); // Read 4 bytes from offset 0x0C to 0x0F
-
-                        string formattedData = BitConverter.ToString(data).Replace("-", ""); // Convert byte array to hex string
-
                         Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
-                        File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", formattedData);
+                        File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                            BitConverter.ToString(utils.ReadBinaryFile(filePath, 0x0C, 4)).Replace("-", ""));
+
+                        LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
                     }
                 }
                 catch (Exception ex)
                 {
-                    ServerConfiguration.LogError($"[RunUnBAR] - Timestamp creation failed! with error - {ex}");
+                    LoggerAccessor.LogError($"[RunUnBAR] - Timestamp creation failed! with error - {ex}");
                 }
             }
 
             try
             {
-                BARArchive archive = new(filePath, outDir);
-                archive.Load();
-                foreach (TOCEntry tableOfContent in archive.TableOfContents)
+                if (File.Exists(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt"))
                 {
-                    MemoryStream memoryStream = new MemoryStream(tableOfContent.GetData(archive.GetHeader().Flags));
-                    try
+                    BARArchive? archive = new(filePath, outDir);
+                    archive.Load();
+                    archive.WriteMap(filePath);
+
+                    // Create a list to hold the tasks
+                    List<Task>? TOCTasks = new List<Task>();
+
+                    foreach (TOCEntry tableOfContent in archive.TableOfContents)
                     {
-                        string registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
-                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), registeredExtension);
+                        byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
+
+                        if (FileData != null)
+                        {
+                            // Create a task for each iteration
+                            Task task = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    if (archive.GetHeader().Version == 512)
+                                        await ExtractToFileBarVersion2(RawBarData, archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), utils);
+                                    else
+                                    {
+                                        using (MemoryStream memoryStream = new MemoryStream(FileData))
+                                        {
+                                            string registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), registeredExtension, utils);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    LoggerAccessor.LogWarn(ex.ToString());
+                                    if (archive.GetHeader().Version == 512)
+                                        await ExtractToFileBarVersion2(RawBarData, archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), utils);
+                                    else
+                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), ".unknown", utils);
+                                }
+                            });
+
+                            TOCTasks.Add(task);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        ServerConfiguration.LogWarn(ex.ToString());
-                        string fileType = ".unknown";
-                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), fileType);
-                    }
+
+                    // Wait for all tasks to complete
+                    await Task.WhenAll(TOCTasks);
+
+                    TOCTasks = null;
+                    archive = null;
+
+                    if (File.Exists(filePath + ".map"))
+                        File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
                 }
             }
             catch (Exception ex)
             {
-                ServerConfiguration.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
             }
+
+            utils = null;
         }
 
-        public static byte[] ExtractSHARCHeaderIV(byte[] input)
+        public void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, Utils utils)
         {
-            // Check if the input has at least 24 bytes (8 for the pattern and 16 to copy)
-            if (input.Length < 24)
-            {
-                ServerConfiguration.LogError("[ExtractSHARCHeaderIV] - Input byte array must have at least 24 bytes.");
-                return null;
-            }
-
-            // Check if the first 8 bytes match the specified pattern
-            byte[] pattern = new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 };
-            for (int i = 0; i < 8; i++)
-            {
-                if (input[i] != pattern[i])
-                {
-                    ServerConfiguration.LogError("[ExtractSHARCHeaderIV] - The first 8 bytes do not match the SHARC pattern.");
-                    return null;
-                }
-            }
-
-            // Copy the next 16 bytes to a new array
-            byte[] copiedBytes = new byte[16];
-            Array.Copy(input, 8, copiedBytes, 0, copiedBytes.Length);
-
-            return copiedBytes;
-        }
-
-        public static byte[] ExtractSHARCHeader(byte[] input)
-        {
-            // Check if the input has at least 52 bytes (8 for the pattern and 16 for the Header IV, and 28 for the Header)
-            if (input.Length < 52)
-            {
-                ServerConfiguration.LogError("[ExtractSHARCHeader] - Input byte array must have at least 52 bytes.");
-                return null;
-            }
-
-            // Check if the first 8 bytes match the specified pattern
-            byte[] pattern = new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 };
-            for (int i = 0; i < 8; i++)
-            {
-                if (input[i] != pattern[i])
-                {
-                    ServerConfiguration.LogError("[ExtractSHARCHeader] - The first 8 bytes do not match the SHARC pattern.");
-                    return null;
-                }
-            }
-
-            // Copy the next 28 bytes to a new array
-            byte[] copiedBytes = new byte[28];
-            Array.Copy(input, 24, copiedBytes, 0, copiedBytes.Length);
-
-            return copiedBytes;
-        }
-
-        // Todo, separate the crypto implementation in the file designed for it.
-
-        public static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
-        {
-            TOCEntry tableOfContent = archive.TableOfContents[FileName];
-            string empty = string.Empty;
+            TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
             if (tableOfContent.Path == null || tableOfContent.Path == string.Empty)
                 path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, fileType);
@@ -164,175 +210,270 @@ namespace MultiServer.CryptoSporidium.UnBAR
                 path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, str);
             }
             string outdirectory = Path.GetDirectoryName(path);
-            Directory.CreateDirectory(outdirectory);
-            FileStream fileStream = File.Open(path, (FileMode)2);
-            byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
-            if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && tableOfContent.Compression == CompressionMethod.Encrypted)
+            if (outdirectory != null)
             {
-                if (File.Exists(outDir + "/timestamp.txt"))
+                Directory.CreateDirectory(outdirectory);
+                using (FileStream fileStream = File.Open(path, (FileMode)2))
                 {
-                    int dataStart = Misc.FindDataPosInBinary(RawBarData, data);
-
-                    if (dataStart != -1)
+                    byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
+                    if (data.Length >= 4 && data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && tableOfContent.Compression == CompressionMethod.Encrypted)
                     {
-                        uint compressedSize = tableOfContent.CompressedSize;
-                        uint fileSize = tableOfContent.Size;
-                        string content = File.ReadAllText(outDir + "/timestamp.txt");
-                        int userData = BitConverter.ToInt32(Misc.HexStringToByteArray(content));
-
-                        ServerConfiguration.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                        ServerConfiguration.LogInfo($"CompressedSize - {compressedSize}");
-                        ServerConfiguration.LogInfo($"Size - {fileSize}");
-                        ServerConfiguration.LogInfo($"dataStart - 0x{dataStart:X}");
-                        ServerConfiguration.LogInfo($"UserData - 0x{userData:X}");
-
-                        byte[] SignatureIV = BitConverter.GetBytes(AFSMISC.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
-
-                        // If you want to ensure little-endian byte order explicitly, you can reverse the array
-                        if (BitConverter.IsLittleEndian)
-                            Array.Reverse(SignatureIV);
-
-                        data = AFSMISC.RemovePaddingPrefix(data);
-
-                        byte[] EncryptedHeaderSHA1 = new byte[24];
-
-                        // Copy the first 24 bytes from the source array to the destination array
-                        Array.Copy(data, 0, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
-
-                        byte[] SHA1DATA = AFSBLOWFISH.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
-
-                        if (SHA1DATA != null)
+                        if (File.Exists(outDir + "/timestamp.txt"))
                         {
-                            string verificationsha1 = Misc.ByteArrayToHexString(SHA1DATA);
+                            int dataStart = utils.FindDataPosInBinary(RawBarData, data);
 
-                            // Create a new byte array to store the remaining content
-                            byte[] FileBytes = new byte[data.Length - 24];
-
-                            // Copy the content after the first 24 bytes to the new array
-                            Array.Copy(data, 24, FileBytes, 0, FileBytes.Length);
-
-                            string sha1 = AFSMISC.ValidateSha1(FileBytes);
-
-                            if (sha1 == verificationsha1.Substring(0, verificationsha1.Length - 8))
+                            if (dataStart != -1)
                             {
-                                int newvalue = SignatureIV[7] += 3;
+                                BlowfishCTREncryptDecrypt? blowfish = new();
+                                ToolsImpl? toolsImpl = new();
+                                uint compressedSize = tableOfContent.CompressedSize;
+                                uint fileSize = tableOfContent.Size;
+                                string content = File.ReadAllText(outDir + "/timestamp.txt");
+                                int userData = BitConverter.ToInt32(utils.HexStringToByteArray(content));
+#if DEBUG
+                                LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
+                                LoggerAccessor.LogInfo($"CompressedSize - {compressedSize}");
+                                LoggerAccessor.LogInfo($"Size - {fileSize}");
+                                LoggerAccessor.LogInfo($"dataStart - 0x{dataStart:X}");
+                                LoggerAccessor.LogInfo($"UserData - 0x{userData:X}");
+#endif
+                                byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
 
-                                SignatureIV[7] = (byte)newvalue;
+                                // If you want to ensure little-endian byte order explicitly, you can reverse the array
+                                if (BitConverter.IsLittleEndian)
+                                    Array.Reverse(SignatureIV);
 
-                                FileBytes = Decompress(AFSBLOWFISH.EncryptionProxyProcessMemory(FileBytes, SignatureIV));
+                                data = toolsImpl.RemovePaddingPrefix(data);
 
-                                fileStream.Write(FileBytes, 0, FileBytes.Length);
-                                fileStream.Close();
+                                byte[] EncryptedHeaderSHA1 = new byte[24];
+
+                                // Copy the first 24 bytes from the source array to the destination array
+                                Array.Copy(data, 0, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
+
+                                byte[]? DecryptedHeaderSHA1 = blowfish.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
+
+                                if (DecryptedHeaderSHA1 != null)
+                                {
+                                    string verificationsha1 = utils.ByteArrayToHexString(DecryptedHeaderSHA1);
+
+                                    // Create a new byte array to store the remaining content
+                                    byte[] FileBytes = new byte[data.Length - 24];
+
+                                    // Copy the content after the first 24 bytes to the new array
+                                    Array.Copy(data, 24, FileBytes, 0, FileBytes.Length);
+
+                                    string sha1 = toolsImpl.ValidateSha1(FileBytes);
+
+                                    if (sha1 == verificationsha1.Substring(0, verificationsha1.Length - 8))
+                                    {
+                                        toolsImpl.IncrementIVBytes(SignatureIV, 3);
+
+                                        FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(blowfish.InitiateCTRBuffer(FileBytes, SignatureIV));
+
+                                        fileStream.Write(FileBytes, 0, FileBytes.Length);
+                                        fileStream.Close();
+                                    }
+                                    else
+                                    {
+                                        LoggerAccessor.LogWarn($"[RunUnBAR] - Lua file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                        fileStream.Write(data, 0, data.Length);
+                                        fileStream.Close();
+                                    }
+                                }
+
+                                blowfish = null;
+                                toolsImpl = null;
                             }
                             else
                             {
-                                ServerConfiguration.LogWarn($"[RunUnBAR] - Lua file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                LoggerAccessor.LogError("[RunUnBAR] - Encrypted data not found in BAR or false positive! Decryption has failed.");
                                 fileStream.Write(data, 0, data.Length);
                                 fileStream.Close();
                             }
                         }
+                        else
+                        {
+                            LoggerAccessor.LogError("[RunUnBAR] - No TimeStamp Found! Decryption has failed.");
+                            fileStream.Write(data, 0, data.Length);
+                            fileStream.Close();
+                        }
                     }
                     else
                     {
-                        ServerConfiguration.LogError("[RunUnBAR] - Encrypted data not found in BAR or false positive! Decryption has failed.");
                         fileStream.Write(data, 0, data.Length);
                         fileStream.Close();
                     }
                 }
-                else
+#if DEBUG
+                LoggerAccessor.LogInfo("Extracted file {0}", new object[1]
                 {
-                    ServerConfiguration.LogError("[RunUnBAR] - No TimeStamp Found! Decryption has failed.");
-                    fileStream.Write(data, 0, data.Length);
-                    fileStream.Close();
+                    Path.GetFileName(path)
+                });
+#endif
+            }
+
+            tableOfContent = null;
+        }
+
+        public async Task ExtractToFileBarVersion2(byte[] RawBarData, byte[] Key, BARArchive archive, HashedFileName FileName, string outDir, Utils utils)
+        {
+            TOCEntry? tableOfContent = archive.TableOfContents[FileName];
+            LIBSECURE? libsecure = new(); // We assume there is almost exclusively encrypted files.
+            ToolsImpl? toolsImpl = new();
+            string path = string.Empty;
+            if (tableOfContent.Path != null && tableOfContent.Path != string.Empty)
+            {
+                string str = tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar);
+                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, str);
+            }
+            byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
+            if (tableOfContent.Compression == CompressionMethod.Encrypted)
+            {
+#if DEBUG
+                LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
+                LoggerAccessor.LogInfo($"Key - {utils.ByteArrayToHexString(Key)}");
+                LoggerAccessor.LogInfo($"IV - {utils.ByteArrayToHexString(tableOfContent.IV)}");
+#endif
+                // Why we not use the ICSharp version, it turns out, there is 2 variant of edgezlib. ICSharp mostly handle the older type.
+                // While packing sharc, original script used the zlib1.dll, which we have in c# equivalent, so we use it.
+                // Weird issues can happen when decompressing some files if not using this version.
+
+                byte[]? FileBytes = null;
+
+                try
+                {
+                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(await libsecure.ProcessXTEABlocksAsync(data, Key, tableOfContent.IV));
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing XTEA Proxy encrypted content - {ex}");
+                    FileBytes = data;
+                }
+
+                using (MemoryStream memoryStream = new MemoryStream(FileBytes))
+                {
+                    string registeredExtension = string.Empty;
+
+                    try
+                    {
+                        registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                    }
+                    catch (Exception)
+                    {
+                        registeredExtension = ".unknown";
+                    }
+
+                    if (path == string.Empty)
+                        path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
+
+                    string outdirectory = Path.GetDirectoryName(path);
+                    if (outdirectory != null)
+                    {
+                        Directory.CreateDirectory(outdirectory);
+
+                        using (FileStream fileStream = File.Open(path, (FileMode)2))
+                        {
+                            fileStream.Write(FileBytes, 0, FileBytes.Length);
+                            fileStream.Close();
+                        }
+                    }
                 }
             }
             else
             {
-                fileStream.Write(data, 0, data.Length);
-                fileStream.Close();
+                using (MemoryStream memoryStream = new MemoryStream(data))
+                {
+                    string registeredExtension = string.Empty;
+
+                    try
+                    {
+                        registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                    }
+                    catch (Exception)
+                    {
+                        registeredExtension = ".unknown";
+                    }
+
+                    if (path == string.Empty)
+                        path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
+
+                    string outdirectory = Path.GetDirectoryName(path);
+                    if (outdirectory != null)
+                    {
+                        Directory.CreateDirectory(outdirectory);
+
+                        using (FileStream fileStream = File.Open(path, (FileMode)2))
+                        {
+                            fileStream.Write(data, 0, data.Length);
+                            fileStream.Close();
+                        }
+                    }
+                }
             }
-            ServerConfiguration.LogInfo("Extracted file {0}", new object[1]
+#if DEBUG
+            LoggerAccessor.LogInfo("Extracted file {0}", new object[1]
             {
-                 Path.GetFileName(path)
+                Path.GetFileName(path)
             });
+#endif
+            tableOfContent = null;
+            libsecure = null;
+            toolsImpl = null;
         }
 
-        private static byte[] Decompress(byte[] inData)
+        public static byte[]? ExtractSHARCHeaderIV(byte[] input)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
-            byte[] array = new byte[ChunkHeader.SizeOf];
-            while (memoryStream2.Position < memoryStream2.Length)
+            // Check if the input has at least 24 bytes (8 for the pattern and 16 to copy)
+            if (input.Length < 24)
             {
-                memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
-                array = Utils.EndianSwap(array);
-                ChunkHeader header = ChunkHeader.FromBytes(array);
-                int compressedSize = header.CompressedSize;
-                byte[] array2 = new byte[compressedSize];
-                memoryStream2.Read(array2, 0, compressedSize);
-                byte[] array3 = DecompressChunk(array2, header);
-                memoryStream.Write(array3, 0, array3.Length);
+                LoggerAccessor.LogError("[ExtractSHARCHeaderIV] - Input byte array must have at least 24 bytes.");
+                return null;
             }
-            memoryStream2.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
+
+            // Copy the next 16 bytes to a new array
+            byte[] copiedBytes = new byte[16];
+            Array.Copy(input, 8, copiedBytes, 0, copiedBytes.Length);
+
+            return copiedBytes;
         }
 
-        private static byte[] DecompressChunk(byte[] inData, ChunkHeader header)
+        public static byte[]? ExtractEncryptedSharcHeaderData(byte[] input)
         {
-            if (header.CompressedSize == header.SourceSize)
-                return inData;
-            MemoryStream baseInputStream = new MemoryStream(inData);
-            Inflater inf = new Inflater(true);
-            InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, inf);
-            MemoryStream memoryStream = new MemoryStream();
-            byte[] array = new byte[4096];
-            for (; ; )
+            // Check if the input has at least 52 bytes (8 for the pattern and 16 for the Header IV, and 28 for the Header)
+            if (input.Length < 52)
             {
-                int num = inflaterInputStream.Read(array, 0, array.Length);
-                if (num <= 0)
-                    break;
-                memoryStream.Write(array, 0, num);
+                LoggerAccessor.LogError("[ExtractEncryptedSharcHeaderData] - Input byte array must have at least 52 bytes.");
+                return null;
             }
-            inflaterInputStream.Close();
-            return memoryStream.ToArray();
+
+            // Copy the next 28 bytes to a new array
+            byte[] copiedBytes = new byte[28];
+            Array.Copy(input, 24, copiedBytes, 0, copiedBytes.Length);
+
+            return copiedBytes;
         }
 
-        internal struct ChunkHeader
+        public static byte[]? ExtractNumOfFiles(byte[] input)
         {
-            internal byte[] GetBytes()
+            if (input == null || input.Length < 20)
             {
-                byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes(SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes(CompressedSize), 0, array, 0, 2);
-                return array;
+                LoggerAccessor.LogError("[ExtractNumOfFiles] - Input byte array must have at least 20 bytes.");
+                return null;
             }
 
-            internal static int SizeOf
-            {
-                get
-                {
-                    return 4;
-                }
-            }
+            // Calculate the starting index for the last 20 bytes.
+            int startIndex = input.Length - 20;
 
-            internal static ChunkHeader FromBytes(byte[] inData)
-            {
-                ChunkHeader result = default;
-                byte[] array = inData;
-                if (inData.Length > SizeOf)
-                {
-                    array = new byte[4];
-                    Array.Copy(inData, array, 4);
-                }
-                result.SourceSize = BitConverter.ToUInt16(array, 2);
-                result.CompressedSize = BitConverter.ToUInt16(array, 0);
-                return result;
-            }
+            // Create a new byte array to store the first 4 bytes from the last 20 bytes.
+            byte[] result = new byte[4];
 
-            internal ushort SourceSize;
+            // Copy the first 4 bytes from the last 20 bytes into the result array.
+            Array.Copy(input, startIndex, result, 0, 4);
 
-            internal ushort CompressedSize;
+            if (BitConverter.IsLittleEndian)
+                result = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(result, 4);
+
+            return result;
         }
     }
 }

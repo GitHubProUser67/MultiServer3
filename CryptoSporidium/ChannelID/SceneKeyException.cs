@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.ChannelID
+namespace CryptoSporidium.ChannelID
 {
   public class SceneKeyException : Exception
   {

@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public static class Utils
     {
@@ -7,9 +7,7 @@ namespace MultiServer.CryptoSporidium.BAR
             long num = input & ~3L; // Use bitwise AND operator to clear the lowest two bits
 
             if (num < input)
-            {
                 num = input + 4L & ~3L; // Add 4 and clear the lowest two bits
-            }
 
             return num;
         }

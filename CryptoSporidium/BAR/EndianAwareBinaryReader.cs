@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public abstract class EndianAwareBinaryReader
     {
@@ -25,6 +25,10 @@ namespace MultiServer.CryptoSporidium.BAR
         public abstract short ReadInt16();
 
         public abstract float ReadSingle();
+
+        public abstract long ReadInt64();
+
+        public abstract ulong ReadUInt64();
 
         protected BinaryReader m_br;
     }

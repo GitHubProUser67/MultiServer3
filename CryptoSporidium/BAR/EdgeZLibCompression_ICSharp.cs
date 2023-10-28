@@ -1,7 +1,7 @@
-﻿using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression;
-using MultiServer.Addons.ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using ICSharpCode.SharpZipLib.Zip.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public class EdgeZLibCompression_ICSharp : CompressionBase
     {

@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     internal class BEBinaryWriter : EndianAwareBinaryWriter
     {
@@ -40,6 +40,20 @@ namespace MultiServer.CryptoSporidium.BAR
         }
 
         public override void Write(float val)
+        {
+            byte[] bytes = BitConverter.GetBytes(val);
+            Array.Reverse(bytes);
+            m_bw.Write(bytes);
+        }
+
+        public override void Write(long val)
+        {
+            byte[] bytes = BitConverter.GetBytes(val);
+            Array.Reverse(bytes);
+            m_bw.Write(bytes);
+        }
+
+        public override void Write(ulong val)
         {
             byte[] bytes = BitConverter.GetBytes(val);
             Array.Reverse(bytes);

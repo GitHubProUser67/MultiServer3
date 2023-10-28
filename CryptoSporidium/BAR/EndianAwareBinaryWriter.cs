@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public abstract class EndianAwareBinaryWriter
     {
@@ -25,6 +25,10 @@ namespace MultiServer.CryptoSporidium.BAR
         public abstract void Write(short val);
 
         public abstract void Write(float val);
+
+        public abstract void Write(long val);
+
+        public abstract void Write(ulong val);
 
         public void Close()
         {

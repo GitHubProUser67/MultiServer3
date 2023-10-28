@@ -1,6 +1,6 @@
-﻿using System.Numerics;
+using System.Numerics;
 
-namespace MultiServer.CryptoSporidium.UnBAR
+namespace CryptoSporidium.UnBAR
 {
     internal class EDAT
     {
@@ -24,7 +24,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
         public static long FLAG_DEBUG = 2147483648;
         private static int HEADER_MAX_BLOCKSIZE = 15360;
 
-        public int encryptFile(string inFile, string outFile, string sdatnpdcopyfile)
+        public int encryptFile(string inFile, string outFile, string? sdatnpdcopyfile)
         {
             if (inFile == "")
                 return STATUS_ERROR_INPUTFILE_IO;
@@ -33,7 +33,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
             FileStream fileStream = File.Open(inFile, (FileMode)3);
             NPD[] npdPtr = new NPD[1];
             FileStream o1 = File.Open(outFile, (FileMode)2);
-            if (sdatnpdcopyfile == null || sdatnpdcopyfile == "")
+            if (string.IsNullOrEmpty(sdatnpdcopyfile))
             {
                 byte[] numArray1 = writeValidNPD(npdPtr, fileStream, "");
                 o1.Write(numArray1, 0, numArray1.Length);
@@ -76,7 +76,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
             encryptData(fileStream, o1, npdPtr[0], data, key1);
             o1.Seek(144L, 0);
             AppLoader appLoader = new AppLoader();
-            appLoader.doInit(hashFlag1, 1, new byte[16], new byte[16], key1);
+            appLoader.doInit(hashFlag1, 0, 1, new byte[16], new byte[16], key1);
             int num1 = (data.getFlags() & FLAG_SDAT) != 0L ? 32 : 16;
             int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());
             long num3 = 0;
@@ -111,7 +111,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
             byte[] iv = new byte[16];
             byte[] hash = key1;
             byte[] generatedHash2 = numArray6;
-            appLoaderReverse.doAll(hashFlag2, 1, i1, 0, o3, 0, length2, key2, iv, hash, generatedHash2, 0);
+            appLoaderReverse.doAll(hashFlag2, 0, 1, i1, 0, o3, 0, length2, key2, iv, hash, generatedHash2, 0);
             o1.Seek(160L, 0);
             o1.Write(numArray6, 0, numArray6.Length);
             while (o1.Length < 256L)
@@ -204,8 +204,17 @@ namespace MultiServer.CryptoSporidium.UnBAR
                 fileStream.Close();
                 return num2;
             }
+            int version = 0;
+            if (npd.getVersion() == 1L)
+                version = 1;
+            else if (npd.getVersion() == 2L)
+                version = 2;
+            else if (npd.getVersion() == 3L)
+                version = 3;
+            else if (npd.getVersion() == 4L)
+                version = 4;
             FileStream o = File.Open(outFile, (FileMode)2);
-            int num3 = decryptData(fileStream, o, npd, edatData, key);
+            int num3 = decryptData(fileStream, version, o, npd, edatData, key);
             if (num3 < 0)
             {
                 fileStream.Close();
@@ -222,35 +231,50 @@ namespace MultiServer.CryptoSporidium.UnBAR
             byte[] numArray = new byte[160];
             byte[] o1 = new byte[160];
             byte[] expectedHash = new byte[16];
-            if (npd.getVersion() == 0L || npd.getVersion() == 1L)
+            int version = 0;
+            if (npd.getVersion() == 0L)
             {
+                if ((data.getFlags() & 2147483646L) != 0L)
+                    return STATUS_ERROR_INCORRECT_FLAGS;
+            }
+            else if (npd.getVersion() == 1L)
+            {
+                version = 1;
                 if ((data.getFlags() & 2147483646L) != 0L)
                     return STATUS_ERROR_INCORRECT_FLAGS;
             }
             else if (npd.getVersion() == 2L)
             {
+                version = 2;
                 if ((data.getFlags() & 2130706400L) != 0L)
                     return STATUS_ERROR_INCORRECT_FLAGS;
             }
-            else
+            else if (npd.getVersion() == 3L)
             {
-                if (npd.getVersion() != 3L)
-                    return STATUS_ERROR_INCORRECT_VERSION;
+                version = 3;
                 if ((data.getFlags() & 2130706368L) != 0L)
                     return STATUS_ERROR_INCORRECT_FLAGS;
             }
+            else if (npd.getVersion() == 4L)
+            {
+                version = 4;
+                if ((data.getFlags() & 2130706368L) != 0L)
+                    return STATUS_ERROR_INCORRECT_FLAGS;
+            }
+            else
+                return STATUS_ERROR_INCORRECT_VERSION;
             i.Read(numArray, 0, numArray.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
             AppLoader appLoader1 = new AppLoader();
             int hashFlag = (data.getFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
             if ((data.getFlags() & FLAG_DEBUG) != 0L)
                 hashFlag |= 16777216;
-            if (!appLoader1.doAll(hashFlag, 1, numArray, 0, o1, 0, numArray.Length, new byte[16], new byte[16], rifKey, expectedHash, 0))
+            if (!appLoader1.doAll(hashFlag, version, 1, numArray, 0, o1, 0, numArray.Length, new byte[16], new byte[16], rifKey, expectedHash, 0))
                 return STATUS_ERROR_HEADERCHECK;
             if ((data.getFlags() & FLAG_0x20) == 0L)
             {
                 AppLoader appLoader2 = new AppLoader();
-                appLoader2.doInit(hashFlag, 1, new byte[16], new byte[16], rifKey);
+                appLoader2.doInit(hashFlag, version, 1, new byte[16], new byte[16], rifKey);
                 int num1 = (data.getFlags() & FLAG_COMPRESSED) != 0L ? 32 : 16;
                 int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)11) / (BigInteger)data.getBlockSize());
                 int num3 = 0;
@@ -384,7 +408,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
                 byte[] iv = digest;
                 byte[] hash = numArray4;
                 byte[] generatedHash = numArray5;
-                appLoaderReverse.doAll(hashFlag, cryptoFlag, i, 0, o1, 0, length2, key, iv, hash, generatedHash, 0);
+                appLoaderReverse.doAll(hashFlag, 3, cryptoFlag, i, 0, o1, 0, length2, key, iv, hash, generatedHash, 0);
                 o.Seek(num3 + blk * (num2 + data.getBlockSize()), 0);
                 byte[] byteArray = ConversionUtils.getByteArray("555555555555555555555555");
                 byte[] output = new byte[16];
@@ -401,7 +425,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
             return STATUS_OK;
         }
 
-        private int decryptData(FileStream ii, FileStream o, NPD npd, EDATData data, byte[] rifkey)
+        private int decryptData(FileStream ii, int version, FileStream o, NPD npd, EDATData data, byte[] rifkey)
         {
             int num1 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());
             int num2 = (data.getFlags() & FLAG_COMPRESSED) != 0L || (data.getFlags() & FLAG_0x20) != 0L ? 32 : 16;
@@ -483,7 +507,7 @@ namespace MultiServer.CryptoSporidium.UnBAR
                 byte[] iv = numArray5;
                 byte[] hash = numArray4;
                 byte[] expectedHash = dest;
-                appLoader.doAll(hashFlag, cryptoFlag, i, 0, o1, 0, length2, key, iv, hash, expectedHash, 0);
+                appLoader.doAll(hashFlag, version, cryptoFlag, i, 0, o1, 0, length2, key, iv, hash, expectedHash, 0);
                 if ((data.getFlags() & FLAG_COMPRESSED) == 0L)
                     o.Write(numArray2, 0, num7);
             }

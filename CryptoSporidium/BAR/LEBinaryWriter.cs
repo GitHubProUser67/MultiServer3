@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     internal class LEBinaryWriter : EndianAwareBinaryWriter
     {
@@ -32,6 +32,16 @@ namespace MultiServer.CryptoSporidium.BAR
         }
 
         public override void Write(float val)
+        {
+            m_bw.Write(val);
+        }
+
+        public override void Write(long val)
+        {
+            m_bw.Write(val);
+        }
+
+        public override void Write(ulong val)
         {
             m_bw.Write(val);
         }

@@ -1,6 +1,4 @@
-using System;
-
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     public enum CompressionMethod
     {

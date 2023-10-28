@@ -1,4 +1,4 @@
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     internal class BEBinaryReader : EndianAwareBinaryReader
     {
@@ -55,6 +55,24 @@ namespace MultiServer.CryptoSporidium.BAR
             m_br.Read(array, 0, num);
             Array.Reverse(array);
             return BitConverter.ToUInt32(array, 0);
+        }
+
+        public override long ReadInt64()
+        {
+            int num = 8;
+            byte[] array = new byte[num];
+            m_br.Read(array, 0, num);
+            Array.Reverse(array);
+            return BitConverter.ToInt64(array, 0);
+        }
+
+        public override ulong ReadUInt64()
+        {
+            int num = 8;
+            byte[] array = new byte[num];
+            m_br.Read(array, 0, num);
+            Array.Reverse(array);
+            return BitConverter.ToUInt64(array, 0);
         }
     }
 }

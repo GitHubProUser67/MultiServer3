@@ -1,58 +1,62 @@
-﻿using System.Net;
-using System.Net.Http;
+using CustomLogger;
+using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 
-namespace MultiServer.MitmDNS
+namespace MitmDNS
 {
     public class MitmDNSClass
     {
-        public static void MitmDNSMain()
+        public MitmDNSProcessor? proc = new(); // = null to dispose server.
+
+        public Task MitmDNSMain()
         {
             Dictionary<string, DnsSettings> dicRules = null;
             List<KeyValuePair<string, DnsSettings>> regRules = null;
 
-            if (ServerConfiguration.DNSOnlineConfig != null && ServerConfiguration.DNSOnlineConfig != "")
+            if (MitmDNSServerConfiguration.DNSOnlineConfig != null && MitmDNSServerConfiguration.DNSOnlineConfig != "")
             {
-                ServerConfiguration.LogInfo("[DNS] - Downloading Configuration File...");
+                LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
                 if (Misc.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                MitmDNSProcessor.DenyNotInRules = false;
+                proc.DenyNotInRules = false;
                 string content = string.Empty;
                 try
                 {
                     HttpClient client = new();
-                    HttpResponseMessage response = client.GetAsync(ServerConfiguration.DNSOnlineConfig).Result;
+                    HttpResponseMessage response = client.GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
                     response.EnsureSuccessStatusCode();
                     content = response.Content.ReadAsStringAsync().Result;
                     ParseRules(content, out dicRules, out regRules, false);
                 }
                 catch (Exception ex)
                 {
-                    ServerConfiguration.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                    return;
+                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
+                    return Task.CompletedTask;
                 }
             }
             else if (dicRules == null)
             {
-                if (File.Exists(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DNSConfig}"))
-                    ParseRules(Directory.GetCurrentDirectory() + $"/{ServerConfiguration.DNSConfig}", out dicRules, out regRules);
+                if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+                    ParseRules(MitmDNSServerConfiguration.DNSConfig, out dicRules, out regRules);
                 else
                 {
-                    ServerConfiguration.LogError("[DNS] - No config text file, so DNS server starter aborted!");
-                    return;
+                    LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
+                    Environment.Exit(0);
                 }
             }
 
-            MitmDNSProcessor.dicRules = dicRules;
-            MitmDNSProcessor.regRules = regRules;
-            MitmDNSProcessor.FireEvents = true;
-            MitmDNSProcessor.ResolvedIp += ResolvedIp;
-            MitmDNSProcessor.ConnectionRequest += ConnectionRequest;
-            MitmDNSProcessor.RunDns();
+            proc.FireEvents = true;
+            proc.dicRules = dicRules;
+            proc.regRules = regRules;
+            proc.ResolvedIp += ResolvedIp;
+            proc.ConnectionRequest += ConnectionRequest;
+            Task.Run(proc.RunDns);
+
+            return Task.CompletedTask;
         }
 
-        private static void ParseRules(string Filename, out Dictionary<string, DnsSettings> DicRules, out List<KeyValuePair<string, DnsSettings>> StarRules, bool IsFilename = true)
+        private void ParseRules(string Filename, out Dictionary<string, DnsSettings> DicRules, out List<KeyValuePair<string, DnsSettings>> StarRules, bool IsFilename = true)
         {
             DicRules = new Dictionary<string, DnsSettings>();
             StarRules = new List<KeyValuePair<string, DnsSettings>>();
@@ -107,10 +111,10 @@ namespace MultiServer.MitmDNS
                 }
             }
 
-            ServerConfiguration.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
+            LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
-        private static Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
+        private Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
         {
             // Read all lines from the test file
             string[] lines = File.ReadAllLines(Filename);
@@ -169,17 +173,17 @@ namespace MultiServer.MitmDNS
             return DicRules;
         }
 
-        private static void ResolvedIp(DnsEventArgs e)
+        private void ResolvedIp(DnsEventArgs e)
         {
-            ServerConfiguration.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : e.Host.ToString()));
+            LoggerAccessor.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : e.Host.ToString()));
         }
 
-        private static void ConnectionRequest(DnsConnectionRequestEventArgs e)
+        private void ConnectionRequest(DnsConnectionRequestEventArgs e)
         {
-            ServerConfiguration.LogInfo("[DNS] - Got request from: " + e.Host);
+            LoggerAccessor.LogInfo("[DNS] - Got request from: " + e.Host);
         }
 
-        private static bool MyRemoteCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private bool MyRemoteCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

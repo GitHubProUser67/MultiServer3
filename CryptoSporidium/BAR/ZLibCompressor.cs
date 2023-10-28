@@ -1,21 +1,23 @@
-using MultiServer.Addons.ComponentAce.Compression.Libs.zlib;
+using ComponentAce.Compression.Libs.zlib;
+using CustomLogger;
 
-namespace MultiServer.CryptoSporidium.BAR
+namespace CryptoSporidium.BAR
 {
     internal static class ZLibCompressor
     {
-        internal static byte[] Compress(byte[] inData, bool NoHeader)
+        internal static byte[]? Compress(byte[] inData, bool NoHeader)
         {
-            byte[] result = null;
+            byte[]? result = null;
             MemoryStream memoryStream = new MemoryStream();
             ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, NoHeader);
             try
             {
                 zoutputStream.Write(inData, 0, inData.Length);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                LoggerAccessor.LogError($"[ZlibCompressor] - Compressed errored out with this exception - {ex}");
+                return null;
             }
             finally
             {
