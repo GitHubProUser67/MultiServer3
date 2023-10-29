@@ -294,10 +294,10 @@ namespace HTTPServer
                                         {
                                             string mimetype = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
 
-                                            if (mimetype == "application/octet-stream" && !Path.HasExtension(filePath))
+                                            if (!Path.HasExtension(filePath))
                                             {
                                                 CryptoSporidium.Utils? utils = new();
-                                                if (utils.FindbyteSequence(File.ReadAllBytes(filePath), new byte[] { 0x3c, 0x3f, 0x70, 0x68, 0x70 }))
+                                                if (utils.FindbyteSequence(File.ReadAllBytes(filePath), new byte[] { 0x3c, 0x21, 0x44, 0x4f, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20, 0x68, 0x74, 0x6d, 0x6c, 0x3e }))
                                                     mimetype = "text/html";
                                                 utils = null;
                                             }
