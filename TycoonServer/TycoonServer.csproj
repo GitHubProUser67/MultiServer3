@@ -7,7 +7,12 @@
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 61900:61900</DockerfileRunArguments>
+	<ApplicationIcon>Home Tycoon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Home Tycoon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />

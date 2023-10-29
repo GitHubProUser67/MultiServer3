@@ -6,7 +6,6 @@ using Horizon.LIBRARY.Database.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
-using Horizon.MEDIUS.Config;
 
 namespace Horizon.MEDIUS.Medius.Models
 {
@@ -425,15 +424,6 @@ namespace Horizon.MEDIUS.Medius.Models
         {
             LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
 
-            try
-            {
-                CrudRoomManager.RemoveUser(player.Client.ApplicationId.ToString(), player.Client.CurrentGame.GameName, player.Client.WorldId.ToString(), player.Client.AccountName);
-            }
-            catch (Exception)
-            {
-                // Not Important
-            }
-
             player.InGame = false;
 
             // Update player object
@@ -448,6 +438,15 @@ namespace Horizon.MEDIUS.Medius.Models
         public virtual async Task RemovePlayer(ClientObject client, int appid)
         {
             LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} removed.");
+
+            try
+            {
+                CrudRoomManager.RemoveUser(client.ApplicationId.ToString(), client.CurrentGame.GameName, client.WorldId.ToString(), client.AccountName);
+            }
+            catch (Exception)
+            {
+                // Not Important
+            }
 
             // Remove host
             if (Host == client)
@@ -470,7 +469,7 @@ namespace Horizon.MEDIUS.Medius.Models
             try
             {
                 ///Send database EndGameReport info
-                await EndGame();
+                await EndGame(appid);
                 try
                 {
                     CrudRoomManager.RemoveWorld(appid.ToString(), report.MediusWorldID.ToString());
@@ -606,7 +605,7 @@ namespace Horizon.MEDIUS.Medius.Models
             return Task.CompletedTask;
         }
 
-        public virtual async Task EndGame()
+        public virtual async Task EndGame(int appid)
         {
             // destroy flag
             destroyed = true;
@@ -640,6 +639,15 @@ namespace Horizon.MEDIUS.Medius.Models
                     WorldID = DMEWorldId,
                     BrutalFlag = false
                 });
+            }
+
+            try
+            {
+                CrudRoomManager.RemoveGame(appid.ToString(), DMEWorldId.ToString(), GameName);
+            }
+            catch (Exception)
+            {
+                // Not Important
             }
 
             // Delete db entry if game hasn't started

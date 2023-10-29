@@ -7,7 +7,12 @@
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 10060:10060 -p 10061:10061</DockerfileRunArguments>
+	<ApplicationIcon>SVO.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="SVO.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />

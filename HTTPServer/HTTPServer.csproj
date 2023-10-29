@@ -7,7 +7,12 @@
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 80:80</DockerfileRunArguments>
+	<ApplicationIcon>HTTP.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="HTTP.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />

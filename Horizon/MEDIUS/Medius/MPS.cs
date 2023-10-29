@@ -241,7 +241,7 @@ namespace Horizon.MEDIUS.Medius
                                     StatusCode = MediusCallbackStatus.MediusFail
                                 });
 
-                                await game.EndGame();
+                                await game.EndGame(data.ApplicationId);
                             }
                             else
                             {
@@ -273,7 +273,7 @@ namespace Horizon.MEDIUS.Medius
                                     StatusCode = MediusCallbackStatus.MediusFail
                                 });
 
-                                await game.EndGame();
+                                await game.EndGame(data.ApplicationId);
                             }
                             else
                             {
@@ -807,7 +807,7 @@ namespace Horizon.MEDIUS.Medius
 
                         if (game != null && endGameRequest.BrutalFlag == true)
                         {
-                            await game.EndGame();
+                            await game.EndGame(data.ClientObject.ApplicationId);
 
                             data.ClientObject.Queue(new MediusServerEndGameResponse()
                             {

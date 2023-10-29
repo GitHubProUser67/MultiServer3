@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using CustomLogger;
 using HTTPServer.API;
@@ -159,6 +158,13 @@ namespace HTTPServer
                 // Process the request based on the HTTP method
                 string filePath = Path.Combine(path, url.Substring(1));
 
+                if (ctx.Request.HttpMethod == "OPTIONS")
+                {
+                    ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                    ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, HEAD");
+                    ctx.Response.AddHeader("Access-Control-Max-Age", "1728000");
+                }
+
                 switch (ctx.Request.Headers["Host"])
                 {
                     case "sonyhome.thqsandbox.com":
@@ -286,21 +292,79 @@ namespace HTTPServer
                                     {
                                         if (ctx.Response.OutputStream.CanWrite)
                                         {
-                                            using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                            string mimetype = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
+
+                                            if (mimetype == "application/octet-stream" && !Path.HasExtension(filePath))
                                             {
-                                                ctx.Response.SendChunked = true;
-
-                                                // get mime type
-                                                ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
-                                                ctx.Response.ContentLength64 = stream.Length;
-
-                                                // copy file stream to response
-                                                stream.CopyTo(ctx.Response.OutputStream);
-                                                stream.Flush();
-                                                ctx.Response.OutputStream.Flush();
+                                                CryptoSporidium.Utils? utils = new();
+                                                if (utils.FindbyteSequence(File.ReadAllBytes(filePath), new byte[] { 0x3c, 0x3f, 0x70, 0x68, 0x70 }))
+                                                    mimetype = "text/html";
+                                                utils = null;
                                             }
 
-                                            statusCode = HttpStatusCode.OK;
+                                            if ((mimetype.Contains("video/") || mimetype.Contains("audio/")) && ctx.Request.Headers.AllKeys.Contains("Range"))
+                                            {
+                                                byte[] buffer = File.ReadAllBytes(filePath);
+                                                statusCode = HttpStatusCode.PartialContent;
+                                                ctx.Response.StatusDescription = "Partial Content";
+                                                int startByte = -1;
+                                                int endByte = -1;
+                                                int byteRange = -1;
+                                                if (ctx.Request.Headers.GetValues("Range") != null)
+                                                {
+                                                    string rangeHeader = ctx.Request.Headers.GetValues("Range")[0].Replace("bytes=", "");
+                                                    if (rangeHeader.EndsWith("-"))
+                                                    {
+                                                        startByte = 0;
+                                                        endByte = buffer.Length;
+                                                    }
+                                                    else
+                                                    {
+                                                        string[] range = rangeHeader.Split('-');
+                                                        startByte = int.Parse(range[0]);
+                                                        if (range[1].Trim().Length > 0) int.TryParse(range[1], out endByte);
+                                                        if (endByte == -1) endByte = buffer.Length;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    startByte = 0;
+                                                    endByte = buffer.Length;
+                                                }
+                                                byteRange = endByte - startByte;
+                                                ctx.Response.ContentLength64 = byteRange;
+                                                ctx.Response.Headers.Add("Accept-Ranges", "bytes");
+                                                ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, byteRange + 1, buffer.Length));
+
+                                                try
+                                                {
+                                                    ctx.Response.OutputStream.Write(buffer, startByte, byteRange);
+                                                }
+                                                catch (HttpListenerException e) when (e.ErrorCode == 995)
+                                                {
+                                                    statusCode = HttpStatusCode.InternalServerError;
+                                                }
+
+                                                ctx.Response.OutputStream.Flush();
+                                            }
+                                            else
+                                            {
+                                                statusCode = HttpStatusCode.OK;
+
+                                                using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                                {
+                                                    ctx.Response.SendChunked = true;
+
+                                                    // get mime type
+                                                    ctx.Response.ContentType = mimetype;
+                                                    ctx.Response.ContentLength64 = stream.Length;
+
+                                                    // copy file stream to response
+                                                    stream.CopyTo(ctx.Response.OutputStream);
+                                                    stream.Flush();
+                                                    ctx.Response.OutputStream.Flush();
+                                                }
+                                            }
                                         }
                                         else
                                             statusCode = HttpStatusCode.InternalServerError;
@@ -514,6 +578,7 @@ namespace HTTPServer
             {
                 ctx.Response.AddHeader("Date", DateTime.Now.ToString("r"));
                 ctx.Response.AddHeader("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                ctx.Response.AddHeader("Access-Control-Allow-Origin", "*");
             }
 
             ctx.Response.OutputStream.Close();

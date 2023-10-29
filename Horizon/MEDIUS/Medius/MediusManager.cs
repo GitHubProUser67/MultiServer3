@@ -158,7 +158,6 @@ namespace Horizon.MEDIUS.Medius
             if (!_lookupsByAppId.TryGetValue(dmeClient.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(dmeClient.ApplicationId, quickLookup = new QuickLookup());
 
-
             try
             {
                 quickLookup.AccessTokenToDmeClient.Add(dmeClient.Token, dmeClient);
@@ -1847,12 +1846,13 @@ namespace Horizon.MEDIUS.Medius
                 // Tick games
                 foreach (var quickLookup in _lookupsByAppId)
                 {
+                    int appid = quickLookup.Key;
                     foreach (var gameKeyPair in quickLookup.Value.GameIdToGame)
                     {
                         if (gameKeyPair.Value.ReadyToDestroy)
                         {
                             LoggerAccessor.LogInfo($"Destroying Game {gameKeyPair.Value}");
-                            await gameKeyPair.Value.EndGame();
+                            await gameKeyPair.Value.EndGame(appid);
                             gamesToRemove.Enqueue((quickLookup.Value, gameKeyPair.Key));
                         }
                         else

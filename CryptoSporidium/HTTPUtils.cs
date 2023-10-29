@@ -159,6 +159,7 @@
                 { ".dcurl", "text/vnd.curl.dcurl" },
                 { ".dd2", "application/vnd.oma.dd2+xml" },
                 { ".ddd", "application/vnd.fujixerox.ddd" },
+                { ".dds", "image/vnd-ms.dds" },
                 { ".deb", "application/x-debian-package" },
                 { ".def", "text/plain" },
                 { ".deploy", "application/octet-stream" },

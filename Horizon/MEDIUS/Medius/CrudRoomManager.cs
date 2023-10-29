@@ -14,7 +14,7 @@ namespace Horizon.MEDIUS.Medius
             var prefixes = new List<string>() { "http://*:61920/" };
 
             // Create a listener.
-            HttpListener listener = new();
+            HttpListener? listener = new();
             // Add the prefixes.
             foreach (string s in prefixes)
             {
@@ -28,6 +28,15 @@ namespace Horizon.MEDIUS.Medius
                 HttpListenerContext context = listener.GetContext();
 
                 LoggerAccessor.LogInfo($"[CrudRoomManager] - Recived request for {context.Request.Url}");
+
+                if (context.Request.HttpMethod == "OPTIONS")
+                {
+                    context.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                    context.Response.AddHeader("Access-Control-Allow-Methods", "GET");
+                    context.Response.AddHeader("Access-Control-Max-Age", "1728000");
+                }
+
+                context.Response.AppendHeader("Access-Control-Allow-Origin", "*");
 
                 if (context.Request.HttpMethod == "GET" && context.Request.Url != null)
                 {
@@ -88,6 +97,7 @@ namespace Horizon.MEDIUS.Medius
             }
 
             listener.Stop();
+            listener = null;
 
             return Task.CompletedTask;
         }
@@ -121,10 +131,22 @@ namespace Horizon.MEDIUS.Medius
 
             Player? playerToUpdate = gameToUpdate.Clients.FirstOrDefault(p => p.Name == accountName);
 
-            if (playerToUpdate == null)
+            if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate.Name))
             {
-                playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
-                gameToUpdate.Clients.Add(playerToUpdate);
+                if (gameToUpdate.Name.Contains("AP|"))
+                {
+                    Player? playerToUpdatehashed = gameToUpdate.Clients.FirstOrDefault(p => p.Name == Misc.ComputeSaltedSHA256(accountName));
+                    if (playerToUpdatehashed == null)
+                    {
+                        playerToUpdate = new Player { Name = Misc.ComputeSaltedSHA256(accountName), Languages = languageType, Host = host };
+                        gameToUpdate.Clients.Add(playerToUpdate);
+                    }
+                }
+                else
+                {
+                    playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
+                    gameToUpdate.Clients.Add(playerToUpdate);
+                }
             }
             else
             {
@@ -140,14 +162,19 @@ namespace Horizon.MEDIUS.Medius
 
             if (roomToRemoveUser != null)
             {
-                var gameToRemoveUser = roomToRemoveUser.Worlds.FirstOrDefault(w => w.WorldId == worldId);
+                var WorldToRemoveUser = roomToRemoveUser.Worlds.FirstOrDefault(w => w.WorldId == worldId);
 
-                if (gameToRemoveUser != null)
+                if (WorldToRemoveUser != null)
                 {
-                    var worldToRemoveUser = gameToRemoveUser.GameSessions.FirstOrDefault(w => w.Name == gameName);
+                    var GameToRemoveUser = WorldToRemoveUser.GameSessions.FirstOrDefault(w => w.Name == gameName);
 
-                    if (worldToRemoveUser != null)
-                        worldToRemoveUser.Clients.RemoveAll(p => p.Name == accountName);
+                    if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
+                    {
+                        if (GameToRemoveUser.Name.Contains("AP|"))
+                            GameToRemoveUser.Clients.RemoveAll(p => p.Name == Misc.ComputeSaltedSHA256(accountName));
+                        else
+                            GameToRemoveUser.Clients.RemoveAll(p => p.Name == accountName);
+                    }
                 }
             }
         }
@@ -155,32 +182,35 @@ namespace Horizon.MEDIUS.Medius
         // Remove a world from a specific room based on the provided parameters
         public static void RemoveWorld(string appId, string worldId)
         {
-            var roomToRemoveUser = rooms.FirstOrDefault(r => r.AppId == appId);
+            var roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
-            if (roomToRemoveUser != null)
+            if (roomToRemove != null)
             {
-                var gameToRemoveUser = roomToRemoveUser.Worlds.FirstOrDefault(w => w.WorldId == worldId);
+                var gameToRemove = roomToRemove.Worlds.FirstOrDefault(w => w.WorldId == worldId);
 
-                if (gameToRemoveUser != null)
-                    roomToRemoveUser.Worlds.RemoveAll(w => w.WorldId == worldId);
+                if (gameToRemove != null)
+                    roomToRemove.Worlds.RemoveAll(w => w.WorldId == worldId);
             }
         }
 
         // Remove a game from a specific room based on the provided parameters
-        public static void RemoveGame(string appId, string worldId, string gameName)
+        public static void RemoveGame(string appId, string worldId, string? gameName)
         {
-            var roomToRemoveUser = rooms.FirstOrDefault(r => r.AppId == appId);
-
-            if (roomToRemoveUser != null)
+            if (!string.IsNullOrEmpty(gameName))
             {
-                var gameToRemoveUser = roomToRemoveUser.Worlds.FirstOrDefault(w => w.WorldId == worldId);
+                var roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
-                if (gameToRemoveUser != null)
+                if (roomToRemove != null)
                 {
-                    var worldToRemoveUser = gameToRemoveUser.GameSessions.FirstOrDefault(w => w.Name == gameName);
+                    var gameToRemove = roomToRemove.Worlds.FirstOrDefault(w => w.WorldId == worldId);
 
-                    if (worldToRemoveUser != null)
-                        gameToRemoveUser.GameSessions.RemoveAll(w => w.Name == gameName);
+                    if (gameToRemove != null)
+                    {
+                        var worldToRemove = gameToRemove.GameSessions.FirstOrDefault(w => w.Name == gameName);
+
+                        if (worldToRemove != null)
+                            gameToRemove.GameSessions.RemoveAll(w => w.Name == gameName);
+                    }
                 }
             }
         }
