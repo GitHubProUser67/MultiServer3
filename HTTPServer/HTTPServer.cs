@@ -328,36 +328,16 @@ namespace HTTPServer
                                                     ctx.Response.StatusDescription = "Partial Content";
                                                     ctx.Response.ContentType = mimetype;
                                                     ctx.Response.AddHeader("Accept-Ranges", "bytes");
-                                                    if (endByte == buffer.Length) // 0- style of requests.
+                                                    ctx.Response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, buffer.Length));
+                                                    ctx.Response.ContentLength64 = buffer.Length;
+                                                    ctx.Response.KeepAlive = true;
+                                                    try
                                                     {
-                                                        ctx.Response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, buffer.Length));
-                                                        ctx.Response.ContentLength64 = buffer.Length;
-                                                        ctx.Response.KeepAlive = true;
-                                                        try
-                                                        {
-                                                            ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                                        }
-                                                        catch (HttpListenerException e) when (e.ErrorCode == 995)
-                                                        {
-                                                            statusCode = HttpStatusCode.InternalServerError;
-                                                        }
+                                                        ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
                                                     }
-                                                    else
+                                                    catch (HttpListenerException e) when (e.ErrorCode == 995)
                                                     {
-                                                        byte[] BlockBuffer = new byte[endByte - startByte];
-                                                        Buffer.BlockCopy(buffer, startByte, BlockBuffer, 0, BlockBuffer.Length);
-                                                        int totalCount = startByte + BlockBuffer.Length;
-                                                        ctx.Response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, totalCount - 1, buffer.Length));
-                                                        ctx.Response.ContentLength64 = BlockBuffer.Length;
-                                                        ctx.Response.KeepAlive = true;
-                                                        try
-                                                        {
-                                                            ctx.Response.OutputStream.Write(BlockBuffer, 0, BlockBuffer.Length);
-                                                        }
-                                                        catch (HttpListenerException e) when (e.ErrorCode == 995)
-                                                        {
-                                                            statusCode = HttpStatusCode.InternalServerError;
-                                                        }
+                                                        statusCode = HttpStatusCode.InternalServerError;
                                                     }
 
                                                     ctx.Response.OutputStream.Flush();
