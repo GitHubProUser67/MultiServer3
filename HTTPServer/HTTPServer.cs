@@ -305,40 +305,31 @@ namespace HTTPServer
                                             if ((mimetype.Contains("video/") || mimetype.Contains("audio/")) && ctx.Request.Headers.AllKeys.Contains("Range"))
                                             {
                                                 byte[] buffer = File.ReadAllBytes(filePath);
-                                                statusCode = HttpStatusCode.PartialContent;
-                                                ctx.Response.StatusDescription = "Partial Content";
                                                 int startByte = -1;
                                                 int endByte = -1;
-                                                int byteRange = -1;
                                                 if (ctx.Request.Headers.GetValues("Range") != null)
                                                 {
                                                     string rangeHeader = ctx.Request.Headers.GetValues("Range")[0].Replace("bytes=", "");
-                                                    if (rangeHeader.EndsWith("-"))
-                                                    {
-                                                        startByte = 0;
-                                                        endByte = buffer.Length;
-                                                    }
-                                                    else
-                                                    {
-                                                        string[] range = rangeHeader.Split('-');
-                                                        startByte = int.Parse(range[0]);
-                                                        if (range[1].Trim().Length > 0) int.TryParse(range[1], out endByte);
-                                                        if (endByte == -1) endByte = buffer.Length;
-                                                    }
+                                                    string[] range = rangeHeader.Split('-');
+                                                    startByte = int.Parse(range[0]);
+                                                    if (range[1].Trim().Length > 0) int.TryParse(range[1], out endByte);
+                                                    if (endByte == -1) endByte = buffer.Length;
                                                 }
                                                 else
                                                 {
                                                     startByte = 0;
                                                     endByte = buffer.Length;
                                                 }
-                                                byteRange = endByte - startByte;
-                                                ctx.Response.ContentLength64 = byteRange;
-                                                ctx.Response.Headers.Add("Accept-Ranges", "bytes");
-                                                ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, byteRange + 1, buffer.Length));
-
+                                                statusCode = HttpStatusCode.PartialContent;
+                                                ctx.Response.StatusDescription = "Partial Content";
+                                                ctx.Response.ContentType = mimetype;
+                                                ctx.Response.AddHeader("Accept-Ranges", "bytes");
+                                                ctx.Response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte, buffer.Length));
+                                                ctx.Response.ContentLength64 = buffer.Length;
+                                                ctx.Response.KeepAlive = true;
                                                 try
                                                 {
-                                                    ctx.Response.OutputStream.Write(buffer, startByte, byteRange);
+                                                    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
                                                 }
                                                 catch (HttpListenerException e) when (e.ErrorCode == 995)
                                                 {
