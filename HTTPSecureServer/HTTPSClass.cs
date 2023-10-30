@@ -15,6 +15,7 @@ namespace HTTPSecureServer
     public class HTTPSClass
     {
         public static bool IsStarted = false;
+        private static string[] AllowedFileTypes = { ".txt", ".tss", ".xml", ".sdc", ".odc", ".htm", ".html", ".json", ".ico", ".png", ".dds", ".jpg", ".jpeg", ".mp3", "" };
         private string certpath;
         private string certpass;
 
@@ -205,14 +206,13 @@ namespace HTTPSecureServer
                                 }
                                 else
                                 {
-                                    FileInfo? getfileInfo = new(filePath);
                                     // send file
-                                    if (getfileInfo.Exists)
+                                    if (File.Exists(filePath))
                                     {
                                         // Workaround for lack of stream support in NetCoreServer.
                                         // Reading very large files may cause a big memory leak, a github ticket has already been issued : https://github.com/chronoxor/NetCoreServer/issues/176
                                         // And : https://github.com/chronoxor/NetCoreServer/issues/248
-                                        if (getfileInfo.Length / (1024 * 1024) < 5 && !filePath.ToLower().EndsWith(".php"))
+                                        if (AllowedFileTypes.Contains(Path.GetExtension(filePath)))
                                         {
                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
@@ -243,7 +243,6 @@ namespace HTTPSecureServer
                                         Response.SetBody();
                                         SendResponseAsync(Response);
                                     }
-                                    getfileInfo = null;
                                 }
                                 break;
                             case "POST":
