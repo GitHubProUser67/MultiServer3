@@ -10,7 +10,7 @@ namespace Horizon.MEDIUS.Medius.Models
             public int mActions;
             public int mWorldIndex;
             public int mCLientIndex;
-            public string mSessionKey;
+            public string? mSessionKey;
             public int mQueryType;
             public int mSequenceId;
             public int mStartingAddress;
@@ -19,10 +19,10 @@ namespace Horizon.MEDIUS.Medius.Models
             public int mNQueryDataBytes;
             public int mPokeStartAddress;
             public int mNPokeBytes;
-            public string mPokeData;
+            public string? mPokeData;
             public DME_SERVER_ENCODING_TYPE mEncodingType;
             public DME_SERVER_LANGUAGE_TYPE mLanguageType;
-            public string mMsgBody;
+            public string? mMsgBody;
             public int mMsgLength;
             public int mLogDetectedData;
         }

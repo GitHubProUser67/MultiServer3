@@ -7,7 +7,7 @@ namespace Horizon.RT.Cryptography
 {
     public class PS3CipherFactory : ICipherFactory
     {
-        private static Random RNG = new Random();
+        private static Random RNG = new();
 
         public ICipher CreateNew(CipherContext context)
         {
@@ -27,7 +27,7 @@ namespace Horizon.RT.Cryptography
 
         public ICipher CreateNew(RSA.RsaKeyPair rsaKeyPair)
         {
-            return rsaKeyPair?.ToPS3();
+            return rsaKeyPair.ToPS3();
         }
 
         private ICipher CreateSym(CipherContext context)

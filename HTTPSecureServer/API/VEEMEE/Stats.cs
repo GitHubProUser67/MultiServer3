@@ -12,7 +12,7 @@ namespace HTTPSecureServer.API.VEEMEE
                 string id = string.Empty;
                 string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (boundary != null && PostData != null)
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -52,7 +52,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string objectname = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -107,7 +107,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string usage = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {

@@ -44,7 +44,7 @@ namespace Horizon.DME.Config
 
         public void SetSettings(Dictionary<string, string> settings)
         {
-            string value = null;
+            string? value = null;
 
             // EnableDmeEncryption
             if (settings.TryGetValue("EnableDmeEncryption", out value) && bool.TryParse(value, out var enableDmeEncryption))

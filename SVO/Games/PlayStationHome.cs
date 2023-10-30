@@ -32,7 +32,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -55,7 +55,7 @@ namespace SVO
                                         region = "en-US";
                                     }
 
-                                    byte[] uriStore = null;
+                                    byte[]? uriStore = null;
 
                                     if (SVOServerConfiguration.SVOHTTPSBypass)
                                         uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
@@ -168,7 +168,7 @@ namespace SVO
 
                                     string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
@@ -225,7 +225,7 @@ namespace SVO
 
                                     string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
@@ -287,7 +287,7 @@ namespace SVO
 
                                     string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                    string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                     if (serverMac == null)
                                     {
@@ -352,7 +352,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -410,7 +410,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -473,7 +473,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -525,7 +525,7 @@ namespace SVO
                                         {
                                             //Found in database so keep.
                                             langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                            string accountName = r.Result.AccountName;
+                                            string? accountName = r.Result.AccountName;
                                             accountId = r.Result.AccountId;
                                         });
                                     }
@@ -591,7 +591,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -651,7 +651,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -698,7 +698,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -742,7 +742,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -810,7 +810,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -901,7 +901,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -974,7 +974,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -1049,7 +1049,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {
@@ -1168,7 +1168,7 @@ namespace SVO
 
                                 string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
                                 if (serverMac == null)
                                 {

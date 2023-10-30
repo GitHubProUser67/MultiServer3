@@ -830,7 +830,7 @@ namespace SVO
                                     {
                                         //Found in database so keep.
                                         string langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                        string accountName = r.Result.AccountName;
+                                        string? accountName = r.Result.AccountName;
                                         accountId = r.Result.AccountId;
                                     });
                                 }

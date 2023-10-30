@@ -56,14 +56,14 @@ namespace Horizon.DME
 
         #region Clients
 
-        public ClientObject GetClientByAccessToken(string accessToken)
+        public ClientObject? GetClientByAccessToken(string accessToken)
         {
             if (_accessTokenToClient.TryGetValue(accessToken, out var result))
                 return result;
 
             return null;
         }
-        public ClientObject GetClientBySessionKey(string sessionKey)
+        public ClientObject? GetClientBySessionKey(string sessionKey)
         {
             if (_sessionKeyToClient.TryGetValue(sessionKey, out var result))
                 return result;
@@ -426,14 +426,14 @@ namespace Horizon.DME
                         {
                             if (ApplicationId == 20371)
                             {
-                                World worldHome = new World(this, 20371, 256);
+                                World worldHome = new(this, 20371, 256);
                                 _worlds.Add(worldHome);
 
                                 Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
                             }
                             else if (ApplicationId == 20374)
                             {
-                                World worldHome = new World(this, 20374, 256);
+                                World worldHome = new(this, 20374, 256);
                                 _worlds.Add(worldHome);
 
                                 Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));

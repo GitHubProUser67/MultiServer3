@@ -15,7 +15,7 @@ namespace Horizon.MUIS
         public static ServerSettings Settings = new();
 
         public static MediusManager Manager = new();
-        public static MediusPluginsManager? Plugins = null;
+        public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
         public static RSA_KEY? GlobalAuthPublic = null;
 
@@ -195,7 +195,7 @@ namespace Horizon.MUIS
                     10984, 10782, 10421, 10130
                 });
 
-                string iptofile = null;
+                string? iptofile = null;
 
                 if (DmeClass.Settings.UsePublicIp || MEDIUS.MediusClass.Settings.UsePublicIp)
                     iptofile = Misc.GetPublicIPAddress();

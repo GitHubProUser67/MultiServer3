@@ -12,46 +12,49 @@ namespace MitmDNS
 
         public Task MitmDNSMain()
         {
-            Dictionary<string, DnsSettings> dicRules = null;
-            List<KeyValuePair<string, DnsSettings>> regRules = null;
-
-            if (MitmDNSServerConfiguration.DNSOnlineConfig != null && MitmDNSServerConfiguration.DNSOnlineConfig != "")
+            if (proc != null)
             {
-                LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                if (Misc.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                proc.DenyNotInRules = false;
-                string content = string.Empty;
-                try
-                {
-                    HttpClient client = new();
-                    HttpResponseMessage response = client.GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
-                    response.EnsureSuccessStatusCode();
-                    content = response.Content.ReadAsStringAsync().Result;
-                    ParseRules(content, out dicRules, out regRules, false);
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                    return Task.CompletedTask;
-                }
-            }
-            else if (dicRules == null)
-            {
-                if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
-                    ParseRules(MitmDNSServerConfiguration.DNSConfig, out dicRules, out regRules);
-                else
-                {
-                    LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
-                    Environment.Exit(0);
-                }
-            }
+                Dictionary<string, DnsSettings>? dicRules = null;
+                List<KeyValuePair<string, DnsSettings>>? regRules = null;
 
-            proc.FireEvents = true;
-            proc.dicRules = dicRules;
-            proc.regRules = regRules;
-            proc.ResolvedIp += ResolvedIp;
-            proc.ConnectionRequest += ConnectionRequest;
-            Task.Run(proc.RunDns);
+                if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
+                {
+                    LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
+                    if (Misc.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                    proc.DenyNotInRules = false;
+                    string content = string.Empty;
+                    try
+                    {
+                        HttpClient client = new();
+                        HttpResponseMessage response = client.GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
+                        response.EnsureSuccessStatusCode();
+                        content = response.Content.ReadAsStringAsync().Result;
+                        ParseRules(content, out dicRules, out regRules, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
+                        return Task.CompletedTask;
+                    }
+                }
+                else if (dicRules == null)
+                {
+                    if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+                        ParseRules(MitmDNSServerConfiguration.DNSConfig, out dicRules, out regRules);
+                    else
+                    {
+                        LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
+                        Environment.Exit(0);
+                    }
+                }
+
+                proc.FireEvents = true;
+                proc.dicRules = dicRules;
+                proc.regRules = regRules;
+                proc.ResolvedIp += ResolvedIp;
+                proc.ConnectionRequest += ConnectionRequest;
+                Task.Run(proc.RunDns);
+            }
 
             return Task.CompletedTask;
         }
@@ -175,7 +178,10 @@ namespace MitmDNS
 
         private void ResolvedIp(DnsEventArgs e)
         {
-            LoggerAccessor.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : e.Host.ToString()));
+            if (e.Host != null)
+                LoggerAccessor.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : e.Host.ToString()));
+            else
+                LoggerAccessor.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : "UNKNOWN"));
         }
 
         private void ConnectionRequest(DnsConnectionRequestEventArgs e)

@@ -15,7 +15,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public class PartyClient
         {
-            public ClientObject Client;
+            public ClientObject? Client;
 
             public int DmeId;
             public bool InGame;
@@ -42,7 +42,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public MediusWorldAttributesType Attributes;
         public DMEObject DMEServer;
         public Channel ChatChannel;
-        public ClientObject Host;
+        public ClientObject? Host;
 
         public string AccountIdsAtStart => accountIdsAtStart;
         public DateTime UtcTimeCreated => utcTimeCreated;

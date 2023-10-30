@@ -15,7 +15,7 @@ namespace Horizon.MEDIUS.Medius.Models
 {
     public class ClientObject
     {
-        protected static Random RNG = new Random();
+        protected static Random RNG = new();
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
         public List<GameClient> Clients = new List<GameClient>();
@@ -28,12 +28,12 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public IChannel Tcp { get; protected set; } = null;
+        public IChannel? Tcp { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public IPEndPoint RemoteUdpEndpoint { get; set; } = null;
+        public IPEndPoint? RemoteUdpEndpoint { get; set; } = null;
 
         /// <summary>
         /// 
@@ -103,7 +103,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public string AccountName { get; protected set; } = null;
+        public string? AccountName { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -113,22 +113,22 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// Anonymous Login Name for the duration of that session
         /// </summary>
-        public string AccountDisplayName { get; set; } = null;
+        public string? AccountDisplayName { get; set; } = null;
 
         /// <summary>
         /// Current access token required to access the account.
         /// </summary>
-        public string Token { get; protected set; } = null;
+        public string? Token { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string SessionKey { get; protected set; } = null;
+        public string? SessionKey { get; protected set; } = null;
 
         /// <summary>
         /// MGCL Session Key
         /// </summary>
-        public string MGCLSessionKey { get; protected set; } = null;
+        public string? MGCLSessionKey { get; protected set; } = null;
 
         /// <summary>
         /// Unique MGCL hardcoded game identifer per Medius title
@@ -196,17 +196,17 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public Channel CurrentChannel { get; protected set; } = null;
+        public Channel? CurrentChannel { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public Game CurrentGame { get; protected set; } = null;
+        public Game? CurrentGame { get; protected set; } = null;
 
         /// <summary>
         /// Current Party
         /// </summary>
-        public Party CurrentParty { get; protected set; } = null;
+        public Party? CurrentParty { get; protected set; } = null;
 
         public int? PartyIndex { get; protected set; } = null;
 
@@ -248,7 +248,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public string Metadata { get; set; } = null;
+        public string? Metadata { get; set; } = null;
 
         /// <summary>
         /// RTT (ms)
@@ -263,7 +263,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public Dictionary<int, string> FriendsList { get; set; }
+        public Dictionary<int, string?> FriendsList { get; set; }
 
         /// <summary>
         /// 
@@ -273,12 +273,12 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public int[] WideStats { get; set; } = new int[100];
+        public int[]? WideStats { get; set; } = new int[100];
 
         /// <summary>
         /// 
         /// </summary>
-        public int[] CustomWideStats { get; set; } = new int[0];
+        public int[]? CustomWideStats { get; set; } = new int[0];
 
         /// <summary>
         /// 
@@ -556,7 +556,7 @@ namespace Horizon.MEDIUS.Medius.Models
                     WideStats = account.AccountWideStats;
                     CustomWideStats = account.AccountCustomWideStats;
 
-                    FriendsList = account.Friends?.ToDictionary(x => x.AccountId, x => x.AccountName) ?? new Dictionary<int, string>();
+                    FriendsList = account.Friends?.ToDictionary(x => x.AccountId, x => x.AccountName) ?? new Dictionary<int, string?>();
 
                     // Raise plugin event
                     await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_LOGGED_IN, new OnPlayerArgs() { Player = this });
@@ -950,7 +950,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
     public class UploadState
     {
-        public FileStream Stream { get; set; }
+        public FileStream? Stream { get; set; }
         public int FileId { get; set; }
         public int PacketNumber { get; set; }
         public int TotalSize { get; set; }

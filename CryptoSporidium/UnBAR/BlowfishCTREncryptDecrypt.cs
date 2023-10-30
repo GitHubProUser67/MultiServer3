@@ -29,7 +29,7 @@ namespace CryptoSporidium.UnBAR
             }
         }
 
-        public byte[]? EncryptionProxyInit(byte[] Headerdata, byte[] SignatureIV)
+        public byte[]? EncryptionProxyInit(byte[]? Headerdata, byte[]? SignatureIV)
         {
             if (SignatureIV != null && SignatureIV.Length == 8 && Headerdata != null && Headerdata.Length == 24)
             {
@@ -53,7 +53,7 @@ namespace CryptoSporidium.UnBAR
             return null;
         }
 
-        public byte[]? InitiateCTRBuffer(byte[] Data, byte[] IV)
+        public byte[]? InitiateCTRBuffer(byte[]? Data, byte[]? IV)
         {
             if (IV != null && IV.Length == 8 && Data != null)
             {

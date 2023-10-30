@@ -10,7 +10,7 @@ namespace Horizon.RT.Models
         public override byte PacketType => (byte)MediusDmeMessageIds.ServerResponse;
 
         public long Port;
-        public IPAddress IPAddress;
+        public IPAddress? IPAddress;
 
         public override void Deserialize(MessageReader reader)
         {

@@ -19,7 +19,7 @@ namespace Horizon.DME
 {
     public class TcpServer
     {
-        public static Random RNG = new Random();
+        public static Random RNG = new();
 
         public bool IsRunning => _boundChannel != null && _boundChannel.IsActive;
 

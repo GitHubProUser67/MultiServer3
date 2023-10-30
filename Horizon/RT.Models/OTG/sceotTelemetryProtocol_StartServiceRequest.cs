@@ -10,7 +10,7 @@ namespace Horizon.RT.Models
 
         public byte msgType;
         public short maxBlockSize;
-        public string systemId;
+        public string? systemId;
         public long requestId;
 
         public override void Deserialize(MessageReader reader)
@@ -27,7 +27,10 @@ namespace Horizon.RT.Models
             writer.Write(msgType);
             writer.Write(new byte[1]);
             writer.Write(maxBlockSize);
-            writer.Write(systemId, Constants.SYSTEMID_MAXLEN);
+            if (systemId == null)
+                writer.Write(string.Empty, Constants.SYSTEMID_MAXLEN);
+            else
+                writer.Write(systemId, Constants.SYSTEMID_MAXLEN);
             writer.Write(requestId);
         }
 

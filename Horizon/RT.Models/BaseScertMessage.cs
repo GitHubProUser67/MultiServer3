@@ -39,7 +39,7 @@ namespace Horizon.RT.Models
         public List<byte[]> Serialize(int? mediusVersion, int appId, CipherService cipherService)
         {
             var results = new List<byte[]>();
-            byte[] result = null;
+            byte[]? result = null;
             var buffer = new byte[1024 * 10];
             int length = 0;
             int totalHeaderSize = HEADER_SIZE;
@@ -65,7 +65,6 @@ namespace Horizon.RT.Models
 
                 foreach (var frag in fragments)
                 {
-                    // 
                     totalHeaderSize = HEADER_SIZE;
 
                     // Serialize message
@@ -115,7 +114,6 @@ namespace Horizon.RT.Models
                 {
                     totalHeaderSize += HASH_SIZE;
 
-                    // 
                     result = new byte[length + totalHeaderSize];
                     result[0] = (byte)((byte)Id | 0x80);
                     result[1] = (byte)(length & 0xFF);
@@ -160,7 +158,7 @@ namespace Horizon.RT.Models
 
         #region Dynamic Instantiation
 
-        private static Dictionary<RT_MSG_TYPE, Type> _messageClassById = null;
+        private static Dictionary<RT_MSG_TYPE, Type>? _messageClassById = null;
         private static int _messageClassByIdLockValue = 0;
         private static object _messageClassByIdLockObject = _messageClassByIdLockValue;
 
@@ -212,12 +210,12 @@ namespace Horizon.RT.Models
             return Instantiate(rtId, null, messageBytes, reader.MediusVersion, reader.AppId, null);
         }
 
-        public static BaseScertMessage Instantiate(RT_MSG_TYPE id, byte[] hash, byte[] messageBuffer, int mediusVersion, int appId, CipherService cipherService)
+        public static BaseScertMessage? Instantiate(RT_MSG_TYPE id, byte[]? hash, byte[] messageBuffer, int mediusVersion, int appId, CipherService? cipherService)
         {
             // Init first
             Initialize();
 
-            BaseScertMessage msg = null;
+            BaseScertMessage? msg = null;
 
             // Get class
             if (!_messageClassById.TryGetValue(id, out var classType))
@@ -237,7 +235,7 @@ namespace Horizon.RT.Models
             return msg;
         }
 
-        private static BaseScertMessage Instantiate(Type classType, RT_MSG_TYPE id, byte[] plain, int mediusVersion, int appId)
+        private static BaseScertMessage? Instantiate(Type classType, RT_MSG_TYPE id, byte[] plain, int mediusVersion, int appId)
         {
             if (plain == null)
             {
@@ -245,7 +243,7 @@ namespace Horizon.RT.Models
                 return null;
             }
 
-            BaseScertMessage msg = null;
+            BaseScertMessage? msg = null;
 
             using (var stream = new MemoryStream(plain))
             {

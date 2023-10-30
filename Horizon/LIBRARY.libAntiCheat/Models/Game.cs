@@ -12,7 +12,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         public class GameClient
         {
-            public ClientObject Client;
+            public ClientObject? Client;
 
             public int DmeId;
             public bool InGame;

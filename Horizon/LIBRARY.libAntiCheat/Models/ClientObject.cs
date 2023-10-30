@@ -10,7 +10,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 {
     public class ClientObject
     {
-        protected static Random RNG = new Random();
+        protected static Random RNG = new();
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
         public List<GameClient> Clients = new List<GameClient>();

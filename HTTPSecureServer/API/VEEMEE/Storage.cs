@@ -11,7 +11,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string product = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -61,7 +61,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string __salt = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -93,7 +93,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string profile = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -119,7 +119,7 @@ namespace HTTPSecureServer.API.VEEMEE
     {
         public static string? ReadProfile(string psnid, string product, string hex, string salt)
         {
-            if (hex == null || salt == null)
+            if (string.IsNullOrEmpty(hex) || string.IsNullOrEmpty(salt))
                 return null;
 
             if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"))

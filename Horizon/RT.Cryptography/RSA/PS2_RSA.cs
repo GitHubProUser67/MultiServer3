@@ -9,7 +9,7 @@ namespace Horizon.RT.Cryptography.RSA
     {
         public CipherContext Context { get; protected set; } = CipherContext.RSA_AUTH;
 
-        public string Comment = "";
+        public string Comment = string.Empty;
         public BigInteger N { get; protected set; }
         public BigInteger E { get; protected set; }
         public BigInteger D { get; protected set; }

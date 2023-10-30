@@ -60,7 +60,7 @@ namespace SSFWServer
 
                     // Extract the rewards object from the POST data
                     JObject postDataObject = JObject.Parse(postData);
-                    JObject? rewardsObject = (JObject)postDataObject["rewards"];
+                    JObject? rewardsObject = (JObject?)postDataObject["rewards"];
 
                     if (rewardsObject != null)
                     {
@@ -108,16 +108,16 @@ namespace SSFWServer
                     if (!string.IsNullOrEmpty(json))
                     {
                         // Parse the request
-                        JObject requestObject = JsonConvert.DeserializeObject<JObject>(request);
+                        JObject? requestObject = JsonConvert.DeserializeObject<JObject>(request);
 
                         if (requestObject != null)
                         {
                             JObject mainFile = JObject.Parse(json);
 
                             // Check if 'add' operation is requested
-                            if (requestObject.ContainsKey("add") && requestObject["add"]["objects"] is JArray addArray)
+                            if (requestObject.ContainsKey("add") && requestObject["add"]?["objects"] is JArray addArray)
                             {
-                                JArray mainArray = (JArray)mainFile["objects"];
+                                JArray? mainArray = (JArray?)mainFile["objects"];
                                 if (mainArray != null)
                                 {
                                     foreach (JObject addObject in addArray)
@@ -128,9 +128,9 @@ namespace SSFWServer
                             }
 
                             // Check if 'update' operation is requested
-                            if (requestObject.ContainsKey("update") && requestObject["update"]["objects"] is JArray updateArray)
+                            if (requestObject.ContainsKey("update") && requestObject["update"]?["objects"] is JArray updateArray)
                             {
-                                JArray mainArray = (JArray)mainFile["objects"];
+                                JArray? mainArray = (JArray?)mainFile["objects"];
                                 if (mainArray != null)
                                 {
                                     foreach (JObject updateObj in updateArray)
@@ -138,7 +138,7 @@ namespace SSFWServer
                                         if (updateObj.TryGetValue("objectId", out var objectIdToken) && objectIdToken is JValue objectIdValue)
                                         {
                                             string objectId = objectIdValue.ToString();
-                                            JObject existingObj = mainArray.FirstOrDefault(obj => obj["objectId"].ToString() == objectId) as JObject;
+                                            JObject? existingObj = mainArray.FirstOrDefault(obj => obj["objectId"]?.ToString() == objectId) as JObject;
                                             if (existingObj != null)
                                                 existingObj.Merge(updateObj, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace });
                                         }
@@ -147,9 +147,9 @@ namespace SSFWServer
                             }
 
                             // Check if 'delete' operation is requested
-                            if (requestObject.ContainsKey("delete") && requestObject["delete"]["objects"] is JArray deleteArray)
+                            if (requestObject.ContainsKey("delete") && requestObject["delete"]?["objects"] is JArray deleteArray)
                             {
-                                JArray mainArray = (JArray)mainFile["objects"];
+                                JArray? mainArray = (JArray?)mainFile["objects"];
                                 if (mainArray != null)
                                 {
                                     foreach (JObject deleteObj in deleteArray)
@@ -157,7 +157,7 @@ namespace SSFWServer
                                         if (deleteObj.TryGetValue("objectId", out var objectIdToken) && objectIdToken is JValue objectIdValue)
                                         {
                                             string objectId = objectIdValue.ToString();
-                                            JObject existingObj = mainArray.FirstOrDefault(obj => obj["objectId"].ToString() == objectId) as JObject;
+                                            JObject? existingObj = mainArray.FirstOrDefault(obj => obj["objectId"]?.ToString() == objectId) as JObject;
                                             if (existingObj != null)
                                                 existingObj.Remove();
                                         }

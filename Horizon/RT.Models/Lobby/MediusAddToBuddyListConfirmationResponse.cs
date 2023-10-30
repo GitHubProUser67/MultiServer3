@@ -10,11 +10,11 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
         public int TargetAccountID;
-        public string TargetAccountName;
+        public string? TargetAccountName;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -37,7 +37,10 @@ namespace Horizon.RT.Models
 
             writer.Write(StatusCode);
             writer.Write(TargetAccountID);
-            writer.Write(TargetAccountName, Constants.ACCOUNTNAME_MAXLEN);
+            if (TargetAccountName == null)
+                writer.Write(string.Empty, Constants.ACCOUNTNAME_MAXLEN);
+            else
+                writer.Write(TargetAccountName, Constants.ACCOUNTNAME_MAXLEN);
         }
 
 

@@ -49,10 +49,11 @@ namespace CryptoSporidium.UnBAR
             return num;
         }
 
-        public static void arraycopy(byte[] src, int srcPos, byte[] dest, long destPos, int length)
+        public static void arraycopy(byte[]? src, int srcPos, byte[] dest, long destPos, int length)
         {
-            for (int index = 0; index < length; ++index)
-                dest[destPos + index] = src[srcPos + index];
+            if (src != null)
+                for (int index = 0; index < length; ++index)
+                    dest[destPos + index] = src[srcPos + index];
         }
 
         public static string getHexString(byte[] raw)

@@ -33,19 +33,19 @@ namespace Horizon.MEDIUS.Medius
         public abstract int TCPPort { get; }
         public abstract int UDPPort { get; }
 
-        public IPAddress IPAddress => MediusClass.SERVER_IP;
+        public IPAddress? IPAddress => MediusClass.SERVER_IP;
 
-        protected IEventLoopGroup _bossGroup = null;
-        protected IEventLoopGroup _workerGroup = null;
-        protected IChannel _boundChannel = null;
-        protected ScertServerHandler _scertHandler = null;
+        protected IEventLoopGroup? _bossGroup = null;
+        protected IEventLoopGroup? _workerGroup = null;
+        protected IChannel? _boundChannel = null;
+        protected ScertServerHandler? _scertHandler = null;
         private uint _clientCounter = 0;
 
         protected internal class ChannelData
         {
             public int ApplicationId { get; set; } = 0;
-            public ClientObject ClientObject { get; set; } = null;
-            public string MachineId { get; set; } = null;
+            public ClientObject? ClientObject { get; set; } = null;
+            public string? MachineId { get; set; } = null;
             public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
             public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
 
@@ -69,7 +69,7 @@ namespace Horizon.MEDIUS.Medius
         protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new ConcurrentQueue<IChannel>();
         protected ConcurrentDictionary<string, ChannelData> _channelDatas = new ConcurrentDictionary<string, ChannelData>();
 
-        protected PS2_RC4 _sessionCipher = null;
+        protected PS2_RC4? _sessionCipher = null;
 
         protected DateTime _timeLastEcho = Utils.GetHighPrecisionUtcTime();
 

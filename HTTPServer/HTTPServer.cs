@@ -13,18 +13,12 @@ namespace HTTPServer
         private volatile bool threadActive;
 
         private HttpListener? listener;
-        private string path;
-        private string phppath;
         private string ip;
-        private string phpver;
         private int port;
 
-        public Processor(string path, string phppath, string ip, string phpver, int port)
+        public Processor(string ip, int port)
         {
-            this.path = path;
-            this.phppath = phppath;
             this.ip = ip;
-            this.phpver = phpver;
             this.port = port;
         }
 
@@ -153,10 +147,10 @@ namespace HTTPServer
                 string[] segments = url.Trim('/').Split('/');
 
                 // Combine the folder segments into a directory path
-                string directoryPath = Path.Combine(path, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                string directoryPath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                 // Process the request based on the HTTP method
-                string filePath = Path.Combine(path, url.Substring(1));
+                string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, url.Substring(1));
 
                 if (ctx.Request.HttpMethod == "OPTIONS")
                 {
@@ -164,6 +158,8 @@ namespace HTTPServer
                     ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, HEAD");
                     ctx.Response.AddHeader("Access-Control-Max-Age", "1728000");
                 }
+
+                ctx.Response.AppendHeader("Access-Control-Allow-Origin", "*");
 
                 switch (ctx.Request.Headers["Host"])
                 {
@@ -237,14 +233,14 @@ namespace HTTPServer
                         {
                             case "GET":
                                 // send file
-                                if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(phppath))
+                                if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                                 {
                                     try
                                     {
                                         if (ctx.Response.OutputStream.CanWrite && ctx.Request.Url != null && ctx.Request.Url.Scheme != null)
                                         {
                                             PHPClass php = new();
-                                            byte[]? PHPBytes = php.ProcessPHPPage($"{path}{absolutepath}", phppath, phpver, $"{ctx.Request.Url.Scheme}://{ctx.Request.Url.Authority}{ctx.Request.RawUrl}", ctx.Request, ctx.Response);
+                                            byte[]? PHPBytes = php.ProcessPHPPage($"{HTTPServerConfiguration.HTTPStaticFolder}{absolutepath}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, $"{ctx.Request.Url.Scheme}://{ctx.Request.Url.Authority}{ctx.Request.RawUrl}", ctx.Request, ctx.Response);
                                             php.Dispose();
                                             if (PHPBytes != null)
                                             {
@@ -284,6 +280,32 @@ namespace HTTPServer
                                         statusCode = HttpStatusCode.InternalServerError;
                                     }
                                 }
+                                else if (filePath.EndsWith("/"))
+                                {
+                                    string? encoding = ctx.Request.Headers["Content-Encoding"];
+
+                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                    {
+                                        statusCode = HttpStatusCode.OK;
+
+                                        byte[] CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1))));
+                                        ctx.Response.AddHeader("Content-Encoding", "gzip");
+                                        ctx.Response.ContentType = "application/json";
+                                        ctx.Response.ContentLength64 = CompresedFileBytes.Length;
+                                        ctx.Response.OutputStream.Write(CompresedFileBytes, 0, CompresedFileBytes.Length);
+                                        ctx.Response.OutputStream.Flush();
+                                    }
+                                    else
+                                    {
+                                        statusCode = HttpStatusCode.OK;
+
+                                        byte[] FileBytes = Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)));
+                                        ctx.Response.ContentType = "application/json";
+                                        ctx.Response.ContentLength64 = FileBytes.Length;
+                                        ctx.Response.OutputStream.Write(FileBytes, 0, FileBytes.Length);
+                                        ctx.Response.OutputStream.Flush();
+                                    }
+                                }
                                 else if (File.Exists(filePath))
                                 {
                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a file : " + filePath);
@@ -294,10 +316,12 @@ namespace HTTPServer
                                         {
                                             string mimetype = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
 
+                                            string? encoding = ctx.Request.Headers["Content-Encoding"];
+
                                             if (!Path.HasExtension(filePath))
                                             {
                                                 CryptoSporidium.Utils? utils = new();
-                                                if (utils.FindbyteSequence(File.ReadAllBytes(filePath), new byte[] { 0x3c, 0x21, 0x44, 0x4f, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20, 0x68, 0x74, 0x6d, 0x6c, 0x3e }))
+                                                if (utils.FindbyteSequence(File.ReadAllBytes(filePath), "<!DOCTYPE html>"u8.ToArray()))
                                                     mimetype = "text/html";
                                                 utils = null;
                                             }
@@ -307,9 +331,10 @@ namespace HTTPServer
                                                 byte[] buffer = File.ReadAllBytes(filePath);
                                                 int startByte = -1;
                                                 int endByte = -1;
-                                                if (ctx.Request.Headers.GetValues("Range") != null)
+                                                string[]? RangeCollection = ctx.Request.Headers.GetValues("Range");
+                                                if (RangeCollection != null && !string.IsNullOrEmpty(RangeCollection[0]))
                                                 {
-                                                    string rangeHeader = ctx.Request.Headers.GetValues("Range")[0].Replace("bytes=", "");
+                                                    string rangeHeader = RangeCollection[0].Replace("bytes=", "");
                                                     string[] range = rangeHeader.Split('-');
                                                     startByte = int.Parse(range[0]);
                                                     if (range[1].Trim().Length > 0) int.TryParse(range[1], out endByte);
@@ -342,6 +367,17 @@ namespace HTTPServer
 
                                                     ctx.Response.OutputStream.Flush();
                                                 }
+                                            }
+                                            else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                            {
+                                                statusCode = HttpStatusCode.OK;
+
+                                                byte[] CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(File.ReadAllBytes(filePath));
+                                                ctx.Response.AddHeader("Content-Encoding", "gzip");
+                                                ctx.Response.ContentType = mimetype;
+                                                ctx.Response.ContentLength64 = CompresedFileBytes.Length;
+                                                ctx.Response.OutputStream.Write(CompresedFileBytes, 0, CompresedFileBytes.Length);
+                                                ctx.Response.OutputStream.Flush();
                                             }
                                             else
                                             {
@@ -474,14 +510,14 @@ namespace HTTPServer
                                         break;
                                     default:
                                         // send file
-                                        if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(phppath))
+                                        if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                                         {
                                             try
                                             {
                                                 if (ctx.Response.OutputStream.CanWrite && ctx.Request.Url != null && ctx.Request.Url.Scheme != null)
                                                 {
                                                     PHPClass php = new();
-                                                    byte[]? PHPBytes = php.ProcessPHPPage($"{path}{absolutepath}", phppath, phpver, $"{ctx.Request.Url.Scheme}://{ctx.Request.Url.Authority}{ctx.Request.RawUrl}", ctx.Request, ctx.Response);
+                                                    byte[]? PHPBytes = php.ProcessPHPPage($"{HTTPServerConfiguration.HTTPStaticFolder}{absolutepath}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, $"{ctx.Request.Url.Scheme}://{ctx.Request.Url.Authority}{ctx.Request.RawUrl}", ctx.Request, ctx.Response);
                                                     php.Dispose();
                                                     if (PHPBytes != null)
                                                     {
@@ -574,7 +610,6 @@ namespace HTTPServer
             {
                 ctx.Response.AddHeader("Date", DateTime.Now.ToString("r"));
                 ctx.Response.AddHeader("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
-                ctx.Response.AddHeader("Access-Control-Allow-Origin", "*");
             }
 
             ctx.Response.OutputStream.Close();

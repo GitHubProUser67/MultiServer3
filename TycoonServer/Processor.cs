@@ -8,13 +8,11 @@ namespace TycoonServer
     {
         public static bool IsStarted = false;
         private static Webserver? _Server;
-        private string path;
         private string ip;
         private int port;
 
-        public Processor(string path, string ip, int port)
+        public Processor(string ip, int port)
         {
-            this.path = path;
             this.ip = ip;
             this.port = port;
         }

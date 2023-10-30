@@ -5,23 +5,34 @@ namespace CryptoSporidium.UnBAR
 {
     public class Mapper
     {
-        public Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
+        public async Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
         {
             MapperPrepareFiles(foldertomap);
 
             try
             {
-                if (bruteforce == "on" && helperfolder != null)
-                    CopyFiles(Directory.GetCurrentDirectory() + helperfolder, foldertomap);
+                if (bruteforce == "on" && !string.IsNullOrEmpty(helperfolder))
+                    CopyFiles(helperfolder, foldertomap);
 
-                IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl") || s.ToLower().EndsWith(".efx")
-                || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map") || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac"));
+                IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl")
+                || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
+                || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown"));
                 List<MappedList> mappedListList = new List<MappedList>();
+                // Create a list to hold the tasks
+                List<Task>? ListTasks = new List<Task>();
                 foreach (string sourceFile in strings)
                 {
-                    List<MappedList> collection = ScanForString(sourceFile);
-                    mappedListList.AddRange(collection);
+                    // Create a task for each iteration
+                    Task task = Task.Run(() =>
+                    {
+                        mappedListList.AddRange(ScanForString(sourceFile));
+                    });
+
+                    ListTasks.Add(task);
                 }
+                // Wait for all tasks to complete
+                await Task.WhenAll(ListTasks);
+                ListTasks = null;
                 foreach (MappedList mappedList in mappedListList)
                 {
                     string text = Regex.Replace(mappedList.file, "file:(\\/+)resource_root\\/build\\/", "", RegexOptions.IgnoreCase);
@@ -104,8 +115,6 @@ namespace CryptoSporidium.UnBAR
             {
                 LoggerAccessor.LogError($"[Mapper] - An Error happened in MapperStart - {ex}");
             }
-
-            return Task.CompletedTask;
         }
 
         private void MapperPrepareFiles(string foldertomap)
@@ -133,11 +142,6 @@ namespace CryptoSporidium.UnBAR
                                 if (!File.Exists(newFileName + ".dds"))
                                     File.Move(myfile, newFileName + ".dds");
                             }
-                            else if (File.ReadLines(myfile).First().Contains("‰PNG") || File.ReadAllText(myfile).Contains("Photoshop ICC profile") || File.ReadAllText(myfile).Contains("IHDR"))
-                            {
-                                if (!File.Exists(newFileName + ".png"))
-                                    File.Move(myfile, newFileName + ".png");
-                            }
                             else if (File.ReadLines(myfile).First().Contains("LuaQ"))
                             {
                                 if (!File.Exists(newFileName + ".luac"))
@@ -152,6 +156,11 @@ namespace CryptoSporidium.UnBAR
                             {
                                 if (!File.Exists(newFileName + ".mdl"))
                                     File.Move(myfile, newFileName + ".mdl");
+                            }
+                            else if (File.ReadLines(myfile).First().Contains("‰PNG") || File.ReadAllText(myfile).Contains("Photoshop ICC profile") || File.ReadAllText(myfile).Contains("IHDR"))
+                            {
+                                if (!File.Exists(newFileName + ".png"))
+                                    File.Move(myfile, newFileName + ".png");
                             }
                             else if (File.ReadLines(myfile).First().Contains("WW") || File.ReadAllText(myfile).Contains("Havok-5.0.0-r1"))
                             {
@@ -180,10 +189,10 @@ namespace CryptoSporidium.UnBAR
                             }
                             else if (File.ReadAllText(myfile).Contains("gap:game") || File.ReadAllText(myfile).Contains("</gameObject>"))
                             {
-                                if (!File.Exists(newFileName + ".SCENE"))
-                                    File.Move(myfile, newFileName + ".SCENE");
+                                if (!File.Exists(newFileName + ".scene"))
+                                    File.Move(myfile, newFileName + ".scene");
                             }
-                            else if (File.ReadAllText(myfile).Contains("LAME3.97") || File.ReadAllText(myfile).Contains("LAME3.98") || File.ReadAllText(myfile).Contains("SfMarkers"))
+                            else if (File.ReadAllText(myfile).Contains("LAME3.") || File.ReadAllText(myfile).Contains("SfMarkers"))
                             {
                                 if (!File.Exists(newFileName + ".mp3"))
                                     File.Move(myfile, newFileName + ".mp3");

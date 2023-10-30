@@ -324,7 +324,7 @@ namespace CryptoSporidium.UnBAR
           byte[] key,
           CipherMode mode,
           PaddingMode padding,
-          byte[] iv,
+          byte[]? iv,
           int opMode,
           byte[] i,
           int inOffset,
@@ -342,7 +342,7 @@ namespace CryptoSporidium.UnBAR
                 rijndaelManaged.Key = key;
                 if (iv != null)
                     rijndaelManaged.IV = iv;
-                byte[] src = null;
+                byte[]? src = null;
                 if (opMode == DECRYPT_MODE)
                     src = rijndaelManaged.CreateDecryptor().TransformFinalBlock(i, inOffset, len);
                 else if (opMode == ENCRYPT_MODE)

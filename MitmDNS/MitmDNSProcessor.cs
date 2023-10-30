@@ -17,7 +17,7 @@ namespace MitmDNS
         public delegate void ResolvedIpHandler(DnsEventArgs e);
         public delegate void SocketExceptionHandler(SocketException ex);
         public Dictionary<string, DnsSettings> dicRules = new Dictionary<string, DnsSettings>();
-        public List<KeyValuePair<string, DnsSettings>> regRules = new List<KeyValuePair<string, DnsSettings>>();
+        public List<KeyValuePair<string, DnsSettings>>? regRules = new List<KeyValuePair<string, DnsSettings>>();
         public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
         private static Socket? soc = null;
@@ -62,7 +62,8 @@ namespace MitmDNS
             while (DnsStarted)
             {
                 byte[] data = new byte[1024];
-                soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
+                if (endpoint != null && soc != null)
+                    soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
                 data = utils.TrimArray(data);
 
                 procRequest(data);
@@ -76,7 +77,7 @@ namespace MitmDNS
         public void procRequest(byte[] data)
         {
             string fullname = string.Join(".", GetName(data).ToArray());
-            if (FireEvents && ConnectionRequest != null)
+            if (FireEvents && ConnectionRequest != null && endpoint != null)
             {
                 DnsConnectionRequestEventArgs a = new DnsConnectionRequestEventArgs { Host = endpoint.ToString(), Url = fullname };
                 ConnectionRequest(a);
@@ -88,7 +89,7 @@ namespace MitmDNS
             if (dicRules.ContainsKey(fullname))
             {
                 if (dicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                else if (dicRules[fullname].Mode == HandleMode.Redirect) url = dicRules[fullname].Address;
+                else if (dicRules[fullname].Mode == HandleMode.Redirect) url = dicRules[fullname].Address ?? "127.0.0.1";
                 else if (dicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
                 else url = fullname;
                 treated = true;
@@ -103,7 +104,7 @@ namespace MitmDNS
                         continue;
 
                     if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address;
+                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
                     else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
                     else url = fullname;
                     treated = true;
@@ -122,7 +123,7 @@ namespace MitmDNS
             {
                 try
                 {
-                    IPAddress address;
+                    IPAddress? address;
                     if (!IPAddress.TryParse(url, out address))
                         ip = Dns.GetHostEntry(url).AddressList[0];
                     else ip = address;
@@ -135,7 +136,8 @@ namespace MitmDNS
 
             byte[] res = MakeResponsePacket(data, ip);
 
-            soc.SendTo(res, endpoint);
+            if (endpoint != null && soc != null)
+                soc.SendTo(res, endpoint);
 
             if (FireEvents && ResolvedIp != null)
             {
@@ -196,20 +198,20 @@ namespace MitmDNS
 
     public struct DnsSettings
     {
-        public string Address; //For redirect to
-        public HandleMode Mode;
+        public string? Address; //For redirect to
+        public HandleMode? Mode;
     }
 
     public struct DnsEventArgs
     {
-        public IPAddress Host;
-        public string Url;
+        public IPAddress? Host;
+        public string? Url;
     }
 
     public struct DnsConnectionRequestEventArgs
     {
-        public string Host;
-        public string Url;
+        public string? Host;
+        public string? Url;
     }
 
     public enum HandleMode

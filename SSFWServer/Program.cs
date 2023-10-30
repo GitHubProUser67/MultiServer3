@@ -71,7 +71,7 @@ class Program
 
         CryptoSporidium.SSLUtils.CreateHomeCertificatesFile(File.ReadAllText(Path.GetDirectoryName(SSFWServerConfiguration.SSFWCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SSFWServerConfiguration.SSFWCertificateFile)}.pem"), Path.GetDirectoryName(SSFWServerConfiguration.SSFWCertificateFile) + "/CERTIFICATES.TXT");
 
-        SSFWClass server = new(SSFWServerConfiguration.SSFWStaticFolder, SSFWServerConfiguration.SSFWCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
+        SSFWClass server = new(SSFWServerConfiguration.SSFWCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
 
         _ = Task.Run(server.StartSSFW);
 

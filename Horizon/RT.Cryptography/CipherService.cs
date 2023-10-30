@@ -3,7 +3,7 @@ namespace Horizon.RT.Cryptography
 {
     public class CipherService
     {
-        private ICipherFactory _factory = null;
+        private ICipherFactory? _factory = null;
         private Dictionary<CipherContext, ICipher> _ciphers = new Dictionary<CipherContext, ICipher>();
 
         public bool EnableEncryption { get; set; } = true;
@@ -38,7 +38,7 @@ namespace Horizon.RT.Cryptography
                 _ciphers[context] = _factory.CreateNew(rsaKeyPair);
         }
 
-        public ICipher GetCipher(CipherContext context)
+        public ICipher? GetCipher(CipherContext context)
         {
             var cipher = _ciphers[context];
             if (cipher == null)
@@ -63,7 +63,7 @@ namespace Horizon.RT.Cryptography
             return _ciphers.TryGetValue(context, out var value) && value != null;
         }
 
-        public byte[] GetPublicKey(CipherContext context)
+        public byte[]? GetPublicKey(CipherContext context)
         {
             var cipher = _ciphers[context];
             if (cipher == null)
@@ -75,7 +75,7 @@ namespace Horizon.RT.Cryptography
             return cipher.GetPublicKey();
         }
 
-        public bool Encrypt(CipherContext context, byte[] input, out byte[] cipher, out byte[] hash)
+        public bool Encrypt(CipherContext context, byte[] input, out byte[]? cipher, out byte[]? hash)
         {
             cipher = null;
             hash = null;
@@ -85,13 +85,13 @@ namespace Horizon.RT.Cryptography
             return c.Encrypt(input, out cipher, out hash);
         }
 
-        public bool Decrypt(byte[] input, byte[] hash, out byte[] plain)
+        public bool Decrypt(byte[] input, byte[] hash, out byte[]? plain)
         {
             var cipherContext = (CipherContext)(hash[3] >> 5);
             return Decrypt(cipherContext, input, hash, out plain);
         }
 
-        public bool Decrypt(CipherContext context, byte[] input, byte[] hash, out byte[] plain)
+        public bool Decrypt(CipherContext context, byte[] input, byte[] hash, out byte[]? plain)
         {
             if (!_ciphers.TryGetValue(context, out var cipher) || cipher == null)
             {

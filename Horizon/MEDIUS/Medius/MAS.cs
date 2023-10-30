@@ -19,7 +19,7 @@ namespace Horizon.MEDIUS.Medius
         public override int TCPPort => MediusClass.Settings.MASPort;
         public override int UDPPort => 00000;
 
-        public static ServerSettings Settings = new ServerSettings();
+        public static ServerSettings Settings = new();
 
         public MAS()
         {
@@ -1101,7 +1101,7 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         // validate name
-                        if (!MediusClass.PassTextFilter(data.ApplicationId, Config.TextFilterContext.ACCOUNT_NAME, accountRegRequest.AccountName))
+                        if (!MediusClass.PassTextFilter(data.ApplicationId, TextFilterContext.ACCOUNT_NAME, accountRegRequest.AccountName))
                         {
                             data.ClientObject.Queue(new MediusAccountRegistrationResponse()
                             {

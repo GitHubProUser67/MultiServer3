@@ -16,8 +16,8 @@ namespace Horizon.RT.Models
         public short NetDataStreamStart;
         public short NetDataStreamCount;
         public long ConnectTime;
-        public byte[] unused_field;
-        public string Name; //DME_NAME_LENGTH
+        public byte[]? unused_field;
+        public string? Name; //DME_NAME_LENGTH
 
         public override void Deserialize(MessageReader reader)
         {

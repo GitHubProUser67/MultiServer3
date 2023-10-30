@@ -9,15 +9,15 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
     {
         public override bool IsSharable => true;
 
-        public IChannelGroup Group = null;
+        public IChannelGroup? Group = null;
 
-        public Action<IChannel> OnChannelActive;
-        public Action<IChannel> OnChannelInactive;
-        public Action<IChannel, BaseScertMessage> OnChannelMessage;
+        public Action<IChannel>? OnChannelActive;
+        public Action<IChannel>? OnChannelInactive;
+        public Action<IChannel, BaseScertMessage>? OnChannelMessage;
 
         public override void ChannelActive(IChannelHandlerContext ctx)
         {
-            IChannelGroup g = Group;
+            IChannelGroup? g = Group;
             if (g == null)
             {
                 lock (this)
@@ -48,7 +48,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         // The Channel is closed hence the connection is closed
         public override void ChannelInactive(IChannelHandlerContext ctx)
         {
-            IChannelGroup g = Group;
+            IChannelGroup? g = Group;
 
             LoggerAccessor.LogWarn("[TCP] - Client disconnected");
 

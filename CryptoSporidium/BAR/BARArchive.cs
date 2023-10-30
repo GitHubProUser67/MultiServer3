@@ -264,7 +264,7 @@ namespace CryptoSporidium.BAR
                         TOCEntry tocentry = (TOCEntry)obj;
                         dataReadStream.Seek((long)(ulong)(num + tocentry.DataOffset), SeekOrigin.Begin);
                         EndianAwareBinaryReader endianAwareBinaryReader3 = EndianAwareBinaryReader.Create(dataReadStream, EndianType.LittleEndian);
-                        byte[] array = null;
+                        byte[]? array = null;
                         if (tocentry.CompressedSize <= 4194304UL)
                             array = endianAwareBinaryReader3.ReadBytes((int)tocentry.CompressedSize);
                         else

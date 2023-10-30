@@ -221,9 +221,9 @@ namespace HTTPSecureServer.API.OHS
                     if (!global)
                     {
                         // Getting the value of the "user" field
-                        dataforohs = (string)jsonObject["user"];
+                        dataforohs = (string?)jsonObject["user"];
 
-                        if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
                             string tempreader = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
 
@@ -318,9 +318,9 @@ namespace HTTPSecureServer.API.OHS
                     if (!global)
                     {
                         // Getting the value of the "user" field
-                        dataforohs = (string)jsonObject["user"];
+                        dataforohs = (string?)jsonObject["user"];
 
-                        if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
                             string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
 
@@ -353,9 +353,9 @@ namespace HTTPSecureServer.API.OHS
                                     output = CryptoSporidium.OHS.JaminProcessor.ConvertToLuaTable(keyValueToken, false);
                             }
                         }
-                        else if ((string)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
+                        else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
                             output = "{[\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = {[\"accuracy\"] = 1}}";
-                        else if ((string)jsonObject["key"] == "vickie_version")
+                        else if ((string?)jsonObject["key"] == "vickie_version")
                             output = "{[\"vickie_version\"] = 7}";
                     }
                 }
@@ -416,7 +416,7 @@ namespace HTTPSecureServer.API.OHS
                     JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string)jsonObject["user"];
+                    dataforohs = (string?)jsonObject["user"];
                 }
             }
             catch (Exception ex)
@@ -436,7 +436,7 @@ namespace HTTPSecureServer.API.OHS
                 if (string.IsNullOrEmpty(dataforohs))
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = " + UniqueNumberGenerator.GenerateUniqueNumber(dataforohs).ToString() + " }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {UniqueNumberGenerator.GenerateUniqueNumber(dataforohs)} }}");
             }
 
             return dataforohs;
@@ -471,7 +471,7 @@ namespace HTTPSecureServer.API.OHS
                     // Parsing the JSON string
                     JObject jsonObject = JObject.Parse(dataforohs);
 
-                    dataforohs = GetFirstEightCharacters(CalculateMD5HashToExadecimal((string)jsonObject["user"]));
+                    dataforohs = GetFirstEightCharacters(CalculateMD5HashToExadecimal((string?)jsonObject["user"]));
                 }
             }
             catch (Exception ex)
@@ -491,14 +491,17 @@ namespace HTTPSecureServer.API.OHS
                 if (string.IsNullOrEmpty(dataforohs))
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = { [\"writeKey\"] = \"" + dataforohs + "\" } }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"writeKey\"] = \"{dataforohs}\" }} }}");
             }
 
             return dataforohs;
         }
 
-        public static string CalculateMD5HashToExadecimal(string input)
+        public static string? CalculateMD5HashToExadecimal(string? input)
         {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
             using (MD5 md5 = MD5.Create())
             {
                 byte[] inputBytes = Encoding.UTF8.GetBytes(input);
@@ -515,8 +518,11 @@ namespace HTTPSecureServer.API.OHS
             }
         }
 
-        public static string GetFirstEightCharacters(string input)
+        public static string? GetFirstEightCharacters(string? input)
         {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
             if (input.Length >= 8)
                 return input.Substring(0, 8);
 

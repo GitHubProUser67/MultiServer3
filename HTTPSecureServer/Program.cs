@@ -66,7 +66,7 @@ class Program
         CryptoSporidium.SSLUtils.CreateHomeCertificatesFile(File.ReadAllText(Path.GetDirectoryName(HTTPSServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(HTTPSServerConfiguration.HTTPSCertificateFile)}.pem"), Path.GetDirectoryName(HTTPSServerConfiguration.HTTPSCertificateFile) + "/CERTIFICATES.TXT");
 
 
-        HTTPSClass server = new(HTTPSServerConfiguration.HTTPSStaticFolder, HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty");
+        HTTPSClass server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty");
 
         _ = Task.Run(server.StartHTTPS);
 

@@ -1,4 +1,6 @@
-﻿namespace CryptoSporidium
+﻿using System.IO.Compression;
+
+namespace CryptoSporidium
 {
     public class HTTPUtils
     {
@@ -997,12 +999,30 @@
                 { ".zmm", "application/vnd.handheld-entertainment+xml" }
         };
 
-        public static string? ExtractBoundary(string contentType)
+        public static string? ExtractBoundary(string? contentType)
         {
-            int boundaryIndex = contentType.IndexOf("boundary=", StringComparison.InvariantCultureIgnoreCase);
-            if (boundaryIndex != -1)
-                return contentType.Substring(boundaryIndex + 9);
+            if (!string.IsNullOrEmpty(contentType))
+            {
+                int boundaryIndex = contentType.IndexOf("boundary=", StringComparison.InvariantCultureIgnoreCase);
+                if (boundaryIndex != -1)
+                    return contentType.Substring(boundaryIndex + 9);
+            }
+
             return null;
+        }
+
+        public static byte[] Compress(byte[] input)
+        {
+            using (MemoryStream output = new())
+            {
+                using (GZipStream gzipStream = new(output, CompressionMode.Compress, leaveOpen: false))
+                {
+                    gzipStream.Write(input, 0, input.Length);
+                    gzipStream.Flush();
+                }
+
+                return output.ToArray();
+            }
         }
     }
 }

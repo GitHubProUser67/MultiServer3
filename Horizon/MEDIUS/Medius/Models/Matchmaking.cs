@@ -14,6 +14,6 @@ namespace Horizon.MEDIUS.Medius.Models
     public class MediusMatchPartyInfo
     {
         public int NumPlayers { get; set; }
-        public int[] Players { get; set; }
+        public int[]? Players { get; set; }
     }
 }

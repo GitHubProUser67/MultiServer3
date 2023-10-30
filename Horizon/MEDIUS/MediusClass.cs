@@ -23,11 +23,11 @@ namespace Horizon.MEDIUS
 
         public static ServerSettings Settings = new();
 
-        public static IPAddress? SERVER_IP;
+        public static IPAddress? SERVER_IP = null;
         public static string? IP_TYPE;
 
         public static MediusManager Manager = new();
-        public static MediusPluginsManager? Plugins = null;
+        public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
         public SECURITY_MODE eSecurityMode = SECURITY_MODE.MODE_UNKNOWN;
 
@@ -496,8 +496,6 @@ namespace Horizon.MEDIUS
         public static void MediusMain()
         {
             RefreshConfig();
-            // Initialize plugins
-            Plugins = new MediusPluginsManager(HorizonServerConfiguration.PluginsFolder);
             _ = StartServerAsync();
         }
 

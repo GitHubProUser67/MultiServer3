@@ -16,7 +16,7 @@ namespace Horizon.RT.Models
         public byte MultiPacketindex;
         public int PacketBufferSize;
         public int PacketBufferOffset;
-        public byte[] Payload;
+        public byte[]? Payload;
 
         public override void Deserialize(MessageReader reader)
         {

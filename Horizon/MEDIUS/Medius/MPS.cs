@@ -20,9 +20,9 @@ namespace Horizon.MEDIUS.Medius
 
         DateTime lastSend = Utils.GetHighPrecisionUtcTime();
 
-        IChannel channel = null;
-        ChannelData channelData = null;
-        ClientObject clientObject = null;
+        IChannel? channel = null;
+        ChannelData? channelData = null;
+        ClientObject? clientObject = null;
 
         public MPS()
         {
@@ -875,7 +875,7 @@ namespace Horizon.MEDIUS.Medius
             }
         }
 
-        public DMEObject GetFreeDme(int appId)
+        public DMEObject? GetFreeDme(int appId)
         {
             try
             {

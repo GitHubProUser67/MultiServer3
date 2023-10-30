@@ -94,10 +94,10 @@ namespace CustomLogger
             return "127.0.0.1";
         }
 
-        public static IPAddress? GetLocalIPAddress()
+        public static IPAddress GetLocalIPAddress()
         {
             if (!NetworkInterface.GetIsNetworkAvailable())
-                return null;
+                return IPAddress.Parse("127.0.0.1");
 
             // Get all active interfaces
             var interfaces = NetworkInterface.GetAllNetworkInterfaces()
@@ -114,7 +114,7 @@ namespace CustomLogger
 #pragma warning restore
             }
 
-            return null;
+            return IPAddress.Parse("127.0.0.1");
         }
 
         public static string GetFirstActiveIPAddress(string hostName, string fallback)

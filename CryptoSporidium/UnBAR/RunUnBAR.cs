@@ -78,7 +78,7 @@ namespace CryptoSporidium.UnBAR
 
                         try
                         {
-                            byte[] HeaderIV = ExtractSHARCHeaderIV(RawBarData);
+                            byte[]? HeaderIV = ExtractSHARCHeaderIV(RawBarData);
 
                             byte[]? DecryptedHeader = aes256.InitiateCTRBuffer(ExtractEncryptedSharcHeaderData(RawBarData),
                                  Convert.FromBase64String(options), HeaderIV);
@@ -198,7 +198,7 @@ namespace CryptoSporidium.UnBAR
             utils = null;
         }
 
-        public void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, Utils utils)
+        public void ExtractToFileBarVersion1(byte[]? RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, Utils utils)
         {
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -218,7 +218,7 @@ namespace CryptoSporidium.UnBAR
                     byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
                     if (data.Length >= 4 && data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && tableOfContent.Compression == CompressionMethod.Encrypted)
                     {
-                        if (File.Exists(outDir + "/timestamp.txt"))
+                        if (File.Exists(outDir + "/timestamp.txt") && RawBarData != null)
                         {
                             int dataStart = utils.FindDataPosInBinary(RawBarData, data);
 
@@ -257,7 +257,7 @@ namespace CryptoSporidium.UnBAR
                                     string verificationsha1 = utils.ByteArrayToHexString(DecryptedHeaderSHA1);
 
                                     // Create a new byte array to store the remaining content
-                                    byte[] FileBytes = new byte[data.Length - 24];
+                                    byte[]? FileBytes = new byte[data.Length - 24];
 
                                     // Copy the content after the first 24 bytes to the new array
                                     Array.Copy(data, 24, FileBytes, 0, FileBytes.Length);
@@ -270,12 +270,21 @@ namespace CryptoSporidium.UnBAR
 
                                         FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(blowfish.InitiateCTRBuffer(FileBytes, SignatureIV));
 
-                                        fileStream.Write(FileBytes, 0, FileBytes.Length);
-                                        fileStream.Close();
+                                        if (FileBytes != null)
+                                        {
+                                            fileStream.Write(FileBytes, 0, FileBytes.Length);
+                                            fileStream.Close();
+                                        }
+                                        else
+                                        {
+                                            LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file failed to decrypt, Writing original data.");
+                                            fileStream.Write(data, 0, data.Length);
+                                            fileStream.Close();
+                                        }
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogWarn($"[RunUnBAR] - Lua file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                        LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
                                         fileStream.Write(data, 0, data.Length);
                                         fileStream.Close();
                                     }
@@ -315,7 +324,7 @@ namespace CryptoSporidium.UnBAR
             tableOfContent = null;
         }
 
-        public async Task ExtractToFileBarVersion2(byte[] RawBarData, byte[] Key, BARArchive archive, HashedFileName FileName, string outDir, Utils utils)
+        public async Task ExtractToFileBarVersion2(byte[]? RawBarData, byte[] Key, BARArchive archive, HashedFileName FileName, string outDir, Utils utils)
         {
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             LIBSECURE? libsecure = new(); // We assume there is almost exclusively encrypted files.
@@ -350,7 +359,7 @@ namespace CryptoSporidium.UnBAR
                     FileBytes = data;
                 }
 
-                using (MemoryStream memoryStream = new MemoryStream(FileBytes))
+                using (MemoryStream memoryStream = new(FileBytes))
                 {
                     string registeredExtension = string.Empty;
 
@@ -377,11 +386,13 @@ namespace CryptoSporidium.UnBAR
                             fileStream.Close();
                         }
                     }
+
+                    memoryStream.Flush();
                 }
             }
             else
             {
-                using (MemoryStream memoryStream = new MemoryStream(data))
+                using (MemoryStream memoryStream = new(data))
                 {
                     string registeredExtension = string.Empty;
 
@@ -408,6 +419,8 @@ namespace CryptoSporidium.UnBAR
                             fileStream.Close();
                         }
                     }
+
+                    memoryStream.Flush();
                 }
             }
 #if DEBUG

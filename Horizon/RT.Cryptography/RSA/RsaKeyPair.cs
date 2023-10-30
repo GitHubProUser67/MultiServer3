@@ -11,7 +11,11 @@ namespace Horizon.RT.Cryptography.RSA
         public BigInteger E { get; protected set; }
         public BigInteger D { get; protected set; }
 
-        public RsaKeyPair() { }
+        public RsaKeyPair()
+        {
+
+        }
+
         public RsaKeyPair(BigInteger n, BigInteger e, BigInteger d)
         {
             N = n;

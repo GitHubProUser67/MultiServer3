@@ -19,7 +19,7 @@ namespace Horizon.RT.Cryptography.RC
             * variables to hold the state of the RC4 engine
             * during encryption and decryption
             */
-            public byte[] engineState;
+            public byte[]? engineState;
             public int x;
             public int y;
         }
@@ -39,7 +39,7 @@ namespace Horizon.RT.Cryptography.RC
         #region Initialization
 
 
-        private void SetKey(RC4State state, byte[] key, byte[] hash = null)
+        private void SetKey(RC4State state, byte[] key, byte[]? hash = null)
         {
 
             state.x = 0;
@@ -97,8 +97,6 @@ namespace Horizon.RT.Cryptography.RC
 
                 int cipherByte = state.engineState[cipherIndex];
                 byte cipherValue = (byte)(cipherByte & 0xFF);
-
-
 
                 cipherByte += keyByte;
                 li = cipherByte & 0xFF;
@@ -206,7 +204,6 @@ namespace Horizon.RT.Cryptography.RC
                     state.engineState[(state.engineState[state.x] + state.engineState[state.y]) & 0xff]
                     );
 
-                // 
                 state.y = (state.engineState[input[i + inOff]] + state.y) & 0xff;
             }
         }

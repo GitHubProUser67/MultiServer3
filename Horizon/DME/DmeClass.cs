@@ -29,7 +29,7 @@ namespace Horizon.DME
 
         public static Dictionary<int, DMEMediusManager> Managers = new Dictionary<int, DMEMediusManager>();
         public static TcpServer TcpServer = new();
-        public static MediusPluginsManager? Plugins = null;
+        public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
         private static DateTime _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
 
@@ -215,8 +215,6 @@ namespace Horizon.DME
         public static void DmeMain()
         {
             Initialize();
-            // Initialize plugins
-            Plugins = new MediusPluginsManager(HorizonServerConfiguration.PluginsFolder);
             _ = StartServerAsync();
         }
 

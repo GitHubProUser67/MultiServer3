@@ -11,8 +11,8 @@ namespace Horizon.PluginManager
         private ConcurrentDictionary<RT_MSG_TYPE, List<OnRegisterMessageActionHandler>> _pluginScertMessageCallbackInstances = new ConcurrentDictionary<RT_MSG_TYPE, List<OnRegisterMessageActionHandler>>();
         private ConcurrentDictionary<(NetMessageClass, byte), List<OnRegisterMediusMessageActionHandler>> _pluginMediusMessageCallbackInstances = new ConcurrentDictionary<(NetMessageClass, byte), List<OnRegisterMediusMessageActionHandler>>();
         private bool _reload = false;
-        private DirectoryInfo _pluginDir = null;
-        private FileSystemWatcher _watcher = null;
+        private DirectoryInfo? _pluginDir = null;
+        private FileSystemWatcher? _watcher = null;
 
         public MediusPluginsManager(string pluginsDirectory)
         {
@@ -164,7 +164,7 @@ namespace Horizon.PluginManager
             LoggerAccessor.LogWarn($"Reloading plugins");
 
             // Ensure valid plugins directory
-            if (!_pluginDir.Exists)
+            if (_pluginDir != null && !_pluginDir.Exists)
                 return;
 
             // Add assemblies

@@ -19,7 +19,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string __salt = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -76,7 +76,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string __salt = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
 
                 using (MemoryStream ms = new(PostData))
@@ -123,7 +123,7 @@ namespace HTTPSecureServer.API.VEEMEE
             string __salt = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (boundary != null && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -174,7 +174,7 @@ namespace HTTPSecureServer.API.VEEMEE
                     // Initialize the dictionary with max_slot number of slots.
                     for (int i = 1; i <= max_slot; i++)
                     {
-                        instanceData[instance_id][i] = "unnocupied";
+                        instanceData[instance_id][i] = "<unnocupied/>";
                     }
                 }
 
@@ -186,7 +186,7 @@ namespace HTTPSecureServer.API.VEEMEE
                     {
                         if (data[slot_num] == psn_id)
                         {
-                            data[slot_num] = "unnocupied";
+                            data[slot_num] = "<unnocupied/>";
                             found = true;
                         }
                     }
@@ -201,7 +201,7 @@ namespace HTTPSecureServer.API.VEEMEE
                             if (kvp.Value == psn_id)
                                 return kvp.Key.ToString();
 
-                            if (kvp.Value == "unnocupied")
+                            if (kvp.Value == "<unnocupied/>")
                             {
                                 data[kvp.Key] = psn_id;
                                 return kvp.Key.ToString();
@@ -211,7 +211,7 @@ namespace HTTPSecureServer.API.VEEMEE
                         {
                             if (kvp.Value == psn_id)
                             {
-                                data[kvp.Key] = "unnocupied";
+                                data[kvp.Key] = "<unnocupied/>";
                                 found = true;
                             }
                         }

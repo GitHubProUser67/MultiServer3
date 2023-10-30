@@ -65,7 +65,7 @@ namespace Horizon.RT.Models
 
         #region Dynamic Instantiation
 
-        private static Dictionary<NetMessageTypeIds, Type> _netPluginMessageTypeById = null;
+        private static Dictionary<NetMessageTypeIds, Type>? _netPluginMessageTypeById = null;
 
         private static int _messageClassByIdLockValue = 0;
         private static object _messageClassByIdLockObject = _messageClassByIdLockValue;
@@ -75,13 +75,11 @@ namespace Horizon.RT.Models
         {
             lock (_messageClassByIdLockObject)
             {
-
                 _netPluginMessageTypeById = new Dictionary<NetMessageTypeIds, Type>();
 
                 // Populate
                 var assembly = System.Reflection.Assembly.GetAssembly(typeof(BaseMediusPluginMessage));
                 var types = assembly.GetTypes();
-
 
                 foreach (Type classType in types)
                 {
@@ -107,7 +105,7 @@ namespace Horizon.RT.Models
         {
             BaseMediusPluginMessage msg;
 
-            Type classType = null;
+            Type? classType = null;
 
             var msgSize = reader.ReadByte();
 
@@ -145,7 +143,7 @@ namespace Horizon.RT.Models
         {
             BaseMediusPluginMessage msg;
 
-            Type classType = null;
+            Type? classType = null;
 
             var incomingMsg = reader.ReadByte();
             reader.ReadByte();

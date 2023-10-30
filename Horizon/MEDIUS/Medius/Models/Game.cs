@@ -351,7 +351,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusJoinGameResponse(string Sessionkey)
         {
-            GameClient player = Clients.FirstOrDefault(x => x.Client.SessionKey == Sessionkey);
+            GameClient? player = Clients.FirstOrDefault(x => x.Client.SessionKey == Sessionkey);
 
             if (player == null)
                 return;
@@ -361,7 +361,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest)
         {
-            GameClient player = Clients.FirstOrDefault(x => x != null && x.Client.IsConnected);
+            GameClient? player = Clients.FirstOrDefault(x => x != null && x.Client.IsConnected);
             if (player == null)
                 return;
 

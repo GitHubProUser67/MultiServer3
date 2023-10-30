@@ -17,7 +17,7 @@ namespace Horizon.RT.Models
 
         public byte m_finished;
         public NetMessageNewsEulaResponseContentType m_type;
-        public string m_content;
+        public string? m_content;
         public long m_timestamp;
 
         public override void DeserializePlugin(MessageReader reader)
@@ -34,7 +34,10 @@ namespace Horizon.RT.Models
             writer.Write(m_finished);
             writer.Write(new byte[3]);
             writer.Write(m_type);
-            writer.Write(m_content);
+            if (m_content == null)
+                writer.Write(string.Empty);
+            else
+                writer.Write(m_content);
             writer.Write(m_timestamp);
         }
 

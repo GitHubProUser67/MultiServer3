@@ -43,7 +43,7 @@ namespace HTTPSecureServer.API.OHS
                 if (string.IsNullOrEmpty(dataforohs))
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = " + dataforohs + " }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {dataforohs} }}");
             }
 
             return dataforohs;
@@ -83,7 +83,7 @@ namespace HTTPSecureServer.API.OHS
                 if (string.IsNullOrEmpty(dataforohs))
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = " + dataforohs + " }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {dataforohs} }}");
             }
 
             return dataforohs;
@@ -148,14 +148,14 @@ namespace HTTPSecureServer.API.OHS
                 if (string.IsNullOrEmpty(dataforohs))
                     return null;
                 else
-                    return "{ [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + dataforohs + " }";
+                    return $"{{ [\"writeKey\"] = \"{writekey}\", [\"entries\"] = {dataforohs} }}";
             }
             else
             {
                 if (string.IsNullOrEmpty(dataforohs))
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = { [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + dataforohs + " } }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"writeKey\"] = \"{writekey}\", [\"entries\"] = {dataforohs} }} }}");
             }
 
             return dataforohs;
@@ -238,14 +238,14 @@ namespace HTTPSecureServer.API.OHS
                 if (res.Length == 0)
                     return null;
                 else
-                    return "{ [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + res + " }";
+                    return $"{{ [\"writeKey\"] = \"{writekey}\", [\"entries\"] = {res} }}";
             }
             else
             {
                 if (res.Length == 0)
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = { [\"writeKey\"] = \"" + writekey + "\", [\"entries\"] = " + res + " } }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"writeKey\"] = \"{writekey}\", [\"entries\"] = {res} }} }}");
             }
 
             return dataforohs;
@@ -461,10 +461,10 @@ namespace HTTPSecureServer.API.OHS
                                                 if (i >= 1)
                                                 {
                                                     var rankData = new Dictionary<string, object>
-                                            {
-                                                { "[\"user\"]", $"\"{entry.Name}\"" },
-                                                { "[\"score\"]", $"\"{entry.Score}\"" }
-                                            };
+                                                    {
+                                                        { "[\"user\"]", $"\"{entry.Name}\"" },
+                                                        { "[\"score\"]", $"\"{entry.Score}\"" }
+                                                    };
 
                                                     luaTable.Add(entry.Rank, rankData);
                                                 }
@@ -510,16 +510,16 @@ namespace HTTPSecureServer.API.OHS
 
                     if (jsonDatainit != null)
                     {
-                        JToken numEntriesToken = jsonDatainit["numEntries"];
+                        JToken? numEntriesToken = jsonDatainit["numEntries"];
                         if (numEntriesToken != null)
                             numEntries = (int)numEntriesToken;
 
-                        JToken startToken = jsonDatainit["start"];
+                        JToken? startToken = jsonDatainit["start"];
                         if (startToken != null)
                             start = (int)startToken;
 
-                        user = (string)jsonDatainit["user"];
-                        key = (string)jsonDatainit["key"];
+                        user = (string?)jsonDatainit["user"];
+                        key = (string?)jsonDatainit["key"];
                     }
 
                     if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(key))
@@ -563,10 +563,10 @@ namespace HTTPSecureServer.API.OHS
                                         if (i >= start)
                                         {
                                             var rankData = new Dictionary<string, object>
-                                        {
-                                            { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
-                                            { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
-                                        };
+                                            {
+                                                { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
+                                                { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
+                                            };
 
                                             luaTable.Add(entry.Rank, rankData);
 
@@ -578,7 +578,7 @@ namespace HTTPSecureServer.API.OHS
                                     // Step 3: Format the Lua table as a string using regex
                                     var luaString = FormatScoreBoardLuaTable(luaTable);
 
-                                    return $"{{ [\"user\"] = {{ [\"score\"] = {scoreforuser} }}, [\"entries\"] = " + luaString + " }";
+                                    return $"{{ [\"user\"] = {{ [\"score\"] = {scoreforuser} }}, [\"entries\"] = {luaString} }}";
                                 }
                             }
                         }
@@ -595,10 +595,11 @@ namespace HTTPSecureServer.API.OHS
 
         public static Scoreboard GenerateSampleScoreboard(int numEntries)
         {
-            Scoreboard scoreboard = new Scoreboard();
+            Scoreboard scoreboard = new();
+            Random? random = new();
+
             scoreboard.Entries = new List<ScoreboardEntry>();
 
-            Random random = new Random();
             for (int i = 1; i <= numEntries; i++)
             {
                 string playerName = ScoreboardNameGenerator.GenerateRandomName();
@@ -614,6 +615,8 @@ namespace HTTPSecureServer.API.OHS
             {
                 scoreboard.Entries[i].Rank = i + 1;
             }
+
+            random = null;
 
             return scoreboard;
         }

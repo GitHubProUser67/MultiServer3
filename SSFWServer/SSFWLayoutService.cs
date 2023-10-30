@@ -76,7 +76,7 @@ namespace SSFWServer
                 int existingIndex = -1;
                 for (int i = 0; i < jsonArray.Count; i++)
                 {
-                    JObject obj = jsonArray[i] as JObject;
+                    JObject? obj = jsonArray[i] as JObject;
                     if (obj != null && obj.Properties().Any(p => p.Name == objectId))
                     {
                         existingIndex = i;
@@ -87,7 +87,7 @@ namespace SSFWServer
                 if (existingIndex >= 0)
                 {
                     // Update the existing object with the new POST data
-                    JObject existingObject = jsonArray[existingIndex] as JObject;
+                    JObject? existingObject = jsonArray[existingIndex] as JObject;
 
                     if (existingObject != null)
                         existingObject[objectId] = JObject.Parse(Encoding.UTF8.GetString(postData));
@@ -122,11 +122,11 @@ namespace SSFWServer
                     if (!string.IsNullOrEmpty(json))
                     {
                         JArray jsonArray = JArray.Parse(json);
-                        JObject existingObject = jsonArray
+                        JObject? existingObject = jsonArray
                             .OfType<JObject>()
                             .FirstOrDefault(obj => obj[objectId] != null);
 
-                        if (existingObject != null && existingObject.TryGetValue(objectId, out JToken value))
+                        if (existingObject != null && existingObject.TryGetValue(objectId, out JToken? value))
                             return value.ToString();
                     }
                 }

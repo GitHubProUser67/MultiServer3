@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
         private readonly RT_MSG_TYPE _id;
         public override RT_MSG_TYPE Id => _id;
 
-        public byte[] Contents { get; set; } = null;
+        public byte[]? Contents { get; set; } = null;
 
 
         public RawScertMessage(RT_MSG_TYPE id)
@@ -21,7 +21,6 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             Contents = reader.ReadRest();
         }
 
@@ -35,7 +34,10 @@ namespace Horizon.RT.Models
 
         public override string ToString()
         {
-            return base.ToString() + $" Id:{Id} (0x{(short)Id:X2}) Contents:{BitConverter.ToString(Contents)}";
+            if (Contents != null)
+                return base.ToString() + $" Id:{Id} (0x{(short)Id:X2}) Contents:{BitConverter.ToString(Contents)}";
+            else
+                return base.ToString() + $" Id:{Id} (0x{(short)Id:X2}) Contents:";
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Horizon.PluginManager
             return plugins;
         }
 
-        public static IPlugin LoadPlugin(string pluginPath)
+        public static IPlugin? LoadPlugin(string pluginPath)
         {
             try
             {

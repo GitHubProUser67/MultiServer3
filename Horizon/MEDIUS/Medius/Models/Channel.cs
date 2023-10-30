@@ -21,7 +21,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public int ApplicationId = 0;
         public ChannelType Type = ChannelType.Lobby;
         public string Name = "MediusLobby";
-        public string Password = null;
+        public string? Password = null;
         public int MinPlayers = 1;
         public int MaxPlayers = 10;
         public int GameLevel = 0;

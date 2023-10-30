@@ -22,7 +22,7 @@ namespace Horizon.MEDIUS.Medius
         public override int TCPPort => MediusClass.Settings.MLSPort;
         public override int UDPPort => 0;
 
-        public ServerSettings Settings = new ServerSettings();
+        public ServerSettings Settings = new();
 
         public MLS()
         {
@@ -9010,17 +9010,11 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     var iNumPlayersReturned = data.ClientObject.CurrentChannel.PlayerCount;
                                     if (iNumPlayersReturned > 256)
-                                    {
                                         LoggerAccessor.LogWarn("iNumPlayersReturned <= 256");
-                                    }
                                     else if (iNumPlayersReturned > 0)
-                                    {
                                         data.ClientObject.CurrentChannel?.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
-                                    }
                                     else
-                                    {
                                         LoggerAccessor.LogWarn("No players found to send binary msg to.");
-                                    }
                                     break;
                                 }
                             case MediusBinaryMessageType.TargetBinaryMsg:
@@ -9440,7 +9434,7 @@ namespace Horizon.MEDIUS.Medius
                                 LoggerAccessor.LogInfo($"Get My IP Request Handler Error: Player Not Privileged");
 
                                 // Send ban message
-                                QueueBanMessage(data, "You have been MAC Banned");
+                                await QueueBanMessage(data, "You have been MAC Banned");
                             }
                             #endregion
                         }
@@ -10012,7 +10006,7 @@ namespace Horizon.MEDIUS.Medius
             MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_CREATELOBBYWORLD(AnticheatEventCode.anticheatCREATELOBBYWORLD, client.WorldId, client.AccountId, MediusClass.AntiCheatClient, anticheatEvent_CreateLobbyWorld, 96);
         }
 
-        public DMEObject GetFreeMPS(int appId)
+        public DMEObject? GetFreeMPS(int appId)
         {
             try
             {

@@ -45,7 +45,7 @@ namespace Horizon.MUIS
             return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key)).SelectMany(x => x.Value.AccountIdToClient.Select(x => x.Value)).ToList();
         }
 
-        public ClientObject GetClientByAccountId(int accountId, int appId)
+        public ClientObject? GetClientByAccountId(int accountId, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -61,7 +61,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public ClientObject GetClientByAccountName(string accountName, int appId)
+        public ClientObject? GetClientByAccountName(string accountName, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
             accountName = accountName.ToLower();
@@ -78,7 +78,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public ClientObject GetClientByAccessToken(string accessToken, int appId)
+        public ClientObject? GetClientByAccessToken(string accessToken, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -94,7 +94,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public ClientObject GetClientBySessionKey(string sessionKey, int appId)
+        public ClientObject? GetClientBySessionKey(string sessionKey, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -110,7 +110,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public DMEObject GetDmeByAccessToken(string accessToken, int appId)
+        public DMEObject? GetDmeByAccessToken(string accessToken, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -126,7 +126,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public DMEObject GetDmeBySessionKey(string sessionKey, int appId)
+        public DMEObject? GetDmeBySessionKey(string sessionKey, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -175,7 +175,10 @@ namespace Horizon.MUIS
         public void AddClient(ClientObject client)
         {
             if (!client.IsLoggedIn)
-                throw new InvalidOperationException($"Attempting to add {client} to MediusManager but client has not yet logged in.");
+            {
+                LoggerAccessor.LogError($"Attempting to add {client} to MediusManager but client has not yet logged in.");
+                return;
+            }
 
             _addQueue.Enqueue(client);
         }
@@ -203,7 +206,7 @@ namespace Horizon.MUIS
             return count;
         }
 
-        public Game GetGameByDmeWorldId(string dmeSessionKey, int dmeWorldId)
+        public Game? GetGameByDmeWorldId(string dmeSessionKey, int dmeWorldId)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
@@ -218,7 +221,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public Channel GetWorldByName(string worldName)
+        public Channel? GetWorldByName(string worldName)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
@@ -232,7 +235,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public Game GetGameByGameId(ClientObject client, int gameId)
+        public Game? GetGameByGameId(ClientObject client, int gameId)
         {
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
 
@@ -301,7 +304,7 @@ namespace Horizon.MUIS
 
         #region Channels
 
-        public Channel GetChannelByChannelId(int channelId, int appId)
+        public Channel? GetChannelByChannelId(int channelId, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -320,7 +323,7 @@ namespace Horizon.MUIS
             return null;
         }
 
-        public Channel GetChannelByChannelName(string channelName, int appId)
+        public Channel? GetChannelByChannelName(string channelName, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
@@ -359,7 +362,7 @@ namespace Horizon.MUIS
 
         public Channel GetOrCreateDefaultLobbyChannel(int appId)
         {
-            Channel channel = null;
+            Channel? channel = null;
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
             foreach (var appIdInGroup in appIdsInGroup)
@@ -428,7 +431,7 @@ namespace Horizon.MUIS
             lock (_mediusFiles)
             {
 
-                string[] files = null;
+                string[]? files = null;
                 int counter = 0;
 
                 if (filenameBeginsWith.ToString() == "*")
@@ -733,7 +736,7 @@ namespace Horizon.MUIS
             {
                 foreach (var dmeKeyPair in quickLookup.Value.SessionKeyToDmeClient)
                 {
-                    if (!dmeKeyPair.Value.IsConnected)
+                    if (dmeKeyPair.Value != null && !dmeKeyPair.Value.IsConnected)
                     {
                         LoggerAccessor.LogInfo($"Destroying DME Client {dmeKeyPair.Value}");
 

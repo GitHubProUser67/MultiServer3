@@ -58,7 +58,7 @@ class Program
 
         TycoonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/tycoon.json");
 
-        Processor server = new(TycoonServerConfiguration.TycoonStaticFolder, "*", 61900);
+        Processor server = new("*", 61900);
 
         server.StartServer();
 

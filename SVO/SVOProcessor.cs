@@ -5,13 +5,9 @@ namespace SVO
 {
     public class SVOProcessor
     {
-        public static string CalcuateSVOMac(string clientSVOMac)
+        public static string? CalcuateSVOMac(string? clientSVOMac)
         {
-            if (string.IsNullOrEmpty(clientSVOMac))
-                return null;
-
-
-            if (clientSVOMac.Length != 32)
+            if (string.IsNullOrEmpty(clientSVOMac) || clientSVOMac.Length != 32)
                 return null;
 
             //Get SVOMac from client and combine with speaksId together for new MD5, converting to a byte array for MD5 rehashing
@@ -21,9 +17,7 @@ namespace SVO
                 return null;
 
             // Create the Cipher RSA_RC4_40_MD5 value by concatenating the encoded key and the MD5 hash
-            string cipher = $"{BitConverter.ToString(HashedSVOMac).Replace("-", string.Empty).ToLower()}";
-
-            return cipher;
+            return $"{BitConverter.ToString(HashedSVOMac).Replace("-", string.Empty).ToLower()}";
         }
     }
 }

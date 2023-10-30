@@ -27,17 +27,17 @@ namespace SVO
                         {
                             case "POST":
 
-                                string signature = "";
+                                string signature = string.Empty;
 
-                                string signatureClass = "";
+                                string signatureClass = string.Empty;
 
-                                string userContext = "";
+                                string userContext = string.Empty;
 
-                                string languageId = "";
+                                string languageId = string.Empty;
 
-                                string timeZone = "";
+                                string timeZone = string.Empty;
 
-                                string psnname = "";
+                                string psnname = string.Empty;
 
                                 int accountId = -1;
 
@@ -130,7 +130,7 @@ namespace SVO
                                     {
                                         //Found in database so keep.
                                         langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                        string accountName = r.Result.AccountName;
+                                        string? accountName = r.Result.AccountName;
                                         accountId = r.Result.AccountId;
                                     });
                                 }

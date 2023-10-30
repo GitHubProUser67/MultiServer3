@@ -57,7 +57,7 @@ namespace HTTPSecureServer.API.OHS
                 if (string.IsNullOrEmpty(output))
                     dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }");
                 else
-                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = { " + output + " } }");
+                    dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ {output} }} }}");
             }
 
             return dataforohs;

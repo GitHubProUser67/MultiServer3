@@ -70,7 +70,7 @@ namespace HTTPSecureServer.API.OHS
             if (!string.IsNullOrEmpty(batchparams))
                 return "{ [\"score\"] = " + output.ToString() + " }";
             else
-                dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = { [\"score\"] = " + output.ToString() + " } }");
+                dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"score\"] = {output} }} }}");
 
             return dataforohs;
         }
@@ -156,7 +156,7 @@ namespace HTTPSecureServer.API.OHS
             if (!string.IsNullOrEmpty(batchparams))
                 return "{ [\"score\"] = " + output.ToString() + " }";
             else
-                dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat("{ [\"status\"] = \"success\", [\"value\"] = { [\"score\"] = " + output.ToString() + " } }");
+                dataforohs = CryptoSporidium.OHS.JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"score\"] = {output} }} }}");
 
             return dataforohs;
         }

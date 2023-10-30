@@ -10,12 +10,12 @@ namespace Horizon.DME.Models
 {
     public class ClientObject
     {
-        protected static Random RNG = new Random();
+        protected static Random RNG = new();
 
         /// <summary>
         /// 
         /// </summary>
-        public UdpServer Udp { get; protected set; } = null;
+        public UdpServer? Udp { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -25,7 +25,7 @@ namespace Horizon.DME.Models
         /// <summary>
         /// 
         /// </summary>
-        public IChannel Tcp { get; protected set; } = null;
+        public IChannel? Tcp { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -35,17 +35,17 @@ namespace Horizon.DME.Models
         /// <summary>
         /// 
         /// </summary>
-        public World DmeWorld { get; protected set; } = null;
+        public World? DmeWorld { get; protected set; } = null;
 
         /// <summary>
         /// Current access token required to access the account.
         /// </summary>
-        public string Token { get; protected set; } = null;
+        public string? Token { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string SessionKey { get; protected set; } = null;
+        public string? SessionKey { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -110,7 +110,7 @@ namespace Horizon.DME.Models
         /// <summary>
         /// 
         /// </summary>
-        public IPEndPoint RemoteUdpEndpoint { get; set; } = null;
+        public IPEndPoint? RemoteUdpEndpoint { get; set; } = null;
 
         /// <summary>
         /// 

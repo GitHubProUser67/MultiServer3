@@ -9,7 +9,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// MAS connection information
         /// </summary>
-        public MASSettings MAS { get; set; } = new MASSettings();
+        public MASSettings MAS { get; set; } = new();
 
         /// <summary>
         /// MPS connection information

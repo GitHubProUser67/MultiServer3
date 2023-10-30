@@ -8,12 +8,12 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.ChatFwdMessage;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         public int OriginatorAccountID;
-        public string OriginatorAccountName;
+        public string? OriginatorAccountName;
         public MediusChatMessageType MessageType;
-        public string Message;
+        public string? Message;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -36,9 +36,15 @@ namespace Horizon.RT.Models
 
             writer.Write(new byte[3]);
             writer.Write(OriginatorAccountID);
-            writer.Write(OriginatorAccountName, Constants.ACCOUNTNAME_MAXLEN);
+            if (OriginatorAccountName == null)
+                writer.Write(string.Empty, Constants.ACCOUNTNAME_MAXLEN);
+            else
+                writer.Write(OriginatorAccountName, Constants.ACCOUNTNAME_MAXLEN);
             writer.Write(MessageType);
-            writer.Write(Message, Constants.CHATMESSAGE_MAXLEN);
+            if (Message == null)
+                writer.Write(string.Empty, Constants.CHATMESSAGE_MAXLEN);
+            else
+                writer.Write(Message, Constants.CHATMESSAGE_MAXLEN);
         }
 
         public override string ToString()

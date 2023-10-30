@@ -7,7 +7,7 @@ namespace Horizon.RT.Cryptography
 {
     public class PS2CipherFactory : ICipherFactory
     {
-        private static Random RNG = new Random();
+        private static Random RNG = new();
 
         public ICipher CreateNew(CipherContext context)
         {
@@ -26,7 +26,7 @@ namespace Horizon.RT.Cryptography
         }
         public ICipher CreateNew(RSA.RsaKeyPair rsaKeyPair)
         {
-            return rsaKeyPair?.ToPS2();
+            return rsaKeyPair.ToPS2();
         }
 
         private ICipher CreateSym(CipherContext context)
@@ -62,7 +62,6 @@ namespace Horizon.RT.Cryptography
             var n = (BigInteger)keypair.Public.GetType().GetProperty("Modulus").GetValue(keypair.Public);
             var d = (BigInteger)keypair.Private.GetType().GetProperty("Exponent").GetValue(keypair.Private);
 
-            // 
             return new RSA.PS2_RSA(n, e, d);
         }
 

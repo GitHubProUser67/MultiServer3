@@ -9,8 +9,8 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertIEnumerableDecoder : MessageToMessageDecoder<IByteBuffer>
     {
-        readonly ICipher[] _ciphers = null;
-        readonly Func<RT_MSG_TYPE, CipherContext, ICipher> _getCipher = null;
+        readonly ICipher[]? _ciphers = null;
+        readonly Func<RT_MSG_TYPE, CipherContext, ICipher>? _getCipher = null;
 
         /// <summary>
         ///     Create a new instance.
@@ -47,13 +47,13 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         /// </param>
         /// <param name="input">The <see cref="IByteBuffer" /> from which to read data.</param>
         /// <returns>The <see cref="IByteBuffer" /> which represents the frame or <c>null</c> if no frame could be created.</returns>
-        protected virtual List<object> Decode(IChannelHandlerContext context, IByteBuffer input)
+        protected virtual List<object>? Decode(IChannelHandlerContext context, IByteBuffer input)
         {
             List<object> messages = new List<object>();
 
             //input.MarkReaderIndex();
             byte id = input.GetByte(input.ReaderIndex);
-            byte[] hash = null;
+            byte[]? hash = null;
             long frameLength = input.GetShortLE(input.ReaderIndex + 1);
             int totalLength = 3;
 

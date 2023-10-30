@@ -8,21 +8,20 @@ using NetCoreServer;
 using HTTPSecureServer.API.VEEMEE;
 using HTTPSecureServer.API.OHS;
 using HTTPSecureServer.API.HELLFIRE;
+using System.Text;
 
 namespace HTTPSecureServer
 {
     public class HTTPSClass
     {
         public static bool IsStarted = false;
-        private static string? path;
         private string certpath;
         private string certpass;
 
-        public HTTPSClass(string localpath, string certpath, string certpass)
+        public HTTPSClass(string certpath, string certpass)
         {
             this.certpath = certpath;
             this.certpass = certpass;
-            path = localpath;
         }
 
         public static (string HeaderIndex, string HeaderItem)[] CollectHeaders(HttpRequest request)
@@ -133,10 +132,10 @@ namespace HTTPSecureServer
                     string[] segments = absolutepath.Trim('/').Split('/');
 
                     // Combine the folder segments into a directory path
-                    string directoryPath = Path.Combine(path, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                    string directoryPath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                     // Process the request based on the HTTP method
-                    string filePath = Path.Combine(path, absolutepath.Substring(1));
+                    string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath.Substring(1));
 
                     if ((host == "away.veemee.com" || host == "home.veemee.com") && RemoveQueryString(absolutepath).ToLower().EndsWith(".php"))
                     {
@@ -196,39 +195,56 @@ namespace HTTPSecureServer
                         switch (request.Method)
                         {
                             case "GET":
-                                FileInfo? getfileInfo = new(filePath);
-                                // send file
-                                if (getfileInfo.Exists)
+                                if (filePath.EndsWith("/"))
                                 {
-                                    // Workaround for lack of stream support in NetCoreServer.
-                                    // Reading very large files may cause a big memory leak, a github ticket has already been issued : https://github.com/chronoxor/NetCoreServer/issues/176
-                                    // And : https://github.com/chronoxor/NetCoreServer/issues/248
-                                    if (getfileInfo.Length / (1024 * 1024) <= 8)
-                                    {
-                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
-                                        SendResponseAsync(Response.MakeGetResponse(File.ReadAllBytes(filePath), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
-                                    }
+                                    string? encoding = GetHeaderValue(Headers, "Content-Encoding");
+                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                        SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.HTTPUtils.Compress(Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)))), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
                                     else
-                                    {
-                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file redirection to HTTP : {absolutepath}");
-                                        statusCode = HttpStatusCode.PermanentRedirect;
-                                        Response.Clear();
-                                        Response.SetBegin((int)statusCode);
-                                        Response.SetHeader("Location", $"http://{Misc.GetPublicIPAddress()}{absolutepath}");
-                                        Response.SetBody();
-                                        SendResponseAsync(Response);
-                                    }
+                                        SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
                                 }
                                 else
                                 {
-                                    LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
-                                    statusCode = HttpStatusCode.NotFound;
-                                    Response.Clear();
-                                    Response.SetBegin((int)statusCode);
-                                    Response.SetBody();
-                                    SendResponseAsync(Response);
+                                    FileInfo? getfileInfo = new(filePath);
+                                    // send file
+                                    if (getfileInfo.Exists)
+                                    {
+                                        // Workaround for lack of stream support in NetCoreServer.
+                                        // Reading very large files may cause a big memory leak, a github ticket has already been issued : https://github.com/chronoxor/NetCoreServer/issues/176
+                                        // And : https://github.com/chronoxor/NetCoreServer/issues/248
+                                        if (getfileInfo.Length / (1024 * 1024) < 5 && !filePath.ToLower().EndsWith(".php"))
+                                        {
+                                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
+
+                                            string? encoding = GetHeaderValue(Headers, "Content-Encoding");
+
+                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                                SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.HTTPUtils.Compress(File.ReadAllBytes(filePath)), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                            else
+                                                SendResponseAsync(Response.MakeGetResponse(File.ReadAllBytes(filePath), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                        }
+                                        else
+                                        {
+                                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file redirection to HTTP : {absolutepath}");
+                                            statusCode = HttpStatusCode.PermanentRedirect;
+                                            Response.Clear();
+                                            Response.SetBegin((int)statusCode);
+                                            Response.SetHeader("Location", $"http://{Misc.GetPublicIPAddress()}{absolutepath}");
+                                            Response.SetBody();
+                                            SendResponseAsync(Response);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
+                                        statusCode = HttpStatusCode.NotFound;
+                                        Response.Clear();
+                                        Response.SetBegin((int)statusCode);
+                                        Response.SetBody();
+                                        SendResponseAsync(Response);
+                                    }
+                                    getfileInfo = null;
                                 }
-                                getfileInfo = null;
                                 break;
                             case "POST":
                                 statusCode = HttpStatusCode.Forbidden;

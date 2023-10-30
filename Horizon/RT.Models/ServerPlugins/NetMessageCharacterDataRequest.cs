@@ -8,7 +8,7 @@ namespace Horizon.RT.Models.ServerPlugins
 
         public byte s_nonUIRequestID;
         public QueryType m_queryType;
-        public string m_characterName;
+        public string? m_characterName;
         public int m_accountID;
         public int m_requestID;
 
@@ -25,7 +25,10 @@ namespace Horizon.RT.Models.ServerPlugins
         {
             writer.Write(s_nonUIRequestID);
             writer.Write(m_queryType);
-            writer.Write(m_characterName);
+            if (m_characterName == null)
+                writer.Write(string.Empty);
+            else
+                writer.Write(m_characterName);
             writer.Write(m_accountID);
             writer.Write(m_requestID);
         }

@@ -24,14 +24,9 @@ public static class HorizonServerConfiguration
     public static string HomeVersionBetaHDK { get; set; } = "01.60";
     public static string HomeVersionRetail { get; set; } = "01.83";
 
-    public static DbController? Database = null;
+    public static DbController Database = new(DatabaseConfig);
 
     public static List<IPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
-
-    public static void SetupDatabase()
-    {
-        Database = new(DatabaseConfig);
-    }
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -92,8 +87,6 @@ class Program
 
     static Task HorizonStarter()
     {
-		HorizonServerConfiguration.SetupDatabase();
-
         if (HorizonServerConfiguration.EnableMedius)
             Horizon.MEDIUS.MediusClass.MediusMain();
 

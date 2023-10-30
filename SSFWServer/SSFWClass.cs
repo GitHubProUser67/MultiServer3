@@ -13,15 +13,13 @@ namespace SSFWServer
     {
         public static bool IsStarted = false;
         public static string? legacykey;
-        private static string? path;
         private string certpath;
         private string certpass;
 
-        public SSFWClass(string localpath, string certpath, string certpass, string? locallegacykey)
+        public SSFWClass(string certpath, string certpass, string? locallegacykey)
         {
             this.certpath = certpath;
             this.certpass = certpass;
-            path = localpath;
             legacykey = locallegacykey;
         }
 
@@ -108,10 +106,10 @@ namespace SSFWServer
                         string[] segments = absolutepath.Trim('/').Split('/');
 
                         // Combine the folder segments into a directory path
-                        string directoryPath = Path.Combine(path, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                        string directoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                         // Process the request based on the HTTP method
-                        string filePath = Path.Combine(path, absolutepath.Substring(1));
+                        string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath.Substring(1));
 
                         switch (request.Method)
                         {

@@ -84,7 +84,7 @@ class Program
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
-        Processor server = new(HTTPServerConfiguration.HTTPStaticFolder, HTTPServerConfiguration.PHPStaticFolder, "*", HTTPServerConfiguration.PHPVersion, HTTPServerConfiguration.HTTPPort);
+        Processor server = new("*", HTTPServerConfiguration.HTTPPort);
 
         server.Start();
 

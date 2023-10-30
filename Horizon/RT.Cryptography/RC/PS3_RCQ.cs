@@ -2,7 +2,7 @@ namespace Horizon.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
     {
-        private byte[] _key = null;
+        private byte[]? _key = null;
         public CipherContext Context { get; protected set; } = CipherContext.ID_00;
 
         public PS3_RCQ(byte[] key, CipherContext context)
@@ -92,7 +92,6 @@ namespace Horizon.RT.Cryptography.RC
             Hash(plain, out var checkHash);
             return checkHash.SequenceEqual(hash);
         }
-
 
         #region Hash
 
@@ -265,8 +264,8 @@ namespace Horizon.RT.Cryptography.RC
 
         public byte[] GetPublicKey()
         {
-            var copy = new byte[this._key.Length];
-            Array.Copy(this._key, copy, copy.Length);
+            var copy = new byte[_key.Length];
+            Array.Copy(_key, copy, copy.Length);
             return copy;
         }
 

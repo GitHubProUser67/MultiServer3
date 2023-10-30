@@ -90,7 +90,7 @@ namespace Horizon.DME.Models
 
         public ConcurrentDictionary<int, ClientObject> Clients = new ConcurrentDictionary<int, ClientObject>();
 
-        public DMEMediusManager Manager { get; } = null;
+        public DMEMediusManager? Manager { get; } = null;
         
         public World(DMEMediusManager manager, int appId, int maxPlayers)
         {

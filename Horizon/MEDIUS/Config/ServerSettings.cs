@@ -133,7 +133,7 @@ namespace Horizon.MEDIUS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string NATIp { get; set; } = Misc.GetLocalIPAddress().ToString();
+        public string? NATIp { get; set; } = Misc.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// Port of the NAT server.

@@ -147,9 +147,9 @@ namespace HTTPSecureServer.API.OHS
                     JObject? jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string)jsonObject["user"];
+                    dataforohs = (string?)jsonObject["user"];
 
-                    if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
+                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
                     {
                         string tempreader = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Currency.json");
 
@@ -223,9 +223,9 @@ namespace HTTPSecureServer.API.OHS
                     JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string)jsonObject["user"];
+                    dataforohs = (string?)jsonObject["user"];
 
-                    if (File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
+                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
                     {
                         string currencydata = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Currency.json");
 

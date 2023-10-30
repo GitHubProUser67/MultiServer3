@@ -17,15 +17,15 @@ namespace Horizon.MEDIUS.Medius
     /// </summary>
     public class MMS : BaseMediusComponent
     {
-        public static Random RNG = new Random();
+        public static Random RNG = new();
         public override int TCPPort => MediusClass.Settings.MMSTCPPort;
         public override int UDPPort => 0;
         public IPAddress IPAddress => MediusClass.SERVER_IP;
 
-        protected IEventLoopGroup _bossGroup = null;
-        protected IEventLoopGroup _workerGroup = null;
-        protected IChannel _boundChannel = null;
-        protected ScertServerHandler _scertHandler = null;
+        protected IEventLoopGroup? _bossGroup = null;
+        protected IEventLoopGroup? _workerGroup = null;
+        protected IChannel? _boundChannel = null;
+        protected ScertServerHandler? _scertHandler = null;
         private uint _clientCounter = 0;
 
         public MMS()
