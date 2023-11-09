@@ -1,7 +1,7 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
 using System.Collections.Concurrent;
 using System.Net;
 using static Horizon.LIBRARY.libAntiCheat.Models.Game;
@@ -40,32 +40,32 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public string AccountName { get; protected set; } = null;
+        public string? AccountName { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string AccountStats { get; protected set; } = null;
+        public string? AccountStats { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string AccountDisplayName { get; set; } = null;
+        public string? AccountDisplayName { get; set; } = null;
 
         /// <summary>
         /// Current access token required to access the account.
         /// </summary>
-        public string Token { get; protected set; } = null;
+        public string? Token { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string SessionKey { get; protected set; } = null;
+        public string? SessionKey { get; protected set; } = null;
 
         /// <summary>
         /// MGCL Session Key
         /// </summary>
-        public string MGCLSessionKey { get; protected set; } = null;
+        public string? MGCLSessionKey { get; protected set; } = null;
 
         /// <summary>
         /// Unique MGCL hardcoded game identifer per Medius title
@@ -100,12 +100,12 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public Channel CurrentChannel { get; protected set; } = null;
+        public Channel? CurrentChannel { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public Game CurrentGame { get; protected set; } = null;
+        public Game? CurrentGame { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -130,7 +130,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public string Metadata { get; set; } = null;
+        public string? Metadata { get; set; } = null;
 
         /// <summary>
         /// RTT (ms)

@@ -1,7 +1,7 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
 using System.Data;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models
@@ -97,7 +97,6 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             LoggerAccessor.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
         }
 
-
         private void FromCreateGameRequest(MediusCreateGameRequest createGame)
         {
             ApplicationId = createGame.ApplicationID;
@@ -136,7 +135,6 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GamePassword = createGame.GamePassword;
             GameHostType = createGame.GameHostType;
         }
-
 
         private void FromCreateGameRequest1(MediusCreateGameRequest1 createGame)
         {

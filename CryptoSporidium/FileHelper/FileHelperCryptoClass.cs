@@ -44,7 +44,7 @@ namespace CryptoSporidium.FileHelper
 
         public static byte[]? EncryptData(string encryptionKey, byte[] data)
         {
-            Utils? utils = new();
+            MiscUtils? utils = new();
             CustomXTEA? xtea = new();
             byte[]? encryptedDataBytes = null;
 
@@ -95,7 +95,7 @@ namespace CryptoSporidium.FileHelper
 
         public static byte[]? DecryptData(byte[] encryptedData, string encryptionKey)
         {
-            Utils? utils = new();
+            MiscUtils? utils = new();
             CustomXTEA? xtea = new();
             byte[]? plainDataBytes = null;
 

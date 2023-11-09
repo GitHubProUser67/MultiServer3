@@ -5,9 +5,6 @@ using System.Security.Cryptography.X509Certificates;
 using CustomLogger;
 using System.Text.RegularExpressions;
 using NetCoreServer;
-using HTTPSecureServer.API.VEEMEE;
-using HTTPSecureServer.API.OHS;
-using HTTPSecureServer.API.HELLFIRE;
 using System.Text;
 
 namespace HTTPSecureServer
@@ -15,7 +12,10 @@ namespace HTTPSecureServer
     public class HTTPSClass
     {
         public static bool IsStarted = false;
-        private static string[] AllowedFileTypes = { ".txt", ".tss", ".xml", ".sdc", ".odc", ".htm", ".html", ".json", ".ico", ".png", ".dds", ".jpg", ".jpeg", ".mp3", "" };
+        private static string[] AllowedFileTypes = { ".txt", ".csv", ".plain", ".richtext", ".rtf",
+            ".rtx", ".sgml", ".strings", ".url", ".ttf", ".css", ".js", ".vue", ".atom", ".soap", ".fastsoap",
+            ".sql", ".tss", ".xml", ".xslt", ".sdc", ".odc", ".htm", ".html", ".pdf", ".json", ".map", ".ico", ".png", 
+            ".dds", ".jpg", ".jpeg", ".bmp", ".flick", ".emf", ".gif", ".jpm", ".jpx", ".jrx", ".svg", ".tiff", ".wmf", string.Empty };
         private string certpath;
         private string certpass;
 
@@ -45,7 +45,7 @@ namespace HTTPSecureServer
 
         public static string GetHeaderValue((string HeaderIndex, string HeaderItem)[] headers, string requestedHeaderIndex)
         {
-            string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+            string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we mitigate the problem.
 
             foreach ((string HeaderIndex, string HeaderItem) header in headers)
             {
@@ -53,7 +53,7 @@ namespace HTTPSecureServer
 
                 if (header.HeaderIndex == requestedHeaderIndex)
                     return header.HeaderItem;
-                else if (header.HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                else if (header.HeaderItem.Contains(requestedHeaderIndex) && match.Success)
                     return match.Groups[2].Value;
             }
             return string.Empty; // Return empty string if the header index is not found, why not null, because in this case it prevents us
@@ -114,10 +114,14 @@ namespace HTTPSecureServer
                     {
                         if (request.Url != null)
                         {
+                            LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {request.Url}");
+
                             // get filename path
                             absolutepath = request.Url;
                             statusCode = HttpStatusCode.Continue;
                         }
+                        else
+                            LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with invalid parameters!");
                     }
                 }
                 catch (Exception)
@@ -138,11 +142,53 @@ namespace HTTPSecureServer
                     // Process the request based on the HTTP method
                     string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath.Substring(1));
 
-                    if ((host == "away.veemee.com" || host == "home.veemee.com") && RemoveQueryString(absolutepath).ToLower().EndsWith(".php"))
+                    if ((absolutepath == "/" || absolutepath == "\\") && request.Method == "GET")
+                    {
+                        foreach (string indexFile in CryptoSporidium.HTTPUtils.DefaultDocuments)
+                        {
+                            if (File.Exists(Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, indexFile)))
+                            {
+                                string? encoding = GetHeaderValue(Headers, "Content-Encoding");
+
+                                using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                {
+                                    byte[]? buffer = null;
+
+                                    using (MemoryStream ms = new())
+                                    {
+                                        stream.CopyTo(ms);
+                                        buffer = ms.ToArray();
+                                        ms.Flush();
+                                    }
+
+                                    if (buffer != null)
+                                    {
+                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                        {
+                                            buffer = CryptoSporidium.HTTPUtils.Compress(buffer);
+
+                                            if (buffer != null)
+                                                SendResponseAsync(Response.MakeGetResponse(buffer, CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(indexFile)]));
+                                            else
+                                                SendResponseAsync(Response.MakeErrorResponse());
+                                        }
+                                        else
+                                            SendResponseAsync(Response.MakeGetResponse(buffer, CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(indexFile)]));
+                                    }
+                                    else
+                                        SendResponseAsync(Response.MakeErrorResponse());
+
+                                    stream.Flush();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else if ((host == "away.veemee.com" || host == "home.veemee.com") && RemoveQueryString(absolutepath).ToLower().EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a VEEMEE method : {absolutepath}");
 
-                        VEEMEEClass veemee = new(request.Method, RemoveQueryString(absolutepath)); // Todo, loss of GET informations.
+                        API.VEEMEE.VEEMEEClass veemee = new(request.Method, RemoveQueryString(absolutepath)); // Todo, loss of GET informations.
                         string? res = veemee.ProcessRequest(request.BodyBytes, GetHeaderValue(Headers, "Content-type"));
                         veemee.Dispose();
                         if (string.IsNullOrEmpty(res))
@@ -158,7 +204,7 @@ namespace HTTPSecureServer
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a HELLFIRE method : {absolutepath}");
 
-                        HELLFIREClass hellfire = new(request.Method, RemoveQueryString(absolutepath));
+                        API.HELLFIRE.HELLFIREClass hellfire = new(request.Method, RemoveQueryString(absolutepath));
                         string? res = hellfire.ProcessRequest(request.BodyBytes, GetHeaderValue(Headers, "Content-type"));
                         hellfire.Dispose();
                         if (string.IsNullOrEmpty(res))
@@ -174,7 +220,7 @@ namespace HTTPSecureServer
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a OHS method : {absolutepath}");
 
-                        OHSClass ohs = new(request.Method, absolutepath);
+                        CryptoSporidium.OHS.OHSClass ohs = new(request.Method, absolutepath, 0);
                         string? res = ohs.ProcessRequest(request.BodyBytes, GetHeaderValue(Headers, "Content-type"), filePath);
                         ohs.Dispose();
                         if (string.IsNullOrEmpty(res))
@@ -200,28 +246,63 @@ namespace HTTPSecureServer
                                 {
                                     string? encoding = GetHeaderValue(Headers, "Content-Encoding");
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                        SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.HTTPUtils.Compress(Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)))), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                    {
+                                        byte[]? buffer = CryptoSporidium.HTTPUtils.Compress(Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1))));
+
+                                        if (buffer != null)
+                                            SendResponseAsync(Response.MakeGetResponse(buffer, "application/json"));
+                                        else
+                                            SendResponseAsync(Response.MakeErrorResponse());
+                                    }
                                     else
-                                        SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                        SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)), "application/json"));
                                 }
                                 else
                                 {
+                                    FileInfo? getfileInfo = new(filePath);
+
                                     // send file
-                                    if (File.Exists(filePath))
+                                    if (getfileInfo.Exists)
                                     {
                                         // Workaround for lack of stream support in NetCoreServer.
-                                        // Reading very large files may cause a big memory leak, a github ticket has already been issued : https://github.com/chronoxor/NetCoreServer/issues/176
+                                        // Reading very large files causes a big memory leak, a github ticket has already been issued : https://github.com/chronoxor/NetCoreServer/issues/176
                                         // And : https://github.com/chronoxor/NetCoreServer/issues/248
-                                        if (AllowedFileTypes.Contains(Path.GetExtension(filePath)))
+                                        if (AllowedFileTypes.Contains(Path.GetExtension(filePath)) && getfileInfo.Length / (1024 * 1024) < 10) // Arbitrary, 9.9 mb limit.
                                         {
                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
                                             string? encoding = GetHeaderValue(Headers, "Content-Encoding");
 
-                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                SendResponseAsync(Response.MakeGetResponse(CryptoSporidium.HTTPUtils.Compress(File.ReadAllBytes(filePath)), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
-                                            else
-                                                SendResponseAsync(Response.MakeGetResponse(File.ReadAllBytes(filePath), CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                            using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                            {
+                                                byte[]? buffer = null;
+
+                                                using (MemoryStream ms = new())
+                                                {
+                                                    stream.CopyTo(ms);
+                                                    buffer = ms.ToArray();
+                                                    ms.Flush();
+                                                }
+
+                                                if (buffer != null)
+                                                {
+                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                                    {
+                                                        buffer = CryptoSporidium.HTTPUtils.Compress(buffer);
+
+                                                        if (buffer != null)
+                                                            SendResponseAsync(Response.MakeGetResponse(buffer, CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                                        else
+                                                            SendResponseAsync(Response.MakeErrorResponse());
+                                                    }
+                                                    else
+                                                        SendResponseAsync(Response.MakeGetResponse(buffer, CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]));
+                                                }
+                                                else
+                                                    SendResponseAsync(Response.MakeErrorResponse());
+
+                                                stream.Flush();
+                                            }
                                         }
                                         else
                                         {
@@ -243,6 +324,8 @@ namespace HTTPSecureServer
                                         Response.SetBody();
                                         SendResponseAsync(Response);
                                     }
+
+                                    getfileInfo = null;
                                 }
                                 break;
                             case "POST":
@@ -268,25 +351,15 @@ namespace HTTPSecureServer
                                 break;
                             case "HEAD":
                                 Response.Clear();
-                                if (File.Exists(filePath))
+                                FileInfo? fileInfo = new(filePath);
+                                if (fileInfo.Exists)
                                 {
-                                    FileInfo? fileInfo = new(filePath);
-                                    if (fileInfo.Exists)
-                                    {
-                                        statusCode = HttpStatusCode.OK;
-                                        Response.SetBegin((int)statusCode);
-                                        Response.SetContentType(CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]);
-                                        Response.SetHeader("Content-Length", fileInfo.Length.ToString());
-                                        Response.SetHeader("Date", DateTime.Now.ToString("r"));
-                                        Response.SetHeader("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
-                                    }
-                                    else
-                                    {
-                                        LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file: {filePath}");
-                                        statusCode = HttpStatusCode.NotFound;
-                                        Response.SetBegin((int)statusCode);
-                                    }
-                                    fileInfo = null;
+                                    statusCode = HttpStatusCode.OK;
+                                    Response.SetBegin((int)statusCode);
+                                    Response.SetContentType(CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)]);
+                                    Response.SetHeader("Content-Length", fileInfo.Length.ToString());
+                                    Response.SetHeader("Date", DateTime.Now.ToString("r"));
+                                    Response.SetHeader("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                 }
                                 else
                                 {
@@ -294,6 +367,7 @@ namespace HTTPSecureServer
                                     statusCode = HttpStatusCode.NotFound;
                                     Response.SetBegin((int)statusCode);
                                 }
+                                fileInfo = null;
                                 Response.SetBody();
                                 SendResponseAsync(Response);
                                 break;

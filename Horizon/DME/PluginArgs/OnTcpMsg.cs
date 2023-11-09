@@ -1,4 +1,4 @@
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models;
 using Horizon.DME.Models;
 
 namespace Horizon.DME.PluginArgs

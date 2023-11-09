@@ -4,7 +4,7 @@ using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using DotNetty.Buffers;
 using DotNetty.Handlers.Logging;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
@@ -132,11 +132,13 @@ namespace Horizon.BWPS
         {
             try
             {
-                await _boundChannel.CloseAsync();
+                if (_boundChannel != null)
+                    await _boundChannel.CloseAsync();
             }
             finally
             {
-                await Task.WhenAll(
+                if (_workerGroup != null)
+                    await Task.WhenAll(
                         _workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));
             }
         }

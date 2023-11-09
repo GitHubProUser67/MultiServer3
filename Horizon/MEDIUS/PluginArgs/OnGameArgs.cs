@@ -7,7 +7,7 @@ namespace Horizon.MEDIUS.PluginArgs
         /// <summary>
         /// Game.
         /// </summary>
-        public Game Game { get; set; }
+        public Game? Game { get; set; }
 
         public override string ToString()
         {

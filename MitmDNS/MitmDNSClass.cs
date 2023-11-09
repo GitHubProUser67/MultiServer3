@@ -68,12 +68,13 @@ namespace MitmDNS
                 DicRules = ParseSimpleDNSRules(Filename, DicRules);
             else
             {
+                HashSet<string> processedDomains = new HashSet<string>();
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
                 foreach (string s in rules)
                 {
                     if (s.StartsWith(";") || s.Trim() == "") continue;
                     string[] split = s.Split(',');
-                    DnsSettings dns = new DnsSettings();
+                    DnsSettings dns = new();
                     switch (split[1].Trim().ToLower())
                     {
                         case "deny":
@@ -91,25 +92,32 @@ namespace MitmDNS
                     }
 
                     string domain = split[0].Trim();
-                    if (domain.Contains("*"))
+
+                    // Check if the domain has been processed before
+                    if (!processedDomains.Contains(domain))
                     {
-                        // Escape all possible URI characters conflicting with Regex
-                        domain = domain.Replace(".", "\\.");
-                        domain = domain.Replace("$", "\\$");
-                        domain = domain.Replace("[", "\\[");
-                        domain = domain.Replace("]", "\\]");
-                        domain = domain.Replace("(", "\\(");
-                        domain = domain.Replace(")", "\\)");
-                        domain = domain.Replace("+", "\\+");
-                        domain = domain.Replace("?", "\\?");
-                        // Replace "*" characters with ".*" which means any number of any character for Regexp
-                        domain = domain.Replace("*", ".*");
-                        StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                    }
-                    else
-                    {
-                        DicRules.Add(domain, dns);
-                        DicRules.Add("www." + domain, dns);
+                        processedDomains.Add(domain);
+
+                        if (domain.Contains("*"))
+                        {
+                            // Escape all possible URI characters conflicting with Regex
+                            domain = domain.Replace(".", "\\.");
+                            domain = domain.Replace("$", "\\$");
+                            domain = domain.Replace("[", "\\[");
+                            domain = domain.Replace("]", "\\]");
+                            domain = domain.Replace("(", "\\(");
+                            domain = domain.Replace(")", "\\)");
+                            domain = domain.Replace("+", "\\+");
+                            domain = domain.Replace("?", "\\?");
+                            // Replace "*" characters with ".*" which means any number of any character for Regexp
+                            domain = domain.Replace("*", ".*");
+                            StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
+                        }
+                        else
+                        {
+                            DicRules.Add(domain, dns);
+                            DicRules.Add("www." + domain, dns);
+                        }
                     }
                 }
             }

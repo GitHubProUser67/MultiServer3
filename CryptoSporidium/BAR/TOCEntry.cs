@@ -155,10 +155,10 @@ namespace CryptoSporidium.BAR
 
         public byte[] GetData(ArchiveFlags flags)
         {
-            byte[] array2 = null;
+            byte[]? array2 = null;
             try
             {
-                byte[] array = null;
+                byte[]? array = null;
 
                 try
                 {

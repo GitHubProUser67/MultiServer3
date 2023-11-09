@@ -1,8 +1,8 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
-using Horizon.LIBRARY.Database.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.LIBRARY.Database.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
@@ -50,6 +50,11 @@ namespace Horizon.MEDIUS.Medius.Models
         public int GenericField6;
         public int GenericField7;
         public int GenericField8;
+        public string? RequestData;
+        public uint GroupMemberListSize;
+        public char[]? GroupMemberList;
+        public uint AppDataSize;
+        public char[]? AppData;
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
@@ -73,14 +78,18 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
-        public int PlayerCount => Clients.Count(x => x != null && x.Client.IsConnected || x.InGame);
+        public int PlayerCount => Clients.Count(x => x != null && x.Client!= null && x.Client.IsConnected || x != null && x.InGame);
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
         public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject dmeServer)
         {
             if (createGame is MediusCreateGameRequest r)
+            {
+                if (client.ApplicationId == 24180)
+                    r.MaxPlayers = 10;
                 FromCreateGameRequest(r);
+            }
             else if (createGame is MediusCreateGameRequest0 r0)
                 FromCreateGameRequest0(r0);
             else if (createGame is MediusCreateGameRequest1 r1)
@@ -312,7 +321,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
                 if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.Id != Id)
                 {
-                    LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client.Client.IsConnected}\nClient CurrentGame ID: {client.Client.CurrentGame?.Id}\nGameId: {Id}\nMatch?: {client.Client.CurrentGame?.Id != Id}");
+                    LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client?.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client?.Client?.IsConnected}\nClient CurrentGame ID: {client?.Client?.CurrentGame?.Id}\nGameId: {Id}\nMatch?: {client?.Client?.CurrentGame?.Id != Id}");
                     Clients.RemoveAt(i);
                     --i;
                 }
@@ -329,7 +338,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification notification)
         {
-            var player = Clients.FirstOrDefault(x => x.Client.SessionKey == notification.PlayerSessionKey);
+            var player = Clients.FirstOrDefault(x => x.Client?.SessionKey == notification.PlayerSessionKey);
 
             if (player == null)
                 return;
@@ -351,7 +360,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusJoinGameResponse(string Sessionkey)
         {
-            GameClient? player = Clients.FirstOrDefault(x => x.Client.SessionKey == Sessionkey);
+            GameClient? player = Clients.FirstOrDefault(x => x.Client?.SessionKey == Sessionkey);
 
             if (player == null)
                 return;
@@ -361,7 +370,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest)
         {
-            GameClient? player = Clients.FirstOrDefault(x => x != null && x.Client.IsConnected);
+            GameClient? player = Clients.FirstOrDefault(x => x != null && x.Client!= null && x.Client.IsConnected);
             if (player == null)
                 return;
 
@@ -374,7 +383,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
             if (player.Client == Host)
             {
-                LoggerAccessor.LogInfo($"[Game] -> OnHostJoined -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
+                LoggerAccessor.LogInfo($"[Game] -> OnHostJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
                 try
                 {
                     CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame.GameName, player.Client.WorldId.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), true);
@@ -387,7 +396,7 @@ namespace Horizon.MEDIUS.Medius.Models
             }
             else
             {
-                LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
+                LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
                 try
                 {
                     CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame.GameName, player.Client.WorldId.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), false);
@@ -422,7 +431,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         protected virtual async Task OnPlayerLeft(GameClient player)
         {
-            LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client.ApplicationId} - {player.Client.CurrentGame.GameName} (id : {player.Client.WorldId}) -> {player.Client.AccountName} -> {player.Client.LanguageType}");
+            LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
             player.InGame = false;
 
@@ -486,11 +495,14 @@ namespace Horizon.MEDIUS.Medius.Models
             }
         }
 
-        public virtual async Task OnWorldReport(MediusWorldReport report, int AppId)
+        public virtual async Task OnWorldReport(MediusWorldReport report, int appId)
         {
             // Ensure report is for correct game world
             if (report.MediusWorldID != Id)
                 return;
+
+            if (appId == 24180)
+                report.MaxPlayers = 10;
 
             //Id = report.MediusWorldID;
             GameName = report.GameName;
@@ -515,9 +527,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // This gives the host a "Game Name Already Exists" when they try to remake with the same name.
             // This just fixes that. At the cost of the game not showing after a host leaves a game.
             if (WorldStatus != MediusWorldStatus.WorldClosed && WorldStatus != report.WorldStatus)
-            {
                 await SetWorldStatus(report.WorldStatus);
-            }
             else
             {
                 // Update db

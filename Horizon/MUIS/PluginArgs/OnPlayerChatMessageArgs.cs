@@ -1,4 +1,4 @@
-using Horizon.RT.Models.Misc;
+using CryptoSporidium.Horizon.RT.Models.Misc;
 using Horizon.MUIS.Models;
 
 namespace Horizon.MUIS.PluginArgs

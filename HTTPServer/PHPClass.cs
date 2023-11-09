@@ -15,7 +15,7 @@ namespace HTTPServer
             {
                 byte[]? returndata = null;
                 var index = request.RawUrl.IndexOf("?");
-                var queryString = index == -1 ? "" : request.RawUrl.Substring(index + 1);
+                var queryString = index == -1 ? string.Empty : request.RawUrl.Substring(index + 1);
                 // Get paths for PHP
                 var documentRootPath = Path.GetDirectoryName(FilePath);
                 var scriptFilePath = Path.GetFullPath(FilePath);
@@ -26,7 +26,7 @@ namespace HTTPServer
                 string? postData = null;
                 if (request.HttpMethod == "POST")
                 {
-                    using (MemoryStream ms = new MemoryStream())
+                    using (MemoryStream ms = new())
                     {
                         request.InputStream.CopyTo(ms);
 
@@ -173,7 +173,7 @@ namespace HTTPServer
                             using (StreamReader errorReader = proc.StandardError)
                             {
                                 string errorOutput = errorReader.ReadToEnd();
-                                byte[] errorOutputBytes = RemoveUnwantedHeaders(Encoding.UTF8.GetBytes(errorOutput));
+                                byte[] errorOutputBytes = CryptoSporidium.HTTPUtils.RemoveUnwantedHeaders(Encoding.UTF8.GetBytes(errorOutput));
                                 memoryStream.Write(errorOutputBytes, 0, errorOutputBytes.Length);
                             }
                         }
@@ -207,7 +207,7 @@ namespace HTTPServer
                         }
 
                         // Get the final byte array
-                        returndata = RemoveUnwantedHeaders(memoryStream.ToArray());
+                        returndata = CryptoSporidium.HTTPUtils.RemoveUnwantedHeaders(memoryStream.ToArray());
 
                         reader.Dispose();
                     }
@@ -222,77 +222,6 @@ namespace HTTPServer
             }
 
             return null;
-        }
-
-        private byte[] RemoveUnwantedHeaders(byte[] phpOutputBytes)
-        {
-            // Find the index where headers end and content starts (indicated by an empty line)
-            int emptyLineIndex = -1;
-            for (int i = 0; i < phpOutputBytes.Length - 3; i++)
-            {
-                if (phpOutputBytes[i] == '\r' && phpOutputBytes[i + 1] == '\n' && phpOutputBytes[i + 2] == '\r' && phpOutputBytes[i + 3] == '\n')
-                {
-                    emptyLineIndex = i + 4; // Skip the empty line
-                    break;
-                }
-            }
-
-            if (emptyLineIndex == -1)
-            {
-                // If no empty line found, return the original bytes
-                return phpOutputBytes;
-            }
-
-            List<byte> filteredOutput = new List<byte>();
-
-            bool skipHeaders = false;
-
-            for (int i = emptyLineIndex; i < phpOutputBytes.Length; i++)
-            {
-                byte currentByte = phpOutputBytes[i];
-
-                if (currentByte == '\r' && i < phpOutputBytes.Length - 1 && phpOutputBytes[i + 1] == '\n')
-                {
-                    // Empty line indicates end of headers, switch to normal content
-                    skipHeaders = true;
-                    filteredOutput.Add((byte)'\r');
-                    filteredOutput.Add((byte)'\n');
-                    i++; // Skip the '\n' character
-                }
-                else if (!skipHeaders)
-                {
-                    // Check if the line contains unwanted headers and skip them
-                    bool skipLine = false;
-
-                    if (currentByte == 'C' && i + 12 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Content-Type:"))
-                    {
-                        skipLine = true;
-                        i += 13; // Skip "Content-Type:" and the following space
-                    }
-                    else if (currentByte == 'S' && i + 10 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Set-Cookie:"))
-                    {
-                        skipLine = true;
-                        i += 11; // Skip "Set-Cookie:" and the following space
-                    }
-
-                    if (!skipLine)
-                        filteredOutput.Add(currentByte);
-                }
-                else
-                    filteredOutput.Add(currentByte);
-            }
-
-            return filteredOutput.ToArray();
-        }
-
-        private static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)
-        {
-            for (int i = 0; i < header.Length; i++)
-            {
-                if (startIndex + i >= byteArray.Length || byteArray[startIndex + i] != (byte)header[i])
-                    return false;
-            }
-            return true;
         }
 
         protected virtual void Dispose(bool disposing)

@@ -13,7 +13,7 @@ namespace HTTPSecureServer.API.VEEMEE
 
             using (var sha1 = SHA1.Create())
             {
-                CryptoSporidium.Utils? utils = new();
+                CryptoSporidium.MiscUtils? utils = new();
 
                 hashBytes = sha1.ComputeHash(utils.Combinebytearay(Encoding.UTF8.GetBytes("veemeeHTTPRequ9R3UMWDAT8F3*#@&$^"), Encoding.UTF8.GetBytes(data)));
 

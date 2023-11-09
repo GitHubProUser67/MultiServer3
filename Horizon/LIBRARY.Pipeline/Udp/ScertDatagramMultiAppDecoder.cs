@@ -1,7 +1,7 @@
 using CustomLogger;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {

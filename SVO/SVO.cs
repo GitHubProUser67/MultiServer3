@@ -1,5 +1,6 @@
 ﻿using CustomLogger;
 using HttpMultipartParser;
+using SVO.Games;
 using System.Net;
 using System.Text;
 
@@ -14,12 +15,10 @@ namespace SVO
 
         private HttpListener? listener;
         private string ip;
-        private int port;
 
-        public Processor(string ip, int port)
+        public Processor(string ip)
         {
             this.ip = ip;
-            this.port = port;
         }
 
         public bool IsIPBanned(string ipAddress)
@@ -72,7 +71,9 @@ namespace SVO
             try
             {
                 listener = new HttpListener();
-                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, port));
+                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
+                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
+                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Start();
             }
             catch (Exception e)
@@ -118,11 +119,20 @@ namespace SVO
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
                 else
                 {
-                    if (ctx.Request.Url != null && ctx.Request.Url.AbsolutePath != null && ctx.Request.Url.LocalPath != null)
+                    string? UserAgent = ctx.Request.UserAgent;
+                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident")))
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
+                    else
                     {
-                        // get filename path
-                        absolutepath = ctx.Request.Url.AbsolutePath;
-                        isok = true;
+                        if (ctx.Request.Url != null && ctx.Request.Url.AbsolutePath != null && ctx.Request.Url.LocalPath != null)
+                        {
+                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                            // get filename path
+                            absolutepath = ctx.Request.Url.AbsolutePath;
+                            isok = true;
+                        }
+                        else
+                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid parameters!");
                     }
                 }
             }
@@ -131,91 +141,95 @@ namespace SVO
 
             }
 
-            if (isok)
+            try
             {
-                LoggerAccessor.LogInfo($"[SVO] - {clientip} Requested : {absolutepath}");
-
-                if (absolutepath == "/dataloaderweb/queue")
+                if (isok)
                 {
-                    switch (ctx.Request.HttpMethod)
+                    LoggerAccessor.LogInfo($"[SVO] - {clientip} Requested : {absolutepath}");
+
+                    if (absolutepath == "/dataloaderweb/queue")
                     {
-                        case "POST":
-                            if (!string.IsNullOrEmpty(ctx.Request.ContentType))
-                            {
-                                ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                ctx.Response.Headers.Set("Content-Language", string.Empty);
-                                string? boundary = ExtractBoundary(ctx.Request.ContentType);
-
-                                var data = MultipartFormDataParser.Parse(ctx.Request.InputStream, boundary);
-
-                                byte[] datatooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("body"));
-
-                                Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
-
-                                DirectoryInfo directory = new DirectoryInfo($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
-
-                                FileInfo[] files = directory.GetFiles();
-
-                                if (files.Length >= 20)
+                        switch (ctx.Request.HttpMethod)
+                        {
+                            case "POST":
+                                if (!string.IsNullOrEmpty(ctx.Request.ContentType))
                                 {
-                                    FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
-                                    LoggerAccessor.LogInfo("[SVO] - Replacing Home Debug log file: " + oldestFile.Name);
-                                    if (File.Exists(oldestFile.FullName))
-                                        File.Delete(oldestFile.FullName);
-                                }
+                                    ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                                    ctx.Response.Headers.Set("Content-Language", string.Empty);
+                                    string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
 
-                                File.WriteAllBytes($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue/{Guid.NewGuid()}.xml", datatooutput);
+                                    var data = MultipartFormDataParser.Parse(ctx.Request.InputStream, boundary);
 
-                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                ctx.Response.SendChunked = true;
+                                    byte[] datatooutput = Encoding.UTF8.GetBytes(data.GetParameterValue("body"));
 
-                                if (ctx.Response.OutputStream.CanWrite)
-                                {
-                                    try
+                                    Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
+
+                                    DirectoryInfo directory = new DirectoryInfo($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
+
+                                    FileInfo[] files = directory.GetFiles();
+
+                                    if (files.Length >= 20)
                                     {
-                                        ctx.Response.ContentLength64 = datatooutput.Length;
-                                        ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
-                                        ctx.Response.OutputStream.Close();
+                                        FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
+                                        LoggerAccessor.LogInfo("[SVO] - Replacing Home Debug log file: " + oldestFile.Name);
+                                        if (File.Exists(oldestFile.FullName))
+                                            File.Delete(oldestFile.FullName);
                                     }
-                                    catch (Exception)
+
+                                    File.WriteAllBytes($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue/{Guid.NewGuid()}.xml", datatooutput);
+
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.SendChunked = true;
+
+                                    if (ctx.Response.OutputStream.CanWrite)
                                     {
-                                        // Not Important.
+                                        try
+                                        {
+                                            ctx.Response.ContentLength64 = datatooutput.Length;
+                                            ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
+                                            ctx.Response.OutputStream.Close();
+                                        }
+                                        catch (Exception)
+                                        {
+                                            // Not Important.
+                                        }
                                     }
                                 }
-                            }
-                            else
+                                else
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                break;
+                            default:
                                 ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                            break;
-                        default:
-                            ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                            break;
+                                break;
+                        }
                     }
+                    else if (absolutepath.Contains("/HUBPS3_SVML/"))
+                        await PlayStationHome.Home_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/motorstorm3ps3_xml/"))
+                        await MotorStormApocalypse.MSApocalypse_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/wox_ws/"))
+                        await WipeoutHD.WipeoutHD_OTG(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/BUZZPS3_SVML/"))
+                        await BuzzQuizGame.BuzzQuizGame_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/BOURBON_XML/"))
+                        await Starhawk.Starhawk_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/SOCOMCF_SVML/"))
+                        await SocomConfrontation.SocomConfrontation_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/TWISTEDMETALX_XML/"))
+                        await TwistedMetalX.TwistedMetalX_SVO(ctx.Request, ctx.Response);
+                    else
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 }
-                else if (absolutepath.Contains("/HUBPS3_SVML/"))
-                    await PlayStationHome.Home_SVO(ctx.Request, ctx.Response);
-                else if (absolutepath.Contains("/motorstorm3ps3_xml/"))
-                    await MotorStormApocalypse.MSApocalypse_SVO(ctx.Request, ctx.Response);
-                else if (absolutepath.Contains("/wox_ws/"))
-                    await WipeoutHD.WipeoutHD_OTG(ctx.Request, ctx.Response);
-                else if (absolutepath.Contains("/BUZZPS3_SVML/"))
-                    await BuzzQuizGame.BuzzQuizGame_SVO(ctx.Request, ctx.Response);
-                else if (absolutepath.Contains("/BOURBON_XML/"))
-                    await Starhawk.Starhawk_SVO(ctx.Request, ctx.Response);
                 else
                     ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             }
-            else
-                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[SVO] - Request Processing thrown an assertion - {ex}");
+                ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
 
             ctx.Response.Close();
-        }
-
-        public string? ExtractBoundary(string contentType)
-        {
-            int boundaryIndex = contentType.IndexOf("boundary=", StringComparison.InvariantCultureIgnoreCase);
-            if (boundaryIndex != -1)
-                return contentType.Substring(boundaryIndex + 9);
-            return null;
         }
     }
 }

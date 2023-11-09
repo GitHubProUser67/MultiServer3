@@ -1,7 +1,7 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Groups;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models;
 
 namespace Horizon.LIBRARY.Pipeline.Tcp
 {

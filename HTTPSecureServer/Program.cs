@@ -60,11 +60,7 @@ class Program
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
-        if (!File.Exists(HTTPSServerConfiguration.HTTPSCertificateFile))
-            CryptoSporidium.SSLUtils.CreateSelfSignedCert(HTTPSServerConfiguration.HTTPSCertificateFile, "secure.cprod.homeps3.online.scee.com");
-
-        CryptoSporidium.SSLUtils.CreateHomeCertificatesFile(File.ReadAllText(Path.GetDirectoryName(HTTPSServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(HTTPSServerConfiguration.HTTPSCertificateFile)}.pem"), Path.GetDirectoryName(HTTPSServerConfiguration.HTTPSCertificateFile) + "/CERTIFICATES.TXT");
-
+        CryptoSporidium.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
         HTTPSClass server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty");
 

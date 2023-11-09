@@ -11,158 +11,24 @@ namespace SVO
     {
         public static async Task Home_SVO(HttpListenerRequest request, HttpListenerResponse response)
         {
-            if (request.Url == null)
+            try
             {
-                response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return;
-            }
-
-            string method = request.HttpMethod;
-
-            using (response)
-            {
-                switch (request.Url.AbsolutePath)
+                if (request.Url == null)
                 {
-                    #region HOME
-                    case "/HUBPS3_SVML/unity/start.jsp":
+                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    return;
+                }
 
-                        switch (method)
-                        {
-                            case "GET":
+                string method = request.HttpMethod;
 
-                                string? clientMac = request.Headers.Get("X-SVOMac");
+                using (response)
+                {
+                    switch (request.Url.AbsolutePath)
+                    {
+                        #region HOME
+                        case "/HUBPS3_SVML/unity/start.jsp":
 
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string region = "";
-
-                                    try
-                                    {
-                                        region = request.Url.Query.Substring(8);
-                                    }
-                                    catch (Exception)
-                                    {
-                                        region = "en-US";
-                                    }
-
-                                    byte[]? uriStore = null;
-
-                                    if (SVOServerConfiguration.SVOHTTPSBypass)
-                                        uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                        "<SVML>\r\n" +
-                                       $"    <BROWSER_INIT name=\"init\" />\r\n\t" +
-                                        "    \r\n    <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                        "    \r\n    <DATA dataType=\"URI\" name=\"SvfsUpload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/fileservices/UploadFileServlet\"/>\r\n" +
-                                        "    \r\n    <DATA dataType=\"URI\" name=\"SvfsDownload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Download.jsp\"/>\r\n" +
-                                        "    <DATA dataType=\"URI\" name=\"SvfsDeleteSubmit\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Delete.jsp\"/>\r\n    \r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpArcadeMachines\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=arcade\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpBowling\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=bowling\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpCharacterCreation\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=characterCustomisation\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpChess\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=chess\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpConversations\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=conversations\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpDoors\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=relocation\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpDraughts\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=draughts\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpEmotes\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=emotes\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpFirstTimeUser\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=firstTimeUsing\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpGameLaunchingCreate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingCreate\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpGameLaunchingJoin\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingJoin\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpGamesRoom\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamespace\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpHomeApartment\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=homespace\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpPool\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=pool\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpSafetyInHome\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=stayingsafe\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"HelpSeats\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=seats\"/>\r\n\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityNews\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityLatestUpdate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityHandyLinks\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityMotd\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=messageoftheday\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityUsagePolicy\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=eula\"/>\r\n\r\n    " +
-                                       $"    <DATA dataType=\"URI\" name=\"GriefReportStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/griefreporting/GriefReportWelcome.jsp?region={region}\"/>\r\n" +
-                                        "    <DATA dataType=\"URI\" name=\"ViralProvisioningStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/viralprovisioning/HomeInviteWelcome.jsp\"/>\r\n" +
-                                        "    <DATA dataType=\"URI\" name=\"UserActivityLogUploadServlet\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/tracking/StatTrackingServlet\"/>\r\n    \r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityNewsSummary\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityNewsDetailed\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
-                                       $"    <DATA dataType=\"URI\" name=\"CommunityBetaTrialRoadmap\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n    \r\n" +
-                                        "    <DATA dataType=\"DATA\" name=\"gameFinishURL\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n\t\r\n" +
-                                        "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n\t\r\n\t" +
-                                       $"     \r\n    \r\n\t<REDIRECT href=\"eulaCheck.jsp?region={region}&amp\" name=\"redirect\"/>\r\n" +
-                                        "      \r\n" +
-                                        "</SVML>");
-                                    else
-                                        uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                        "<SVML>\r\n" +
-                                        $"   <BROWSER_INIT name=\"init\" />\r\n\t" +
-                                        "    \r\n    <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                        "    \r\n    <DATA dataType=\"URI\" name=\"SvfsUpload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/fileservices/UploadFileServlet\"/>\r\n" +
-                                        "    \r\n    <DATA dataType=\"URI\" name=\"SvfsDownload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Download.jsp\"/>\r\n" +
-                                        "    <DATA dataType=\"URI\" name=\"SvfsDeleteSubmit\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Delete.jsp\"/>\r\n    \r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpArcadeMachines\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=arcade\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpBowling\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=bowling\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpCharacterCreation\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=characterCustomisation\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpChess\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=chess\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpConversations\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=conversations\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpDoors\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=relocation\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpDraughts\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=draughts\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpEmotes\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=emotes\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpFirstTimeUser\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=firstTimeUsing\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpGameLaunchingCreate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingCreate\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpGameLaunchingJoin\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingJoin\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpGamesRoom\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamespace\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpHomeApartment\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=homespace\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpPool\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=pool\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpSafetyInHome\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=stayingsafe\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"HelpSeats\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=seats\"/>\r\n\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityNews\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityLatestUpdate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityHandyLinks\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityMotd\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=messageoftheday\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityUsagePolicy\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=eula\"/>\r\n\r\n    " +
-                                        $"   <DATA dataType=\"URI\" name=\"GriefReportStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/griefreporting/GriefReportWelcome.jsp?region={region}\"/>\r\n" +
-                                        "    <DATA dataType=\"URI\" name=\"ViralProvisioningStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/viralprovisioning/HomeInviteWelcome.jsp\"/>\r\n" +
-                                        "    <DATA dataType=\"URI\" name=\"UserActivityLogUploadServlet\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/tracking/StatTrackingServlet\"/>\r\n    \r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityNewsSummary\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityNewsDetailed\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
-                                        $"   <DATA dataType=\"URI\" name=\"CommunityBetaTrialRoadmap\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
-                                        "    <DATA dataType=\"DATA\" name=\"gameFinishURL\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n\t\r\n" +
-                                        "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"https://homeps3.svo.online.scee.com:10061/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n       " +
-                                        $"     \r\n    \r\n\t<REDIRECT href=\"eulaCheck.jsp?region={region}&amp\" name=\"redirect\"/>\r\n" +
-                                        "      \r\n" +
-                                        "</SVML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = uriStore.Length;
-                                            response.OutputStream.Write(uriStore, 0, uriStore.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-                                break;
-                        }
-                        break;
-
-                    case "/HUBPS3_SVML/unity/eulaCheck.jsp":
-
-                        if (request.Url.AbsolutePath.Contains("autologin=0"))
-                        {
-                            switch (request.HttpMethod)
+                            switch (method)
                             {
                                 case "GET":
 
@@ -180,21 +46,98 @@ namespace SVO
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string? region = "";
+                                        string region = "";
 
                                         try
                                         {
-                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                            region = request.Url.Query.Substring(8);
                                         }
                                         catch (Exception)
                                         {
                                             region = "en-US";
                                         }
 
-                                        byte[] eulaCheck = Encoding.ASCII.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
-                                            "<SVML>\r\n  " +
-                                            "<SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
-                                            $"<EULA name=\"eula\" mode=\"check\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" +
+                                        byte[]? uriStore = null;
+
+                                        if (SVOServerConfiguration.SVOHTTPSBypass)
+                                            uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                            "<SVML>\r\n" +
+                                           $"    <BROWSER_INIT name=\"init\" />\r\n\t" +
+                                            "    \r\n    <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                            "    \r\n    <DATA dataType=\"URI\" name=\"SvfsUpload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/fileservices/UploadFileServlet\"/>\r\n" +
+                                            "    \r\n    <DATA dataType=\"URI\" name=\"SvfsDownload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Download.jsp\"/>\r\n" +
+                                            "    <DATA dataType=\"URI\" name=\"SvfsDeleteSubmit\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Delete.jsp\"/>\r\n    \r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpArcadeMachines\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=arcade\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpBowling\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=bowling\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpCharacterCreation\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=characterCustomisation\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpChess\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=chess\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpConversations\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=conversations\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpDoors\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=relocation\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpDraughts\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=draughts\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpEmotes\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=emotes\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpFirstTimeUser\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=firstTimeUsing\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpGameLaunchingCreate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingCreate\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpGameLaunchingJoin\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingJoin\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpGamesRoom\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamespace\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpHomeApartment\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=homespace\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpPool\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=pool\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpSafetyInHome\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=stayingsafe\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"HelpSeats\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=seats\"/>\r\n\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityNews\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityLatestUpdate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityHandyLinks\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityMotd\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=messageoftheday\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityUsagePolicy\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=eula\"/>\r\n\r\n    " +
+                                           $"    <DATA dataType=\"URI\" name=\"GriefReportStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/griefreporting/GriefReportWelcome.jsp?region={region}\"/>\r\n" +
+                                            "    <DATA dataType=\"URI\" name=\"ViralProvisioningStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/viralprovisioning/HomeInviteWelcome.jsp\"/>\r\n" +
+                                            "    <DATA dataType=\"URI\" name=\"UserActivityLogUploadServlet\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/tracking/StatTrackingServlet\"/>\r\n    \r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityNewsSummary\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityNewsDetailed\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
+                                           $"    <DATA dataType=\"URI\" name=\"CommunityBetaTrialRoadmap\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n    \r\n" +
+                                            "    <DATA dataType=\"DATA\" name=\"gameFinishURL\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n\t\r\n" +
+                                            "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n\t\r\n\t" +
+                                           $"     \r\n    \r\n\t<REDIRECT href=\"eulaCheck.jsp?region={region}&amp\" name=\"redirect\"/>\r\n" +
+                                            "      \r\n" +
+                                            "</SVML>");
+                                        else
+                                            uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                            "<SVML>\r\n" +
+                                            $"   <BROWSER_INIT name=\"init\" />\r\n\t" +
+                                            "    \r\n    <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                            "    \r\n    <DATA dataType=\"URI\" name=\"SvfsUpload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/fileservices/UploadFileServlet\"/>\r\n" +
+                                            "    \r\n    <DATA dataType=\"URI\" name=\"SvfsDownload\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Download.jsp\"/>\r\n" +
+                                            "    <DATA dataType=\"URI\" name=\"SvfsDeleteSubmit\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/fileservices/Delete.jsp\"/>\r\n    \r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpArcadeMachines\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=arcade\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpBowling\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=bowling\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpCharacterCreation\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=characterCustomisation\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpChess\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=chess\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpConversations\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=conversations\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpDoors\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=relocation\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpDraughts\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=draughts\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpEmotes\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=emotes\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpFirstTimeUser\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=firstTimeUsing\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpGameLaunchingCreate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingCreate\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpGameLaunchingJoin\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamelaunchingJoin\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpGamesRoom\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=gamespace\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpHomeApartment\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=homespace\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpPool\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=pool\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpSafetyInHome\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=stayingsafe\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"HelpSeats\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=seats\"/>\r\n\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityNews\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityLatestUpdate\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityHandyLinks\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityMotd\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=messageoftheday\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityUsagePolicy\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=eula\"/>\r\n\r\n    " +
+                                            $"   <DATA dataType=\"URI\" name=\"GriefReportStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/griefreporting/GriefReportWelcome.jsp?region={region}\"/>\r\n" +
+                                            "    <DATA dataType=\"URI\" name=\"ViralProvisioningStart\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/viralprovisioning/HomeInviteWelcome.jsp\"/>\r\n" +
+                                            "    <DATA dataType=\"URI\" name=\"UserActivityLogUploadServlet\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/tracking/StatTrackingServlet\"/>\r\n    \r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityNewsSummary\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=news\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityNewsDetailed\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
+                                            $"   <DATA dataType=\"URI\" name=\"CommunityBetaTrialRoadmap\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
+                                            "    <DATA dataType=\"DATA\" name=\"gameFinishURL\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n\t\r\n" +
+                                            "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"https://homeps3.svo.online.scee.com:10061/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n       " +
+                                            $"     \r\n    \r\n\t<REDIRECT href=\"eulaCheck.jsp?region={region}&amp\" name=\"redirect\"/>\r\n" +
+                                            "      \r\n" +
                                             "</SVML>");
 
                                         response.StatusCode = (int)HttpStatusCode.OK;
@@ -203,8 +146,8 @@ namespace SVO
                                         {
                                             try
                                             {
-                                                response.ContentLength64 = eulaCheck.Length;
-                                                response.OutputStream.Write(eulaCheck, 0, eulaCheck.Length);
+                                                response.ContentLength64 = uriStore.Length;
+                                                response.OutputStream.Write(uriStore, 0, uriStore.Length);
                                                 response.OutputStream.Close();
                                             }
                                             catch (Exception)
@@ -213,871 +156,1043 @@ namespace SVO
                                             }
                                         }
                                     }
-
                                     break;
                             }
-                        }
-                        else if (request.Url.AbsolutePath.Contains("autologin=1"))
-                        {
-                            switch (request.HttpMethod)
+                            break;
+
+                        case "/HUBPS3_SVML/unity/eulaCheck.jsp":
+
+                            if (request.Url.AbsolutePath.Contains("autologin=0"))
                             {
-                                case "GET":
+                                switch (request.HttpMethod)
+                                {
+                                    case "GET":
 
-                                    string? clientMac = request.Headers.Get("X-SVOMac");
+                                        string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                        string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
-                                    {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                        return;
-                                    }
-                                    else
-                                    {
-                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                        response.Headers.Set("X-SVOMac", serverMac);
-
-                                        string? region = "";
-
-                                        try
+                                        if (serverMac == null)
                                         {
-                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
                                         }
-                                        catch (Exception)
+                                        else
                                         {
-                                            region = "en-US";
-                                        }
+                                            response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                            response.Headers.Set("X-SVOMac", serverMac);
 
-                                        byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
-                                            "<SVML>\r\n" +
-                                            "        <EULA name=\"eula\" mode=\"save\" />\r\n" +
-                                            $"        <UNITY name=\"login\" type=\"command\" success_href=\"../announcement/Medius_Announcement_Read.jsp?region={region}\" success_linkoption=\"NORMAL\"/>\r\n" +
-                                            $" \r\n\t\t<HOMEACTION name=\"FrontEndAction\">" +
-                                            $"\r\n\t\t\t<OnEnterPage event=\"FrontEndEvent\" param1=\"SigningIntoSvo\" param2=\"\" />" +
-                                            $"\r\n\t\t</HOMEACTION>\r\n" +
-                                            $"  \r\n" +
-                                            $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                            $"</SVML>");
+                                            string? region = "";
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
-
-                                        if (response.OutputStream.CanWrite)
-                                        {
                                             try
                                             {
-                                                response.ContentLength64 = unityNpLogin.Length;
-                                                response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
-                                                response.OutputStream.Close();
+                                                region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                             }
                                             catch (Exception)
                                             {
-                                                // Not Important;
+                                                region = "en-US";
                                             }
-                                        }
-                                    }
 
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            switch (request.HttpMethod)
-                            {
-                                case "GET":
-
-                                    string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                    if (serverMac == null)
-                                    {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                        return;
-                                    }
-                                    else
-                                    {
-                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                        response.Headers.Set("X-SVOMac", serverMac);
-
-                                        string? region = "";
-
-                                        try
-                                        {
-                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
-                                        }
-                                        catch (Exception)
-                                        {
-                                            region = "en-US";
-                                        }
-
-                                        byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
-                                            "<SVML>\r\n" +
-                                            "        <EULA name=\"eula\" mode=\"save\" />\r\n" +
-                                            $"        <UNITY name=\"login\" type=\"command\" success_href=\"../announcement/Medius_Announcement_Read.jsp?region={region}\" success_linkoption=\"NORMAL\"/>\r\n" +
-                                            $" \r\n\t\t<HOMEACTION name=\"FrontEndAction\">" +
-                                            $"\r\n\t\t\t<OnEnterPage event=\"FrontEndEvent\" param1=\"SigningIntoSvo\" param2=\"\" />" +
-                                            $"\r\n\t\t</HOMEACTION>\r\n" +
-                                            $"  \r\n" +
-                                            $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                            $"</SVML>");
-
-                                        response.StatusCode = (int)HttpStatusCode.OK;
-
-                                        if (response.OutputStream.CanWrite)
-                                        {
-                                            try
-                                            {
-                                                response.ContentLength64 = unityNpLogin.Length;
-                                                response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
-                                                response.OutputStream.Close();
-                                            }
-                                            catch (Exception)
-                                            {
-                                                // Not Important;
-                                            }
-                                        }
-                                    }
-
-                                    break;
-                            }
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/unity/eulaDisplay.jsp":
-
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string? region = "";
-
-                                    try
-                                    {
-                                        region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
-                                    }
-                                    catch (Exception)
-                                    {
-                                        region = "en-US";
-                                    }
-
-                                    byte[] eulaDisplay = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
-                                        "<SVML>\r\n  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
-                                        //$"<EULA name=\"eula\" mode=\"browser\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" +
-                                        $"<EULA name=\"eula\" mode=\"save\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" + // Not correct but gets around a RPCS3 issue.
-                                        "</SVML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = eulaDisplay.Length;
-                                            response.OutputStream.Write(eulaDisplay, 0, eulaDisplay.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-
-                                break;
-                        }
-                        break;
-
-                    case "/HUBPS3_SVML/unity/unityNpLogin.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string? region = "";
-
-                                    try
-                                    {
-                                        region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
-                                    }
-                                    catch (Exception)
-                                    {
-                                        region = "en-US";
-                                    }
-
-                                    byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
-                                        "<SVML>\r\n" +
-                                        "        <EULA name=\"eula\" mode=\"save\" />\r\n" +
-                                        $"        <UNITY name=\"login\" type=\"command\" success_href=\"../announcement/Medius_Announcement_Read.jsp?region={region}\" success_linkoption=\"NORMAL\"/>\r\n" +
-                                        $" \r\n\t\t<HOMEACTION name=\"FrontEndAction\">" +
-                                        $"\r\n\t\t\t<OnEnterPage event=\"FrontEndEvent\" param1=\"SigningIntoSvo\" param2=\"\" />" +
-                                        $"\r\n\t\t</HOMEACTION>\r\n" +
-                                        $"  \r\n" +
-                                        $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                        $"</SVML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = unityNpLogin.Length;
-                                            response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/account/SP_Login_Submit.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "POST":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    int appId = Convert.ToInt32(HttpUtility.ParseQueryString(request.Url.Query).Get("applicationID"));
-
-                                    if (!request.HasEntityBody)
-                                    {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                        return;
-                                    }
-
-                                    response.Headers.Set("Content-Type", "text/xml");
-
-                                    string s = string.Empty;
-
-                                    // Get the data from the HTTP stream
-                                    using (StreamReader reader = new(request.InputStream, request.ContentEncoding))
-                                    {
-                                        // Convert the data to a string and display it on the console.
-                                        s = reader.ReadToEnd();
-                                        reader.Close();
-                                    }
-
-                                    byte[] bytes = Encoding.ASCII.GetBytes(s);
-                                    int AcctNameLen = Convert.ToInt32(bytes.GetValue(81));
-
-                                    string acctName = s.Substring(82, 32);
-
-                                    string acctNameREX = Regex.Replace(acctName, @"[^a-zA-Z0-9]+", string.Empty);
-
-                                    LoggerAccessor.LogInfo($"Logging user {acctNameREX} into SVO...\n");
-
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string? sig = HttpUtility.ParseQueryString(request.Url.Query).Get("sig");
-
-                                    int accountId = -1;
-
-                                    string langId = "0";
-
-                                    try
-                                    {
-                                        await SVOServerConfiguration.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
-                                        {
-                                            //Found in database so keep.
-                                            langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                            string? accountName = r.Result.AccountName;
-                                            accountId = r.Result.AccountId;
-                                        });
-                                    }
-                                    catch (Exception)
-                                    {
-                                        langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
-                                        accountId = 0;
-                                    }
-
-                                    response.AddHeader("Set-Cookie", $"LangID={langId}; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"AcctID={accountId}; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"NPCountry=us; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"AuthKeyTime=03-31-2023 16:03:41; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"NPLang=1; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"ModerateMode=false; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"TimeZone=PST; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"NPContentRating=201326592; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"AuthKey=nRqnf97f~UaSANLErurJIzq9GXGWqWCADdA3TfqUIVXXisJyMnHsQ34kA&C^0R#&~JULZ7xUOY*rXW85slhQF&P&Eq$7kSB&VBtf`V8rb^BC`53jGCgIT; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"AcctName={acctNameREX}; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"OwnerID=-255; Path=/");
-                                    response.AppendHeader("Set-Cookie", $"Sig={sig}==; Path=/");
-
-                                    byte[] sp_Login = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                        "<XML action=\"http://scee-home.playstation.net/c.home/prod/live\">\r\n" +
-                                        "    <SP_Login>\r\n" +
-                                        "        <status>\r\n" +
-                                        "            <id>20600</id>\r\n" +
-                                        "            <message>ACCT_LOGIN_SUCCESS</message>\r\n" +
-                                        "        </status>\r\n" +
-                                        $"       <accountID>{accountId}</accountID>\r\n" +
-                                        "        <userContext>0</userContext>\r\n" +
-                                        "    </SP_Login>\r\n" +
-                                        "</XML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = sp_Login.Length;
-                                            response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/announcement/Medius_Announcement_Read.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    byte[]? Medius_Announcement_Read = null;
-
-                                    if (string.IsNullOrEmpty(SVOServerConfiguration.MOTD))
-                                        Medius_Announcement_Read = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SVML>\r\n" +
-                                                "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
-                                                "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
-                                                "    <TEXT name=\"text\" x=\"640\" y=\"171\" width=\"636\" height=\"26\" fontSize=\"26\" align=\"center\" textColor=\"#cc000000\">Message Of the Day</TEXT>\r\n\r\n" +
-                                                "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\tfontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t" +
-                                                "readonly=\"true\" selectable=\"false\" blinkCursor=\"false\"\r\n\t\t" +
-                                                "textColor=\"#CC000000\" highlightTextColor=\"#FF000000\"\r\n\t\t" +
-                                                "leftPadValue=\"8\" topPadValue=\"8\" \r\n" +
-                                                "        defaultTextEntry=\"1\" defaultTextScroll=\"1\">Welcome to PlayStationÂ®Home Open Beta.\r\n\r\n" +
-                                                "Head over to the new Resident Evil 5 Studio Lot space, accessible via the Menu Pad by selecting Locations &gt; World Map and then clicking on the Capcom chip. Here you can enjoy an interactive behind-the-scenes look at the tools and devices used on location for the filming of a portion of Resident Evil 5.\r\n\r\n" +
-                                                "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n    \r\n    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
-                                                "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
+                                            byte[] eulaCheck = Encoding.ASCII.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                                "<SVML>\r\n  " +
+                                                "<SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
+                                                $"<EULA name=\"eula\" mode=\"check\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" +
                                                 "</SVML>");
+
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.ContentLength64 = eulaCheck.Length;
+                                                    response.OutputStream.Write(eulaCheck, 0, eulaCheck.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    // Not Important;
+                                                }
+                                            }
+                                        }
+
+                                        break;
+                                }
+                            }
+                            else if (request.Url.AbsolutePath.Contains("autologin=1"))
+                            {
+                                switch (request.HttpMethod)
+                                {
+                                    case "GET":
+
+                                        string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                        string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                        if (serverMac == null)
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                            response.Headers.Set("X-SVOMac", serverMac);
+
+                                            string? region = "";
+
+                                            try
+                                            {
+                                                region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                            }
+                                            catch (Exception)
+                                            {
+                                                region = "en-US";
+                                            }
+
+                                            byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                                "<SVML>\r\n" +
+                                                "        <EULA name=\"eula\" mode=\"save\" />\r\n" +
+                                                $"        <UNITY name=\"login\" type=\"command\" success_href=\"../announcement/Medius_Announcement_Read.jsp?region={region}\" success_linkoption=\"NORMAL\"/>\r\n" +
+                                                $" \r\n\t\t<HOMEACTION name=\"FrontEndAction\">" +
+                                                $"\r\n\t\t\t<OnEnterPage event=\"FrontEndEvent\" param1=\"SigningIntoSvo\" param2=\"\" />" +
+                                                $"\r\n\t\t</HOMEACTION>\r\n" +
+                                                $"  \r\n" +
+                                                $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                                $"</SVML>");
+
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.ContentLength64 = unityNpLogin.Length;
+                                                    response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    // Not Important;
+                                                }
+                                            }
+                                        }
+
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                switch (request.HttpMethod)
+                                {
+                                    case "GET":
+
+                                        string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                        string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                        if (serverMac == null)
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                            response.Headers.Set("X-SVOMac", serverMac);
+
+                                            string? region = "";
+
+                                            try
+                                            {
+                                                region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                            }
+                                            catch (Exception)
+                                            {
+                                                region = "en-US";
+                                            }
+
+                                            byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                                "<SVML>\r\n" +
+                                                "        <EULA name=\"eula\" mode=\"save\" />\r\n" +
+                                                $"        <UNITY name=\"login\" type=\"command\" success_href=\"../announcement/Medius_Announcement_Read.jsp?region={region}\" success_linkoption=\"NORMAL\"/>\r\n" +
+                                                $" \r\n\t\t<HOMEACTION name=\"FrontEndAction\">" +
+                                                $"\r\n\t\t\t<OnEnterPage event=\"FrontEndEvent\" param1=\"SigningIntoSvo\" param2=\"\" />" +
+                                                $"\r\n\t\t</HOMEACTION>\r\n" +
+                                                $"  \r\n" +
+                                                $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                                $"</SVML>");
+
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.ContentLength64 = unityNpLogin.Length;
+                                                    response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    // Not Important;
+                                                }
+                                            }
+                                        }
+
+                                        break;
+                                }
+                            }
+
+                            break;
+
+                        case "/HUBPS3_SVML/unity/eulaDisplay.jsp":
+
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
                                     else
-                                        Medius_Announcement_Read = Encoding.UTF8.GetBytes(SVOServerConfiguration.MOTD);
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
                                     {
-                                        try
-                                        {
-                                            response.ContentLength64 = Medius_Announcement_Read.Length;
-                                            response.OutputStream.Write(Medius_Announcement_Read, 0, Medius_Announcement_Read.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/home/homeEnterWorld.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    byte[] homeEnterWorld = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n\r\n" +
-                                        "    <HUB type=\"AutoChangeMode\" textColor=\"#FF7381BA\" highlightTextColor=\"#FF7381BA\" x=\"20\" y=\"200\" width=\"200\" height=\"40\"\r\n" +
-                                        "      align=\"center\" border=\"true\" href=\"EnterLobby\" extra=\"Central Lobby\" skipOn=\"6\"></HUB>\r\n\r\n\t" +
-                                        "   <REDIRECT name=\"toBlankPage\" href=\"homeInWorld.jsp\" linkOption=\"NORMAL\"/>\r\n\r\n" +
-                                        "</SVML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = homeEnterWorld.Length;
-                                            response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/home/homeInWorld.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    byte[] homeEnterWorld = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
-                                        "<SVML>\r\n\r\n</SVML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = homeEnterWorld.Length;
-                                            response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/home/fileservices/Download.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/xml");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string? fileNameBeginsWith = HttpUtility.ParseQueryString(request.Url.Query).Get("filename");
-
-                                    bool fileExists = File.Exists($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices/{fileNameBeginsWith}");
-
-                                    byte[] xmlMessage;
-
-                                    if (fileExists)
-                                    {
-                                        string fileId = "1";
-
-                                        string? encodedFileName = SecurityElement.Escape(fileNameBeginsWith);
-
-                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                            $"<XML>\r\n\r\n<XMLSVOFILETRANSFER direction=\"download\" filename=\"{encodedFileName}\" errorCode=\"None\" src=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/fileservices/DownloadFileServlet?fileID={fileId}&amp;fileNameBeginsWith={encodedFileName}\"/>\r\n</XML>");
-                                    }
-                                    else
-                                    {
-                                        string? encodedFileName = SecurityElement.Escape(fileNameBeginsWith);
-
-                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                            $"<XML>\r\n\r\n<XMLSVOFILETRANSFER direction=\"download\" filename=\"{encodedFileName}\" errorCode=\"FileDoesNotExist\" src=\"\"/>\r\n</XML>");
-                                    }
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = xmlMessage.Length;
-                                            response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-
-                    case "/HUBPS3_SVML/fileservices/DownloadFileServlet":
-
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? fileNameBeginsWith = HttpUtility.ParseQueryString(request.Url.Query).Get("fileNameBeginsWith");
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    if (fileNameBeginsWith != null)
-                                    {
+                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        if (fileNameBeginsWith.Contains(".jpg"))
+                                        string? region = "";
+
+                                        try
                                         {
-                                            response.Headers.Set("Content-Type", "image/jpeg;charset=UTF-8");
-                                            response.AppendHeader("Content-Disposition", $"attachment; filename={fileNameBeginsWith}");
-                                            response.AppendHeader("Accept-Ranges", "bytes");
-                                            response.AppendHeader("Cache-Control", "private");
-                                            response.AppendHeader("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
                                         }
-                                        else if (fileNameBeginsWith.Contains(".xml") || fileNameBeginsWith.Contains("Profile"))
+                                        catch (Exception)
                                         {
-                                            response.Headers.Set("Content-Type", "text/xml;charset=UTF-8");
-                                            response.AppendHeader("Content-Disposition", $"attachment; filename={fileNameBeginsWith}");
-                                            response.AppendHeader("Accept-Ranges", "bytes");
-                                            response.AppendHeader("Cache-Control", "private");
-                                            response.AppendHeader("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                                            region = "en-US";
                                         }
+
+                                        byte[] eulaDisplay = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                            "<SVML>\r\n  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
+                                            //$"<EULA name=\"eula\" mode=\"browser\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" +
+                                            $"<EULA name=\"eula\" mode=\"save\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" + // Not correct but gets around a RPCS3 issue.
+                                            "</SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = eulaDisplay.Length;
+                                                response.OutputStream.Write(eulaDisplay, 0, eulaDisplay.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+
+                                    break;
+                            }
+                            break;
+
+                        case "/HUBPS3_SVML/unity/unityNpLogin.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        string? region = "";
+
+                                        try
+                                        {
+                                            region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
+                                        }
+                                        catch (Exception)
+                                        {
+                                            region = "en-US";
+                                        }
+
+                                        byte[] unityNpLogin = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                            "<SVML>\r\n" +
+                                            "        <EULA name=\"eula\" mode=\"save\" />\r\n" +
+                                            $"        <UNITY name=\"login\" type=\"command\" success_href=\"../announcement/Medius_Announcement_Read.jsp?region={region}\" success_linkoption=\"NORMAL\"/>\r\n" +
+                                            $" \r\n\t\t<HOMEACTION name=\"FrontEndAction\">" +
+                                            $"\r\n\t\t\t<OnEnterPage event=\"FrontEndEvent\" param1=\"SigningIntoSvo\" param2=\"\" />" +
+                                            $"\r\n\t\t</HOMEACTION>\r\n" +
+                                            $"  \r\n" +
+                                            $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                            $"</SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = unityNpLogin.Length;
+                                                response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/HUBPS3_SVML/account/SP_Login_Submit.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "POST":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        int appId = Convert.ToInt32(HttpUtility.ParseQueryString(request.Url.Query).Get("applicationID"));
+
+                                        if (!request.HasEntityBody)
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+
+                                        response.Headers.Set("Content-Type", "text/xml");
+
+                                        string s = string.Empty;
+
+                                        // Get the data from the HTTP stream
+                                        using (StreamReader reader = new(request.InputStream, request.ContentEncoding))
+                                        {
+                                            // Convert the data to a string and display it on the console.
+                                            s = reader.ReadToEnd();
+                                            reader.Close();
+                                        }
+
+                                        byte[] bytes = Encoding.ASCII.GetBytes(s);
+                                        int AcctNameLen = Convert.ToInt32(bytes.GetValue(81));
+
+                                        string acctName = s.Substring(82, 32);
+
+                                        string acctNameREX = Regex.Replace(acctName, @"[^a-zA-Z0-9]+", string.Empty);
+
+                                        LoggerAccessor.LogInfo($"Logging user {acctNameREX} into SVO...\n");
+
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        string? sig = HttpUtility.ParseQueryString(request.Url.Query).Get("sig");
+
+                                        int accountId = -1;
+
+                                        string langId = "0";
+
+                                        try
+                                        {
+                                            await SVOServerConfiguration.Database.GetAccountByName(acctNameREX, appId).ContinueWith((r) =>
+                                            {
+                                                //Found in database so keep.
+                                                langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
+                                                string? accountName = r.Result.AccountName;
+                                                accountId = r.Result.AccountId;
+                                            });
+                                        }
+                                        catch (Exception)
+                                        {
+                                            langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);
+                                            accountId = 0;
+                                        }
+
+                                        response.AddHeader("Set-Cookie", $"LangID={langId}; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctID={accountId}; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPCountry=us; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKeyTime=03-31-2023 16:03:41; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPLang=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ModerateMode=false; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"TimeZone=PST; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPContentRating=201326592; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKey=nRqnf97f~UaSANLErurJIzq9GXGWqWCADdA3TfqUIVXXisJyMnHsQ34kA&C^0R#&~JULZ7xUOY*rXW85slhQF&P&Eq$7kSB&VBtf`V8rb^BC`53jGCgIT; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctName={acctNameREX}; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"OwnerID=-255; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"Sig={sig}==; Path=/");
+
+                                        byte[] sp_Login = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                            "<XML action=\"http://scee-home.playstation.net/c.home/prod/live\">\r\n" +
+                                            "    <SP_Login>\r\n" +
+                                            "        <status>\r\n" +
+                                            "            <id>20600</id>\r\n" +
+                                            "            <message>ACCT_LOGIN_SUCCESS</message>\r\n" +
+                                            "        </status>\r\n" +
+                                            $"       <accountID>{accountId}</accountID>\r\n" +
+                                            "        <userContext>0</userContext>\r\n" +
+                                            "    </SP_Login>\r\n" +
+                                            "</XML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = sp_Login.Length;
+                                                response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/HUBPS3_SVML/announcement/Medius_Announcement_Read.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        byte[]? Medius_Announcement_Read = null;
+
+                                        if (string.IsNullOrEmpty(SVOServerConfiguration.MOTD))
+                                            Medius_Announcement_Read = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SVML>\r\n" +
+                                                    "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
+                                                    "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
+                                                    "    <TEXT name=\"text\" x=\"640\" y=\"171\" width=\"636\" height=\"26\" fontSize=\"26\" align=\"center\" textColor=\"#cc000000\">Message Of the Day</TEXT>\r\n\r\n" +
+                                                    "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\tfontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t" +
+                                                    "readonly=\"true\" selectable=\"false\" blinkCursor=\"false\"\r\n\t\t" +
+                                                    "textColor=\"#CC000000\" highlightTextColor=\"#FF000000\"\r\n\t\t" +
+                                                    "leftPadValue=\"8\" topPadValue=\"8\" \r\n" +
+                                                    "        defaultTextEntry=\"1\" defaultTextScroll=\"1\">Welcome to PlayStationÂ®Home Open Beta.\r\n\r\n" +
+                                                    "Head over to the new Resident Evil 5 Studio Lot space, accessible via the Menu Pad by selecting Locations &gt; World Map and then clicking on the Capcom chip. Here you can enjoy an interactive behind-the-scenes look at the tools and devices used on location for the filming of a portion of Resident Evil 5.\r\n\r\n" +
+                                                    "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n    \r\n    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
+                                                    "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
+                                                    "</SVML>");
+                                        else
+                                            Medius_Announcement_Read = Encoding.UTF8.GetBytes(SVOServerConfiguration.MOTD);
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = Medius_Announcement_Read.Length;
+                                                response.OutputStream.Write(Medius_Announcement_Read, 0, Medius_Announcement_Read.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/HUBPS3_SVML/home/homeEnterWorld.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        byte[] homeEnterWorld = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n\r\n" +
+                                            "    <HUB type=\"AutoChangeMode\" textColor=\"#FF7381BA\" highlightTextColor=\"#FF7381BA\" x=\"20\" y=\"200\" width=\"200\" height=\"40\"\r\n" +
+                                            "      align=\"center\" border=\"true\" href=\"EnterLobby\" extra=\"Central Lobby\" skipOn=\"6\"></HUB>\r\n\r\n\t" +
+                                            "   <REDIRECT name=\"toBlankPage\" href=\"homeInWorld.jsp\" linkOption=\"NORMAL\"/>\r\n\r\n" +
+                                            "</SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = homeEnterWorld.Length;
+                                                response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/HUBPS3_SVML/home/homeInWorld.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        byte[] homeEnterWorld = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                            "<SVML>\r\n\r\n</SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = homeEnterWorld.Length;
+                                                response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/HUBPS3_SVML/home/fileservices/Download.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/xml");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        string? fileNameBeginsWith = HttpUtility.ParseQueryString(request.Url.Query).Get("filename");
+
+                                        bool fileExists = File.Exists($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices/{fileNameBeginsWith}");
+
+                                        byte[] xmlMessage;
+
+                                        if (fileExists)
+                                        {
+                                            string fileId = "1";
+
+                                            string? encodedFileName = SecurityElement.Escape(fileNameBeginsWith);
+
+                                            xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                                $"<XML>\r\n\r\n<XMLSVOFILETRANSFER direction=\"download\" filename=\"{encodedFileName}\" errorCode=\"None\" src=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/fileservices/DownloadFileServlet?fileID={fileId}&amp;fileNameBeginsWith={encodedFileName}\"/>\r\n</XML>");
+                                        }
+                                        else
+                                        {
+                                            string? encodedFileName = SecurityElement.Escape(fileNameBeginsWith);
+
+                                            xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                                $"<XML>\r\n\r\n<XMLSVOFILETRANSFER direction=\"download\" filename=\"{encodedFileName}\" errorCode=\"FileDoesNotExist\" src=\"\"/>\r\n</XML>");
+                                        }
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = xmlMessage.Length;
+                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+
+                        case "/HUBPS3_SVML/fileservices/DownloadFileServlet":
+
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? fileNameBeginsWith = HttpUtility.ParseQueryString(request.Url.Query).Get("fileNameBeginsWith");
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        if (fileNameBeginsWith != null)
+                                        {
+                                            response.Headers.Set("X-SVOMac", serverMac);
+
+                                            if (fileNameBeginsWith.Contains(".jpg"))
+                                            {
+                                                response.Headers.Set("Content-Type", "image/jpeg;charset=UTF-8");
+                                                response.AppendHeader("Content-Disposition", $"attachment; filename={fileNameBeginsWith}");
+                                                response.AppendHeader("Accept-Ranges", "bytes");
+                                                response.AppendHeader("Cache-Control", "private");
+                                                response.AppendHeader("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                                            }
+                                            else if (fileNameBeginsWith.Contains(".xml") || fileNameBeginsWith.Contains("Profile"))
+                                            {
+                                                response.Headers.Set("Content-Type", "text/xml;charset=UTF-8");
+                                                response.AppendHeader("Content-Disposition", $"attachment; filename={fileNameBeginsWith}");
+                                                response.AppendHeader("Accept-Ranges", "bytes");
+                                                response.AppendHeader("Cache-Control", "private");
+                                                response.AppendHeader("ETag", $"{Guid.NewGuid().ToString().Substring(0, 4)}-{Guid.NewGuid().ToString().Substring(0, 12)}");
+                                            }
+
+                                            using (MemoryStream ms = new())
+                                            {
+                                                Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices");
+
+                                                using (FileStream fs = new($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices/{fileNameBeginsWith}", FileMode.Open))
+                                                {
+                                                    int fileLen = Convert.ToInt32(fs.Length);
+
+                                                    response.AppendHeader("Content-Length", fileLen.ToString());
+
+                                                    // Create a byte array.
+                                                    byte[] strArr = new byte[fileLen];
+                                                    fs.Read(strArr, 0, fileLen);
+                                                    fs.Flush();
+
+
+                                                    //You have to rewind the MemoryStream before copying
+                                                    ms.Write(strArr, 0, fileLen);
+
+                                                    response.StatusCode = (int)HttpStatusCode.OK;
+
+                                                    if (response.OutputStream.CanWrite)
+                                                    {
+                                                        try
+                                                        {
+                                                            response.ContentLength64 = strArr.Length;
+                                                            response.OutputStream.Write(strArr, 0, strArr.Length);
+                                                            response.OutputStream.Close();
+                                                        }
+                                                        catch (Exception)
+                                                        {
+                                                            // Not Important;
+                                                        }
+                                                    }
+
+                                                    fs.Flush();
+                                                }
+
+                                                ms.Flush();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        //Uploads Player's UserTrackingLog, we can handle this in different way but we just upload it for now
+                        case "/HUBPS3_SVML/tracking/StatTrackingServlet":
+                            switch (request.HttpMethod)
+                            {
+                                case "POST":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/xml");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        byte[] xmlMessage;
+                                        string fileNameBeginsWith = "UserTrackingLog.xml";
 
                                         using (MemoryStream ms = new())
                                         {
-                                            Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices");
+                                            // Find number of bytes in stream.
+                                            int strLen = Convert.ToInt32(request.ContentLength64);
+                                            // Create a byte array.
+                                            byte[] strArr = new byte[strLen];
 
-                                            using (FileStream fs = new($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices/{fileNameBeginsWith}", FileMode.Open))
+                                            request.InputStream.Read(strArr, 0, strLen);
+
+                                            ms.Position = 0;
+
+                                            //You have to rewind the MemoryStream before copying
+                                            ms.Read(strArr, 0, strLen);
+
+                                            //We can do whatever we want with the POST information for the UseTrackingLog from any player it seems? 
+                                            //Lets just write to file!
+
+                                            Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/tracking");
+
+                                            using (FileStream fs = new($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/tracking/{fileNameBeginsWith}", FileMode.OpenOrCreate))
                                             {
-                                                int fileLen = Convert.ToInt32(fs.Length);
-
-                                                response.AppendHeader("Content-Length", fileLen.ToString());
-
-                                                // Create a byte array.
-                                                byte[] strArr = new byte[fileLen];
-                                                fs.Read(strArr, 0, fileLen);
-                                                fs.Flush();
-
-
-                                                //You have to rewind the MemoryStream before copying
-                                                ms.Write(strArr, 0, fileLen);
-
-                                                response.StatusCode = (int)HttpStatusCode.OK;
-
-                                                if (response.OutputStream.CanWrite)
-                                                {
-                                                    try
-                                                    {
-                                                        response.ContentLength64 = strArr.Length;
-                                                        response.OutputStream.Write(strArr, 0, strArr.Length);
-                                                        response.OutputStream.Close();
-                                                    }
-                                                    catch (Exception)
-                                                    {
-                                                        // Not Important;
-                                                    }
-                                                }
-
+                                                fs.Write(strArr, 0, strLen);
                                                 fs.Flush();
                                             }
 
                                             ms.Flush();
                                         }
+
+                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n" +
+                                        $"<XML>\r\n\r\n<XMLSVOFILETRANSFER direction=\"upload\" filename=\"{fileNameBeginsWith}\"/>\r\n</XML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = xmlMessage.Length;
+                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
                                     }
-                                    else
+                                    break;
+                            }
+                            break;
+
+                        case "/HUBPS3_SVML/fileservices/UploadFileServlet":
+                            switch (request.HttpMethod)
+                            {
+                                case "POST":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
                                     }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    //Uploads Player's UserTrackingLog, we can handle this in different way but we just upload it for now
-                    case "/HUBPS3_SVML/tracking/StatTrackingServlet":
-                        switch (request.HttpMethod)
-                        {
-                            case "POST":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/xml");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    byte[] xmlMessage;
-                                    string fileNameBeginsWith = "UserTrackingLog.xml";
-
-                                    using (MemoryStream ms = new())
+                                    else
                                     {
-                                        // Find number of bytes in stream.
-                                        int strLen = Convert.ToInt32(request.ContentLength64);
-                                        // Create a byte array.
-                                        byte[] strArr = new byte[strLen];
+                                        response.Headers.Set("Content-Type", "text/xml");
+                                        response.Headers.Set("X-SVOMac", serverMac);
 
-                                        request.InputStream.Read(strArr, 0, strLen);
+                                        string? toUpload = HttpUtility.ParseQueryString(request.Url.Query).Get("fileNameBeginsWith");
 
-                                        ms.Position = 0;
+                                        byte[]? xmlMessage = null;
 
-                                        //You have to rewind the MemoryStream before copying
-                                        ms.Read(strArr, 0, strLen);
-
-                                        //We can do whatever we want with the POST information for the UseTrackingLog from any player it seems? 
-                                        //Lets just write to file!
-
-                                        Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/tracking");
-
-                                        using (FileStream fs = new($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/tracking/{fileNameBeginsWith}", FileMode.OpenOrCreate))
+                                        using (MemoryStream ms = new())
                                         {
-                                            fs.Write(strArr, 0, strLen);
-                                            fs.Flush();
+                                            request.InputStream.CopyTo(ms);
+
+                                            // Reset the memory stream position to the beginning
+                                            ms.Position = 0;
+
+                                            // Find the number of bytes in the stream
+                                            int contentLength = (int)ms.Length;
+
+                                            // Create a byte array
+                                            byte[] buffer = new byte[contentLength];
+
+                                            // Read the contents of the memory stream into the byte array
+                                            ms.Read(buffer, 0, contentLength);
+
+                                            Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices");
+
+                                            using (FileStream fs = new FileStream($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices/{toUpload}", FileMode.OpenOrCreate))
+                                            {
+                                                fs.Write(buffer, 0, contentLength);
+                                                fs.Flush();
+                                            }
+
+                                            ms.Flush();
                                         }
 
-                                        ms.Flush();
-                                    }
+                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n" +
+                                        $"<XML>\r\n\r\n" +
+                                        $"<XMLSVOFILETRANSFER direction=\"upload\" filename=\"{toUpload}\"/>\r\n" +
+                                        $"</XML>");
 
-                                    xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n" +
-                                    $"<XML>\r\n\r\n<XMLSVOFILETRANSFER direction=\"upload\" filename=\"{fileNameBeginsWith}\"/>\r\n</XML>");
+                                        response.StatusCode = (int)HttpStatusCode.OK;
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
+                                        if (response.OutputStream.CanWrite)
                                         {
-                                            response.ContentLength64 = xmlMessage.Length;
-                                            response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
+                                            try
+                                            {
+                                                response.ContentLength64 = xmlMessage.Length;
+                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                                response.OutputStream.Close();
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
                                         }
                                     }
-                                }
-                                break;
-                        }
-                        break;
+                                    break;
+                            }
+                            break;
 
-                    case "/HUBPS3_SVML/fileservices/UploadFileServlet":
-                        switch (request.HttpMethod)
-                        {
-                            case "POST":
+                        case "/HUBPS3_SVML/home/help/HelpGeneric.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
 
-                                string? clientMac = request.Headers.Get("X-SVOMac");
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
 
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/xml");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string? toUpload = HttpUtility.ParseQueryString(request.Url.Query).Get("fileNameBeginsWith");
-
-                                    byte[]? xmlMessage = null;
-
-                                    using (MemoryStream ms = new())
+                                    if (serverMac == null)
                                     {
-                                        request.InputStream.CopyTo(ms);
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                        response.Headers.Set("X-SVOMac", serverMac);
 
-                                        // Reset the memory stream position to the beginning
-                                        ms.Position = 0;
+                                        string? region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
 
-                                        // Find the number of bytes in the stream
-                                        int contentLength = (int)ms.Length;
+                                        string? pageName = HttpUtility.ParseQueryString(request.Url.Query).Get("pageName");
 
-                                        // Create a byte array
-                                        byte[] buffer = new byte[contentLength];
+                                        byte[] xmlMessage;
 
-                                        // Read the contents of the memory stream into the byte array
-                                        ms.Read(buffer, 0, contentLength);
-
-                                        Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices");
-
-                                        using (FileStream fs = new FileStream($"{SVOServerConfiguration.SVOStaticFolder}/HUBPS3_SVML/fileservices/{toUpload}", FileMode.OpenOrCreate))
+                                        if (pageName == "news")
                                         {
-                                            fs.Write(buffer, 0, contentLength);
-                                            fs.Flush();
-                                        }
+                                            xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                                                "<SVML>\r\n  <RECTANGLE name=\"background\" x=\"0\" y=\"0\" width=\"1280\" height=\"720\" fillColor=\"#99000000\"/>\r\n" +
+                                                "  <IMAGE name=\"icon\" x=\"32\" y=\"32\" width=\"96\" height=\"96\" src=\"file:///HOST_SVML/images/xmb_Firsttimeusinghome.dds\"/>\r\n" +
+                                                "  <TEXT name=\"title\" x=\"160\" y=\"52\" width=\"1056\" height=\"56\" fontSize=\"56\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">News</TEXT>\r\n" +
+                                               $"  <TEXTAREA\r\n\t\tclass=\"BG_NONE,SCROLL_ARROWS\" name=\"message\"\r\n\t\tx=\"64\" y=\"160\" width=\"1152\" height=\"452\" scrollBarWidth=\"32\"\r\n\t\tfontSize=\"52\" lineSpacing=\"56\" linesVisible=\"8\"\r\n\t\treadonly=\"\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#BBFFFFFF\" highlightTextColor=\"#FFFFFFFF\"\r\n\t\tleftPadValue=\"0\" topPadValue=\"0\"\r\n\t\tdefaultTextEntry=\"1\" defaultTextScroll=\"1\"\r\n\t\tselectable=\"false\" selected=\"false\">News!</TEXTAREA>\r\n\r\n" +
+                                                "  <TEXT name=\"legend\" class=\"localise\" x=\"48\" y=\"640\" fontSize=\"48\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">[CIRCLE]Back</TEXT>\r\n" +
+                                                "  <TEXT name=\"legend\" class=\"localise\" x=\"1232\" y=\"640\" fontSize=\"48\" align=\"right\" textColor=\"#ffffffff\" selectable=\"false\">SCROLL_UP_DOWN</TEXT>\r\n" +
+                                                "  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                                "  <QUICKLINK name=\"returnToPSP\" button=\"SV_PAD_BACK\" linkOption=\"\" href=\"file:///HOST_SVML/ReturnToPSP.svml\"/>\r\n" +
+                                                "</SVML>");
 
-                                        ms.Flush();
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.ContentLength64 = xmlMessage.Length;
+                                                    response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    // Not Important;
+                                                }
+                                            }
+                                        }
+                                        else if (pageName == "latestUpdate")
+                                        {
+                                            xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                                                "<SVML>\r\n  <RECTANGLE name=\"background\" x=\"0\" y=\"0\" width=\"1280\" height=\"720\" fillColor=\"#99000000\"/>\r\n" +
+                                                "  <IMAGE name=\"icon\" x=\"32\" y=\"32\" width=\"96\" height=\"96\" src=\"file:///HOST_SVML/images/xmb_Firsttimeusinghome.dds\"/>\r\n" +
+                                                "  <TEXT name=\"title\" x=\"160\" y=\"52\" width=\"1056\" height=\"56\" fontSize=\"56\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">Latest Update</TEXT>\r\n" +
+                                               $"  <TEXTAREA\r\n\t\tclass=\"BG_NONE,SCROLL_ARROWS\" name=\"message\"\r\n\t\tx=\"64\" y=\"160\" width=\"1152\" height=\"452\" scrollBarWidth=\"32\"\r\n\t\tfontSize=\"52\" lineSpacing=\"56\" linesVisible=\"8\"\r\n\t\treadonly=\"\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#BBFFFFFF\" highlightTextColor=\"#FFFFFFFF\"\r\n\t\tleftPadValue=\"0\" topPadValue=\"0\"\r\n\t\tdefaultTextEntry=\"1\" defaultTextScroll=\"1\"\r\n\t\tselectable=\"false\" selected=\"false\">Last Update!</TEXTAREA>\r\n\r\n" +
+                                                "  <TEXT name=\"legend\" class=\"localise\" x=\"48\" y=\"640\" fontSize=\"48\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">[CIRCLE]Back</TEXT>\r\n" +
+                                                "  <TEXT name=\"legend\" class=\"localise\" x=\"1232\" y=\"640\" fontSize=\"48\" align=\"right\" textColor=\"#ffffffff\" selectable=\"false\">SCROLL_UP_DOWN</TEXT>\r\n" +
+                                                "  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                                "  <QUICKLINK name=\"returnToPSP\" button=\"SV_PAD_BACK\" linkOption=\"\" href=\"file:///HOST_SVML/ReturnToPSP.svml\"/>\r\n" +
+                                                "</SVML>");
+
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.ContentLength64 = xmlMessage.Length;
+                                                    response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    // Not Important;
+                                                }
+                                            }
+                                        }
+                                        else if (pageName == "messageoftheday")
+                                        {
+                                            xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                                                "<SVML>\r\n  <RECTANGLE name=\"background\" x=\"0\" y=\"0\" width=\"1280\" height=\"720\" fillColor=\"#99000000\"/>\r\n" +
+                                                "  <IMAGE name=\"icon\" x=\"32\" y=\"32\" width=\"96\" height=\"96\" src=\"file:///HOST_SVML/images/xmb_Firsttimeusinghome.dds\"/>\r\n" +
+                                                "  <TEXT name=\"title\" x=\"160\" y=\"52\" width=\"1056\" height=\"56\" fontSize=\"56\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">Message of the Day</TEXT>\r\n" +
+                                               $"  <TEXTAREA\r\n\t\tclass=\"BG_NONE,SCROLL_ARROWS\" name=\"message\"\r\n\t\tx=\"64\" y=\"160\" width=\"1152\" height=\"452\" scrollBarWidth=\"32\"\r\n\t\tfontSize=\"52\" lineSpacing=\"56\" linesVisible=\"8\"\r\n\t\treadonly=\"\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#BBFFFFFF\" highlightTextColor=\"#FFFFFFFF\"\r\n\t\tleftPadValue=\"0\" topPadValue=\"0\"\r\n\t\tdefaultTextEntry=\"1\" defaultTextScroll=\"1\"\r\n\t\tselectable=\"false\" selected=\"false\">Message of the Day!</TEXTAREA>\r\n\r\n" +
+                                                "  <TEXT name=\"legend\" class=\"localise\" x=\"48\" y=\"640\" fontSize=\"48\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">[CIRCLE]Back</TEXT>\r\n" +
+                                                "  <TEXT name=\"legend\" class=\"localise\" x=\"1232\" y=\"640\" fontSize=\"48\" align=\"right\" textColor=\"#ffffffff\" selectable=\"false\">SCROLL_UP_DOWN</TEXT>\r\n" +
+                                                "  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
+                                                "  <QUICKLINK name=\"returnToPSP\" button=\"SV_PAD_BACK\" linkOption=\"\" href=\"file:///HOST_SVML/ReturnToPSP.svml\"/>\r\n" +
+                                                "</SVML>");
+
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+
+                                            if (response.OutputStream.CanWrite)
+                                            {
+                                                try
+                                                {
+                                                    response.ContentLength64 = xmlMessage.Length;
+                                                    response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                                    response.OutputStream.Close();
+                                                }
+                                                catch (Exception)
+                                                {
+                                                    // Not Important;
+                                                }
+                                            }
+                                        }
                                     }
 
-                                    xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n" +
-                                    $"<XML>\r\n\r\n" +
-                                    $"<XMLSVOFILETRANSFER direction=\"upload\" filename=\"{toUpload}\"/>\r\n" +
-                                    $"</XML>");
+                                    break;
+                            }
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                            break;
 
-                                    if (response.OutputStream.CanWrite)
+                        case "/HUBPS3_SVML/home/griefreporting/GriefReportWelcome.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (serverMac == null)
                                     {
-                                        try
-                                        {
-                                            response.ContentLength64 = xmlMessage.Length;
-                                            response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
                                     }
-                                }
-                                break;
-                        }
-                        break;
-
-                    case "/HUBPS3_SVML/home/help/HelpGeneric.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    string? region = HttpUtility.ParseQueryString(request.Url.Query).Get("region");
-
-                                    string? pageName = HttpUtility.ParseQueryString(request.Url.Query).Get("pageName");
-
-                                    byte[] xmlMessage;
-
-                                    if (pageName == "news")
+                                    else
                                     {
-                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                                            "<SVML>\r\n  <RECTANGLE name=\"background\" x=\"0\" y=\"0\" width=\"1280\" height=\"720\" fillColor=\"#99000000\"/>\r\n" +
-                                            "  <IMAGE name=\"icon\" x=\"32\" y=\"32\" width=\"96\" height=\"96\" src=\"file:///HOST_SVML/images/xmb_Firsttimeusinghome.dds\"/>\r\n" +
-                                            "  <TEXT name=\"title\" x=\"160\" y=\"52\" width=\"1056\" height=\"56\" fontSize=\"56\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">News</TEXT>\r\n" +
-                                           $"  <TEXTAREA\r\n\t\tclass=\"BG_NONE,SCROLL_ARROWS\" name=\"message\"\r\n\t\tx=\"64\" y=\"160\" width=\"1152\" height=\"452\" scrollBarWidth=\"32\"\r\n\t\tfontSize=\"52\" lineSpacing=\"56\" linesVisible=\"8\"\r\n\t\treadonly=\"\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#BBFFFFFF\" highlightTextColor=\"#FFFFFFFF\"\r\n\t\tleftPadValue=\"0\" topPadValue=\"0\"\r\n\t\tdefaultTextEntry=\"1\" defaultTextScroll=\"1\"\r\n\t\tselectable=\"false\" selected=\"false\">News!</TEXTAREA>\r\n\r\n" +
-                                            "  <TEXT name=\"legend\" class=\"localise\" x=\"48\" y=\"640\" fontSize=\"48\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">[CIRCLE]Back</TEXT>\r\n" +
-                                            "  <TEXT name=\"legend\" class=\"localise\" x=\"1232\" y=\"640\" fontSize=\"48\" align=\"right\" textColor=\"#ffffffff\" selectable=\"false\">SCROLL_UP_DOWN</TEXT>\r\n" +
-                                            "  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                            "  <QUICKLINK name=\"returnToPSP\" button=\"SV_PAD_BACK\" linkOption=\"\" href=\"file:///HOST_SVML/ReturnToPSP.svml\"/>\r\n" +
+                                        response.Headers.Set("Content-Type", "text/svml");
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        byte[] xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                            "<SVML>\r\n" +
+                                            "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
+                                            "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
+                                            "    <TEXT name=\"text\" x=\"640\" y=\"171\" width=\"636\" height=\"26\" fontSize=\"26\" align=\"center\" textColor=\"#cc000000\">Grief Report</TEXT>\r\n\r\n" +
+                                            "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\tfontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t readonly=\"true\"selectable=\"false\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#CC000000\" highlightTextColor=\"#FF000000\"\r\n\t\tleftPadValue=\"8\" topPadValue=\"8\" \r\n defaultTextEntry=\"1\" defaultTextScroll=\"1\">" +
+                                            "    Please provide evidence of the person you would like to submit for the grief report!\r\n\r\n" +
+                                            "    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
+                                            "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeInWorld.jsp\"/>\r\n" +
+                                            "</SVML>\r\n" +
+                                            "<SVML>\r\n" +
                                             "</SVML>");
 
                                         response.StatusCode = (int)HttpStatusCode.OK;
@@ -1096,131 +1211,24 @@ namespace SVO
                                             }
                                         }
                                     }
-                                    else if (pageName == "latestUpdate")
-                                    {
-                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                                            "<SVML>\r\n  <RECTANGLE name=\"background\" x=\"0\" y=\"0\" width=\"1280\" height=\"720\" fillColor=\"#99000000\"/>\r\n" +
-                                            "  <IMAGE name=\"icon\" x=\"32\" y=\"32\" width=\"96\" height=\"96\" src=\"file:///HOST_SVML/images/xmb_Firsttimeusinghome.dds\"/>\r\n" +
-                                            "  <TEXT name=\"title\" x=\"160\" y=\"52\" width=\"1056\" height=\"56\" fontSize=\"56\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">Latest Update</TEXT>\r\n" +
-                                           $"  <TEXTAREA\r\n\t\tclass=\"BG_NONE,SCROLL_ARROWS\" name=\"message\"\r\n\t\tx=\"64\" y=\"160\" width=\"1152\" height=\"452\" scrollBarWidth=\"32\"\r\n\t\tfontSize=\"52\" lineSpacing=\"56\" linesVisible=\"8\"\r\n\t\treadonly=\"\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#BBFFFFFF\" highlightTextColor=\"#FFFFFFFF\"\r\n\t\tleftPadValue=\"0\" topPadValue=\"0\"\r\n\t\tdefaultTextEntry=\"1\" defaultTextScroll=\"1\"\r\n\t\tselectable=\"false\" selected=\"false\">Last Update!</TEXTAREA>\r\n\r\n" +
-                                            "  <TEXT name=\"legend\" class=\"localise\" x=\"48\" y=\"640\" fontSize=\"48\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">[CIRCLE]Back</TEXT>\r\n" +
-                                            "  <TEXT name=\"legend\" class=\"localise\" x=\"1232\" y=\"640\" fontSize=\"48\" align=\"right\" textColor=\"#ffffffff\" selectable=\"false\">SCROLL_UP_DOWN</TEXT>\r\n" +
-                                            "  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                            "  <QUICKLINK name=\"returnToPSP\" button=\"SV_PAD_BACK\" linkOption=\"\" href=\"file:///HOST_SVML/ReturnToPSP.svml\"/>\r\n" +
-                                            "</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                    break;
+                            }
 
-                                        if (response.OutputStream.CanWrite)
-                                        {
-                                            try
-                                            {
-                                                response.ContentLength64 = xmlMessage.Length;
-                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
-                                            }
-                                            catch (Exception)
-                                            {
-                                                // Not Important;
-                                            }
-                                        }
-                                    }
-                                    else if (pageName == "messageoftheday")
-                                    {
-                                        xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                                            "<SVML>\r\n  <RECTANGLE name=\"background\" x=\"0\" y=\"0\" width=\"1280\" height=\"720\" fillColor=\"#99000000\"/>\r\n" +
-                                            "  <IMAGE name=\"icon\" x=\"32\" y=\"32\" width=\"96\" height=\"96\" src=\"file:///HOST_SVML/images/xmb_Firsttimeusinghome.dds\"/>\r\n" +
-                                            "  <TEXT name=\"title\" x=\"160\" y=\"52\" width=\"1056\" height=\"56\" fontSize=\"56\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">Message of the Day</TEXT>\r\n" +
-                                           $"  <TEXTAREA\r\n\t\tclass=\"BG_NONE,SCROLL_ARROWS\" name=\"message\"\r\n\t\tx=\"64\" y=\"160\" width=\"1152\" height=\"452\" scrollBarWidth=\"32\"\r\n\t\tfontSize=\"52\" lineSpacing=\"56\" linesVisible=\"8\"\r\n\t\treadonly=\"\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#BBFFFFFF\" highlightTextColor=\"#FFFFFFFF\"\r\n\t\tleftPadValue=\"0\" topPadValue=\"0\"\r\n\t\tdefaultTextEntry=\"1\" defaultTextScroll=\"1\"\r\n\t\tselectable=\"false\" selected=\"false\">Message of the Day!</TEXTAREA>\r\n\r\n" +
-                                            "  <TEXT name=\"legend\" class=\"localise\" x=\"48\" y=\"640\" fontSize=\"48\" align=\"left\" textColor=\"#ffffffff\" selectable=\"false\">[CIRCLE]Back</TEXT>\r\n" +
-                                            "  <TEXT name=\"legend\" class=\"localise\" x=\"1232\" y=\"640\" fontSize=\"48\" align=\"right\" textColor=\"#ffffffff\" selectable=\"false\">SCROLL_UP_DOWN</TEXT>\r\n" +
-                                            "  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
-                                            "  <QUICKLINK name=\"returnToPSP\" button=\"SV_PAD_BACK\" linkOption=\"\" href=\"file:///HOST_SVML/ReturnToPSP.svml\"/>\r\n" +
-                                            "</SVML>");
+                            break;
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                        default:
+                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            break;
 
-                                        if (response.OutputStream.CanWrite)
-                                        {
-                                            try
-                                            {
-                                                response.ContentLength64 = xmlMessage.Length;
-                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
-                                            }
-                                            catch (Exception)
-                                            {
-                                                // Not Important;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case "/HUBPS3_SVML/home/griefreporting/GriefReportWelcome.jsp":
-                        switch (request.HttpMethod)
-                        {
-                            case "GET":
-
-                                string? clientMac = request.Headers.Get("X-SVOMac");
-
-                                string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
-
-                                if (serverMac == null)
-                                {
-                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                    return;
-                                }
-                                else
-                                {
-                                    response.Headers.Set("Content-Type", "text/svml");
-                                    response.Headers.Set("X-SVOMac", serverMac);
-
-                                    byte[] xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                        "<SVML>\r\n" +
-                                        "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
-                                        "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
-                                        "    <TEXT name=\"text\" x=\"640\" y=\"171\" width=\"636\" height=\"26\" fontSize=\"26\" align=\"center\" textColor=\"#cc000000\">Grief Report</TEXT>\r\n\r\n" +
-                                        "    <TEXTAREA class=\"TEXTAREA1\" name=\"message\" x=\"308\" y=\"204\" width=\"664\" height=\"320\"\r\n\t\tfontSize=\"22\" lineSpacing=\"22\" linesVisible=\"14\"\r\n\t\t readonly=\"true\"selectable=\"false\" blinkCursor=\"false\"\r\n\t\ttextColor=\"#CC000000\" highlightTextColor=\"#FF000000\"\r\n\t\tleftPadValue=\"8\" topPadValue=\"8\" \r\n defaultTextEntry=\"1\" defaultTextScroll=\"1\">" +
-                                        "    Please provide evidence of the person you would like to submit for the grief report!\r\n\r\n" +
-                                        "    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
-                                        "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeInWorld.jsp\"/>\r\n" +
-                                        "</SVML>\r\n" +
-                                        "<SVML>\r\n" +
-                                        "</SVML>");
-
-                                    response.StatusCode = (int)HttpStatusCode.OK;
-
-                                    if (response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            response.ContentLength64 = xmlMessage.Length;
-                                            response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    default:
-                        response.StatusCode = (int)HttpStatusCode.Forbidden;
-                        break;
-
-                        #endregion
+                            #endregion
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[SVO] - Home_SVO thrown an assertion - {ex}");
+                response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
         }
     }

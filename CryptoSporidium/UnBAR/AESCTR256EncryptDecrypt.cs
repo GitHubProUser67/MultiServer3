@@ -5,7 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace CryptoSporidium.UnBAR
 {
-    internal class AESCTR256EncryptDecrypt
+    public class AESCTR256EncryptDecrypt
     {
         public byte[]? InitiateCTRBuffer(byte[]? FileBytes, byte[] KeyBytes, byte[]? m_iv)
         {

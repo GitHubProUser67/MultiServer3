@@ -1,8 +1,8 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
-using Horizon.LIBRARY.Database.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.LIBRARY.Database.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
@@ -60,9 +60,9 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
-        public int PlayerCount => Clients.Count(x => x != null && x.Client.IsConnected && x.InGame);
+        public int PlayerCount => Clients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
 
-        public Party(ClientObject client, IMediusRequest partyCreate, Channel chatChannel)
+        public Party(ClientObject client, IMediusRequest partyCreate, Channel chatChannel, DMEObject dmeServer)
         {
             if (partyCreate is MediusPartyCreateRequest r)
                 FromPartyCreateRequest(r);
@@ -72,6 +72,7 @@ namespace Horizon.MEDIUS.Medius.Models
             utcTimeCreated = Utils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
             ChatChannel = chatChannel;
+            DMEServer = dmeServer;
             ChatChannel?.RegisterParty(this);
             Host = client;
 
@@ -152,7 +153,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification notification)
         {
-            var player = Clients.FirstOrDefault(x => x.Client.SessionKey == notification.PlayerSessionKey);
+            var player = Clients.FirstOrDefault(x => x.Client?.SessionKey == notification.PlayerSessionKey);
             if (player == null)
                 return;
 

@@ -21,8 +21,6 @@ namespace CryptoSporidium.UnBAR
 
         public static string base64CDNKey2 = "8b9qT7u6XQ7Sf0GKSIivMEeG7NROLTZGgNtN8iI6n1Y=";
 
-        public static int DefaultContextSize = 4236;
-
         public static byte[] DefaultKey = new byte[]
         {
             0x80, 0x6d, 0x79, 0x16, 0x23, 0x42, 0xa1, 0x0e,
@@ -101,7 +99,7 @@ namespace CryptoSporidium.UnBAR
             using (SHA1 sha1 = SHA1.Create())
             {
                 byte[] hashBytes = sha1.ComputeHash(data);
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
 
                 foreach (byte b in hashBytes)
                 {
@@ -109,6 +107,14 @@ namespace CryptoSporidium.UnBAR
                 }
 
                 return sb.ToString().ToUpper();
+            }
+        }
+
+        public byte[] ValidateBytesSha1(byte[] data)
+        {
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                return sha1.ComputeHash(data);
             }
         }
 
@@ -147,17 +153,58 @@ namespace CryptoSporidium.UnBAR
             }
         }
 
-        public void IncrementIVBytes(byte[] byteArray, int incremement)
+        public void IncrementIVBytes(byte[] byteArray, int increment)
         {
             for (int i = byteArray.Length - 1; i >= 0; i--)
             {
-                if (byteArray[i] < 255)
-                {
-                    byteArray[i] += (byte)incremement;
-                    break;
-                }
-                byteArray[i] = 0;
+                int newValue = byteArray[i] + (byte)increment;
+                byteArray[i] = (byte)newValue;
+                increment = newValue >> 8; // Carry over the overflow to the next byte
+                if (increment == 0)
+                    break; // No more overflow, we're done
             }
+        }
+
+        public byte[] ICSharpEdgeCompress(byte[] inData)
+        {
+            MemoryStream memoryStream = new MemoryStream(inData.Length);
+            MemoryStream memoryStream2 = new MemoryStream(inData);
+            while (memoryStream2.Position < memoryStream2.Length)
+            {
+                int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
+                byte[] array = new byte[num];
+                memoryStream2.Read(array, 0, num);
+                byte[] array2 = ICSharpEdgeCompressChunk(array);
+                memoryStream.Write(array2, 0, array2.Length);
+            }
+            memoryStream2.Close();
+            memoryStream.Close();
+            return memoryStream.ToArray();
+        }
+
+        private byte[] ICSharpEdgeCompressChunk(byte[] InData)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            Deflater deflater = new Deflater(9, true);
+            DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(memoryStream, deflater);
+            deflaterOutputStream.Write(InData, 0, InData.Length);
+            deflaterOutputStream.Close();
+            memoryStream.Close();
+            byte[] array = memoryStream.ToArray();
+            byte[] array2;
+            if (array.Length >= InData.Length)
+                array2 = InData;
+            else
+                array2 = array;
+            byte[] array3 = new byte[array2.Length + 4];
+            Array.Copy(array2, 0, array3, 4, array2.Length);
+            ChunkHeader chunkHeader = default;
+            chunkHeader.SourceSize = (ushort)InData.Length;
+            chunkHeader.CompressedSize = (ushort)array2.Length;
+            byte[] array4 = chunkHeader.GetBytes();
+            array4 = BAR.Utils.EndianSwap(array4);
+            Array.Copy(array4, 0, array3, 0, ChunkHeader.SizeOf);
+            return array3;
         }
 
         public byte[]? ICSharpEdgeZlibDecompress(byte[] inData)
@@ -275,6 +322,52 @@ namespace CryptoSporidium.UnBAR
             array4 = BAR.Utils.EndianSwap(array4);
             Array.Copy(array4, 0, array3, 0, ChunkHeader.SizeOf);
             return array3;
+        }
+
+        public async Task<byte[]> ProcessXTEABlocksAsync(byte[] inputArray, byte[] Key, byte[] IV)
+        {
+            int inputLength = inputArray.Length;
+            int inputIndex = 0;
+            int blockSize = 8;
+            int outputIndex = 0;
+            int executionNumber = 0;
+            byte[]? output = new byte[inputLength];
+            SemaphoreSlim semaphore = new(1);
+            ToolsImpl? toolsimpl = new();
+            LIBSECURE? libsecure = new();
+
+            while (inputIndex < inputLength)
+            {
+                blockSize = Math.Min(8, inputLength - inputIndex);
+                byte[] block = new byte[blockSize];
+                Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
+                int currentExecutionNumber = executionNumber;
+
+                var tcs = new TaskCompletionSource<byte[]>();
+
+                await Task.Run(() =>
+                {
+                    tcs.SetResult(libsecure.InitiateLibSecureXTEACTRBuffer(block, Key, IV, blockSize) ?? new byte[blockSize]); // Null Bytes if failed.
+                });
+
+                toolsimpl.IncrementIVBytes(IV, 1);
+
+                await semaphore.WaitAsync();
+
+                byte[] taskResult = await tcs.Task;
+                Buffer.BlockCopy(taskResult, 0, output, outputIndex, blockSize);
+                outputIndex += blockSize;
+                semaphore.Release();
+
+                inputIndex += blockSize;
+                executionNumber++;
+            }
+
+            semaphore.Dispose();
+            toolsimpl = null;
+            libsecure = null;
+
+            return output;
         }
 
         public static void aesecbDecrypt(
@@ -406,7 +499,7 @@ namespace CryptoSporidium.UnBAR
 
         public byte[] ApplyPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            Utils? utils = new();
+            MiscUtils? utils = new();
             byte[] returnbytes = utils.Combinebytearay(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
             utils = null;
             return returnbytes;
@@ -432,7 +525,7 @@ namespace CryptoSporidium.UnBAR
             if (IVA != null && IVA.Length >= blockSize && (blockSize == 16 || blockSize == 8))
             {
                 StringBuilder? hexStr = new();
-                Utils? utils = new();
+                MiscUtils? utils = new();
                 LIBSECURE? libsecure = new();
                 byte[]? returnstring = null;
                 int i = blockSize; // Start index for processing.

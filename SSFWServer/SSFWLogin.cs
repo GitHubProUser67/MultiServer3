@@ -47,7 +47,7 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                CryptoSporidium.Utils? utils = new();
+                CryptoSporidium.MiscUtils? utils = new();
 
                 if (utils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) && !SSFWServerConfiguration.SSFWCrossSave)
                 {
@@ -59,7 +59,7 @@ namespace SSFWServer
                     // Calculate the MD5 hash of the result
                     using (MD5 md5 = MD5.Create())
                     {
-                        if (string.IsNullOrEmpty(xsignature))
+                        if (!string.IsNullOrEmpty(xsignature))
                             salt = generalsecret + xsignature + XHomeClientVersion;
                         else
                             salt = generalsecret + XHomeClientVersion;
@@ -73,7 +73,7 @@ namespace SSFWServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = SSFWMisc.SSFWGenerateGuid(hash, resultString);
+                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Clear();
                     }
@@ -88,7 +88,7 @@ namespace SSFWServer
                     // Calculate the MD5 hash of the result
                     using (MD5 md5 = MD5.Create())
                     {
-                        if (string.IsNullOrEmpty(xsignature))
+                        if (!string.IsNullOrEmpty(xsignature))
                             salt = generalsecret + xsignature + XHomeClientVersion;
                         else
                             salt = generalsecret + XHomeClientVersion;
@@ -102,7 +102,7 @@ namespace SSFWServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = SSFWMisc.SSFWGenerateGuid(hash, resultString);
+                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Dispose();
                     }

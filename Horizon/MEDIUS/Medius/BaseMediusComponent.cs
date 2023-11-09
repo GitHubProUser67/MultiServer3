@@ -4,10 +4,10 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
-using Horizon.RT.Cryptography.RC;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.RT.Cryptography.RC;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Tcp;
@@ -183,11 +183,13 @@ namespace Horizon.MEDIUS.Medius
         {
             try
             {
-                await _boundChannel.CloseAsync();
+                if (_boundChannel != null)
+                    await _boundChannel.CloseAsync();
             }
             finally
             {
-                await Task.WhenAll(
+                if (_bossGroup != null && _workerGroup != null)
+                    await Task.WhenAll(
                         _bossGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
                         _workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));
             }
@@ -318,10 +320,10 @@ namespace Horizon.MEDIUS.Medius
             }
         }
 
-        protected virtual Task QueueBanMessage(ChannelData data, string msg = "You have been banned!")
+        protected virtual Task QueueBanMessage(ChannelData? data, string msg = "You have been banned!")
         {
             // Send ban message
-            data.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+            data?.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
             {
                 Severity = (byte)MediusClass.GetAppSettingsOrDefault(data.ApplicationId).BanSystemMessageSeverity,
                 EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,

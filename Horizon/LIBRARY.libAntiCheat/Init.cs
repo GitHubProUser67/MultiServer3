@@ -1,7 +1,7 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.RT.Models.AntiCheat;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models.AntiCheat;
 using Horizon.LIBRARY.libAntiCheat.Models;
 
 namespace Horizon.LIBRARY.libAntiCheat

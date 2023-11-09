@@ -1,6 +1,6 @@
-using Horizon.RT.Cryptography;
-using Horizon.RT.Cryptography.RSA;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Cryptography;
+using CryptoSporidium.Horizon.RT.Cryptography.RSA;
+using CryptoSporidium.Horizon.RT.Models;
 
 namespace Horizon.LIBRARY.Pipeline.Attribute
 {

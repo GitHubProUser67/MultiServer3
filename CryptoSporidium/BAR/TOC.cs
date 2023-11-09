@@ -170,12 +170,12 @@ namespace CryptoSporidium.BAR
             BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
             foreach (TOCEntry tocentry in m_entries.Values)
             {
-                binaryWriter.Write((int)tocentry.FileName);
+                binaryWriter.Write(Utils.ReverseEndianness((int)tocentry.FileName));
                 uint num = tocentry.DataOffset;
                 num |= (uint)tocentry.Compression;
-                binaryWriter.Write(num);
-                binaryWriter.Write(tocentry.Size);
-                binaryWriter.Write(tocentry.CompressedSize);
+                binaryWriter.Write(Utils.ReverseEndianness(num));
+                binaryWriter.Write(Utils.ReverseEndianness(tocentry.Size));
+                binaryWriter.Write(Utils.ReverseEndianness(tocentry.CompressedSize));
                 binaryWriter.Write(tocentry.IV);
             }
             binaryWriter.Close();
@@ -219,9 +219,7 @@ namespace CryptoSporidium.BAR
             {
                 LinkedListNode<TOCEntry> next = linkedListNode.Next;
                 if (linkedListNode.Value.DataOffset > 0U)
-                {
                     linkedListNode.Value.DataOffset = 0U;
-                }
                 while (next != null)
                 {
                     uint dataOffset = linkedListNode.Value.DataOffset;

@@ -11,42 +11,136 @@ namespace CryptoSporidium.OHS
 
         public static string jaminencrypt = "--\r\n-- Encode Lua values as strings and decode those strings back into Lua values.\r\n-- The name is a bad pun on Bencode on which it is based.\r\n--\r\n-- Jamin.encode( table ) returns string or error\r\n-- Jamin.decode( string ) returns table or error\r\n--\r\n-- nil -> 'z;'\r\n-- bool -> 'b' ('t' | 'f') ';'\r\n-- number -> 'n' <integer-or-float> ';'\r\n-- string -> 's' [0-9]+ ':' <bytes> ';'\r\n-- vector -> 'v' <integer-or-float> ' ' <integer-or-float> ' ' <integer-or-float> ' ' <integer-or-float> ';'\r\n-- table -> 't' { key value } ';'\r\n-- key -> number | string\r\n-- value -> bool | number | string | vector | table | nil\r\n--\r\n\r\nJamin = {}\r\n\r\n\r\n-- Need a table of 'safe' charcaters that can be sent via HttpPostData and XML\r\n-- without escaping or expansion.\r\n\r\nlocal _letters = {}  -- index -> char\r\n\r\nlocal _special = {\r\n    [' '] = true,  -- Multiple spaces are concatenated by the XML parser\r\n    [\"'\"] = true,\r\n    ['\"'] = true,\r\n    ['<'] = true,\r\n    ['>'] = true,\r\n    ['#'] = true,  -- Used as an escape character in Jamin.\r\n    ['%'] = true,  -- HttpPostData will hang if this is sent.\r\n    ['&'] = true,  -- Used to escape '%' in HttpPostData mesaages.\r\n}\r\n\r\nfor i = 33, 126 do\r\n    local char = string.char(i)\r\n\r\n    if not _special[char] then\r\n        _letters[#_letters+1] = char\r\n    end\r\nend\r\n\r\nlocal _alphabet = table.concat(_letters)\r\nlocal _numLetters = #_alphabet\r\n\r\n-- _letters is of type index -> char, this is the inverse mapping from chars to\r\n-- integers.\r\nlocal _invLetters = {}\r\n\r\nfor index, letter in ipairs(_letters) do\r\n    _invLetters[letter] = index\r\nend\r\n\r\nlocal _word = {}\r\n\r\nlocal _wordMT = {\r\n    __index =\r\n        function ( tbl, val )\r\n            assert(val == math.floor(val))\r\n            assert(val >= 1)\r\n\r\n            -- A word of length val, made only from _letters can have this many\r\n            -- distinct values\r\n            local size = (_numLetters)^val\r\n            -- Smallest value a word of length val can represent.\r\n            local min = -math.floor(size * 0.5)\r\n            -- Largest value a word of length val can represent.\r\n            local max = math.floor(size * 0.5) - ((size+1) % 2)\r\n            -- Add this to change from [min..max] to [0..size-1]\r\n            local offset = -min\r\n\r\n            assert(size > 0)\r\n            assert((max - min) + 1 == size)\r\n            assert(min + offset == 0)\r\n\r\n            local data = {\r\n                size = size,\r\n                min = min,\r\n                max = max,\r\n                offset = offset,\r\n                length = val,\r\n            }\r\n\r\n            -- printf('_word[%d] = size:%s min:%s max:%s offset:%s',\r\n            --        val,\r\n            --        tostring(size),\r\n            --        tostring(min),\r\n            --        tostring(max),\r\n            --        tostring(offset))\r\n\r\n            rawset(tbl, val, data)\r\n\r\n            return data\r\n        end\r\n}\r\n\r\nsetmetatable(_word, _wordMT)\r\n\r\n\r\n\r\nlocal function encodeNil( value )\r\n    assert(type(value) == \"nil\")\r\n\r\n    return 'z;'\r\nend\r\n\r\nlocal function encodeBoolean( value )\r\n    assert(type(value) == \"boolean\")\r\n\r\n    if value then\r\n        return \"bt;\"\r\n    else\r\n        return \"bf;\"\r\n    end\r\nend\r\n\r\nlocal function encodeNumber( value )\r\n    assert(type(value) == \"number\" or Type(value) == \"BigInt\")\r\n\r\n    if type(value) == 'BigInt' then\r\n        return string.format(\"n%s;\", tostring(value))\r\n\telseif value == math.floor(value) then\r\n\t\treturn string.format(\"n%d;\", value)\r\n\telse\r\n\t\treturn string.format(\"n%s;\", tostring(value))\r\n\tend\r\nend\r\n\r\n-- Escape characters outside a safe ASCII subset. This is needed because Lua\r\n-- allows '\\0' mid-string and Home can give us utf8 strings.\r\n--\r\n-- The characters in the range [32..127] are considered safe. Space,\r\n-- alphanumeric and punctuation characters are in this range.\r\n-- An escape is in one of two forms:\r\n--   '#xxx' where xxx is the 0 extended, decimal code for the character.\r\n--   '##' represents '#' in an unescaped string.\r\n--\r\nlocal function escapeString( str )\r\n    local partial = str:gsub(\"#\", \"##\")\r\n\r\n    local function expandUnsafeCharacters( str )\r\n        local chars = {}\r\n        for idx = 1, #str do\r\n            table.insert(chars, string.format(\"#%03d\", str:byte(idx)))\r\n        end\r\n        return table.concat(chars)\r\n    end\r\n\r\n    return partial:gsub(\"([^%w%p ]+)\",  expandUnsafeCharacters)\r\nend\r\n\r\nlocal function encodeString( value )\r\n    local escaped = escapeString(value)\r\n\r\n    return string.format(\"s%d:%s;\", escaped:len(), escaped)\r\nend\r\n\r\nlocal function encodeVector( value )\r\n    return string.format(\"v%f %f %f %f;\", value:X(), value:Y(), value:Z(), value:W())\r\nend\r\n\r\nfunction iskey( value )\r\n    local t = type(value)\r\n\r\n    return t == \"number\" or t == \"string\"\r\nend\r\n\r\n-- The function below can create a lot of garbage so care has to be taken\r\n-- to merge intermediate results and call the collector.\r\n-- NB: Need to improve this function:\r\n--     - The length of the strings needs to be taken into account.\r\n--     - The garbage collector can be called quite often.\r\nlocal function encodeTable( value, isCoroutine )\r\n    local strings = { 't' }\r\n    local maxlen = 100\r\n\r\n    for k, v in pairs(value) do\r\n        assert(iskey(k), string.format(\"%s can't be used as a key only strings and numbers allowed\", tostring(k)))\r\n\r\n        local kstr\r\n        if isCoroutine then\r\n            coroutine.yield(false)\r\n            kstr = Jamin.coroutineEncode(k)\r\n        else\r\n            kstr = Jamin.encode(k)\r\n        end\r\n\r\n        local vstr\r\n        if isCoroutine then\r\n            coroutine.yield(false)\r\n            vstr = Jamin.coroutineEncode(v)\r\n        else\r\n            vstr = Jamin.encode(v)\r\n        end\r\n\r\n        strings[#strings+1] = kstr\r\n        strings[#strings+1] = vstr\r\n\r\n        if #strings > maxlen then\r\n            strings = { table.concat(strings) }\r\n\r\n            collectgarbage('collect')\r\n        end\r\n    end\r\n\r\n    strings[#strings+1] = ';'\r\n\r\n    local result = table.concat(strings)\r\n\r\n    -- collectgarbage('collect')\r\n\r\n    return result\r\nend\r\n\r\nlocal function encodeFunction( value )\r\n    return value()\r\nend\r\n\r\nlocal _minIntegerArrayElement = -(2^24)\r\nlocal _maxIntegerArrayElement = 2^24\r\n\r\nfunction _isValidIntegerArrayElement( value )\r\n    if value == math.floor(value) then\r\n        if _minIntegerArrayElement <= value and value <= _maxIntegerArrayElement then\r\n            return true\r\n        end\r\n    end\r\n\r\n    return false\r\nend\r\n\r\nfunction calcIntegerArrayWordLength( array )\r\n    local result = 0\r\n\r\n    if #array > 0 then\r\n        local min = _maxIntegerArrayElement\r\n        local max = _minIntegerArrayElement\r\n\r\n        for _, v in ipairs(array) do\r\n            assert(_isValidIntegerArrayElement(v))\r\n\r\n            min = math.min(min, v)\r\n            max = math.max(max, v)\r\n        end\r\n\r\n        local normedRange = math.max(math.abs(min), math.abs(max)) * 2\r\n\r\n        result = math.ceil(math.log(normedRange) / math.log(_numLetters))\r\n\r\n        -- printf('[%s..%s] %s -> %d', tostring(min), tostring(max), tostring(normedRange), result)\r\n    end\r\n\r\n    return result\r\nend\r\n\r\nfunction Jamin.encodeIntegerArrayViaIterator( iterator, wordlen )\r\n    local word = _word[wordlen]\r\n    local results = { '' }  -- don't know how long it is yet.\r\n    local count = 0\r\n\r\n    for element in iterator do\r\n        count = count + 1\r\n        -- [word.min..word.max] -> [0..word.size-1]\r\n        local normed = element + word.offset\r\n\r\n        assert(0 <= normed and normed < word.size)\r\n\r\n        -- Little Endian\r\n        for i = 0, wordlen - 1 do\r\n            local index = math.floor(normed / (_numLetters)^i) % _numLetters\r\n            -- printf('val:%d normed:%d i:%d index:%d', val, normed, i, index)\r\n            results[#results+1] = _letters[index+1]\r\n        end\r\n    end\r\n\r\n    results[1] = string.format('i%d,%d:', wordlen, count)\r\n\r\n    assert(#results == (count * wordlen) + 1)\r\n\r\n    results[#results+1] = ';'\r\n\r\n    return table.concat(results)\r\nend\r\n\r\nfunction Jamin.encodeIntegerArray( value, wordlen )\r\n    assert(type(value) == 'table')\r\n\r\n    wordlen = wordlen or calcIntegerArrayWordLength(value)\r\n\r\n    local word = _word[wordlen]\r\n    local results = { string.format('i%d,%d:', wordlen, #value) }\r\n\r\n    for _, element in ipairs(value) do\r\n        -- [word.min..word.max] -> [0..word.size-1]\r\n        local normed = element + word.offset\r\n\r\n        assert(0 <= normed and normed < word.size)\r\n\r\n        -- Little Endian\r\n        for i = 0, wordlen - 1 do\r\n            local index = math.floor(normed / (_numLetters)^i) % _numLetters\r\n            -- printf('val:%d normed:%d i:%d index:%d', val, normed, i, index)\r\n            results[#results+1] = _letters[index+1]\r\n        end\r\n    end\r\n\r\n    assert(#results == (#value * wordlen) + 1)\r\n\r\n    results[#results+1] = ';'\r\n\r\n    return table.concat(results)\r\nend\r\n\r\n\r\nlocal encoders = {\r\n    [\"nil\"] = encodeNil,\r\n    [\"boolean\"] = encodeBoolean,\r\n    [\"number\"] = encodeNumber,\r\n    [\"BigInt\"] = encodeNumber,\r\n    [\"string\"] = encodeString,\r\n    [\"Vector4\"] = encodeVector,\r\n    [\"table\"] = encodeTable,\r\n    [\"function\"] = encodeFunction,\r\n}\r\n\r\n-- Type() is from the Home HDK for use on HDK values.\r\nlocal function _type( x )\r\n    local result = type(x)\r\n\r\n    if result == \"userdata\" then\r\n        result = Type(x)\r\n    end\r\n\r\n    return result\r\nend\r\n\r\nlocal function encodeError( value )\r\n    error(string.format(\"can't encode %s of type %s\", tostring(value), _type(value)))\r\nend\r\n\r\nfunction Jamin.encode( value )\r\n    local encoder = encoders[_type(value)] or encodeError\r\n\r\n    return encoder(value)\r\nend\r\n\r\nfunction Jamin.coroutineEncode( value )\r\n    local encoder = encoders[_type(value)] or encodeError\r\n\r\n    return encoder(value, true)\r\nend\r\n\r\n-------------------------------------------------------------------------------\r\n\r\n\r\n-- str:sub(pos, pos) == \"z\"\r\nlocal function decodeNil( str, pos )\r\n    local start, finish = str:find(\"z;\", pos)\r\n\r\n    if start == pos and finish == pos + 1 then\r\n        return nil, pos + 2\r\n    else\r\n        error(string.format(\"%s is not a valid nil at pos %d\", str:sub(pos, pos+2), pos))\r\n    end\r\nend\r\n\r\n-- str:sub(pos, pos) == \"b\"\r\nlocal function decodeBoolean( str, pos )\r\n    local encoded, finish = str:match(\"b([tf]);()\", pos)\r\n\r\n    if encoded then\r\n        return encoded == \"t\", pos + 3\r\n    else\r\n        error(string.format(\"%s is not a valid boolean at pos %d\", str:sub(pos, pos+2), pos))\r\n    end\r\nend\r\n\r\n-- str:sub(pos, pos) == \"n\"\r\nlocal function decodeNumber( str, pos )\r\n    local encoded, finish = str:match(\"n([^;]+);()\", pos)\r\n\r\n    local decoded = tonumber(encoded)\r\n    if decoded > 2^24 or decoded < -2^24 then\r\n        decoded = BigInt.Create('64', encoded)\r\n    end\r\n\r\n    if decoded then\r\n        return decoded, finish\r\n    else\r\n        error(string.format(\"'%s' is not a valid number at pos %d\", encoded, pos))\r\n    end\r\nend\r\n\r\nlocal function _unescapeUnsafeChracters( str )\r\n    return string.char(tonumber(str))\r\nend\r\n\r\n\r\n-- See escapeString() above for more details\r\nlocal function unescapeString( str )\r\n    local partial = str:gsub(\"##\", \"#\")\r\n\r\n    return partial:gsub(\"#(%d%d%d)\", _unescapeUnsafeChracters)\r\nend\r\n\r\n-- str:sub(pos, pos) == \"s\"\r\nlocal function decodeString( str, pos )\r\n    local encoded = str:match(\"s([%d]+):\", pos)\r\n    local length = tonumber(encoded)\r\n\r\n    if length then\r\n        local start = pos + 2 + encoded:len()\r\n        local finish = start + (length-1)\r\n\r\n        if str:sub(finish+1, finish+1) == \";\" then\r\n            local escaped = str:sub(start, finish)\r\n            local unescaped = unescapeString(escaped)\r\n            return unescaped, finish + 2\r\n        else\r\n            error(string.format(\"couldn't find terminating ';' for string at pos %d - context: %q\", pos, str:sub(pos, finish+1)))\r\n        end\r\n    else\r\n        error(string.format(\"couldn't find length of string at pos %d\", pos))\r\n    end\r\nend\r\n\r\n-- str:sub(pos, pos) == \"v\"\r\nlocal function decodeVector( str, pos )\r\n    local encX, encY, encZ, encW, finish = str:match(\"v([^ ;]+) ([^ ;]+) ([^ ;]+) ([^ ;]+);()\", pos)\r\n    local x, y, z, w = tonumber(encX), tonumber(encY), tonumber(encZ), tonumber(encW)\r\n\r\n    if x and y and z and w then\r\n        return Vector4.Create(x, y, z, w), finish\r\n    else\r\n        error(string.format(\"couldn't parse vector at pos %d\", pos))\r\n    end\r\nend\r\n\r\n-- str:sub(pos, pos) == \"t\"\r\nlocal function decodeTable( str, pos )\r\n    local result = {}\r\n    local key, cursor = nil, pos + 1\r\n\r\n    while str:sub(cursor, cursor) ~= \";\" do\r\n        key, cursor = Jamin.decode(str, cursor)\r\n        assert(iskey(key), string.format(\"%s can't be used as a key only strings and numbers allowed\", tostring(key)))\r\n\r\n        value, cursor = Jamin.decode(str, cursor)\r\n\r\n        result[key] = value\r\n    end\r\n\r\n    return result, cursor+1\r\nend\r\n\r\nfunction Jamin.decodeIntegerArray( str, pos )\r\n    pos = pos or 1\r\n\r\n    local encWordlen, encNumElements = str:match(\"i([%d]+),([%d]+):\", pos)\r\n    local wordlen = tonumber(encWordlen)\r\n    local numElements = tonumber(encNumElements)\r\n\r\n    if wordlen and numElements then\r\n        local word = _word[wordlen]\r\n        local start = pos + 3 + encWordlen:len() + encNumElements:len()\r\n        local finish = start + (wordlen * numElements) - 1\r\n\r\n        if str:sub(finish+1, finish+1) == \";\" then\r\n            local encoded = str:sub(start, finish)\r\n\r\n            -- printf('encoded: %s', encoded)\r\n\r\n            local result= {}\r\n            local count = 0\r\n            local normed = 0\r\n\r\n            -- Should be more memory efficient matching each char seperately as\r\n            -- they're already in the _letters and _invLetters tables.\r\n            for encDigit in encoded:gmatch('.') do\r\n                local wordIndex = count % wordlen\r\n\r\n                local digit = (_invLetters[encDigit] - 1) * ((_numLetters)^wordIndex)\r\n\r\n                -- print('encdigit:', encdigit, 'wordIndex:', wordIndex, 'digit:', digit)\r\n                normed = normed + digit\r\n\r\n                -- Is this the last letter of a word\r\n                if wordIndex == wordlen - 1 then\r\n                    result[#result+1] = normed - word.offset\r\n                    normed = 0\r\n                end\r\n\r\n                count = count + 1\r\n            end\r\n\r\n            return result, finish + 2\r\n        else\r\n            error(string.format(\"couldn't find terminating ';' for integer-array at pos %d, found %q\", pos, str:sub(finish+1, finish+1)))\r\n        end\r\n    else\r\n        error(string.format(\"couldn't find one or both of wordlen and #elements in integer-array at pos %d\", pos))\r\n    end\r\nend\r\n\r\nlocal decoders = {\r\n    [\"z\"] = decodeNil,\r\n    [\"b\"] = decodeBoolean,\r\n    [\"n\"] = decodeNumber,\r\n    [\"s\"] = decodeString,\r\n    [\"v\"] = decodeVector,\r\n    [\"t\"] = decodeTable,\r\n    [\"i\"] = decodeIntegerArray,\r\n}\r\n\r\nlocal function decodeError( str, pos )\r\n    error(string.format(\"no decoder for %q at pos %d\", str:sub(pos, pos), pos))\r\nend\r\n\r\nfunction Jamin.decode( str, pos )\r\n    pos = pos or 1\r\n\r\n    local decoder = decoders[str:sub(pos, pos)] or decodeError\r\n\r\n    return decoder(str, pos)\r\nend\r\n\r\n-------------------- Custom code for PSMultiServer\r\n\r\nlocal TableFromInput = PUT_TABLEINPUT_HERE\r\n\r\nreturn Jamin.encode(TableFromInput)\r\n\r\n-------------------- End Custom code for PSMultiServer\r\n\r\n-------------------------------------------------------------------------------\r\n\r\n--[[\r\nprint(\"[Test Jamin]\")\r\n\r\nlocal testTable = {\r\n    [\"testKey\"] = 42,\r\n    ['elbow'] = \"spam&eggs\",\r\n    [1] = {\r\n        [\"arg\"] = {\r\n            [\"test\"] = \"ogre\"\r\n        }\r\n    }\r\n}\r\n\r\nlocal encoded = Jamin.encode(testTable)\r\n\r\nprint(encoded)\r\n\r\nlocal testTable2 = Jamin.decode(encoded)\r\n\r\nfor k,v in pairs(testTable2) do\r\n    print(k,v)\r\nend\r\n\r\nprint(Jamin.decode(Jamin.encode(nil)))\r\n\r\nfunction testEscaping( str )\r\n    local escaped = escapeString(str)\r\n    local xformed = unescapeString(escaped)\r\n\r\n    if str ~= xformed then\r\n        print(string.format(\"str: %s\", str))\r\n        print(string.format(\"escaped: %s\", escaped))\r\n        print(string.format(\"xformed: %s\", xformed))\r\n        error(\"unesaping and escaped string shouldn't change the string!\")\r\n    end\r\nend\r\n\r\ntestEscaping(\"spam\")\r\ntestEscaping(\"#pam\")\r\ntestEscaping(\"#pa\\0m\")\r\ntestEscaping(\"#pam\\0\")\r\n\r\n-- Lets's test everything...\r\nlocal chars = {}\r\n\r\nfor i = 0,255 do\r\n    table.insert(chars, string.char(i))\r\nend\r\n\r\nlocal allstr = table.concat(chars)\r\n\r\n-- To ensure that every char is midway in a string...\r\ntestEscaping(allstr .. allstr)\r\n\r\nlocal freq = {}\r\n\r\nlocal escaped = escapeString(allstr)\r\n\r\nfor i = 1, #escaped do\r\n    local char = escaped:byte(i)\r\n    if freq[char] then\r\n        freq[char] = freq[char] + 1\r\n    else\r\n        freq[char] = 1\r\n    end\r\nend\r\n\r\nlocal count = 0\r\nfor i = 0, 255 do\r\n    print(i, freq[i])\r\n\r\n    count = count + (freq[i] or 0)\r\nend\r\n\r\nassert(count == #escaped)\r\n\r\nprint(string.format(\"#allstr = %d, #escaped = %d\", #allstr, #escaped))\r\n\r\n\r\nprint(\"[end Test Jamin]\")\r\n--]]\r\n\r\n\r\n-- local guids = {\r\n--     -- '49579E5D-DDAB4E3F-901EF612-F5FC7B36',\r\n--     -- '072F62A3-86CE44BC-9B85BDE6-0BD646A3',\r\n--     '33229FDB-120042BB-8B13026E-4CD7EBF0',\r\n-- }\r\n\r\n-- print(\"============ JAMIN TEST ================\")\r\n-- print(Jamin.encode( guids ))\r\n-- print(\"========================================\")\r\n";
 
-        public static string? JaminDeFormat(string dataforohs, bool hashed)
+        public static bool VerifyHash(string str, string referencehash)
+        {
+            if (EncryptDecrypt.Hash32Str(str) == referencehash.ToUpper())
+                return true;
+
+            return false;
+        }
+
+        public static (string, string?) JaminDeFormatWithWriteKey(string? dataforohs, bool hashed, int game)
+        {
+            try
+            {
+                string? writekey = null;
+
+                // Execute the Lua script and get the result
+                object[]? returnValues = null;
+
+                if (game != 0 && !string.IsNullOrEmpty(dataforohs))
+                {
+                    dataforohs = EncryptDecrypt.Decrypt(EncryptDecrypt.UnEscape(dataforohs), game);
+#if DEBUG
+                    LoggerAccessor.LogInfo($"[OHS] - Decrypted Data : {dataforohs}");
+#endif
+                }
+
+                if (!string.IsNullOrEmpty(dataforohs))
+                {
+                    writekey = dataforohs.Substring(0, 8);
+                    dataforohs = dataforohs.Substring(8); // We remove the writekey.
+                    if (hashed)
+                    {
+                        string InData = dataforohs.Substring(8); // We remove the hash.
+                        if (VerifyHash(InData, dataforohs.Substring(0, 8)))
+                            returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
+                    }
+                    else
+                        returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
+
+                    if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
+                    {
+                        string? endvalue = returnValues[0].ToString();
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[OHS] - De-Assembled Data : {endvalue}");
+#endif
+                        return (writekey, endvalue);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminDeFormat failed - {ex}");
+            }
+
+            return ("11111111", null);
+        }
+
+        public static string? JaminDeFormat(string? dataforohs, bool hashed, int game)
         {
             try
             {
                 // Execute the Lua script and get the result
                 object[]? returnValues = null;
 
-                if (hashed)
-                    returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs.Substring(8))); // We remove the hash.
-                else
-                    returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
+                if (game != 0 && !string.IsNullOrEmpty(dataforohs))
+                {
+                    dataforohs = EncryptDecrypt.Decrypt(EncryptDecrypt.UnEscape(dataforohs), game);
+#if DEBUG
+                    LoggerAccessor.LogInfo($"[OHS] - Decrypted Data : {dataforohs}");
+#endif
+                }
 
-                if (!string.IsNullOrEmpty(returnValues[0]?.ToString()))
-                    return returnValues[0].ToString();
+                if (!string.IsNullOrEmpty(dataforohs))
+                {
+                    if (hashed)
+                    {
+                        string InData = dataforohs.Substring(8); // We remove the hash.
+                        if (VerifyHash(InData, dataforohs.Substring(0, 8)))
+                            returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
+                    }
+                    else
+                        returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
+
+                    if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
+                    {
+                        string? endvalue = returnValues[0].ToString();
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[OHS] - De-Assembled Data : {endvalue}");
+#endif
+                        return endvalue;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminFormat failed - {ex}");
+                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminDeFormat failed - {ex}");
             }
 
             return null;
         }
 
-        public static string? JaminFormat(string dataforohs)
+        public static string? JaminFormat(string dataforohs, int game)
         {
             try
             {
                 // Execute the Lua script and get the result
                 object[] returnValues = ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", dataforohs));
 
-                if (!string.IsNullOrEmpty(returnValues[0]?.ToString()))
-                    return returnValues[0].ToString();
+                string? LuaReturn = returnValues[0].ToString();
+
+                if (!string.IsNullOrEmpty(LuaReturn))
+                {
+#if DEBUG
+                    LoggerAccessor.LogInfo($"[OHS] - Assembled Data : {LuaReturn}");
+#endif
+                    if (game != 0)
+                    {
+                        Random random = new();
+                        string? cipheredoutput = EncryptDecrypt.Encrypt(LuaReturn, random.Next(1, 95 * 95 + 1), game);
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[OHS] - Encrypted Data : {cipheredoutput}");
+#endif
+                        return cipheredoutput;
+                    }
+                    else
+                        return LuaReturn;
+                }
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminDeFormat failed - {ex}");
+                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminFormat failed - {ex}");
             }
 
             return null;
@@ -61,7 +155,7 @@ namespace CryptoSporidium.OHS
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new StringBuilder("{ ");
+                    StringBuilder resultBuilder = new("{ ");
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {
@@ -108,7 +202,7 @@ namespace CryptoSporidium.OHS
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new StringBuilder();
+                    StringBuilder resultBuilder = new();
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {

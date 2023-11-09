@@ -2,11 +2,11 @@ using CustomLogger;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using Horizon.RT.Common;
-using Horizon.RT.Cryptography;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Cryptography;
+using CryptoSporidium.Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
-using Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.LIBRARY.Common;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
@@ -115,7 +115,7 @@ namespace Horizon.DME
             // Remove client on disconnect
             _scertHandler.OnChannelInactive += async (channel) =>
             {
-                LoggerAccessor.LogError($"Lost connection to MPS");
+                LoggerAccessor.LogError("Lost connection to MPS");
                 TimeLostConnection = Utils.GetHighPrecisionUtcTime();
                 await Stop();
             };
@@ -154,8 +154,10 @@ namespace Horizon.DME
         public async Task Stop()
         {
             await Task.WhenAll(_worlds.Select(x => x.Stop()));
-            await _mpsChannel.DisconnectAsync();
-            await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
+            if (_mpsChannel != null)
+                await _mpsChannel.DisconnectAsync();
+            if (_group != null)
+                await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
 
             _worlds.Clear();
             _removeWorldQueue.Clear();
@@ -245,7 +247,8 @@ namespace Horizon.DME
 
             try
             {
-                _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(Misc.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
+                if (_bootstrap != null)
+                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(Misc.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
             }
             catch (Exception)
             {
@@ -254,12 +257,12 @@ namespace Horizon.DME
                 return;
             }
 
-            if (!_mpsChannel.IsActive)
+            if (_mpsChannel != null && !_mpsChannel.IsActive)
                 return;
 
             _mpsState = MPSConnectionState.CONNECTED;
 
-            if (!_mpsChannel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+            if (_mpsChannel != null && !_mpsChannel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
                 _mpsChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
             var scertClient = _mpsChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
@@ -313,11 +316,12 @@ namespace Horizon.DME
                         // generate new client session key
                         scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION, serverCryptKeyPeer.SessionKey);
 
-                        await _mpsChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_TCP()
-                        {
-                            AppId = ApplicationId,
-                            Key = DmeClass.GlobalAuthPublic
-                        });
+                        if (_mpsChannel != null)
+                            await _mpsChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_TCP()
+                            {
+                                AppId = ApplicationId,
+                                Key = DmeClass.GlobalAuthPublic
+                            });
 
                         _mpsState = MPSConnectionState.CONNECT_TCP;
                         break;
@@ -327,19 +331,20 @@ namespace Horizon.DME
                         if (_mpsState != MPSConnectionState.CONNECT_TCP)
                             throw new Exception($"Unexpected RT_MSG_SERVER_CONNECT_ACCEPT_TCP from server. {serverConnectAcceptTcp}");
 
-                        // Send attributes
-                        await _mpsChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_APP_TOSERVER()
-                        {
-                            Message = new MediusServerSetAttributesRequest()
+                        if (_mpsChannel != null)
+                            // Send attributes
+                            await _mpsChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_APP_TOSERVER()
                             {
-                                MessageID = new MessageId(),
-                                ListenServerAddress = new NetAddress()
+                                Message = new MediusServerSetAttributesRequest()
                                 {
-                                    Address = DmeClass.SERVER_IP.ToString(),
-                                    Port = DmeClass.TcpServer.Port
+                                    MessageID = new MessageId(),
+                                    ListenServerAddress = new NetAddress()
+                                    {
+                                        Address = DmeClass.SERVER_IP.ToString(),
+                                        Port = DmeClass.TcpServer.Port
+                                    }
                                 }
-                            }
-                        });
+                            });
 
                         _mpsState = MPSConnectionState.SET_ATTRIBUTES;
                         break;

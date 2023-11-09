@@ -6,9 +6,9 @@ public static class SSFWServerConfiguration
 {
     public static bool SSFWCrossSave { get; set; } = true;
     public static string SSFWMinibase { get; set; } = "[]";
-    public static string SSFWLegacyKey { get; set; } = string.Empty;
+    public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
-    public static string SSFWCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SSFW.pfx";
+    public static string SSFWCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static List<string>? BannedIPs { get; set; }
 
     /// <summary>
@@ -66,10 +66,7 @@ class Program
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        if (!File.Exists(SSFWServerConfiguration.SSFWCertificateFile))
-            CryptoSporidium.SSLUtils.CreateSelfSignedCert(SSFWServerConfiguration.SSFWCertificateFile, "secure.cprod.homeps3.online.scee.com");
-
-        CryptoSporidium.SSLUtils.CreateHomeCertificatesFile(File.ReadAllText(Path.GetDirectoryName(SSFWServerConfiguration.SSFWCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SSFWServerConfiguration.SSFWCertificateFile)}.pem"), Path.GetDirectoryName(SSFWServerConfiguration.SSFWCertificateFile) + "/CERTIFICATES.TXT");
+        CryptoSporidium.SSLUtils.InitCerts(SSFWServerConfiguration.SSFWCertificateFile);
 
         SSFWClass server = new(SSFWServerConfiguration.SSFWCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
 

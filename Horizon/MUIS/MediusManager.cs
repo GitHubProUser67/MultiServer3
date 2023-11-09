@@ -1,8 +1,8 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
-using Horizon.LIBRARY.Database.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.LIBRARY.Database.Models;
 using Horizon.MUIS.Models;
 using System.Collections.Concurrent;
 using System.Net;
@@ -802,14 +802,11 @@ namespace Horizon.MUIS
                 //securityMode = (SECURITY_MODE)result;
             }
 
-
             return (SECURITY_MODE)result;
         }
 
         public void rt_msg_server_check_protocol_compatibility(int clientVersion, byte p_compatible)
         {
-
-
 
         }
 

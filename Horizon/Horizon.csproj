@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BouncyCastle\BouncyCastle.csproj" />
+    <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
     <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
   </ItemGroup>
 

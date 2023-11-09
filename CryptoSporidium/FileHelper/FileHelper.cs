@@ -18,7 +18,7 @@ namespace CryptoSporidium.FileHelper
                     EDGELZMA? lzma = new();
                     byte[]? DecompressedData = lzma.Decompress(src);
                     lzma = null;
-                    Utils? utils = new();
+                    MiscUtils? utils = new();
                     if (!string.IsNullOrEmpty(key) && DecompressedData.Length > 9 && utils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         utils = null;
@@ -34,7 +34,7 @@ namespace CryptoSporidium.FileHelper
                 }
                 else
                 {
-                    Utils? utils = new();
+                    MiscUtils? utils = new();
                     if (!string.IsNullOrEmpty(key) && src.Length > 9 && utils.FindbyteSequence(src, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         utils = null;
@@ -70,7 +70,7 @@ namespace CryptoSporidium.FileHelper
                     EDGELZMA? lzma = new();
                     byte[]? DecompressedData = lzma.Decompress(src);
                     lzma = null;
-                    Utils? utils = new();
+                    MiscUtils? utils = new();
                     if (!string.IsNullOrEmpty(key) && DecompressedData.Length > 9 && utils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         utils = null;
@@ -86,7 +86,7 @@ namespace CryptoSporidium.FileHelper
                 }
                 else
                 {
-                    Utils? utils = new();
+                    MiscUtils? utils = new();
                     if (!string.IsNullOrEmpty(key) && src.Length > 9 && utils.FindbyteSequence(src, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         utils = null;

@@ -51,34 +51,6 @@ namespace SSFWServer
             ",\"instanceId\":\"4874595598\",\"itemId\":13,\"positionX\":3.6171293258666992,\"positionY\":3.4891724586486816,\"position" +
             "Z\":-9.53490161895752,\"rotationX\":0.00042979296995326877,\"rotationY\":-0.0092521701008081436,\"rotationZ\":-0.00027207" +
             "753737457097,\"rotationW\":0.99995702505111694,\"time\":1686385008,\"photo\":\"/Furniture/Modern2/lampOutputcube.dds\"}]}}]";
-
-        public static string SSFWGenerateGuid(string input1, string input2)
-        {
-            string md5hash = "";
-            string sha512hash = "";
-
-            using (MD5 md5 = MD5.Create())
-            {
-                string salt = "**H0mEIsG3reAT!!!!!!!!!!!!!!";
-
-                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input1 + salt));
-                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                md5.Clear();
-            }
-
-            using (SHA512 sha512 = SHA512.Create())
-            {
-                string salt = "C0MeBaCKHOm3*!*!*!*!*!*!*!*!";
-
-                byte[] hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(salt + input2));
-                sha512hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                sha512.Clear();
-            }
-
-            return (md5hash.Substring(1, 8) + "-" + sha512hash.Substring(2, 4) + "-" + md5hash.Substring(10, 4) + "-" + sha512hash.Substring(16, 4) + "-" + sha512hash.Substring(19, 12)).ToLower();
-        }
     }
 
     public class SSFWUserData

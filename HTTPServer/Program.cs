@@ -2,6 +2,7 @@
 using CustomLogger;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
+using CryptoSporidium.UnBAR;
 
 public static class HTTPServerConfiguration
 {
@@ -85,6 +86,8 @@ class Program
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
         Processor server = new("*", HTTPServerConfiguration.HTTPPort);
+
+        BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         server.Start();
 

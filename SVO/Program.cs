@@ -1,8 +1,8 @@
-﻿using SVO;
+using SVO;
 using CustomLogger;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
-using Horizon.LIBRARY.Database;
+using CryptoSporidium.Horizon.LIBRARY.Database;
 
 public static class SVOServerConfiguration
 {
@@ -95,7 +95,7 @@ class Program
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 		
-        Processor server = new("*", 10060);
+        Processor server = new("*");
 
         server.Start();
 

@@ -102,73 +102,78 @@ namespace CryptoSporidium
         "services.heavyh2o.net",
         "starhawk-prod2.svo.online.scea.com" };
 
-        public static string CreateSelfSignedCert(string PfxFileName, string CN)
+        public static string? CreateSelfSignedCert(string PfxFileName, string CN)
         {
-            // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create())
+            if (!string.IsNullOrEmpty(PfxFileName))
             {
-                // Create a certificate request with the RSA key pair
-                CertificateRequest request = new CertificateRequest($"CN={CN} [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                // Generate a new RSA key pair
+                using (RSA rsa = RSA.Create())
+                {
+                    // Create a certificate request with the RSA key pair
+                    CertificateRequest request = new CertificateRequest($"CN={CN} [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
-                // Set additional properties of the certificate
-                request.CertificateExtensions.Add(
-                    new X509BasicConstraintsExtension(false, false, 0, true));
+                    // Set additional properties of the certificate
+                    request.CertificateExtensions.Add(
+                        new X509BasicConstraintsExtension(false, false, 0, true));
 
-                // Enhanced key usages
-                request.CertificateExtensions.Add(
-                    new X509EnhancedKeyUsageExtension(
-                        new OidCollection {
+                    // Enhanced key usages
+                    request.CertificateExtensions.Add(
+                        new X509EnhancedKeyUsageExtension(
+                            new OidCollection {
                             new Oid("1.3.6.1.5.5.7.3.2"), // TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.1"), // TLS Server auth
                             new Oid("1.3.6.1.5.5.7.3.4"), // Non-TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.5")  // Non-TLS Server auth
-                        },
-                        true));
+                            },
+                            true));
 
-                // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
-                var sanBuilder = new SubjectAlternativeNameBuilder();
-                sanBuilder.AddDnsName(CN);
-                if (DnsList != null)
-                {
-                    foreach (string str in DnsList)
+                    // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
+                    var sanBuilder = new SubjectAlternativeNameBuilder();
+                    sanBuilder.AddDnsName(CN);
+                    if (DnsList != null)
                     {
-                        sanBuilder.AddDnsName(str);
+                        foreach (string str in DnsList)
+                        {
+                            sanBuilder.AddDnsName(str);
+                        }
                     }
+                    sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
+                    sanBuilder.AddEmailAddress("MultiServer@gmail.com");
+                    request.CertificateExtensions.Add(sanBuilder.Build());
+
+                    // Set the validity period of the certificate
+                    DateTimeOffset notBefore = new DateTimeOffset(new DateTime(2002, 1, 1), TimeSpan.Zero);
+                    DateTimeOffset notAfter = DateTime.Now.AddYears(1000);
+
+                    // Create a self-signed certificate from the certificate request
+                    X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(PfxFileName));
+
+                    string certPassword = "qwerty"; // Set a password to protect the private key
+                    File.WriteAllBytes(PfxFileName, certificate.Export(X509ContentType.Pfx, certPassword));
+
+                    // Export the private key.
+                    string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
+                    File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}_key.pem", PRIVATE_KEY_HEADER + privateKey + PRIVATE_KEY_FOOTER);
+
+                    // Export the public key.
+                    string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks);
+                    File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}_pubkey.pem", PUBLIC_KEY_HEADER + publicKey + PUBLIC_KEY_FOOTER);
+
+                    Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(PfxFileName, certPassword);
+
+                    StringBuilder CertPem = new StringBuilder();
+                    PemWriter CSRPemWriter = new PemWriter(new StringWriter(CertPem));
+                    CSRPemWriter.WriteObject(x509cert);
+                    CSRPemWriter.Writer.Flush();
+                    File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}.pem", CertPem.ToString());
+
+                    return CertPem.ToString();
                 }
-                sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
-                sanBuilder.AddEmailAddress("MultiServer@gmail.com");
-                request.CertificateExtensions.Add(sanBuilder.Build());
-
-                // Set the validity period of the certificate
-                DateTimeOffset notBefore = new DateTimeOffset(new DateTime(2002, 1, 1), TimeSpan.Zero);
-                DateTimeOffset notAfter = DateTime.Now.AddYears(1000);
-
-                // Create a self-signed certificate from the certificate request
-                X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(PfxFileName));
-
-                string certPassword = "qwerty"; // Set a password to protect the private key
-                File.WriteAllBytes(PfxFileName, certificate.Export(X509ContentType.Pfx, certPassword));
-
-                // Export the private key.
-                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}_key.pem", PRIVATE_KEY_HEADER + privateKey + PRIVATE_KEY_FOOTER);
-
-                // Export the public key.
-                string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}_pubkey.pem", PUBLIC_KEY_HEADER + publicKey + PUBLIC_KEY_FOOTER);
-
-                Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(PfxFileName, certPassword);
-
-                StringBuilder CertPem = new StringBuilder();
-                PemWriter CSRPemWriter = new PemWriter(new StringWriter(CertPem));
-                CSRPemWriter.WriteObject(x509cert);
-                CSRPemWriter.Writer.Flush();
-                File.WriteAllText(Path.GetDirectoryName(PfxFileName) + $"/{Path.GetFileNameWithoutExtension(PfxFileName)}.pem", CertPem.ToString());
-
-                return CertPem.ToString();
             }
+
+            return null;
         }
 
         public static string CreateLegacySelfSignedCert(string FileName, string CN) // Ssl2 style.
@@ -270,6 +275,14 @@ namespace CryptoSporidium
         {
             File.WriteAllText(FileName, pemSubject + SCERT_ROOT_CA + ENTRUST_NET_CA); // For PSHome clients.
         }
+
+        public static void InitCerts(string certpath)
+        {
+            if (!File.Exists(certpath))
+                CreateSelfSignedCert(certpath, "secure.cprod.homeps3.online.scee.com");
+
+            CreateHomeCertificatesFile(File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}.pem"), Path.GetDirectoryName(certpath) + "/CERTIFICATES.TXT");
+        }
     }
 
     /// <summary>
@@ -298,7 +311,7 @@ namespace CryptoSporidium
         /// </summary>
         /// <param name="hashAlgorithm">Hashing algorithm name.</param>
         /// <returns>Hashing algorithm ID in some correct format.</returns>
-        public override byte[] GetSignatureAlgorithmIdentifier(HashAlgorithmName hashAlgorithm)
+        public override byte[]? GetSignatureAlgorithmIdentifier(HashAlgorithmName hashAlgorithm)
         {
             /*
 			 * https://bugzilla.mozilla.org/show_bug.cgi?id=1064636#c28

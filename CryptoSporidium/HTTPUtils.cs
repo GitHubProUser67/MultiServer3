@@ -19,6 +19,7 @@ namespace CryptoSporidium
                 { ".aas", "application/x-authorware-seg" },
                 { ".abw", "application/x-abiword" },
                 { ".ac", "application/pkix-attr-cert" },
+                { ".ac3", "audio/ac3" },
                 { ".acc", "application/vnd.americandynamics.acc" },
                 { ".ace", "application/x-ace-compressed" },
                 { ".acu", "application/vnd.acucobol" },
@@ -212,6 +213,7 @@ namespace CryptoSporidium
                 { ".efif", "application/vnd.picsel" },
                 { ".ei6", "application/vnd.pg.osasli" },
                 { ".elc", "application/octet-stream" },
+                { ".elf", "application/octet-stream" },
                 { ".emf", "application/x-msmetafile" },
                 { ".eml", "message/rfc822" },
                 { ".emma", "application/emma+xml" },
@@ -237,6 +239,7 @@ namespace CryptoSporidium
                 { ".f4v", "video/x-f4v" },
                 { ".f77", "text/x-fortran" },
                 { ".f90", "text/x-fortran" },
+                { ".fastsoap",  "application/fastsoap" },
                 { ".fbs", "image/vnd.fastbidsheet" },
                 { ".fcdt", "application/vnd.adobe.formscentral.fcdt" },
                 { ".fcs", "application/vnd.isac.fcs" },
@@ -252,6 +255,7 @@ namespace CryptoSporidium
                 { ".fig", "application/x-xfig" },
                 { ".flac", "audio/x-flac" },
                 { ".fli", "video/x-fli" },
+                { ".flick", "application/octet-stream" },
                 { ".flo", "application/vnd.micrografx.flo" },
                 { ".flv", "video/x-flv" },
                 { ".flw", "application/vnd.kde.kivio" },
@@ -322,6 +326,7 @@ namespace CryptoSporidium
                 { ".htke", "application/vnd.kenameaapp" },
                 { ".htm", "text/html" },
                 { ".html", "text/html" },
+                { ".http", "message/http" },
                 { ".hvd", "application/vnd.yamaha.hv-dic" },
                 { ".hvp", "application/vnd.yamaha.hv-voice" },
                 { ".hvs", "application/vnd.yamaha.hv-script" },
@@ -369,6 +374,8 @@ namespace CryptoSporidium
                 { ".jpgm", "video/jpm" },
                 { ".jpgv", "video/jpeg" },
                 { ".jpm", "video/jpm" },
+                { ".jpx", "image/jpx" },
+                { ".jrx", "image/jrx" },
                 { ".js", "application/javascript" },
                 { ".json", "application/json" },
                 { ".jsonml", "application/jsonml+json" },
@@ -427,6 +434,7 @@ namespace CryptoSporidium
                 { ".maker", "application/vnd.framemaker" },
                 { ".man", "text/troff" },
                 { ".mar", "application/octet-stream" },
+                { ".map",  "application/json" },
                 { ".mathml", "application/mathml+xml" },
                 { ".mb", "application/mathematica" },
                 { ".mbk", "application/vnd.mobius.mbk" },
@@ -604,6 +612,7 @@ namespace CryptoSporidium
                 { ".pkg", "application/octet-stream" },
                 { ".pki", "application/pkixcmp" },
                 { ".pkipath", "application/pkix-pkipath" },
+                { ".plain", "text/plain" },
                 { ".plb", "application/vnd.3gpp.pic-bw-large" },
                 { ".plc", "application/vnd.mobius.plc" },
                 { ".plf", "application/vnd.pocketlearn" },
@@ -654,12 +663,14 @@ namespace CryptoSporidium
                 { ".ram", "audio/x-pn-realaudio" },
                 { ".rar", "application/x-rar-compressed" },
                 { ".ras", "image/x-cmu-raster" },
+                { ".raw", "video/raw" },
                 { ".rcprofile", "application/vnd.ipunplugged.rcprofile" },
                 { ".rdf", "application/rdf+xml" },
                 { ".rdz", "application/vnd.data-vision.rdz" },
                 { ".rep", "application/vnd.businessobjects" },
                 { ".res", "application/x-dtbresource+xml" },
                 { ".rgb", "image/x-rgb" },
+                { ".richtext", "text/richtext" },
                 { ".rif", "application/reginfo+xml" },
                 { ".rip", "audio/vnd.rip" },
                 { ".ris", "application/x-research-info-systems" },
@@ -684,6 +695,7 @@ namespace CryptoSporidium
                 { ".rtf", "application/rtf" },
                 { ".rtx", "text/richtext" },
                 { ".s", "text/x-asm" },
+                { ".s-http", "message/s-http" },
                 { ".s3m", "audio/s3m" },
                 { ".saf", "application/vnd.yamaha.smaf-audio" },
                 { ".sbml", "application/sbml+xml" },
@@ -720,6 +732,7 @@ namespace CryptoSporidium
                 { ".shar", "application/x-shar" },
                 { ".sharc", "application/octet-stream" },
                 { ".shf", "application/shf+xml" },
+                { ".si", "application/octet-stream" },
                 { ".sid", "image/x-mrsid-image" },
                 { ".sig", "application/pgp-signature" },
                 { ".sil", "audio/silk" },
@@ -744,6 +757,7 @@ namespace CryptoSporidium
                 { ".snd", "audio/basic" },
                 { ".snf", "application/x-font-snf" },
                 { ".so", "application/octet-stream" },
+                { ".soap",      "application/soap+xml" },
                 { ".spc", "application/x-pkcs7-certificates" },
                 { ".spf", "application/vnd.yamaha.smaf-phrase" },
                 { ".spl", "application/x-futuresplash" },
@@ -768,6 +782,7 @@ namespace CryptoSporidium
                 { ".stk", "application/hyperstudio" },
                 { ".stl", "application/vnd.ms-pki.stl" },
                 { ".str", "application/vnd.pg.format" },
+                { ".strings", "text/strings" },
                 { ".stw", "application/vnd.sun.xml.writer.template" },
                 { ".sus", "application/vnd.sus-calendar" },
                 { ".susp", "application/vnd.sus-calendar" },
@@ -815,6 +830,7 @@ namespace CryptoSporidium
                 { ".trm", "application/x-msterminal" },
                 { ".tsd", "application/timestamped-data" },
                 { ".tsv", "text/tab-separated-values" },
+                { ".tss", "application/xml" },
                 { ".ttc", "font/collection" },
                 { ".ttf", "font/ttf" },
                 { ".ttl", "text/turtle" },
@@ -833,6 +849,7 @@ namespace CryptoSporidium
                 { ".uoml", "application/vnd.uoml+xml" },
                 { ".uri", "text/uri-list" },
                 { ".uris", "text/uri-list" },
+                { ".url", "text/uri-list" },
                 { ".urls", "text/uri-list" },
                 { ".ustar", "application/x-ustar" },
                 { ".utz", "application/vnd.uiq.theme" },
@@ -883,6 +900,7 @@ namespace CryptoSporidium
                 { ".vst", "application/vnd.visio" },
                 { ".vsw", "application/vnd.visio" },
                 { ".vtu", "model/vnd.vtu" },
+                { ".vue", "text/html" },
                 { ".vxml", "application/voicexml+xml" },
                 { ".w3d", "application/x-director" },
                 { ".wad", "application/x-doom" },
@@ -996,8 +1014,90 @@ namespace CryptoSporidium
                 { ".zip", "application/zip" },
                 { ".zir", "application/vnd.zul" },
                 { ".zirz", "application/vnd.zul" },
+                { ".zlib", "application/zlib" },
                 { ".zmm", "application/vnd.handheld-entertainment+xml" }
         };
+
+        public static string[] DefaultDocuments =
+        {
+            "/index.html",
+            "/index.htm",
+            "/default.html",
+            "/default.htm",
+            "/index.php",
+            "/default.php"
+        };
+
+        public static byte[] RemoveUnwantedHeaders(byte[] phpOutputBytes)
+        {
+            // Find the index where headers end and content starts (indicated by an empty line)
+            int emptyLineIndex = -1;
+            for (int i = 0; i < phpOutputBytes.Length - 3; i++)
+            {
+                if (phpOutputBytes[i] == '\r' && phpOutputBytes[i + 1] == '\n' && phpOutputBytes[i + 2] == '\r' && phpOutputBytes[i + 3] == '\n')
+                {
+                    emptyLineIndex = i + 4; // Skip the empty line
+                    break;
+                }
+            }
+
+            if (emptyLineIndex == -1)
+            {
+                // If no empty line found, return the original bytes
+                return phpOutputBytes;
+            }
+
+            List<byte> filteredOutput = new List<byte>();
+
+            bool skipHeaders = false;
+
+            for (int i = emptyLineIndex; i < phpOutputBytes.Length; i++)
+            {
+                byte currentByte = phpOutputBytes[i];
+
+                if (currentByte == '\r' && i < phpOutputBytes.Length - 1 && phpOutputBytes[i + 1] == '\n')
+                {
+                    // Empty line indicates end of headers, switch to normal content
+                    skipHeaders = true;
+                    filteredOutput.Add((byte)'\r');
+                    filteredOutput.Add((byte)'\n');
+                    i++; // Skip the '\n' character
+                }
+                else if (!skipHeaders)
+                {
+                    // Check if the line contains unwanted headers and skip them
+                    bool skipLine = false;
+
+                    if (currentByte == 'C' && i + 12 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Content-Type:"))
+                    {
+                        skipLine = true;
+                        i += 13; // Skip "Content-Type:" and the following space
+                    }
+                    else if (currentByte == 'S' && i + 10 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Set-Cookie:"))
+                    {
+                        skipLine = true;
+                        i += 11; // Skip "Set-Cookie:" and the following space
+                    }
+
+                    if (!skipLine)
+                        filteredOutput.Add(currentByte);
+                }
+                else
+                    filteredOutput.Add(currentByte);
+            }
+
+            return filteredOutput.ToArray();
+        }
+
+        public static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)
+        {
+            for (int i = 0; i < header.Length; i++)
+            {
+                if (startIndex + i >= byteArray.Length || byteArray[startIndex + i] != (byte)header[i])
+                    return false;
+            }
+            return true;
+        }
 
         public static string? ExtractBoundary(string? contentType)
         {
@@ -1011,8 +1111,10 @@ namespace CryptoSporidium
             return null;
         }
 
-        public static byte[] Compress(byte[] input)
+        public static byte[]? Compress(byte[] input)
         {
+            byte[]? byteoutput = null;
+
             using (MemoryStream output = new())
             {
                 using (GZipStream gzipStream = new(output, CompressionMode.Compress, leaveOpen: false))
@@ -1021,8 +1123,11 @@ namespace CryptoSporidium
                     gzipStream.Flush();
                 }
 
-                return output.ToArray();
+                byteoutput = output.ToArray();
+                output.Flush();
             }
+
+            return byteoutput;
         }
     }
 }

@@ -118,7 +118,7 @@ namespace CryptoSporidium
                 else // EdgeLZMA Version 5.
                 {
                     result.Position = 6;
-                    Utils? utils = new();
+                    MiscUtils? utils = new();
                     bw.Write(utils.endianSwap(BitConverter.GetBytes(segmentnumber)));
                     utils = null;
 

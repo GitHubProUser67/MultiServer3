@@ -62,7 +62,7 @@ namespace TycoonServer
                         extractedData[i] = 0x20;
                 }
 
-                Utils? utils = new();
+                MiscUtils? utils = new();
 
                 if (utils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
@@ -85,7 +85,7 @@ namespace TycoonServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = SSFWServer.SSFWMisc.SSFWGenerateGuid(hash, resultString);
+                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Clear();
                     }
@@ -111,7 +111,7 @@ namespace TycoonServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = SSFWServer.SSFWMisc.SSFWGenerateGuid(hash, resultString);
+                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Clear();
                     }

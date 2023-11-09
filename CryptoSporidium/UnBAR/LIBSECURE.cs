@@ -8,89 +8,11 @@ namespace CryptoSporidium.UnBAR
 {
     internal class LIBSECURE
     {
-        public byte[]? ProcessXTEABlocks(byte[] inputArray, byte[] Key, byte[] IV)
+        public byte[]? InitiateLibSecureXTEACTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, int blocksize)
         {
-            int inputLength = inputArray.Length;
-            int inputIndex = 0;
-            byte[]? output = null;
-            ToolsImpl? toolsimpl = new();
-
-            while (inputIndex < inputLength)
+            if (KeyBytes != null && KeyBytes.Length == 16 && m_iv != null && m_iv.Length == 8 && FileBytes != null)
             {
-                int blockSize = Math.Min(8, inputLength - inputIndex);
-                byte[]? block = new byte[blockSize];
-                Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-
-                block = InitiateXTEACTRBuffer(block, Key, IV, blockSize);
-
-                toolsimpl.IncrementIVBytes(IV, 1);
-
-                if (output == null)
-                    output = block;
-                else
-                {
-                    Utils? utils = new();
-                    output = utils.Combinebytearay(output, block);
-                    utils = null;
-                }
-
-                inputIndex += blockSize;
-            }
-
-            toolsimpl = null;
-
-            return output;
-        }
-
-        public async Task<byte[]>? ProcessXTEABlocksAsync(byte[] inputArray, byte[] Key, byte[] IV)
-        {
-            int inputLength = inputArray.Length;
-            int inputIndex = 0;
-            int blockSize = 8;
-            int outputIndex = 0;
-            int executionNumber = 0;
-            byte[]? output = new byte[inputLength];
-            SemaphoreSlim semaphore = new(1);
-            ToolsImpl? toolsimpl = new();
-
-            while (inputIndex < inputLength)
-            {
-                blockSize = Math.Min(8, inputLength - inputIndex);
-                byte[] block = new byte[blockSize];
-                Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                int currentExecutionNumber = executionNumber;
-
-                var tcs = new TaskCompletionSource<byte[]>();
-
-                await Task.Run(() =>
-                {
-                    tcs.SetResult(InitiateXTEACTRBuffer(block, Key, IV, blockSize));
-                });
-
-                toolsimpl.IncrementIVBytes(IV, 1);
-
-                await semaphore.WaitAsync();
-
-                byte[] taskResult = await tcs.Task;
-                Buffer.BlockCopy(taskResult, 0, output, outputIndex, blockSize);
-                outputIndex += blockSize;
-                semaphore.Release();
-
-                inputIndex += blockSize;
-                executionNumber++;
-            }
-
-            semaphore.Dispose();
-            toolsimpl = null;
-
-            return output;
-        }
-
-        public byte[]? InitiateXTEACTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, int blocksize)
-        {
-            if (KeyBytes != null && KeyBytes.Length >= 16 && m_iv != null && m_iv.Length == 8 && FileBytes != null)
-            {
-                Utils? utils = new();
+                MiscUtils? utils = new();
                 byte[]? returnbytes = null;
                 // Create the cipher
                 IBufferedCipher? cipher = null;
@@ -122,7 +44,7 @@ namespace CryptoSporidium.UnBAR
                 }
             }
             else
-                LoggerAccessor.LogError("[LIBSECURE] - InitiateXTEACTRBuffer - Invalid FileBytes, KeyByes or IV!");
+                LoggerAccessor.LogError("[LIBSECURE] - InitiateLibSecureXTEACTRBuffer - Invalid FileBytes, KeyByes or IV!");
 
             return null;
         }
@@ -131,7 +53,7 @@ namespace CryptoSporidium.UnBAR
         {
             string? returnstring = null;
             StringBuilder? CryptoBytes = new();
-            Utils? utils = new();
+            MiscUtils? utils = new();
 
             if (blocksize == 8)
             {

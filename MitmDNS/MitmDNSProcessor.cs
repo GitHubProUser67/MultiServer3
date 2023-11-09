@@ -57,7 +57,7 @@ namespace MitmDNS
 
         public Task DnsMainLoop()
         {
-            CryptoSporidium.Utils? utils = new();
+            CryptoSporidium.MiscUtils? utils = new();
 
             while (DnsStarted)
             {
@@ -152,7 +152,7 @@ namespace MitmDNS
             int type = (Req[2] >> 3) & 0xF;
             if (type == 0)
             {
-                CryptoSporidium.Utils? utils = new();
+                CryptoSporidium.MiscUtils? utils = new();
                 int lenght = Req[12];
                 int i = 12;
                 while (lenght > 0)

@@ -1,4 +1,4 @@
-using Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Common;
 
 namespace Horizon.PluginManager
 {

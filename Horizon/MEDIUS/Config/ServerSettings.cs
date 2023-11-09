@@ -1,5 +1,5 @@
 using Org.BouncyCastle.Math;
-using Horizon.RT.Cryptography.RSA;
+using CryptoSporidium.Horizon.RT.Cryptography.RSA;
 using CustomLogger;
 
 namespace Horizon.MEDIUS.Config

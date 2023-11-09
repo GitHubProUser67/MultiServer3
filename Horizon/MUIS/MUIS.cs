@@ -4,15 +4,14 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using Horizon.RT.Common;
-using Horizon.RT.Cryptography;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Cryptography;
+using CryptoSporidium.Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
 using System.Globalization;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Horizon.MUIS
@@ -23,10 +22,6 @@ namespace Horizon.MUIS
     /// </summary>
     public class MUIS
     {
-        public static double homeretailver = 0;
-
-        public static double homebetaver = 0;
-
         public static Random RNG = new();
 
         public static ServerSettings Settings = new();
@@ -120,11 +115,13 @@ namespace Horizon.MUIS
         {
             try
             {
-                await _boundChannel.CloseAsync();
+                if (_boundChannel != null)
+                    await _boundChannel.CloseAsync();
             }
             finally
             {
-                await Task.WhenAll(
+                if (_bossGroup != null && _workerGroup != null)
+                    await Task.WhenAll(
                         _bossGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
                         _workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));
             }
@@ -214,26 +211,37 @@ namespace Horizon.MUIS
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerComplete = new List<int>() { 10334, 10540 };
+                        List<int> pre108ServerComplete = new List<int>() { 10334, 10421, 10540 };
 
-                        if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION))
+                        if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
 
-                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                        // If this is a PS3 client
+                        if (scertClient.IsPS3Client || scertClient.MediusVersion >= 109)
                         {
-                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address,
-                        }, clientChannel);
+                            //Send a Server_Connect_Require with no Password needed
+                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
+                        }
+                        else
+                        {
+                            //Do NOT send hereCryptKey Game
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                            {
+                                PlayerId = 0,
+                                ScertId = GenerateNewScertClientId(),
+                                PlayerCount = 0x0001,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                            }, clientChannel);
+                        }
 
-                        if (pre108ServerComplete.Contains(data.ApplicationId))
+                    if (pre108ServerComplete.Contains(data.ApplicationId))
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
-                        if (scertClient.MediusVersion >= 109 && scertClient.CipherService.EnableEncryption == true)
-                        {
+                        if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.MediusVersion >= 109 && scertClient.CipherService.EnableEncryption == true)
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        }
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,
@@ -541,50 +549,6 @@ namespace Horizon.MUIS
                                         }
                                         #endregion
 
-                                        try
-                                        {
-                                            if (data.ApplicationId == 20374)
-                                            {
-                                                if (info.ExtendedInfo != null && info.ExtendedInfo != "")
-                                                {
-                                                    string firstFiveElements = info.ExtendedInfo.Substring(0, Math.Min(5, info.ExtendedInfo.Length));
-
-                                                    try
-                                                    {
-                                                        homeretailver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
-                                                    }
-                                                    catch (Exception)
-                                                    {
-                                                        homeretailver = 0;
-                                                    }
-                                                }
-                                                else
-                                                    homeretailver = 0;
-                                            }
-                                            else if (data.ApplicationId == 20371)
-                                            {
-                                                if (info.ExtendedInfo != null && info.ExtendedInfo != "")
-                                                {
-                                                    string firstFiveElements = info.ExtendedInfo.Substring(0, Math.Min(5, info.ExtendedInfo.Length));
-
-                                                    try
-                                                    {
-                                                        homebetaver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
-                                                    }
-                                                    catch (Exception)
-                                                    {
-                                                        homebetaver = 0;
-                                                    }
-                                                }
-                                                else
-                                                    homebetaver = 0;
-                                            }
-                                        }
-                                        catch (Exception)
-                                        {
-                                            homebetaver = 0;
-                                        }
-
                                         #region SVOUrl
                                         if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
                                         {
@@ -607,31 +571,36 @@ namespace Horizon.MUIS
                                         {
                                             try
                                             {
-                                                JObject jsonObject = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
+                                                var jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
 
-                                                if (jsonObject!= null && jsonObject.Properties() != null)
+                                                foreach (var appProperty in jsonObject.Properties())
                                                 {
-                                                    foreach (var property in jsonObject.Properties())
+                                                    string? appId = appProperty.Name;
+
+                                                    if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
                                                     {
-                                                        if (int.Parse(property.Name) == data.ApplicationId)
+                                                        var innerObject = appProperty.Value as JObject;
+
+                                                        if (innerObject != null)
                                                         {
-                                                            JObject PokeOffsets = property.Value.ToObject<JObject>();
-
-                                                            if (PokeOffsets!= null && PokeOffsets.Properties() != null)
+                                                            foreach (var offsetProperty in innerObject.Properties())
                                                             {
-                                                                foreach (var subProperty in PokeOffsets.Properties())
-                                                                {
-                                                                    uint offset = uint.Parse(subProperty.Name);
-                                                                    uint valuetopatch = uint.Parse(subProperty.Value.ToString());
+                                                                string? offset = offsetProperty.Name;
+                                                                string? valuestr = offsetProperty.Value.ToString();
 
+                                                                if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", ""), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.HexNumber, null, out uint hexValue))
+                                                                {
+                                                                    LoggerAccessor.LogInfo($"[MUIS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
                                                                     Queue(new RT_MSG_SERVER_MEMORY_POKE()
                                                                     {
-                                                                        start_Address = offset,
-                                                                        Payload = BitConverter.GetBytes(valuetopatch),
+                                                                        start_Address = offsetValue,
+                                                                        Payload = BitConverter.GetBytes(hexValue),
                                                                         SkipEncryption = true
 
                                                                     }, clientChannel);
                                                                 }
+                                                                else
+                                                                    LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
                                                             }
                                                         }
                                                     }
@@ -943,6 +912,12 @@ namespace Horizon.MUIS
         protected uint GenerateNewScertClientId()
         {
             return _clientCounter++;
+        }
+
+        public class PokeData
+        {
+            public string? Offset { get; set; }
+            public string? Value { get; set; }
         }
     }
 }

@@ -1,5 +1,5 @@
 using CustomLogger;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models;
 using System.Net;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models

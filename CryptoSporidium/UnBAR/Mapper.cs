@@ -18,21 +18,10 @@ namespace CryptoSporidium.UnBAR
                 || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
                 || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown"));
                 List<MappedList> mappedListList = new List<MappedList>();
-                // Create a list to hold the tasks
-                List<Task>? ListTasks = new List<Task>();
                 foreach (string sourceFile in strings)
                 {
-                    // Create a task for each iteration
-                    Task task = Task.Run(() =>
-                    {
-                        mappedListList.AddRange(ScanForString(sourceFile));
-                    });
-
-                    ListTasks.Add(task);
+                    mappedListList.AddRange(ScanForString(sourceFile));
                 }
-                // Wait for all tasks to complete
-                await Task.WhenAll(ListTasks);
-                ListTasks = null;
                 foreach (MappedList mappedList in mappedListList)
                 {
                     string text = Regex.Replace(mappedList.file, "file:(\\/+)resource_root\\/build\\/", "", RegexOptions.IgnoreCase);
@@ -62,7 +51,7 @@ namespace CryptoSporidium.UnBAR
                     text = Regex.Replace(text, "update.svml", "host_svml\\update.svml", RegexOptions.IgnoreCase);
                     text = Regex.Replace(text, "nekomuis.svml", "host_svml\\nekomuis.svml", RegexOptions.IgnoreCase);
 
-                    string str = ComputeHash(prefix + text).ToString("X8");
+                    string str = ComputeAFSHash(prefix + text).ToString("X8");
 
                     foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(str + ".*"))
                     {
@@ -83,7 +72,7 @@ namespace CryptoSporidium.UnBAR
                     {
                         string cdatafromatmos = text.Remove(text.Length - 6) + ".cdata";
 
-                        string str2 = ComputeHash(cdatafromatmos).ToString("X8");
+                        string str2 = ComputeAFSHash(cdatafromatmos).ToString("X8");
 
                         foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(str2 + ".*"))
                         {
@@ -253,7 +242,7 @@ namespace CryptoSporidium.UnBAR
             }
         }
 
-        private int ComputeHash(string text)
+        private int ComputeAFSHash(string text)
         {
             int hash = 0;
             foreach (char ch in text.ToLower().Replace(Path.DirectorySeparatorChar, '/'))
@@ -664,6 +653,11 @@ namespace CryptoSporidium.UnBAR
                     {
                         type = ".sharc",
                         pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sharc"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".SHARC",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.SHARC"
                     },
                     new RegexPatterns
                     {

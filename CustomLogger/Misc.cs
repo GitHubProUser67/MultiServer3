@@ -73,18 +73,7 @@ namespace CustomLogger
         {
             try
             {
-                string IPAddress = string.Empty;
-                IPHostEntry Host = default(IPHostEntry);
-                string? Hostname = null;
-                Hostname = Environment.MachineName;
-                Host = Dns.GetHostEntry(Hostname);
-                foreach (IPAddress IP in Host.AddressList)
-                {
-                    if (IP.AddressFamily == AddressFamily.InterNetwork)
-                        IPAddress = Convert.ToString(IP);
-                }
-
-                return IPAddress;
+                return new WebClient().DownloadString("http://icanhazip.com").Replace("\\r\\n", "").Replace("\\n", "").Trim();
             }
             catch (Exception)
             {

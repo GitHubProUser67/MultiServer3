@@ -3,8 +3,8 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Udp;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
@@ -77,7 +77,7 @@ namespace Horizon.DME
                 _scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
                 // pass medius version
-                _scertClient.MediusVersion = ClientObject.MediusVersion;
+                _scertClient.MediusVersion = ClientObject?.MediusVersion;
             };
 
             // Queue all incoming messages
@@ -122,11 +122,13 @@ namespace Horizon.DME
         {
             try
             {
-                await _boundChannel.CloseAsync();
+                if (_boundChannel != null)
+                    await _boundChannel.CloseAsync();
             }
             finally
             {
-                await Task.WhenAll(
+                if (_workerGroup != null)
+                    await Task.WhenAll(
                         _workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));
 
                 FreePort();

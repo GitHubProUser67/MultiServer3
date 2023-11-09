@@ -1,4 +1,4 @@
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Models;
 using Horizon.MEDIUS.Medius.Models;
 
 namespace Horizon.MEDIUS.PluginArgs
@@ -8,12 +8,12 @@ namespace Horizon.MEDIUS.PluginArgs
         /// <summary>
         /// Player making request.
         /// </summary>
-        public ClientObject Player { get; set; }
+        public ClientObject? Player { get; set; }
 
         /// <summary>
         /// Find Player request.
         /// </summary>
-        public IMediusRequest Request { get; set; }
+        public IMediusRequest? Request { get; set; }
 
         public override string ToString()
         {

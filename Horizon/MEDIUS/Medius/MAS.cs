@@ -1,15 +1,15 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
-using Horizon.RT.Common;
-using Horizon.RT.Cryptography;
-using Horizon.RT.Cryptography.RSA;
-using Horizon.RT.Models;
-using Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Cryptography;
+using CryptoSporidium.Horizon.RT.Cryptography.RSA;
+using CryptoSporidium.Horizon.RT.Models;
+using CryptoSporidium.Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
-using System.Net;
 using Horizon.PluginManager;
+using System.Net;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -59,7 +59,13 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10442, 10540, 10680, 10683, 10684 };
+                        List<int> pre108ServerComplete = new List<int>() { 10114, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10540, 10680, 10683, 10684 };
+
+                        ///<summary>
+                        /// Some do not post-108 so we have to account for those too!
+                        /// tmheadon 10694 does not for initial
+                        /// </summary>
+                        List<int> post108ServerComplete = new List<int>() { 10694 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
@@ -81,8 +87,8 @@ namespace Horizon.MEDIUS.Medius
                             LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                         }
 
-                        // If this is a PS3 client
-                        if (scertClient.IsPS3Client)
+                        // If this is a PS3 client or medius version equal or superior to 109
+                        if (scertClient.IsPS3Client || scertClient.MediusVersion >= 109)
                         {
                             // Send a Server_Connect_Require with no Password needed
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
@@ -99,7 +105,7 @@ namespace Horizon.MEDIUS.Medius
                             }, clientChannel);
                         }
 
-                        if (scertClient.RsaAuthKey != null)
+                        if (scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
 
                         if (pre108ServerComplete.Contains(data.ApplicationId))
@@ -1111,7 +1117,7 @@ namespace Horizon.MEDIUS.Medius
                             return;
                         }
 
-                        await HorizonServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                        await HorizonServerConfiguration.Database.CreateAccount(new CryptoSporidium.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
                             AccountPassword = Misc.ComputeSHA256(accountRegRequest.Password),
@@ -1352,7 +1358,7 @@ namespace Horizon.MEDIUS.Medius
                                             Request = accountLoginRequest
                                         });
 
-                                        _ = HorizonServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                        _ = HorizonServerConfiguration.Database.CreateAccount(new CryptoSporidium.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
                                         {
                                             AccountName = accountLoginRequest.Username,
                                             AccountPassword = Misc.ComputeSHA256(accountLoginRequest.Password),
@@ -1620,7 +1626,7 @@ namespace Horizon.MEDIUS.Medius
 
                                                 LoggerAccessor.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
 
-                                                _ = HorizonServerConfiguration.Database.CreateAccount(new LIBRARY.Database.Models.CreateAccountDTO()
+                                                _ = HorizonServerConfiguration.Database.CreateAccount(new CryptoSporidium.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
                                                 {
                                                     AccountName = ticketLoginRequest.UserOnlineId,
                                                     AccountPassword = "UNSET",
@@ -1775,15 +1781,13 @@ namespace Horizon.MEDIUS.Medius
 
                                         if (r.IsCompletedSuccessfully && r.Result != null)
                                         {
-                                            string txt = r.Result.EulaBody;
+                                            string? txt = r.Result.EulaBody;
                                             if (!string.IsNullOrEmpty(r.Result.EulaTitle))
                                                 txt = r.Result.EulaTitle + "\n" + txt;
                                             data.ClientObject.Queue(MediusGetPolicyResponse.FromText(getPolicyRequest.MessageID, txt));
                                         }
                                         else
-                                        {
                                             data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = "", EndOfText = true });
-                                        }
                                     });
                                     break;
                                 }
@@ -1796,15 +1800,13 @@ namespace Horizon.MEDIUS.Medius
 
                                         if (r.IsCompletedSuccessfully && r.Result != null)
                                         {
-                                            string txt = r.Result.EulaBody;
+                                            string? txt = r.Result.EulaBody;
                                             if (!string.IsNullOrEmpty(r.Result.EulaTitle))
                                                 txt = r.Result.EulaTitle + "\n" + txt;
                                             data.ClientObject.Queue(MediusGetPolicyResponse.FromText(getPolicyRequest.MessageID, txt));
                                         }
                                         else
-                                        {
                                             data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = "", EndOfText = true });
-                                        }
                                     });
 
                                     break;
@@ -2144,7 +2146,7 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         MessageID = textFilterRequest.MessageID,
                                         StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        Text = MediusClass.FilterTextFilter(data.ApplicationId, Config.TextFilterContext.ACCOUNT_NAME, textFilterRequest.Text).Trim()
+                                        Text = MediusClass.FilterTextFilter(data.ApplicationId, TextFilterContext.ACCOUNT_NAME, textFilterRequest.Text).Trim()
                                     });
                                     break;
                                 }
@@ -2164,12 +2166,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        // ERROR -- Need to be logged in
-                        if (!data.ClientObject.IsLoggedIn)
-                        {
-                            LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {getServerTimeRequest} without being logged in.");
-                            break;
-                        }
+                        //Doesn't need to be logged in to get ServerTime
 
                         var time = DateTime.Now;
 
@@ -2187,7 +2184,6 @@ namespace Horizon.MEDIUS.Medius
                             }
                             else
                             {
-
                                 //default
                                 data.ClientObject.Queue(new MediusGetServerTimeResponse()
                                 {
@@ -2303,7 +2299,7 @@ namespace Horizon.MEDIUS.Medius
         }
 
         #region Login
-        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, LIBRARY.Database.Models.AccountDTO accountDto, bool ticket)
+        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, CryptoSporidium.Horizon.LIBRARY.Database.Models.AccountDTO accountDto, bool ticket)
         {
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;

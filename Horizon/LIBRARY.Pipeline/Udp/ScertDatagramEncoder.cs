@@ -2,7 +2,7 @@ using CustomLogger;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using Horizon.LIBRARY.Common;
+using CryptoSporidium.Horizon.LIBRARY.Common;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {

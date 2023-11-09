@@ -1,5 +1,5 @@
-﻿using CustomLogger;
-using Horizon.LIBRARY.Database;
+using CustomLogger;
+using CryptoSporidium.Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
@@ -13,7 +13,6 @@ public static class HorizonServerConfiguration
     public static bool EnableMuis { get; set; } = true;
     public static bool EnableBWPS { get; set; } = true;
     public static bool EnableNAT { get; set; } = true;
-    public static bool MediusDebugLogs { get; set; } = false;
     public static bool UseSonyNAT { get; set; } = true;
     public static string? PlayerAPIStaticPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string? DMEConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dme.json";
@@ -61,7 +60,6 @@ public static class HorizonServerConfiguration
         NATConfig = config.nat.config;
         BWPSConfig = config.bwps.config;
         UseSonyNAT = config.use_sony_nat;
-        MediusDebugLogs = config.debug_log;
         PluginsFolder = config.plugins_folder;
         DatabaseConfig = config.database;
         HomeVersionBetaHDK = config.home_version_beta_hdk;

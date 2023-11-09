@@ -26,9 +26,9 @@ namespace CryptoSporidium.UnBAR
 
         public int encryptFile(string inFile, string outFile, string? sdatnpdcopyfile)
         {
-            if (inFile == "")
+            if (string.IsNullOrEmpty(inFile))
                 return STATUS_ERROR_INPUTFILE_IO;
-            if (outFile == "")
+            if (string.IsNullOrEmpty(outFile))
                 return STATUS_ERROR_OUPUTFILE_IO;
             FileStream fileStream = File.Open(inFile, (FileMode)3);
             NPD[] npdPtr = new NPD[1];
@@ -67,7 +67,7 @@ namespace CryptoSporidium.UnBAR
             numArray2[0] = 0;
             while (o1.Length < 256L)
                 o1.Write(numArray2, 0, 1);
-            EDATData data = new EDATData();
+            EDATData data = new();
             data.flags = 16777276L;
             data.blockSize = 16384L;
             data.fileLen = new BigInteger(length1);
@@ -75,7 +75,7 @@ namespace CryptoSporidium.UnBAR
             int hashFlag1 = 268435458;
             encryptData(fileStream, o1, npdPtr[0], data, key1);
             o1.Seek(144L, 0);
-            AppLoader appLoader = new AppLoader();
+            AppLoader appLoader = new();
             appLoader.doInit(hashFlag1, 0, 1, new byte[16], new byte[16], key1);
             int num1 = (data.getFlags() & FLAG_SDAT) != 0L ? 32 : 16;
             int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());

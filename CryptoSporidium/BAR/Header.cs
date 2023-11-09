@@ -105,13 +105,15 @@ namespace CryptoSporidium.BAR
             UserData = (int)DateTime.Now.ToFileTime();
             m_priority = 0;
             m_numFiles = 0U;
+            m_iv = null;
+            m_key = null;
         }
 
         public const uint BIG_MAGIC = 2918127585U;
 
         public const uint LITTLE_MAGIC = 3776442285U;
 
-        public const ushort AFS_VERSION = 256; // BAR Version 1 with ZTOC
+        public const ushort AFS_VERSION = 256;
 
         private uint m_magic;
 

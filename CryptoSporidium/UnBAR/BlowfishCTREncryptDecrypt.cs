@@ -7,7 +7,7 @@ namespace CryptoSporidium.UnBAR
 {
     public class BlowfishCTREncryptDecrypt
     {
-        public void InitiateINFCryptoContext()
+        public static void InitiateMetadataCryptoContext()
         {
             if (ToolsImpl.INFIVA == null)
             {

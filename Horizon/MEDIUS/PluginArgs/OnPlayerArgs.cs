@@ -7,7 +7,7 @@ namespace Horizon.MEDIUS.PluginArgs
         /// <summary>
         /// Player.
         /// </summary>
-        public ClientObject Player { get; set; }
+        public ClientObject? Player { get; set; }
 
         public override string ToString()
         {

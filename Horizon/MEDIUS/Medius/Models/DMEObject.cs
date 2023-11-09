@@ -1,6 +1,6 @@
 using CustomLogger;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
+using CryptoSporidium.Horizon.RT.Common;
+using CryptoSporidium.Horizon.RT.Models;
 using System.Net;
 
 namespace Horizon.MEDIUS.Medius.Models
@@ -14,7 +14,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public MGCL_ALERT_LEVEL MGCL_ALERT_LEVEL { get; protected set; } = MGCL_ALERT_LEVEL.MGCL_ALERT_NONE;
         public int Port { get; protected set; } = 0;
-        public IPAddress IP { get; protected set; } = IPAddress.Any;
+        public IPAddress? IP { get; protected set; } = IPAddress.Any;
 
         public override bool Timedout => false; // (Utils.GetHighPrecisionUtcTime() - UtcLastEcho).TotalSeconds > Program.Settings.DmeTimeoutSeconds;
         public override bool IsConnected => _hasActiveSession && !Timedout;

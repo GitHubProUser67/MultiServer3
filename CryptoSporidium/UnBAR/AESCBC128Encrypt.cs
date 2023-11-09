@@ -4,8 +4,8 @@ namespace CryptoSporidium.UnBAR
 {
     internal class AESCBC128Encrypt : Decryptor
     {
-        private Aes c;
-        private ICryptoTransform ct;
+        private Aes? c;
+        private ICryptoTransform? ct;
 
         public override void doInit(byte[] key, byte[] iv)
         {

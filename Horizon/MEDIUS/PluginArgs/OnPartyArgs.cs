@@ -7,7 +7,7 @@ namespace Horizon.MEDIUS.PluginArgs
         /// <summary>
         /// Party.
         /// </summary>
-        public Party Party { get; set; }
+        public Party? Party { get; set; }
 
         public override string ToString()
         {
