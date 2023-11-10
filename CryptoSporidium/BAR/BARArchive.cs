@@ -967,6 +967,7 @@ namespace CryptoSporidium.BAR
                 WriteHeader(endianAwareBinaryWriter);
                 endianAwareBinaryWriter2.Write(array);
             }
+            long position = dataWriterStream.Position;
             foreach (TOCEntry tocentry in m_toc.SortByDataSectionOffset())
             {
                 if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted)
