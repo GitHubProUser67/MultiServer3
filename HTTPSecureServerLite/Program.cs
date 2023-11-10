@@ -1,6 +1,6 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json.Linq;
-using HTTPSecureServer;
+using HTTPSecureServerLite;
 
 public static class HTTPSServerConfiguration
 {
@@ -62,9 +62,9 @@ class Program
 
         CryptoSporidium.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
-        HTTPSClass server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty");
+        Processor server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443);
 
-        _ = Task.Run(server.StartHTTPS);
+        server.StartServer();
 
         _ = Task.Run(RefreshConfig);
 

@@ -1,7 +1,7 @@
 ﻿using CustomLogger;
 using HttpMultipartParser;
 
-namespace HTTPSecureServer.API.VEEMEE
+namespace HTTPSecureServerLite.API.VEEMEE
 {
     public class Stats
     {

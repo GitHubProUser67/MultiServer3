@@ -93,6 +93,10 @@ namespace CryptoSporidium.UnBAR
 
                                 if (DecryptedHeader != null)
                                 {
+                                    byte[] OriginalIV = new byte[HeaderIV.Length];
+
+                                    Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
+
                                     toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
 
                                     byte[]? NumOfFiles = ExtractNumOfFiles(DecryptedHeader);
@@ -110,7 +114,7 @@ namespace CryptoSporidium.UnBAR
                                             if (DecryptedTOC != null)
                                             {
                                                 byte[] FileBytes = utils.Combinebytearay(pattern,
-                                                utils.Combinebytearay(HeaderIV, utils.Combinebytearay(DecryptedHeader,
+                                                utils.Combinebytearay(OriginalIV, utils.Combinebytearay(DecryptedHeader,
                                                 utils.Combinebytearay(DecryptedTOC, utils.TrimBytes(utils.TrimStart(RawBarData, 52), TOCSize)))));
 
                                                 Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
@@ -163,10 +167,7 @@ namespace CryptoSporidium.UnBAR
                 if (File.Exists(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt"))
                 {
                     BARArchive? archive = null;
-                    if (isSharc)
-                        archive = new(filePath, outDir, true);
-                    else
-                        archive = new(filePath, outDir);
+                    archive = new(filePath, outDir);
                     archive.Load();
                     archive.WriteMap(filePath);
 

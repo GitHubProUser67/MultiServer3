@@ -1,4 +1,4 @@
-﻿namespace HTTPSecureServer.API.VEEMEE
+﻿namespace HTTPSecureServerLite.API.VEEMEE
 {
     public class Commerce
     {

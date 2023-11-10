@@ -5,7 +5,7 @@ namespace CryptoSporidium.UnBAR
 {
     public class Mapper
     {
-        public async Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
+        public Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
         {
             MapperPrepareFiles(foldertomap);
 
@@ -99,11 +99,16 @@ namespace CryptoSporidium.UnBAR
 
                 if (File.Exists(foldertomap + "/696E72D6.dds") && !File.Exists(foldertomap + "/HATBUBBLE.DDS"))
                     File.Move(foldertomap + "/696E72D6.dds", foldertomap + "/HATBUBBLE.DDS");
+
+                if (File.Exists(foldertomap + "/D3A7AF9F.xml") && !File.Exists(foldertomap + "/__$manifest$__"))
+                    File.Move(foldertomap + "/D3A7AF9F.xml", foldertomap + "/__$manifest$__");
             }
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Mapper] - An Error happened in MapperStart - {ex}");
             }
+
+            return Task.CompletedTask;
         }
 
         private void MapperPrepareFiles(string foldertomap)
@@ -191,10 +196,15 @@ namespace CryptoSporidium.UnBAR
                                 if (!File.Exists(newFileName + ".ttf"))
                                     File.Move(myfile, newFileName + ".ttf");
                             }
-                            else
+                            else if (File.ReadAllText(myfile).Contains("</") || File.ReadAllText(myfile).Contains("/>"))
                             {
                                 if (!File.Exists(newFileName + ".xml"))
                                     File.Move(myfile, newFileName + ".xml");
+                            }
+                            else
+                            {
+                                if (!File.Exists(newFileName + ".unknown"))
+                                    File.Move(myfile, newFileName + ".unknown");
                             }
                         }
                         else
@@ -631,6 +641,11 @@ namespace CryptoSporidium.UnBAR
                     },
                     new RegexPatterns
                     {
+                        type = ".sdat",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sdat"
+                    },
+                    new RegexPatterns
+                    {
                         type = ".bar",
                         pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bar"
                     },
@@ -746,8 +761,48 @@ namespace CryptoSporidium.UnBAR
                     },
                     new RegexPatterns
                     {
+                        type = ".htm",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.htm"
+                    },
+                    new RegexPatterns
+                    {
                         type = ".txt",
                         pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.txt"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".md",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.md"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".cs",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.cs"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".exe",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.exe"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".elf",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.elf"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".pdb",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.pdb"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".csproj",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.csproj"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".ico",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ico"
                     }
               };
             string input = string.Empty;
@@ -759,18 +814,21 @@ namespace CryptoSporidium.UnBAR
             }
             foreach (RegexPatterns regexPatterns in regexPatternsList)
             {
-                foreach (Match match in Regex.Matches(input, regexPatterns.pattern))
+                if (regexPatterns.pattern != null)
                 {
-                    if (!mappedListList.Contains(new MappedList()
+                    foreach (Match match in Regex.Matches(input, regexPatterns.pattern))
                     {
-                        type = regexPatterns.type,
-                        file = match.Value
-                    }))
-                        mappedListList.Add(new MappedList()
+                        if (!mappedListList.Contains(new MappedList()
                         {
                             type = regexPatterns.type,
                             file = match.Value
-                        });
+                        }))
+                            mappedListList.Add(new MappedList()
+                            {
+                                type = regexPatterns.type,
+                                file = match.Value
+                            });
+                    }
                 }
             }
             return mappedListList;
@@ -779,14 +837,14 @@ namespace CryptoSporidium.UnBAR
 
     public class MappedList
     {
-        public string type;
+        public string? type;
 
-        public string file;
+        public string? file;
     }
 
     public class RegexPatterns
     {
-        public string type;
-        public string pattern;
+        public string? type;
+        public string? pattern;
     }
 }

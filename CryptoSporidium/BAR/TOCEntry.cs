@@ -116,7 +116,7 @@ namespace CryptoSporidium.BAR
             m_tocIndex = -1;
             m_fileType = HomeFileType.Unknown;
             m_path = string.Empty;
-            m_iv = null;
+            m_iv = new byte[8];
         }
 
         public TOCEntry(HashedFileName fileName, uint size) : this()

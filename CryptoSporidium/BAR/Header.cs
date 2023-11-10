@@ -105,8 +105,8 @@ namespace CryptoSporidium.BAR
             UserData = (int)DateTime.Now.ToFileTime();
             m_priority = 0;
             m_numFiles = 0U;
-            m_iv = null;
-            m_key = null;
+            m_iv = new byte[16];
+            m_key = new byte[16];
         }
 
         public const uint BIG_MAGIC = 2918127585U;

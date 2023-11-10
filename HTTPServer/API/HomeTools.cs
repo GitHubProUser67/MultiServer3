@@ -1,5 +1,4 @@
-﻿using CryptoSporidium;
-using CryptoSporidium.BAR;
+﻿using CryptoSporidium.BAR;
 using CryptoSporidium.ChannelID;
 using CryptoSporidium.FileHelper;
 using CryptoSporidium.UnBAR;
@@ -97,21 +96,10 @@ namespace HTTPServer.API
 
                                 IEnumerable<string> enumerable = Directory.EnumerateFiles(unzipdir, "*.*", SearchOption.AllDirectories);
                                 BARArchive? bararchive = null;
-                                if (version2 == "on")
-                                {
-                                    if (encrypt == "on")
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, true, true);
-                                    else
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, true);
-                                }
+                                if (encrypt == "on")
+                                    bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), true);
                                 else
-                                {
-                                    if (encrypt == "on")
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, false, true);
-                                    else
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir);
-                                }
-                                bararchive.BARHeader.UserData = Convert.ToInt32(TimeStamp, 16);
+                                    bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16));
                                 bararchive.DefaultCompression = CompressionMethod.EdgeZLib;
                                 bararchive.AllowWhitespaceInFilenames = true;
                                 bararchive.BeginUpdate();
@@ -140,56 +128,10 @@ namespace HTTPServer.API
 
                                 bararchive.AddFile(unzipdir + @"/files.txt");
 
+                                bararchive.CreateManifest();
+
                                 bararchive.EndUpdate();
                                 bararchive.Save();
-
-                                if (version2 == "on")
-                                {
-                                    AESCTR256EncryptDecrypt? aes256 = new();
-                                    ToolsImpl? toolsImpl = new();
-                                    MiscUtils? utils = new();
-                                    // Read the original data from the file
-                                    byte[] BarData = File.ReadAllBytes(rebardir + $"/{filename}.SHARC");
-                                    byte[]? HeaderIV = RunUnBAR.ExtractSHARCHeaderIV(BarData);
-                                    if (HeaderIV != null)
-                                    {
-                                        byte[]? Header = RunUnBAR.ExtractEncryptedSharcHeaderData(BarData);
-
-                                        if (Header != null)
-                                        {
-                                            byte[]? EncryptedHeader = aes256.InitiateCTRBuffer(Header,
-                                                    Convert.FromBase64String(options), HeaderIV);
-
-                                            if (EncryptedHeader != null)
-                                            {
-                                                toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
-                                                byte[]? NumOfFiles = RunUnBAR.ExtractNumOfFiles(Header);
-                                                if (NumOfFiles != null)
-                                                {
-                                                    uint TOCSize = 24 * BitConverter.ToUInt32(NumOfFiles, 0);
-                                                    byte[]? DecryptedTOC = utils.CopyBytes(utils.TrimStart(BarData, 52), TOCSize);
-                                                    if (DecryptedTOC != null)
-                                                    {
-                                                        byte[]? EncryptedTOC = aes256.InitiateCTRBuffer(utils.CopyBytes(utils.TrimStart(BarData, 52), TOCSize), Convert.FromBase64String(options), HeaderIV);
-
-                                                        if (EncryptedTOC != null)
-                                                        {
-                                                            byte[] FileBytes = utils.Combinebytearay(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 },
-                                                                utils.Combinebytearay(bararchive.BARHeader.IV, utils.Combinebytearay(EncryptedHeader,
-                                                                utils.Combinebytearay(EncryptedTOC, utils.TrimBytes(utils.TrimStart(BarData, 52), TOCSize)))));
-
-                                                            // Write the patched data back to the file
-                                                            File.WriteAllBytes(rebardir + $"/{filename}.SHARC", FileBytes);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    aes256 = null;
-                                    toolsImpl = null;
-                                    utils = null;
-                                }
 
                                 bararchive = null;
 
@@ -199,53 +141,25 @@ namespace HTTPServer.API
                                 {
                                     using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
-                                        if (version2 == "on")
+                                        using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
                                         {
-                                            using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+                                            // Add the first file to the archive
+                                            ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.BAR");
+                                            using (Stream entryStream = entry1.Open())
                                             {
-                                                // Add the first file to the archive
-                                                ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.SHARC");
-                                                using (Stream entryStream = entry1.Open())
+                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.BAR", FileMode.Open))
                                                 {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.SHARC", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
-                                                }
-
-                                                // Add the second file to the archive
-                                                ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
-                                                using (Stream entryStream = entry2.Open())
-                                                {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.sharc.map", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
+                                                    fileStream.CopyTo(entryStream);
                                                 }
                                             }
-                                        }
-                                        else
-                                        {
-                                            using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
-                                            {
-                                                // Add the first file to the archive
-                                                ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.BAR");
-                                                using (Stream entryStream = entry1.Open())
-                                                {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.BAR", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
-                                                }
 
-                                                // Add the second file to the archive
-                                                ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
-                                                using (Stream entryStream = entry2.Open())
+                                            // Add the second file to the archive
+                                            ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
+                                            using (Stream entryStream = entry2.Open())
+                                            {
+                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                                 {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
+                                                    fileStream.CopyTo(entryStream);
                                                 }
                                             }
                                         }
@@ -257,12 +171,7 @@ namespace HTTPServer.API
                                 }
                                 else if (mode == "sdatnpd" && File.Exists(Directory.GetCurrentDirectory() + "/static/model.sdat"))
                                 {
-                                    RunUnBAR? unbar = new();
-                                    if (version2 == "on")
-                                        unbar.RunEncrypt(rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat", Directory.GetCurrentDirectory() + "/static/model.sdat");
-                                    else
-                                        unbar.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", Directory.GetCurrentDirectory() + "/static/model.sdat");
-                                    unbar = null;
+                                    new RunUnBAR().RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", Directory.GetCurrentDirectory() + "/static/model.sdat");
 
                                     using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
@@ -278,28 +187,13 @@ namespace HTTPServer.API
                                                 }
                                             }
 
-                                            if (version2 == "on")
+                                            // Add the second file to the archive
+                                            ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
+                                            using (Stream entryStream = entry2.Open())
                                             {
-                                                // Add the second file to the archive
-                                                ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
-                                                using (Stream entryStream = entry2.Open())
+                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                                 {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.sharc.map", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                // Add the second file to the archive
-                                                ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
-                                                using (Stream entryStream = entry2.Open())
-                                                {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
+                                                    fileStream.CopyTo(entryStream);
                                                 }
                                             }
                                         }
@@ -311,12 +205,7 @@ namespace HTTPServer.API
                                 }
                                 else
                                 {
-                                    RunUnBAR? unbar = new();
-                                    if (version2 == "on")
-                                        unbar.RunEncrypt(rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat", null);
-                                    else
-                                        unbar.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", null);
-                                    unbar = null;
+                                    new RunUnBAR().RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", null);
 
                                     using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
@@ -332,28 +221,13 @@ namespace HTTPServer.API
                                                 }
                                             }
 
-                                            if (version2 == "on")
+                                            // Add the second file to the archive
+                                            ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
+                                            using (Stream entryStream = entry2.Open())
                                             {
-                                                // Add the second file to the archive
-                                                ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
-                                                using (Stream entryStream = entry2.Open())
+                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                                 {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.sharc.map", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                // Add the second file to the archive
-                                                ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
-                                                using (Stream entryStream = entry2.Open())
-                                                {
-                                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
-                                                    {
-                                                        fileStream.CopyTo(entryStream);
-                                                    }
+                                                    fileStream.CopyTo(entryStream);
                                                 }
                                             }
                                         }

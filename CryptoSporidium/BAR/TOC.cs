@@ -55,7 +55,7 @@ namespace CryptoSporidium.BAR
             yield break;
         }
 
-        public TOCEntry this[int index]
+        public TOCEntry? this[int index]
         {
             get
             {
@@ -63,18 +63,18 @@ namespace CryptoSporidium.BAR
             }
         }
 
-        public TOCEntry this[HashedFileName filename]
+        public TOCEntry? this[HashedFileName filename]
         {
             get
             {
-                TOCEntry result = null;
+                TOCEntry? result = null;
                 if (m_entries.ContainsKey((int)filename))
                     result = m_entries[(int)filename];
                 return result;
             }
         }
 
-        public TOCEntry this[string path]
+        public TOCEntry? this[string path]
         {
             get
             {
@@ -84,7 +84,7 @@ namespace CryptoSporidium.BAR
             }
         }
 
-        private TOCEntry GetEntry(int index)
+        private TOCEntry? GetEntry(int index)
         {
             if (index >= m_entries.Count)
                 return null;
@@ -93,10 +93,10 @@ namespace CryptoSporidium.BAR
             return array[index];
         }
 
-        public TOCEntry GetLastEntry()
+        public TOCEntry? GetLastEntry()
         {
             int num = -1;
-            TOCEntry result = null;
+            TOCEntry? result = null;
             foreach (TOCEntry tocentry in m_entries.Values)
             {
                 if (tocentry.DataOffset > (uint)num)
@@ -147,7 +147,7 @@ namespace CryptoSporidium.BAR
             return array;
         }
 
-        public byte[] GetBytes()
+        public byte[] GetBytesVersion1()
         {
             MemoryStream memoryStream = new MemoryStream();
             BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
@@ -164,25 +164,7 @@ namespace CryptoSporidium.BAR
             return memoryStream.ToArray();
         }
 
-        public byte[] GetBytesVersion2()
-        {
-            MemoryStream memoryStream = new MemoryStream();
-            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
-            foreach (TOCEntry tocentry in m_entries.Values)
-            {
-                binaryWriter.Write(Utils.ReverseEndianness((int)tocentry.FileName));
-                uint num = tocentry.DataOffset;
-                num |= (uint)tocentry.Compression;
-                binaryWriter.Write(Utils.ReverseEndianness(num));
-                binaryWriter.Write(Utils.ReverseEndianness(tocentry.Size));
-                binaryWriter.Write(Utils.ReverseEndianness(tocentry.CompressedSize));
-                binaryWriter.Write(tocentry.IV);
-            }
-            binaryWriter.Close();
-            return memoryStream.ToArray();
-        }
-
-        public uint Size
+        public uint Version1Size
         {
             get
             {
@@ -214,10 +196,10 @@ namespace CryptoSporidium.BAR
         {
             TOCEntry[] collection = SortByDataSectionOffset();
             LinkedList<TOCEntry> linkedList = new LinkedList<TOCEntry>(collection);
-            LinkedListNode<TOCEntry> linkedListNode = linkedList.First;
+            LinkedListNode<TOCEntry>? linkedListNode = linkedList.First;
             if (linkedListNode != null)
             {
-                LinkedListNode<TOCEntry> next = linkedListNode.Next;
+                LinkedListNode<TOCEntry>? next = linkedListNode.Next;
                 if (linkedListNode.Value.DataOffset > 0U)
                     linkedListNode.Value.DataOffset = 0U;
                 while (next != null)

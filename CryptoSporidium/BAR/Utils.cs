@@ -29,21 +29,6 @@ namespace CryptoSporidium.BAR
             return array;
         }
 
-        public static uint ReverseEndianness(uint originalValue)
-        {
-            return ((originalValue & 0x000000FFU) << 24) |
-                   ((originalValue & 0x0000FF00U) << 8) |
-                   ((originalValue & 0x00FF0000U) >> 8) |
-                   ((originalValue & 0xFF000000U) >> 24);
-        }
-
-        public static int ReverseEndianness(int value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            Array.Reverse(bytes);
-            return BitConverter.ToInt32(bytes, 0);
-        }
-
         public static byte[] IntToByteArray(int value)
         {
             byte[] byteArray = BitConverter.GetBytes(value); // Endian not checked.

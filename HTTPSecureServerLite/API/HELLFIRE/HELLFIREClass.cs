@@ -1,4 +1,4 @@
-﻿namespace HTTPSecureServer.API.HELLFIRE
+﻿namespace HTTPSecureServerLite.API.HELLFIRE
 {
     public class HELLFIREClass : IDisposable
     {

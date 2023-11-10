@@ -1,7 +1,7 @@
 ﻿using HttpMultipartParser;
 using Newtonsoft.Json;
 
-namespace HTTPSecureServer.API.VEEMEE
+namespace HTTPSecureServerLite.API.VEEMEE
 {
     public class Storage
     {

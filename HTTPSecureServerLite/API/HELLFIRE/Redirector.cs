@@ -1,6 +1,6 @@
 ﻿using HttpMultipartParser;
 
-namespace HTTPSecureServer.API.HELLFIRE
+namespace HTTPSecureServerLite.API.HELLFIRE
 {
     public class Redirector
     {

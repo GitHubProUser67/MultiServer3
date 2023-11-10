@@ -3,7 +3,7 @@ using System.Text;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 
-namespace HTTPSecureServer.API.VEEMEE
+namespace HTTPSecureServerLite.API.VEEMEE
 {
     public class Processor
     {
