@@ -141,12 +141,10 @@ namespace SVO
 
             }
 
-            try
+            if (isok)
             {
-                if (isok)
+                try
                 {
-                    LoggerAccessor.LogInfo($"[SVO] - {clientip} Requested : {absolutepath}");
-
                     if (absolutepath == "/dataloaderweb/queue")
                     {
                         switch (ctx.Request.HttpMethod)
@@ -220,15 +218,31 @@ namespace SVO
                     else
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 }
-                else
-                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[SVO] - Request Processing thrown an assertion - {ex}");
-                ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            }
+                catch (HttpListenerException e) when (e.ErrorCode == 64)
+                {
+                    // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
+                    // This will cause server to throw error 64 (network interface not openned anymore)
+                    // In that case, we send internalservererror so client try again.
 
+                    ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                }
+                catch (Exception e)
+                {
+                    LoggerAccessor.LogError("[SVO] - REQUEST ERROR: " + e.Message);
+                    ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                }
+            }
+            else
+                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+
+            try
+            {
+                ctx.Response.OutputStream.Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                // outputstream has been disposed already.
+            }
             ctx.Response.Close();
         }
     }

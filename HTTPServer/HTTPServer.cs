@@ -149,97 +149,107 @@ namespace HTTPServer
 
             if (statusCode == HttpStatusCode.Continue)
             {
-                // Split the URL into segments
-                string[] segments = url.Trim('/').Split('/');
 
-                // Combine the folder segments into a directory path
-                string directoryPath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
-
-                // Process the request based on the HTTP method
-                string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, url.Substring(1));
-
-                if (ctx.Request.HttpMethod == "OPTIONS")
+                try
                 {
-                    ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                    ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, HEAD");
-                    ctx.Response.AddHeader("Access-Control-Max-Age", "1728000");
-                }
+                    // Split the URL into segments
+                    string[] segments = url.Trim('/').Split('/');
 
-                ctx.Response.AppendHeader("Access-Control-Allow-Origin", "*");
+                    // Combine the folder segments into a directory path
+                    string directoryPath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
-                if ((absolutepath == "/" || absolutepath == "\\") && ctx.Request.HttpMethod == "GET")
-                {
-                    foreach (string indexFile in CryptoSporidium.HTTPUtils.DefaultDocuments)
+                    // Process the request based on the HTTP method
+                    string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, url.Substring(1));
+
+                    if (ctx.Request.HttpMethod == "OPTIONS")
                     {
-                        if (File.Exists(Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, indexFile)))
+                        ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                        ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, HEAD");
+                        ctx.Response.AddHeader("Access-Control-Max-Age", "1728000");
+                    }
+
+                    ctx.Response.AppendHeader("Access-Control-Allow-Origin", "*");
+
+                    if ((absolutepath == "/" || absolutepath == "\\") && ctx.Request.HttpMethod == "GET")
+                    {
+                        foreach (string indexFile in CryptoSporidium.HTTPUtils.DefaultDocuments)
                         {
-                            string? encoding = ctx.Request.Headers["Content-Encoding"];
-
-                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                            if (ctx.Response.OutputStream.CanWrite && File.Exists(Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, indexFile)))
                             {
-                                byte[]? CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(File.ReadAllBytes(indexFile));
-                                if (CompresedFileBytes != null)
-                                {
-                                    statusCode = HttpStatusCode.OK;
+                                string? encoding = ctx.Request.Headers["Content-Encoding"];
 
-                                    ctx.Response.AddHeader("Content-Encoding", "gzip");
-                                    ctx.Response.ContentType = "text/html";
-                                    if (ctx.Response.OutputStream.CanWrite)
+                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                {
+                                    using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                                     {
-                                        try
+                                        byte[]? buffer = null;
+
+                                        using (MemoryStream ms = new())
                                         {
-                                            ctx.Response.ContentLength64 = CompresedFileBytes.Length;
-                                            ctx.Response.OutputStream.Write(CompresedFileBytes, 0, CompresedFileBytes.Length);
-                                            ctx.Response.OutputStream.Flush();
+                                            stream.CopyTo(ms);
+                                            buffer = ms.ToArray();
+                                            ms.Flush();
                                         }
-                                        catch (Exception)
+
+                                        if (buffer != null)
                                         {
-                                            // Not Important;
+                                            byte[]? CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(buffer);
+                                            if (CompresedFileBytes != null)
+                                            {
+                                                statusCode = HttpStatusCode.OK;
+
+                                                ctx.Response.AddHeader("Content-Encoding", "gzip");
+                                                ctx.Response.ContentType = "text/html";
+                                                ctx.Response.ContentLength64 = CompresedFileBytes.Length;
+                                                ctx.Response.OutputStream.Write(CompresedFileBytes, 0, CompresedFileBytes.Length);
+                                                ctx.Response.OutputStream.Flush();
+                                            }
+                                            else
+                                                statusCode = HttpStatusCode.InternalServerError;
                                         }
+                                        else
+                                            statusCode = HttpStatusCode.InternalServerError;
+
+                                        stream.Flush();
                                     }
                                 }
                                 else
-                                    statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                statusCode = HttpStatusCode.OK;
-
-                                byte[] FileBytes = File.ReadAllBytes(indexFile);
-                                ctx.Response.ContentType = "text/html";
-                                if (ctx.Response.OutputStream.CanWrite)
                                 {
-                                    try
+                                    statusCode = HttpStatusCode.OK;
+
+                                    using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                                     {
-                                        ctx.Response.ContentLength64 = FileBytes.Length;
-                                        ctx.Response.OutputStream.Write(FileBytes, 0, FileBytes.Length);
+                                        ctx.Response.SendChunked = true;
+
+                                        // get mime type
+                                        ctx.Response.ContentType = "text/html";
+                                        ctx.Response.ContentLength64 = stream.Length;
+
+                                        // copy file stream to response
+                                        stream.CopyTo(ctx.Response.OutputStream);
+                                        stream.Flush();
                                         ctx.Response.OutputStream.Flush();
                                     }
-                                    catch (Exception)
-                                    {
-                                        // Not Important;
-                                    }
                                 }
+                                break;
                             }
-                            break;
+                            else
+                                statusCode = HttpStatusCode.NotFound;
                         }
                     }
-                }
-                else
-                {
-                    switch (host)
+                    else
                     {
-                        case "sonyhome.thqsandbox.com":
-                            switch (ctx.Request.HttpMethod)
-                            {
-                                case "POST":
-                                    switch (absolutepath)
-                                    {
-                                        case "/index.php":
-                                            LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a UFC Connection");
+                        switch (host)
+                        {
+                            case "sonyhome.thqsandbox.com":
+                                switch (ctx.Request.HttpMethod)
+                                {
+                                    case "POST":
+                                        switch (absolutepath)
+                                        {
+                                            case "/index.php":
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a UFC Connection");
 
-                                            try
-                                            {
                                                 if (ctx.Response.OutputStream.CanWrite && ctx.Request.ContentType != null)
                                                 {
                                                     HTTPUtils? utils = new();
@@ -269,95 +279,58 @@ namespace HTTPServer
                                                 }
                                                 else
                                                     statusCode = HttpStatusCode.InternalServerError;
-                                            }
-                                            catch (HttpListenerException e) when (e.ErrorCode == 64)
-                                            {
-                                                // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
-                                                // This will cause server to throw error 64 (network interface not openned anymore)
-                                                // In that case, we send internalservererror so client try again.
-
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                LoggerAccessor.LogError("[HTTP] - UFC POST ERROR: " + e.Message);
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                            }
-                                            break;
-                                        default:
-                                            statusCode = HttpStatusCode.Forbidden;
-                                            break;
-                                    }
-                                    break;
-                                default:
-                                    statusCode = HttpStatusCode.Forbidden;
-                                    break;
-                            }
-                            break;
-                        default:
-                            switch (ctx.Request.HttpMethod)
-                            {
-                                case "GET":
-                                    if ((host == "stats.outso-srv1.com" || host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
-                                    {
-                                        LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
-                                        string? res = null;
-                                        int version = 0;
-                                        if (absolutepath.Contains("/Insomniac/4BarrelsOfFury"))
-                                            version = 2;
-                                        CryptoSporidium.OHS.OHSClass ohs = new(ctx.Request.HttpMethod, absolutepath, version);
-                                        using (MemoryStream postdata = new())
-                                        {
-                                            ctx.Request.InputStream.CopyTo(postdata);
-
-                                            postdata.Position = 0;
-                                            // Find the number of bytes in the stream
-                                            int contentLength = (int)postdata.Length;
-                                            // Create a byte array
-                                            byte[] buffer = new byte[contentLength];
-                                            // Read the contents of the memory stream into the byte array
-                                            postdata.Read(buffer, 0, contentLength);
-                                            res = ohs.ProcessRequest(buffer, ctx.Request.ContentType, filePath);
-                                            postdata.Flush();
+                                                break;
+                                            default:
+                                                statusCode = HttpStatusCode.Forbidden;
+                                                break;
                                         }
-                                        ohs.Dispose();
-                                        if (string.IsNullOrEmpty(res))
-                                            statusCode = HttpStatusCode.InternalServerError;
-                                        else
+                                        break;
+                                    default:
+                                        statusCode = HttpStatusCode.Forbidden;
+                                        break;
+                                }
+                                break;
+                            default:
+                                switch (ctx.Request.HttpMethod)
+                                {
+                                    case "GET":
+                                        if ((host == "stats.outso-srv1.com" || host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
                                         {
-                                            statusCode = HttpStatusCode.OK;
-                                            ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                                            // Construct a response.
-                                            byte[] buffer = Encoding.UTF8.GetBytes($"<ohs>{res}</ohs>");
-                                            if (ctx.Response.OutputStream.CanWrite)
+                                            LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
+                                            string? res = null;
+                                            int version = 0;
+                                            if (absolutepath.Contains("/Insomniac/4BarrelsOfFury"))
+                                                version = 2;
+                                            CryptoSporidium.OHS.OHSClass ohs = new(ctx.Request.HttpMethod, absolutepath, version);
+                                            using (MemoryStream postdata = new())
                                             {
-                                                try
-                                                {
-                                                    ctx.Response.ContentLength64 = buffer.Length;
-                                                    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                                    ctx.Response.OutputStream.Flush();
-                                                }
-                                                catch (Exception)
-                                                {
-                                                    // Not Important;
-                                                }
+                                                ctx.Request.InputStream.CopyTo(postdata);
+
+                                                postdata.Position = 0;
+                                                // Find the number of bytes in the stream
+                                                int contentLength = (int)postdata.Length;
+                                                // Create a byte array
+                                                byte[] buffer = new byte[contentLength];
+                                                // Read the contents of the memory stream into the byte array
+                                                postdata.Read(buffer, 0, contentLength);
+                                                res = ohs.ProcessRequest(buffer, ctx.Request.ContentType, filePath);
+                                                postdata.Flush();
                                             }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        switch (absolutepath)
-                                        {
-                                            case "/networktest/get_2m":
+                                            ohs.Dispose();
+                                            if (string.IsNullOrEmpty(res))
+                                                statusCode = HttpStatusCode.InternalServerError;
+                                            else
+                                            {
                                                 statusCode = HttpStatusCode.OK;
-
-                                                byte[] NulledBytes = new byte[2097152];
+                                                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                                                // Construct a response.
+                                                byte[] buffer = Encoding.UTF8.GetBytes($"<ohs>{res}</ohs>");
                                                 if (ctx.Response.OutputStream.CanWrite)
                                                 {
                                                     try
                                                     {
-                                                        ctx.Response.ContentLength64 = NulledBytes.Length;
-                                                        ctx.Response.OutputStream.Write(NulledBytes, 0, NulledBytes.Length);
+                                                        ctx.Response.ContentLength64 = buffer.Length;
+                                                        ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
                                                         ctx.Response.OutputStream.Flush();
                                                     }
                                                     catch (Exception)
@@ -365,11 +338,32 @@ namespace HTTPServer
                                                         // Not Important;
                                                     }
                                                 }
-                                                break;
-                                            default:
-                                                if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
-                                                {
-                                                    try
+                                            }
+                                        }
+                                        else
+                                        {
+                                            switch (absolutepath)
+                                            {
+                                                case "/networktest/get_2m":
+                                                    statusCode = HttpStatusCode.OK;
+
+                                                    byte[] NulledBytes = new byte[2097152];
+                                                    if (ctx.Response.OutputStream.CanWrite)
+                                                    {
+                                                        try
+                                                        {
+                                                            ctx.Response.ContentLength64 = NulledBytes.Length;
+                                                            ctx.Response.OutputStream.Write(NulledBytes, 0, NulledBytes.Length);
+                                                            ctx.Response.OutputStream.Flush();
+                                                        }
+                                                        catch (Exception)
+                                                        {
+                                                            // Not Important;
+                                                        }
+                                                    }
+                                                    break;
+                                                default:
+                                                    if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                                                     {
                                                         if (ctx.Response.OutputStream.CanWrite && ctx.Request.Url != null && ctx.Request.Url.Scheme != null)
                                                         {
@@ -400,39 +394,48 @@ namespace HTTPServer
                                                         else
                                                             statusCode = HttpStatusCode.InternalServerError;
                                                     }
-                                                    catch (HttpListenerException e) when (e.ErrorCode == 64)
+                                                    else if (filePath.EndsWith("/"))
                                                     {
-                                                        // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
-                                                        // This will cause server to throw error 64 (network interface not openned anymore)
-                                                        // In that case, we send internalservererror so client try again.
+                                                        string? encoding = ctx.Request.Headers["Content-Encoding"];
 
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        LoggerAccessor.LogError("[HTTP] - PHP GET ERROR: " + e.Message);
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                    }
-                                                }
-                                                else if (filePath.EndsWith("/"))
-                                                {
-                                                    string? encoding = ctx.Request.Headers["Content-Encoding"];
+                                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                                        {
+                                                            byte[]? CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1))));
+                                                            if (CompresedFileBytes != null)
+                                                            {
+                                                                statusCode = HttpStatusCode.OK;
 
-                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                    {
-                                                        byte[]? CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1))));
-                                                        if (CompresedFileBytes != null)
+                                                                ctx.Response.AddHeader("Content-Encoding", "gzip");
+                                                                ctx.Response.ContentType = "application/json";
+                                                                if (ctx.Response.OutputStream.CanWrite)
+                                                                {
+                                                                    try
+                                                                    {
+                                                                        ctx.Response.ContentLength64 = CompresedFileBytes.Length;
+                                                                        ctx.Response.OutputStream.Write(CompresedFileBytes, 0, CompresedFileBytes.Length);
+                                                                        ctx.Response.OutputStream.Flush();
+                                                                    }
+                                                                    catch (Exception)
+                                                                    {
+                                                                        // Not Important;
+                                                                    }
+                                                                }
+                                                            }
+                                                            else
+                                                                statusCode = HttpStatusCode.InternalServerError;
+                                                        }
+                                                        else
                                                         {
                                                             statusCode = HttpStatusCode.OK;
 
-                                                            ctx.Response.AddHeader("Content-Encoding", "gzip");
+                                                            byte[] FileBytes = Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)));
                                                             ctx.Response.ContentType = "application/json";
                                                             if (ctx.Response.OutputStream.CanWrite)
                                                             {
                                                                 try
                                                                 {
-                                                                    ctx.Response.ContentLength64 = CompresedFileBytes.Length;
-                                                                    ctx.Response.OutputStream.Write(CompresedFileBytes, 0, CompresedFileBytes.Length);
+                                                                    ctx.Response.ContentLength64 = FileBytes.Length;
+                                                                    ctx.Response.OutputStream.Write(FileBytes, 0, FileBytes.Length);
                                                                     ctx.Response.OutputStream.Flush();
                                                                 }
                                                                 catch (Exception)
@@ -441,36 +444,11 @@ namespace HTTPServer
                                                                 }
                                                             }
                                                         }
-                                                        else
-                                                            statusCode = HttpStatusCode.InternalServerError;
                                                     }
-                                                    else
+                                                    else if (File.Exists(filePath))
                                                     {
-                                                        statusCode = HttpStatusCode.OK;
+                                                        LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a file : " + filePath);
 
-                                                        byte[] FileBytes = Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)));
-                                                        ctx.Response.ContentType = "application/json";
-                                                        if (ctx.Response.OutputStream.CanWrite)
-                                                        {
-                                                            try
-                                                            {
-                                                                ctx.Response.ContentLength64 = FileBytes.Length;
-                                                                ctx.Response.OutputStream.Write(FileBytes, 0, FileBytes.Length);
-                                                                ctx.Response.OutputStream.Flush();
-                                                            }
-                                                            catch (Exception)
-                                                            {
-                                                                // Not Important;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                else if (File.Exists(filePath))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a file : " + filePath);
-
-                                                    try
-                                                    {
                                                         if (ctx.Response.OutputStream.CanWrite)
                                                         {
                                                             string mimetype = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
@@ -590,173 +568,157 @@ namespace HTTPServer
                                                         else
                                                             statusCode = HttpStatusCode.InternalServerError;
                                                     }
-                                                    catch (HttpListenerException e) when (e.ErrorCode == 64)
+                                                    else
                                                     {
-                                                        // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
-                                                        // This will cause server to throw error 64 (network interface not openned anymore)
-                                                        // In that case, we send internalservererror so client try again.
-
-                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                        LoggerAccessor.LogWarn($"[HTTP] - {clientip} Requested a non-existant file: " + filePath);
+                                                        statusCode = HttpStatusCode.NotFound;
                                                     }
-                                                    catch (Exception e)
-                                                    {
-                                                        LoggerAccessor.LogError("[HTTP] - GET ERROR: " + e.Message);
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    LoggerAccessor.LogWarn($"[HTTP] - {clientip} Requested a non-existant file: " + filePath);
-                                                    statusCode = HttpStatusCode.NotFound;
-                                                }
-                                                break;
+                                                    break;
+                                            }
                                         }
-                                    }
-                                    break;
-                                case "POST":
-                                    if ((host == "stats.outso-srv1.com" || host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
-                                    {
-                                        LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
-                                        string? res = null;
-                                        int version = 0;
-                                        if (absolutepath.Contains("/Insomniac/4BarrelsOfFury"))
-                                            version = 2;
-                                        CryptoSporidium.OHS.OHSClass ohs = new(ctx.Request.HttpMethod, absolutepath, version);
-                                        using (MemoryStream postdata = new())
+                                        break;
+                                    case "POST":
+                                        if ((host == "stats.outso-srv1.com" || host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
                                         {
-                                            ctx.Request.InputStream.CopyTo(postdata);
-
-                                            postdata.Position = 0;
-                                            // Find the number of bytes in the stream
-                                            int contentLength = (int)postdata.Length;
-                                            // Create a byte array
-                                            byte[] buffer = new byte[contentLength];
-                                            // Read the contents of the memory stream into the byte array
-                                            postdata.Read(buffer, 0, contentLength);
-                                            res = ohs.ProcessRequest(buffer, ctx.Request.ContentType, filePath);
-                                            postdata.Flush();
-                                        }
-                                        ohs.Dispose();
-                                        if (string.IsNullOrEmpty(res))
-                                            statusCode = HttpStatusCode.InternalServerError;
-                                        else
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                                            // Construct a response.
-                                            byte[] buffer = Encoding.UTF8.GetBytes($"<ohs>{res}</ohs>");
-
-                                            if (ctx.Response.OutputStream.CanWrite)
+                                            LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
+                                            string? res = null;
+                                            int version = 0;
+                                            if (absolutepath.Contains("/Insomniac/4BarrelsOfFury"))
+                                                version = 2;
+                                            CryptoSporidium.OHS.OHSClass ohs = new(ctx.Request.HttpMethod, absolutepath, version);
+                                            using (MemoryStream postdata = new())
                                             {
-                                                try
+                                                ctx.Request.InputStream.CopyTo(postdata);
+
+                                                postdata.Position = 0;
+                                                // Find the number of bytes in the stream
+                                                int contentLength = (int)postdata.Length;
+                                                // Create a byte array
+                                                byte[] buffer = new byte[contentLength];
+                                                // Read the contents of the memory stream into the byte array
+                                                postdata.Read(buffer, 0, contentLength);
+                                                res = ohs.ProcessRequest(buffer, ctx.Request.ContentType, filePath);
+                                                postdata.Flush();
+                                            }
+                                            ohs.Dispose();
+                                            if (string.IsNullOrEmpty(res))
+                                                statusCode = HttpStatusCode.InternalServerError;
+                                            else
+                                            {
+                                                statusCode = HttpStatusCode.OK;
+                                                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                                                // Construct a response.
+                                                byte[] buffer = Encoding.UTF8.GetBytes($"<ohs>{res}</ohs>");
+
+                                                if (ctx.Response.OutputStream.CanWrite)
                                                 {
-                                                    ctx.Response.ContentLength64 = buffer.Length;
-                                                    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                                    ctx.Response.OutputStream.Flush();
-                                                }
-                                                catch (Exception)
-                                                {
-                                                    // Not Important;
+                                                    try
+                                                    {
+                                                        ctx.Response.ContentLength64 = buffer.Length;
+                                                        ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                                        ctx.Response.OutputStream.Flush();
+                                                    }
+                                                    catch (Exception)
+                                                    {
+                                                        // Not Important;
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        switch (absolutepath)
+                                        else
                                         {
-                                            case "/networktest/post_128":
-                                                statusCode = HttpStatusCode.OK;
-                                                break;
-                                            case "/!HomeTools/MakeBarSdat/":
-                                                if (IsIPAllowed(clientip) && HomeTools.MakeBarSdat(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response))
+                                            switch (absolutepath)
+                                            {
+                                                case "/networktest/post_128":
                                                     statusCode = HttpStatusCode.OK;
-                                                else
-                                                    statusCode = HttpStatusCode.InternalServerError;
-                                                break;
-                                            case "/!HomeTools/UnBar/":
-                                                if (IsIPAllowed(clientip) && HomeTools.UnBar(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response).Result)
-                                                    statusCode = HttpStatusCode.OK;
-                                                else
-                                                    statusCode = HttpStatusCode.InternalServerError;
-                                                break;
-                                            case "/!HomeTools/CDS/":
-                                                if (IsIPAllowed(clientip) && HomeTools.CDS(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response))
-                                                    statusCode = HttpStatusCode.OK;
-                                                else
-                                                    statusCode = HttpStatusCode.InternalServerError;
-                                                break;
-                                            case "/!HomeTools/INF/":
-                                                if (IsIPAllowed(clientip) && HomeTools.INF(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response))
-                                                    statusCode = HttpStatusCode.OK;
-                                                else
-                                                    statusCode = HttpStatusCode.InternalServerError;
-                                                break;
-                                            case "/!HomeTools/ChannelID/":
-                                                if (IsIPAllowed(clientip))
-                                                {
-                                                    string? channelres = HomeTools.ChannelID(ctx.Request.InputStream, ctx.Request.ContentType);
-                                                    if (string.IsNullOrEmpty(channelres))
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                    else
-                                                    {
+                                                    break;
+                                                case "/!HomeTools/MakeBarSdat/":
+                                                    if (IsIPAllowed(clientip) && HomeTools.MakeBarSdat(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response))
                                                         statusCode = HttpStatusCode.OK;
-                                                        // Construct a response.
-                                                        byte[] buffer = Encoding.UTF8.GetBytes(channelres);
-
-                                                        if (ctx.Response.OutputStream.CanWrite)
+                                                    else
+                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                    break;
+                                                case "/!HomeTools/UnBar/":
+                                                    if (IsIPAllowed(clientip) && HomeTools.UnBar(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response).Result)
+                                                        statusCode = HttpStatusCode.OK;
+                                                    else
+                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                    break;
+                                                case "/!HomeTools/CDS/":
+                                                    if (IsIPAllowed(clientip) && HomeTools.CDS(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response))
+                                                        statusCode = HttpStatusCode.OK;
+                                                    else
+                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                    break;
+                                                case "/!HomeTools/INF/":
+                                                    if (IsIPAllowed(clientip) && HomeTools.INF(ctx.Request.InputStream, ctx.Request.ContentType, ctx.Response))
+                                                        statusCode = HttpStatusCode.OK;
+                                                    else
+                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                    break;
+                                                case "/!HomeTools/ChannelID/":
+                                                    if (IsIPAllowed(clientip))
+                                                    {
+                                                        string? channelres = HomeTools.ChannelID(ctx.Request.InputStream, ctx.Request.ContentType);
+                                                        if (string.IsNullOrEmpty(channelres))
+                                                            statusCode = HttpStatusCode.InternalServerError;
+                                                        else
                                                         {
-                                                            try
+                                                            statusCode = HttpStatusCode.OK;
+                                                            // Construct a response.
+                                                            byte[] buffer = Encoding.UTF8.GetBytes(channelres);
+
+                                                            if (ctx.Response.OutputStream.CanWrite)
                                                             {
-                                                                ctx.Response.ContentLength64 = buffer.Length;
-                                                                ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                                                ctx.Response.OutputStream.Flush();
-                                                            }
-                                                            catch (Exception)
-                                                            {
-                                                                // Not Important;
+                                                                try
+                                                                {
+                                                                    ctx.Response.ContentLength64 = buffer.Length;
+                                                                    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                                                    ctx.Response.OutputStream.Flush();
+                                                                }
+                                                                catch (Exception)
+                                                                {
+                                                                    // Not Important;
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
-                                                else
-                                                    statusCode = HttpStatusCode.InternalServerError;
-                                                break;
-                                            case "/!HomeTools/SceneID/":
-                                                if (IsIPAllowed(clientip))
-                                                {
-                                                    string? sceneres = HomeTools.SceneID(ctx.Request.InputStream, ctx.Request.ContentType);
-                                                    if (string.IsNullOrEmpty(sceneres))
-                                                        statusCode = HttpStatusCode.InternalServerError;
                                                     else
+                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                    break;
+                                                case "/!HomeTools/SceneID/":
+                                                    if (IsIPAllowed(clientip))
                                                     {
-                                                        statusCode = HttpStatusCode.OK;
-                                                        // Construct a response.
-                                                        byte[] buffer = Encoding.UTF8.GetBytes(sceneres);
-
-                                                        if (ctx.Response.OutputStream.CanWrite)
+                                                        string? sceneres = HomeTools.SceneID(ctx.Request.InputStream, ctx.Request.ContentType);
+                                                        if (string.IsNullOrEmpty(sceneres))
+                                                            statusCode = HttpStatusCode.InternalServerError;
+                                                        else
                                                         {
-                                                            try
+                                                            statusCode = HttpStatusCode.OK;
+                                                            // Construct a response.
+                                                            byte[] buffer = Encoding.UTF8.GetBytes(sceneres);
+
+                                                            if (ctx.Response.OutputStream.CanWrite)
                                                             {
-                                                                ctx.Response.ContentLength64 = buffer.Length;
-                                                                ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                                                ctx.Response.OutputStream.Flush();
-                                                            }
-                                                            catch (Exception)
-                                                            {
-                                                                // Not Important;
+                                                                try
+                                                                {
+                                                                    ctx.Response.ContentLength64 = buffer.Length;
+                                                                    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                                                    ctx.Response.OutputStream.Flush();
+                                                                }
+                                                                catch (Exception)
+                                                                {
+                                                                    // Not Important;
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
-                                                else
-                                                    statusCode = HttpStatusCode.InternalServerError;
-                                                break;
-                                            default:
-                                                // send file
-                                                if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
-                                                {
-                                                    try
+                                                    else
+                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                    break;
+                                                default:
+                                                    // send file
+                                                    if (File.Exists(filePath) && filePath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                                                     {
                                                         if (ctx.Response.OutputStream.CanWrite && ctx.Request.Url != null && ctx.Request.Url.Scheme != null)
                                                         {
@@ -787,66 +749,66 @@ namespace HTTPServer
                                                         else
                                                             statusCode = HttpStatusCode.InternalServerError;
                                                     }
-                                                    catch (HttpListenerException e) when (e.ErrorCode == 64)
-                                                    {
-                                                        // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
-                                                        // This will cause server to throw error 64 (network interface not openned anymore)
-                                                        // In that case, we send internalservererror so client try again.
-
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        LoggerAccessor.LogError("[HTTP] - PHP POST ERROR: " + e.Message);
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                    }
-                                                }
-                                                else
-                                                    statusCode = HttpStatusCode.Forbidden;
-                                                break;
+                                                    else
+                                                        statusCode = HttpStatusCode.Forbidden;
+                                                    break;
+                                            }
                                         }
-                                    }
-                                    break;
-                                case "PUT":
-                                    statusCode = HttpStatusCode.Forbidden;
-                                    break;
-                                case "DELETE":
-                                    statusCode = HttpStatusCode.Forbidden;
-                                    break;
-                                case "HEAD":
-                                    if (File.Exists(filePath))
-                                    {
-                                        FileInfo? fileInfo = new(filePath);
-
-                                        if (fileInfo.Exists)
+                                        break;
+                                    case "PUT":
+                                        statusCode = HttpStatusCode.Forbidden;
+                                        break;
+                                    case "DELETE":
+                                        statusCode = HttpStatusCode.Forbidden;
+                                        break;
+                                    case "HEAD":
+                                        if (File.Exists(filePath))
                                         {
-                                            long fileSizeInBytes = fileInfo.Length;
-                                            // get mime type
-                                            ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
-                                            ctx.Response.ContentLength64 = fileSizeInBytes;
+                                            FileInfo? fileInfo = new(filePath);
 
-                                            statusCode = HttpStatusCode.OK;
+                                            if (fileInfo.Exists)
+                                            {
+                                                long fileSizeInBytes = fileInfo.Length;
+                                                // get mime type
+                                                ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
+                                                ctx.Response.ContentLength64 = fileSizeInBytes;
+
+                                                statusCode = HttpStatusCode.OK;
+                                            }
+                                            else
+                                            {
+                                                LoggerAccessor.LogWarn($"[HTTP] - {clientip} Requested a non-existant file: " + filePath);
+                                                statusCode = HttpStatusCode.NotFound;
+                                            }
+
+                                            fileInfo = null;
                                         }
                                         else
                                         {
                                             LoggerAccessor.LogWarn($"[HTTP] - {clientip} Requested a non-existant file: " + filePath);
                                             statusCode = HttpStatusCode.NotFound;
                                         }
-
-                                        fileInfo = null;
-                                    }
-                                    else
-                                    {
-                                        LoggerAccessor.LogWarn($"[HTTP] - {clientip} Requested a non-existant file: " + filePath);
-                                        statusCode = HttpStatusCode.NotFound;
-                                    }
-                                    break;
-                                default:
-                                    statusCode = HttpStatusCode.Forbidden;
-                                    break;
-                            }
-                            break;
+                                        break;
+                                    default:
+                                        statusCode = HttpStatusCode.Forbidden;
+                                        break;
+                                }
+                                break;
+                        }
                     }
+                }
+                catch (HttpListenerException e) when (e.ErrorCode == 64)
+                {
+                    // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
+                    // This will cause server to throw error 64 (network interface not openned anymore)
+                    // In that case, we send internalservererror so client try again.
+
+                    statusCode = HttpStatusCode.InternalServerError;
+                }
+                catch (Exception e)
+                {
+                    LoggerAccessor.LogError("[HTTP] - REQUEST ERROR: " + e.Message);
+                    statusCode = HttpStatusCode.InternalServerError;
                 }
             }
 
@@ -858,7 +820,14 @@ namespace HTTPServer
                 ctx.Response.AddHeader("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
             }
 
-            ctx.Response.OutputStream.Close();
+            try
+            {
+                ctx.Response.OutputStream.Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                // outputstream has been disposed already.
+            }
             ctx.Response.Close();
         }
     }
