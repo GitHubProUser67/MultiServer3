@@ -20,10 +20,10 @@ public static class HorizonServerConfiguration
     public static string? MUISConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/muis.json";
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
-    public static string HomeVersionBetaHDK { get; set; } = "01.60";
-    public static string HomeVersionRetail { get; set; } = "01.83";
+    public static string HomeVersionBetaHDK { get; set; } = "01.86";
+    public static string HomeVersionRetail { get; set; } = "01.86";
 
-    public static DbController Database = new(DatabaseConfig);
+    public static DbController? Database = new(DatabaseConfig);
 
     public static List<IPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 

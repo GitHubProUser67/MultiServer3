@@ -22,5 +22,12 @@
     <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
     <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
   </ItemGroup>
+  
+  <Target Name="CopyFolderToBuildDirectory" AfterTargets="Build">
+    <ItemGroup>
+      <SourceFolder Include="$(SolutionDir)\MitmDNS\static\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SourceFolder)" DestinationFolder="$(TargetDir)\static\%(RecursiveDir)" />
+  </Target>
 
 </Project>

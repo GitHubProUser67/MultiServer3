@@ -23,7 +23,7 @@ public static class SVOServerConfiguration
         "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
         "</SVML>";
 
-    public static DbController Database = new(DatabaseConfig);
+    public static DbController? Database = new(DatabaseConfig);
 
     public static List<string>? BannedIPs { get; set; }
 
