@@ -27,5 +27,26 @@ namespace CryptoSporidium.CDS
 
             return null;
         }
+
+        public static byte[]? CDSByteEncrypt_Decrypt(byte[] buffer, byte[] sha1)
+        {
+            if (sha1 != null)
+            {
+                ToolsImpl? toolsimpl = new();
+                byte[] tranformedSHA1 = BitConverter.GetBytes(toolsimpl.Sha1toNonce(sha1));
+                toolsimpl = null;
+
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
+
+                BlowfishCTREncryptDecrypt? blowfish = new();
+                byte[]? FileBytes = blowfish.InitiateCTRBuffer(buffer, tranformedSHA1);
+                blowfish = null;
+
+                return FileBytes;
+            }
+
+            return null;
+        }
     }
 }

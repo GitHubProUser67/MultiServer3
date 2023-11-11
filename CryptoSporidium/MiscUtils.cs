@@ -27,6 +27,16 @@ namespace CryptoSporidium
 
             return null;
         }
+
+        public string? ExtractFirst16Characters(string input)
+        {
+            // Check if the input string is not null and has at least 16 characters
+            if (input != null && input.Length >= 16)
+                // Use Substring to get the first 16 characters
+                return input.Substring(0, 16);
+            return null;
+        }
+
         public string GetNanoseconds()
         {
             // C# DateTime only provides up to ticks (100 nanoseconds) resolution
@@ -219,6 +229,24 @@ namespace CryptoSporidium
             byte[] result = new byte[size];
             Array.Copy(source, result, (int)size);
             return result;
+        }
+
+        public byte[]? GetNumberBytes(byte[]? byteArray, int number)
+        {
+            // Check if the index is within the bounds of the array
+            if (byteArray == null || number < 0 || number >= byteArray.Length)
+            {
+                LoggerAccessor.LogError("Index is out of range or entry is null");
+                return null;
+            }
+
+            // Create a new array to store the result bytes
+            byte[] resultBytes = new byte[number];
+
+            // Copy the bytes from the original array to the result array
+            Array.Copy(byteArray, 0, resultBytes, 0, resultBytes.Length);
+
+            return resultBytes;
         }
 
         public byte[] TrimArray(byte[] arr)

@@ -480,7 +480,7 @@ namespace HTTPServer.API
                         int i = 0;
                         string filename = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
-                        string sha1 = data.GetParameterValue("sha1");
+                        string? sha1 = data.GetParameterValue("sha1");
                         foreach (var multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
@@ -502,36 +502,44 @@ namespace HTTPServer.API
 
                                 string tempdir = $"{maindir}/{guid}";
 
-                                if (sha1.Length < 16)
+                                if (!string.IsNullOrEmpty(sha1) && sha1.Length < 16)
                                     LoggerAccessor.LogWarn($"[HomeTools] - CDSProcess - Invalid SHA1 given via interface.");
                                 else
                                 {
-                                    Directory.CreateDirectory(tempdir);
-
-                                    byte[]? ProcessedFileBytes = CryptoSporidium.CDS.CDSProcess.CDSEncrypt_Decrypt(buffer, sha1);
-
-                                    if (ProcessedFileBytes != null)
+                                    if (!string.IsNullOrEmpty(sha1))
                                     {
-                                        if (filename.ToLower().Contains(".xml") || filename.ToLower().Contains(".sdc") || filename.ToLower().Contains(".odc"))
+                                        sha1 = new CryptoSporidium.MiscUtils().ExtractFirst16Characters(sha1);
+
+                                        if (!string.IsNullOrEmpty(sha1))
                                         {
-                                            File.WriteAllBytes(tempdir + $"/{filename}_Processed.xml", ProcessedFileBytes);
+                                            Directory.CreateDirectory(tempdir);
 
-                                            HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.xml");
+                                            byte[]? ProcessedFileBytes = CryptoSporidium.CDS.CDSProcess.CDSEncrypt_Decrypt(buffer, sha1);
 
-                                            isok = true;
-                                        }
-                                        else
-                                        {
-                                            File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", ProcessedFileBytes);
+                                            if (ProcessedFileBytes != null)
+                                            {
+                                                if (filename.ToLower().Contains(".xml") || filename.ToLower().Contains(".sdc") || filename.ToLower().Contains(".odc"))
+                                                {
+                                                    File.WriteAllBytes(tempdir + $"/{filename}_Processed.xml", ProcessedFileBytes);
 
-                                            HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
+                                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.xml");
 
-                                            isok = true;
+                                                    isok = true;
+                                                }
+                                                else
+                                                {
+                                                    File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", ProcessedFileBytes);
+
+                                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
+
+                                                    isok = true;
+                                                }
+                                            }
+
+                                            if (Directory.Exists(tempdir))
+                                                Directory.Delete(tempdir, true);
                                         }
                                     }
-
-                                    if (Directory.Exists(tempdir))
-                                        Directory.Delete(tempdir, true);
                                 }
 
                                 i++;
