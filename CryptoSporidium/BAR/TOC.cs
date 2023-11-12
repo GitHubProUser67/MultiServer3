@@ -164,6 +164,24 @@ namespace CryptoSporidium.BAR
             return memoryStream.ToArray();
         }
 
+        public byte[] GetBytesVersion2()
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
+            foreach (TOCEntry tocentry in m_entries.Values)
+            {
+                binaryWriter.Write(Utils.EndianSwap((int)tocentry.FileName));
+                uint num = tocentry.DataOffset;
+                num |= (uint)tocentry.Compression;
+                binaryWriter.Write(Utils.EndianSwap(num));
+                binaryWriter.Write(Utils.EndianSwap(tocentry.Size));
+                binaryWriter.Write(Utils.EndianSwap(tocentry.CompressedSize));
+                binaryWriter.Write(tocentry.IV);
+            }
+            binaryWriter.Close();
+            return memoryStream.ToArray();
+        }
+
         public uint Version1Size
         {
             get
