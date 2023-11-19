@@ -59,14 +59,29 @@ namespace MitmDNS
         {
             CryptoSporidium.MiscUtils? utils = new();
 
+            int numofrequests = 0;
+
             while (DnsStarted)
             {
                 byte[] data = new byte[1024];
-                if (endpoint != null && soc != null)
-                    soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
-                data = utils.TrimArray(data);
-
+                try
+                {
+                    if (endpoint != null && soc != null)
+                        soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
+                }
+                catch
+                {
+                    //Ignore errors
+                }
+				data = utils.TrimArray(data);
                 procRequest(data);
+                if (numofrequests >= 250)
+                {
+                    numofrequests = 0;
+                    GC.Collect(); // This is not meant to be a hackfix, there is a attack type called DNS Amplifcation attack. Despite cleaning buffer it can still overflow a touch after 250 requests.
+                }
+                else
+					numofrequests++;
             }
 
             utils = null;
@@ -143,6 +158,23 @@ namespace MitmDNS
             {
                 DnsEventArgs a = new DnsEventArgs() { Host = ip, Url = fullname };
                 ResolvedIp(a);
+            }
+
+            if (soc != null)
+            {
+                byte[] info = new byte[2];
+                byte[] outval = new byte[1024];
+                try
+                {
+                    soc.IOControl(IOControlCode.DataToRead, info, outval);
+                    uint bytesAvailable = BitConverter.ToUInt32(outval, 0);
+                    if (bytesAvailable != 0 && bytesAvailable < 1024)
+                        soc.Receive(outval); //Flush buffer
+                }
+                catch
+                {
+                    //Ignore errors
+                }
             }
         }
 
