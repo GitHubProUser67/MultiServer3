@@ -219,8 +219,6 @@ namespace HTTPServer
 
                                     using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                                     {
-                                        ctx.Response.SendChunked = true;
-
                                         // get mime type
                                         ctx.Response.ContentType = "text/html";
                                         ctx.Response.ContentLength64 = stream.Length;
@@ -258,8 +256,6 @@ namespace HTTPServer
                                                     {
                                                         using (MemoryStream memoryStream = new(Encoding.UTF8.GetBytes(UFCResult)))
                                                         {
-                                                            ctx.Response.SendChunked = true;
-
                                                             // get mime type
                                                             ctx.Response.ContentType = "text/xml";
                                                             ctx.Response.ContentLength64 = memoryStream.Length;
@@ -374,8 +370,6 @@ namespace HTTPServer
                                                             {
                                                                 using (MemoryStream memoryStream = new(PHPBytes))
                                                                 {
-                                                                    ctx.Response.SendChunked = true;
-
                                                                     // get mime type
                                                                     ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
                                                                     ctx.Response.ContentLength64 = memoryStream.Length;
@@ -552,8 +546,6 @@ namespace HTTPServer
 
                                                                 using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                                                                 {
-                                                                    ctx.Response.SendChunked = true;
-
                                                                     // get mime type
                                                                     ctx.Response.ContentType = mimetype;
                                                                     ctx.Response.ContentLength64 = stream.Length;
@@ -729,8 +721,6 @@ namespace HTTPServer
                                                             {
                                                                 using (MemoryStream memoryStream = new(PHPBytes))
                                                                 {
-                                                                    ctx.Response.SendChunked = true;
-
                                                                     // get mime type
                                                                     ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
                                                                     ctx.Response.ContentLength64 = memoryStream.Length;
@@ -817,6 +807,7 @@ namespace HTTPServer
             if (statusCode == HttpStatusCode.OK)
             {
                 ctx.Response.AddHeader("Date", DateTime.Now.ToString("r"));
+                ctx.Response.AddHeader("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                 ctx.Response.AddHeader("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
             }
 

@@ -95,7 +95,7 @@ class Program
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 		
-        Processor server = new("*");
+        SVOServer server = new("*");
 
         server.Start();
 

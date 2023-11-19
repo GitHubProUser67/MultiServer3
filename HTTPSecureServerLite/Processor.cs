@@ -104,6 +104,15 @@ namespace HTTPSecureServerLite
                 // Process the request based on the HTTP method
                 string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath.Substring(1));
 
+                if (ctx.Request.Method.ToString() == "OPTIONS")
+                {
+                    ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                    ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
+                    ctx.Response.Headers.Add("Access-Control-Max-Age", "1728000");
+                }
+
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+
                 if ((absolutepath == "/" || absolutepath == "\\") && ctx.Request.Method.ToString() == "GET")
                 {
                     foreach (string indexFile in CryptoSporidium.HTTPUtils.DefaultDocuments)
@@ -132,6 +141,9 @@ namespace HTTPSecureServerLite
                                         if (buffer != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(indexFile)];
                                             await ctx.Response.SendAsync(buffer);
@@ -147,6 +159,9 @@ namespace HTTPSecureServerLite
                                     else
                                     {
                                         statusCode = HttpStatusCode.OK;
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(indexFile)];
                                         await ctx.Response.SendAsync(buffer);
@@ -183,7 +198,12 @@ namespace HTTPSecureServerLite
                     if (string.IsNullOrEmpty(res))
                         statusCode = HttpStatusCode.InternalServerError;
                     else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                         statusCode = HttpStatusCode.OK;
+                    }
                     ctx.Response.StatusCode = (int)statusCode;
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);
@@ -198,7 +218,12 @@ namespace HTTPSecureServerLite
                     if (string.IsNullOrEmpty(res))
                         statusCode = HttpStatusCode.InternalServerError;
                     else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                         statusCode = HttpStatusCode.OK;
+                    }
                     ctx.Response.StatusCode = (int)statusCode;
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);
@@ -215,6 +240,9 @@ namespace HTTPSecureServerLite
                     else
                     {
                         res = $"<ohs>{res}</ohs>";
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
@@ -239,6 +267,9 @@ namespace HTTPSecureServerLite
                                     if (buffer != null)
                                     {
                                         statusCode = HttpStatusCode.OK;
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "application/json";
                                         await ctx.Response.SendAsync(buffer);
@@ -254,6 +285,9 @@ namespace HTTPSecureServerLite
                                 else
                                 {
                                     statusCode = HttpStatusCode.OK;
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                     ctx.Response.StatusCode = (int)statusCode;
                                     ctx.Response.ContentType = "application/json";
                                     await ctx.Response.SendAsync(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)));
@@ -285,6 +319,9 @@ namespace HTTPSecureServerLite
                                             if (buffer != null)
                                             {
                                                 statusCode = HttpStatusCode.OK;
+                                                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
                                                 await ctx.Response.SendAsync(buffer);

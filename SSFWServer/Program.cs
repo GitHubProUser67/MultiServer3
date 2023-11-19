@@ -71,7 +71,6 @@ class Program
         SSFWClass server = new(SSFWServerConfiguration.SSFWCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
 
         _ = Task.Run(server.StartSSFW);
-
         _ = Task.Run(RefreshConfig);
 
         if (Misc.IsWindows())

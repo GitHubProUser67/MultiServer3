@@ -15,13 +15,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="HttpServerLite" Version="2.1.5" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
-    <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
   </ItemGroup>
 
 </Project>

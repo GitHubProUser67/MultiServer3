@@ -72,13 +72,13 @@ namespace SSFWServer
             var context = new SslContext(SslProtocols.Tls12, new X509Certificate2(certpath, certpass));
 
             // Create a new HTTP server
-            var server = new SSFWServer(context, IPAddress.Any, 8443);
+            var server = new SSFWServer(context, IPAddress.Any, 10443);
 
             // Start the server
             server.Start();
 
             // Create and prepare a new HTTP server
-            var httpserver = new HttpSSFWServer(IPAddress.Any, 10443);
+            var httpserver = new HttpSSFWServer(IPAddress.Any, 8080);
 
             // Start the server
             httpserver.Start();

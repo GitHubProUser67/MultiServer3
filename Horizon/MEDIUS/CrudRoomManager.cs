@@ -27,35 +27,36 @@ namespace Horizon.MEDIUS
                 while (MediusClass.started)
                 {
                     // Note: The GetContext method blocks while waiting for a request.
-                    HttpListenerContext context = listener.GetContext();
+                    HttpListenerContext ctx = listener.GetContext();
 
-                    LoggerAccessor.LogInfo($"[CrudRoomManager] - Recived request for {context.Request.Url}");
+                    LoggerAccessor.LogInfo($"[CrudRoomManager] - Recived request for {ctx.Request.Url}");
 
-                    if (context.Request.HttpMethod == "OPTIONS")
+                    if (ctx.Request.HttpMethod == "OPTIONS")
                     {
-                        context.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                        context.Response.AddHeader("Access-Control-Allow-Methods", "GET");
-                        context.Response.AddHeader("Access-Control-Max-Age", "1728000");
+                        ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                        ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET");
+                        ctx.Response.AddHeader("Access-Control-Max-Age", "1728000");
                     }
 
-                    context.Response.AppendHeader("Access-Control-Allow-Origin", "*");
+                    ctx.Response.AppendHeader("Access-Control-Allow-Origin", "*");
 
-                    if (context.Request.HttpMethod == "GET" && context.Request.Url != null)
+                    if (ctx.Request.HttpMethod == "GET" && ctx.Request.Url != null)
                     {
-                        switch (context.Request.Url.AbsolutePath)
+                        switch (ctx.Request.Url.AbsolutePath)
                         {
                             case "/GetRooms/":
-                                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                                ctx.Response.AddHeader("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                                 // Construct a response.
                                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(ToJson());
 
-                                if (context.Response.OutputStream.CanWrite)
+                                if (ctx.Response.OutputStream.CanWrite)
                                 {
                                     try
                                     {
-                                        context.Response.ContentLength64 = buffer.Length;
-                                        context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                        context.Response.OutputStream.Close();
+                                        ctx.Response.ContentLength64 = buffer.Length;
+                                        ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                        ctx.Response.OutputStream.Flush();
                                     }
                                     catch (Exception)
                                     {
@@ -66,17 +67,18 @@ namespace Horizon.MEDIUS
                             case "/favicon.ico":
                                 if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
                                 {
-                                    context.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.AddHeader("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                                     // Construct a response.
                                     byte[] bufferfavicon = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico");
 
-                                    if (context.Response.OutputStream.CanWrite)
+                                    if (ctx.Response.OutputStream.CanWrite)
                                     {
                                         try
                                         {
-                                            context.Response.ContentLength64 = bufferfavicon.Length;
-                                            context.Response.OutputStream.Write(bufferfavicon, 0, bufferfavicon.Length);
-                                            context.Response.OutputStream.Close();
+                                            ctx.Response.ContentLength64 = bufferfavicon.Length;
+                                            ctx.Response.OutputStream.Write(bufferfavicon, 0, bufferfavicon.Length);
+                                            ctx.Response.OutputStream.Flush();
                                         }
                                         catch (Exception)
                                         {
@@ -85,17 +87,25 @@ namespace Horizon.MEDIUS
                                     }
                                 }
                                 else
-                                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
                                 break;
                             default:
-                                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                                 break;
                         }
                     }
                     else
-                        context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
-                    context.Response.Close();
+                    try
+                    {
+                        ctx.Response.OutputStream.Close();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // outputstream has been disposed already.
+                    }
+                    ctx.Response.Close();
                 }
 
                 listener.Stop();

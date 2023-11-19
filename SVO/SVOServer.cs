@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SVO
 {
-    internal class Processor
+    internal class SVOServer
     {
         public static bool IsStarted = false;
 
@@ -16,7 +16,7 @@ namespace SVO
         private HttpListener? listener;
         private string ip;
 
-        public Processor(string ip)
+        public SVOServer(string ip)
         {
             this.ip = ip;
         }
@@ -185,7 +185,7 @@ namespace SVO
                                         {
                                             ctx.Response.ContentLength64 = datatooutput.Length;
                                             ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
-                                            ctx.Response.OutputStream.Close();
+                                            ctx.Response.OutputStream.Flush();
                                         }
                                         catch (Exception)
                                         {
