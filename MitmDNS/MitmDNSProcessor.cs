@@ -20,24 +20,23 @@ namespace MitmDNS
         public List<KeyValuePair<string, DnsSettings>>? regRules = new List<KeyValuePair<string, DnsSettings>>();
         public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
-        private static Socket? soc = null;
-        private static EndPoint? endpoint = null;
-
         public Task RunDns()
         {
-            if (setup())
+            Socket? soc = null;
+            EndPoint? endpoint = null;
+            if (setup(ref soc, ref endpoint))
             {
                 LoggerAccessor.LogInfo($"[DNS] - Server started on port 53");
 
                 DnsStarted = true;
 
-                _ = Task.Run(DnsMainLoop);
+                _ = Task.Run(() => DnsMainLoop(ref soc, ref endpoint));
             }
 
             return Task.CompletedTask;
         }
 
-        public bool setup()
+        private bool setup(ref Socket? soc, ref EndPoint? endpoint)
         {
             soc = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             endpoint = new IPEndPoint(IPAddress.Any, 53);
@@ -55,33 +54,39 @@ namespace MitmDNS
             }
         }
 
-        public Task DnsMainLoop()
+        private Task DnsMainLoop(ref Socket? soc, ref EndPoint? endpoint)
         {
             CryptoSporidium.MiscUtils? utils = new();
+
+            byte[] data = new byte[1024];
 
             int numofrequests = 0;
 
             while (DnsStarted)
             {
-                byte[] data = new byte[1024];
                 try
                 {
                     if (endpoint != null && soc != null)
+                    {
                         soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
-                    data = utils.TrimArray(data);
-                    procRequest(data);
+                        data = utils.TrimArray(data);
+                        procRequest(data, ref soc, ref endpoint);
+                    }
                 }
                 catch
                 {
                     //Ignore errors
                 }
+
                 if (numofrequests >= 250)
                 {
                     numofrequests = 0;
                     GC.Collect(); // This is not meant to be a hackfix, there is a attack type called DNS Amplifcation attack. Despite cleaning buffer it can still overflow a touch after 250 requests.
                 }
                 else
-					numofrequests++;
+                    numofrequests++;
+
+                Array.Clear(data, 0, data.Length);
             }
 
             utils = null;
@@ -89,7 +94,7 @@ namespace MitmDNS
             return Task.CompletedTask;
         }
 
-        public void procRequest(byte[] data)
+        private void procRequest(byte[] data, ref Socket soc, ref EndPoint endpoint)
         {
             string fullname = string.Join(".", GetName(data).ToArray());
             if (FireEvents && ConnectionRequest != null && endpoint != null)
@@ -178,7 +183,7 @@ namespace MitmDNS
             }
         }
 
-        public List<string> GetName(byte[] Req)
+        private List<string> GetName(byte[] Req)
         {
             List<string> addr = new List<string>();
             int type = (Req[2] >> 3) & 0xF;
@@ -201,7 +206,7 @@ namespace MitmDNS
             return addr;
         }
 
-        public byte[] MakeResponsePacket(byte[] Req, IPAddress Ip)
+        private byte[] MakeResponsePacket(byte[] Req, IPAddress Ip)
         {
             List<byte> ans = new List<byte>();
             //http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf
