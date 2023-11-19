@@ -68,13 +68,13 @@ namespace MitmDNS
                 {
                     if (endpoint != null && soc != null)
                         soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
+                    data = utils.TrimArray(data);
+                    procRequest(data);
                 }
                 catch
                 {
                     //Ignore errors
                 }
-				data = utils.TrimArray(data);
-                procRequest(data);
                 if (numofrequests >= 250)
                 {
                     numofrequests = 0;
