@@ -104,6 +104,21 @@ namespace CryptoSporidium
             return hex.ToString();
         }
 
+        public byte[] ConcatenateArrays(byte[][] arrays)
+        {
+            int totalLength = arrays.Sum(arr => arr.Length);
+            byte[] result = new byte[totalLength];
+            int offset = 0;
+
+            foreach (var array in arrays)
+            {
+                Buffer.BlockCopy(array, 0, result, offset, array.Length);
+                offset += array.Length;
+            }
+
+            return result;
+        }
+
         public byte[] ReadBinaryFile(string filePath, int offset, int length)
         {
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))

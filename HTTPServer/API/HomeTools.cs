@@ -1,4 +1,5 @@
-﻿using CryptoSporidium.BAR;
+﻿using CryptoSporidium;
+using CryptoSporidium.BAR;
 using CryptoSporidium.ChannelID;
 using CryptoSporidium.FileHelper;
 using CryptoSporidium.UnBAR;
@@ -508,7 +509,7 @@ namespace HTTPServer.API
                                 {
                                     if (!string.IsNullOrEmpty(sha1))
                                     {
-                                        sha1 = new CryptoSporidium.MiscUtils().ExtractFirst16Characters(sha1);
+                                        sha1 = new MiscUtils().ExtractFirst16Characters(sha1);
 
                                         if (!string.IsNullOrEmpty(sha1))
                                         {
@@ -528,10 +529,25 @@ namespace HTTPServer.API
                                                 }
                                                 else
                                                 {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", ProcessedFileBytes);
-
-                                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
-
+                                                    if (ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
+                                                    {
+                                                        byte[]? DecompressedData = new EDGELZMA().Decompress(ProcessedFileBytes, true);
+                                                        if (DecompressedData != null)
+                                                        {
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Processed.sql", DecompressedData);
+                                                            HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.sql");
+                                                        }
+                                                        else
+                                                        {
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Processed.segs", ProcessedFileBytes);
+                                                            HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.segs");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", ProcessedFileBytes);
+                                                        HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
+                                                    }
                                                     isok = true;
                                                 }
                                             }
