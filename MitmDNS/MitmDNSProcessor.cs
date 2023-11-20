@@ -54,7 +54,7 @@ namespace MitmDNS
                         // Ignore errors
                     }
 
-                    if (pass == 250) // We have no choice, DNS is a high target for hackers.
+                    if (pass == 1000) // We have no choice, DNS is a high target for hackers.
                     {
                         pass = 0;
                         GC.Collect();
