@@ -9,7 +9,6 @@ namespace MitmDNS
     {
         public static bool DnsStarted = false;
         public bool FireEvents = false;
-        public bool DenyNotInRules = false;
         public event ConnectionRequestHandler? ConnectionRequest;
         public event ResolvedIpHandler? ResolvedIp;
         public delegate void ServerReadyHandler(Dictionary<string, string> e);
@@ -20,68 +19,44 @@ namespace MitmDNS
         public List<KeyValuePair<string, DnsSettings>>? regRules = new List<KeyValuePair<string, DnsSettings>>();
         public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
-        private static Socket? soc = null;
-        private static EndPoint? endpoint = null;
-
         public Task RunDns()
         {
-            if (setup())
-            {
-                LoggerAccessor.LogInfo($"[DNS] - Server started on port 53");
+            LoggerAccessor.LogInfo($"[DNS] - Server started on port 53");
 
-                DnsStarted = true;
+            DnsStarted = true;
 
-                _ = Task.Run(DnsMainLoop);
-            }
+            _ = Task.Run(DnsMainLoop);
 
             return Task.CompletedTask;
         }
 
-        public bool setup()
-        {
-            soc = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            endpoint = new IPEndPoint(IPAddress.Any, 53);
-            soc.ReceiveBufferSize = 1023;
-            try
-            {
-                soc.Bind(endpoint);
-                return true;
-            }
-            catch (SocketException)
-            {
-                LoggerAccessor.LogError($"[DNS] - Server failed to start - Couldn't bind to port 53.\r\nIt may be already in use, on windows check with \"netstat -ano\" or disable HyperV " +
-                $"(known to cause conflicts)\r\nIf you're on linux make sure to run with sudo");
-                return false;
-            }
-        }
-
-        public Task DnsMainLoop()
+        private Task DnsMainLoop()
         {
             CryptoSporidium.MiscUtils? utils = new();
 
-            int numofrequests = 0;
-
-            while (DnsStarted)
+            try
             {
-                byte[] data = new byte[1024];
-                try
+                IPEndPoint groupEP = new(IPAddress.Any, 53);
+                UdpClient listener = new(53);
+
+                while (DnsStarted)
                 {
-                    if (endpoint != null && soc != null)
-                        soc.ReceiveFrom(data, SocketFlags.None, ref endpoint);
-                    data = utils.TrimArray(data);
-                    procRequest(data);
+                    try
+                    {
+                        byte[]? receivermemory = procRequest(utils.TrimArray(listener.Receive(ref groupEP)), groupEP);
+                        if (receivermemory != null)
+                            listener.Send(receivermemory, receivermemory.Length, groupEP);
+                    }
+                    catch
+                    {
+                        //Ignore errors
+                    }
                 }
-                catch
-                {
-                    //Ignore errors
-                }
-                if (numofrequests >= 250)
-                {
-                    numofrequests = 0;
-                    GC.Collect(); // This is not meant to be a hackfix, there is a attack type called DNS Amplifcation attack. Despite cleaning buffer it can still overflow a touch after 250 requests.
-                }
-                else
-					numofrequests++;
+
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[DNS] - Server thrown an exception : {ex}");
             }
 
             utils = null;
@@ -89,7 +64,7 @@ namespace MitmDNS
             return Task.CompletedTask;
         }
 
-        public void procRequest(byte[] data)
+        private byte[]? procRequest(byte[] data, IPEndPoint endpoint)
         {
             string fullname = string.Join(".", GetName(data).ToArray());
             if (FireEvents && ConnectionRequest != null && endpoint != null)
@@ -98,7 +73,7 @@ namespace MitmDNS
                 ConnectionRequest(a);
             }
 
-            string url = "";
+            string url = string.Empty;
             bool treated = false;
 
             if (dicRules.ContainsKey(fullname))
@@ -106,11 +81,10 @@ namespace MitmDNS
                 if (dicRules[fullname].Mode == HandleMode.Allow) url = fullname;
                 else if (dicRules[fullname].Mode == HandleMode.Redirect) url = dicRules[fullname].Address ?? "127.0.0.1";
                 else if (dicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
-                else url = fullname;
                 treated = true;
             }
 
-            if (!treated)
+            if (!treated && regRules != null)
             {
                 foreach (KeyValuePair<string, DnsSettings> rule in regRules)
                 {
@@ -121,20 +95,16 @@ namespace MitmDNS
                     if (rule.Value.Mode == HandleMode.Allow) url = fullname;
                     else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
                     else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                    else url = fullname;
                     treated = true;
                     break;
                 }
             }
 
-            if (!treated)
-            {
-                if (!DenyNotInRules) url = fullname;
-                else url = "NXDOMAIN";
-            }
+            if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
+                url = Misc.GetFirstActiveIPAddress(fullname, Misc.GetPublicIPAddress());
 
             IPAddress ip = LocalHostIp;
-            if (url != "" && url != "NXDOMAIN")
+            if (url != string.Empty && url != "NXDOMAIN")
             {
                 try
                 {
@@ -147,38 +117,30 @@ namespace MitmDNS
                 {
                     ip = IPAddress.None;
                 }
-            }
 
-            byte[] res = MakeResponsePacket(data, ip);
-
-            if (endpoint != null && soc != null)
-                soc.SendTo(res, endpoint);
-
-            if (FireEvents && ResolvedIp != null)
-            {
-                DnsEventArgs a = new DnsEventArgs() { Host = ip, Url = fullname };
-                ResolvedIp(a);
-            }
-
-            if (soc != null)
-            {
-                byte[] info = new byte[2];
-                byte[] outval = new byte[1024];
-                try
+                if (FireEvents && ResolvedIp != null)
                 {
-                    soc.IOControl(IOControlCode.DataToRead, info, outval);
-                    uint bytesAvailable = BitConverter.ToUInt32(outval, 0);
-                    if (bytesAvailable != 0 && bytesAvailable < 1024)
-                        soc.Receive(outval); //Flush buffer
+                    DnsEventArgs a = new DnsEventArgs() { Host = ip, Url = fullname };
+                    ResolvedIp(a);
                 }
-                catch
-                {
-                    //Ignore errors
-                }
+
+                return MakeResponsePacket(data, ip);
             }
+            else if (url == "NXDOMAIN")
+            {
+                if (FireEvents && ResolvedIp != null)
+                {
+                    DnsEventArgs a = new DnsEventArgs() { Host = ip, Url = fullname };
+                    ResolvedIp(a);
+                }
+
+                return MakeResponsePacket(data, ip);
+            }
+
+            return null;
         }
 
-        public List<string> GetName(byte[] Req)
+        private List<string> GetName(byte[] Req)
         {
             List<string> addr = new List<string>();
             int type = (Req[2] >> 3) & 0xF;
@@ -201,7 +163,7 @@ namespace MitmDNS
             return addr;
         }
 
-        public byte[] MakeResponsePacket(byte[] Req, IPAddress Ip)
+        private byte[] MakeResponsePacket(byte[] Req, IPAddress Ip)
         {
             List<byte> ans = new List<byte>();
             //http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf

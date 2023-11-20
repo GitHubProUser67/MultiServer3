@@ -21,7 +21,6 @@ namespace MitmDNS
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
                     if (Misc.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                    proc.DenyNotInRules = false;
                     string content = string.Empty;
                     try
                     {
@@ -150,7 +149,7 @@ namespace MitmDNS
                 }
             }
 
-            DnsSettings dns = new DnsSettings();
+            DnsSettings dns = new();
 
             // Iterate through the extracted hostnames and search for corresponding .dns files
             foreach (string hostname in hostnames)
