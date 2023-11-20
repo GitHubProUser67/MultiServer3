@@ -39,6 +39,8 @@ namespace MitmDNS
                 IPEndPoint groupEP = new(IPAddress.Any, 53);
                 UdpClient listener = new(53);
 
+                int pass = 0;
+
                 while (DnsStarted)
                 {
                     try
@@ -49,8 +51,16 @@ namespace MitmDNS
                     }
                     catch
                     {
-                        //Ignore errors
+                        // Ignore errors
                     }
+
+                    if (pass == 250) // We have no choice, DNS is a high target for hackers.
+                    {
+                        pass = 0;
+                        GC.Collect();
+                    }
+                    else
+                        pass++;
                 }
 
             }
