@@ -733,6 +733,25 @@ namespace Horizon.MUIS
                     }
                 });
 
+                Settings.Universes.Add(21694, new UniverseInfo[]
+                {
+                    new UniverseInfo()
+                    {
+                        Name = "Socom FTB3",
+                        Description = "FTB3 Test",
+                        Status = 1,
+                        UserCount = 1,
+                        MaxUsers = 256,
+                        Endpoint = iptofile,
+                        SvoURL = $"http://{iptofile}:10060/FTB3_XML/index.jsp ",
+                        ExtendedInfo = null,
+                        UniverseBilling = null,
+                        BillingSystemName = null,
+                        Port = 10075,
+                        UniverseId = 1
+                    }
+                });
+
                 Settings.Universes.Add(20032, new UniverseInfo[]
                 {
                     new UniverseInfo()
