@@ -78,8 +78,8 @@ namespace CryptoSporidium.BAR
         {
             get
             {
-                AfsHash afsHash = new AfsHash(path);
-                HashedFileName filename = new HashedFileName(afsHash.Value);
+                AfsHash afsHash = new(path);
+                HashedFileName filename = new(afsHash.Value);
                 return this[filename];
             }
         }
@@ -149,8 +149,8 @@ namespace CryptoSporidium.BAR
 
         public byte[] GetBytesVersion1()
         {
-            MemoryStream memoryStream = new MemoryStream();
-            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
+            MemoryStream memoryStream = new();
+            BinaryWriter binaryWriter = new(memoryStream);
             foreach (TOCEntry tocentry in m_entries.Values)
             {
                 binaryWriter.Write((int)tocentry.FileName);
@@ -159,24 +159,6 @@ namespace CryptoSporidium.BAR
                 binaryWriter.Write(num);
                 binaryWriter.Write(tocentry.Size);
                 binaryWriter.Write(tocentry.CompressedSize);
-            }
-            binaryWriter.Close();
-            return memoryStream.ToArray();
-        }
-
-        public byte[] GetBytesVersion2()
-        {
-            MemoryStream memoryStream = new MemoryStream();
-            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
-            foreach (TOCEntry tocentry in m_entries.Values)
-            {
-                binaryWriter.Write(Utils.EndianSwap((int)tocentry.FileName));
-                uint num = tocentry.DataOffset;
-                num |= (uint)tocentry.Compression;
-                binaryWriter.Write(Utils.EndianSwap(num));
-                binaryWriter.Write(Utils.EndianSwap(tocentry.Size));
-                binaryWriter.Write(Utils.EndianSwap(tocentry.CompressedSize));
-                binaryWriter.Write(tocentry.IV);
             }
             binaryWriter.Close();
             return memoryStream.ToArray();

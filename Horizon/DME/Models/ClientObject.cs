@@ -2,7 +2,7 @@ using DotNetty.Transport.Channels;
 using CryptoSporidium.Horizon.LIBRARY.Common;
 using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.RT.Models;
-using Horizon.LIBRARY.Pipeline.Udp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -129,7 +129,7 @@ namespace Horizon.DME.Models
 
         public virtual bool IsConnectingGracePeriod => !TimeAuthenticated.HasValue && (Utils.GetHighPrecisionUtcTime() - TimeCreated).TotalSeconds < DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         public virtual bool Timedout => !IsConnectingGracePeriod && ((Utils.GetHighPrecisionUtcTime() - UtcLastServerEchoReply).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds);
-        public virtual bool IsConnected => !Disconnected && !Timedout && Tcp != null && Tcp.IsActive;
+        public virtual bool IsConnected => !Disconnected && !Timedout && Tcp != null && Tcp.Active;
         public virtual bool IsAuthenticated => TimeAuthenticated.HasValue;
         public virtual bool Destroy => Disconnected || (!IsConnected && !IsConnectingGracePeriod);
         public virtual bool IsDestroyed { get; protected set; } = false;

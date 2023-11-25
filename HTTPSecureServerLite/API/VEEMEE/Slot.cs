@@ -61,7 +61,6 @@ namespace HTTPSecureServerLite.API.VEEMEE
             return null;
         }
 
-
         public static string? RemoveSlot(byte[]? PostData, string? ContentType)
         {
             int slot_num = 0;

@@ -8,10 +8,10 @@ namespace SVO
 {
     public class SVOManager
     {
-        private Dictionary<string, int[]> _appIdGroups = new Dictionary<string, int[]>();
+        private Dictionary<string, int[]> _appIdGroups = new();
 
         private List<MediusFile> _mediusFiles = new List<MediusFile>();
-        private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new List<MediusFileMetaData>();
+        private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new();
 #nullable enable
         private static DateTime? _lastSuccessfulDbAuth;
 #nullable disable

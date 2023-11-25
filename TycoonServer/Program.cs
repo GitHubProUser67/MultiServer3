@@ -22,17 +22,24 @@ public static class TycoonServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        TycoonStaticFolder = config.tycoon_static_folder;
-        JArray bannedIPsArray = config.BannedIPs;
-        // Deserialize BannedIPs if it exists
-        if (bannedIPsArray != null)
-            BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            TycoonStaticFolder = config.tycoon_static_folder;
+            JArray bannedIPsArray = config.BannedIPs;
+            // Deserialize BannedIPs if it exists
+            if (bannedIPsArray != null)
+                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("tycoon.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -64,7 +71,7 @@ class Program
 
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

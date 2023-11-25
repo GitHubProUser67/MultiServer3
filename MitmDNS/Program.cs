@@ -22,15 +22,22 @@ public static class MitmDNSServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        DNSOnlineConfig = config.online_routes_config;
-        DNSConfig = config.routes_config;
-        DNSAllowUnsafeRequests = config.allow_unsafe_requests;
+            DNSOnlineConfig = config.online_routes_config;
+            DNSConfig = config.routes_config;
+            DNSAllowUnsafeRequests = config.allow_unsafe_requests;
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("dns.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -62,7 +69,7 @@ class Program
 
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

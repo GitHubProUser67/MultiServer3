@@ -1,123 +1,11 @@
-﻿using CustomLogger;
+﻿using CryptoSporidium;
 using Newtonsoft.Json;
-using System.Net;
 
 namespace Horizon.MEDIUS
 {
     public class CrudRoomManager
     {
-        private static List<Room> rooms = new List<Room>();
-
-        public static Task RefreshRooms()
-        {
-            try
-            {
-                // URI prefixes are required,
-                var prefixes = new List<string>() { "http://*:61920/" };
-
-                // Create a listener.
-                HttpListener? listener = new();
-                // Add the prefixes.
-                foreach (string s in prefixes)
-                {
-                    listener.Prefixes.Add(s);
-                }
-                listener.Start();
-                LoggerAccessor.LogInfo("[CrudRoomManager] - Listening on port 61920...");
-                while (MediusClass.started)
-                {
-                    // Note: The GetContext method blocks while waiting for a request.
-                    HttpListenerContext ctx = listener.GetContext();
-
-                    LoggerAccessor.LogInfo($"[CrudRoomManager] - Recived request for {ctx.Request.Url}");
-
-                    if (ctx.Request.HttpMethod == "OPTIONS")
-                    {
-                        ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                        ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET");
-                        ctx.Response.AddHeader("Access-Control-Max-Age", "1728000");
-                    }
-
-                    ctx.Response.AppendHeader("Access-Control-Allow-Origin", "*");
-
-                    if (ctx.Request.HttpMethod == "GET" && ctx.Request.Url != null)
-                    {
-                        switch (ctx.Request.Url.AbsolutePath)
-                        {
-                            case "/GetRooms/":
-                                ctx.Response.AddHeader("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                // Construct a response.
-                                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(ToJson());
-
-                                if (ctx.Response.OutputStream.CanWrite)
-                                {
-                                    try
-                                    {
-                                        ctx.Response.ContentLength64 = buffer.Length;
-                                        ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                        ctx.Response.OutputStream.Flush();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        // Not Important;
-                                    }
-                                }
-                                break;
-                            case "/favicon.ico":
-                                if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
-                                {
-                                    ctx.Response.AddHeader("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                    // Construct a response.
-                                    byte[] bufferfavicon = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico");
-
-                                    if (ctx.Response.OutputStream.CanWrite)
-                                    {
-                                        try
-                                        {
-                                            ctx.Response.ContentLength64 = bufferfavicon.Length;
-                                            ctx.Response.OutputStream.Write(bufferfavicon, 0, bufferfavicon.Length);
-                                            ctx.Response.OutputStream.Flush();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            // Not Important;
-                                        }
-                                    }
-                                }
-                                else
-                                    ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                                break;
-                            default:
-                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                break;
-                        }
-                    }
-                    else
-                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-
-                    try
-                    {
-                        ctx.Response.OutputStream.Close();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // outputstream has been disposed already.
-                    }
-                    ctx.Response.Close();
-                }
-
-                listener.Stop();
-                listener = null;
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[CrudRoomManager] - Listener thrown an exception : {ex}");
-            }
-
-            return Task.CompletedTask;
-        }
+        private static List<Room> rooms = new();
 
         // Update or Create a Room based on the provided parameters
         public static void UpdateOrCreateRoom(string appId, string gameName, string worldId, string accountName, string languageType, bool host)
@@ -152,10 +40,10 @@ namespace Horizon.MEDIUS
             {
                 if (gameToUpdate.Name.Contains("AP|"))
                 {
-                    Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == Misc.ComputeSaltedSHA256(accountName));
+                    Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == MiscUtils.ComputeSHA512ReducedSizeCustom(accountName));
                     if (playerToUpdatehashed == null)
                     {
-                        playerToUpdate = new Player { Name = Misc.ComputeSaltedSHA256(accountName), Languages = languageType, Host = host };
+                        playerToUpdate = new Player { Name = MiscUtils.ComputeSHA512ReducedSizeCustom(accountName), Languages = languageType, Host = host };
                         gameToUpdate.Clients?.Add(playerToUpdate);
                     }
                 }
@@ -188,7 +76,7 @@ namespace Horizon.MEDIUS
                     if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
                     {
                         if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == Misc.ComputeSaltedSHA256(accountName));
+                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == MiscUtils.ComputeSHA512ReducedSizeCustom(accountName));
                         else
                             GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                     }

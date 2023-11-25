@@ -2,7 +2,7 @@
 {
     public class StaticKeys
     {
-        // Uncharted 2 - Unfamous.
+        // Uncharted 2 - Unfamous - warhawk.
         public static int[] version1cipher = new int[] {
             93, 45, 76, 47, 68,
             92, 7, 8, 33, 8,
@@ -1811,7 +1811,7 @@
             34, 50, 60, 81, 83,
         };
 
-        // Resistance 2 - Red Bull Air Race
+        // Resistance 2 - Red Bull Air Race - saucer pop.
         public static int[] version2cipher = new int[] {
             72, 16, 52, 85, 81,
             45, 26, 14, 30, 24,

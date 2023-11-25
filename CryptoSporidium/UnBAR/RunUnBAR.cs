@@ -88,10 +88,10 @@ namespace CryptoSporidium.UnBAR
 
                             if (HeaderIV != null)
                             {
-                                byte[]? DecryptedHeader = aes256.InitiateCTRBuffer(ExtractEncryptedSharcHeaderData(RawBarData),
+                                byte[] DecryptedHeader = aes256.InitiateCTRBuffer(ExtractEncryptedSharcHeaderData(RawBarData),
                                  Convert.FromBase64String(options), HeaderIV);
 
-                                if (DecryptedHeader != null)
+                                if (DecryptedHeader != Array.Empty<byte>())
                                 {
                                     byte[] OriginalIV = new byte[HeaderIV.Length];
 
@@ -109,9 +109,9 @@ namespace CryptoSporidium.UnBAR
 
                                         if (EncryptedTOC != null)
                                         {
-                                            byte[]? DecryptedTOC = aes256.InitiateCTRBuffer(utils.CopyBytes(utils.TrimStart(RawBarData, 52), TOCSize), Convert.FromBase64String(options), HeaderIV);
+                                            byte[] DecryptedTOC = aes256.InitiateCTRBuffer(utils.CopyBytes(utils.TrimStart(RawBarData, 52), TOCSize), Convert.FromBase64String(options), HeaderIV);
 
-                                            if (DecryptedTOC != null)
+                                            if (DecryptedTOC != Array.Empty<byte>())
                                             {
                                                 byte[] FileBytes = utils.Combinebytearay(pattern,
                                                 utils.Combinebytearay(OriginalIV, utils.Combinebytearay(DecryptedHeader,
@@ -526,8 +526,7 @@ namespace CryptoSporidium.UnBAR
             byte[] result = new byte[4];
             // Copy the first 4 bytes from the last 20 bytes into the result array.
             Array.Copy(input, input.Length - 20, result, 0, 4);
-            if (BitConverter.IsLittleEndian)
-                result = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(result, 4);
+            result = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(result, 4);
 
             return result;
         }

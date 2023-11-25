@@ -13,29 +13,29 @@ namespace Horizon.MUIS
     {
         private class QuickLookup
         {
-            public Dictionary<int, ClientObject> AccountIdToClient = new Dictionary<int, ClientObject>();
-            public Dictionary<string, ClientObject> AccountNameToClient = new Dictionary<string, ClientObject>();
-            public Dictionary<string, ClientObject> AccessTokenToClient = new Dictionary<string, ClientObject>();
-            public Dictionary<string, ClientObject> SessionKeyToClient = new Dictionary<string, ClientObject>();
+            public Dictionary<int, ClientObject> AccountIdToClient = new();
+            public Dictionary<string, ClientObject> AccountNameToClient = new();
+            public Dictionary<string, ClientObject> AccessTokenToClient = new();
+            public Dictionary<string, ClientObject> SessionKeyToClient = new();
 
-            public Dictionary<int, AccountDTO> BuddyInvitationsToClient = new Dictionary<int, AccountDTO>();
+            public Dictionary<int, AccountDTO> BuddyInvitationsToClient = new();
 
-            public Dictionary<string, DMEObject> AccessTokenToDmeClient = new Dictionary<string, DMEObject>();
-            public Dictionary<string, DMEObject> SessionKeyToDmeClient = new Dictionary<string, DMEObject>();
+            public Dictionary<string, DMEObject> AccessTokenToDmeClient = new();
+            public Dictionary<string, DMEObject> SessionKeyToDmeClient = new();
 
 
-            public Dictionary<int, Channel> ChannelIdToChannel = new Dictionary<int, Channel>();
-            public Dictionary<string, Channel> ChanneNameToChannel = new Dictionary<string, Channel>();
-            public Dictionary<int, Game> GameIdToGame = new Dictionary<int, Game>();
+            public Dictionary<int, Channel> ChannelIdToChannel = new();
+            public Dictionary<string, Channel> ChanneNameToChannel = new();
+            public Dictionary<int, Game> GameIdToGame = new();
         }
 
-        private Dictionary<string, int[]> _appIdGroups = new Dictionary<string, int[]>();
-        private Dictionary<int, QuickLookup> _lookupsByAppId = new Dictionary<int, QuickLookup>();
+        private Dictionary<string, int[]> _appIdGroups = new();
+        private Dictionary<int, QuickLookup> _lookupsByAppId = new();
 
         private List<MediusFile> _mediusFiles = new List<MediusFile>();
-        private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new List<MediusFileMetaData>();
+        private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new();
 
-        private ConcurrentQueue<ClientObject> _addQueue = new ConcurrentQueue<ClientObject>();
+        private ConcurrentQueue<ClientObject> _addQueue = new();
 
         #region Clients
         public List<ClientObject> GetClients(int appId)

@@ -1,21 +1,23 @@
 ﻿using HTTPServer;
 using CustomLogger;
-using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using CryptoSporidium.UnBAR;
 
 public static class HTTPServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
-    public static string PHPVersion { get; set; } = "php-8.2.9";
+    public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static int HTTPPort { get; set; } = 80;
+    public static int DefaultPluginsPort { get; set; } = 61850;
     public static string PluginParams { get; set; } = string.Empty;
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static List<string>? BannedIPs { get; set; }
     public static List<string>? AllowedIPs { get; set; }
+
+    public static List<HTTPServer.PluginManager.IPlugin> plugins = HTTPServer.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -32,26 +34,34 @@ public static class HTTPServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        PHPVersion = config.php.version;
-        PHPStaticFolder = config.php.static_folder;
-        PHPDebugErrors = config.php.debug_errors;
-        HTTPPort = config.http_port;
-        PluginParams = config.plugin_params;
-        PluginsFolder = config.plugins_folder;
-        JArray bannedIPsArray = config.BannedIPs;
-        // Deserialize BannedIPs if it exists
-        if (bannedIPsArray != null)
-            BannedIPs = bannedIPsArray.ToObject<List<string>>();
-        JArray allowedIPsArray = config.AllowedIPs;
-        // Deserialize BannedIPs if it exists
-        if (allowedIPsArray != null)
-            AllowedIPs = allowedIPsArray.ToObject<List<string>>();
+            PHPVersion = config.php.version;
+            PHPStaticFolder = config.php.static_folder;
+            PHPDebugErrors = config.php.debug_errors;
+            HTTPPort = config.http_port;
+            DefaultPluginsPort = config.default_plugins_port;
+            PluginParams = config.plugin_params;
+            PluginsFolder = config.plugins_folder;
+            JArray bannedIPsArray = config.BannedIPs;
+            // Deserialize BannedIPs if it exists
+            if (bannedIPsArray != null)
+                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            JArray allowedIPsArray = config.AllowedIPs;
+            // Deserialize BannedIPs if it exists
+            if (allowedIPsArray != null)
+                AllowedIPs = allowedIPsArray.ToObject<List<string>>();
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("http.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -73,27 +83,37 @@ class Program
 
     static void Main()
     {
-        if (Misc.IsWindows())
-            if (!Misc.IsAdministrator())
-            {
-                Console.WriteLine("Trying to restart as admin");
-                if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
-                    Environment.Exit(0);
-            }
-
         LoggerAccessor.SetupLogger("HTTPServer");
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
-        Processor server = new("*", HTTPServerConfiguration.HTTPPort);
+        var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
 
         BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
-        server.Start();
+        HttpServer httpServer = new(80, route_config);
+
+        Thread thread = new(new ThreadStart(httpServer.Listen));
+
+        thread.Start();
+
+        HttpServer QAhttpServer = new(10010, route_config);
+
+        Thread QAthread = new(new ThreadStart(QAhttpServer.Listen));
+
+        QAthread.Start();
+
+        if (HTTPServerConfiguration.plugins.Count > 0)
+        {
+            foreach (var plugin in HTTPServerConfiguration.plugins)
+            {
+                _ = plugin.HTTPStartPlugin("MultiServer", HTTPServerConfiguration.DefaultPluginsPort);
+            }
+        }
 
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

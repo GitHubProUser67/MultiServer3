@@ -91,7 +91,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
                     ms.Flush();
                 }
 
-                LoggerAccessor.LogInfo($"[VEEMEE] : A Client Crash Happened - Details : corehook|{corehook} - territory|{territory} - region|{region} - psnid|{psnid}" +
+                LoggerAccessor.LogWarn($"[VEEMEE] : A Client Crash Happened - Details : corehook|{corehook} - territory|{territory} - region|{region} - psnid|{psnid}" +
                     $" - scene|{scene} - sceneid|{sceneid} - scenetime|{scenetime} - sceneowner|{sceneowner} - owner|{owner} - owned|{owned} - crash|{crash} -" +
                     $" numplayers|{numplayers} - numpeople|{numpeople} - objectid|{objectid} - objectname|{objectname}");
             }

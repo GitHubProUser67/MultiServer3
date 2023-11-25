@@ -10,6 +10,7 @@ using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.PluginManager;
 using System.Net;
+using CryptoSporidium;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -36,7 +37,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -183,7 +184,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
                 return;
 
@@ -1120,7 +1121,7 @@ namespace Horizon.MEDIUS.Medius
                         await HorizonServerConfiguration.Database.CreateAccount(new CryptoSporidium.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
-                            AccountPassword = Misc.ComputeSHA256(accountRegRequest.Password),
+                            AccountPassword = MiscUtils.ComputeSHA256(accountRegRequest.Password),
                             MachineId = data.MachineId,
                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                             AppId = data.ClientObject.ApplicationId
@@ -1312,7 +1313,7 @@ namespace Horizon.MEDIUS.Medius
                                             });
                                         }
 
-                                        else if (Misc.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
+                                        else if (MiscUtils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
                                         {
                                             await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
                                         }
@@ -1361,7 +1362,7 @@ namespace Horizon.MEDIUS.Medius
                                         _ = HorizonServerConfiguration.Database.CreateAccount(new CryptoSporidium.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
                                         {
                                             AccountName = accountLoginRequest.Username,
-                                            AccountPassword = Misc.ComputeSHA256(accountLoginRequest.Password),
+                                            AccountPassword = MiscUtils.ComputeSHA256(accountLoginRequest.Password),
                                             MachineId = data.MachineId,
                                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                             AppId = data.ClientObject.ApplicationId

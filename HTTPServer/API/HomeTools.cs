@@ -6,21 +6,20 @@ using CryptoSporidium.UnBAR;
 using CustomLogger;
 using HttpMultipartParser;
 using System.IO.Compression;
-using System.Net;
 
 namespace HTTPServer.API
 {
     public class HomeTools
     {
-        public static bool MakeBarSdat(Stream? PostData, string? ContentType, HttpListenerResponse response)
+        public static (byte[]?, string)? MakeBarSdat(Stream? PostData, string? ContentType)
         {
-            bool isok = false;
+            (byte[]?, string)? output = null;
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = $"{HTTPServerConfiguration.HTTPStaticFolder}/HomeTools/MakeBarSdat_cache/{Misc.GenerateDynamicCacheGuid(Misc.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new())
@@ -32,12 +31,11 @@ namespace HTTPServer.API
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         string mode = data.GetParameterValue("mode");
                         string TimeStamp = data.GetParameterValue("TimeStamp");
-                        string options = data.GetParameterValue("options");
-                        string version2 = string.Empty;
+                        string leanzlib = string.Empty;
                         string encrypt = string.Empty;
                         try
                         {
-                            version2 = data.GetParameterValue("version2");
+                            leanzlib = data.GetParameterValue("leanzlib");
                         }
                         catch (Exception)
                         {
@@ -51,12 +49,6 @@ namespace HTTPServer.API
                         {
 
                         }
-                        if (options == "cdn1")
-                            options = ToolsImpl.base64CDNKey1;
-                        else if (options == "cdn2")
-                            options = ToolsImpl.base64CDNKey2;
-                        else
-                            options = ToolsImpl.base64DefaultSharcKey;
                         foreach (var multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
@@ -74,7 +66,7 @@ namespace HTTPServer.API
 
                                 filename = multipartfile.FileName;
 
-                                string guid = Misc.GenerateDynamicCacheGuid(filename);
+                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -101,7 +93,16 @@ namespace HTTPServer.API
                                     bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), true);
                                 else
                                     bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16));
-                                bararchive.DefaultCompression = CompressionMethod.EdgeZLib;
+                                if (leanzlib == "on")
+                                {
+                                    bararchive.BARHeader.Flags = ArchiveFlags.Bar_Flag_LeanZLib;
+                                    bararchive.DefaultCompression = CompressionMethod.ZLib;
+                                }
+                                else
+                                {
+                                    bararchive.BARHeader.Flags = ArchiveFlags.Bar_Flag_ZTOC;
+                                    bararchive.DefaultCompression = CompressionMethod.EdgeZLib;
+                                }
                                 bararchive.AllowWhitespaceInFilenames = true;
                                 bararchive.BeginUpdate();
                                 foreach (string path in enumerable)
@@ -148,95 +149,101 @@ namespace HTTPServer.API
                                             ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.BAR");
                                             using (Stream entryStream = entry1.Open())
                                             {
-                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.BAR", FileMode.Open))
+                                                using (FileStream fileStream = new(rebardir + $"/{filename}.BAR", FileMode.Open))
                                                 {
                                                     fileStream.CopyTo(entryStream);
+                                                    fileStream.Flush();
                                                 }
+                                                entryStream.Flush();
                                             }
 
                                             // Add the second file to the archive
                                             ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
                                             using (Stream entryStream = entry2.Open())
                                             {
-                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
+                                                using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                                 {
                                                     fileStream.CopyTo(entryStream);
+                                                    fileStream.Flush();
                                                 }
+                                                entryStream.Flush();
                                             }
                                         }
                                     }
 
-                                    HTTPResponseWriteFile(response, rebardir + $"/{filename}_Rebar.zip");
-
-                                    isok = true;
+                                    output = (File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip");
                                 }
                                 else if (mode == "sdatnpd" && File.Exists(Directory.GetCurrentDirectory() + "/static/model.sdat"))
                                 {
                                     new RunUnBAR().RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", Directory.GetCurrentDirectory() + "/static/model.sdat");
 
-                                    using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
+                                    using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
-                                        using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+                                        using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create))
                                         {
                                             // Add the first file to the archive
                                             ZipArchiveEntry entry1 = archive.CreateEntry($"{filename.ToLower()}.sdat");
                                             using (Stream entryStream = entry1.Open())
                                             {
-                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
+                                                using (FileStream fileStream = new(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
                                                 {
                                                     fileStream.CopyTo(entryStream);
+                                                    fileStream.Flush();
                                                 }
+                                                entryStream.Flush();
                                             }
 
                                             // Add the second file to the archive
                                             ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
                                             using (Stream entryStream = entry2.Open())
                                             {
-                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
+                                                using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                                 {
                                                     fileStream.CopyTo(entryStream);
+                                                    fileStream.Flush();
                                                 }
+                                                entryStream.Flush();
                                             }
                                         }
                                     }
 
-                                    HTTPResponseWriteFile(response, rebardir + $"/{filename}_Rebar.zip");
-
-                                    isok = true;
+                                    output = (File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip");
                                 }
                                 else
                                 {
                                     new RunUnBAR().RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", null);
 
-                                    using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
+                                    using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
-                                        using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+                                        using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create))
                                         {
                                             // Add the first file to the archive
                                             ZipArchiveEntry entry1 = archive.CreateEntry($"{filename.ToLower()}.sdat");
                                             using (Stream entryStream = entry1.Open())
                                             {
-                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
+                                                using (FileStream fileStream = new(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
                                                 {
                                                     fileStream.CopyTo(entryStream);
+                                                    fileStream.Flush();
                                                 }
+                                                entryStream.Flush();
                                             }
 
                                             // Add the second file to the archive
                                             ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
                                             using (Stream entryStream = entry2.Open())
                                             {
-                                                using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
+                                                using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                                 {
                                                     fileStream.CopyTo(entryStream);
+                                                    fileStream.Flush();
                                                 }
+                                                entryStream.Flush();
                                             }
                                         }
                                     }
 
-                                    HTTPResponseWriteFile(response, rebardir + $"/{filename}_Rebar.zip");
-
-                                    isok = true;
+                                    output = (File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip");
                                 }
 
                                 if (Directory.Exists(tempdir))
@@ -250,22 +257,23 @@ namespace HTTPServer.API
                     }
                 }
 
+
                 if (Directory.Exists(maindir))
                     Directory.Delete(maindir, true);
             }
 
-            return isok;
+            return output;
         }
 
-        public static async Task<bool> UnBar(Stream? PostData, string? ContentType, HttpListenerResponse response)
+        public static async Task<(byte[]?, string)?> UnBar(Stream? PostData, string? ContentType)
         {
-            bool isok = false;
+            (byte[]?, string)? output = null;
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = $"{HTTPServerConfiguration.HTTPStaticFolder}/HomeTools/UnBar_cache/{Misc.GenerateDynamicCacheGuid(Misc.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new())
@@ -320,7 +328,7 @@ namespace HTTPServer.API
 
                                 filename = multipartfile.FileName;
 
-                                string guid = Misc.GenerateDynamicCacheGuid(filename);
+                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -386,9 +394,7 @@ namespace HTTPServer.API
 
                                     ZipFile.CreateFromDirectory(unbardir + $"/{filename}", tempdir + $"/{filename}_Mapped.zip");
 
-                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Mapped.zip");
-
-                                    isok = true;
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip");
                                 }
                                 else if (Directory.Exists(unbardir + $"/{filename}"))
                                 {
@@ -412,9 +418,7 @@ namespace HTTPServer.API
 
                                     ZipFile.CreateFromDirectory(unbardir + $"/{filename}", tempdir + $"/{filename}_Mapped.zip");
 
-                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Mapped.zip");
-
-                                    isok = true;
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip");
                                 }
                                 else
                                 {
@@ -438,9 +442,7 @@ namespace HTTPServer.API
 
                                     ZipFile.CreateFromDirectory(unbardir, tempdir + $"/{filename}_Mapped.zip");
 
-                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Mapped.zip");
-
-                                    isok = true;
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip");
                                 }
 
                                 map = null;
@@ -460,18 +462,18 @@ namespace HTTPServer.API
                     Directory.Delete(maindir, true);
             }
 
-            return isok;
+            return output;
         }
 
-        public static bool CDS(Stream? PostData, string? ContentType, HttpListenerResponse response)
+        public static (byte[]?, string)? CDS(Stream? PostData, string? ContentType)
         {
-            bool isok = false;
+            (byte[]?, string)? output = null;
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = $"{HTTPServerConfiguration.HTTPStaticFolder}/HomeTools/CDS_cache/{Misc.GenerateDynamicCacheGuid(Misc.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/CDS_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new())
@@ -499,7 +501,7 @@ namespace HTTPServer.API
 
                                 filename = multipartfile.FileName;
 
-                                string guid = Misc.GenerateDynamicCacheGuid(filename);
+                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -515,40 +517,108 @@ namespace HTTPServer.API
                                         {
                                             Directory.CreateDirectory(tempdir);
 
+                                            // We identify how input is like.
+
                                             byte[]? ProcessedFileBytes = CryptoSporidium.CDS.CDSProcess.CDSEncrypt_Decrypt(buffer, sha1);
 
                                             if (ProcessedFileBytes != null)
                                             {
-                                                if (filename.ToLower().Contains(".xml") || filename.ToLower().Contains(".sdc") || filename.ToLower().Contains(".odc"))
+                                                if (buffer.Length > 4 && ((buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c)
+                                                    || (buffer[0] == 0x3c && buffer[1] == 0x58 && buffer[2] == 0x4d && buffer[3] == 0x4c)))
                                                 {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Processed.xml", ProcessedFileBytes);
+                                                    if (filename.ToLower().Contains(".sdc"))
+                                                    {
+                                                        File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.sdc", ProcessedFileBytes);
 
-                                                    HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.xml");
+                                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.sdc"), $"{filename}_Encrypted.sdc");
+                                                    }
+                                                    else if (filename.ToLower().Contains(".odc"))
+                                                    {
+                                                        File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.odc", ProcessedFileBytes);
 
-                                                    isok = true;
+                                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.odc"), $"{filename}_Encrypted.odc");
+                                                    }
+                                                    else
+                                                    {
+                                                        File.WriteAllBytes(tempdir + $"/{filename}_Processed.xml", ProcessedFileBytes);
+
+                                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.xml"), $"{filename}_Processed.xml");
+                                                    }
+                                                }
+                                                else if (buffer.Length > 4 && buffer[0] == 0x73 && buffer[1] == 0x65 && buffer[2] == 0x67 && buffer[3] == 0x73)
+                                                {
+                                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.hcdb", ProcessedFileBytes);
+
+                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.hcdb"), $"{filename}_Encrypted.hcdb");
+                                                }
+                                                else if (buffer.Length > 4 && buffer[0] == 0xAD && buffer[1] == 0xEF && buffer[2] == 0x17 && buffer[3] == 0xE1)
+                                                {
+                                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.sharc", ProcessedFileBytes);
+
+                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.sharc"), $"{filename}_Encrypted.sharc");
+                                                }
+                                                else if (buffer.Length > 4 && buffer[0] == 0xE1 && buffer[1] == 0x17 && buffer[2] == 0xEF && buffer[3] == 0xAD)
+                                                {
+                                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.bar", ProcessedFileBytes);
+
+                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.bar"), $"{filename}_Encrypted.bar");
                                                 }
                                                 else
                                                 {
-                                                    if (ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
+                                                    if (ProcessedFileBytes.Length > 4 && ((ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c)
+                                                    || (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c)))
+                                                    {
+                                                        if (filename.ToLower().Contains(".sdc"))
+                                                        {
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.sdc", ProcessedFileBytes);
+
+                                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.sdc"), $"{filename}_Decrypted.sdc");
+                                                        }
+                                                        else if (filename.ToLower().Contains(".odc"))
+                                                        {
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.odc", ProcessedFileBytes);
+
+                                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.odc"), $"{filename}_Decrypted.odc");
+                                                        }
+                                                        else
+                                                        {
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.xml", ProcessedFileBytes);
+
+                                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.xml"), $"{filename}_Decrypted.xml");
+                                                        }
+                                                    }
+                                                    else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
                                                     {
                                                         byte[]? DecompressedData = new EDGELZMA().Decompress(ProcessedFileBytes, true);
                                                         if (DecompressedData != null)
                                                         {
-                                                            File.WriteAllBytes(tempdir + $"/{filename}_Processed.sql", DecompressedData);
-                                                            HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.sql");
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.sql", DecompressedData);
+                                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.sql"), $"{filename}_Decrypted.sql");
                                                         }
                                                         else
                                                         {
-                                                            File.WriteAllBytes(tempdir + $"/{filename}_Processed.segs", ProcessedFileBytes);
-                                                            HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.segs");
+                                                            File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.hcdb", ProcessedFileBytes);
+                                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.hcdb"), $"{filename}_Decrypted.hcdb");
                                                         }
                                                     }
-                                                    else
+                                                    else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0xAD && ProcessedFileBytes[1] == 0xEF && ProcessedFileBytes[2] == 0x17 && ProcessedFileBytes[3] == 0xE1)
+                                                    {
+                                                        File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.sharc", ProcessedFileBytes);
+
+                                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.sharc"), $"{filename}_Decrypted.sharc");
+                                                    }
+                                                    else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0xE1 && ProcessedFileBytes[1] == 0x17 && ProcessedFileBytes[2] == 0xEF && ProcessedFileBytes[3] == 0xAD)
+                                                    {
+                                                        File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.bar", ProcessedFileBytes);
+
+                                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.bar"), $"{filename}_Decrypted.bar");
+                                                    }
+                                                    else // If all scan failed, fallback.
                                                     {
                                                         File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", ProcessedFileBytes);
-                                                        HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
+
+                                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.bin"), $"{filename}_Processed.bin");
                                                     }
-                                                    isok = true;
                                                 }
                                             }
 
@@ -570,18 +640,18 @@ namespace HTTPServer.API
                     Directory.Delete(maindir, true);
             }
 
-            return isok;
+            return output;
         }
 
-        public static bool INF(Stream? PostData, string? ContentType, HttpListenerResponse response)
+        public static (byte[]?, string)? INF(Stream? PostData, string? ContentType)
         {
-            bool isok = false;
+            (byte[]?, string)? output = null;
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = $"{HTTPServerConfiguration.HTTPStaticFolder}/HomeTools/INF_cache/{Misc.GenerateDynamicCacheGuid(Misc.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/INF_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new())
@@ -608,7 +678,7 @@ namespace HTTPServer.API
 
                                 filename = multipartfile.FileName;
 
-                                string guid = Misc.GenerateDynamicCacheGuid(filename);
+                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -628,9 +698,7 @@ namespace HTTPServer.API
                                     {
                                         File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", decryptedfilebytes);
 
-                                        HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
-
-                                        isok = true;
+                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.bin"), $"{filename}_Processed.bin");
                                     }
 
                                     if (Directory.Exists(tempdir))
@@ -648,9 +716,7 @@ namespace HTTPServer.API
                                     {
                                         File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", toolsimpl.ApplyPaddingPrefix(encryptedfilebytes));
 
-                                        HTTPResponseWriteFile(response, tempdir + $"/{filename}_Processed.bin");
-
-                                        isok = true;
+                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.bin"), $"{filename}_Processed.bin");
                                     }
 
                                     toolsimpl = null;
@@ -671,7 +737,7 @@ namespace HTTPServer.API
                     Directory.Delete(maindir, true);
             }
 
-            return isok;
+            return output;
         }
 
         public static string? ChannelID(Stream? PostData, string? ContentType)
@@ -680,7 +746,7 @@ namespace HTTPServer.API
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new())
@@ -732,7 +798,7 @@ namespace HTTPServer.API
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new())
@@ -794,32 +860,6 @@ namespace HTTPServer.API
             }
 
             return res;
-        }
-
-        public static void HTTPResponseWriteFile(HttpListenerResponse response, string path)
-        {
-            using (FileStream fs = File.OpenRead(path))
-            {
-                string filename = Path.GetFileName(path);
-                response.AddHeader("Content-disposition", "attachment; filename=" + filename);
-                byte[] buffer = new byte[64 * 1024];
-                int read = 0;
-                if (response.OutputStream.CanWrite)
-                {
-                    using (BinaryWriter bw = new(response.OutputStream))
-                    {
-                        while ((read = fs.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            bw.Write(buffer, 0, read);
-                            bw.Flush();
-                        }
-
-                        bw.Flush();
-                    }
-                }
-
-                fs.Flush();
-            }
         }
 
         public static void UncompressFile(string compressedFilePath, string extractionFolderPath)

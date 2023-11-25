@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TycoonServer", "TycoonServe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HTTPSecureServerLite", "HTTPSecureServerLite\HTTPSecureServerLite.csproj", "{FA885A62-FB9B-4EA7-94B8-C504A0D90132}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomLogger", "CustomLogger\CustomLogger.csproj", "{8970F312-3D04-4E53-9229-6256ADCC4836}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomLogger", "CustomLogger\CustomLogger.csproj", "{8970F312-3D04-4E53-9229-6256ADCC4836}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreServer", "NetCoreServer-Custom\source\NetCoreServer\NetCoreServer.csproj", "{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -253,6 +255,30 @@ Global
 		{8970F312-3D04-4E53-9229-6256ADCC4836}.Release|ARM64.Build.0 = Release|Any CPU
 		{8970F312-3D04-4E53-9229-6256ADCC4836}.Release|x64.ActiveCfg = Release|Any CPU
 		{8970F312-3D04-4E53-9229-6256ADCC4836}.Release|x64.Build.0 = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|ARM32.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|ARM32.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Debug|x64.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|Any CPU.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|Any CPU.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|ARM32.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|ARM32.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|ARM64.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|ARM64.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|x64.ActiveCfg = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Publish|x64.Build.0 = Debug|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|ARM32.ActiveCfg = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|ARM32.Build.0 = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|ARM64.Build.0 = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|x64.ActiveCfg = Release|Any CPU
+		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

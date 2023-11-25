@@ -5,6 +5,9 @@ using HTTPSecureServerLite;
 public static class HTTPSServerConfiguration
 {
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
+    public static string PHPVersion { get; set; } = "php-8.3.0";
+    public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
+    public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static List<string>? BannedIPs { get; set; }
 
@@ -23,18 +26,28 @@ public static class HTTPSServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        HTTPSStaticFolder = config.https_static_folder;
-        HTTPSCertificateFile = config.certificate_file;
-        JArray bannedIPsArray = config.BannedIPs;
-        // Deserialize BannedIPs if it exists
-        if (bannedIPsArray != null)
-            BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            PHPVersion = config.php.version;
+            PHPStaticFolder = config.php.static_folder;
+            PHPDebugErrors = config.php.debug_errors;
+            HTTPSStaticFolder = config.https_static_folder;
+            HTTPSCertificateFile = config.certificate_file;
+            JArray bannedIPsArray = config.BannedIPs;
+            // Deserialize BannedIPs if it exists
+            if (bannedIPsArray != null)
+                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("https.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -68,7 +81,7 @@ class Program
 
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

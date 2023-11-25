@@ -7,6 +7,7 @@ using CryptoSporidium.Horizon.LIBRARY.Database;
 public static class SVOServerConfiguration
 {
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
+    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string? SVOStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwsvoroot";
     public static bool SVOHTTPSBypass { get; set; } = true;
     public static string? MOTD { get; set; } = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SVML>\r\n" +
@@ -42,26 +43,33 @@ public static class SVOServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        SVOStaticFolder = config.static_folder;
-        SVOHTTPSBypass = config.https_bypass;
-        DatabaseConfig = config.database;
-
-        // Look for the MOTD xml file.
-        string motd_file = config.motd_file;
-        if (!File.Exists(motd_file))
-            LoggerAccessor.LogWarn("Could not find the motd.xml file, using default xml.");
-        else
-            MOTD = File.ReadAllText(motd_file);
-        JArray bannedIPsArray = config.BannedIPs;
-        // Deserialize BannedIPs if it exists
-        if (bannedIPsArray != null)
-            BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            SVOStaticFolder = config.static_folder;
+            SVOHTTPSBypass = config.https_bypass;
+            DatabaseConfig = config.database;
+            HTTPSCertificateFile = config.certificate_file;
+            // Look for the MOTD xml file.
+            string motd_file = config.motd_file;
+            if (!File.Exists(motd_file))
+                LoggerAccessor.LogWarn("Could not find the motd.xml file, using default xml.");
+            else
+                MOTD = File.ReadAllText(motd_file);
+            JArray bannedIPsArray = config.BannedIPs;
+            // Deserialize BannedIPs if it exists
+            if (bannedIPsArray != null)
+                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("svo.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -83,27 +91,31 @@ class Program
 
     static void Main()
     {
-        if (Misc.IsWindows())
-            if (!Misc.IsAdministrator())
+        if (CryptoSporidium.MiscUtils.IsWindows())
+            if (!CryptoSporidium.MiscUtils.IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin");
-                if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
+                if (CryptoSporidium.MiscUtils.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                     Environment.Exit(0);
             }
 
         LoggerAccessor.SetupLogger("SVO");
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
-		
-        SVOServer server = new("*");
 
-        server.Start();
+        CryptoSporidium.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
 
+        SVOServer httpserver = new("*");
+
+        SVOHTTPSServer httpsserver = new(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty");
+
+        httpserver.Start();
+
+        _ = Task.Run(httpsserver.StartSVO);
         _ = Task.Run(SVOManager.StartTickPooling);
-
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

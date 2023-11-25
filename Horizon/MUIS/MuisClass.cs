@@ -5,6 +5,7 @@ using CryptoSporidium.Horizon.LIBRARY.Common;
 using Horizon.MUIS.Config;
 using Horizon.DME;
 using Horizon.PluginManager;
+using CryptoSporidium;
 
 namespace Horizon.MUIS
 {
@@ -21,9 +22,9 @@ namespace Horizon.MUIS
 
         public static MUIS[]? UniverseInfoServers = null;
 
-        private static Dictionary<int, AppSettings> _appSettings = new Dictionary<int, AppSettings>();
-        private static AppSettings _defaultAppSettings = new AppSettings(0);
-        private static Dictionary<string, int[]> _appIdGroups = new Dictionary<string, int[]>();
+        private static Dictionary<int, AppSettings> _appSettings = new();
+        private static AppSettings _defaultAppSettings = new(0);
+        private static Dictionary<string, int[]> _appIdGroups = new();
         private static ulong _sessionKeyCounter = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
         private static DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
@@ -198,9 +199,9 @@ namespace Horizon.MUIS
                 string? iptofile = null;
 
                 if (DmeClass.Settings.UsePublicIp || MEDIUS.MediusClass.Settings.UsePublicIp)
-                    iptofile = Misc.GetPublicIPAddress();
+                    iptofile = MiscUtils.GetPublicIPAddress();
                 else
-                    iptofile = Misc.GetLocalIPAddress().ToString();
+                    iptofile = MiscUtils.GetLocalIPAddress().ToString();
 
                 // Add default localhost entry
                 Settings.Universes.Add(0, new UniverseInfo[] {
@@ -960,7 +961,7 @@ namespace Horizon.MUIS
             }
 
             // Update default rsa key
-            LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
         }
 
         public static async Task OnDatabaseAuthenticated()

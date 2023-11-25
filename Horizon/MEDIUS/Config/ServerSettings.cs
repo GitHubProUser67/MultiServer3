@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Math;
 using CryptoSporidium.Horizon.RT.Cryptography.RSA;
-using CustomLogger;
+using CryptoSporidium;
 
 namespace Horizon.MEDIUS.Config
 {
@@ -16,7 +16,7 @@ namespace Horizon.MEDIUS.Config
         /// By default the server will grab its local ip.
         /// If this is set, it will use its public ip instead.
         /// </summary>
-        public bool UsePublicIp { get; set; } = false;
+        public bool UsePublicIp { get; set; } = true;
 
         /// <summary>
         /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic
@@ -122,7 +122,7 @@ namespace Horizon.MEDIUS.Config
         /// Provide the IP, Port and WorldID of the MUM that will control this MLS
         /// (no valid defaults)
         /// </summary>
-        public string MUMIp { get; set; } = Misc.GetLocalIPAddress().ToString();
+        public string MUMIp { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
         public int MUMPort { get; set; } = 10076;
         public int MUMWorldID { get; set; } = 1;
         #endregion
@@ -133,7 +133,7 @@ namespace Horizon.MEDIUS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? NATIp { get; set; } = Misc.GetLocalIPAddress().ToString();
+        public string? NATIp { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// Port of the NAT server.
@@ -190,7 +190,7 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// Set the hostname to the ApacheWebServerHostname
         /// </summary>
-        public string MFSTransferURI { get; set; } = $"http://{Misc.GetLocalIPAddress().ToString()}/";
+        public string MFSTransferURI { get; set; } = $"http://{MiscUtils.GetLocalIPAddress()}/";
 
         /// <summary>
         /// Max number of download requests in the download queue
@@ -241,7 +241,7 @@ namespace Horizon.MEDIUS.Config
         // (no valid defaults)
         // Uncomment MUCG params to enable connectivity to MUCG
 
-        public string MUCGServerIP = Misc.GetLocalIPAddress().ToString();
+        public string MUCGServerIP = MiscUtils.GetLocalIPAddress().ToString();
         public int MUCGServerPort = 10072;
         public int MUCGWorldID = 1;
         #endregion
@@ -275,7 +275,7 @@ namespace Horizon.MEDIUS.Config
         // IP Address and port of the billing service provider.
         // This is the SCE-RT Product Service if the billing provider is SCE-RT
         // Or the SCEK connection if the provider is SCEK
-        public string BillingProviderIpAddr = Misc.GetLocalIPAddress().ToString();
+        public string BillingProviderIpAddr = MiscUtils.GetLocalIPAddress().ToString();
         public int BillingServiceProviderPort = 2222;
 
         // Billing security settings
@@ -345,7 +345,7 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// Regex text filters for 
         /// </summary>
-        public Dictionary<TextFilterContext, string> TextBlacklistFilters { get; set; } = new Dictionary<TextFilterContext, string>();
+        public Dictionary<TextFilterContext, string> TextBlacklistFilters { get; set; } = new();
 
         /// <summary>
         /// # Specify name/location of SCE-RT dictionary files

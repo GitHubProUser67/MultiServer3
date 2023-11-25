@@ -1,3 +1,4 @@
+using CryptoSporidium;
 using CustomLogger;
 using System.Net;
 using System.Net.Security;
@@ -20,7 +21,7 @@ namespace MitmDNS
                 if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                    if (Misc.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                    if (MiscUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                     string content = string.Empty;
                     try
                     {
@@ -47,12 +48,7 @@ namespace MitmDNS
                     }
                 }
 
-                proc.FireEvents = true;
-                proc.dicRules = dicRules;
-                proc.regRules = regRules;
-                proc.ResolvedIp += ResolvedIp;
-                proc.ConnectionRequest += ConnectionRequest;
-                Task.Run(proc.RunDns);
+                _ = proc.RunDns(dicRules, regRules);
             }
 
             return Task.CompletedTask;
@@ -71,7 +67,7 @@ namespace MitmDNS
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
                 foreach (string s in rules)
                 {
-                    if (s.StartsWith(";") || s.Trim() == "") continue;
+                    if (s.StartsWith(";") || s.Trim() == string.Empty) continue;
                     string[] split = s.Split(',');
                     DnsSettings dns = new();
                     switch (split[1].Trim().ToLower())
@@ -84,7 +80,11 @@ namespace MitmDNS
                             break;
                         case "redirect":
                             dns.Mode = HandleMode.Redirect;
-                            dns.Address = split[2].Trim();
+                            string IpFromConfig = split[2].Trim();
+                            if (Regex.IsMatch(IpFromConfig, @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$"))
+                                dns.Address = IpFromConfig;
+                            else
+                                dns.Address = MiscUtils.GetLocalIPAddress().ToString();
                             break;
                         default:
                             throw new Exception("Can't parse rules !");
@@ -130,7 +130,7 @@ namespace MitmDNS
             string[] lines = File.ReadAllLines(Filename);
 
             // Define a list to store extracted hostnames
-            List<string> hostnames = new List<string>();
+            List<string> hostnames = new();
 
             // Iterate through each line in the file
             foreach (string line in lines)
@@ -170,7 +170,11 @@ namespace MitmDNS
                             if (match.Success)
                             {
                                 dns.Mode = HandleMode.Redirect;
-                                dns.Address = match.Groups[1].Value;
+                                string IpFromConfig = match.Groups[1].Value;
+                                if (Regex.IsMatch(IpFromConfig, @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$"))
+                                    dns.Address = IpFromConfig;
+                                else
+                                    dns.Address = MiscUtils.GetLocalIPAddress().ToString();
                                 DicRules.Add(hostname, dns);
                                 DicRules.Add("www." + hostname, dns);
                                 break;
@@ -183,20 +187,7 @@ namespace MitmDNS
             return DicRules;
         }
 
-        private void ResolvedIp(DnsEventArgs e)
-        {
-            if (e.Host != null)
-                LoggerAccessor.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : e.Host.ToString()));
-            else
-                LoggerAccessor.LogInfo("[DNS] - Resolved: " + e.Url + " to: " + ((e.Host == IPAddress.None) ? "NXDOMAIN" : "UNKNOWN"));
-        }
-
-        private void ConnectionRequest(DnsConnectionRequestEventArgs e)
-        {
-            LoggerAccessor.LogInfo("[DNS] - Got request from: " + e.Host);
-        }
-
-        private bool MyRemoteCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

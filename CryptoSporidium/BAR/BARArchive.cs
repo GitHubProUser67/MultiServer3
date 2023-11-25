@@ -637,7 +637,7 @@ namespace CryptoSporidium.BAR
             return tocentry;
         }
 
-        private void CompressAndAddFile(bool compress, bool encrypt, string filePath, Stream inStream, TOCEntry tocEntry)
+        private void CompressAndAddFile(bool compress, bool encrypt, Stream inStream, TOCEntry tocEntry)
         {
             if (m_header.Version != 512 && encrypt)
             {
@@ -712,7 +712,7 @@ namespace CryptoSporidium.BAR
                     if (compress)
                     {
                         array2 = CompressionFactory.Compress(array, compressionMethod, m_header.Flags);
-                        if (array2.Length >= array.Length)
+                        if (array2 == null || array2.Length >= array.Length)
                         {
                             compressionMethod = CompressionMethod.Uncompressed;
                             array2 = array;
@@ -820,7 +820,7 @@ namespace CryptoSporidium.BAR
             TOCEntry? tocEntry = m_toc[filename];
             FileStream inStream = File.OpenRead(filePath);
             bool compress = ShouldCompress(filePath, options);
-            CompressAndAddFile(compress, encrypt, filePath, inStream, tocEntry);
+            CompressAndAddFile(compress, encrypt, inStream, tocEntry);
             Dirty = true;
             m_toc.ResortOffsets();
             GeneralMessage("Replaced file {0}", new object[]
@@ -833,7 +833,7 @@ namespace CryptoSporidium.BAR
         {
             TOCEntry? tocEntryFromFilepath = GetTocEntryFromFilepath(filePath, (uint)inStream.Length);
             bool compress = ShouldCompress(filePath, options);
-            CompressAndAddFile(compress, encrypt, filePath, inStream, tocEntryFromFilepath);
+            CompressAndAddFile(compress, encrypt, inStream, tocEntryFromFilepath);
             m_toc.Add(tocEntryFromFilepath);
             TOCEntry? lastEntry = m_toc.GetLastEntry();
             if (lastEntry == null)
@@ -930,14 +930,13 @@ namespace CryptoSporidium.BAR
         public void SaveAs(string fileName)
         {
             ToolsImpl? toolsImpl = new();
-            RunCrypto();
             Stream dataWriterStream = GetDataWriterStream(fileName);
             m_header.NumFiles = m_toc.Count;
             if (Dirty)
                 m_toc.ResortOffsets();
             EndianAwareBinaryWriter endianAwareBinaryWriter = EndianAwareBinaryWriter.Create(dataWriterStream, m_endian);
             EndianAwareBinaryWriter endianAwareBinaryWriter2 = EndianAwareBinaryWriter.Create(dataWriterStream, EndianType.LittleEndian);
-            byte[]? array = m_toc.GetBytesVersion1();
+            byte[] array = m_toc.GetBytesVersion1();
             if (m_endian == EndianType.BigEndian)
                 array = Utils.EndianSwap(array);
             bool flag = (ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1;
@@ -945,14 +944,24 @@ namespace CryptoSporidium.BAR
             {
                 CompressionMethod method = CompressionMethod.ZLib;
                 byte[]? array2 = CompressionFactory.Compress(array, method, m_header.Flags);
-                uint num = (uint)Utils.GetFourByteAligned(array2.Length);
-                if ((m_header.Version != 512 && num + 4U < m_toc.Version1Size) || (m_header.Version == 512 && num + 4U < m_toc.Version2Size))
+                if (array2 != null)
                 {
-                    WriteHeader(endianAwareBinaryWriter);
-                    endianAwareBinaryWriter.Write(num);
-                    byte[] array3 = new byte[num];
-                    array2.CopyTo(array3, 0);
-                    endianAwareBinaryWriter2.Write(array3);
+                    uint num = (uint)Utils.GetFourByteAligned(array2.Length);
+                    if ((m_header.Version != 512 && num + 4U < m_toc.Version1Size) || (m_header.Version == 512 && num + 4U < m_toc.Version2Size))
+                    {
+                        WriteHeader(endianAwareBinaryWriter);
+                        endianAwareBinaryWriter.Write(num);
+                        byte[] array3 = new byte[num];
+                        array2.CopyTo(array3, 0);
+                        endianAwareBinaryWriter2.Write(array3);
+                    }
+                    else
+                    {
+                        Header header = m_header;
+                        header.Flags &= ~ArchiveFlags.Bar_Flag_ZTOC;
+                        WriteHeader(endianAwareBinaryWriter);
+                        endianAwareBinaryWriter2.Write(array);
+                    }
                 }
                 else
                 {
@@ -967,7 +976,6 @@ namespace CryptoSporidium.BAR
                 WriteHeader(endianAwareBinaryWriter);
                 endianAwareBinaryWriter2.Write(array);
             }
-            long position = dataWriterStream.Position;
             foreach (TOCEntry tocentry in m_toc.SortByDataSectionOffset())
             {
                 if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted)
@@ -1325,29 +1333,6 @@ namespace CryptoSporidium.BAR
             MemoryStream inStream = new MemoryStream(bytes);
             string filePath = m_resourceRoot + "\\__$manifest$__";
             AddFile(filePath, inStream, BARAddFileOptions.ForceCompress);
-        }
-
-        private void RunCrypto()
-        {
-            if (CryptoImplementation == null)
-                return;
-            m_toc.ResortOffsets();
-            CryptoImplementation.DoWork();
-        }
-
-        public CompressionBase CryptoImplementation
-        {
-            get
-            {
-                return cryptoImplentation;
-            }
-            set
-            {
-                cryptoImplentation = value;
-                if (cryptoImplentation != null)
-                    cryptoImplentation.BarReference = this;
-                CompressionFactory.CryptoImplementation = value;
-            }
         }
 
         public bool KeepExtension

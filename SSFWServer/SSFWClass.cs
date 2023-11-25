@@ -6,6 +6,7 @@ using NetCoreServer;
 using CustomLogger;
 using System.Text.RegularExpressions;
 using CryptoSporidium.FileHelper;
+using System.Net.Security;
 
 namespace SSFWServer
 {
@@ -69,17 +70,14 @@ namespace SSFWServer
         public Task StartSSFW()
         {
             // Create and prepare a new SSL server context
-            var context = new SslContext(SslProtocols.Tls12, new X509Certificate2(certpath, certpass));
-
+            SslContext context = new(SslProtocols.Tls12, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback);
             // Create a new HTTP server
-            var server = new SSFWServer(context, IPAddress.Any, 10443);
+            SSFWServer server = new(context, IPAddress.Any, 10443);
+            // Create and prepare a new HTTP server
+            HttpSSFWServer httpserver = new(IPAddress.Any, 8080);
 
             // Start the server
             server.Start();
-
-            // Create and prepare a new HTTP server
-            var httpserver = new HttpSSFWServer(IPAddress.Any, 8080);
-
             // Start the server
             httpserver.Start();
 
@@ -413,6 +411,11 @@ namespace SSFWServer
             }
 
             return Response;
+        }
+
+        private bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }
 
         private class SSFWSession : HttpsSession

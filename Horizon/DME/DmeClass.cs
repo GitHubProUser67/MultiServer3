@@ -7,6 +7,7 @@ using Horizon.DME.Models;
 using System.Diagnostics;
 using System.Net;
 using Horizon.PluginManager;
+using CryptoSporidium;
 
 namespace Horizon.DME
 {
@@ -19,7 +20,7 @@ namespace Horizon.DME
         public static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
 
         public static ServerSettings Settings = new ServerSettings();
-        private static Dictionary<int, AppSettings> _appSettings = new Dictionary<int, AppSettings>();
+        private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
 
         public static IPAddress? SERVER_IP;
@@ -27,7 +28,7 @@ namespace Horizon.DME
 
         public static string DME_SERVER_VERSION = "3.05.0000";
 
-        public static Dictionary<int, DMEMediusManager> Managers = new Dictionary<int, DMEMediusManager>();
+        public static Dictionary<int, DMEMediusManager> Managers = new();
         public static TcpServer TcpServer = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
@@ -259,7 +260,7 @@ namespace Horizon.DME
             }
 
             // Update default rsa key
-            LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
@@ -317,11 +318,11 @@ namespace Horizon.DME
         private static void RefreshServerIp()
         {
             if (!Settings.UsePublicIp)
-                SERVER_IP = Misc.GetLocalIPAddress();
+                SERVER_IP = MiscUtils.GetLocalIPAddress();
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(Misc.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

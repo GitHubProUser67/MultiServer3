@@ -2,10 +2,9 @@ using CustomLogger;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using DotNetty.Buffers;
 using DotNetty.Handlers.Logging;
 using CryptoSporidium.Horizon.RT.Models;
-using Horizon.LIBRARY.Pipeline.Udp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -21,8 +20,8 @@ namespace Horizon.BWPS
 
         //protected ClientObject ClientObject { get; set; } = null;
 
-        private ConcurrentQueue<ScertDatagramPacket> _recvQueue = new ConcurrentQueue<ScertDatagramPacket>();
-        private ConcurrentQueue<ScertDatagramPacket> _sendQueue = new ConcurrentQueue<ScertDatagramPacket>();
+        private ConcurrentQueue<ScertDatagramPacket> _recvQueue = new();
+        private ConcurrentQueue<ScertDatagramPacket> _sendQueue = new();
 
         private BaseScertMessage? _lastMessage { get; set; } = null;
 

@@ -1,5 +1,3 @@
-using System.Buffers.Binary;
-
 namespace CryptoSporidium.BAR
 {
     public static class Utils
@@ -29,19 +27,6 @@ namespace CryptoSporidium.BAR
                 Array.Reverse(array, i, num2);
             }
             return array;
-        }
-
-        public static uint EndianSwap(uint originalValue)
-        {
-            return ((originalValue & 0x000000FFU) << 24) |
-                   ((originalValue & 0x0000FF00U) << 8) |
-                   ((originalValue & 0x00FF0000U) >> 8) |
-                   ((originalValue & 0xFF000000U) >> 24);
-        }
-
-        public static int EndianSwap(int value)
-        {
-            return BinaryPrimitives.ReverseEndianness(value);
         }
 
         public static byte[] IntToByteArray(int value)

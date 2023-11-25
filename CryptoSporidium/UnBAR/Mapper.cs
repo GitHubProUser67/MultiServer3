@@ -14,10 +14,19 @@ namespace CryptoSporidium.UnBAR
                 if (bruteforce == "on" && !string.IsNullOrEmpty(helperfolder))
                     CopyFiles(helperfolder, foldertomap);
 
+                if (string.IsNullOrEmpty(prefix))
+                {
+                    Regex? regex = new(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}");
+                    Match match = regex.Match(foldertomap);
+                    if (match.Success)
+                        prefix = $"objects/{match.Groups[0].Value}/";
+                    regex = null;
+                }
+
                 IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl")
                 || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
                 || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown"));
-                List<MappedList> mappedListList = new List<MappedList>();
+                List<MappedList> mappedListList = new();
                 foreach (string sourceFile in strings)
                 {
                     mappedListList.AddRange(ScanForString(sourceFile));
@@ -51,9 +60,7 @@ namespace CryptoSporidium.UnBAR
                     text = Regex.Replace(text, "update.svml", "host_svml\\update.svml", RegexOptions.IgnoreCase);
                     text = Regex.Replace(text, "nekomuis.svml", "host_svml\\nekomuis.svml", RegexOptions.IgnoreCase);
 
-                    string str = ComputeAFSHash(prefix + text).ToString("X8");
-
-                    foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(str + ".*"))
+                    foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(ComputeAFSHash(prefix + text).ToString("X8") + ".*"))
                     {
                         if (File.Exists(Path.Combine(foldertomap, file.Name)))
                         {
@@ -72,9 +79,7 @@ namespace CryptoSporidium.UnBAR
                     {
                         string cdatafromatmos = text.Remove(text.Length - 6) + ".cdata";
 
-                        string str2 = ComputeAFSHash(cdatafromatmos).ToString("X8");
-
-                        foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(str2 + ".*"))
+                        foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(ComputeAFSHash(cdatafromatmos).ToString("X8") + ".*"))
                         {
                             if (File.Exists(Path.Combine(foldertomap, file.Name)))
                             {

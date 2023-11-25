@@ -1,3 +1,4 @@
+using CryptoSporidium;
 using CustomLogger;
 
 namespace Horizon.BWPS.Config
@@ -20,7 +21,7 @@ namespace Horizon.BWPS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? BWPSIp { get; set; } = Misc.GetLocalIPAddress().ToString();
+        public string? BWPSIp { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
         #endregion
 
         /// <summary>

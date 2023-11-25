@@ -7,7 +7,7 @@ using CryptoSporidium.Horizon.RT.Models.Misc;
 using CryptoSporidium.Horizon.RT.Models.Lobby;
 using CryptoSporidium.Horizon.LIBRARY.Common;
 using CryptoSporidium.Horizon.LIBRARY.Database.Models;
-using Horizon.LIBRARY.libAntiCheat;
+using CryptoSporidium.Horizon.LIBRARY.libAntiCheat;
 using Horizon.MEDIUS.Config;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
@@ -61,7 +61,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 

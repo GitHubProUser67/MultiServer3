@@ -6,7 +6,6 @@ using System.Text;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.Crypto;
 
 namespace CryptoSporidium
 {
@@ -115,7 +114,7 @@ namespace CryptoSporidium
             new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create(1024))
+            using (RSA rsa = RSA.Create())
             {
                 // Create a certificate request with the RSA key pair
                 CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
@@ -155,6 +154,8 @@ namespace CryptoSporidium
                 string crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
                 File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.pem", CRT_HEADER + crt + CRT_FOOTER);
                 File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.cer", CRT_HEADER + crt + CRT_FOOTER); // For Windows MMC.
+
+                rsa.Clear();
 
                 return SelfSignedCertificate;
             }
@@ -237,6 +238,8 @@ namespace CryptoSporidium
                 CSRPemWriter.Writer.Flush();
                 File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.pem", CertPem.ToString());
 
+                rsa.Clear();
+
                 return CertPem.ToString();
             }
         }
@@ -284,7 +287,7 @@ namespace CryptoSporidium
                 request.CertificateExtensions.Add(sanBuilder.Build());
 
                 // Set the validity period of the certificate
-                DateTimeOffset notBefore = new DateTimeOffset(new DateTime(1980, 1, 1), TimeSpan.Zero);
+                DateTimeOffset notBefore = new(new DateTime(1980, 1, 1), TimeSpan.Zero);
                 DateTimeOffset notAfter = new(new DateTime(7980, 1, 1), TimeSpan.Zero);
 
                 RsaPkcs1SignatureGenerator customSignatureGenerator = new(rsa);
@@ -320,6 +323,8 @@ namespace CryptoSporidium
                 CSRPemWriter.WriteObject(x509cert);
                 CSRPemWriter.Writer.Flush();
                 File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.pem", CertPem.ToString());
+
+                rsa.Clear();
 
                 return CertPem.ToString();
             }
@@ -360,10 +365,11 @@ namespace CryptoSporidium
                 }
                 else
                 {
-                    using (RSA rsa = RSA.Create(1024))
+                    using (RSA rsa = RSA.Create())
                     {
                         rsa.ImportFromPem(File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca_privkey.pem").ToArray());
                         rootca = X509Certificate2.CreateFromPem(File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca.pem").ToArray()).CopyWithPrivateKey(rsa);
+                        rsa.Clear();
                     }
                 }
 
@@ -392,7 +398,6 @@ namespace CryptoSporidium
             Org.BouncyCastle.X509.X509Certificate cert = parser.ReadCertificate(buffer);
             return cert;
         }
-
 
         private static byte[] GetBytesFromPEM(string type, string pem)
         {

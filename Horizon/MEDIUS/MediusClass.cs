@@ -9,9 +9,10 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using Horizon.LIBRARY.libAntiCheat;
+using CryptoSporidium.Horizon.LIBRARY.libAntiCheat;
 using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
+using CryptoSporidium;
 
 namespace Horizon.MEDIUS
 {
@@ -38,9 +39,9 @@ namespace Horizon.MEDIUS
         public static MPS ProxyServer = new();
 
         public static AntiCheat AntiCheatPlugin = new();
-        public static LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
+        public static CryptoSporidium.Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
 
-        private static Dictionary<int, AppSettings> _appSettings = new Dictionary<int, AppSettings>();
+        private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
         private static ulong _sessionKeyCounter = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
@@ -485,7 +486,6 @@ namespace Horizon.MEDIUS
                 started = true;
 
                 _ = Task.Run(LoopServer);
-                _ = Task.Run(CrudRoomManager.RefreshRooms);
             }
             catch (Exception ex)
             {
@@ -527,12 +527,12 @@ namespace Horizon.MEDIUS
             RefreshServerIp();
 
             if (HorizonServerConfiguration.UseSonyNAT)
-                Settings.NATIp = Misc.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
+                Settings.NATIp = MiscUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
             else if (string.IsNullOrEmpty(Settings.NATIp)) // Update NAT Ip with server ip if null
                 Settings.NATIp = SERVER_IP.ToString();
 
             // Update default rsa key
-            LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
@@ -610,14 +610,14 @@ namespace Horizon.MEDIUS
             #region Determine Server IP
             if (!Settings.UsePublicIp)
             {
-                SERVER_IP = Misc.GetLocalIPAddress();
+                SERVER_IP = MiscUtils.GetLocalIPAddress();
                 IP_TYPE = "Local";
             }
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
                 {
-                    SERVER_IP = IPAddress.Parse(Misc.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
                     IP_TYPE = "Public";
                 }
                 else

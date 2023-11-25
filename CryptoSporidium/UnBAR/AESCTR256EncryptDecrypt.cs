@@ -7,7 +7,7 @@ namespace CryptoSporidium.UnBAR
 {
     public class AESCTR256EncryptDecrypt
     {
-        public byte[]? InitiateCTRBuffer(byte[]? FileBytes, byte[] KeyBytes, byte[]? m_iv)
+        public byte[] InitiateCTRBuffer(byte[]? FileBytes, byte[] KeyBytes, byte[]? m_iv)
         {
             if (KeyBytes != null && KeyBytes.Length >= 16 && m_iv != null && m_iv.Length == 16 && FileBytes != null)
             {
@@ -28,7 +28,7 @@ namespace CryptoSporidium.UnBAR
             else
                 LoggerAccessor.LogError("[AESCTR256EncryptDecrypt] - InitiateCTRBuffer - Invalid FileBytes, KeyByes or IV!");
 
-            return null;
+            return new byte[0];
         }
     }
 }

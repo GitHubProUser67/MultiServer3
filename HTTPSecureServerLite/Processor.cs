@@ -1,5 +1,7 @@
 ﻿using CustomLogger;
+using HttpMultipartParser;
 using HttpServerLite;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System.Net;
 using System.Text;
 
@@ -34,16 +36,6 @@ namespace HTTPSecureServerLite
             return true;
         }
 
-        public static string RemoveQueryString(string input)
-        {
-            int indexOfQuestionMark = input.IndexOf('?');
-
-            if (indexOfQuestionMark >= 0)
-                return input.Substring(0, indexOfQuestionMark);
-            else
-                return input;
-        }
-
         public void StartServer()
         {
             if (_Server != null && _Server.IsListening)
@@ -69,6 +61,7 @@ namespace HTTPSecureServerLite
             string UserAgent = ctx.Request.RetrieveHeaderValue("User-Agent");
             string host = ctx.Request.RetrieveHeaderValue("Host");
             string clientip = ctx.Request.Source.IpAddress;
+            string clientport = ctx.Request.Source.Port.ToString();
 
             try
             {
@@ -81,7 +74,7 @@ namespace HTTPSecureServerLite
                         LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {ctx.Request.Url.Full}");
 
                         // get filename path
-                        absolutepath = ctx.Request.Url.Full;
+                        absolutepath = CryptoSporidium.HTTPUtils.RemoveQueryString(ctx.Request.Url.Full);
                         statusCode = HttpStatusCode.Continue;
                     }
                     else
@@ -121,7 +114,7 @@ namespace HTTPSecureServerLite
                         {
                             string? encoding = ctx.Request.RetrieveHeaderValue("Content-Encoding");
 
-                            using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                             {
                                 byte[]? buffer = null;
 
@@ -144,8 +137,9 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(indexFile)];
+                                            ctx.Response.ContentType = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(indexFile));
                                             await ctx.Response.SendAsync(buffer);
                                         }
                                         else
@@ -163,7 +157,7 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
-                                        ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(indexFile)];
+                                        ctx.Response.ContentType = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(indexFile));
                                         await ctx.Response.SendAsync(buffer);
                                     }
                                 }
@@ -188,11 +182,11 @@ namespace HTTPSecureServerLite
                         }
                     }
                 }
-                else if ((host == "away.veemee.com" || host == "home.veemee.com") && RemoveQueryString(absolutepath).ToLower().EndsWith(".php"))
+                else if ((host == "away.veemee.com" || host == "home.veemee.com") && absolutepath.ToLower().EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a VEEMEE method : {absolutepath}");
 
-                    API.VEEMEE.VEEMEEClass veemee = new(ctx.Request.Method.ToString(), RemoveQueryString(absolutepath)); // Todo, loss of GET informations.
+                    API.VEEMEE.VEEMEEClass veemee = new(ctx.Request.Method.ToString(), absolutepath); // Todo, loss of GET informations.
                     string? res = veemee.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     veemee.Dispose();
                     if (string.IsNullOrEmpty(res))
@@ -208,11 +202,11 @@ namespace HTTPSecureServerLite
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);
                 }
-                else if (host == "game2.hellfiregames.com" && RemoveQueryString(absolutepath).ToLower().EndsWith(".php"))
+                else if (host == "game2.hellfiregames.com" && absolutepath.ToLower().EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a HELLFIRE method : {absolutepath}");
 
-                    API.HELLFIRE.HELLFIREClass hellfire = new(ctx.Request.Method.ToString(), RemoveQueryString(absolutepath));
+                    API.HELLFIRE.HELLFIREClass hellfire = new(ctx.Request.Method.ToString(), CryptoSporidium.HTTPUtils.RemoveQueryString(absolutepath));
                     string? res = hellfire.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     hellfire.Dispose();
                     if (string.IsNullOrEmpty(res))
@@ -270,6 +264,7 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "application/json";
                                         await ctx.Response.SendAsync(buffer);
@@ -293,6 +288,72 @@ namespace HTTPSecureServerLite
                                     await ctx.Response.SendAsync(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)));
                                 }
                             }
+                            else if (absolutepath.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                            {
+                                var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx.Request);
+                                string? encoding = ctx.Request.RetrieveHeaderValue("Content-Encoding");
+                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                {
+                                    byte[]? buffer = CryptoSporidium.HTTPUtils.Compress(CollectPHP.Item1);
+
+                                    if (buffer != null)
+                                    {
+                                        statusCode = HttpStatusCode.OK;
+                                        if (CollectPHP.Item2 != null)
+                                        {
+                                            foreach (var innerArray in CollectPHP.Item2)
+                                            {
+                                                // Ensure the inner array has at least two elements
+                                                if (innerArray.Length >= 2)
+                                                {
+                                                    // Extract two values from the inner array
+                                                    string value1 = innerArray[0];
+                                                    string value2 = innerArray[1];
+                                                    ctx.Response.Headers.Add(value1, value2);
+                                                }
+                                            }
+                                        }
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/html";
+                                        await ctx.Response.SendAsync(buffer);
+                                    }
+                                    else
+                                    {
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        ctx.Response.Send(true);
+                                    }
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.OK;
+                                    if (CollectPHP.Item2 != null)
+                                    {
+                                        foreach (var innerArray in CollectPHP.Item2)
+                                        {
+                                            // Ensure the inner array has at least two elements
+                                            if (innerArray.Length >= 2)
+                                            {
+                                                // Extract two values from the inner array
+                                                string value1 = innerArray[0];
+                                                string value2 = innerArray[1];
+                                                ctx.Response.Headers.Add(value1, value2);
+                                            }
+                                        }
+                                    }
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "text/html";
+                                    await ctx.Response.SendAsync(CollectPHP.Item1);
+                                }
+                            }
                             else
                             {
                                 // send file
@@ -303,7 +364,7 @@ namespace HTTPSecureServerLite
                                     string? encoding = ctx.Request.RetrieveHeaderValue("Content-Encoding");
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                     {
-                                        using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                        using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                         {
                                             byte[]? buffer = null;
 
@@ -322,8 +383,9 @@ namespace HTTPSecureServerLite
                                                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                 ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                 ctx.Response.StatusCode = (int)statusCode;
-                                                ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
+                                                ctx.Response.ContentType = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(filePath));
                                                 await ctx.Response.SendAsync(buffer);
                                             }
                                             else
@@ -338,7 +400,7 @@ namespace HTTPSecureServerLite
                                         }
                                     }
                                     else
-                                        SendFile(ctx, filePath, CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)], _BufferSize);
+                                        SendFile(ctx, filePath, CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(filePath)), _BufferSize);
                                 }
                                 else
                                 {
@@ -351,9 +413,78 @@ namespace HTTPSecureServerLite
                             }
                             break;
                         case "POST":
-                            ctx.Response.StatusCode = (int)statusCode;
-                            ctx.Response.ContentType = "text/plain";
-                            ctx.Response.Send(true);
+                            if (absolutepath.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                            {
+                                var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx.Request);
+                                string? encoding = ctx.Request.RetrieveHeaderValue("Content-Encoding");
+                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                {
+                                    byte[]? buffer = CryptoSporidium.HTTPUtils.Compress(CollectPHP.Item1);
+
+                                    if (buffer != null)
+                                    {
+                                        statusCode = HttpStatusCode.OK;
+                                        if (CollectPHP.Item2 != null)
+                                        {
+                                            foreach (var innerArray in CollectPHP.Item2)
+                                            {
+                                                // Ensure the inner array has at least two elements
+                                                if (innerArray.Length >= 2)
+                                                {
+                                                    // Extract two values from the inner array
+                                                    string value1 = innerArray[0];
+                                                    string value2 = innerArray[1];
+                                                    ctx.Response.Headers.Add(value1, value2);
+                                                }
+                                            }
+                                        }
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/html";
+                                        await ctx.Response.SendAsync(buffer);
+                                    }
+                                    else
+                                    {
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        ctx.Response.Send(true);
+                                    }
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.OK;
+                                    if (CollectPHP.Item2 != null)
+                                    {
+                                        foreach (var innerArray in CollectPHP.Item2)
+                                        {
+                                            // Ensure the inner array has at least two elements
+                                            if (innerArray.Length >= 2)
+                                            {
+                                                // Extract two values from the inner array
+                                                string value1 = innerArray[0];
+                                                string value2 = innerArray[1];
+                                                ctx.Response.Headers.Add(value1, value2);
+                                            }
+                                        }
+                                    }
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "text/html";
+                                    await ctx.Response.SendAsync(CollectPHP.Item1);
+                                }
+                            }
+                            else
+                            {
+                                ctx.Response.StatusCode = (int)statusCode;
+                                ctx.Response.ContentType = "text/plain";
+                                ctx.Response.Send(true);
+                            }
                             break;
                         case "PUT":
                             ctx.Response.StatusCode = (int)statusCode;
@@ -370,7 +501,7 @@ namespace HTTPSecureServerLite
                             if (fileInfo.Exists)
                             {
                                 statusCode = HttpStatusCode.OK;
-                                ctx.Response.ContentType = CryptoSporidium.HTTPUtils.mimeTypes[Path.GetExtension(filePath)];
+                                ctx.Response.ContentType = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(filePath));
                                 ctx.Response.Headers.Set("Content-Length", fileInfo.Length.ToString());
                                 ctx.Response.Headers.Set("Date", DateTime.Now.ToString("r"));
                                 ctx.Response.Headers.Set("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
@@ -401,18 +532,16 @@ namespace HTTPSecureServerLite
             }
         }
 
-        private static void SendFile(HttpContext ctx, string file, string contentType, int bufferSize)
+        private static void SendFile(HttpContext ctx, string filePath, string contentType, int bufferSize)
         {
-            byte[] buffer = new byte[bufferSize];
-            long contentLen = new FileInfo(file).Length;
+            long contentLen = new FileInfo(filePath).Length;
 
-            using (FileStream fs = new(file, FileMode.Open, FileAccess.Read))
+            using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 ctx.Response.ContentType = contentType;
                 ctx.Response.StatusCode = 200;
                 ctx.Response.Send(contentLen, fs);
                 fs.Flush();
-                return;
             }
         }
     }

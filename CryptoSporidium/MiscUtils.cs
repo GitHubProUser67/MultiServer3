@@ -2,11 +2,33 @@
 using System.Text;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Net;
+using System.Diagnostics;
+using System.Security.Principal;
 
 namespace CryptoSporidium
 {
     public class MiscUtils
     {
+        public static T[][] AddElementToLastPosition<T>(T[][] jaggedArray, T[] newElement)
+        {
+            // Create a new jagged array with increased size
+            T[][] newArray = new T[jaggedArray.Length + 1][];
+
+            // Copy existing elements to the new array
+            for (int i = 0; i < jaggedArray.Length; i++)
+            {
+                newArray[i] = jaggedArray[i];
+            }
+
+            // Add the new element to the last position
+            newArray[newArray.Length - 1] = newElement;
+
+            return newArray;
+        }
+
         public static object? GetValueFromJToken(JToken jToken, string propertyName)
         {
             JToken? valueToken = jToken[propertyName];
@@ -37,7 +59,7 @@ namespace CryptoSporidium
             return null;
         }
 
-        public string GetNanoseconds()
+        public static string GetNanoseconds()
         {
             // C# DateTime only provides up to ticks (100 nanoseconds) resolution
             long ticks = DateTime.Now.Ticks;
@@ -46,39 +68,62 @@ namespace CryptoSporidium
             return nanoseconds.ToString("00000000"); // Pad with zeros to 8 digits
         }
 
-        public string GetCurrentDateTime()
+        public static string GetCurrentDateTime()
         {
             DateTime currentDateTime = DateTime.Now;
             string formattedDateTime = $"{currentDateTime:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
             return formattedDateTime;
         }
 
-        public string GenerateDynamicCacheGuid(string input)
+        public static string GenerateDynamicCacheGuid(string input)
         {
-            string md5hash = "";
+            string md5hash = string.Empty;
 
             using (MD5 md5 = MD5.Create())
             {
                 byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(GetCurrentDateTime() + input));
                 md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
-                md5.Dispose();
+                md5.Clear();
             }
 
             return md5hash;
         }
 
-        public byte[] endianSwap(byte[] input)
+        public byte[] ReadBinaryFile(string filePath, int offset, int length)
         {
-            int length = input.Length;
-            byte[] swapped = new byte[length];
-
-            for (int i = 0; i < length; i++)
+            using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read))
             {
-                swapped[i] = input[length - i - 1];
+                fs.Seek(offset, SeekOrigin.Begin);
+
+                byte[] data = new byte[length];
+                fs.Read(data, 0, length);
+
+                fs.Flush();
+
+                return data;
+            }
+        }
+
+        public int FindDataPosInBinary(byte[] data1, byte[] data2)
+        {
+            for (int i = 0; i < data1.Length - data2.Length + 1; i++)
+            {
+                bool found = true;
+                for (int j = 0; j < data2.Length; j++)
+                {
+                    if (data1[i + j] != data2[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                    return i;
             }
 
-            return swapped;
+            return -1; // Data2 not found in Data1
         }
 
         public byte[] HexStringToByteArray(string hex)
@@ -104,6 +149,19 @@ namespace CryptoSporidium
             return hex.ToString();
         }
 
+        public string StringToHexString(string input, string formatExpression)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(input);
+            StringBuilder hexBuilder = new(bytes.Length * 2);
+
+            foreach (byte b in bytes)
+            {
+                hexBuilder.AppendFormat(formatExpression, b);
+            }
+
+            return hexBuilder.ToString();
+        }
+
         public byte[] ConcatenateArrays(byte[][] arrays)
         {
             int totalLength = arrays.Sum(arr => arr.Length);
@@ -117,40 +175,6 @@ namespace CryptoSporidium
             }
 
             return result;
-        }
-
-        public byte[] ReadBinaryFile(string filePath, int offset, int length)
-        {
-            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                fs.Seek(offset, SeekOrigin.Begin);
-
-                byte[] data = new byte[length];
-                fs.Read(data, 0, length);
-
-                return data;
-            }
-        }
-
-        public int FindDataPosInBinary(byte[] data1, byte[] data2)
-        {
-            for (int i = 0; i < data1.Length - data2.Length + 1; i++)
-            {
-                bool found = true;
-                for (int j = 0; j < data2.Length; j++)
-                {
-                    if (data1[i + j] != data2[j])
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-
-                if (found)
-                    return i;
-            }
-
-            return -1; // Data2 not found in Data1
         }
 
         public byte[]? GetRequiredBlocks(byte[] byteArray, int blockSize)
@@ -237,31 +261,13 @@ namespace CryptoSporidium
 
             if (size > source.Length)
             {
-                LoggerAccessor.LogError("Size exceeds the length of the source array.");
+                LoggerAccessor.LogError($"Size exceeds the length of the source array | SRC -> {source.Length} | DST -> {size}.");
                 return null;
             }
 
             byte[] result = new byte[size];
             Array.Copy(source, result, (int)size);
             return result;
-        }
-
-        public byte[]? GetNumberBytes(byte[]? byteArray, int number)
-        {
-            // Check if the index is within the bounds of the array
-            if (byteArray == null || number < 0 || number >= byteArray.Length)
-            {
-                LoggerAccessor.LogError("Index is out of range or entry is null");
-                return null;
-            }
-
-            // Create a new array to store the result bytes
-            byte[] resultBytes = new byte[number];
-
-            // Copy the bytes from the original array to the result array
-            Array.Copy(byteArray, 0, resultBytes, 0, resultBytes.Length);
-
-            return resultBytes;
         }
 
         public byte[] TrimArray(byte[] arr)
@@ -334,6 +340,340 @@ namespace CryptoSporidium
             }
 
             return byteArray;
+        }
+
+        public static IPAddress? GetIp(string hostname)
+        {
+            try
+            {
+                if (hostname.ToLower() == "localhost" || hostname == "127.0.0.1")
+                    return IPAddress.Loopback;
+
+                switch (Uri.CheckHostName(hostname))
+                {
+                    case UriHostNameType.IPv4:
+                        return IPAddress.Parse(hostname);
+                    case UriHostNameType.IPv6:
+                        return IPAddress.Parse(hostname);
+                    case UriHostNameType.Dns:
+                        IPAddress[] addresses = Dns.GetHostAddresses(hostname);
+                        foreach (IPAddress address in addresses)
+                        {
+                            if (address.AddressFamily == AddressFamily.InterNetworkV6)
+                                return address;
+                        }
+                        return addresses.FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
+                    default:
+                        return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[GetIp] - An Error Occurred - {ex}");
+            }
+
+            return null;
+        }
+
+        public static string GetPublicIPAddress(bool allowipv6 = false)
+        {
+            try
+            {
+                if (allowipv6)
+                    return new WebClient().DownloadString("http://icanhazip.com/").Replace("\\r\\n", "").Replace("\\n", "").Trim();
+                else
+                    return new WebClient().DownloadString("http://ipv4.icanhazip.com/").Replace("\\r\\n", "").Replace("\\n", "").Trim();
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return GetLocalIPAddress().ToString();
+        }
+
+        public static IPAddress GetLocalIPAddress()
+        {
+            if (!NetworkInterface.GetIsNetworkAvailable())
+                return IPAddress.Parse("127.0.0.1");
+
+            // Get all active interfaces
+            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(c => c.NetworkInterfaceType != NetworkInterfaceType.Loopback && c.OperationalStatus == OperationalStatus.Up);
+
+            // Find our local ip
+            foreach (var i in interfaces)
+            {
+                var props = i.GetIPProperties();
+                var inter = props.UnicastAddresses.Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
+#pragma warning disable // Sometimes Visual Studio is weird.
+                if (inter != null && props.GatewayAddresses.Count > 0 && inter.Count() > 0)
+                    return inter.FirstOrDefault().Address;
+#pragma warning restore
+            }
+
+            return IPAddress.Parse("127.0.0.1");
+        }
+
+        public static string GetFirstActiveIPAddress(string hostName, string fallback)
+        {
+            try
+            {
+                // Try using Google DNS (8.8.8.8) first
+                IPAddress[] googleDnsAddresses = Dns.GetHostAddresses("8.8.8.8");
+
+                foreach (IPAddress googleDnsAddress in googleDnsAddresses)
+                {
+                    using (var ping = new Ping())
+                    {
+                        try
+                        {
+                            PingReply reply = ping.Send(googleDnsAddress);
+                            if (reply.Status == IPStatus.Success)
+                            {
+                                // If successful, use the resolved IP address for the original host
+                                IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+                                foreach (IPAddress address in addresses)
+                                {
+                                    using (var hostPing = new Ping())
+                                    {
+                                        try
+                                        {
+                                            PingReply hostReply = hostPing.Send(address);
+                                            if (hostReply.Status == IPStatus.Success)
+                                                return address.ToString();
+                                        }
+                                        catch (PingException)
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (PingException)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                // If Google DNS resolution fails, fall back to the existing logic
+                if (IsWindows())
+                {
+                    IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+
+                    foreach (IPAddress address in addresses)
+                    {
+                        using (var ping = new Ping())
+                        {
+                            try
+                            {
+                                PingReply reply = ping.Send(address);
+                                if (reply.Status == IPStatus.Success)
+                                    return address.ToString();
+                            }
+                            catch (PingException)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    IPHostEntry hostEntry = Dns.GetHostEntry(hostName);
+                    IPAddress[] addresses = hostEntry.AddressList;
+
+                    foreach (IPAddress address in addresses)
+                    {
+                        using (var ping = new Ping())
+                        {
+                            try
+                            {
+                                PingReply reply = ping.Send(address);
+                                if (reply.Status == IPStatus.Success)
+                                    return address.ToString();
+                            }
+                            catch (PingException)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SocketException ex)
+            {
+                if (ex.ErrorCode != 11001)
+                    LoggerAccessor.LogError($"[MiscUtils] - GetFirstActiveIPAddress thrown a socket exception : {ex}");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[MiscUtils] - GetFirstActiveIPAddress thrown an exception : {ex}");
+            }
+
+            return fallback;
+        }
+
+        public static bool IsTcpPortOpen(string host, int port)
+        {
+            using (TcpClient tcpClient = new())
+            {
+                try
+                {
+                    tcpClient.Connect(host, port);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
+        public static bool IsUdpPortOpen(string host, int port)
+        {
+            using (UdpClient udpClient = new())
+            {
+                try
+                {
+                    udpClient.Connect(host, port);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
+        public static bool IsWindows()
+        {
+            var os = Environment.OSVersion;
+            return os.Platform == PlatformID.Win32NT;
+        }
+
+        public static bool IsAdministrator()
+        {
+            var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        public static bool StartAsAdmin(string filePath)
+        {
+            try
+            {
+                var proc = new Process
+                {
+                    StartInfo =
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    }
+                };
+
+                proc.Start();
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static string ReverseString(string input)
+        {
+            char[] charArray = input.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
+        }
+
+        public static string XORString(string input, string key)
+        {
+            StringBuilder result = new();
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                result.Append((char)(input[i] ^ key[i % key.Length]));
+            }
+
+            return result.ToString();
+        }
+
+        public static string ComputeMD5(string input)
+        {
+            // Create a SHA256   
+            using (MD5 md5Hash = MD5.Create())
+            {
+                // ComputeHash - returns byte array  
+                byte[] bytes = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+                // Convert byte array to a string   
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+
+                md5Hash.Clear();
+
+                return builder.ToString();
+            }
+        }
+
+        public static string ComputeSHA256(string input)
+        {
+            // Create a SHA256   
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // ComputeHash - returns byte array  
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+                // Convert byte array to a string   
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+
+                sha256Hash.Clear();
+
+                return builder.ToString();
+            }
+        }
+
+        public static string ComputeSHA512ReducedSizeCustom(string input)
+        {
+            // Create a SHA256 that is calculated 2 times.
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // ComputeHash - returns byte array  
+                byte[] PassBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(XORString(new MiscUtils().ByteArrayToHexString(sha256Hash.ComputeHash
+                    (Encoding.UTF8.GetBytes(XORString(input + "ssaPD3Tl1SyM" + ComputeMD5("MyS1lT3DPass" + input), ReverseString(input))))), input)));
+
+                // Convert byte array to a string   
+                StringBuilder builder = new();
+                for (int i = 0; i < PassBytes.Length; i++)
+                    builder.Append(PassBytes[i].ToString("x2"));
+
+                sha256Hash.Clear();
+
+                return builder.ToString().ToUpper(); // To Upper for a nicer output.
+            }
+        }
+
+        public static bool IsFileOutdated(string filePath, TimeSpan maxAge)
+        {
+            if (!File.Exists(filePath))
+                return true; // The file is outdated
+
+            DateTime lastModified = File.GetLastWriteTime(filePath);
+            DateTime currentTime = DateTime.Now;
+
+            if (lastModified < currentTime - maxAge)
+                return true; // The file is outdated
+
+            return false; // The file is up to date
         }
     }
 }

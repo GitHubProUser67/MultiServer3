@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿using CryptoSporidium;
+using CustomLogger;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -66,7 +67,7 @@ namespace SVO.Games
 
                                         if (SVOServerConfiguration.SVOHTTPSBypass)
                                             index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n    " +
-                                                $"<SET name=\"IP\" IPAddress=\"{Misc.GetPublicIPAddress()}\" />     \r\n    " +
+                                                $"<SET name=\"IP\" IPAddress=\"{MiscUtils.GetPublicIPAddress()}\" />     \r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"entryURI\" value=\"http://killzoneps3.svo.online.scee.com:10060/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"homeURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/home.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"menuURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n\t" +
@@ -123,8 +124,8 @@ namespace SVO.Games
                                                 "<BROWSER_INIT name=\"init\" />\r\n</SVML>");
                                         else
                                             index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n    " +
-                                                $"<SET name=\"IP\" IPAddress=\"{Misc.GetPublicIPAddress()}\" />     \r\n    " +
-                                                "<DATA dataType=\"URI\" name=\"entryURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
+                                                $"<SET name=\"IP\" IPAddress=\"{MiscUtils.GetPublicIPAddress()}\" />     \r\n    " +
+                                                "<DATA dataType=\"URI\" name=\"entryURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"homeURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/home.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"menuURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"logoutURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/account/Logout.jsp\" />\r\n\t" +
@@ -142,7 +143,7 @@ namespace SVO.Games
                                                 "<DATA dataType=\"URI\" name=\"viewtimezonesURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"buildInfoURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"clanUniverseURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n    " +
-                                                "<DATA dataType=\"DATA\" name=\"loginEncryptedURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/Account_Encrypted_Login_Submit.jsp\" />\r\n\t" +
+                                                "<DATA dataType=\"DATA\" name=\"loginEncryptedURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/account/Account_Encrypted_Login_Submit.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"personalStatsURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/stats/personalStats.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"DATA\" name=\"gameCreateURL\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/game/tempgame.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"DATA\" name=\"createGameURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/game/Game_Create.jsp?gameMode=%d\" />\r\n    " +
@@ -170,13 +171,13 @@ namespace SVO.Games
                                                 "<DATA dataType=\"DATA\" name=\"playerProfileURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/profile/Profile_GetPlayerProfile.jsp?PlayerID=%d\" />\r\n    " +
                                                 "<DATA dataType=\"DATA\" name=\"rankInfoURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/stats/Stats_CareerRankInfo.jsp?playerList=\"  /> \r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"downloadVerificationURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/commerce/Commerce_VerifySubmit.jsp\" />\r\n    " +
-                                                "<DATA dataType=\"DATA\" name=\"purchaseListURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/commerce/Commerce_PurchaseList.jsp?categoryID=default\" />\r\n    " +
-                                                "<DATA dataType=\"DATA\" name=\"createVerifiedFileGameURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/commerce/Commerce_GameCreatorFileVerification.jsp?fileList=$1&amp;userPassword=$2&amp;spectatorPassword=$3\" " +
-                                                "/>\r\n    <DATA dataType=\"DATA\" name=\"joinVerifiedFileGameURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/commerce/Commerce_GameJoinerFileVerification.jsp?fileList=$1&amp;userPassword=$2&amp;ticket=$3\" />\r\n    " +
-                                                "<DATA dataType=\"DATA\" name=\"spectateVerifiedFileGameURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/commerce/Commerce_GameSpectatorFileVerification.jsp?fileList=$1&amp;spectatorPassword=$2&amp;ticket=$3\" " +
+                                                "<DATA dataType=\"DATA\" name=\"purchaseListURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/commerce/Commerce_PurchaseList.jsp?categoryID=default\" />\r\n    " +
+                                                "<DATA dataType=\"DATA\" name=\"createVerifiedFileGameURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/commerce/Commerce_GameCreatorFileVerification.jsp?fileList=$1&amp;userPassword=$2&amp;spectatorPassword=$3\" " +
+                                                "/>\r\n    <DATA dataType=\"DATA\" name=\"joinVerifiedFileGameURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/commerce/Commerce_GameJoinerFileVerification.jsp?fileList=$1&amp;userPassword=$2&amp;ticket=$3\" />\r\n    " +
+                                                "<DATA dataType=\"DATA\" name=\"spectateVerifiedFileGameURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/commerce/Commerce_GameSpectatorFileVerification.jsp?fileList=$1&amp;spectatorPassword=$2&amp;ticket=$3\" " +
                                                 "/>\r\n    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/account/SP_Login_Submit.jsp\" />\r\n    " +
-                                                "<DATA dataType=\"DATA\" name=\"SetIgnoreListURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/SP_UpdateIgnoreList_Submit.jsp\" />\r\n    " +
-                                                "<DATA dataType=\"DATA\" name=\"SetUniversePasswordURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/SP_SetPassword_Submit.jsp\" />\r\n\r\n    " +
+                                                "<DATA dataType=\"DATA\" name=\"SetIgnoreListURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/account/SP_UpdateIgnoreList_Submit.jsp\" />\r\n    " +
+                                                "<DATA dataType=\"DATA\" name=\"SetUniversePasswordURI\" value=\"https://killzoneps3.svo.online.scee.com:10062/SOCOMCF_SVML/account/SP_SetPassword_Submit.jsp\" />\r\n\r\n    " +
                                                 "<BROWSER_INIT name=\"init\" />\r\n</SVML>");
 
                                         response.StatusCode = (int)HttpStatusCode.OK;

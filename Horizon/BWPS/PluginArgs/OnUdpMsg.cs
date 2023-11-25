@@ -1,4 +1,4 @@
-using Horizon.LIBRARY.Pipeline.Udp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
 
 namespace Horizon.BWPS.PluginArgs
 {

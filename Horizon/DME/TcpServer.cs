@@ -6,7 +6,7 @@ using DotNetty.Transport.Channels.Sockets;
 using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.RT.Cryptography;
 using CryptoSporidium.Horizon.RT.Models;
-using Horizon.LIBRARY.Pipeline.Tcp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
 using CryptoSporidium.Horizon.LIBRARY.Common;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
@@ -21,7 +21,7 @@ namespace Horizon.DME
     {
         public static Random RNG = new();
 
-        public bool IsRunning => _boundChannel != null && _boundChannel.IsActive;
+        public bool IsRunning => _boundChannel != null && _boundChannel.Active;
 
         public int Port => DmeClass.Settings.TCPPort;
 
@@ -302,7 +302,7 @@ namespace Horizon.DME
         protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 

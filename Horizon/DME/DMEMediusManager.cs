@@ -5,18 +5,19 @@ using DotNetty.Transport.Channels.Sockets;
 using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.RT.Cryptography;
 using CryptoSporidium.Horizon.RT.Models;
-using Horizon.LIBRARY.Pipeline.Tcp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
 using CryptoSporidium.Horizon.LIBRARY.Common;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
-using Horizon.LIBRARY.Pipeline.Attribute;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute;
+using CryptoSporidium;
 
 namespace Horizon.DME
 {
     public class DMEMediusManager
     {
-        public bool IsConnected => _mpsChannel != null && _mpsChannel.IsActive && _mpsState > 0;
+        public bool IsConnected => _mpsChannel != null && _mpsChannel.Active && _mpsState > 0;
         public DateTime? TimeLostConnection { get; set; } = null;
         public int ApplicationId { get; } = 0;
 
@@ -32,8 +33,8 @@ namespace Horizon.DME
             AUTHENTICATED
         }
 
-        private ConcurrentDictionary<string, ClientObject> _accessTokenToClient = new ConcurrentDictionary<string, ClientObject>();
-        private ConcurrentDictionary<string, ClientObject> _sessionKeyToClient = new ConcurrentDictionary<string, ClientObject>();
+        private ConcurrentDictionary<string, ClientObject> _accessTokenToClient = new();
+        private ConcurrentDictionary<string, ClientObject> _sessionKeyToClient = new();
 
         private DateTime _utcConnectionState;
         private MPSConnectionState _mpsState = MPSConnectionState.NO_CONNECTION;
@@ -44,10 +45,10 @@ namespace Horizon.DME
         private ScertServerHandler? _scertHandler = null;
 
         private List<World> _worlds = new List<World>();
-        private ConcurrentQueue<World> _removeWorldQueue = new ConcurrentQueue<World>();
+        private ConcurrentQueue<World> _removeWorldQueue = new();
 
-        private ConcurrentQueue<BaseScertMessage> _mpsRecvQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
-        private ConcurrentQueue<BaseScertMessage> _mpsSendQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+        private ConcurrentQueue<BaseScertMessage> _mpsRecvQueue { get; } = new();
+        private ConcurrentQueue<BaseScertMessage> _mpsSendQueue { get; } = new();
 
         public DMEMediusManager(int appId)
         {
@@ -248,7 +249,7 @@ namespace Horizon.DME
             try
             {
                 if (_bootstrap != null)
-                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(Misc.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
+                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(MiscUtils.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
             }
             catch (Exception)
             {
@@ -257,14 +258,14 @@ namespace Horizon.DME
                 return;
             }
 
-            if (_mpsChannel != null && !_mpsChannel.IsActive)
+            if (_mpsChannel != null && !_mpsChannel.Active)
                 return;
 
             _mpsState = MPSConnectionState.CONNECTED;
 
-            if (_mpsChannel != null && !_mpsChannel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                _mpsChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = _mpsChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (_mpsChannel != null && !_mpsChannel.HasAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                _mpsChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = _mpsChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
             scertClient.CipherService.GenerateCipher(scertClient.RsaAuthKey);
 
@@ -289,7 +290,7 @@ namespace Horizon.DME
         private async Task ProcessMessage(BaseScertMessage message, IChannel serverChannel)
         {
             // Get ScertClient data
-            var scertClient = serverChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = serverChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
             switch (message)
             {

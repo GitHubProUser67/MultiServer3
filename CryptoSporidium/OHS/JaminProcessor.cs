@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using NLua;
 using System.Text;
+using System.Xml.Linq;
 
 namespace CryptoSporidium.OHS
 {
@@ -38,16 +39,22 @@ namespace CryptoSporidium.OHS
 
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
-                    writekey = dataforohs.Substring(0, 8);
-                    dataforohs = dataforohs.Substring(8); // We remove the writekey.
                     if (hashed)
                     {
                         string InData = dataforohs.Substring(8); // We remove the hash.
                         if (VerifyHash(InData, dataforohs.Substring(0, 8)))
+                        {
+                            writekey = InData.Substring(0, 8);
+                            InData = InData.Substring(8); // We remove the writekey.
                             returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
+                        }
                     }
                     else
+                    {
+                        writekey = dataforohs.Substring(0, 8);
+                        dataforohs = dataforohs.Substring(8); // We remove the writekey.
                         returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
+                    }
 
                     if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
                     {
@@ -128,7 +135,7 @@ namespace CryptoSporidium.OHS
                     if (game != 0)
                     {
                         Random random = new();
-                        string? cipheredoutput = EncryptDecrypt.Encrypt(LuaReturn, random.Next(1, 95 * 95 + 1), game);
+                        string? cipheredoutput = EncryptDecrypt.Encrypt(LuaReturn, random.Next(1, 95 * 95), game);
 #if DEBUG
                         LoggerAccessor.LogInfo($"[OHS] - Encrypted Data : {cipheredoutput}");
 #endif

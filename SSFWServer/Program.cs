@@ -8,7 +8,7 @@ public static class SSFWServerConfiguration
     public static string SSFWMinibase { get; set; } = "[]";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
-    public static string SSFWCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static List<string>? BannedIPs { get; set; }
 
     /// <summary>
@@ -26,21 +26,28 @@ public static class SSFWServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        SSFWMinibase = config.minibase;
-        SSFWLegacyKey = config.legacyKey;
-        SSFWCrossSave = config.cross_save;
-        SSFWStaticFolder = config.static_folder;
-        SSFWCertificateFile = config.certificate_file;
-        JArray bannedIPsArray = config.BannedIPs;
-        // Deserialize BannedIPs if it exists
-        if (bannedIPsArray != null)
-            BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            SSFWMinibase = config.minibase;
+            SSFWLegacyKey = config.legacyKey;
+            SSFWCrossSave = config.cross_save;
+            SSFWStaticFolder = config.static_folder;
+            HTTPSCertificateFile = config.certificate_file;
+            JArray bannedIPsArray = config.BannedIPs;
+            // Deserialize BannedIPs if it exists
+            if (bannedIPsArray != null)
+                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("dns.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -66,14 +73,14 @@ class Program
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(SSFWServerConfiguration.SSFWCertificateFile);
+        CryptoSporidium.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
 
-        SSFWClass server = new(SSFWServerConfiguration.SSFWCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
+        SSFWClass server = new(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
 
         _ = Task.Run(server.StartSSFW);
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

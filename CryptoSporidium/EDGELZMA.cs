@@ -100,12 +100,12 @@ namespace CryptoSporidium
 
         public byte[] Decompress(byte[] inbuffer)
         {
-            MemoryStream result = new MemoryStream();
+            MemoryStream result = new();
             int outSize = BitConverter.ToInt32(inbuffer, 12);
             int streamCount = (outSize + 0xffff) >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
-            var decoder = new Decoder();
+            Decoder decoder = new();
             decoder.SetDecoderProperties(new MemoryStream(inbuffer, 0x18, 5).ToArray());
 
             for (int i = 0; i < streamCount; i++)
@@ -153,7 +153,7 @@ namespace CryptoSporidium
                             int SegmentCompressedSize = BitConverter.ToUInt16(SegmentCompressedSizeByte, 0);
                             int SegmentOriginalSize = BitConverter.ToUInt16(SegmentOriginalSizeByte, 0);
                             int SegmentOffset = 0;
-                            byte[] CompressedData = new byte[0];
+                            byte[] CompressedData = Array.Empty<byte>();
                             if (SegmentCompressedSize <= 0) // Safer than just comparing with 0.
                             {
                                 SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0);
@@ -220,7 +220,7 @@ namespace CryptoSporidium
         {
             byte[] properties = new byte[5];
             inStream.Read(properties, 0, 5);
-            Decoder decoder = new Decoder();
+            Decoder decoder = new();
             decoder.SetDecoderProperties(properties);
             long outSize = 0;
             for (int i = 0; i < 8; i++)

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Security;
+using System.Text.RegularExpressions;
 
 namespace CryptoSporidium.OHS
 {
@@ -85,7 +86,7 @@ namespace CryptoSporidium.OHS
                     break;
             }
 
-            return res;
+            return SecurityElement.Escape(res);
         }
 
         private static string RemoveCommands(string input)

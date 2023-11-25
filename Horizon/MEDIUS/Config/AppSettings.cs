@@ -32,32 +32,32 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// Regular expression whitelist filter for most text inputs. If you only want to accept numbers you'd enter (\d)+ for example.
         /// </summary>
-        public string TextFilterDefault { get; private set; } = "";
+        public string TextFilterDefault { get; private set; } = string.Empty;
 
         /// <summary>
         /// Regular expression whitelist filter for account names. If you only want to accept numbers you'd enter (\d)+ for example.
         /// </summary>
-        public string TextFilterAccountName { get; private set; } = "";
+        public string TextFilterAccountName { get; private set; } = string.Empty;
 
         /// <summary>
         /// Regular expression whitelist filter for clan names. If you only want to accept numbers you'd enter (\d)+ for example.
         /// </summary>
-        public string TextFilterClanName { get; private set; } = "";
+        public string TextFilterClanName { get; private set; } = string.Empty;
 
         /// <summary>
         /// Regular expression whitelist filter for the clan message. If you only want to accept numbers you'd enter (\d)+ for example.
         /// </summary>
-        public string TextFilterClanMessage { get; private set; } = "";
+        public string TextFilterClanMessage { get; private set; } = string.Empty;
 
         /// <summary>
         /// Regular expression whitelist filter for chat messages. If you only want to accept numbers you'd enter (\d)+ for example.
         /// </summary>
-        public string TextFilterChat { get; private set; } = "";
+        public string TextFilterChat { get; private set; } = string.Empty;
 
         /// <summary>
         /// Regular expression whitelist filter for game names. If you only want to accept numbers you'd enter (\d)+ for example.
         /// </summary>
-        public string TextFilterGameName { get; private set; } = "";
+        public string TextFilterGameName { get; private set; } = string.Empty;
 
         /// <summary>
         /// When true, server will encrypt all messages.
@@ -107,7 +107,7 @@ namespace Horizon.MEDIUS.Config
 
         public void SetSettings(Dictionary<string, string> settings)
         {
-            string value = null;
+            string? value = null;
 
             // CreateAccountOnNotFound
             if (settings.TryGetValue("CreateAccountOnNotFound", out value) && bool.TryParse(value, out var createAccountOnNotFound))

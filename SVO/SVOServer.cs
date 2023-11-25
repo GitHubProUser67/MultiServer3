@@ -21,7 +21,7 @@ namespace SVO
             this.ip = ip;
         }
 
-        public bool IsIPBanned(string ipAddress)
+        public static bool IsIPBanned(string ipAddress)
         {
             if (SVOServerConfiguration.BannedIPs != null && SVOServerConfiguration.BannedIPs.Contains(ipAddress))
                 return true;
@@ -38,6 +38,7 @@ namespace SVO
             }
             thread = new Thread(Listen);
             thread.Start();
+            LoggerAccessor.LogInfo("[SVO] - Server started...");
             IsStarted = true;
         }
 
@@ -57,10 +58,28 @@ namespace SVO
             // finish closing listener
             if (listener != null)
             {
+                RemoveAllPrefixes(listener);
                 listener.Close();
                 listener = null;
             }
             IsStarted = false;
+        }
+
+        private bool RemoveAllPrefixes(HttpListener listener)
+        {
+            // Get the prefixes that the Web server is listening to.
+            HttpListenerPrefixCollection prefixes = listener.Prefixes;
+            try
+            {
+                prefixes.Clear();
+            }
+            // If the operation failed, return false.
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void Listen()
@@ -72,7 +91,6 @@ namespace SVO
             {
                 listener = new HttpListener();
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Start();
             }
@@ -162,7 +180,7 @@ namespace SVO
 
                                     Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
 
-                                    DirectoryInfo directory = new DirectoryInfo($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
+                                    DirectoryInfo directory = new($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue");
 
                                     FileInfo[] files = directory.GetFiles();
 

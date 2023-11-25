@@ -7,7 +7,7 @@ using DotNetty.Transport.Channels.Sockets;
 using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.RT.Cryptography;
 using CryptoSporidium.Horizon.RT.Models;
-using Horizon.LIBRARY.Pipeline.Tcp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
@@ -38,11 +38,11 @@ namespace Horizon.MUIS
         protected internal class ChannelData
         {
             public int ApplicationId { get; set; } = 0;
-            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
-            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
+            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
         }
 
-        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new ConcurrentDictionary<string, ChannelData>();
+        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new();
 
         public MUIS(int port)
         {
@@ -186,7 +186,7 @@ namespace Horizon.MUIS
         protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;
 
             switch (message)

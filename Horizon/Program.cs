@@ -2,12 +2,12 @@ using CustomLogger;
 using CryptoSporidium.Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 
 public static class HorizonServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/medius_plugins";
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
+    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static bool EnableMedius { get; set; } = true;
     public static bool EnableDME { get; set; } = true;
     public static bool EnableMuis { get; set; } = true;
@@ -42,28 +42,36 @@ public static class HorizonServerConfiguration
             return;
         }
 
-        // Read the file
-        string json = File.ReadAllText(configPath);
+        try
+        {
+            // Read the file
+            string json = File.ReadAllText(configPath);
 
-        // Parse the JSON configuration
-        dynamic config = JObject.Parse(json);
+            // Parse the JSON configuration
+            dynamic config = JObject.Parse(json);
 
-        EnableMedius = config.medius.enabled;
-        EnableDME = config.dme.enabled;
-        EnableMuis = config.muis.enabled;
-        EnableNAT = config.nat.enabled;
-        EnableBWPS = config.bwps.enabled;
-        PlayerAPIStaticPath = config.player_api_static_path;
-        DMEConfig = config.dme.config;
-        MEDIUSConfig = config.medius.config;
-        MUISConfig = config.muis.config;
-        NATConfig = config.nat.config;
-        BWPSConfig = config.bwps.config;
-        UseSonyNAT = config.use_sony_nat;
-        PluginsFolder = config.plugins_folder;
-        DatabaseConfig = config.database;
-        HomeVersionBetaHDK = config.home_version_beta_hdk;
-        HomeVersionRetail = config.home_version_retail;
+            EnableMedius = config.medius.enabled;
+            EnableDME = config.dme.enabled;
+            EnableMuis = config.muis.enabled;
+            EnableNAT = config.nat.enabled;
+            EnableBWPS = config.bwps.enabled;
+            HTTPSCertificateFile = config.certificate_file;
+            PlayerAPIStaticPath = config.player_api_static_path;
+            DMEConfig = config.dme.config;
+            MEDIUSConfig = config.medius.config;
+            MUISConfig = config.muis.config;
+            NATConfig = config.nat.config;
+            BWPSConfig = config.bwps.config;
+            UseSonyNAT = config.use_sony_nat;
+            PluginsFolder = config.plugins_folder;
+            DatabaseConfig = config.database;
+            HomeVersionBetaHDK = config.home_version_beta_hdk;
+            HomeVersionRetail = config.home_version_retail;
+        }
+        catch (Exception)
+        {
+            LoggerAccessor.LogWarn("horizon.json file is malformed, using server's default.");
+        }
     }
 }
 
@@ -86,7 +94,13 @@ class Program
     static Task HorizonStarter()
     {
         if (HorizonServerConfiguration.EnableMedius)
+        {
             Horizon.MEDIUS.MediusClass.MediusMain();
+
+            _ = Horizon.HTTPSERVICE.HttpClass.RunServerAsync(61920);
+
+            _ = Horizon.HTTPSERVICE.HttpClass.RunServerAsync(8443, true);
+        }
 
         if (HorizonServerConfiguration.EnableNAT)
             Horizon.NAT.NATClass.NATMain();
@@ -105,23 +119,17 @@ class Program
 
     static void Main()
     {
-        if (Misc.IsWindows())
-            if (!Misc.IsAdministrator())
-            {
-                Console.WriteLine("Trying to restart as admin");
-                if (Misc.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
-                    Environment.Exit(0);
-            }
-
         LoggerAccessor.SetupLogger("Horizon");
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
+
+        CryptoSporidium.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
 
         _ = Task.Run(HorizonStarter);
 
         _ = Task.Run(RefreshConfig);
 
-        if (Misc.IsWindows())
+        if (CryptoSporidium.MiscUtils.IsWindows())
         {
             while (true)
             {

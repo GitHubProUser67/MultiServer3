@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Math;
 using CryptoSporidium.Horizon.RT.Cryptography.RSA;
-using CustomLogger;
+using CryptoSporidium;
 
 namespace Horizon.DME.Config
 {
@@ -33,14 +33,14 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Application id.
         /// </summary>
-        public List<int> ApplicationIds { get; set; } = new List<int>();
+        public List<int> ApplicationIds { get; set; } = new();
 
         #region PublicIp
         /// <summary>
         /// By default the server will grab its local ip.
         /// If this is set, it will use its public ip instead.
         /// </summary>
-        public bool UsePublicIp { get; set; } = false;
+        public bool UsePublicIp { get; set; } = true;
 
         /// <summary>
         /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic
@@ -79,11 +79,11 @@ namespace Horizon.DME.Config
         /// be multi-threaded.For most development, running the server as a single
         /// thread (setting DmeServerWorldsPerThread to "0") is recommended.
         /// </summary>
-        public bool EnableSleeps = Misc.IsWindows(); // (DEFAULT: 1 for Win32; 0 for Linux)
+        public bool EnableSleeps = MiscUtils.IsWindows(); // (DEFAULT: 1 for Win32; 0 for Linux)
         public bool UseThread = true; // (DEFAULT: 0)
 
         public bool EnableMedius = true; // (DEFAULT: 1)
-        public bool EnforceAuthentication = false; // (DEFAULT: 1)
+        public bool EnforceAuthentication = true; // (DEFAULT: 1)
 
         public short DmeServerMaxWorld = 4000; //		# (DEFAULT: 10, MAXIMUM 4000)
 
@@ -102,7 +102,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Authentication Server.
         /// </summary>
-        public string Ip { get; set; } = Misc.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.
@@ -124,7 +124,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Proxy Server.
         /// </summary>
-        public string Ip { get; set; } = Misc.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.

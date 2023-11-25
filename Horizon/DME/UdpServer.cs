@@ -5,12 +5,12 @@ using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.RT.Models;
-using Horizon.LIBRARY.Pipeline.Udp;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.DME.PluginArgs;
-using Horizon.LIBRARY.Pipeline.Attribute;
+using CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.PluginManager;
 
 namespace Horizon.DME
@@ -72,9 +72,9 @@ namespace Horizon.DME
             _scertHandler.OnChannelActive = channel =>
             {
                 // get scert client
-                if (!channel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                    channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-                _scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+                if (!channel.HasAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                    channel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+                _scertClient = channel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
                 // pass medius version
                 _scertClient.MediusVersion = ClientObject?.MediusVersion;
@@ -287,7 +287,7 @@ namespace Horizon.DME
 
         public async Task HandleIncomingMessages()
         {
-            if (_boundChannel == null || !_boundChannel.IsActive)
+            if (_boundChannel == null || !_boundChannel.Active)
                 return;
 
             try
@@ -314,7 +314,7 @@ namespace Horizon.DME
 
         public async Task HandleOutgoingMessages()
         {
-            if (_boundChannel == null || !_boundChannel.IsActive)
+            if (_boundChannel == null || !_boundChannel.Active)
                 return;
 
             //
