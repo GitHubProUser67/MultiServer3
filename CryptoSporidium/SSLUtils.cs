@@ -65,6 +65,21 @@ namespace CryptoSporidium
             "bYQLCIt+jerXmCHG8+c8eS9enNFMFY3h7CI3zJpDC5fcgJCNs2ebb0gIFVbPv/Er\r\n" +
             "fF6adulZkMV8gzURZVE=\r\n" +
             "-----END CERTIFICATE-----\n";
+        public const string HOME_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\r\n" +
+            "MIICXQIBAAKBgQCzeKs2pwCMRPYkTKcUd+cuLFk5bGHBy1DWZED/uTtfERwqjJEi\r\n" +
+            "cKVwJxTlayFWnqigZthNgFW/RJUMIZsK10lc1j/jM4lf7vlUjrTwGoOSTP2dIFO7\r\n" +
+            "cLVNMTDuq82bfbwnPX8SJAW8MpL9KJOxhX1aiMaUekaN5x56yOMQr1lwFwIDAQAB\r\n" +
+            "AoGBAKpWq1ox42k+wsftIN9idj7yxLSl05rV2CHEAZU1P86ZNLyFsfKYK81oqoKc\r\n" +
+            "zYWjDLVBJ6dXWQsykqxy8O63Kt6lH42TCezj/iQN+hV2rzhQQgMJ8K3goqsPgIlt\r\n" +
+            "hHqvYKZxBUGym9s+v/B2QOaz8Bvbew4ge2/L/xzX4vpaR6ABAkEA3vUROwJoVFOj\r\n" +
+            "hQOccOJZ93rGlNrGWkpM4UE5LsaanALEWb8b1rfugsQ457RoGtXOk4+lFAhbVq/2\r\n" +
+            "yDtet9QIFwJBAM4RwiGnD6Xct504gsiJCFTgPaye8gDwvmdp3XNsAABnnioJp0yM\r\n" +
+            "aTJ7aXp6IyVm00RQKEVegQbZ1Menh5Ie2AECQADwX0Y0WGQihgnFXh9LlL1qEvQF\r\n" +
+            "h9hRf8ljEO6Vf4kwqcsG9wMMe0CpuuOe6uFSDTCp5jQTZO8UhqGJPnjft7kCQHg+\r\n" +
+            "wIsmkuj0DGi/qwEdhTER0KtD7G9EC7cIfWJ2qOGTlSVukKMIY/JDNV90mcGfaLQ6\r\n" +
+            "GeWwqZW30oPWbDOFsAECQQC076s5komcJC1YipfTYGdpyNS5tAGeLJfE7IlpVrwt\r\n" +
+            "n9rAHnFapGDVIRpkhIWWOmFzUttc+zUglqERusjqAAYj\r\n" +
+            "-----END RSA PRIVATE KEY-----\r\n";
 
         public static string[] DnsList = {
         "www.outso-srv1.com",
@@ -115,8 +130,10 @@ namespace CryptoSporidium
             new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create())
+            using (RSA rsa = RSA.Create(1024))
             {
+                rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
+
                 // Create a certificate request with the RSA key pair
                 CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
@@ -168,8 +185,10 @@ namespace CryptoSporidium
             new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create())
+            using (RSA rsa = RSA.Create(1024))
             {
+                rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
+
                 // Create a certificate request with the RSA key pair
                 CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
@@ -250,6 +269,8 @@ namespace CryptoSporidium
             // Generate a new RSA key pair
             using (RSA rsa = RSA.Create(1024))
             {
+                rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
+
                 // Create a certificate request with the RSA key pair
                 CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
