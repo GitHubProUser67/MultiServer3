@@ -127,13 +127,13 @@ namespace SVO
                                             uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                                 "<XML>\r\n\r\n" +
                                                 "    <URL_List>\r\n" +
-                                                "    <DATA dataType=\"URI\" name=\"loginEncryptedURL\" value=\"https://starhawk-prod2.svo.online.scea.com:10062/BOURBON_XML/account/Account_Encrypted_Login_Submit.do\"/>\r\n" +
+                                                "    <DATA dataType=\"URI\" name=\"loginEncryptedURL\" value=\"https://starhawk-prod2.svo.online.scea.com:10061/BOURBON_XML/account/Account_Encrypted_Login_Submit.do\"/>\r\n" +
                                                 "    <DATA dataType=\"URI\" name=\"Account_GetUserID\" value=\"http://starhawk-prod2.svo.online.scea.com:10060/BOURBON_XML/account/Account_GetUserID.do\"/>\r\n" +
-                                                "    <DATA dataType=\"URI\" name=\"LoginURL\" value=\"https://starhawk-prod2.svo.online.scea.com:10062/BOURBON_XML/account/Account_Login.do\"/>\r\n" +
-                                                "    <DATA dataType=\"URI\" name=\"Account_Login_Submit\" value=\"https://starhawk-prod2.svo.online.scea.com:10062/BOURBON_XML/account/Account_Login_Submit.do\"/>\r\n" +
-                                                "    <DATA dataType=\"URI\" name=\"LogoutURL\" value=\"https://starhawk-prod2.svo.online.scea.com:10062/BOURBON_XML/account/Account_Logout.do\"/>\r\n" +
-                                                "    <DATA dataType=\"URI\" name=\"Account_Logout_Submit\" value=\"https://starhawk-prod2.svo.online.scea.com:10062/BOURBON_XML/account/Account_Logout_Submit.do\"/>\r\n" +
-                                                "    <DATA dataType=\"URI\" name=\"TicketLoginURI\" value=\"https://starhawk-prod2.svo.online.scea.com:10062/BOURBON_XML/account/SP_Login_Submit.do\"/>\r\n" +
+                                                "    <DATA dataType=\"URI\" name=\"LoginURL\" value=\"https://starhawk-prod2.svo.online.scea.com:10061/BOURBON_XML/account/Account_Login.do\"/>\r\n" +
+                                                "    <DATA dataType=\"URI\" name=\"Account_Login_Submit\" value=\"https://starhawk-prod2.svo.online.scea.com:10061/BOURBON_XML/account/Account_Login_Submit.do\"/>\r\n" +
+                                                "    <DATA dataType=\"URI\" name=\"LogoutURL\" value=\"https://starhawk-prod2.svo.online.scea.com:10061/BOURBON_XML/account/Account_Logout.do\"/>\r\n" +
+                                                "    <DATA dataType=\"URI\" name=\"Account_Logout_Submit\" value=\"https://starhawk-prod2.svo.online.scea.com:10061/BOURBON_XML/account/Account_Logout_Submit.do\"/>\r\n" +
+                                                "    <DATA dataType=\"URI\" name=\"TicketLoginURI\" value=\"https://starhawk-prod2.svo.online.scea.com:10061/BOURBON_XML/account/SP_Login_Submit.do\"/>\r\n" +
                                                 "    <DATA dataType=\"URI\" name=\"Calendar_CreateAdminEvent\" value=\"http://starhawk-prod2.svo.online.scea.com:10060/BOURBON_XML/calendar/Calendar_CreateAdminEvent.do\"/>\r\n" +
                                                 "    <DATA dataType=\"URI\" name=\"Calendar_CreateClanEvent\" value=\"http://starhawk-prod2.svo.online.scea.com:10060/BOURBON_XML/calendar/Calendar_CreateClanEvent.do\"/>\r\n" +
                                                 "    <DATA dataType=\"URI\" name=\"Calendar_DeleteEventByAnnouncementId\" value=\"http://starhawk-prod2.svo.online.scea.com:10060/BOURBON_XML/calendar/Calendar_DeleteEventByAnnouncementId.do\"/>\r\n" +

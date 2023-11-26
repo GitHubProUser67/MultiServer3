@@ -64,23 +64,17 @@ namespace SVO
             SslContext context = new(SslProtocols.Tls, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback);
             // Create and prepare a new SSL server context
             SslContext legacycontext = new(SslProtocols.Ssl3, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback);
-            // Create and prepare a new SSL server context
-            SslContext geriatriccontext = new(SslProtocols.Ssl2, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback);
 #pragma warning restore
 
             // Create a new HTTP server
-            SVOSecureServer server = new(context, IPAddress.Any, 10063);
+            SVOSecureServer server = new(context, IPAddress.Any, 10062);
             // Create a new HTTP server
             SVOSecureServer legacyserver = new(legacycontext, IPAddress.Any, 10061); // 10061 is default port, but some sslv3 games hardcode it in their code...
-            // Create a new HTTP server
-            SVOSecureServer geriatricserver = new(geriatriccontext, IPAddress.Any, 10062);
 
             // Start the server
             server.Start();
             // Start the server
             legacyserver.Start();
-            // Start the server
-            geriatricserver.Start();
 
             IsStarted = true;
             LoggerAccessor.LogInfo("[SVO_HTTPS] - Server started...");

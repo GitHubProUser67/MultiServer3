@@ -135,7 +135,7 @@ namespace SVO
                                             $"   <DATA dataType=\"URI\" name=\"CommunityNewsDetailed\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=latestUpdate\"/>\r\n" +
                                             $"   <DATA dataType=\"URI\" name=\"CommunityBetaTrialRoadmap\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/home/help/HelpGeneric.jsp?region={region}&amppageName=handyLinks\"/>\r\n" +
                                             "    <DATA dataType=\"DATA\" name=\"gameFinishURL\" value=\"http://homeps3.svo.online.scee.com:10060/HUBPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n\t\r\n" +
-                                            "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"https://homeps3.svo.online.scee.com:10062/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n       " +
+                                            "    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"https://homeps3.svo.online.scee.com:10061/HUBPS3_SVML/account/SP_Login_Submit.jsp\" />\r\n       " +
                                             $"     \r\n    \r\n\t<REDIRECT href=\"eulaCheck.jsp?region={region}&amp\" name=\"redirect\"/>\r\n" +
                                             "      \r\n" +
                                             "</SVML>");
