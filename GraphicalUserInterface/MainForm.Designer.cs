@@ -30,6 +30,8 @@
         {
             richTextBoxLog = new RichTextBox();
             groupBoxWebServerManagement = new GroupBox();
+            buttonStopTycoon = new Button();
+            buttonStartTycoon = new Button();
             labelAdministratorRequired = new Label();
             buttonStopSVO = new Button();
             buttonStopSSFW = new Button();
@@ -60,6 +62,8 @@
             // 
             // groupBoxWebServerManagement
             // 
+            groupBoxWebServerManagement.Controls.Add(buttonStopTycoon);
+            groupBoxWebServerManagement.Controls.Add(buttonStartTycoon);
             groupBoxWebServerManagement.Controls.Add(labelAdministratorRequired);
             groupBoxWebServerManagement.Controls.Add(buttonStopSVO);
             groupBoxWebServerManagement.Controls.Add(buttonStopSSFW);
@@ -75,6 +79,26 @@
             groupBoxWebServerManagement.TabIndex = 1;
             groupBoxWebServerManagement.TabStop = false;
             groupBoxWebServerManagement.Text = "Web Server Management";
+            // 
+            // buttonStopTycoon
+            // 
+            buttonStopTycoon.Location = new Point(166, 146);
+            buttonStopTycoon.Name = "buttonStopTycoon";
+            buttonStopTycoon.Size = new Size(106, 29);
+            buttonStopTycoon.TabIndex = 9;
+            buttonStopTycoon.Text = "Stop Tycoon";
+            buttonStopTycoon.UseVisualStyleBackColor = true;
+            buttonStopTycoon.Click += buttonStopTycoon_Click;
+            // 
+            // buttonStartTycoon
+            // 
+            buttonStartTycoon.Location = new Point(33, 146);
+            buttonStartTycoon.Name = "buttonStartTycoon";
+            buttonStartTycoon.Size = new Size(114, 29);
+            buttonStartTycoon.TabIndex = 8;
+            buttonStartTycoon.Text = "Start Tycoon";
+            buttonStartTycoon.UseVisualStyleBackColor = true;
+            buttonStartTycoon.Click += buttonStartTycoon_Click;
             // 
             // labelAdministratorRequired
             // 
@@ -97,7 +121,7 @@
             // 
             // buttonStopSSFW
             // 
-            buttonStopSSFW.Location = new Point(166, 135);
+            buttonStopSSFW.Location = new Point(166, 111);
             buttonStopSSFW.Name = "buttonStopSSFW";
             buttonStopSSFW.Size = new Size(106, 29);
             buttonStopSSFW.TabIndex = 5;
@@ -107,7 +131,7 @@
             // 
             // buttonStopHTTP
             // 
-            buttonStopHTTP.Location = new Point(166, 88);
+            buttonStopHTTP.Location = new Point(166, 76);
             buttonStopHTTP.Name = "buttonStopHTTP";
             buttonStopHTTP.Size = new Size(106, 29);
             buttonStopHTTP.TabIndex = 4;
@@ -147,7 +171,7 @@
             // 
             // buttonStartSSFW
             // 
-            buttonStartSSFW.Location = new Point(33, 135);
+            buttonStartSSFW.Location = new Point(33, 111);
             buttonStartSSFW.Name = "buttonStartSSFW";
             buttonStartSSFW.Size = new Size(114, 29);
             buttonStartSSFW.TabIndex = 1;
@@ -157,7 +181,7 @@
             // 
             // buttonStartHTTP
             // 
-            buttonStartHTTP.Location = new Point(33, 88);
+            buttonStartHTTP.Location = new Point(33, 76);
             buttonStartHTTP.Name = "buttonStartHTTP";
             buttonStartHTTP.Size = new Size(114, 29);
             buttonStartHTTP.TabIndex = 1;
@@ -167,7 +191,7 @@
             // 
             // buttonStartDNS
             // 
-            buttonStartDNS.Location = new Point(33, 88);
+            buttonStartDNS.Location = new Point(33, 76);
             buttonStartDNS.Name = "buttonStartDNS";
             buttonStartDNS.Size = new Size(114, 29);
             buttonStartDNS.TabIndex = 0;
@@ -190,7 +214,7 @@
             // 
             // buttonStopDNS
             // 
-            buttonStopDNS.Location = new Point(167, 88);
+            buttonStopDNS.Location = new Point(167, 76);
             buttonStopDNS.Name = "buttonStopDNS";
             buttonStopDNS.Size = new Size(106, 29);
             buttonStopDNS.TabIndex = 7;
@@ -265,5 +289,7 @@
         private Button buttonStopDNS;
         private Button buttonStopHorizon;
         private Label labelAdministratorRequired;
+        private Button buttonStopTycoon;
+        private Button buttonStartTycoon;
     }
 }

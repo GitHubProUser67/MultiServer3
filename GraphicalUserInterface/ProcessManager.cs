@@ -9,7 +9,7 @@ namespace GraphicalUserInterface
         private static readonly object lockObject = new();
         private static readonly Dictionary<string, Process> processes = new();
 
-        public static void StartupProgram(string exeName, string appid)
+        public static Task StartupProgram(string exeName, string appid)
         {
             string? exePath = FindExecutable(exeName);
             if (!string.IsNullOrEmpty(exePath))
@@ -29,7 +29,7 @@ namespace GraphicalUserInterface
                     if (exeName.ToLower().Contains("svo.exe") && !IsAdmin)
                     {
                         Console.WriteLine("SVO cannot start without admin rights, restart the application as an administrator.");
-                        return;
+                        return Task.CompletedTask;
                     }
                     else
                     {
@@ -66,6 +66,8 @@ namespace GraphicalUserInterface
             }
             else
                 Console.WriteLine($"Executable [{exeName}] not found in the current directory or its subdirectories.");
+
+            return Task.CompletedTask;
         }
 
         public static bool IsAdministrator()
@@ -79,11 +81,6 @@ namespace GraphicalUserInterface
         {
             var os = Environment.OSVersion;
             return os.Platform == PlatformID.Win32NT;
-        }
-
-        public static void ShutdownProgram(string appid)
-        {
-            ShutdownProcess(appid);
         }
 
         private static string? FindExecutable(string exeName)
@@ -104,7 +101,7 @@ namespace GraphicalUserInterface
             }
         }
 
-        public static void ShutdownProcess(string appid)
+        public static Task ShutdownProcess(string appid)
         {
             lock (lockObject)
             {
@@ -128,6 +125,8 @@ namespace GraphicalUserInterface
                 else
                     Console.WriteLine($"No process found with appid: {appid}");
             }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -6,6 +6,7 @@ namespace GraphicalUserInterface
         private static string httpguid = string.Empty;
         private static string ssfwguid = string.Empty;
         private static string svoguid = string.Empty;
+        private static string tycoonguid = string.Empty;
         private static string horizonguid = string.Empty;
         private static string dnsguid = string.Empty;
 
@@ -17,170 +18,203 @@ namespace GraphicalUserInterface
             FormClosing += MainForm_FormClosing;
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Your code to execute when the form is closing
             // For example, you can show a confirmation dialog
-            DialogResult result = MessageBox.Show("Do you really want to close the application?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show("Do you really want to close the application?\nShutdown can take a little while if servers are running.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             // If the user clicks "No", cancel the form closing
             if (result == DialogResult.No)
                 e.Cancel = true;
             else
             {
-                if (!string.IsNullOrEmpty(httpsguid))
-                    // Stop the program
-                    ProcessManager.ShutdownProcess(httpsguid);
-                if (!string.IsNullOrEmpty(httpguid))
-                    // Stop the program
-                    ProcessManager.ShutdownProcess(httpguid);
-                if (!string.IsNullOrEmpty(ssfwguid))
-                    // Stop the program
-                    ProcessManager.ShutdownProcess(ssfwguid);
-                if (!string.IsNullOrEmpty(svoguid))
-                    // Stop the program
-                    ProcessManager.ShutdownProcess(svoguid);
-                if (!string.IsNullOrEmpty(horizonguid))
-                    // Stop the program
-                    ProcessManager.ShutdownProcess(horizonguid);
-                if (!string.IsNullOrEmpty(dnsguid))
-                    // Stop the program
-                    ProcessManager.ShutdownProcess(dnsguid);
+                try
+                {
+                    if (!string.IsNullOrEmpty(httpsguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(httpsguid);
+                    if (!string.IsNullOrEmpty(httpguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(httpguid);
+                    if (!string.IsNullOrEmpty(ssfwguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(ssfwguid);
+                    if (!string.IsNullOrEmpty(svoguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(svoguid);
+                    if (!string.IsNullOrEmpty(tycoonguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(tycoonguid);
+                    if (!string.IsNullOrEmpty(horizonguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(horizonguid);
+                    if (!string.IsNullOrEmpty(dnsguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(dnsguid);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Application thrown an exception while closing.");
+                }
             }
         }
 
-        private void buttonStartHTTPS_Click(object sender, EventArgs e)
+        private async void buttonStartHTTPS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpsguid))
                 // Stop the program
-                ProcessManager.ShutdownProcess(httpsguid);
+                await ProcessManager.ShutdownProcess(httpsguid);
 
             httpsguid = Guid.NewGuid().ToString();
             // Start the program
-            ProcessManager.StartupProgram("HTTPSecureServerLite.exe", httpsguid);
+            _ = ProcessManager.StartupProgram("HTTPSecureServerLite.exe", httpsguid);
         }
 
-        private void buttonStartHTTP_Click(object sender, EventArgs e)
+        private async void buttonStartHTTP_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpguid))
                 // Stop the program
-                ProcessManager.ShutdownProcess(httpguid);
+                await ProcessManager.ShutdownProcess(httpguid);
 
             httpguid = Guid.NewGuid().ToString();
             // Start the program
-            ProcessManager.StartupProgram("HTTPServer.exe", httpguid);
+            _ = ProcessManager.StartupProgram("HTTPServer.exe", httpguid);
         }
 
-        private void buttonStartSSFW_Click(object sender, EventArgs e)
+        private async void buttonStartSSFW_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(ssfwguid))
                 // Stop the program
-                ProcessManager.ShutdownProcess(ssfwguid);
+                await ProcessManager.ShutdownProcess(ssfwguid);
 
             ssfwguid = Guid.NewGuid().ToString();
             // Start the program
-            ProcessManager.StartupProgram("SSFWServer.exe", ssfwguid);
+            _ = ProcessManager.StartupProgram("SSFWServer.exe", ssfwguid);
         }
 
-        private void buttonStartSVO_Click(object sender, EventArgs e)
+        private async void buttonStartSVO_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(svoguid))
                 // Stop the program
-                ProcessManager.ShutdownProcess(svoguid);
+                await ProcessManager.ShutdownProcess(svoguid);
 
             svoguid = Guid.NewGuid().ToString();
             // Start the program
-            ProcessManager.StartupProgram("SVO.exe", svoguid);
+            _ = ProcessManager.StartupProgram("SVO.exe", svoguid);
         }
 
-        private void buttonStartHorizon_Click(object sender, EventArgs e)
+        private async void buttonStartTycoon_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(tycoonguid))
+                // Stop the program
+                await ProcessManager.ShutdownProcess(tycoonguid);
+
+            tycoonguid = Guid.NewGuid().ToString();
+            // Start the program
+            _ = ProcessManager.StartupProgram("TycoonServer.exe", tycoonguid);
+        }
+
+        private async void buttonStartHorizon_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(horizonguid))
                 // Stop the program
-                ProcessManager.ShutdownProcess(horizonguid);
+                await ProcessManager.ShutdownProcess(horizonguid);
 
             horizonguid = Guid.NewGuid().ToString();
             // Start the program
-            ProcessManager.StartupProgram("Horizon.exe", horizonguid);
+            _ = ProcessManager.StartupProgram("Horizon.exe", horizonguid);
         }
 
-        private void buttonStartDNS_Click(object sender, EventArgs e)
+        private async void buttonStartDNS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(dnsguid))
                 // Stop the program
-                ProcessManager.ShutdownProcess(dnsguid);
+                await ProcessManager.ShutdownProcess(dnsguid);
 
             dnsguid = Guid.NewGuid().ToString();
             // Start the program
-            ProcessManager.StartupProgram("MitmDNS.exe", dnsguid);
+            _ = ProcessManager.StartupProgram("MitmDNS.exe", dnsguid);
         }
 
-        private void buttonStopHTTPS_Click(object sender, EventArgs e)
+        private async void buttonStopHTTPS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpsguid))
             {
                 // Stop the program
-                ProcessManager.ShutdownProcess(httpsguid);
+                await ProcessManager.ShutdownProcess(httpsguid);
                 httpsguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
         }
 
-        private void buttonStopHTTP_Click(object sender, EventArgs e)
+        private async void buttonStopHTTP_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpguid))
             {
                 // Stop the program
-                ProcessManager.ShutdownProcess(httpguid);
+                await ProcessManager.ShutdownProcess(httpguid);
                 httpguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
         }
 
-        private void buttonStopSSFW_Click(object sender, EventArgs e)
+        private async void buttonStopSSFW_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(ssfwguid))
             {
                 // Stop the program
-                ProcessManager.ShutdownProcess(ssfwguid);
+                await ProcessManager.ShutdownProcess(ssfwguid);
                 ssfwguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
         }
 
-        private void buttonStopSVO_Click(object sender, EventArgs e)
+        private async void buttonStopSVO_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(svoguid))
             {
                 // Stop the program
-                ProcessManager.ShutdownProcess(svoguid);
+                await ProcessManager.ShutdownProcess(svoguid);
                 svoguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
         }
 
-        private void buttonStopHorizon_Click(object sender, EventArgs e)
+        private async void buttonStopTycoon_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(tycoonguid))
+            {
+                // Stop the program
+                await ProcessManager.ShutdownProcess(tycoonguid);
+                tycoonguid = string.Empty;
+            }
+            else
+                Console.WriteLine("No Process started for this server");
+        }
+
+        private async void buttonStopHorizon_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(horizonguid))
             {
                 // Stop the program
-                ProcessManager.ShutdownProcess(horizonguid);
+                await ProcessManager.ShutdownProcess(horizonguid);
                 horizonguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
         }
 
-        private void buttonStopDNS_Click(object sender, EventArgs e)
+        private async void buttonStopDNS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(dnsguid))
             {
                 // Stop the program
-                ProcessManager.ShutdownProcess(dnsguid);
+                await ProcessManager.ShutdownProcess(dnsguid);
                 dnsguid = string.Empty;
             }
             else
