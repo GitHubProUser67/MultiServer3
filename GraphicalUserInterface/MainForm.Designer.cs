@@ -47,21 +47,25 @@
             buttonStopHorizon = new Button();
             buttonStartHorizon = new Button();
             pictureBoxPSMSImage = new PictureBox();
+            tableLayoutPanelMain = new TableLayoutPanel();
             groupBoxWebServerManagement.SuspendLayout();
             groupBoxAuxiliaryServerManagement.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPSMSImage).BeginInit();
+            tableLayoutPanelMain.SuspendLayout();
             SuspendLayout();
             // 
             // richTextBoxLog
             // 
-            richTextBoxLog.Location = new Point(-2, 758);
+            richTextBoxLog.Dock = DockStyle.Bottom;
+            richTextBoxLog.Location = new Point(0, 750);
             richTextBoxLog.Name = "richTextBoxLog";
-            richTextBoxLog.Size = new Size(1009, 225);
+            richTextBoxLog.Size = new Size(1007, 232);
             richTextBoxLog.TabIndex = 0;
             richTextBoxLog.Text = "";
             // 
             // groupBoxWebServerManagement
             // 
+            groupBoxWebServerManagement.Anchor = AnchorStyles.Top;
             groupBoxWebServerManagement.Controls.Add(buttonStopTycoon);
             groupBoxWebServerManagement.Controls.Add(buttonStartTycoon);
             groupBoxWebServerManagement.Controls.Add(labelAdministratorRequired);
@@ -73,9 +77,9 @@
             groupBoxWebServerManagement.Controls.Add(buttonStartSVO);
             groupBoxWebServerManagement.Controls.Add(buttonStartSSFW);
             groupBoxWebServerManagement.Controls.Add(buttonStartHTTP);
-            groupBoxWebServerManagement.Location = new Point(12, 494);
+            groupBoxWebServerManagement.Location = new Point(12, 485);
             groupBoxWebServerManagement.Name = "groupBoxWebServerManagement";
-            groupBoxWebServerManagement.Size = new Size(488, 234);
+            groupBoxWebServerManagement.Size = new Size(486, 252);
             groupBoxWebServerManagement.TabIndex = 1;
             groupBoxWebServerManagement.TabStop = false;
             groupBoxWebServerManagement.Text = "Web Server Management";
@@ -103,7 +107,7 @@
             // labelAdministratorRequired
             // 
             labelAdministratorRequired.AutoSize = true;
-            labelAdministratorRequired.Location = new Point(269, 185);
+            labelAdministratorRequired.Location = new Point(272, 185);
             labelAdministratorRequired.Name = "labelAdministratorRequired";
             labelAdministratorRequired.Size = new Size(213, 20);
             labelAdministratorRequired.TabIndex = 7;
@@ -201,13 +205,14 @@
             // 
             // groupBoxAuxiliaryServerManagement
             // 
+            groupBoxAuxiliaryServerManagement.Anchor = AnchorStyles.Top;
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopDNS);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopHorizon);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartHorizon);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartDNS);
-            groupBoxAuxiliaryServerManagement.Location = new Point(506, 494);
+            groupBoxAuxiliaryServerManagement.Location = new Point(509, 3);
             groupBoxAuxiliaryServerManagement.Name = "groupBoxAuxiliaryServerManagement";
-            groupBoxAuxiliaryServerManagement.Size = new Size(489, 234);
+            groupBoxAuxiliaryServerManagement.Size = new Size(491, 252);
             groupBoxAuxiliaryServerManagement.TabIndex = 2;
             groupBoxAuxiliaryServerManagement.TabStop = false;
             groupBoxAuxiliaryServerManagement.Text = "Auxiliary Server Management";
@@ -244,29 +249,50 @@
             // 
             // pictureBoxPSMSImage
             // 
+            pictureBoxPSMSImage.Dock = DockStyle.Top;
             pictureBoxPSMSImage.Image = Properties.Resources.multiserver2xplogo;
-            pictureBoxPSMSImage.Location = new Point(12, 12);
+            pictureBoxPSMSImage.Location = new Point(0, 0);
             pictureBoxPSMSImage.Name = "pictureBoxPSMSImage";
-            pictureBoxPSMSImage.Size = new Size(983, 476);
+            pictureBoxPSMSImage.Size = new Size(1007, 476);
             pictureBoxPSMSImage.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBoxPSMSImage.TabIndex = 3;
             pictureBoxPSMSImage.TabStop = false;
+            // 
+            // tableLayoutPanelMain
+            // 
+            tableLayoutPanelMain.Anchor = AnchorStyles.Top;
+            tableLayoutPanelMain.AutoScroll = true;
+            tableLayoutPanelMain.ColumnCount = 2;
+            tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanelMain.Controls.Add(groupBoxAuxiliaryServerManagement, 1, 0);
+            tableLayoutPanelMain.Location = new Point(0, 482);
+            tableLayoutPanelMain.Name = "tableLayoutPanelMain";
+            tableLayoutPanelMain.RowCount = 1;
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tableLayoutPanelMain.Size = new Size(1007, 262);
+            tableLayoutPanelMain.TabIndex = 4;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1007, 982);
-            Controls.Add(pictureBoxPSMSImage);
-            Controls.Add(groupBoxAuxiliaryServerManagement);
             Controls.Add(groupBoxWebServerManagement);
+            Controls.Add(tableLayoutPanelMain);
+            Controls.Add(pictureBoxPSMSImage);
             Controls.Add(richTextBoxLog);
+            DoubleBuffered = true;
+            MaximizeBox = false;
+            MinimumSize = new Size(1025, 1029);
             Name = "MainForm";
             Text = "MultiServer Graphical User Interface";
             groupBoxWebServerManagement.ResumeLayout(false);
             groupBoxWebServerManagement.PerformLayout();
             groupBoxAuxiliaryServerManagement.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBoxPSMSImage).EndInit();
+            tableLayoutPanelMain.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -291,5 +317,6 @@
         private Label labelAdministratorRequired;
         private Button buttonStopTycoon;
         private Button buttonStartTycoon;
+        private TableLayoutPanel tableLayoutPanelMain;
     }
 }

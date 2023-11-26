@@ -648,8 +648,8 @@ namespace CryptoSporidium
             using (SHA256 sha256Hash = SHA256.Create())
             {
                 // ComputeHash - returns byte array  
-                byte[] PassBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(XORString(new MiscUtils().ByteArrayToHexString(sha256Hash.ComputeHash
-                    (Encoding.UTF8.GetBytes(XORString(input + "ssaPD3Tl1SyM" + ComputeMD5("MyS1lT3DPass" + input), ReverseString(input))))), input)));
+                byte[] PassBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(new MiscUtils().ByteArrayToHexString(sha256Hash.ComputeHash
+                    (Encoding.UTF8.GetBytes(XORString(input + "ssaPD3Tl1SyM" + ComputeMD5("MyS1lT3DPass" + input), ReverseString(input)))))));
 
                 // Convert byte array to a string   
                 StringBuilder builder = new();
