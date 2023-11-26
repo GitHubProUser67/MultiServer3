@@ -273,7 +273,7 @@ namespace SVO.Games
                                             }
 
                                             // Convert the modified data to a string
-                                            psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", "");
+                                            psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
                                             CryptoSporidium.MiscUtils? utils = new();
 

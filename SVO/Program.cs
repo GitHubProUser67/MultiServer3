@@ -11,6 +11,7 @@ public static class SVOServerConfiguration
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string? SVOStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwsvoroot";
     public static bool SVOHTTPSBypass { get; set; } = true;
+    public static bool PSHomeRPCS3Workaround { get; set; } = true;
     public static string? MOTD { get; set; } = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SVML>\r\n" +
         "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
         "    <RECTANGLE class=\"CHIP_RECESS\" name=\"backPanel\" x=\"300\" y=\"148\" width=\"692\" height=\"384\" fillColor=\"#FFFFFFFF\"/>\r\n\r\n" +
@@ -56,6 +57,7 @@ public static class SVOServerConfiguration
             SVOHTTPSBypass = config.https_bypass;
             DatabaseConfig = config.database;
             HTTPSCertificateFile = config.certificate_file;
+            PSHomeRPCS3Workaround = config.pshome_rpcs3workaround;
             // Look for the MOTD xml file.
             string motd_file = config.motd_file;
             if (!File.Exists(motd_file))

@@ -110,7 +110,7 @@ namespace SVO
                                         }
 
                                         // Convert the modified data to a string
-                                        psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", "");
+                                        psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
                                         CryptoSporidium.MiscUtils? utils = new();
 
@@ -149,7 +149,7 @@ namespace SVO
                                     response.AppendHeader("Set-Cookie", $"signature=ghpE-ws_dBmIY-WNbkCQb1NnamA; Path=/");
 
                                     response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                    response.Headers.Set("Content-Language", "");
+                                    response.Headers.Set("Content-Language", string.Empty);
 
                                     byte[] TicketLoginActionData = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<SP_Login>\r\n" +
@@ -190,7 +190,7 @@ namespace SVO
                                 case "GET":
 
                                     response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                    response.Headers.Set("Content-Language", "");
+                                    response.Headers.Set("Content-Language", string.Empty);
 
                                     byte[] actionListData = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<!-- Announcements -->\r\n\t" +
@@ -267,7 +267,7 @@ namespace SVO
                                 case "GET":
 
                                     response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                    response.Headers.Set("Content-Language", "");
+                                    response.Headers.Set("Content-Language", string.Empty);
 
                                     byte[] SyncFriendsActionData = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<Friends><status value=\"0\"/></Friends>");
@@ -300,7 +300,7 @@ namespace SVO
                                 case "GET":
 
                                     response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
-                                    response.Headers.Set("Content-Language", "");
+                                    response.Headers.Set("Content-Language", string.Empty);
 
                                     byte[] GetPlaylistsActionData = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<PlayLists>\r\n" +

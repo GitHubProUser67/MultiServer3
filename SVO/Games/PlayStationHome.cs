@@ -46,7 +46,7 @@ namespace SVO
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string region = "";
+                                        string region = string.Empty;
 
                                         try
                                         {
@@ -182,7 +182,7 @@ namespace SVO
                                             response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                             response.Headers.Set("X-SVOMac", serverMac);
 
-                                            string? region = "";
+                                            string? region = string.Empty;
 
                                             try
                                             {
@@ -239,7 +239,7 @@ namespace SVO
                                             response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                             response.Headers.Set("X-SVOMac", serverMac);
 
-                                            string? region = "";
+                                            string? region = string.Empty;
 
                                             try
                                             {
@@ -301,7 +301,7 @@ namespace SVO
                                             response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                             response.Headers.Set("X-SVOMac", serverMac);
 
-                                            string? region = "";
+                                            string? region = string.Empty;
 
                                             try
                                             {
@@ -366,7 +366,7 @@ namespace SVO
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string? region = "";
+                                        string? region = string.Empty;
 
                                         try
                                         {
@@ -377,10 +377,17 @@ namespace SVO
                                             region = "en-US";
                                         }
 
-                                        byte[] eulaDisplay = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                        byte[] eulaDisplay = Array.Empty<byte>();
+
+                                        if (SVOServerConfiguration.PSHomeRPCS3Workaround)
+                                            eulaDisplay = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
                                             "<SVML>\r\n  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
-                                            //$"<EULA name=\"eula\" mode=\"browser\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" +
-                                            $"<EULA name=\"eula\" mode=\"save\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" + // Not correct but gets around a RPCS3 issue.
+                                            $"<EULA name=\"eula\" mode=\"save\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" + // Gets around a RPCS3 issue by not calling web browser.
+                                            "</SVML>");
+                                        else
+                                            eulaDisplay = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n" +
+                                            "<SVML>\r\n  <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n  " +
+                                            $"<EULA name=\"eula\" mode=\"browser\" href=\"unityNpLogin.jsp?region={region}\" eulahref=\"eulaDisplay.jsp?region={region}\" linkOption=\"NORMAL\" />\r\n" +
                                             "</SVML>");
 
                                         response.StatusCode = (int)HttpStatusCode.OK;
@@ -424,7 +431,7 @@ namespace SVO
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        string? region = "";
+                                        string? region = string.Empty;
 
                                         try
                                         {
