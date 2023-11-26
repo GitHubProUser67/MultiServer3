@@ -59,13 +59,13 @@ namespace HTTPSecureServerLite
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             string absolutepath = string.Empty;
             string UserAgent = ctx.Request.RetrieveHeaderValue("User-Agent");
-            string host = ctx.Request.RetrieveHeaderValue("Host");
+            string Host = ctx.Request.RetrieveHeaderValue("Host");
             string clientip = ctx.Request.Source.IpAddress;
             string clientport = ctx.Request.Source.Port.ToString();
 
             try
             {
-                if (string.IsNullOrEmpty(UserAgent) || string.IsNullOrEmpty(host))
+                if (string.IsNullOrEmpty(UserAgent) || string.IsNullOrEmpty(Host))
                     LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with invalid parameters!");
                 else
                 {
@@ -182,7 +182,7 @@ namespace HTTPSecureServerLite
                         }
                     }
                 }
-                else if ((host == "away.veemee.com" || host == "home.veemee.com") && absolutepath.ToLower().EndsWith(".php"))
+                else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.ToLower().EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a VEEMEE method : {absolutepath}");
 
@@ -202,7 +202,7 @@ namespace HTTPSecureServerLite
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);
                 }
-                else if (host == "game2.hellfiregames.com" && absolutepath.ToLower().EndsWith(".php"))
+                else if (Host == "game2.hellfiregames.com" && absolutepath.ToLower().EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a HELLFIRE method : {absolutepath}");
 
@@ -222,7 +222,7 @@ namespace HTTPSecureServerLite
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);
                 }
-                else if ((host == "stats.outso-srv1.com" || host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
+                else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a OHS method : {absolutepath}");
 
@@ -242,6 +242,29 @@ namespace HTTPSecureServerLite
                     ctx.Response.StatusCode = (int)statusCode;
                     if (!string.IsNullOrEmpty(res))
                         ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                    else
+                        ctx.Response.ContentType = "text/plain";
+                    await ctx.Response.SendAsync(res);
+                }
+                else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp") && ctx.Request.ContentType.StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
+                {
+                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
+
+                    CryptoSporidium.PREMIUMAGENCY.PREMIUMAGENCYClass agency = new(ctx.Request.Method.ToString(), absolutepath, HTTPSServerConfiguration.HTTPSStaticFolder);
+                    string? res = agency.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    agency.Dispose();
+                    if (string.IsNullOrEmpty(res))
+                        statusCode = HttpStatusCode.InternalServerError;
+                    else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                        statusCode = HttpStatusCode.OK;
+                    }
+                    ctx.Response.StatusCode = (int)statusCode;
+                    if (!string.IsNullOrEmpty(res))
+                        ctx.Response.ContentType = "text/xml";
                     else
                         ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);

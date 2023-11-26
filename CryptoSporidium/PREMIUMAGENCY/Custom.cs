@@ -1,10 +1,10 @@
 ﻿using HttpMultipartParser;
 
-namespace HTTPSecureServerLite.API.PREMIUMAGENCY
+namespace CryptoSporidium.PREMIUMAGENCY
 {
     public class Custom
     {
-        public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType)
+        public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType, string workpath)
         {
             string? output = null;
             string eventId = string.Empty;
@@ -24,8 +24,8 @@ namespace HTTPSecureServerLite.API.PREMIUMAGENCY
                 switch (eventId)
                 {
                     case "95":
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/setUserEventCustom.xml"))
-                            output = File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/setUserEventCustom.xml");
+                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml"))
+                            output = File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml");
                         break;
                 }
             }

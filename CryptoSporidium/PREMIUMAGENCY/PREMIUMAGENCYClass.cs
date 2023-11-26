@@ -1,13 +1,15 @@
-﻿namespace HTTPSecureServerLite.API.PREMIUMAGENCY
+﻿namespace CryptoSporidium.PREMIUMAGENCY
 {
-    internal class PREMIUMAGENCYClass : IDisposable
+    public class PREMIUMAGENCYClass : IDisposable
     {
+        string workpath;
         string absolutepath;
         string method;
         private bool disposedValue;
 
-        public PREMIUMAGENCYClass(string method, string absolutepath)
+        public PREMIUMAGENCYClass(string method, string absolutepath, string workpath)
         {
+            this.workpath = workpath;
             this.absolutepath = absolutepath;
             this.method = method;
         }
@@ -27,17 +29,17 @@
                         case "/eventController/entryEvent.do":
                             return Event.entryEventRequestPOST(PostData, ContentType);
                         case "/eventController/getUserEventCustom.do":
-                            return Event.getUserEventCustomRequestPOST(PostData, ContentType);
+                            return Event.getUserEventCustomRequestPOST(PostData, ContentType, workpath);
                         case "/eventController/clearEvent.do":
                             return Event.clearEventRequestPOST(PostData, ContentType);
                         case "/eventController/getEventTrigger.do":
-                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType);
+                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath);
                         case "/eventController/confirmEventTrigger.do":
-                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType);
+                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath);
                         case "/eventController/getResource.do":
-                            return Resource.getResourcePOST(PostData, ContentType);
+                            return Resource.getResourcePOST(PostData, ContentType, workpath);
                         case "/eventController/setUserEventCustom.do":
-                            return Custom.setUserEventCustomPOST(PostData, ContentType);
+                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath);
                         default:
                             break;
                     }
@@ -55,6 +57,7 @@
             {
                 if (disposing)
                 {
+                    workpath = string.Empty;
                     absolutepath = string.Empty;
                     method = string.Empty;
                 }

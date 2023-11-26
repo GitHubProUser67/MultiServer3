@@ -1,10 +1,10 @@
 ﻿using HttpMultipartParser;
 
-namespace HTTPSecureServerLite.API.PREMIUMAGENCY
+namespace CryptoSporidium.PREMIUMAGENCY
 {
     public class Resource
     {
-        public static string? getResourcePOST(byte[]? PostData, string? ContentType)
+        public static string? getResourcePOST(byte[]? PostData, string? ContentType, string workpath)
         {
             string resKey = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
@@ -22,18 +22,18 @@ namespace HTTPSecureServerLite.API.PREMIUMAGENCY
 
                 if (resKey == "jul2009")
                 {
-                    if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/infoboard/09/{resKey}.xml"))
-                        return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/infoboard/09/{resKey}.xml");
+                    if (File.Exists($"{workpath}/eventController/infoboard/09/{resKey}.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/infoboard/09/{resKey}.xml");
                 }
                 else if (resKey.Contains("concert"))
                 {
-                    if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/{resKey}.xml"))
-                        return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/{resKey}.xml");
+                    if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
                 }
                 else if (resKey.Contains("miku_jukebox"))
                 {
-                    if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveJukebox/resources/{resKey}.xml"))
-                        return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveJukebox/resources/{resKey}.xml");
+                    if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml");
                 }
 
                 return "<xml>" +

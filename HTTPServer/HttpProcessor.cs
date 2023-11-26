@@ -90,38 +90,40 @@ namespace HTTPServer
 
                                     HttpResponse? response;
 
-                                    string url = HTTPUtils.RemoveQueryString(request.Url);
+                                    string absolutepath = HTTPUtils.RemoveQueryString(request.Url);
 
                                     // Split the URL into segments
-                                    string[] segments = url.Trim('/').Split('/');
+                                    string[] segments = absolutepath.Trim('/').Split('/');
 
                                     // Combine the folder segments into a directory path
                                     string directoryPath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                                     // Process the request based on the HTTP method
-                                    string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, url.Substring(1));
+                                    string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath.Substring(1));
 
                                     switch (Host)
                                     {
                                         default:
                                             // A little bit out of the scope of Routes.
-                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && url.Contains("/ohs") && url.EndsWith("/"))
+                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && request.Method != null && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
                                             {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
+
                                                 string? res = null;
                                                 int version = 0;
-                                                if (url.Contains("/Insomniac/4BarrelsOfFury/"))
+                                                if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
                                                     version = 2;
-                                                else if (url.Contains("/SCEA/SaucerPop/"))
+                                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
                                                     version = 2;
-                                                else if (url.Contains("/AirRace/"))
+                                                else if (absolutepath.Contains("/AirRace/"))
                                                     version = 2;
-                                                else if (url.Contains("/Uncharted2/"))
+                                                else if (absolutepath.Contains("/Uncharted2/"))
                                                     version = 1;
-                                                else if (url.Contains("/Infamous/"))
+                                                else if (absolutepath.Contains("/Infamous/"))
                                                     version = 1;
-                                                else if (url.Contains("/warhawk_shooter/"))
+                                                else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
-                                                CryptoSporidium.OHS.OHSClass ohs = new(request.Method, url, version);
+                                                CryptoSporidium.OHS.OHSClass ohs = new(request.Method, absolutepath, version);
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.getDataStream.CopyTo(postdata);
@@ -142,18 +144,44 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                             }
+                                            else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
+
+                                                string? res = null;
+                                                CryptoSporidium.PREMIUMAGENCY.PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
+                                                using (MemoryStream postdata = new())
+                                                {
+                                                    request.getDataStream.CopyTo(postdata);
+
+                                                    postdata.Position = 0;
+                                                    // Find the number of bytes in the stream
+                                                    int contentLength = (int)postdata.Length;
+                                                    // Create a byte array
+                                                    byte[] buffer = new byte[contentLength];
+                                                    // Read the contents of the memory stream into the byte array
+                                                    postdata.Read(buffer, 0, contentLength);
+                                                    res = agency.ProcessRequest(buffer, request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                agency.Dispose();
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
                                             else
                                             {
                                                 switch (request.Method)
                                                 {
                                                     case "GET":
-                                                        switch (url)
+                                                        switch (absolutepath)
                                                         {
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;
                                                             default:
-                                                                if (url.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                     string? encoding = request.GetHeaderValue("Accept-Encoding");
@@ -174,14 +202,14 @@ namespace HTTPServer
                                                                 }
                                                                 else
                                                                 {
-                                                                    response = RouteRequest(inputStream, outputStream, request, url, Host);
+                                                                    response = RouteRequest(inputStream, outputStream, request, absolutepath, Host);
                                                                     response ??= FileSystemRouteHandler.Handle(request, filePath);
                                                                 }
                                                                 break;
                                                         }
                                                         break;
                                                     case "POST":
-                                                        switch (url)
+                                                        switch (absolutepath)
                                                         {
                                                             case "/networktest/post_128":
                                                                 response = HttpBuilder.Ok();
@@ -259,7 +287,7 @@ namespace HTTPServer
                                                                     response = HttpBuilder.InternalServerError(); // We are vague on the status code.
                                                                 break;
                                                             default:
-                                                                if (url.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                     string? encoding = request.GetHeaderValue("Accept-Encoding");

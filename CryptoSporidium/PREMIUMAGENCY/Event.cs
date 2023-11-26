@@ -1,6 +1,6 @@
 ﻿using HttpMultipartParser;
 
-namespace HTTPSecureServerLite.API.PREMIUMAGENCY
+namespace CryptoSporidium.PREMIUMAGENCY
 {
     public class Event
     {
@@ -92,7 +92,7 @@ namespace HTTPSecureServerLite.API.PREMIUMAGENCY
             return null;
         }
 
-        public static string? getUserEventCustomRequestPOST(byte[]? PostData, string? ContentType)
+        public static string? getUserEventCustomRequestPOST(byte[]? PostData, string? ContentType, string workpath)
         {
             string eventId = string.Empty;
             string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
@@ -111,16 +111,16 @@ namespace HTTPSecureServerLite.API.PREMIUMAGENCY
                 switch (eventId)
                 {
                     case "76":
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/localgetUserEventCustom.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/localgetUserEventCustom.xml");
+                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml"))
+                            return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml");
                         break;
                     case "63":
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/qagetUserEventCustom.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/qagetUserEventCustom.xml");
+                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/qagetUserEventCustom.xml"))
+                            return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/qagetUserEventCustom.xml");
                         break;
                     case "95":
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/getUserEventCustom.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/eventController/MikuLiveEvent/getUserEventCustom.xml");
+                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml"))
+                            return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml");
                         break;
                 }
             }

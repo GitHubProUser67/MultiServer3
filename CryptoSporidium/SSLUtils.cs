@@ -98,6 +98,7 @@ namespace CryptoSporidium
         "homeec.scej-nbs.jp",
         "homeecqa.scej-nbs.jp",
         "test.playstationhome.jp",
+        "playstationhome.jp",
         "hdc.cprod.homeps3.online.scee.com",
         "download-prod.online.scea.com",
         "us.ads.playstation.net",
