@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomLogger", "CustomLogge
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreServer", "NetCoreServer-Custom\source\NetCoreServer\NetCoreServer.csproj", "{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphicalUserInterface", "GraphicalUserInterface\GraphicalUserInterface.csproj", "{F157D101-AFAC-4CC8-817B-14FD63F224BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -279,6 +281,30 @@ Global
 		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|ARM64.Build.0 = Release|Any CPU
 		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|x64.ActiveCfg = Release|Any CPU
 		{783124A9-BC89-42FC-B755-A9FA3CA4CD6B}.Release|x64.Build.0 = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|ARM32.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|ARM32.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Debug|x64.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|Any CPU.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|Any CPU.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|ARM32.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|ARM32.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|ARM64.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|ARM64.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|x64.ActiveCfg = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Publish|x64.Build.0 = Debug|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|ARM32.ActiveCfg = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|ARM32.Build.0 = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|ARM64.Build.0 = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|x64.ActiveCfg = Release|Any CPU
+		{F157D101-AFAC-4CC8-817B-14FD63F224BE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

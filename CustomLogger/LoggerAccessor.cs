@@ -1,9 +1,6 @@
 ﻿using Figgle;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
-using System;
-using System.IO;
-using System.Threading;
 
 namespace CustomLogger
 {
@@ -11,12 +8,19 @@ namespace CustomLogger
     {
         public static void SetupLogger(string project)
         {
-            Console.Title = project;
-            Console.CursorVisible = false;
+            try
+            {
+                Console.Title = project;
+                Console.CursorVisible = false;
 
-            Thread.Sleep(100);
+                Thread.Sleep(100);
 
-            Console.Clear();
+                Console.Clear();
+            }
+            catch (Exception)
+            {
+
+            }
 
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 

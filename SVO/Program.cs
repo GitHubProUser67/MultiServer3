@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using CryptoSporidium.Horizon.LIBRARY.Database;
 using System.Runtime;
+using System.Net;
 
 public static class SVOServerConfiguration
 {
@@ -115,7 +116,10 @@ class Program
 
         SVOHTTPSServer httpsserver = new(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty");
 
-        httpserver.Start();
+        if (HttpListener.IsSupported)
+            httpserver.Start();
+        else
+            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so HTTP Server not started.");
 
         _ = Task.Run(httpsserver.StartSVO);
         _ = Task.Run(SVOManager.StartTickPooling);
