@@ -107,7 +107,7 @@ namespace MitmDNS
                     ip = IPAddress.None;
                 }
 
-                LoggerAccessor.LogInfo($"[DNS] - Resolved: {url} to: {ip}");
+                LoggerAccessor.LogInfo($"[DNS] - Resolved: {fullname} to: {ip}");
 
                 return MakeResponsePacket(data, ip);
             }
@@ -152,19 +152,14 @@ namespace MitmDNS
                     ans.AddRange(new byte[] { 0x81, 0x83 });
                 else
                     ans.AddRange(new byte[] { 0x81, 0x80 }); //OPCODE & RCODE etc...
-                ans.AddRange(new byte[] { Req[4], Req[5] });//QDCount
-                ans.AddRange(new byte[] { Req[4], Req[5] });//ANCount
-                ans.AddRange(new byte[4]);//NSCount & ARCount
-
+                ans.AddRange(new byte[8] { Req[4], Req[5], Req[4], Req[5], 0x00, 0x00, 0x00, 0x00 });//QDCount/ANCount/NSCount & ARCount
                 for (int i = 12; i < Req.Length; i++) ans.Add(Req[i]);
                 ans.AddRange(new byte[] { 0xC0, 0xC });
-
                 if (Ip.AddressFamily == AddressFamily.InterNetworkV6)
                     ans.AddRange(new byte[] { 0, 0x1c, 0, 1, 0, 0, 0, 0x14, 0, 0x10 }); //20 seconds, 0x10 is ipv6 length
                 else
                     ans.AddRange(new byte[] { 0, 1, 0, 1, 0, 0, 0, 0x14, 0, 4 });
                 ans.AddRange(Ip.GetAddressBytes());
-
                 return ans.ToArray();
             }
             catch (Exception)
