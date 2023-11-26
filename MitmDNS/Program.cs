@@ -1,5 +1,6 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json.Linq;
+using System.Runtime;
 
 public static class MitmDNSServerConfiguration
 {
@@ -59,6 +60,9 @@ class Program
 
     static void Main()
     {
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("MitmDNS");
 
         MitmDNSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dns.json");

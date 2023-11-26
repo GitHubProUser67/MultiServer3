@@ -1,5 +1,6 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json.Linq;
+using System.Runtime;
 using TycoonServer;
 
 public static class TycoonServerConfiguration
@@ -61,6 +62,9 @@ class Program
 
     static void Main()
     {
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("TycoonServer");
 
         TycoonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/tycoon.json");

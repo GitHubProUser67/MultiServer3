@@ -8,6 +8,7 @@
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 61900:61900</DockerfileRunArguments>
 	<ApplicationIcon>Home Tycoon.ico</ApplicationIcon>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

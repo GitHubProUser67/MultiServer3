@@ -2,6 +2,7 @@ using CustomLogger;
 using CryptoSporidium.Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
+using System.Runtime;
 
 public static class HorizonServerConfiguration
 {
@@ -119,6 +120,9 @@ class Program
 
     static void Main()
     {
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("Horizon");
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");

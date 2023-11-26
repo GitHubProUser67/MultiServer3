@@ -8,6 +8,7 @@
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 80:80</DockerfileRunArguments>
 	<ApplicationIcon>HTTP.ico</ApplicationIcon>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

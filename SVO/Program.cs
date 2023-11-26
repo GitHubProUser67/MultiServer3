@@ -3,6 +3,7 @@ using CustomLogger;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using CryptoSporidium.Horizon.LIBRARY.Database;
+using System.Runtime;
 
 public static class SVOServerConfiguration
 {
@@ -98,6 +99,9 @@ class Program
                 if (CryptoSporidium.MiscUtils.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                     Environment.Exit(0);
             }
+
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SVO");
 

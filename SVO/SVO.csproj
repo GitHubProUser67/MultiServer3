@@ -8,6 +8,7 @@
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 10060:10060 -p 10061:10061</DockerfileRunArguments>
 	<ApplicationIcon>SVO.ico</ApplicationIcon>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

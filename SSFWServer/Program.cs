@@ -1,6 +1,7 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
+using System.Runtime;
 
 public static class SSFWServerConfiguration
 {
@@ -69,6 +70,9 @@ class Program
 
     static void Main()
     {
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("SSFWServer");
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");

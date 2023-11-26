@@ -8,6 +8,7 @@
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 53:53</DockerfileRunArguments>
 	<ApplicationIcon>DNS.ico</ApplicationIcon>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

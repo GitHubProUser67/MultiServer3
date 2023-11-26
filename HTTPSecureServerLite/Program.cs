@@ -1,6 +1,7 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
+using System.Runtime;
 
 public static class HTTPSServerConfiguration
 {
@@ -69,6 +70,9 @@ class Program
 
     static void Main()
     {
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("HTTPSecureServer");
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");

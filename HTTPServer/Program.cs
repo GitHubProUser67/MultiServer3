@@ -2,6 +2,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using CryptoSporidium.UnBAR;
+using System.Runtime;
 
 public static class HTTPServerConfiguration
 {
@@ -83,6 +84,9 @@ class Program
 
     static void Main()
     {
+        if (!CryptoSporidium.MiscUtils.IsWindows())
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("HTTPServer");
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
