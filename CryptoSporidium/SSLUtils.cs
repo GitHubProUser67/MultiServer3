@@ -80,6 +80,51 @@ namespace CryptoSporidium
             "GeWwqZW30oPWbDOFsAECQQC076s5komcJC1YipfTYGdpyNS5tAGeLJfE7IlpVrwt\r\n" +
             "n9rAHnFapGDVIRpkhIWWOmFzUttc+zUglqERusjqAAYj\r\n" +
             "-----END RSA PRIVATE KEY-----\r\n";
+        public const string PS2_DNAS_EU_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\r\n" +
+            "MIICXgIBAAKBgQDmN7Q4yJVmwseYOtCp2u/dODh4sX2Sye8ss7mr745XRIMmuGNc\r\n" +
+            "Ygh/9MAa0RRSlJb/3SbOpFb49qoLzem0mGdFlZc2bz9wrC/1Vj79Zf0lxQA4/VF2\r\n" +
+            "l4Zl/fY2Ml3rD6sfde75i5f0BzHFFDv9QaX0ZslHH2AtYhSbGwnyVCDlVwIDAQAB\r\n" +
+            "AoGBAK+83gpqtAGZtptyak7/HhOVEyau9tjS5Y0ONTIW0GW1mxg3sUGYZDypLOxL\r\n" +
+            "pmPToeD3hORBd1LdmLkiGsENheaZo+RPjtahajyV7aNyLs6BkuS9dCr2oLnKVk/J\r\n" +
+            "EnTDyboP9XhTjLtAEZAurYZUaz9XvY+pKcMHs+1+eQlfJdchAkEA+QtgMTiAZNKo\r\n" +
+            "p/G7bzfAHhyc8M4CSJ5UT/RJKzlxbrM36f9RVdVRAPOAivwgHC+jc/TTSJbkh9w9\r\n" +
+            "02yyLc/FswJBAOyluDe/Y81JILauuMjjullJJGNWHUg8QQc6txixaXzzk36C3YZ7\r\n" +
+            "mL6+Em2L+y8n+/0kM3OWpPlL95Rrc5DRl80CQQCaLBOphNvfDpZAGaK6EB5LxdTW\r\n" +
+            "MgIx6GozcPwW2SHCsQntPxSf+UWDPDsYT0qliEw8zZQ6vMbO4GYZy5FmUNiHAkEA\r\n" +
+            "vJjeFd+8JDDxl2Xr8n47V0kJbPmGYLlUgfRzU4Sgs2pT0/Frpu/9rZZBjXiP+Ob+\r\n" +
+            "1qHxN1+JnvzCFVEFSxceyQJAY/rgIpiTW33A2anqgZhl65kl7Zivc6ZqLVRObx5C\r\n" +
+            "hcKmuKkXTbmaDyC5DK47J6PItezX96qIkQr0fRHQ/iOBZg==\r\n" +
+            "-----END RSA PRIVATE KEY-----";
+        public const string PS2_DNAS_JP_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\r\n" +
+            "MIICXAIBAAKBgQDDDnvFFWxI4QSo5Hx4OuUcWUKpsiJvPOU0CPRASU9IeTlckjpS\r\n" +
+            "WaeiQjzZHzlsSJveH/gzGd/AgTe2dOq2dT3O2zQ7tBThGZx/vK+hHiRVXfO9Wjat\r\n" +
+            "SFS3GeOwUA0hlaAy46iy8R4okkQ38Ms/yVS+YjnAAmg9RYV/4RwVjYi0EQIDAQAB\r\n" +
+            "AoGAcdY6FcNy9vWcKpVurxxwKiNN7Iux3QnFGqE/K2Wdh8Z327bbosQAOYo+yNiY\r\n" +
+            "QsH9dZ1i1S/8jfTb9vg1I1c5QkNJXICjlgMCyj33TSUs5HfL2AYXXvkWWERIdPI1\r\n" +
+            "cirh3G7XTz0OcN4UagurKo3IDm77VnEN2pBL8EhdD/AFSYECQQDpTwyQE3YyySMY\r\n" +
+            "yt0PaJTFcFesrgZXkL1TwEv7lzgeZCLcoZMoP5KG0QRrywGzXnD5SjluRv4fir91\r\n" +
+            "b3G1n3c1AkEA1gcGs1h9wk1o81gwS9CfvbmjxwaA0CylzCFnCvr/CtT+FcgB0tgs\r\n" +
+            "sN6cvEdBZjWC2sLVJ1nEKs8AUyscqTz47QJBAIhz/Ur+tvC5BtfnPidW6TwYmo6a\r\n" +
+            "MYdhVfn3y/jX1rCfrGwR6/lsRQyojsdkshfwMm765GAFEXftNFFA3uZ038kCQHaB\r\n" +
+            "7XPgy8GKm1Iiwps4KTskT0skjq62Che9ZxDtacrVpNrqpBfbGuPUX3Tg/5VYi9wV\r\n" +
+            "hXEEg1owxD1I4dXTrQECQBkS6w32GnlYOUfDQOI7jqGnRxEuLH2RIzJFxd9/3OVt\r\n" +
+            "nwFuMKwPAYaadw6g7sEe7mrsOpmt/UkvjJRg7/DoDZY=\r\n" +
+            "-----END RSA PRIVATE KEY-----";
+        public const string PS2_DNAS_US_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\r\n" +
+            "MIICXAIBAAKBgQDtMFWcxgnu2xu297dt9O0tTo2CjwKqgm8XnP6mu0nA9vNgemCH\r\n" +
+            "Pd+D2NfOMqhex/nZGgtFsl0lt99gGmApwg5i880P416SYAt2nVZOhOhjjr60rCrT\r\n" +
+            "SXBEQLUWCsWMpyb76TXFQ4JuD9Wx+/Zcsseg0466sIyBOXDYPNtNL89o3QIDAQAB\r\n" +
+            "AoGACtX0c08Q0Rqtb3RtqtZPp4w5JsfFxWhkDt4bPB6+RdSCVdwBYOxQs8NKSJ9D\r\n" +
+            "1eCo52QrM6nsW3bE+6z4y6+T3JbmvVu1v45AUp0Xh93MyhfVMnWwPzs5ybOpE5mj\r\n" +
+            "NSFG91Ng9LMCkhl/wW2ziYEUfSRFnf7zBwf3quEk0PJHlTkCQQD4efHSoAt65Rkc\r\n" +
+            "wx8bpElelUG+3fzpiEhx7g+jG2AtJrKa+zpxs9sZrYTxHsns4VL5M16m5i/hnA9I\r\n" +
+            "zt3VZ/evAkEA9F7lFMD73XcB5EK6q2PrR08Lu6Wu6q2XIXqluVZ8IArWW7bb4W5f\r\n" +
+            "T5tbQtmxgHh/YWOLh5h3vCdPS/kacGs/MwJBAM3bedWecuRmWd/SaDtmaMLLtaSE\r\n" +
+            "Fb0FA8AgEyR20b+Wh/KOoWUCNUuYzsNVVsXCCBQd0xVDL/giaydO+8qKUFECQH29\r\n" +
+            "nm5xZqfsJoMHevnZriTBHa5ucHS84bkOXNvjDneGXApRKw7yNgTGUc0yKs2KMzEv\r\n" +
+            "gYpB/8pHB9x1zw7tgFUCQEvoS9fZVLfd8iYR+wm9BzxfA5u+tp3WURxSwGg8jcCj\r\n" +
+            "sVcRWYy4eLMs1EVNr/LgMdkDbpyjMP9jLMAcJDqJYRI=\r\n" +
+            "-----END RSA PRIVATE KEY-----";
 
         public static string[] DnsList = {
         "www.outso-srv1.com",
