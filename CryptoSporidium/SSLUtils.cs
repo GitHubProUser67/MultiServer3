@@ -167,7 +167,8 @@ namespace CryptoSporidium
         "services.heavyh2o.net",
         "starhawk-prod2.svo.online.scea.com",
         "secure.cprod.homeps3.online.scee.com",
-        "destinationhome.live" };
+        "destinationhome.live",
+        "prod.homemq.online.scee.com" };
 
         public static X509Certificate2 CreateRootCertificateAuthority(string FileName)
         {

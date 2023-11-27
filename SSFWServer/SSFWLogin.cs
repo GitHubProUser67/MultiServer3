@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 using CryptoSporidium.FileHelper;
+using CryptoSporidium.WebAPIs.SSFW;
 
 namespace SSFWServer
 {
@@ -73,7 +74,7 @@ namespace SSFWServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
+                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Clear();
                     }
@@ -102,7 +103,7 @@ namespace SSFWServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
+                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Dispose();
                     }

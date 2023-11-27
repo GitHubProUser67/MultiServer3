@@ -1,7 +1,6 @@
 ﻿using HTTPServer;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
-using CryptoSporidium.UnBAR;
 using System.Runtime;
 
 public static class HTTPServerConfiguration
@@ -9,6 +8,7 @@ public static class HTTPServerConfiguration
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
+    public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static bool PHPDebugErrors { get; set; } = false;
     public static int HTTPPort { get; set; } = 80;
     public static int DefaultPluginsPort { get; set; } = 61850;
@@ -43,10 +43,13 @@ public static class HTTPServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
 
+            PHPRedirectUrl = config.php.redirct_url;
             PHPVersion = config.php.version;
             PHPStaticFolder = config.php.static_folder;
             PHPDebugErrors = config.php.debug_errors;
             HTTPPort = config.http_port;
+            HTTPStaticFolder = config.http_static_folder;
+            HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DefaultPluginsPort = config.default_plugins_port;
             PluginParams = config.plugin_params;
             PluginsFolder = config.plugins_folder;
@@ -93,7 +96,7 @@ class Program
 
         var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
 
-        BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
+        CryptoSporidium.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         HttpServer httpServer = new(80, route_config);
 

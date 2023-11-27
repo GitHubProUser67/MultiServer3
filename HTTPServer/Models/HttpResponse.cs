@@ -16,6 +16,7 @@ namespace HTTPServer.Models
         PartialContent = 206,
         MovedPermanently = 301,
         Found = 302,
+        PermanentRedirect = 308,
         NotModified = 304,
         BadRequest = 400,
         Forbidden = 403,

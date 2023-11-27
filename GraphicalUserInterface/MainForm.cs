@@ -9,6 +9,8 @@ namespace GraphicalUserInterface
         private static string tycoonguid = string.Empty;
         private static string horizonguid = string.Empty;
         private static string dnsguid = string.Empty;
+        private static string multispyguid = string.Empty;
+        private static string dirtysocksguid = string.Empty;
 
         public MainForm()
         {
@@ -52,6 +54,12 @@ namespace GraphicalUserInterface
                     if (!string.IsNullOrEmpty(dnsguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(dnsguid);
+                    if (!string.IsNullOrEmpty(multispyguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(multispyguid);
+                    if (!string.IsNullOrEmpty(dirtysocksguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(dirtysocksguid);
                 }
                 catch (Exception ex)
                 {
@@ -137,6 +145,29 @@ namespace GraphicalUserInterface
             _ = ProcessManager.StartupProgram("MitmDNS.exe", dnsguid);
         }
 
+        private async void buttonStartMultiSpy_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(multispyguid))
+                // Stop the program
+                await ProcessManager.ShutdownProcess(multispyguid);
+
+            multispyguid = Guid.NewGuid().ToString();
+            // Start the program
+            _ = ProcessManager.StartupProgram("MultiSpy.exe", multispyguid);
+        }
+
+
+        private async void buttonStartDirtySocks_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(dirtysocksguid))
+                // Stop the program
+                await ProcessManager.ShutdownProcess(dirtysocksguid);
+
+            dirtysocksguid = Guid.NewGuid().ToString();
+            // Start the program
+            _ = ProcessManager.StartupProgram("DirtySocks.exe", dirtysocksguid);
+        }
+
         private async void buttonStopHTTPS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpsguid))
@@ -216,6 +247,30 @@ namespace GraphicalUserInterface
                 // Stop the program
                 await ProcessManager.ShutdownProcess(dnsguid);
                 dnsguid = string.Empty;
+            }
+            else
+                Console.WriteLine("No Process started for this server");
+        }
+
+        private async void buttonStopMultiSpy_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(multispyguid))
+            {
+                // Stop the program
+                await ProcessManager.ShutdownProcess(multispyguid);
+                multispyguid = string.Empty;
+            }
+            else
+                Console.WriteLine("No Process started for this server");
+        }
+
+        private async void buttonStopDirtySocks_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(dirtysocksguid))
+            {
+                // Stop the program
+                await ProcessManager.ShutdownProcess(dirtysocksguid);
+                dirtysocksguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");

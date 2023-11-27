@@ -6,11 +6,14 @@ using System.Runtime;
 public static class HTTPSServerConfiguration
 {
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
+    public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static List<string>? BannedIPs { get; set; }
+    public static List<string>? AllowedIPs { get; set; }
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -35,15 +38,21 @@ public static class HTTPSServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
 
+            PHPRedirectUrl = config.php.redirct_url;
             PHPVersion = config.php.version;
             PHPStaticFolder = config.php.static_folder;
             PHPDebugErrors = config.php.debug_errors;
             HTTPSStaticFolder = config.https_static_folder;
             HTTPSCertificateFile = config.certificate_file;
+            HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists
             if (bannedIPsArray != null)
                 BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            JArray allowedIPsArray = config.AllowedIPs;
+            // Deserialize BannedIPs if it exists
+            if (allowedIPsArray != null)
+                AllowedIPs = allowedIPsArray.ToObject<List<string>>();
         }
         catch (Exception)
         {
@@ -79,7 +88,9 @@ class Program
 
         CryptoSporidium.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
-        Processor server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443);
+        CryptoSporidium.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
+
+        HttpsProcessor server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443);
 
         server.StartServer();
 

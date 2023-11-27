@@ -1,4 +1,5 @@
 ﻿using CryptoSporidium;
+using CryptoSporidium.WebAPIs.SSFW;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Security.Cryptography;
@@ -85,7 +86,7 @@ namespace TycoonServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
+                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Clear();
                     }
@@ -111,7 +112,7 @@ namespace TycoonServer
                         // Append the trimmed hash to the result
                         resultString += hash;
 
-                        sessionid = CryptoSporidium.SSFW.GuidGenerator.SSFWGenerateGuid(hash, resultString);
+                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         md5.Clear();
                     }

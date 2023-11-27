@@ -43,11 +43,15 @@
             buttonStartHTTP = new Button();
             buttonStartDNS = new Button();
             groupBoxAuxiliaryServerManagement = new GroupBox();
+            buttonStopMultiSpy = new Button();
+            buttonStartMultiSpy = new Button();
             buttonStopDNS = new Button();
             buttonStopHorizon = new Button();
             buttonStartHorizon = new Button();
             pictureBoxPSMSImage = new PictureBox();
             tableLayoutPanelMain = new TableLayoutPanel();
+            buttonStartDirtySocks = new Button();
+            buttonStopDirtySocks = new Button();
             groupBoxWebServerManagement.SuspendLayout();
             groupBoxAuxiliaryServerManagement.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPSMSImage).BeginInit();
@@ -57,9 +61,10 @@
             // richTextBoxLog
             // 
             richTextBoxLog.Dock = DockStyle.Bottom;
-            richTextBoxLog.Location = new Point(0, 750);
+            richTextBoxLog.Location = new Point(0, 567);
+            richTextBoxLog.Margin = new Padding(3, 2, 3, 2);
             richTextBoxLog.Name = "richTextBoxLog";
-            richTextBoxLog.Size = new Size(1007, 232);
+            richTextBoxLog.Size = new Size(883, 175);
             richTextBoxLog.TabIndex = 0;
             richTextBoxLog.Text = "";
             // 
@@ -77,18 +82,21 @@
             groupBoxWebServerManagement.Controls.Add(buttonStartSVO);
             groupBoxWebServerManagement.Controls.Add(buttonStartSSFW);
             groupBoxWebServerManagement.Controls.Add(buttonStartHTTP);
-            groupBoxWebServerManagement.Location = new Point(12, 485);
+            groupBoxWebServerManagement.Location = new Point(10, 364);
+            groupBoxWebServerManagement.Margin = new Padding(3, 2, 3, 2);
             groupBoxWebServerManagement.Name = "groupBoxWebServerManagement";
-            groupBoxWebServerManagement.Size = new Size(486, 252);
+            groupBoxWebServerManagement.Padding = new Padding(3, 2, 3, 2);
+            groupBoxWebServerManagement.Size = new Size(425, 189);
             groupBoxWebServerManagement.TabIndex = 1;
             groupBoxWebServerManagement.TabStop = false;
             groupBoxWebServerManagement.Text = "Web Server Management";
             // 
             // buttonStopTycoon
             // 
-            buttonStopTycoon.Location = new Point(166, 146);
+            buttonStopTycoon.Location = new Point(145, 110);
+            buttonStopTycoon.Margin = new Padding(3, 2, 3, 2);
             buttonStopTycoon.Name = "buttonStopTycoon";
-            buttonStopTycoon.Size = new Size(106, 29);
+            buttonStopTycoon.Size = new Size(93, 22);
             buttonStopTycoon.TabIndex = 9;
             buttonStopTycoon.Text = "Stop Tycoon";
             buttonStopTycoon.UseVisualStyleBackColor = true;
@@ -96,9 +104,10 @@
             // 
             // buttonStartTycoon
             // 
-            buttonStartTycoon.Location = new Point(33, 146);
+            buttonStartTycoon.Location = new Point(29, 110);
+            buttonStartTycoon.Margin = new Padding(3, 2, 3, 2);
             buttonStartTycoon.Name = "buttonStartTycoon";
-            buttonStartTycoon.Size = new Size(114, 29);
+            buttonStartTycoon.Size = new Size(100, 22);
             buttonStartTycoon.TabIndex = 8;
             buttonStartTycoon.Text = "Start Tycoon";
             buttonStartTycoon.UseVisualStyleBackColor = true;
@@ -107,17 +116,18 @@
             // labelAdministratorRequired
             // 
             labelAdministratorRequired.AutoSize = true;
-            labelAdministratorRequired.Location = new Point(272, 185);
+            labelAdministratorRequired.Location = new Point(238, 139);
             labelAdministratorRequired.Name = "labelAdministratorRequired";
-            labelAdministratorRequired.Size = new Size(213, 20);
+            labelAdministratorRequired.Size = new Size(170, 15);
             labelAdministratorRequired.TabIndex = 7;
             labelAdministratorRequired.Text = "- Admin Required on Windows";
             // 
             // buttonStopSVO
             // 
-            buttonStopSVO.Location = new Point(166, 181);
+            buttonStopSVO.Location = new Point(145, 136);
+            buttonStopSVO.Margin = new Padding(3, 2, 3, 2);
             buttonStopSVO.Name = "buttonStopSVO";
-            buttonStopSVO.Size = new Size(106, 29);
+            buttonStopSVO.Size = new Size(93, 22);
             buttonStopSVO.TabIndex = 6;
             buttonStopSVO.Text = "Stop SVO";
             buttonStopSVO.UseVisualStyleBackColor = true;
@@ -125,9 +135,10 @@
             // 
             // buttonStopSSFW
             // 
-            buttonStopSSFW.Location = new Point(166, 111);
+            buttonStopSSFW.Location = new Point(145, 83);
+            buttonStopSSFW.Margin = new Padding(3, 2, 3, 2);
             buttonStopSSFW.Name = "buttonStopSSFW";
-            buttonStopSSFW.Size = new Size(106, 29);
+            buttonStopSSFW.Size = new Size(93, 22);
             buttonStopSSFW.TabIndex = 5;
             buttonStopSSFW.Text = "Stop SSFW";
             buttonStopSSFW.UseVisualStyleBackColor = true;
@@ -135,9 +146,10 @@
             // 
             // buttonStopHTTP
             // 
-            buttonStopHTTP.Location = new Point(166, 76);
+            buttonStopHTTP.Location = new Point(145, 57);
+            buttonStopHTTP.Margin = new Padding(3, 2, 3, 2);
             buttonStopHTTP.Name = "buttonStopHTTP";
-            buttonStopHTTP.Size = new Size(106, 29);
+            buttonStopHTTP.Size = new Size(93, 22);
             buttonStopHTTP.TabIndex = 4;
             buttonStopHTTP.Text = "Stop HTTP";
             buttonStopHTTP.UseVisualStyleBackColor = true;
@@ -145,9 +157,10 @@
             // 
             // buttonStopHTTPS
             // 
-            buttonStopHTTPS.Location = new Point(166, 41);
+            buttonStopHTTPS.Location = new Point(145, 31);
+            buttonStopHTTPS.Margin = new Padding(3, 2, 3, 2);
             buttonStopHTTPS.Name = "buttonStopHTTPS";
-            buttonStopHTTPS.Size = new Size(106, 29);
+            buttonStopHTTPS.Size = new Size(93, 22);
             buttonStopHTTPS.TabIndex = 3;
             buttonStopHTTPS.Text = "Stop HTTPS";
             buttonStopHTTPS.UseVisualStyleBackColor = true;
@@ -155,9 +168,10 @@
             // 
             // buttonStartHTTPS
             // 
-            buttonStartHTTPS.Location = new Point(33, 41);
+            buttonStartHTTPS.Location = new Point(29, 31);
+            buttonStartHTTPS.Margin = new Padding(3, 2, 3, 2);
             buttonStartHTTPS.Name = "buttonStartHTTPS";
-            buttonStartHTTPS.Size = new Size(114, 29);
+            buttonStartHTTPS.Size = new Size(100, 22);
             buttonStartHTTPS.TabIndex = 2;
             buttonStartHTTPS.Text = "Start HTTPS";
             buttonStartHTTPS.UseVisualStyleBackColor = true;
@@ -165,9 +179,10 @@
             // 
             // buttonStartSVO
             // 
-            buttonStartSVO.Location = new Point(33, 181);
+            buttonStartSVO.Location = new Point(29, 136);
+            buttonStartSVO.Margin = new Padding(3, 2, 3, 2);
             buttonStartSVO.Name = "buttonStartSVO";
-            buttonStartSVO.Size = new Size(114, 29);
+            buttonStartSVO.Size = new Size(100, 22);
             buttonStartSVO.TabIndex = 0;
             buttonStartSVO.Text = "Start SVO";
             buttonStartSVO.UseVisualStyleBackColor = true;
@@ -175,9 +190,10 @@
             // 
             // buttonStartSSFW
             // 
-            buttonStartSSFW.Location = new Point(33, 111);
+            buttonStartSSFW.Location = new Point(29, 83);
+            buttonStartSSFW.Margin = new Padding(3, 2, 3, 2);
             buttonStartSSFW.Name = "buttonStartSSFW";
-            buttonStartSSFW.Size = new Size(114, 29);
+            buttonStartSSFW.Size = new Size(100, 22);
             buttonStartSSFW.TabIndex = 1;
             buttonStartSSFW.Text = "Start SSFW";
             buttonStartSSFW.UseVisualStyleBackColor = true;
@@ -185,9 +201,10 @@
             // 
             // buttonStartHTTP
             // 
-            buttonStartHTTP.Location = new Point(33, 76);
+            buttonStartHTTP.Location = new Point(29, 57);
+            buttonStartHTTP.Margin = new Padding(3, 2, 3, 2);
             buttonStartHTTP.Name = "buttonStartHTTP";
-            buttonStartHTTP.Size = new Size(114, 29);
+            buttonStartHTTP.Size = new Size(100, 22);
             buttonStartHTTP.TabIndex = 1;
             buttonStartHTTP.Text = "Start HTTP";
             buttonStartHTTP.UseVisualStyleBackColor = true;
@@ -195,9 +212,10 @@
             // 
             // buttonStartDNS
             // 
-            buttonStartDNS.Location = new Point(33, 76);
+            buttonStartDNS.Location = new Point(29, 57);
+            buttonStartDNS.Margin = new Padding(3, 2, 3, 2);
             buttonStartDNS.Name = "buttonStartDNS";
-            buttonStartDNS.Size = new Size(114, 29);
+            buttonStartDNS.Size = new Size(100, 22);
             buttonStartDNS.TabIndex = 0;
             buttonStartDNS.Text = "Start DNS";
             buttonStartDNS.UseVisualStyleBackColor = true;
@@ -206,22 +224,51 @@
             // groupBoxAuxiliaryServerManagement
             // 
             groupBoxAuxiliaryServerManagement.Anchor = AnchorStyles.Top;
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopDirtySocks);
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartDirtySocks);
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopMultiSpy);
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartMultiSpy);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopDNS);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopHorizon);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartHorizon);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartDNS);
-            groupBoxAuxiliaryServerManagement.Location = new Point(509, 3);
+            groupBoxAuxiliaryServerManagement.Location = new Point(445, 2);
+            groupBoxAuxiliaryServerManagement.Margin = new Padding(3, 2, 3, 2);
             groupBoxAuxiliaryServerManagement.Name = "groupBoxAuxiliaryServerManagement";
-            groupBoxAuxiliaryServerManagement.Size = new Size(491, 252);
+            groupBoxAuxiliaryServerManagement.Padding = new Padding(3, 2, 3, 2);
+            groupBoxAuxiliaryServerManagement.Size = new Size(430, 189);
             groupBoxAuxiliaryServerManagement.TabIndex = 2;
             groupBoxAuxiliaryServerManagement.TabStop = false;
             groupBoxAuxiliaryServerManagement.Text = "Auxiliary Server Management";
             // 
+            // buttonStopMultiSpy
+            // 
+            buttonStopMultiSpy.Location = new Point(146, 83);
+            buttonStopMultiSpy.Margin = new Padding(3, 2, 3, 2);
+            buttonStopMultiSpy.Name = "buttonStopMultiSpy";
+            buttonStopMultiSpy.Size = new Size(104, 22);
+            buttonStopMultiSpy.TabIndex = 11;
+            buttonStopMultiSpy.Text = "Stop MultiSpy";
+            buttonStopMultiSpy.UseVisualStyleBackColor = true;
+            buttonStopMultiSpy.Click += buttonStopMultiSpy_Click;
+            // 
+            // buttonStartMultiSpy
+            // 
+            buttonStartMultiSpy.Location = new Point(29, 83);
+            buttonStartMultiSpy.Margin = new Padding(3, 2, 3, 2);
+            buttonStartMultiSpy.Name = "buttonStartMultiSpy";
+            buttonStartMultiSpy.Size = new Size(100, 22);
+            buttonStartMultiSpy.TabIndex = 10;
+            buttonStartMultiSpy.Text = "Start MultiSpy";
+            buttonStartMultiSpy.UseVisualStyleBackColor = true;
+            buttonStartMultiSpy.Click += buttonStartMultiSpy_Click;
+            // 
             // buttonStopDNS
             // 
-            buttonStopDNS.Location = new Point(167, 76);
+            buttonStopDNS.Location = new Point(146, 57);
+            buttonStopDNS.Margin = new Padding(3, 2, 3, 2);
             buttonStopDNS.Name = "buttonStopDNS";
-            buttonStopDNS.Size = new Size(106, 29);
+            buttonStopDNS.Size = new Size(104, 22);
             buttonStopDNS.TabIndex = 7;
             buttonStopDNS.Text = "Stop DNS";
             buttonStopDNS.UseVisualStyleBackColor = true;
@@ -229,9 +276,10 @@
             // 
             // buttonStopHorizon
             // 
-            buttonStopHorizon.Location = new Point(167, 41);
+            buttonStopHorizon.Location = new Point(146, 31);
+            buttonStopHorizon.Margin = new Padding(3, 2, 3, 2);
             buttonStopHorizon.Name = "buttonStopHorizon";
-            buttonStopHorizon.Size = new Size(106, 29);
+            buttonStopHorizon.Size = new Size(104, 22);
             buttonStopHorizon.TabIndex = 6;
             buttonStopHorizon.Text = "Stop Horizon";
             buttonStopHorizon.UseVisualStyleBackColor = true;
@@ -239,9 +287,10 @@
             // 
             // buttonStartHorizon
             // 
-            buttonStartHorizon.Location = new Point(33, 41);
+            buttonStartHorizon.Location = new Point(29, 31);
+            buttonStartHorizon.Margin = new Padding(3, 2, 3, 2);
             buttonStartHorizon.Name = "buttonStartHorizon";
-            buttonStartHorizon.Size = new Size(114, 29);
+            buttonStartHorizon.Size = new Size(100, 22);
             buttonStartHorizon.TabIndex = 2;
             buttonStartHorizon.Text = "Start Horizon";
             buttonStartHorizon.UseVisualStyleBackColor = true;
@@ -252,8 +301,9 @@
             pictureBoxPSMSImage.Dock = DockStyle.Top;
             pictureBoxPSMSImage.Image = Properties.Resources.multiserver2xplogo;
             pictureBoxPSMSImage.Location = new Point(0, 0);
+            pictureBoxPSMSImage.Margin = new Padding(3, 2, 3, 2);
             pictureBoxPSMSImage.Name = "pictureBoxPSMSImage";
-            pictureBoxPSMSImage.Size = new Size(1007, 476);
+            pictureBoxPSMSImage.Size = new Size(883, 357);
             pictureBoxPSMSImage.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBoxPSMSImage.TabIndex = 3;
             pictureBoxPSMSImage.TabStop = false;
@@ -266,26 +316,50 @@
             tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanelMain.Controls.Add(groupBoxAuxiliaryServerManagement, 1, 0);
-            tableLayoutPanelMain.Location = new Point(0, 482);
+            tableLayoutPanelMain.Location = new Point(0, 362);
+            tableLayoutPanelMain.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanelMain.Name = "tableLayoutPanelMain";
             tableLayoutPanelMain.RowCount = 1;
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanelMain.Size = new Size(1007, 262);
+            tableLayoutPanelMain.Size = new Size(881, 196);
             tableLayoutPanelMain.TabIndex = 4;
+            // 
+            // buttonStartDirtySocks
+            // 
+            buttonStartDirtySocks.Location = new Point(29, 109);
+            buttonStartDirtySocks.Margin = new Padding(3, 2, 3, 2);
+            buttonStartDirtySocks.Name = "buttonStartDirtySocks";
+            buttonStartDirtySocks.Size = new Size(100, 22);
+            buttonStartDirtySocks.TabIndex = 12;
+            buttonStartDirtySocks.Text = "Start DirtySocks";
+            buttonStartDirtySocks.UseVisualStyleBackColor = true;
+            buttonStartDirtySocks.Click += buttonStartDirtySocks_Click;
+            // 
+            // buttonStopDirtySocks
+            // 
+            buttonStopDirtySocks.Location = new Point(146, 110);
+            buttonStopDirtySocks.Margin = new Padding(3, 2, 3, 2);
+            buttonStopDirtySocks.Name = "buttonStopDirtySocks";
+            buttonStopDirtySocks.Size = new Size(104, 22);
+            buttonStopDirtySocks.TabIndex = 13;
+            buttonStopDirtySocks.Text = "Stop DirtySocks";
+            buttonStopDirtySocks.UseVisualStyleBackColor = true;
+            buttonStopDirtySocks.Click += buttonStopDirtySocks_Click;
             // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1007, 982);
+            ClientSize = new Size(883, 742);
             Controls.Add(groupBoxWebServerManagement);
             Controls.Add(tableLayoutPanelMain);
             Controls.Add(pictureBoxPSMSImage);
             Controls.Add(richTextBoxLog);
             DoubleBuffered = true;
+            Margin = new Padding(3, 2, 3, 2);
             MaximizeBox = false;
-            MinimumSize = new Size(1025, 1029);
+            MinimumSize = new Size(899, 781);
             Name = "MainForm";
             Text = "MultiServer Graphical User Interface";
             groupBoxWebServerManagement.ResumeLayout(false);
@@ -318,5 +392,9 @@
         private Button buttonStopTycoon;
         private Button buttonStartTycoon;
         private TableLayoutPanel tableLayoutPanelMain;
+        private Button buttonStopMultiSpy;
+        private Button buttonStartMultiSpy;
+        private Button buttonStopDirtySocks;
+        private Button buttonStartDirtySocks;
     }
 }

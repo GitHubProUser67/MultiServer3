@@ -47,7 +47,7 @@ public static class SSFWServerConfiguration
         }
         catch (Exception)
         {
-            LoggerAccessor.LogWarn("dns.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn("ssfw.json file is malformed, using server's default.");
         }
     }
 }

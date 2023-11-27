@@ -70,19 +70,6 @@ namespace GraphicalUserInterface
             return Task.CompletedTask;
         }
 
-        public static bool IsAdministrator()
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
-        public static bool IsWindows()
-        {
-            var os = Environment.OSVersion;
-            return os.Platform == PlatformID.Win32NT;
-        }
-
         private static string? FindExecutable(string exeName)
         {
             string exePath = Directory.GetCurrentDirectory() + $"/{exeName}";
@@ -128,5 +115,18 @@ namespace GraphicalUserInterface
 
             return Task.CompletedTask;
         }
+        public static bool IsAdministrator()
+        {
+            var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        public static bool IsWindows()
+        {
+            var os = Environment.OSVersion;
+            return os.Platform == PlatformID.Win32NT;
+        }
+
     }
 }

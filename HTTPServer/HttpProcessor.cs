@@ -1,5 +1,8 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
 using CryptoSporidium;
+using CryptoSporidium.WebAPIs;
+using CryptoSporidium.WebAPIs.OHS;
+using CryptoSporidium.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
 using HTTPServer.API;
 using HTTPServer.Extensions;
@@ -123,7 +126,7 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
-                                                CryptoSporidium.OHS.OHSClass ohs = new(request.Method, absolutepath, version);
+                                                OHSClass ohs = new(request.Method, absolutepath, version);
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.getDataStream.CopyTo(postdata);
@@ -149,7 +152,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
 
                                                 string? res = null;
-                                                CryptoSporidium.PREMIUMAGENCY.PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
+                                                PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.getDataStream.CopyTo(postdata);
@@ -181,7 +184,9 @@ namespace HTTPServer
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;
                                                             default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
+                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                     string? encoding = request.GetHeaderValue("Accept-Encoding");
@@ -229,7 +234,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/UnBar/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var unbarres = HomeTools.UnBar(request.getDataStream, request.GetContentType()).Result;
+                                                                    var unbarres = HomeTools.UnBar(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                     if (unbarres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(unbarres.Value.Item1, unbarres.Value.Item2);
                                                                     else
@@ -287,7 +292,9 @@ namespace HTTPServer
                                                                     response = HttpBuilder.InternalServerError(); // We are vague on the status code.
                                                                 break;
                                                             default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
+                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                     string? encoding = request.GetHeaderValue("Accept-Encoding");
