@@ -392,26 +392,43 @@ namespace CryptoSporidium
             return GetLocalIPAddress().ToString();
         }
 
-        public static IPAddress GetLocalIPAddress()
+        public static IPAddress GetLocalIPAddress(bool allowIPv6 = false)
         {
-            if (!NetworkInterface.GetIsNetworkAvailable())
-                return IPAddress.Parse("127.0.0.1");
-
-            // Get all active interfaces
-            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
-                .Where(c => c.NetworkInterfaceType != NetworkInterfaceType.Loopback && c.OperationalStatus == OperationalStatus.Up);
-
-            // Find our local ip
-            foreach (var i in interfaces)
+            try
             {
-                var props = i.GetIPProperties();
-                var inter = props.UnicastAddresses.Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
-#pragma warning disable // Sometimes Visual Studio is weird.
-                if (inter != null && props.GatewayAddresses.Count > 0 && inter.Count() > 0)
-                    return inter.FirstOrDefault().Address;
-#pragma warning restore
+                if (!NetworkInterface.GetIsNetworkAvailable())
+                    return IPAddress.Parse("127.0.0.1");
+
+                // Get all network interfaces on the machine.
+                NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+                // Filter out loopback and non-operational interfaces.
+                var validInterfaces = networkInterfaces
+                    .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.ToLowerInvariant().Contains("virtual"));
+
+                // Find the first valid interface with the desired IP version.
+                foreach (NetworkInterface? networkInterface in validInterfaces)
+                {
+                    IPInterfaceProperties? properties = networkInterface.GetIPProperties();
+
+                    // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
+                    var addresses = allowIPv6
+                        ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
+                        : properties.UnicastAddresses
+                            .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
+                            .Select(addr => addr.Address.ToString());
+
+                    // If there is at least one address, return the first one
+                    if (addresses.Any())
+                        return IPAddress.Parse(addresses.First());
+                }
+            }
+            catch (Exception)
+            {
+
             }
 
+            // If no valid interface with the desired IP version is found.
             return IPAddress.Parse("127.0.0.1");
         }
 

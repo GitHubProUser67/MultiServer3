@@ -30,18 +30,6 @@ namespace CryptoSporidium.BARTools.BAR
             return m_header;
         }
 
-        public event BAREventDelegate OnLoadComplete;
-
-        public event BARMessageDelegate OnMessage;
-
-        public event BARLoadProgressEventDelegate OnLoadProgress;
-
-        public event BARLoadHeaderEventDelegate OnLoadHeader;
-
-        public event BAREventDelegate OnExtractComplete;
-
-        public event BAREventDelegate OnRecompressComplete;
-
         private bool encrypt = false;
 
         public BARArchive()
@@ -177,30 +165,6 @@ namespace CryptoSporidium.BARTools.BAR
             return text.Substring(m_resourceRoot.Length + 1);
         }
 
-        private void ProgressMessage(string msgString, params object[] msg)
-        {
-            string outputMsg = string.Format(msgString, msg);
-            SendOrPostCallback d = delegate (object? sender)
-            {
-                if (OnLoadProgress != null)
-                    OnLoadProgress(this, new BARLoadProgressEventArgs(m_sourceFile, outputMsg));
-            };
-            if (m_asyncOp != null)
-                m_asyncOp.Post(d, this);
-        }
-
-        private void GeneralMessage(string msgString, params object[] msg)
-        {
-            string outputMsg = string.Format(msgString, msg);
-            SendOrPostCallback d = delegate (object? sender)
-            {
-                if (OnMessage != null)
-                    OnMessage(this, new BARMessageEventArgs(m_sourceFile, outputMsg));
-            };
-            if (m_asyncOp != null)
-                m_asyncOp.Post(d, this);
-        }
-
         private void RunDeleteOperation(HashedFileName fileName, BARFileOperationFlags flags)
         {
             TOCEntry? value = m_toc[fileName];
@@ -262,7 +226,7 @@ namespace CryptoSporidium.BARTools.BAR
                             return false;
                         }
                     }
-                    ProgressMessage("Loading file data", new object[0]);
+                    LoggerAccessor.LogDebug("Loading file data", Array.Empty<object>());
                     foreach (object obj in m_toc)
                     {
                         TOCEntry tocentry = (TOCEntry)obj;
@@ -306,7 +270,7 @@ namespace CryptoSporidium.BARTools.BAR
         {
             if (LoadHeaderandTOC())
             {
-                ProgressMessage("Analysing file contents", new object[0]);
+                LoggerAccessor.LogDebug("Analysing file contents", Array.Empty<object>());
                 AnalyseFileTypes();
             }
         }
@@ -538,13 +502,6 @@ namespace CryptoSporidium.BARTools.BAR
                 LoggerAccessor.LogWarn("Invalid BAR File Version", m_sourceFile);
                 return false;
             }
-            SendOrPostCallback d = delegate (object? sender)
-            {
-                if (OnLoadHeader != null)
-                    OnLoadHeader(this, new BARLoadHeaderEventArgs((int)m_header.NumFiles, m_sourceFile));
-            };
-            if (m_asyncOp != null)
-                m_asyncOp.Post(d, this);
 
             return true;
         }
@@ -554,7 +511,7 @@ namespace CryptoSporidium.BARTools.BAR
             bool isok = true;
             try
             {
-                ProgressMessage("Loading Table of Contents", new object[0]);
+                LoggerAccessor.LogDebug("Loading Table of Contents", Array.Empty<object>());
                 EndianAwareBinaryReader endianAwareBinaryReader = EndianAwareBinaryReader.Create(inStream, endian);
                 m_toc.Clear();
                 int num = 0;
@@ -582,7 +539,7 @@ namespace CryptoSporidium.BARTools.BAR
                     tocentry.Compression = compression;
                     tocentry.Index = num;
                     m_toc.Add(tocentry);
-                    ProgressMessage("Loaded file {0}", new object[]
+                    LoggerAccessor.LogDebug("Loaded file {0}", new object[]
                     {
                         ((int)tocentry.FileName).ToString("X")
                     });
@@ -727,8 +684,7 @@ namespace CryptoSporidium.BARTools.BAR
                     tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
                     memoryStream.Close();
                 }
-                int count = (int)m_toc.Count;
-                tocEntry.Index = count;
+                tocEntry.Index = (int)m_toc.Count;
                 tocEntry.RawData = array2;
             }
         }
@@ -767,11 +723,6 @@ namespace CryptoSporidium.BARTools.BAR
         public void BeginUpdate()
         {
             m_asyncOp = AsyncOperationManager.CreateOperation(null);
-        }
-
-        public void EndUpdate()
-        {
-            m_asyncOp = null;
         }
 
         public void AddFile(string filePath)
@@ -823,7 +774,7 @@ namespace CryptoSporidium.BARTools.BAR
             CompressAndAddFile(compress, encrypt, inStream, tocEntry);
             Dirty = true;
             m_toc.ResortOffsets();
-            GeneralMessage("Replaced file {0}", new object[]
+            LoggerAccessor.LogDebug("Replaced file {0}", new object[]
             {
                 filePath
             });
@@ -840,7 +791,7 @@ namespace CryptoSporidium.BARTools.BAR
                 tocEntryFromFilepath.DataOffset = 0U;
             else
                 tocEntryFromFilepath.DataOffset = lastEntry.DataOffset + lastEntry.AlignedSize;
-            GeneralMessage("Added file {0}", new object[]
+            LoggerAccessor.LogDebug("Added file {0}", new object[]
             {
                 filePath
             });
@@ -877,49 +828,6 @@ namespace CryptoSporidium.BARTools.BAR
         public void FastLoad()
         {
             LoadHeaderandTOC();
-        }
-
-        public void LoadAsync()
-        {
-            BeginUpdate();
-            Path.ChangeExtension(m_sourceFile, ".map");
-            LoadBARDelegate loadBARDelegate = new LoadBARDelegate(LoadInternal);
-            try
-            {
-                loadBARDelegate.BeginInvoke(new AsyncCallback(LoadCompleted), loadBARDelegate);
-            }
-            catch (BARLoadException)
-            {
-                LoggerAccessor.LogError("[LoadAsync] - Failed to load BAR.");
-            }
-        }
-
-        public void LoadCompleted(IAsyncResult ar)
-        {
-            LoadBARDelegate loadBARDelegate = (LoadBARDelegate)ar.AsyncState;
-
-            if (loadBARDelegate != null)
-            {
-                try
-                {
-                    loadBARDelegate.EndInvoke(ar);
-                    SendOrPostCallback d = delegate (object? state)
-                    {
-                        if (OnLoadComplete != null)
-                            OnLoadComplete(this, new BAREventArgs(m_sourceFile));
-                    };
-                    if (m_asyncOp != null)
-                        m_asyncOp.PostOperationCompleted(d, this);
-                }
-                catch (BARLoadException)
-                {
-                    LoggerAccessor.LogError("[LoadCompleted] - Failed to Load Complete");
-                }
-                finally
-                {
-                    EndUpdate();
-                }
-            }
         }
 
         public void Save()
@@ -1019,8 +927,7 @@ namespace CryptoSporidium.BARTools.BAR
             endianAwareBinaryWriter2.Close();
             endianAwareBinaryWriter.Close();
             WriteMap(fileName);
-            GeneralMessage("BAR Archive complete", new object[0]);
-            EndUpdate();
+            LoggerAccessor.LogDebug("BAR Archive complete", Array.Empty<object>());
             Dirty = false;
             FileName = fileName;
             toolsImpl = null;
@@ -1028,7 +935,7 @@ namespace CryptoSporidium.BARTools.BAR
 
         public void LoadMap(string MAPFile)
         {
-            ProgressMessage("Loading map file {0}", new object[]
+            LoggerAccessor.LogDebug("Loading map file {0}", new object[]
             {
                 MAPFile
             });
@@ -1112,7 +1019,7 @@ namespace CryptoSporidium.BARTools.BAR
             tocentry.RawData = array;
             Dirty = true;
             m_toc.ResortOffsets();
-            GeneralMessage("Updated file {0}", new object[]
+            LoggerAccessor.LogDebug("Updated file {0}", new object[]
             {
                 tocentry.Path
             });
@@ -1124,9 +1031,9 @@ namespace CryptoSporidium.BARTools.BAR
             {
                 TOCEntry? tocentry = m_toc[hashedFileName];
                 if (newMethod == tocentry.Compression && BARHeader.Flags == newFlags)
-                    ProgressMessage("Skipped " + hashedFileName, new object[0]);
+                    LoggerAccessor.LogDebug("Skipped " + hashedFileName, Array.Empty<object>());
                 else if (newMethod != CompressionMethod.Uncompressed && !ShouldCompress(tocentry.Path, BARAddFileOptions.Default))
-                    ProgressMessage("Skipped " + hashedFileName, new object[0]);
+                    LoggerAccessor.LogDebug("Skipped " + hashedFileName, Array.Empty<object>());
                 else
                 {
                     byte[]? array = CompressionFactory.Decompress(tocentry, tocentry.Compression, m_header.Flags);
@@ -1139,7 +1046,7 @@ namespace CryptoSporidium.BARTools.BAR
                         tocentry.RawData = array;
                         Dirty = true;
                         m_toc.ResortOffsets();
-                        ProgressMessage(string.Format("File {0} not recompressed because the size of the recompressed data is larger than the size of the uncompressed data", hashedFileName), new object[0]);
+                        LoggerAccessor.LogDebug(string.Format("File {0} not recompressed because the size of the recompressed data is larger than the size of the uncompressed data", hashedFileName), Array.Empty<object>());
                     }
                     else
                     {
@@ -1148,53 +1055,11 @@ namespace CryptoSporidium.BARTools.BAR
                         tocentry.RawData = array2;
                         Dirty = true;
                         m_toc.ResortOffsets();
-                        ProgressMessage("Recompressed " + hashedFileName, new object[0]);
+                        LoggerAccessor.LogDebug("Recompressed " + hashedFileName, Array.Empty<object>());
                     }
                 }
             }
             BARHeader.Flags = newFlags;
-        }
-
-        public void RecompressAsync(HashedFileName[] fileNames, CompressionMethod newMethod, ArchiveFlags newFlags)
-        {
-            BeginUpdate();
-            BarRecompressDelegate barRecompressDelegate = new BarRecompressDelegate(Recompress);
-            try
-            {
-                barRecompressDelegate.BeginInvoke(fileNames, newMethod, newFlags, new AsyncCallback(RecompressCompleted), barRecompressDelegate);
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError(ex.Message, m_sourceFile);
-            }
-        }
-
-        public void RecompressCompleted(IAsyncResult ar)
-        {
-            BarRecompressDelegate barRecompressDelegate = (BarRecompressDelegate)ar.AsyncState;
-
-            if (barRecompressDelegate != null)
-            {
-                try
-                {
-                    barRecompressDelegate.EndInvoke(ar);
-                    SendOrPostCallback d = delegate (object? state)
-                    {
-                        if (OnRecompressComplete != null)
-                            OnRecompressComplete(this, new BAREventArgs(m_sourceFile));
-                    };
-                    if (m_asyncOp != null)
-                        m_asyncOp.PostOperationCompleted(d, this);
-                }
-                catch
-                {
-                    LoggerAccessor.LogError("[RecompressCompleted] - Failed to Recompress Completed");
-                }
-                finally
-                {
-                    EndUpdate();
-                }
-            }
         }
 
         public byte[]? GetRawFileData(string FileName)
@@ -1230,7 +1095,7 @@ namespace CryptoSporidium.BARTools.BAR
             byte[] data = tocentry.GetData(m_header.Flags);
             fileStream.Write(data, 0, data.Length);
             fileStream.Close();
-            ProgressMessage("Extracted file {0}", new object[]
+            LoggerAccessor.LogDebug("Extracted file {0}", new object[]
             {
                 Path.GetFileName(path)
             });
@@ -1242,41 +1107,6 @@ namespace CryptoSporidium.BARTools.BAR
             {
                 TOCEntry tocentry = (TOCEntry)obj;
                 ExtractToFile(tocentry.FileName, outDir);
-            }
-        }
-
-        public void ExtractAllAsync(string outDir)
-        {
-            BeginUpdate();
-            BarExtractAllDelegate barExtractAllDelegate = new BarExtractAllDelegate(ExtractAll);
-            barExtractAllDelegate.BeginInvoke(outDir, new AsyncCallback(ExtractCompleted), barExtractAllDelegate);
-        }
-
-        public void ExtractCompleted(IAsyncResult ar)
-        {
-            BarExtractAllDelegate barExtractAllDelegate = (BarExtractAllDelegate)ar.AsyncState;
-
-            if (barExtractAllDelegate != null)
-            {
-                try
-                {
-                    barExtractAllDelegate.EndInvoke(ar);
-                    SendOrPostCallback d = delegate (object? state)
-                    {
-                        if (OnExtractComplete != null)
-                            OnExtractComplete(this, new BAREventArgs(m_sourceFile));
-                    };
-                    if (m_asyncOp != null)
-                        m_asyncOp.PostOperationCompleted(d, this);
-                }
-                catch (Exception)
-                {
-                    LoggerAccessor.LogError("[ExtractCompleted] - Failed to Extract Completed");
-                }
-                finally
-                {
-                    EndUpdate();
-                }
             }
         }
 
@@ -1383,17 +1213,7 @@ namespace CryptoSporidium.BARTools.BAR
 
         protected Stream m_sourceStream;
 
-        private CompressionBase cryptoImplentation;
-
         private delegate void LoadBARDelegate();
-
-        public delegate void BAREventDelegate(object sender, BAREventArgs args);
-
-        public delegate void BARMessageDelegate(object sender, BARMessageEventArgs args);
-
-        public delegate void BARLoadProgressEventDelegate(object sender, BARLoadProgressEventArgs args);
-
-        public delegate void BARLoadHeaderEventDelegate(object sender, BARLoadHeaderEventArgs args);
 
         private delegate bool BARFileMatchDelegate(TOCEntry te);
 

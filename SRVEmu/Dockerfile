@@ -5,16 +5,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["DirtySocks/DirtySocks.csproj", "DirtySocks/"]
-RUN dotnet restore "DirtySocks/DirtySocks.csproj"
+COPY ["SRVEmu/SRVEmu.csproj", "SRVEmu/"]
+RUN dotnet restore "SRVEmu/SRVEmu.csproj"
 COPY . .
-WORKDIR "/src/DirtySocks"
-RUN dotnet build "DirtySocks.csproj" -c Release -o /app/build
+WORKDIR "/src/SRVEmu"
+RUN dotnet build "SRVEmu.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "DirtySocks.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "SRVEmu.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "DirtySocks.dll"]
+ENTRYPOINT ["dotnet", "SRVEmu.dll"]

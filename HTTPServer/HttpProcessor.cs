@@ -4,7 +4,7 @@ using CryptoSporidium.WebAPIs;
 using CryptoSporidium.WebAPIs.OHS;
 using CryptoSporidium.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
-using HTTPServer.API;
+using HTTPServer.API.JUGGERNAUT;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using HTTPServer.RouteHandlers;
@@ -64,7 +64,7 @@ namespace HTTPServer
         {
             try
             {
-                string? clientip = ((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString();
+                string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint).Address.ToString();
 
                 string? clientport = ((IPEndPoint)tcpClient.Client.RemoteEndPoint).Port.ToString();
 
@@ -83,7 +83,7 @@ namespace HTTPServer
                         {
                             if (tcpClient.Available > 0 && outputStream.CanWrite)
                             {
-                                HttpRequest? request = GetRequest(inputStream, outputStream);
+                                HttpRequest? request = GetRequest(inputStream);
 
                                 if (request != null && !string.IsNullOrEmpty(request.Url))
                                 {
@@ -102,7 +102,7 @@ namespace HTTPServer
                                     string directoryPath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                                     // Process the request based on the HTTP method
-                                    string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath.Substring(1));
+                                    string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
 
                                     switch (Host)
                                     {
@@ -170,6 +170,39 @@ namespace HTTPServer
                                                 agency.Dispose();
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            else if (Host == "juggernaut-games.com" && request.Method != null && absolutepath.EndsWith(".php"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a JUGGERNAUT method : {absolutepath}");
+
+                                                string? res = null;
+                                                JUGGERNAUTClass juggernaut = new(request.Method, absolutepath);
+                                                if (request.getDataStream != null)
+                                                {
+                                                    using (MemoryStream postdata = new())
+                                                    {
+                                                        request.getDataStream.CopyTo(postdata);
+
+                                                        postdata.Position = 0;
+                                                        // Find the number of bytes in the stream
+                                                        int contentLength = (int)postdata.Length;
+                                                        // Create a byte array
+                                                        byte[] buffer = new byte[contentLength];
+                                                        // Read the contents of the memory stream into the byte array
+                                                        postdata.Read(buffer, 0, contentLength);
+                                                        res = juggernaut.ProcessRequest(request.QueryParameters, buffer, request.GetContentType());
+                                                        postdata.Flush();
+                                                    }
+                                                }
+                                                else
+                                                    res = juggernaut.ProcessRequest(request.QueryParameters);
+                                                juggernaut.Dispose();
+                                                if (res == null)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else if (res == string.Empty)
+                                                    response = HttpBuilder.Ok();
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
@@ -514,7 +547,7 @@ namespace HTTPServer
             return null;
         }
 
-        private HttpRequest? GetRequest(Stream inputStream, Stream outputStream)
+        private HttpRequest? GetRequest(Stream inputStream)
         {
             //Read Request Line
             string request = Readline(inputStream);
@@ -524,10 +557,10 @@ namespace HTTPServer
                 return null;
             string method = tokens[0].ToUpper();
             string url = tokens[1];
-            string protocolVersion = tokens[2];
+            //string protocolVersion = tokens[2]; // Unused.
 
             //Read Headers
-            Dictionary<string, string> headers = new Dictionary<string, string>();
+            Dictionary<string, string> headers = new();
             string line;
             while ((line = Readline(inputStream)) != null)
             {

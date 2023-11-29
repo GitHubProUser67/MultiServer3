@@ -6,12 +6,12 @@ namespace CryptoSporidium.BARTools.BAR
 
         public abstract byte[] Decompress(byte[] inData);
 
-        public virtual byte[] Decrypt(TOCEntry toc_entry)
+        public virtual byte[]? Decrypt(TOCEntry toc_entry)
         {
             return null;
         }
 
-        public virtual byte[] Compress(TOCEntry toc_entry)
+        public virtual byte[]? Compress(TOCEntry toc_entry)
         {
             return null;
         }

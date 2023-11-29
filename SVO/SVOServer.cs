@@ -203,7 +203,7 @@ namespace SVO
                                         {
                                             ctx.Response.ContentLength64 = datatooutput.Length;
                                             ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
-                                            ctx.Response.OutputStream.Flush();
+                                            ctx.Response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {

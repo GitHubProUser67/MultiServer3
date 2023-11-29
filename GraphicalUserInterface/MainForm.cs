@@ -10,7 +10,7 @@ namespace GraphicalUserInterface
         private static string horizonguid = string.Empty;
         private static string dnsguid = string.Empty;
         private static string multispyguid = string.Empty;
-        private static string dirtysocksguid = string.Empty;
+        private static string srvemuguid = string.Empty;
 
         public MainForm()
         {
@@ -57,9 +57,9 @@ namespace GraphicalUserInterface
                     if (!string.IsNullOrEmpty(multispyguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(multispyguid);
-                    if (!string.IsNullOrEmpty(dirtysocksguid))
+                    if (!string.IsNullOrEmpty(srvemuguid))
                         // Stop the program
-                        await ProcessManager.ShutdownProcess(dirtysocksguid);
+                        await ProcessManager.ShutdownProcess(srvemuguid);
                 }
                 catch (Exception ex)
                 {
@@ -157,15 +157,15 @@ namespace GraphicalUserInterface
         }
 
 
-        private async void buttonStartDirtySocks_Click(object sender, EventArgs e)
+        private async void buttonStartSRVEmu_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(dirtysocksguid))
+            if (!string.IsNullOrEmpty(srvemuguid))
                 // Stop the program
-                await ProcessManager.ShutdownProcess(dirtysocksguid);
+                await ProcessManager.ShutdownProcess(srvemuguid);
 
-            dirtysocksguid = Guid.NewGuid().ToString();
+            srvemuguid = Guid.NewGuid().ToString();
             // Start the program
-            _ = ProcessManager.StartupProgram("DirtySocks.exe", dirtysocksguid);
+            _ = ProcessManager.StartupProgram("SRVEmu.exe", srvemuguid);
         }
 
         private async void buttonStopHTTPS_Click(object sender, EventArgs e)
@@ -264,13 +264,13 @@ namespace GraphicalUserInterface
                 Console.WriteLine("No Process started for this server");
         }
 
-        private async void buttonStopDirtySocks_Click(object sender, EventArgs e)
+        private async void buttonStopSRVEmu_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(dirtysocksguid))
+            if (!string.IsNullOrEmpty(srvemuguid))
             {
                 // Stop the program
-                await ProcessManager.ShutdownProcess(dirtysocksguid);
-                dirtysocksguid = string.Empty;
+                await ProcessManager.ShutdownProcess(srvemuguid);
+                srvemuguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");

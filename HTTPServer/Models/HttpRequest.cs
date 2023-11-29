@@ -71,7 +71,7 @@ namespace HTTPServer.Models
             get
             {
                 if (Url != null)
-                    return Url.Substring(Url.IndexOf("?") + 1).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                    return Url[(Url.IndexOf("?") + 1)..].Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
                 else
                     return null;
             }

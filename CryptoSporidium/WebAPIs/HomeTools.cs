@@ -131,7 +131,6 @@ namespace CryptoSporidium.WebAPIs
 
                                 bararchive.CreateManifest();
 
-                                bararchive.EndUpdate();
                                 bararchive.Save();
 
                                 bararchive = null;
@@ -140,9 +139,9 @@ namespace CryptoSporidium.WebAPIs
 
                                 if (mode == "bar")
                                 {
-                                    using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
+                                    using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
-                                        using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+                                        using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create))
                                         {
                                             // Add the first file to the archive
                                             ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.BAR");

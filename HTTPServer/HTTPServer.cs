@@ -1,4 +1,5 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
+using CustomLogger;
 using HTTPServer.Models;
 using System.Net;
 using System.Net.Sockets;
@@ -10,7 +11,7 @@ namespace HTTPServer
         #region Fields
 
         private int Port;
-        private TcpListener Listener;
+        private TcpListener? Listener;
         private HttpProcessor Processor;
         private bool IsActive = true;
 
@@ -32,6 +33,7 @@ namespace HTTPServer
         {
             Listener = new TcpListener(IPAddress.Any, Port);
             Listener.Start();
+            LoggerAccessor.LogInfo($"HTTP Server initiated on port: {Port}...");
             while (IsActive)
             {
                 try
@@ -47,7 +49,7 @@ namespace HTTPServer
                 }
                 catch (Exception ex)
                 {
-                    CustomLogger.LoggerAccessor.LogError($"[HTTP] - Listen thrown an exception : {ex}");
+                    LoggerAccessor.LogError($"[HTTP] - Listen thrown an exception : {ex}");
                 }
             }
         }

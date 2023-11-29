@@ -1,10 +1,12 @@
-﻿using CustomLogger;
+using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
+using SRVEmu;
 
-public static class DIRTYSOCKSServerConfiguration
+public static class SRVEMUServerConfiguration
 {
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ea.db.json";
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -17,7 +19,7 @@ public static class DIRTYSOCKSServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the dirtysocks.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the srvemu.json file, using server's default.");
             return;
         }
 
@@ -30,10 +32,11 @@ public static class DIRTYSOCKSServerConfiguration
             dynamic config = JObject.Parse(json);
 
             HTTPSCertificateFile = config.certificate_file;
+            DatabaseConfig = config.database;
         }
         catch (Exception)
         {
-            LoggerAccessor.LogWarn("dirtysocks.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn("srvemu.json file is malformed, using server's default.");
         }
     }
 }
@@ -50,7 +53,7 @@ class Program
             // Your task logic goes here
             LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
 
-            DIRTYSOCKSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dirtysocks.json");
+            SRVEMUServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
         }
     }
 
@@ -59,11 +62,15 @@ class Program
         if (!CryptoSporidium.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-        LoggerAccessor.SetupLogger("DirtySocks");
+        LoggerAccessor.SetupLogger("SRVEmu");
 
-        DIRTYSOCKSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dirtysocks.json");
+        SRVEMUServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(DIRTYSOCKSServerConfiguration.HTTPSCertificateFile);
+        CryptoSporidium.SSLUtils.InitCerts(SRVEMUServerConfiguration.HTTPSCertificateFile);
+
+        SRVEmuServer server = new();
+
+        _ = Task.Run(server.Run);
 
         _ = Task.Run(RefreshConfig);
 

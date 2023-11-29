@@ -105,7 +105,7 @@ namespace HTTPSecureServerLite
                 string directoryPath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                 // Process the request based on the HTTP method
-                string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath.Substring(1));
+                string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath[1..]);
 
                 if (ctx.Request.Method.ToString() == "OPTIONS")
                 {

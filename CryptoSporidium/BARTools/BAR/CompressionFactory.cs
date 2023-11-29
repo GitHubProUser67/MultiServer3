@@ -2,18 +2,6 @@ namespace CryptoSporidium.BARTools.BAR
 {
     public static class CompressionFactory
     {
-        public static CompressionBase CryptoImplementation
-        {
-            get
-            {
-                return _cryptoImplentation;
-            }
-            set
-            {
-                _cryptoImplentation = value;
-            }
-        }
-
         public static CompressionBase? Create(CompressionMethod method, ArchiveFlags flags)
         {
             CompressionBase? result = null;
@@ -35,7 +23,7 @@ namespace CryptoSporidium.BARTools.BAR
 
         public static byte[]? Compress(byte[] inData, CompressionMethod method, ArchiveFlags flags)
         {
-            CompressionBase compressionBase = Create(method, flags);
+            CompressionBase? compressionBase = Create(method, flags);
             if (compressionBase != null)
                 return compressionBase.Compress(inData);
             return null;
@@ -43,7 +31,7 @@ namespace CryptoSporidium.BARTools.BAR
 
         public static byte[]? Decompress(byte[] inData, CompressionMethod method, ArchiveFlags flags)
         {
-            CompressionBase compressionBase = Create(method, flags);
+            CompressionBase? compressionBase = Create(method, flags);
             if (compressionBase != null)
                 return compressionBase.Decompress(inData);
             return null;
@@ -51,7 +39,7 @@ namespace CryptoSporidium.BARTools.BAR
 
         public static byte[]? Decompress(TOCEntry te, CompressionMethod method, ArchiveFlags flags)
         {
-            CompressionBase compressionBase = Create(method, flags);
+            CompressionBase? compressionBase = Create(method, flags);
             if (compressionBase == null)
                 return null;
             if (method == CompressionMethod.Encrypted)
@@ -61,12 +49,10 @@ namespace CryptoSporidium.BARTools.BAR
 
         public static byte[]? Compress(TOCEntry te, CompressionMethod method, ArchiveFlags flags)
         {
-            CompressionBase compressionBase = Create(method, flags);
+            CompressionBase? compressionBase = Create(method, flags);
             if (compressionBase != null)
                 return compressionBase.Compress(te);
             return null;
         }
-
-        private static CompressionBase? _cryptoImplentation;
     }
 }
