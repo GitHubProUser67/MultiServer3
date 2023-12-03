@@ -13,7 +13,14 @@
                 {
                     ScoreBoardData.UpdateTime(user, time);
 
-                    ScoreBoardData.UpdateScoreboardXml(); // We finalized edit, so we issue a write.
+                    try
+                    {
+                        ScoreBoardData.UpdateScoreboardXml(); // We finalized edit, so we issue a write.
+                    }
+                    catch (Exception)
+                    {
+                        // Not Important
+                    }
 
                     return string.Empty;
                 }

@@ -31,6 +31,8 @@ namespace GraphicalUserInterface
                 e.Cancel = true;
             else
             {
+                Console.SetOut(TextWriter.Null); // Avoids a race-condition when stalling apps try to write the info to the disposed richtextbox.
+
                 try
                 {
                     if (!string.IsNullOrEmpty(httpsguid))

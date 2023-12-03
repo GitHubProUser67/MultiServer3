@@ -94,6 +94,12 @@ class Program
 
         server.StartServer();
 
+        // Timer for scheduled updates every 24 hours
+        Timer timer = new(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+
+        // Timer for scheduled updates every 24 hours
+        Timer timer1 = new(HTTPSecureServerLite.API.VEEMEE.gofish.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+
         _ = Task.Run(RefreshConfig);
 
         if (CryptoSporidium.MiscUtils.IsWindows())

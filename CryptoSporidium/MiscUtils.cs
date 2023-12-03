@@ -254,22 +254,6 @@ namespace CryptoSporidium
             }
         }
 
-        public byte[]? CopyBytes(byte[] source, uint size)
-        {
-            if (source == null)
-                return null;
-
-            if (size > source.Length)
-            {
-                LoggerAccessor.LogError($"Size exceeds the length of the source array | SRC -> {source.Length} | DST -> {size}.");
-                return null;
-            }
-
-            byte[] result = new byte[size];
-            Array.Copy(source, result, (int)size);
-            return result;
-        }
-
         public byte[] TrimArray(byte[] arr)
         {
             int i = arr.Length - 1;
@@ -294,19 +278,6 @@ namespace CryptoSporidium
                 Array.Copy(byteArray, index, trimmedArray, 0, trimmedArray.Length);
                 return trimmedArray;
             }
-        }
-
-        public byte[]? TrimBytes(byte[] source, uint size)
-        {
-            if (source == null)
-                return null;
-
-            if (size >= source.Length)
-                return new byte[0]; // Return an empty array if size is greater than or equal to the source length.
-
-            byte[] result = new byte[source.Length - size];
-            Array.Copy(source, size, result, 0, result.Length);
-            return result;
         }
 
         public string TrimString(byte[] str)

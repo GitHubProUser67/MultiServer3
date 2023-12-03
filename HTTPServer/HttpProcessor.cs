@@ -288,6 +288,18 @@ namespace HTTPServer
                                                                 else
                                                                     response = HttpBuilder.InternalServerError(); // We are vague on the status code.
                                                                 break;
+                                                            case "/!HomeTools/TicketList/":
+                                                                if (IsIPAllowed(clientip))
+                                                                {
+                                                                    var ticketlistres = HomeTools.TicketList(request.getDataStream, request.GetContentType());
+                                                                    if (ticketlistres != null)
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(ticketlistres.Value.Item1, ticketlistres.Value.Item2);
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError();
+                                                                }
+                                                                else
+                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                break;
                                                             case "/!HomeTools/INF/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
@@ -452,10 +464,10 @@ namespace HTTPServer
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
 
                         if (!response.Headers.ContainsKey("Content-Type"))
-                            response.Headers["Content-Type"] = "text/plain";
+                            response.Headers.Add("Content-Type", "text/plain");
 
                         if (!response.Headers.ContainsKey("Content-Length"))
-                            response.Headers["Content-Length"] = response.ContentStream.Length.ToString();
+                            response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
 
                         if (response.HttpStatusCode == Models.HttpStatusCode.Ok)
                         {

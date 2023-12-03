@@ -641,6 +641,113 @@ namespace CryptoSporidium.WebAPIs
             return output;
         }
 
+        public static (byte[]?, string)? TicketList(Stream? PostData, string? ContentType)
+        {
+            (byte[]?, string)? output = null;
+
+            if (PostData != null && !string.IsNullOrEmpty(ContentType))
+            {
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/TicketList_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                Directory.CreateDirectory(maindir);
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new())
+                    {
+                        PostData.CopyTo(ms);
+                        ms.Position = 0;
+                        int i = 0;
+                        string filename = string.Empty;
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        string version1 = string.Empty;
+                        try
+                        {
+                            version1 = data.GetParameterValue("version1");
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        foreach (var multipartfile in data.Files)
+                        {
+                            using (Stream filedata = multipartfile.Data)
+                            {
+                                filedata.Position = 0;
+
+                                // Find the number of bytes in the stream
+                                int contentLength = (int)filedata.Length;
+
+                                // Create a byte array
+                                byte[] buffer = new byte[contentLength];
+
+                                // Read the contents of the memory stream into the byte array
+                                filedata.Read(buffer, 0, contentLength);
+
+                                filename = multipartfile.FileName;
+
+                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
+
+                                string tempdir = $"{maindir}/{guid}";
+
+                                Directory.CreateDirectory(tempdir);
+
+                                if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
+                                     && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x01 && version1 == "on")
+                                {
+                                    byte[]? ProcessedFileBytes = new byte[buffer.Length - 8];
+                                    Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
+                                    ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV1Process(ProcessedFileBytes);
+
+                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
+
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
+                                }
+                                else if (version1 == "on")
+                                {
+                                    byte[] ProcessedFileBytes = new MiscUtils().Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer));
+
+                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
+
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.lst"), $"{filename}_Encrypted.lst");
+                                }
+                                else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
+                                    && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
+                                {
+                                    byte[]? ProcessedFileBytes = new byte[buffer.Length - 8];
+                                    Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
+                                    ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV0Process(ProcessedFileBytes);
+
+                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
+
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
+                                }
+                                else
+                                {
+                                    byte[] ProcessedFileBytes = new MiscUtils().Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer));
+
+                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
+
+                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.lst"), $"{filename}_Encrypted.lst");
+                                }
+
+                                if (Directory.Exists(tempdir))
+                                    Directory.Delete(tempdir, true);
+
+                                i++;
+                                filedata.Flush();
+                            }
+                        }
+                        ms.Flush();
+                    }
+                }
+
+                if (Directory.Exists(maindir))
+                    Directory.Delete(maindir, true);
+            }
+
+            return output;
+        }
+
         public static (byte[]?, string)? INF(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;

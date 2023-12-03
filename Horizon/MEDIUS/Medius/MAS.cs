@@ -2327,7 +2327,30 @@ namespace Horizon.MEDIUS.Medius
             {
                 #region PS Home PS3
                 //If PS Home don't GetOrCreateDefaultLobbyChannel, Home creates their own channels
-                if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                if (data.ClientObject.ApplicationId == 20371 ||
+                    data.ClientObject.ApplicationId == 20374 ||
+                    data.ClientObject.ApplicationId == 50041 ||
+                    data.ClientObject.ApplicationId == 50083 ||
+                    data.ClientObject.ApplicationId == 50089 ||
+                    data.ClientObject.ApplicationId == 50097 ||
+                    data.ClientObject.ApplicationId == 50098 ||
+                    data.ClientObject.ApplicationId == 50100 ||
+                    data.ClientObject.ApplicationId == 50121 ||
+                    data.ClientObject.ApplicationId == 50130 ||
+                    data.ClientObject.ApplicationId == 50132 ||
+                    data.ClientObject.ApplicationId == 50135 ||
+                    data.ClientObject.ApplicationId == 50141 ||
+                    data.ClientObject.ApplicationId == 50160 ||
+                    data.ClientObject.ApplicationId == 50161 ||
+                    data.ClientObject.ApplicationId == 50162 ||
+                    data.ClientObject.ApplicationId == 50165 ||
+                    data.ClientObject.ApplicationId == 50170 ||
+                    data.ClientObject.ApplicationId == 50175 ||
+                    data.ClientObject.ApplicationId == 50180 ||
+                    data.ClientObject.ApplicationId == 50182 ||
+                    data.ClientObject.ApplicationId == 50183 ||
+                    data.ClientObject.ApplicationId == 50185 ||
+                    data.ClientObject.ApplicationId == 50186)
                 {
                     data.ClientObject.Queue(new MediusTicketLoginResponse()
                     {

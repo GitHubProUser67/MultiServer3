@@ -88,6 +88,8 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public static byte[] MetaDataV1IV = new byte[] { 0x2a, 0xa7, 0xcb, 0x49, 0x9f, 0xa1, 0xbd, 0x81 };
 
+        public static byte[] TicketListV0IV = new byte[] { 0x30, 0x4B, 0x10, 0x3D, 0x46, 0x77, 0xAD, 0x84 };
+
         public static byte[] TicketListV1IV = new byte[] { 0xc7, 0x96, 0x79, 0xe5, 0x79, 0x99, 0x9f, 0xbf };
 
         public static void fail(string a)
@@ -133,9 +135,7 @@ namespace CryptoSporidium.BARTools.UnBAR
             BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
             byte[] src1 = ConversionUtils.reverseByteWithSizeFIX(bigInteger2.ToByteArray());
             if (src1.Length >= 16)
-            {
                 ConversionUtils.arraycopy(src1, src1.Length - 16, K1, 0L, 16);
-            }
             else
             {
                 ConversionUtils.arraycopy(numArray1, 0, K1, 0L, numArray1.Length);
@@ -144,9 +144,7 @@ namespace CryptoSporidium.BARTools.UnBAR
             bigInteger2 = new BigInteger(ConversionUtils.reverseByteWithSizeFIX(K1));
             byte[] src2 = ConversionUtils.reverseByteWithSizeFIX(((K1[0] & 128) == 0 ? bigInteger2 << 1 : bigInteger2 << 1 ^ new BigInteger(135)).ToByteArray());
             if (src2.Length >= 16)
-            {
                 ConversionUtils.arraycopy(src2, src2.Length - 16, K2, 0L, 16);
-            }
             else
             {
                 ConversionUtils.arraycopy(numArray1, 0, K2, 0L, numArray1.Length);
@@ -168,8 +166,8 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public byte[] ICSharpEdgeCompress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream(inData.Length);
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new(inData.Length);
+            MemoryStream memoryStream2 = new(inData);
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
@@ -185,9 +183,9 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         private byte[] ICSharpEdgeCompressChunk(byte[] InData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            Deflater deflater = new Deflater(9, true);
-            DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(memoryStream, deflater);
+            MemoryStream memoryStream = new();
+            Deflater deflater = new(9, true);
+            DeflaterOutputStream deflaterOutputStream = new(memoryStream, deflater);
             deflaterOutputStream.Write(InData, 0, InData.Length);
             deflaterOutputStream.Close();
             memoryStream.Close();
@@ -210,8 +208,8 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public byte[]? ICSharpEdgeZlibDecompress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new();
+            MemoryStream memoryStream2 = new(inData);
             byte[] array = new byte[ChunkHeader.SizeOf];
             while (memoryStream2.Position < memoryStream2.Length)
             {
@@ -233,10 +231,10 @@ namespace CryptoSporidium.BARTools.UnBAR
         {
             if (header.CompressedSize == header.SourceSize)
                 return inData;
-            MemoryStream baseInputStream = new MemoryStream(inData);
-            Inflater inf = new Inflater(true);
-            InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, inf);
-            MemoryStream memoryStream = new MemoryStream();
+            MemoryStream baseInputStream = new(inData);
+            Inflater inf = new(true);
+            InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+            MemoryStream memoryStream = new();
             byte[] array = new byte[4096];
             for (; ; )
             {
@@ -251,8 +249,8 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public byte[]? ComponentAceEdgeZlibDecompress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new();
+            MemoryStream memoryStream2 = new(inData);
             byte[] array = new byte[ChunkHeader.SizeOf];
             while (memoryStream2.Position < memoryStream2.Length)
             {
@@ -274,8 +272,8 @@ namespace CryptoSporidium.BARTools.UnBAR
         {
             if (header.CompressedSize == header.SourceSize)
                 return inData;
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, true);
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, true);
             byte[] array = new byte[inData.Length];
             Array.Copy(inData, 0, array, 0, inData.Length);
             zoutputStream.Write(array, 0, array.Length);
@@ -286,8 +284,8 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public byte[]? ComponentAceEdgeZlibCompress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream(inData.Length);
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new(inData.Length);
+            MemoryStream memoryStream2 = new(inData);
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
@@ -303,8 +301,8 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         private byte[] ComponentAceCompressEdgeZlibChunk(byte[] InData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, true);
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, 9, true);
             zoutputStream.Write(InData, 0, InData.Length);
             zoutputStream.Close();
             memoryStream.Close();
@@ -329,9 +327,7 @@ namespace CryptoSporidium.BARTools.UnBAR
         {
             int inputLength = inputArray.Length;
             int inputIndex = 0;
-            int blockSize = 8;
             int outputIndex = 0;
-            int executionNumber = 0;
             byte[]? output = new byte[inputLength];
             SemaphoreSlim semaphore = new(1);
             ToolsImpl? toolsimpl = new();
@@ -339,12 +335,11 @@ namespace CryptoSporidium.BARTools.UnBAR
 
             while (inputIndex < inputLength)
             {
-                blockSize = Math.Min(8, inputLength - inputIndex);
+                int blockSize = Math.Min(8, inputLength - inputIndex);
                 byte[] block = new byte[blockSize];
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                int currentExecutionNumber = executionNumber;
 
-                var tcs = new TaskCompletionSource<byte[]>();
+                TaskCompletionSource<byte[]> tcs = new();
 
                 await Task.Run(() =>
                 {
@@ -361,7 +356,6 @@ namespace CryptoSporidium.BARTools.UnBAR
                 semaphore.Release();
 
                 inputIndex += blockSize;
-                executionNumber++;
             }
 
             semaphore.Dispose();

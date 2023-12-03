@@ -110,9 +110,6 @@ class Program
 
         QAthread.Start();
 
-        // Timer for scheduled updates every 5 minutes
-        Timer timer = new(HTTPServer.API.JUGGERNAUT.clearasil.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
-
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
             foreach (var plugin in HTTPServerConfiguration.plugins)

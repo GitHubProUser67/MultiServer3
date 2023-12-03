@@ -12,7 +12,7 @@ namespace Horizon.HTTPSERVICE
 {
     public class HttpClass
     {
-        public static bool httpstarted = false;
+        public static bool crudstarted = false;
 
         public static async Task RunServerAsync(int port, bool https = false)
         {
@@ -40,7 +40,6 @@ namespace Horizon.HTTPSERVICE
                             pipeline.AddLast(TlsHandler.Server(tlsCertificate));
                         pipeline.AddLast("encoder", new HttpResponseEncoder());
                         pipeline.AddLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-                        pipeline.AddLast("aggregator", new HttpObjectAggregator(1048576));
                         pipeline.AddLast("handler", new CrudServerHandler());
                     }));
 
@@ -48,11 +47,11 @@ namespace Horizon.HTTPSERVICE
 
                 bootstrapChannel = await bootstrap.BindAsync(IPAddress.Any, port);
 
-                httpstarted = true;
+                crudstarted = true;
 
                 CustomLogger.LoggerAccessor.LogInfo($"[HTTPSERVICE] - Server Listening on {bootstrapChannel.LocalAddress}");
 
-                while (httpstarted)
+                while (crudstarted)
                 {
 
                 }

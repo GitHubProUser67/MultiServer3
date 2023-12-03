@@ -8,7 +8,7 @@ namespace CryptoSporidium.Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.SetGameListFilter;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         public MediusGameListFilterField FilterField;
         public int Mask;
@@ -17,13 +17,10 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             reader.ReadBytes(3);
             FilterField = reader.Read<MediusGameListFilterField>();
             Mask = reader.ReadInt32();
@@ -33,13 +30,10 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(FilterField);
             writer.Write(Mask);

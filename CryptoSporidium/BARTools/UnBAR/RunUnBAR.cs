@@ -66,9 +66,9 @@ namespace CryptoSporidium.BARTools.UnBAR
                 try
                 {
                     RawBarData = File.ReadAllBytes(filePath);
-                    byte[] Magic = new byte[] { 0xAD, 0xEF, 0x17, 0xE1 };
+                    byte[] BigEndianMagic = new byte[] { 0xAD, 0xEF, 0x17, 0xE1 };
                     // Check if the first 8 bytes match the specified pattern
-                    byte[] pattern = utils.Combinebytearay(Magic, new byte[] { 0x02, 0x00, 0x00, 0x00 });
+                    byte[] pattern = utils.Combinebytearay(BigEndianMagic, new byte[] { 0x02, 0x00, 0x00, 0x00 });
                     for (int i = 0; i < 8; i++)
                     {
                         if (RawBarData[i] != pattern[i])
@@ -77,45 +77,55 @@ namespace CryptoSporidium.BARTools.UnBAR
                             break;
                         }
                     }
-                    if (isSharc)
+                    if (isSharc && RawBarData.Length > 52)
                     {
                         AESCTR256EncryptDecrypt? aes256 = new();
                         ToolsImpl? toolsImpl = new();
 
                         try
                         {
-                            byte[]? HeaderIV = ExtractSHARCHeaderIV(RawBarData);
+                            byte[]? HeaderIV = new byte[16];
+
+                            Buffer.BlockCopy(RawBarData, 8, HeaderIV, 0, HeaderIV.Length);
 
                             if (HeaderIV != null)
                             {
-                                byte[] DecryptedHeader = aes256.InitiateCTRBuffer(ExtractEncryptedSharcHeaderData(RawBarData),
+                                byte[] SharcHeader = new byte[28];
+
+                                Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
+
+                                SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
                                  Convert.FromBase64String(options), HeaderIV);
 
-                                if (DecryptedHeader != Array.Empty<byte>())
+                                if (SharcHeader != Array.Empty<byte>())
                                 {
-                                    byte[] OriginalIV = new byte[HeaderIV.Length];
-
-                                    Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
-
-                                    toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
-
-                                    byte[]? NumOfFiles = ExtractNumOfFiles(DecryptedHeader);
+                                    byte[]? NumOfFiles = ExtractNumOfFilesBigEndian(SharcHeader);
 
                                     if (NumOfFiles != null)
                                     {
-                                        uint TOCSize = 24 * BitConverter.ToUInt32(NumOfFiles, 0);
+                                        byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
 
-                                        byte[]? EncryptedTOC = utils.CopyBytes(utils.TrimStart(RawBarData, 52), TOCSize);
+                                        Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
 
-                                        if (EncryptedTOC != null)
+                                        if (SharcTOC != null)
                                         {
-                                            byte[] DecryptedTOC = aes256.InitiateCTRBuffer(utils.CopyBytes(utils.TrimStart(RawBarData, 52), TOCSize), Convert.FromBase64String(options), HeaderIV);
+                                            byte[] OriginalIV = new byte[HeaderIV.Length];
 
-                                            if (DecryptedTOC != Array.Empty<byte>())
+                                            Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
+
+                                            toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+
+                                            SharcTOC = aes256.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
+
+                                            if (SharcTOC != Array.Empty<byte>())
                                             {
+                                                byte[] SharcData = new byte[RawBarData.Length - (52 + SharcTOC.Length)];
+
+                                                Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
+
                                                 byte[] FileBytes = utils.Combinebytearay(pattern,
-                                                utils.Combinebytearay(OriginalIV, utils.Combinebytearay(DecryptedHeader,
-                                                utils.Combinebytearay(DecryptedTOC, utils.TrimBytes(utils.TrimStart(RawBarData, 52), TOCSize)))));
+                                                utils.Combinebytearay(OriginalIV, utils.Combinebytearay(SharcHeader,
+                                                utils.Combinebytearay(SharcTOC, SharcData))));
 
                                                 Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
@@ -141,10 +151,10 @@ namespace CryptoSporidium.BARTools.UnBAR
                     }
                     else
                     {
-                        Magic = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(Magic, 4);
+                        BigEndianMagic = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(BigEndianMagic, 4);
                         for (int i = 0; i < 4; i++)
                         {
-                            if (RawBarData[i] != Magic[i])
+                            if (RawBarData[i] != BigEndianMagic[i])
                                 return; // File not a bar, we return.
                         }
 
@@ -172,7 +182,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                     archive.WriteMap(filePath);
 
                     // Create a list to hold the tasks
-                    List<Task>? TOCTasks = new List<Task>();
+                    List<Task>? TOCTasks = new();
 
                     foreach (TOCEntry tableOfContent in archive.TableOfContents)
                     {
@@ -482,39 +492,7 @@ namespace CryptoSporidium.BARTools.UnBAR
             toolsImpl = null;
         }
 
-        public static byte[]? ExtractSHARCHeaderIV(byte[] input)
-        {
-            // Check if the input has at least 24 bytes (8 for the pattern and 16 to copy)
-            if (input == null || input.Length < 24)
-            {
-                LoggerAccessor.LogError("[ExtractSHARCHeaderIV] - Input byte array must have at least 24 bytes.");
-                return null;
-            }
-
-            // Copy the next 16 bytes to a new array
-            byte[] copiedBytes = new byte[16];
-            Array.Copy(input, 8, copiedBytes, 0, copiedBytes.Length);
-
-            return copiedBytes;
-        }
-
-        public static byte[]? ExtractEncryptedSharcHeaderData(byte[] input)
-        {
-            // Check if the input has at least 52 bytes (8 for the pattern and 16 for the Header IV, and 28 for the Header)
-            if (input == null || input.Length < 52)
-            {
-                LoggerAccessor.LogError("[ExtractEncryptedSharcHeaderData] - Input byte array must have at least 52 bytes.");
-                return null;
-            }
-
-            // Copy the next 28 bytes to a new array
-            byte[] copiedBytes = new byte[28];
-            Array.Copy(input, 24, copiedBytes, 0, copiedBytes.Length);
-
-            return copiedBytes;
-        }
-
-        public static byte[]? ExtractNumOfFiles(byte[] input)
+        public static byte[]? ExtractNumOfFilesBigEndian(byte[] input)
         {
             if (input == null || input.Length < 20)
             {

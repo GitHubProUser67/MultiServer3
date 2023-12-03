@@ -192,14 +192,14 @@ namespace HTTPSecureServerLite
                         }
                     }
                 }
-                else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.ToLower().EndsWith(".php"))
+                else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a VEEMEE method : {absolutepath}");
 
                     API.VEEMEE.VEEMEEClass veemee = new(ctx.Request.Method.ToString(), absolutepath); // Todo, loss of GET informations.
-                    string? res = veemee.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    var res = veemee.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     veemee.Dispose();
-                    if (string.IsNullOrEmpty(res))
+                    if (string.IsNullOrEmpty(res.Item1))
                         statusCode = HttpStatusCode.InternalServerError;
                     else
                     {
@@ -209,10 +209,13 @@ namespace HTTPSecureServerLite
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
-                    ctx.Response.ContentType = "text/plain";
-                    await ctx.Response.SendAsync(res);
+                    if (!string.IsNullOrEmpty(res.Item2))
+                        ctx.Response.ContentType = res.Item2;
+                    else
+                        ctx.Response.ContentType = "text/plain";
+                    await ctx.Response.SendAsync(res.Item1);
                 }
-                else if (Host == "game2.hellfiregames.com" && absolutepath.ToLower().EndsWith(".php"))
+                else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a HELLFIRE method : {absolutepath}");
 
@@ -532,6 +535,37 @@ namespace HTTPSecureServerLite
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
                                             await ctx.Response.SendAsync(cdsres.Value.Item1);
+                                        }
+                                        else // We are vague on the status code.
+                                        {
+                                            statusCode = HttpStatusCode.InternalServerError;
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = "text/plain";
+                                            ctx.Response.Send(true);
+                                        }
+                                    }
+                                    else // We are vague on the status code.
+                                    {
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        ctx.Response.Send(true);
+                                    }
+                                    break;
+                                case "/!HomeTools/TicketList/":
+                                    if (IsIPAllowed(clientip))
+                                    {
+                                        var ticketlistres = HomeTools.TicketList(ctx.Request.Data, ctx.Request.ContentType);
+                                        if (ticketlistres != null)
+                                        {
+                                            statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
+                                            ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={ticketlistres.Value.Item2}");
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            await ctx.Response.SendAsync(ticketlistres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {

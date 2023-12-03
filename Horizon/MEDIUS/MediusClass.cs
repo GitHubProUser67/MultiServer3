@@ -13,6 +13,7 @@ using CryptoSporidium.Horizon.LIBRARY.libAntiCheat;
 using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
 using CryptoSporidium;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.MEDIUS
 {
@@ -130,7 +131,7 @@ namespace Horizon.MEDIUS
                 // tick
                 await TickAsync();
 
-                await Task.Delay(1000 / 10);
+                await Task.Delay(100);
             }
 
             await AuthenticationServer.Stop();
@@ -570,6 +571,8 @@ namespace Horizon.MEDIUS
                                 // and there might be new setting fields that aren't yet on the db
                                 await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                             }
+
+                            CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                         }
                     }
                 }

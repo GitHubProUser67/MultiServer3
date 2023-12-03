@@ -6,9 +6,9 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
     {
         public class ScoreboardEntry
         {
-            public string? Name { get; set; }
-            public int Score { get; set; }
-            public string? Time { get; set; }
+            public string? name { get; set; }
+            public int score { get; set; }
+            public string? time { get; set; }
         }
 
         private static List<ScoreboardEntry> scoreboard = new();
@@ -16,23 +16,23 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
         public static void UpdateScore(string name, int newScore)
         {
             // Check if the player already exists in the scoreboard
-            var existingEntry = scoreboard.Find(e => e.Name!= null && e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            var existingEntry = scoreboard.Find(e => e.name!= null && e.name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             if (existingEntry != null)
             {
                 // If the new score is higher, update the existing entry
-                if (newScore > existingEntry.Score)
-                    existingEntry.Score = newScore;
+                if (newScore > existingEntry.score)
+                    existingEntry.score = newScore;
             }
             else
             {
                 // If the player is not in the scoreboard, add a new entry
                 if (scoreboard.Count < 20)
-                    scoreboard.Add(new ScoreboardEntry { Name = name, Score = newScore });
+                    scoreboard.Add(new ScoreboardEntry { name = name, score = newScore });
             }
 
             // Sort the scoreboard by score in descending order
-            scoreboard.Sort((a, b) => b.Score.CompareTo(a.Score));
+            scoreboard.Sort((a, b) => b.score.CompareTo(a.score));
 
             // Trim the scoreboard to the top 20 entries
             if (scoreboard.Count > 20)
@@ -41,10 +41,10 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
 
         public static void UpdateTime(string name, string newTime)
         {
-            var existingEntry = scoreboard.Find(e => e.Name != null && e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            var existingEntry = scoreboard.Find(e => e.name != null && e.name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             if (existingEntry != null)
-                existingEntry.Time = newTime;
+                existingEntry.time = newTime;
         }
 
         public static string ConvertScoreboardToXml()
@@ -54,9 +54,9 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
             foreach (var entry in scoreboard)
             {
                 XElement xmlEntry = new("entry",
-                    new XElement("user", entry.Name ?? "Default"),
-                    new XElement("score", entry.Score),
-                    new XElement("time", entry.Time ?? "000"));
+                    new XElement("user", entry.name ?? "Voodooperson05"),
+                    new XElement("score", entry.score),
+                    new XElement("time", entry.time ?? "000"));
 
                 xmlScoreboard.Add(xmlEntry);
             }
@@ -68,12 +68,6 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
         {
             Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil");
             File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/scoreboard.xml", ConvertScoreboardToXml());
-            CustomLogger.LoggerAccessor.LogDebug("[JUGGERNAUT] - Clearasil scoreboard XML updated.");
-        }
-
-        public static void ScheduledUpdate(object state)
-        {
-            UpdateScoreboardXml();
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Horizon.HTTPSERVICE
 
         public override void ChannelRead(IChannelHandlerContext ctx, object message)
         {
-            if (message is IFullHttpRequest request)
+            if (message is IHttpRequest request)
             {
                 try
                 {
@@ -52,14 +52,14 @@ namespace Horizon.HTTPSERVICE
                 ctx.FireChannelRead(message);
         }
 
-        private void Process(IChannelHandlerContext ctx, IFullHttpRequest request)
+        private void Process(IChannelHandlerContext ctx, IHttpRequest request)
         {
             LoggerAccessor.LogInfo($"[Crud_Room_Manager] - Client - {ctx.Channel.RemoteAddress} Requested the HTTP/S Server with URL : {request.Uri}");
 
             switch (request.Uri)
             {
                 case "/GetRooms/":
-                    byte[] json = Encoding.UTF8.GetBytes(MEDIUS.CrudRoomManager.ToJson());
+                    byte[] json = Encoding.UTF8.GetBytes(CrudRoomManager.ToJson());
                     WriteResponse(ctx, Unpooled.WrappedBuffer(json), TypeJson, AsciiString.Cached($"{json.Length}"));
                     break;
                 case "/favicon.ico":

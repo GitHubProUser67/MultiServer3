@@ -13,6 +13,15 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(score))
                 {
+                    try
+                    {
+                        ScoreBoardData.UpdateScore(user, int.Parse(score));
+                    }
+                    catch (Exception)
+                    {
+                        // Not Important
+                    }
+
                     Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access");
 
                     if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access/{user}.xml"))
@@ -40,15 +49,6 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
 
                             File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access/{user}.xml", xmlDoc.OuterXml);
                         }
-                    }
-
-                    try
-                    {
-                        ScoreBoardData.UpdateScore(user, int.Parse(score));
-                    }
-                    catch (Exception)
-                    {
-                        // Not Important
                     }
 
                     return string.Empty;

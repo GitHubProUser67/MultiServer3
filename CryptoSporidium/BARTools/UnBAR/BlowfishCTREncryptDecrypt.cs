@@ -29,6 +29,54 @@ namespace CryptoSporidium.BARTools.UnBAR
             }
         }
 
+        public byte[]? TicketListV0Process(byte[]? TicketData)
+        {
+            if (TicketData != null)
+            {
+                // Create the cipher
+                IBufferedCipher? cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
+
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(ToolsImpl.TicketListV0Key), ToolsImpl.TicketListV0IV));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(TicketData.Length)];
+                int ciphertextLength = cipher.ProcessBytes(TicketData, 0, TicketData.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                cipher = null;
+
+                return ciphertextBytes;
+            }
+            else
+                LoggerAccessor.LogError("[BlowfishCTREncryptDecrypt] - InitiateCTRBuffer, Invalid Data and/or IV!");
+
+            return null;
+        }
+
+        public byte[]? TicketListV1Process(byte[]? TicketData)
+        {
+            if (TicketData != null)
+            {
+                // Create the cipher
+                IBufferedCipher? cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
+
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(ToolsImpl.TicketListV1Key), ToolsImpl.TicketListV1IV));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(TicketData.Length)];
+                int ciphertextLength = cipher.ProcessBytes(TicketData, 0, TicketData.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                cipher = null;
+
+                return ciphertextBytes;
+            }
+            else
+                LoggerAccessor.LogError("[BlowfishCTREncryptDecrypt] - InitiateCTRBuffer, Invalid Data and/or IV!");
+
+            return null;
+        }
+
         public byte[]? EncryptionProxyInit(byte[]? Headerdata, byte[]? SignatureIV)
         {
             if (SignatureIV != null && SignatureIV.Length == 8 && Headerdata != null && Headerdata.Length == 24)

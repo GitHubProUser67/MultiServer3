@@ -28,6 +28,10 @@ namespace CryptoSporidium.Horizon.RT.Models
         /// </summary>
         public int TargetAccountID;
         /// <summary>
+        /// /// MessageSize of Game Developer binary message
+        /// </summary>
+        public int MessageSize;
+        /// <summary>
         /// Game Developer binary message
         /// </summary>
         public byte[] Message = new byte[Constants.BINARYMESSAGE_MAXLEN];
@@ -39,11 +43,11 @@ namespace CryptoSporidium.Horizon.RT.Models
             MessageID = reader.Read<MessageId>();
 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            //reader.ReadBytes(2);
             MessageType = reader.Read<MediusBinaryMessageType>();
             TargetAccountID = reader.ReadInt32();
 
-            Message = reader.ReadBytes(Constants.BINARYMESSAGE_MAXLEN);
+            MessageSize = reader.ReadInt32();
+            Message = reader.ReadBytes(MessageSize);
         }
 
         public override void Serialize(MessageWriter writer)
@@ -53,12 +57,11 @@ namespace CryptoSporidium.Horizon.RT.Models
             writer.Write(MessageID ?? MessageId.Empty);
 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
-            //writer.Write(new byte[2]);
             writer.Write(MessageType);
             writer.Write(TargetAccountID);
-            writer.Write(Message, Constants.BINARYMESSAGE_MAXLEN);
+            writer.Write(MessageSize);
+            writer.Write(Message, MessageSize);
         }
-
 
         public override string ToString()
         {
@@ -67,7 +70,8 @@ namespace CryptoSporidium.Horizon.RT.Models
                 $"SessionKey:{SessionKey} " +
                 $"MessageType:{MessageType} " +
                 $"TargetAccountID:{TargetAccountID} " +
-                $"Message:{BitConverter.ToString(Message)}";
+                $"MessageSize: {MessageSize} " +
+                $"Message:{string.Join("", BitConverter.ToString(Message))}";
         }
     }
 }

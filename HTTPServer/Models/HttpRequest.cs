@@ -71,9 +71,26 @@ namespace HTTPServer.Models
             get
             {
                 if (Url != null)
-                    return Url[(Url.IndexOf("?") + 1)..].Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
-                else
-                    return null;
+                {
+                    string queryString = Url[(Url.IndexOf("?") + 1)..];
+                    string[] parameters = queryString.Split('&');
+
+                    var parameterDictionary = new Dictionary<string, string>();
+
+                    foreach (var parameter in parameters)
+                    {
+                        string[] keyValue = parameter.Split('=');
+
+                        if (keyValue.Length == 2)
+                            parameterDictionary[keyValue[0]] = keyValue[1];
+                        else
+                            parameterDictionary[keyValue[0]] = string.Empty;
+                    }
+
+                    return parameterDictionary;
+                }
+
+                return null;
             }
         }
 

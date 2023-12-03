@@ -1,4 +1,7 @@
-﻿using System.IO.Compression;
+﻿using System.Collections.Specialized;
+using System.IO.Compression;
+using System.Text;
+using System.Web;
 
 namespace CryptoSporidium
 {
@@ -686,6 +689,22 @@ namespace CryptoSporidium
             }
 
             return null;
+        }
+
+        public static Dictionary<string, string> ExtractAndSortUrlEncodedPOSTData(byte[] urlEncodedDataByte)
+        {
+            // Use HttpUtility.ParseQueryString to parse the URL-encoded data
+            NameValueCollection formData = HttpUtility.ParseQueryString(Encoding.UTF8.GetString(urlEncodedDataByte));
+
+            // Convert the NameValueCollection to a dictionary for easy sorting
+            var formDataDictionary = new Dictionary<string, string>();
+            foreach (string? key in formData.AllKeys)
+            {
+                if (key != null)
+                    formDataDictionary[key] = formData[key] ?? string.Empty;
+            }
+
+            return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key));
         }
 
         public static string RemoveQueryString(string input)

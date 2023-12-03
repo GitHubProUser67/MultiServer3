@@ -430,27 +430,50 @@ namespace Horizon.DME
                         var world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
                         if (world == null)
                         {
-                            if (ApplicationId == 20371)
+                            switch (ApplicationId)
                             {
-                                World worldHome = new(this, 20371, 256);
-                                _worlds.Add(worldHome);
+                                case 20371:
+                                case 20374:
+                                case 50041:
+                                case 50083:
+                                case 50089:
+                                case 50097:
+                                case 50098:
+                                case 50100:
+                                case 50121:
+                                case 50130:
+                                case 50132:
+                                case 50135:
+                                case 50141:
+                                case 50160:
+                                case 50161:
+                                case 50162:
+                                case 50165:
+                                case 50170:
+                                case 50175:
+                                case 50180:
+                                case 50182:
+                                case 50183:
+                                case 50185:
+                                case 50186:
+                                    World worldHome = new(this, ApplicationId, 256);
+                                    _worlds.Add(worldHome);
 
-                                Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
-                            }
-                            else if (ApplicationId == 20374)
-                            {
-                                World worldHome = new(this, 20374, 256);
-                                _worlds.Add(worldHome);
+                                    Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
+                                    break;
+                                case 22920:
+                                    World worldParty = new(this, ApplicationId, 64);
+                                    _worlds.Add(worldParty);
 
-                                Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
-                            }
-                            else
-                            {
-                                Enqueue(new MediusServerJoinGameResponse()
-                                {
-                                    MessageID = joinGameRequest.MessageID,
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
-                                });
+                                    Enqueue(await worldParty.OnJoinGameRequest(joinGameRequest));
+                                    break;
+                                default:
+                                    Enqueue(new MediusServerJoinGameResponse()
+                                    {
+                                        MessageID = joinGameRequest.MessageID,
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
+                                    });
+                                    break;
                             }
                         }
                         else

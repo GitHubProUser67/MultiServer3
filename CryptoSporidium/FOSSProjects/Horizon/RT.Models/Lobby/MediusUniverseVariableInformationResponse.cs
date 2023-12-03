@@ -30,7 +30,49 @@ namespace CryptoSporidium.Horizon.RT.Models
         public string? SvoURL; // UNIVERSE_SVO_URL_MAXLEN
         public bool EndOfList;
 
-        public List<int> approvedList = new List<int> { 10421, 10994, 20043, 20464, 21093, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 22073, 20464, 22500, 22920, 22924, 21694 };
+        public List<int> approvedList = new()
+        { 
+            10421,
+            10994,
+            20043,
+            20464,
+            21093, 
+            21614, 
+            21624,
+            21834,
+            20371,
+            20374, 
+            21324, 
+            21514, 
+            22073, 
+            20464, 
+            22500,
+            22920,
+            21694, 
+            22930, 
+            22924,
+            50041,
+            50083,
+            50089,
+            50097,
+            50098,
+            50100,
+            50121,
+            50130,
+            50132,
+            50135,
+            50141,
+            50160,
+            50161,
+            50162,
+            50165,
+            50170,
+            50175,
+            50182,
+            50183,
+            50185,
+            50186
+        };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -126,34 +168,30 @@ namespace CryptoSporidium.Horizon.RT.Models
                 switch (writer.AppId)
                 {
                     case 20371:
-                        double homebetaver = 0;
-                        string? betafirstFiveElements = null;
-                        if (!string.IsNullOrEmpty(ExtendedInfo))
-                            betafirstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
-
-                        if (!string.IsNullOrEmpty(betafirstFiveElements))
-                        {
-                            try
-                            {
-                                homebetaver = Double.Parse(betafirstFiveElements, CultureInfo.InvariantCulture);
-                            }
-                            catch (Exception)
-                            {
-                                homebetaver = 0;
-                            }
-                        }
-
-                        if (homebetaver >= 01.21)
-                        {
-                            LoggerAccessor.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
-                            if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
-                                writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
-                        }
-                        else
-                            LoggerAccessor.LogInfo("[MediusUniverseVariableInformationResponse] - Not writing SVOURL");
-                        break;
                     case 20374:
-                        double homeretailver = 0;
+                    case 50041:
+                    case 50083:
+                    case 50089:
+                    case 50097:
+                    case 50098:
+                    case 50100:
+                    case 50121:
+                    case 50130:
+                    case 50132:
+                    case 50135:
+                    case 50141:
+                    case 50160:
+                    case 50161:
+                    case 50162:
+                    case 50165:
+                    case 50170:
+                    case 50175:
+                    case 50180:
+                    case 50182:
+                    case 50183:
+                    case 50185:
+                    case 50186:
+                        double homever = 0;
                         string? firstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
                             firstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
@@ -162,15 +200,15 @@ namespace CryptoSporidium.Horizon.RT.Models
                         {
                             try
                             {
-                                homeretailver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
+                                homever = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
                             }
                             catch (Exception)
                             {
-                                homeretailver = 0;
+                                homever = 0;
                             }
                         }
 
-                        if (homeretailver >= 01.21)
+                        if (homever >= 01.21 || (!string.IsNullOrEmpty(firstFiveElements) && firstFiveElements[0] == '*'))
                         {
                             LoggerAccessor.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
                             if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))

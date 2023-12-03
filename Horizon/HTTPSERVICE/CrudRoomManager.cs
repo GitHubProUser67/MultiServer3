@@ -1,14 +1,14 @@
 ﻿using CryptoSporidium;
 using Newtonsoft.Json;
 
-namespace Horizon.MEDIUS
+namespace Horizon.HTTPSERVICE
 {
     public class CrudRoomManager
     {
         private static List<Room> rooms = new();
 
         // Update or Create a Room based on the provided parameters
-        public static void UpdateOrCreateRoom(string appId, string gameName, string worldId, string accountName, string languageType, bool host)
+        public static void UpdateOrCreateRoom(string appId, string? gameName, string? worldId, string? accountName, string? languageType, bool host)
         {
             Room? roomToUpdate = rooms.FirstOrDefault(r => r.AppId == appId);
 
@@ -18,45 +18,48 @@ namespace Horizon.MEDIUS
                 rooms.Add(roomToUpdate);
             }
 
-            World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
-
-            if (worldToUpdate == null)
+            if (worldId != null)
             {
-                worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
-                roomToUpdate.Worlds?.Add(worldToUpdate);
-            }
+                World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
 
-            GameList? gameToUpdate = worldToUpdate.GameSessions?.FirstOrDefault(w => w.Name == gameName);
-
-            if (gameToUpdate == null)
-            {
-                gameToUpdate = new GameList { Name = gameName, Clients = new List<Player>() };
-                worldToUpdate.GameSessions?.Add(gameToUpdate);
-            }
-
-            Player? playerToUpdate = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == accountName);
-
-            if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate.Name))
-            {
-                if (gameToUpdate.Name.Contains("AP|"))
+                if (worldToUpdate == null && worldId != string.Empty)
                 {
-                    Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == MiscUtils.ComputeSHA512ReducedSizeCustom(accountName));
-                    if (playerToUpdatehashed == null)
+                    worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
+                    roomToUpdate.Worlds?.Add(worldToUpdate);
+                }
+
+                GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+
+                if (gameToUpdate == null && gameName != string.Empty)
+                {
+                    gameToUpdate = new GameList { Name = gameName, Clients = new List<Player>() };
+                    worldToUpdate?.GameSessions?.Add(gameToUpdate);
+                }
+
+                Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
+
+                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && accountName != string.Empty && languageType != string.Empty)
+                {
+                    if (gameToUpdate.Name.Contains("AP|"))
                     {
-                        playerToUpdate = new Player { Name = MiscUtils.ComputeSHA512ReducedSizeCustom(accountName), Languages = languageType, Host = host };
+                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == MiscUtils.ComputeSHA512ReducedSizeCustom(accountName));
+                        if (playerToUpdatehashed == null)
+                        {
+                            playerToUpdate = new Player { Name = MiscUtils.ComputeSHA512ReducedSizeCustom(accountName), Languages = languageType, Host = host };
+                            gameToUpdate.Clients?.Add(playerToUpdate);
+                        }
+                    }
+                    else
+                    {
+                        playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
                         gameToUpdate.Clients?.Add(playerToUpdate);
                     }
                 }
-                else
+                else if (playerToUpdate != null)
                 {
-                    playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
-                    gameToUpdate.Clients?.Add(playerToUpdate);
+                    playerToUpdate.Host = host;
+                    playerToUpdate.Languages = languageType;
                 }
-            }
-            else
-            {
-                playerToUpdate.Host = host;
-                playerToUpdate.Languages = languageType;
             }
         }
 

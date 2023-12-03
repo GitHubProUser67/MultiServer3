@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Net;
 using Horizon.PluginManager;
 using CryptoSporidium;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.DME
 {
@@ -248,10 +249,13 @@ namespace Horizon.DME
                 // Add the appids to the ApplicationIds list
                 Settings.ApplicationIds.AddRange(new List<int>
                 {
-                    10683, 10684, 11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
-                    20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
-                    20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
-                    10984, 10782, 10421, 10130, 24000, 24180, 10954, 21784, 21694
+                    10683, 10684, 11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920,
+                    21731, 21834, 23624, 20043, 20032, 20034, 20454, 20314, 21874, 21244,
+                    20304, 20463, 21614, 20344, 20434, 22204, 23360, 21513, 21064, 20804,
+                    20374, 21094, 22274, 20060, 10984, 10782, 10421, 10130, 24000, 24180, 
+                    10954, 21784, 21694, 50041, 50083, 50089, 50097, 50098, 50100, 50121,
+                    50130, 50132, 50135, 50141, 50160, 50161, 50162, 50165, 50170, 50175, 
+                    50180, 50182, 50183, 50185, 50186
                 });
 
                 Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
@@ -305,6 +309,8 @@ namespace Horizon.DME
                                 // and there might be new setting fields that aren't yet on the db
                                 await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                             }
+
+                            CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                         }
                     }
                 }
@@ -328,9 +334,14 @@ namespace Horizon.DME
             }
         }
 
-        public static ClientObject GetClientByAccessToken(string accessToken)
+        public static ClientObject? GetClientByAccessToken(string accessToken)
         {
             return Managers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
+        }
+
+        public static ClientObject? GetClientBySessionKey(string sessionKey)
+        {
+            return Managers.Select(x => x.Value.GetClientBySessionKey(sessionKey)).FirstOrDefault(x => x != null);
         }
 
         public static AppSettings GetAppSettingsOrDefault(int appId)
