@@ -11,6 +11,7 @@ namespace GraphicalUserInterface
         private static string dnsguid = string.Empty;
         private static string multispyguid = string.Empty;
         private static string srvemuguid = string.Empty;
+        private static string quazalguid = string.Empty;
 
         public MainForm()
         {
@@ -62,6 +63,9 @@ namespace GraphicalUserInterface
                     if (!string.IsNullOrEmpty(srvemuguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(srvemuguid);
+                    if (!string.IsNullOrEmpty(quazalguid))
+                        // Stop the program
+                        await ProcessManager.ShutdownProcess(quazalguid);
                 }
                 catch (Exception ex)
                 {
@@ -170,6 +174,17 @@ namespace GraphicalUserInterface
             _ = ProcessManager.StartupProgram("SRVEmu.exe", srvemuguid);
         }
 
+        private async void buttonStartQuazal_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(quazalguid))
+                // Stop the program
+                await ProcessManager.ShutdownProcess(quazalguid);
+
+            quazalguid = Guid.NewGuid().ToString();
+            // Start the program
+            _ = ProcessManager.StartupProgram("Quazal.exe", quazalguid);
+        }
+
         private async void buttonStopHTTPS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpsguid))
@@ -273,6 +288,18 @@ namespace GraphicalUserInterface
                 // Stop the program
                 await ProcessManager.ShutdownProcess(srvemuguid);
                 srvemuguid = string.Empty;
+            }
+            else
+                Console.WriteLine("No Process started for this server");
+        }
+
+        private async void buttonStopQuazal_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(quazalguid))
+            {
+                // Stop the program
+                await ProcessManager.ShutdownProcess(quazalguid);
+                quazalguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
