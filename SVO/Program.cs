@@ -11,7 +11,7 @@ public static class SVOServerConfiguration
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string? SVOStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwsvoroot";
-    public static bool SVOHTTPSBypass { get; set; } = true;
+    public static bool SVOHTTPSBypass { get; set; } = false;
     public static bool PSHomeRPCS3Workaround { get; set; } = true;
     public static string? MOTD { get; set; } = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<SVML>\r\n" +
         "    <RECTANGLE class=\"CHIP_FACE\" name=\"backPanel\" x=\"292\" y=\"140\" width=\"708\" height=\"440\"/>\r\n" +
@@ -116,12 +116,15 @@ class Program
 
         SVOHTTPSServer httpsserver = new(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty");
 
+        SVOFakeSSLServer fakehttpsserver = new(10061);
+
         if (HttpListener.IsSupported)
             httpserver.Start();
         else
             LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so HTTP Server not started.");
 
         _ = Task.Run(httpsserver.StartSVO);
+        _ = Task.Run(fakehttpsserver.Listen);
         _ = Task.Run(SVOManager.StartTickPooling);
         _ = Task.Run(RefreshConfig);
 

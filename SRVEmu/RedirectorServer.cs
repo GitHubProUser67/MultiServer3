@@ -13,7 +13,7 @@ namespace SRVEmu
         public string RedirIP;
         public string RedirPort;
 
-        public RedirectorServer(ushort port, string targetIP, ushort targetPort) : base(port)
+        public RedirectorServer(ushort port, string targetIP, ushort targetPort, bool lowlevel) : base(port, lowlevel)
         {
             RedirIP = targetIP;
             RedirPort = targetPort.ToString();

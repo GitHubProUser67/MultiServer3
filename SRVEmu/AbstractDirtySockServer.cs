@@ -1,3 +1,4 @@
+using CryptoSporidium;
 using SRVEmu.Messages;
 using System.Net;
 using System.Net.Sockets;
@@ -8,6 +9,7 @@ namespace SRVEmu
     public abstract class AbstractDirtySockServer : IDisposable
     {
         public abstract Dictionary<string, Type> NameToClass { get; }
+        public bool lowlevel = false;
         public int SessionID = 1;
 
         public List<DirtySockClient> SrvEmuClients = new();
@@ -15,8 +17,9 @@ namespace SRVEmu
 
         private Thread ListenerThread;
 
-        public AbstractDirtySockServer(ushort port)
+        public AbstractDirtySockServer(ushort port, bool lowlevel)
         {
+            this.lowlevel = lowlevel;
             Listener = new TcpListener(IPAddress.Any, port);
             Listener.Start();
 
@@ -84,14 +87,31 @@ namespace SRVEmu
             {
                 string body = Encoding.ASCII.GetString(data);
 
+                if (lowlevel) // Can be used a SSL workaround for testing.
+                {
+                    string hexdata = new MiscUtils().ByteArrayToHexString(data);
+
+                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", "")}}}");
+
+                    switch (hexdata)
+                    {
+                        case "5243342B4D44352D563200": // BOP_PS3 RC4_MD5.
+                            client.SendMessage(new MiscUtils().HexStringToByteArray("407469630000000000000060ba55778b9e10d44294388f79f770afe3cec0ddfffba532a61ff67726dc862f5104b224c1" +
+                                "b76d7e1d649c57c7ae5071a1651b988d1baabfd3c3c77b4c0c08c998e6ccd21cea00f94b90bdd38cd08838fd5d4506e2"));
+                            return;
+                        default: // Fallback to classic handler.
+                            break;
+                    }
+                }
+                else
+                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Type {name}:{body.Replace("\n", "")}");
+
                 Type? c;
                 if (!NameToClass.TryGetValue(name, out c))
                 {
                     CustomLogger.LoggerAccessor.LogError($"{client.IP} Requested an unexpected message Type {name}:{body.Replace("\n", "")}");
                     return;
                 }
-                else
-                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Type {name}:{body.Replace("\n", "")}");
 
                 AbstractMessage? msg = (AbstractMessage?)Activator.CreateInstance(c);
 

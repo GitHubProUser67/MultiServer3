@@ -55,7 +55,7 @@ namespace SRVEmu
         public IDatabase Database;
         private Thread PingThread;
 
-        public MatchmakerServer(ushort port) : base(port)
+        public MatchmakerServer(ushort port, bool lowlevel) : base(port, lowlevel)
         {
             Database = new JSONDatabase();
             Rooms.Server = this;

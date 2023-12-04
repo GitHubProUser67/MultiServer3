@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SVO
 {
-    internal class SVOServer
+    public class SVOServer
     {
         public static bool IsStarted = false;
 

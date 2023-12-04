@@ -102,11 +102,11 @@ class Program
 
         Thread thread = new(new ThreadStart(httpServer.Listen));
 
-        thread.Start();
-
         HttpServer QAhttpServer = new(10010, route_config);
 
         Thread QAthread = new(new ThreadStart(QAhttpServer.Listen));
+
+        thread.Start();
 
         QAthread.Start();
 
