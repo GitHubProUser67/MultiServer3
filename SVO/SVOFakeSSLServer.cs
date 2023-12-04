@@ -83,10 +83,11 @@ namespace SVO
                                             default:
                                                 break;
                                         }
-
-                                        ClientStream.Dispose();
                                     }
                                 }
+								
+								ClientStream.Flush();
+								ClientStream.Dispose();
                             }
                         }
                         catch (IOException ex)
