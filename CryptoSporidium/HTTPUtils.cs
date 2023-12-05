@@ -1,5 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.IO.Compression;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Web;
 
@@ -734,6 +736,59 @@ namespace CryptoSporidium
             }
 
             return byteoutput;
+        }
+
+        public static byte[]? MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
+        {
+            try
+            {
+                List<byte> ans = new();
+                //http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf
+                //Header
+                ans.AddRange(new byte[] { Req[0], Req[1] });//ID
+                if (Ip == IPAddress.None)
+                    ans.AddRange(new byte[] { 0x81, 0x83 });
+                else
+                    ans.AddRange(new byte[] { 0x81, 0x80 }); //OPCODE & RCODE etc...
+                ans.AddRange(new byte[8] { Req[4], Req[5], Req[4], Req[5], 0x00, 0x00, 0x00, 0x00 });//QDCount/ANCount/NSCount & ARCount
+                for (int i = 12; i < Req.Length; i++) ans.Add(Req[i]);
+                ans.AddRange(new byte[] { 0xC0, 0xC });
+                if (Ip.AddressFamily == AddressFamily.InterNetworkV6)
+                    ans.AddRange(new byte[] { 0, 0x1c, 0, 1, 0, 0, 0, 0x14, 0, 0x10 }); //20 seconds, 0x10 is ipv6 length
+                else
+                    ans.AddRange(new byte[] { 0, 1, 0, 1, 0, 0, 0, 0x14, 0, 4 });
+                ans.AddRange(Ip.GetAddressBytes());
+                return ans.ToArray();
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return null;
+        }
+
+        public static List<string> GetDnsName(byte[] Req)
+        {
+            List<string> addr = new();
+            int type = (Req[2] >> 3) & 0xF;
+            if (type == 0)
+            {
+                MiscUtils? utils = new();
+                int lenght = Req[12];
+                int i = 12;
+                while (lenght > 0)
+                {
+                    byte[] tmp = new byte[i + lenght];
+                    Buffer.BlockCopy(Req, i + 1, tmp, 0, lenght);
+                    string partialaddr = utils.TrimString(tmp);
+                    if (partialaddr != null) addr.Add(partialaddr);
+                    i += lenght + 1;
+                    lenght = Req[i];
+                }
+                utils = null;
+            }
+            return addr;
         }
     }
 }

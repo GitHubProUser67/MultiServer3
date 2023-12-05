@@ -182,7 +182,7 @@ namespace GraphicalUserInterface
 
             quazalguid = Guid.NewGuid().ToString();
             // Start the program
-            _ = ProcessManager.StartupProgram("Quazal.exe", quazalguid);
+            _ = ProcessManager.StartupProgram("QuazalServer.exe", quazalguid);
         }
 
         private async void buttonStopHTTPS_Click(object sender, EventArgs e)

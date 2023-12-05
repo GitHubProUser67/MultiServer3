@@ -96,8 +96,10 @@ namespace SRVEmu
                     switch (hexdata)
                     {
                         case "5243342B4D44352D563200": // BOP_PS3 RC4_MD5.
-                            client.SendMessage(new MiscUtils().HexStringToByteArray("407469630000000000000060ba55778b9e10d44294388f79f770afe3cec0ddfffba532a61ff67726dc862f5104b224c1" +
-                                "b76d7e1d649c57c7ae5071a1651b988d1baabfd3c3c77b4c0c08c998e6ccd21cea00f94b90bdd38cd08838fd5d4506e2"));
+                            client.SendMessage(new MiscUtils().HexStringToByteArray("407469630000000000000060ba55778b9e10d44294388" +
+                                "f79f770afe3cec0ddfffba532a61ff67726dc862f5104b224c1" +
+                                "b76d7e1d649c57c7ae5071a1651b988d1baabfd3c3c77b4c0c0" +
+                                "8c998e6ccd21cea00f94b90bdd38cd08838fd5d4506e2"));
                             return;
                         default: // Fallback to classic handler.
                             break;
