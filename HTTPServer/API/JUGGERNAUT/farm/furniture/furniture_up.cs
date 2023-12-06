@@ -22,7 +22,7 @@ namespace HTTPServer.API.JUGGERNAUT.farm.furniture
                     if (match.Success)
                     {
                         // Convert the string to float
-                        if (float.TryParse(match.Groups[1].Value, out float slotIDFloat))
+                        if (float.TryParse(match.Groups[1].Value.Replace(".", ","), out float slotIDFloat))
                         {
                             // Convert float to int and remove trailing zeros
                             int slotIDInt = (int)slotIDFloat;
