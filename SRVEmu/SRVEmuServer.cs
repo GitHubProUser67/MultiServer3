@@ -9,7 +9,7 @@ namespace SRVEmu
         AbstractDirtySockServer? RedirectorTSBO_PAL;
         AbstractDirtySockServer? RedirectorBOP_PS3;
         AbstractDirtySockServer? Matchmaker;
-        AbstractDirtySockServer? MatchmakerBOP_PS3;
+        AbstractDirtySockServer? SimsMatchmaker;
 
         public Task Run()
         {
@@ -17,7 +17,7 @@ namespace SRVEmu
 
             try
             {
-                RedirectorTSBO_NTSC_A = new RedirectorServer(11100, CryptoSporidium.MiscUtils.GetLocalIPAddress().ToString(), 10901, false);
+                RedirectorTSBO_NTSC_A = new RedirectorServer(11100, CryptoSporidium.MiscUtils.GetLocalIPAddress().ToString(), 10902, false);
             }
             catch (Exception ex)
             {
@@ -26,7 +26,7 @@ namespace SRVEmu
 
             try
             {
-                RedirectorTSBO_PAL = new RedirectorServer(11140, CryptoSporidium.MiscUtils.GetLocalIPAddress().ToString(), 10901, false);
+                RedirectorTSBO_PAL = new RedirectorServer(11140, CryptoSporidium.MiscUtils.GetLocalIPAddress().ToString(), 10902, false);
             }
             catch (Exception ex)
             {
@@ -35,7 +35,7 @@ namespace SRVEmu
 
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21870, CryptoSporidium.MiscUtils.GetLocalIPAddress().ToString(), 28872, true);
+                RedirectorBOP_PS3 = new RedirectorServer(21870, CryptoSporidium.MiscUtils.GetLocalIPAddress().ToString(), 10901, false);
             }
             catch (Exception ex)
             {
@@ -44,7 +44,7 @@ namespace SRVEmu
 
             try
             {
-                Matchmaker = new MatchmakerServer(10901, false);
+                SimsMatchmaker = new MatchmakerServer(10901, true);
             }
             catch (Exception ex)
             {
@@ -53,11 +53,22 @@ namespace SRVEmu
 
             try
             {
-                Matchmaker = new MatchmakerServer(28872, true);
+                // Create a List to store pairs of string and bool
+                List<Tuple<string, bool>> SimsRooms = new()
+                {
+                    // Add some sample data
+                    new Tuple<string, bool>("Veronaville", true),
+                    new Tuple<string, bool>("Strangetown", true),
+                    new Tuple<string, bool>("Pleasantview", true),
+                    new Tuple<string, bool>("Belladonna Cove", true),
+                    new Tuple<string, bool>("Riverblossom Hills", true)
+                };
+
+                SimsMatchmaker = new MatchmakerServer(10902, false, SimsRooms);
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[MatchmakerBOP_PS3] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[SimsMatchmaker] Failed to start! Exception: {ex}");
             }
 
             IsStarted = true;

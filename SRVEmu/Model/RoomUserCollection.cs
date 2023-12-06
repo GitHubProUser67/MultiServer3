@@ -75,14 +75,28 @@ namespace SRVEmu.Model
         public override void RemoveUser(User user)
         {
             base.RemoveUser(user);
-            Broadcast(new PlusUser()
+            if (Room.Users != null)
             {
-                I = user.ID.ToString(),
-                T = "1",
-                F = null,
-                P = null,
-                S = null
-            });
+                Broadcast(new PlusUser()
+                {
+                    I = user.ID.ToString(),
+                    T = Room.Users.Count().ToString(),
+                    F = null,
+                    P = null,
+                    S = null
+                });
+            }
+            else
+            {
+                Broadcast(new PlusUser()
+                {
+                    I = user.ID.ToString(),
+                    T = "0",
+                    F = null,
+                    P = null,
+                    S = null
+                });
+            }
 
             Broadcast(new PlusMesg()
             {

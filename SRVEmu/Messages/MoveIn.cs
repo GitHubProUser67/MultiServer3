@@ -8,6 +8,8 @@ namespace SRVEmu.Messages
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
+            bool remove = false;
+
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
@@ -16,6 +18,8 @@ namespace SRVEmu.Messages
 
             if (user.CurrentRoom != null)
             {
+                remove = true;
+                NAME = user.CurrentRoom.Name;
                 user.CurrentRoom.Users?.RemoveUser(user);
                 user.CurrentRoom = null;
             }
@@ -23,12 +27,33 @@ namespace SRVEmu.Messages
             Model.Room? room = mc.Rooms.GetRoomByName(NAME);
             if (room != null)
             {
-                if (room.Users != null && !room.Users.AddUser(user))
+                if (room.Users != null)
                 {
-                    client.SendMessage(new MoveFull());
-                    return;
+                    if (remove)
+                    {
+                        room.Users.RemoveUser(user);
+                        client.SendMessage(new MoveOut()
+                        {
+                            NAME = string.Empty
+                        });
+                    }
+                    else
+                    {
+                        if (!room.Users.AddUser(user))
+                        {
+                            client.SendMessage(new MoveFull());
+                            return;
+                        }
+                        user.CurrentRoom = room;
+                    }
                 }
-                user.CurrentRoom = room;
+				else
+				{
+					client.SendMessage(new MoveOut()
+					{
+						NAME = string.Empty
+					});
+				}
             }
             else
             {

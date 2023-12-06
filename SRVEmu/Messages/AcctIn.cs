@@ -6,9 +6,9 @@ namespace SRVEmu.Messages
     {
         public override string _Name { get => "acct"; }
 
+        public string? MINAGE { get; set; }
         public string? NAME { get; set; }
         public string PASS { get; set; } = string.Empty;
-
         public string? MAIL { get; set; }
         public string? BORN { get; set; }
         public string? GEND { get; set; }

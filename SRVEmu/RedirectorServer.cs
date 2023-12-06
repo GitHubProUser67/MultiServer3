@@ -4,10 +4,11 @@ namespace SRVEmu
 {
     public class RedirectorServer : AbstractDirtySockServer
     {
-        public override Dictionary<string, Type> NameToClass { get; } =
-            new Dictionary<string, Type>()
+        public override Dictionary<string, Type?> NameToClass { get; } =
+            new Dictionary<string, Type?>()
             {
-                { "@dir", typeof(DirIn) }
+                { "@dir", typeof(DirIn) },
+                { "@tic", null } // We not respond so crypto is not applied.
             };
 
         public string RedirIP;

@@ -13,6 +13,6 @@ namespace SRVEmu.Messages
         public string? S { get; set; } = string.Empty;
         public string? X { get; set; }
         public string? G { get; set; }
-        public string T { get; set; } = "2";
+        public string T { get; set; } = "0"; // Lobby population number.
     }
 }

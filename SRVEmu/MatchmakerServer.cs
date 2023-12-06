@@ -55,7 +55,7 @@ namespace SRVEmu
         public IDatabase Database;
         private Thread PingThread;
 
-        public MatchmakerServer(ushort port, bool lowlevel) : base(port, lowlevel)
+        public MatchmakerServer(ushort port,  bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null) : base(port, lowlevel)
         {
             Database = new JSONDatabase();
             Rooms.Server = this;
@@ -63,11 +63,14 @@ namespace SRVEmu
             PingThread = new Thread(PingLoop);
             PingThread.Start();
 
-            Rooms.AddRoom(new Room() { Name = "Veronaville", IsGlobal = true });
-            Rooms.AddRoom(new Room() { Name = "Strangetown", IsGlobal = true });
-            Rooms.AddRoom(new Room() { Name = "Pleasantview", IsGlobal = true });
-            Rooms.AddRoom(new Room() { Name = "Belladonna Cove", IsGlobal = true });
-            Rooms.AddRoom(new Room() { Name = "Riverblossom Hills", IsGlobal = true });
+            if (RoomToAdd != null)
+            {
+                foreach (var pair in RoomToAdd)
+                {
+                    CustomLogger.LoggerAccessor.LogInfo($"[MatchmakerServer] - Adding Room: {pair.Item1}, With Global Availability: {pair.Item2} on Port: {port}");
+                    Rooms.AddRoom(new Room() { Name = pair.Item1, IsGlobal = pair.Item2 });
+                }
+            }
         }
 
         public void PingLoop()
