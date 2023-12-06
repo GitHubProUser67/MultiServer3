@@ -283,12 +283,10 @@ namespace CryptoSporidium.BARTools.UnBAR
                                 if (BitConverter.IsLittleEndian)
                                     Array.Reverse(SignatureIV);
 
-                                data = toolsImpl.RemovePaddingPrefix(data);
-
                                 byte[] EncryptedHeaderSHA1 = new byte[24];
 
                                 // Copy the first 24 bytes from the source array to the destination array
-                                Array.Copy(data, 0, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
+                                Array.Copy(data, 4, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
 
                                 byte[]? DecryptedHeaderSHA1 = blowfish.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
 
@@ -299,14 +297,14 @@ namespace CryptoSporidium.BARTools.UnBAR
                                     LoggerAccessor.LogInfo($"SignatureHeader - {verificationsha1}");
 #endif
                                     // Create a new byte array to store the remaining content
-                                    byte[]? FileBytes = new byte[data.Length - 24];
+                                    byte[]? FileBytes = new byte[data.Length - 28];
 
-                                    // Copy the content after the first 24 bytes to the new array
-                                    Array.Copy(data, 24, FileBytes, 0, FileBytes.Length);
+                                    // Copy the content after the first 28 bytes to the new array
+                                    Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
                                     string sha1 = toolsImpl.ValidateSha1(FileBytes);
 
-                                    if (sha1 == verificationsha1.Substring(0, verificationsha1.Length - 8)) // We strip the original file Compression size.
+                                    if (sha1 == verificationsha1[..^8]) // We strip the original file Compression size.
                                     {
                                         toolsImpl.IncrementIVBytes(SignatureIV, 3);
 
@@ -321,18 +319,17 @@ namespace CryptoSporidium.BARTools.UnBAR
                                             catch (Exception ex)
                                             {
                                                 LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing Encryption Proxy encrypted content - {ex}");
-                                                FileBytes = toolsImpl.ApplyPaddingPrefix(data);
+                                                FileBytes = data;
                                             }
 
                                             if (FileBytes == null)
-                                                FileBytes = toolsImpl.ApplyPaddingPrefix(data);
+                                                FileBytes = data;
 
                                             fileStream.Write(FileBytes, 0, FileBytes.Length);
                                             fileStream.Close();
                                         }
                                         else
                                         {
-                                            data = toolsImpl.ApplyPaddingPrefix(data);
                                             LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file failed to decrypt, Writing original data.");
                                             fileStream.Write(data, 0, data.Length);
                                             fileStream.Close();
@@ -340,7 +337,6 @@ namespace CryptoSporidium.BARTools.UnBAR
                                     }
                                     else
                                     {
-                                        data = toolsImpl.ApplyPaddingPrefix(data);
                                         LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
                                         fileStream.Write(data, 0, data.Length);
                                         fileStream.Close();
