@@ -490,10 +490,10 @@ namespace HTTPServer
 
                         while (bytesLeft > 0)
                         {
-                            byte[] buffer = new byte[bytesLeft > ConfigurationDefaults.BufferSize ? ConfigurationDefaults.BufferSize : bytesLeft];
-                            int n = response.ContentStream.Read(buffer, 0, buffer.Length);
+                            Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+                            int n = response.ContentStream.Read(buffer);
 
-                            stream.Write(buffer, 0, n);
+                            stream.Write(buffer);
 
                             bytesLeft -= n;
                         }
@@ -604,10 +604,10 @@ namespace HTTPServer
 
                     while (bytesLeft > 0)
                     {
-                        byte[] buffer = new byte[bytesLeft > ConfigurationDefaults.BufferSize ? ConfigurationDefaults.BufferSize : bytesLeft];
-                        int n = inputStream.Read(buffer, 0, buffer.Length);
+                        Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+                        int n = inputStream.Read(buffer);
 
-                        contentStream.Write(buffer, 0, n);
+                        contentStream.Write(buffer);
 
                         bytesLeft -= n;
                     }

@@ -154,9 +154,9 @@ namespace HTTPServer.Models
             StringBuilder strBuilder = new();
 
             if ((int)HttpStatusCode == 206)
-                strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", ConfigurationDefaults.HttpVersion, 206, "Partial Content"));
+                strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HTTPServerConfiguration.HttpVersion, 206, "Partial Content"));
             else
-                strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", ConfigurationDefaults.HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString()));
+                strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HTTPServerConfiguration.HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString()));
             strBuilder.Append(Headers.ToHttpHeaders());
             strBuilder.Append("\r\n\r\n");
 

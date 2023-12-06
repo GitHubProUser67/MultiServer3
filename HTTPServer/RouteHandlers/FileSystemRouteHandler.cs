@@ -107,13 +107,13 @@ namespace HTTPServer.RouteHandlers
                         HttpStatusCode = HttpStatusCode.PartialContent
                     };
                     long TotalBytes = endByte - startByte;
-                    // Check if endByte - startByte exceeds int.MaxValue
+                    // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 12.5
                     // This is an AWESOME WORKAROUND for larger than 2gb files.
-                    if (TotalBytes > int.MaxValue - 1048576)
-                        TotalBytes = int.MaxValue - 1048576;
-                    byte[] buffer = new byte[TotalBytes];
+                    if (TotalBytes > HTTPServerConfiguration.BufferSize * 12.5)
+                        TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 12.5);
+                    Span<byte> buffer = new byte[TotalBytes];
                     fs.Position = startByte;
-                    TotalBytes = fs.Read(buffer, 0, buffer.Length);
+                    TotalBytes = fs.Read(buffer);
                     fs.Flush();
                     fs.Close();
                     response.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
@@ -121,7 +121,7 @@ namespace HTTPServer.RouteHandlers
                     TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
                     response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, TotalBytes - 1, filesize));
                     response.Headers.Add("Content-Length", buffer.Length.ToString());
-                    response.ContentStream = new MemoryStream(buffer);
+                    response.ContentStream = new MemoryStream(buffer.ToArray());
                     return response;
                 }
             }
