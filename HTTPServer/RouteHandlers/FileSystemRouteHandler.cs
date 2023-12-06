@@ -22,10 +22,11 @@ namespace HTTPServer.RouteHandlers
         {
             if (File.Exists(local_path))
             {
-                var response = new HttpResponse(false);
-                response.HttpStatusCode = HttpStatusCode.Ok;
+                var response = new HttpResponse(false)
+                {
+                    HttpStatusCode = HttpStatusCode.Ok
+                };
                 response.Headers["Content-Type"] = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path));
-                response.ContentStream = null;
 
                 return response;
             }
@@ -35,8 +36,10 @@ namespace HTTPServer.RouteHandlers
 
         public static HttpResponse Handle_LocalFile_Download(string local_path)
         {
-            var response = new HttpResponse(false);
-            response.HttpStatusCode = HttpStatusCode.Ok;
+            var response = new HttpResponse(false)
+            {
+                HttpStatusCode = HttpStatusCode.Ok
+            };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
             response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
@@ -60,8 +63,10 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalFile(string local_path)
         {
-            var response = new HttpResponse(false);
-            response.HttpStatusCode = HttpStatusCode.Ok;
+            var response = new HttpResponse(false)
+            {
+                HttpStatusCode = HttpStatusCode.Ok
+            };
             response.Headers["Content-Type"] = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path));
             response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
@@ -70,8 +75,6 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalFile_Stream(HttpRequest request, string local_path)
         {
-            var response = new HttpResponse(true);
-
             using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) // Todo, test on safari browser.
             {
                 long filesize = fs.Length;
@@ -82,7 +85,7 @@ namespace HTTPServer.RouteHandlers
                     string rangeHeader = request.GetHeaderValue("Range").Replace("bytes=", "");
                     string[] range = rangeHeader.Split('-');
                     startByte = long.Parse(range[0]);
-                    if (range[1].Trim().Length > 0) long.TryParse(range[1], out endByte);
+                    if (range[1].Trim().Length > 0) _ = long.TryParse(range[1], out endByte);
                     if (endByte == -1) endByte = filesize;
                 }
                 else
@@ -90,26 +93,38 @@ namespace HTTPServer.RouteHandlers
                     startByte = 0;
                     endByte = filesize;
                 }
-                long TotalBytes = endByte - startByte;
-                // Check if endByte - startByte exceeds int.MaxValue
-                // This is an AWESOME WORKAROUND for larger than 2gb files.
-                if (TotalBytes > int.MaxValue - 1048576)
-                    TotalBytes = int.MaxValue - 1048576;
-                byte[] buffer = new byte[TotalBytes];
-                fs.Position = startByte;
-                TotalBytes = fs.Read(buffer, 0, buffer.Length);
-                fs.Flush();
-                fs.Close();
-                response.HttpStatusCode = HttpStatusCode.PartialContent;
-                response.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
-                response.Headers.Add("Accept-Ranges", "bytes");
-                TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
-                response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, TotalBytes - 1, filesize));
-                response.Headers.Add("Content-Length", buffer.Length.ToString());
-                response.ContentStream = new MemoryStream(buffer);
+                if (startByte < 0 || endByte > filesize)
+                {
+                    return new HttpResponse(false)
+                    {
+                        HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
+                    };
+                }
+                else
+                {
+					var response = new HttpResponse(true)
+                    {
+                        HttpStatusCode = HttpStatusCode.PartialContent
+                    };
+                    long TotalBytes = endByte - startByte;
+                    // Check if endByte - startByte exceeds int.MaxValue
+                    // This is an AWESOME WORKAROUND for larger than 2gb files.
+                    if (TotalBytes > int.MaxValue - 1048576)
+                        TotalBytes = int.MaxValue - 1048576;
+                    byte[] buffer = new byte[TotalBytes];
+                    fs.Position = startByte;
+                    TotalBytes = fs.Read(buffer, 0, buffer.Length);
+                    fs.Flush();
+                    fs.Close();
+                    response.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
+                    response.Headers.Add("Accept-Ranges", "bytes");
+                    TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
+                    response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, TotalBytes - 1, filesize));
+                    response.Headers.Add("Content-Length", buffer.Length.ToString());
+                    response.ContentStream = new MemoryStream(buffer);
+                    return response;
+                }
             }
-
-            return response;
         }
 
         private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path)

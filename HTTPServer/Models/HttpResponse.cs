@@ -22,6 +22,7 @@ namespace HTTPServer.Models
         Forbidden = 403,
         NotFound = 404,
         MethodNotAllowed = 405,
+        RangeNotSatisfiable = 416,
         InternalServerError = 500,
         BadGateway = 502,
         ServiceUnavailable = 503
