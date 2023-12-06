@@ -11,6 +11,20 @@ namespace Horizon.MUIS.Config
         /// </summary>
         public int RefreshConfigInterval = 5000;
 
+        #region PublicIp
+        /// <summary>
+        /// By default the server will grab its local ip.
+        /// If this is set, it will use its public ip instead.
+        /// </summary>
+        public bool UsePublicIp { get; set; } = false;
+
+        /// <summary>
+        /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic
+        /// ip address finder, since it goes down often enough to throw exceptions
+        /// </summary>
+        public string PublicIpOverride { get; set; } = string.Empty;
+        #endregion
+
         /// <summary>
         /// Ports of the MUIS server.
         /// Default is 10071, EU is 10080, and Japan is 10101

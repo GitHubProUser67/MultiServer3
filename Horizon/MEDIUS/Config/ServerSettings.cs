@@ -16,7 +16,7 @@ namespace Horizon.MEDIUS.Config
         /// By default the server will grab its local ip.
         /// If this is set, it will use its public ip instead.
         /// </summary>
-        public bool UsePublicIp { get; set; } = true;
+        public bool UsePublicIp { get; set; } = false;
 
         /// <summary>
         /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic

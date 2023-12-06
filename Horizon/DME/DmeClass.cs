@@ -20,7 +20,7 @@ namespace Horizon.DME
 
         public static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
 
-        public static ServerSettings Settings = new ServerSettings();
+        public static ServerSettings Settings = new();
         private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
 
@@ -328,10 +328,14 @@ namespace Horizon.DME
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress(false));
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }
+
+            Settings.MAS.Ip = SERVER_IP.ToString();
+
+            Settings.MPS.Ip = SERVER_IP.ToString();
         }
 
         public static ClientObject? GetClientByAccessToken(string accessToken)

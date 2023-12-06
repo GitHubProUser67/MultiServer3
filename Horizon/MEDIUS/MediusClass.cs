@@ -620,7 +620,7 @@ namespace Horizon.MEDIUS
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
                 {
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress(false));
                     IP_TYPE = "Public";
                 }
                 else

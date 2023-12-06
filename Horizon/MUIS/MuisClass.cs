@@ -7,6 +7,7 @@ using Horizon.DME;
 using Horizon.PluginManager;
 using CryptoSporidium;
 using Horizon.HTTPSERVICE;
+using System.Net;
 
 namespace Horizon.MUIS
 {
@@ -15,6 +16,9 @@ namespace Horizon.MUIS
         private static string? CONFIG_FILE => HorizonServerConfiguration.MUISConfig;
 
         public static ServerSettings Settings = new();
+
+        public static IPAddress? SERVER_IP = null;
+        public static string? IP_TYPE;
 
         public static MediusManager Manager = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
@@ -182,6 +186,9 @@ namespace Horizon.MUIS
                 MissingMemberHandling = MissingMemberHandling.Ignore,
             };
 
+            // Determine server ip
+            RefreshServerIp();
+
             // Load settings
             if (File.Exists(CONFIG_FILE))
                 // Populate existing object
@@ -200,12 +207,10 @@ namespace Horizon.MUIS
                     50186
                 });
 
-                string? iptofile = null;
+                string? iptofile = SERVER_IP?.ToString();
 
-                if (DmeClass.Settings.UsePublicIp || MEDIUS.MediusClass.Settings.UsePublicIp)
-                    iptofile = MiscUtils.GetPublicIPAddress();
-                else
-                    iptofile = MiscUtils.GetLocalIPAddress().ToString();
+                if (string.IsNullOrEmpty(iptofile))
+                    iptofile = "127.0.0.1";
 
                 // Add default localhost entry
                 Settings.Universes.Add(0, new UniverseInfo[] {
@@ -1412,6 +1417,30 @@ namespace Horizon.MUIS
 
             // build dictionary of app ids from response
             _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
+        }
+
+        private static void RefreshServerIp()
+        {
+            #region Determine Server IP
+            if (!Settings.UsePublicIp)
+            {
+                SERVER_IP = MiscUtils.GetLocalIPAddress();
+                IP_TYPE = "Local";
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
+                {
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress(false));
+                    IP_TYPE = "Public";
+                }
+                else
+                {
+                    SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
+                    IP_TYPE = "Public (Override)";
+                }
+            }
+            #endregion
         }
 
         private static async Task RefreshAppSettings()
