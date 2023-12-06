@@ -102,7 +102,7 @@ namespace HTTPServer.RouteHandlers
                 }
                 else
                 {
-					var response = new HttpResponse(true)
+                    var response = new HttpResponse(true)
                     {
                         HttpStatusCode = HttpStatusCode.PartialContent
                     };
