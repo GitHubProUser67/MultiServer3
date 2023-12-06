@@ -13,10 +13,10 @@ namespace MitmDNS
         public List<KeyValuePair<string, DnsSettings>>? regRules = new();
         public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
-        public Task RunDns(Dictionary<string, DnsSettings>? dicRules, List<KeyValuePair<string, DnsSettings>>? regRules)
+        public void RunDns(Dictionary<string, DnsSettings>? dicRules, List<KeyValuePair<string, DnsSettings>>? regRules)
         {
             if (dicRules == null || regRules == null)
-                return Task.CompletedTask;
+                return;
 
             this.dicRules = dicRules;
 
@@ -29,14 +29,14 @@ namespace MitmDNS
                 LoggerAccessor.LogInfo("[DNS] - Server started on port 53");
             });
 
-            udp.OnRecieve(async (endPoint, bytes) =>
+            udp.OnRecieve((endPoint, bytes) =>
             {
                 if (endPoint is IPEndPoint EndPointIp)
                 {
                     LoggerAccessor.LogInfo($"[DNS] - Received request from {endPoint}");
-                    byte[]? Buffer = ProcRequest(new MiscUtils().TrimArray(bytes));
+                    Span<byte> Buffer = ProcRequest(new MiscUtils().TrimArray(bytes));
                     if (Buffer != null)
-                        _ = udp.SendAsync(EndPointIp, Buffer);
+                        _ = udp.SendAsync(EndPointIp, Buffer.ToArray());
                 }
             });
 
@@ -53,13 +53,13 @@ namespace MitmDNS
             _ = udp.StartAsync();
 
             DnsStarted = true;
-
-            return Task.CompletedTask;
         }
 
-        private byte[]? ProcRequest(byte[] data)
+        private Span<byte> ProcRequest(byte[] data)
         {
             string fullname = string.Join(".", HTTPUtils.GetDnsName(data).ToArray());
+
+            LoggerAccessor.LogInfo($"[DNS] - Host: {fullname} was Requested.");
 
             string url = string.Empty;
             bool treated = false;

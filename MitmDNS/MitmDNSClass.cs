@@ -11,7 +11,7 @@ namespace MitmDNS
     {
         public MitmDNSProcessor? proc = new(); // = null to dispose server.
 
-        public Task MitmDNSMain()
+        public void MitmDNSMain()
         {
             if (proc != null)
             {
@@ -34,7 +34,7 @@ namespace MitmDNS
                     catch (Exception ex)
                     {
                         LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                        return Task.CompletedTask;
+                        return;
                     }
                 }
                 else if (dicRules == null)
@@ -48,10 +48,8 @@ namespace MitmDNS
                     }
                 }
 
-                _ = proc.RunDns(dicRules, regRules);
+                proc.RunDns(dicRules, regRules);
             }
-
-            return Task.CompletedTask;
         }
 
         private void ParseRules(string Filename, out Dictionary<string, DnsSettings> DicRules, out List<KeyValuePair<string, DnsSettings>> StarRules, bool IsFilename = true)

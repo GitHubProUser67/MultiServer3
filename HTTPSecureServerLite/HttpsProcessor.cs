@@ -341,6 +341,8 @@ namespace HTTPSecureServerLite
 
                                                 string fullname = string.Join(".", HTTPUtils.GetDnsName(DnsReq).ToArray());
 
+                                                LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
+
                                                 string url = MiscUtils.GetFirstActiveIPAddress(fullname, MiscUtils.GetPublicIPAddress(true));
 
                                                 IPAddress ip = IPAddress.None;
@@ -586,6 +588,8 @@ namespace HTTPSecureServerLite
                                             byte[]? DnsReq = ctx.Request.DataAsBytes;
 
                                             string fullname = string.Join(".", HTTPUtils.GetDnsName(DnsReq).ToArray());
+
+                                            LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
 
                                             string url = MiscUtils.GetFirstActiveIPAddress(fullname, MiscUtils.GetPublicIPAddress(true));
 
