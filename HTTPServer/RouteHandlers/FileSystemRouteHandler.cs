@@ -85,10 +85,9 @@ namespace HTTPServer.RouteHandlers
                     string HeaderString = request.GetHeaderValue("Range").Replace("bytes=", string.Empty);
                     if (HeaderString.Contains(','))
                     {
-                        using (MemoryStream ms = new())
+                        using (HugeMemoryStream ms = new())
                         {
-                            int i = 0;
-                            byte Separator = (byte)'\n';
+                            byte[] Separator = new byte[] { 0x0D, 0x0A };
                             byte[] MultiPart = Encoding.UTF8.GetBytes("--multiserver_separator");
                             byte[] EndingMultiPart = Encoding.UTF8.GetBytes("--multiserver_separator--");
                             byte[] MimeType = Encoding.UTF8.GetBytes($"Content-Type: {CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path))}");
@@ -96,10 +95,11 @@ namespace HTTPServer.RouteHandlers
                             string[] rangeValues = HeaderString.Split(',');
                             foreach (string RangeSelect in rangeValues)
                             {
+                                ms.Write(Separator, 0, Separator.Length);
                                 ms.Write(MultiPart, 0, MultiPart.Length);
-                                ms.WriteByte(Separator);
+                                ms.Write(Separator, 0, Separator.Length);
                                 ms.Write(MimeType, 0, MimeType.Length);
-                                ms.WriteByte(Separator);
+                                ms.Write(Separator, 0, Separator.Length);
                                 fs.Position = 0;
                                 startByte = -1;
                                 endByte = -1;
@@ -120,6 +120,7 @@ namespace HTTPServer.RouteHandlers
                                     fs.Flush();
                                     fs.Close();
                                     ms.Flush();
+                                    ms.Close();
                                     return new HttpResponse(false)
                                     {
                                         HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
@@ -130,6 +131,7 @@ namespace HTTPServer.RouteHandlers
                                     fs.Flush();
                                     fs.Close();
                                     ms.Flush();
+                                    ms.Close();
                                     var okresponse = new HttpResponse(false)
                                     {
                                         HttpStatusCode = HttpStatusCode.Ok
@@ -142,9 +144,6 @@ namespace HTTPServer.RouteHandlers
                                 }
                                 else
                                 {
-                                    byte[] ContentRange = Encoding.UTF8.GetBytes("Content-Range: " + string.Format("bytes {0}-{1}/{2}\n", startByte, endByte - 1, filesize));
-                                    ms.Write(ContentRange, 0, ContentRange.Length);
-                                    ms.WriteByte(Separator);
                                     long TotalBytes = endByte - startByte;
                                     // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 20.5
                                     // This is an AWESOME WORKAROUND for larger than 2gb files.
@@ -153,12 +152,17 @@ namespace HTTPServer.RouteHandlers
                                     Span<byte> buffer = new byte[TotalBytes];
                                     fs.Position = startByte;
                                     TotalBytes = fs.Read(buffer);
+                                    TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
+                                    byte[] ContentRange = Encoding.UTF8.GetBytes("Content-Range: " + string.Format("bytes {0}-{1}/{2}", startByte, TotalBytes - 1, filesize));
+                                    ms.Write(ContentRange, 0, ContentRange.Length);
+                                    ms.Write(Separator, 0, Separator.Length);
+                                    ms.Write(Separator, 0, Separator.Length);
                                     ms.Write(buffer);
-                                    ms.WriteByte(Separator);
                                 }
-                                i++;
                             }
+                            ms.Write(Separator, 0, Separator.Length);
                             ms.Write(EndingMultiPart, 0, EndingMultiPart.Length);
+                            ms.Write(Separator, 0, Separator.Length);
                             fs.Flush();
                             fs.Close();
                             var response = new HttpResponse(true)
@@ -168,8 +172,9 @@ namespace HTTPServer.RouteHandlers
                             response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                             response.Headers.Add("Accept-Ranges", "bytes");
                             ms.Position = 0;
-                            response.ContentStream = new MemoryStream(ms.ToArray());
+                            response.ContentStream = new HugeMemoryStream(ms);
                             ms.Flush();
+                            ms.Close();
                             return response;
                         }
                     }
@@ -227,9 +232,9 @@ namespace HTTPServer.RouteHandlers
                         TotalBytes = fs.Read(buffer);
                         fs.Flush();
                         fs.Close();
+                        TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
                         response.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
                         response.Headers.Add("Accept-Ranges", "bytes");
-                        TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, TotalBytes - 1, filesize));
                         response.ContentStream = new HugeMemoryStream(buffer);
                         return response;
@@ -237,10 +242,17 @@ namespace HTTPServer.RouteHandlers
                 }
                 catch (Exception)
                 {
-
+                    // Not Important
                 }
 
-                fs.Flush();
+                try
+                {
+                    fs.Flush();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // fs has been disposed already.
+                }
             }
             return new HttpResponse(false)
             {
@@ -296,6 +308,11 @@ namespace HTTPServer.RouteHandlers
         {
             Write(SpanToMem);
             Position = 0;
+        }
+
+        public HugeMemoryStream()
+        {
+
         }
 
         private int GetPageCount(long length)
