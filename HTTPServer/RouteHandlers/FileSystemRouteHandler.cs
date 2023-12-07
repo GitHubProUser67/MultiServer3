@@ -121,10 +121,13 @@ namespace HTTPServer.RouteHandlers
                                     fs.Close();
                                     ms.Flush();
                                     ms.Close();
-                                    return new HttpResponse(false)
+                                    var invalidresponse = new HttpResponse(false)
                                     {
                                         HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
                                     };
+                                    invalidresponse.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+
+                                    return invalidresponse;
                                 }
                                 else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                                 {
@@ -197,10 +200,13 @@ namespace HTTPServer.RouteHandlers
                     {
                         fs.Flush();
                         fs.Close();
-                        return new HttpResponse(false)
+                        var invalidresponse = new HttpResponse(false)
                         {
                             HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
                         };
+                        invalidresponse.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+
+                        return invalidresponse;
                     }
                     else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                     {
