@@ -41,7 +41,7 @@ namespace HTTPServer.RouteHandlers
                 HttpStatusCode = HttpStatusCode.Ok
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
-            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read);
 
             return response;
         }
@@ -68,14 +68,14 @@ namespace HTTPServer.RouteHandlers
                 HttpStatusCode = HttpStatusCode.Ok
             };
             response.Headers["Content-Type"] = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path));
-            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read);
 
             return response;
         }
 
         private static HttpResponse Handle_LocalFile_Stream(HttpRequest request, string local_path)
         {
-            using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read))
             {
                 long filesize = fs.Length;
                 long startByte = -1;
@@ -136,7 +136,7 @@ namespace HTTPServer.RouteHandlers
                                     };
                                     okresponse.Headers.Add("Accept-Ranges", "bytes");
                                     okresponse.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
-                                    okresponse.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                    okresponse.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read);
 
                                     return okresponse;
                                 }
@@ -213,7 +213,7 @@ namespace HTTPServer.RouteHandlers
                     };
                     okresponse.Headers.Add("Accept-Ranges", "bytes");
                     okresponse.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
-                    okresponse.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    okresponse.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read);
 
                     return okresponse;
                 }

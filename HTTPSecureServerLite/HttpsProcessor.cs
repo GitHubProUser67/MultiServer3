@@ -124,7 +124,7 @@ namespace HTTPSecureServerLite
                         {
                             string? encoding = ctx.Request.RetrieveHeaderValue("Content-Encoding");
 
-                            using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read))
                             {
                                 byte[]? buffer = null;
 
@@ -520,7 +520,7 @@ namespace HTTPSecureServerLite
                                             string? encoding = ctx.Request.RetrieveHeaderValue("Content-Encoding");
                                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                             {
-                                                using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                                using (FileStream stream = new(filePath, FileMode.Open, FileAccess.Read))
                                                 {
                                                     byte[]? buffer = null;
 
@@ -994,7 +994,7 @@ namespace HTTPSecureServerLite
         {
             long contentLen = new FileInfo(filePath).Length;
 
-            using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read))
             {
                 ctx.Response.ContentType = contentType;
                 ctx.Response.StatusCode = 200;
