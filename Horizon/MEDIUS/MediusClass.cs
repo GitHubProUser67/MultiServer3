@@ -527,9 +527,7 @@ namespace Horizon.MEDIUS
             // Determine server ip
             RefreshServerIp();
 
-            if (HorizonServerConfiguration.UseSonyNAT)
-                Settings.NATIp = MiscUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
-            else if (string.IsNullOrEmpty(Settings.NATIp)) // Update NAT Ip with server ip if null
+            if (string.IsNullOrEmpty(Settings.NATIp)) // Update NAT Ip with server ip if null
                 Settings.NATIp = SERVER_IP.ToString();
 
             // Update default rsa key

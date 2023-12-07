@@ -3,6 +3,9 @@ using CryptoSporidium.Horizon.LIBRARY.Common.Stream;
 
 namespace CryptoSporidium.Horizon.RT.Models
 {
+    /// <summary>
+    /// PartyJoinResponse in earlier Medius 3.00 PS3, was later modified to join by an Index 
+    /// </summary>
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.PartyJoinByIndexResponse)]
     public class MediusPartyJoinByIndexResponse : BaseLobbyExtMessage, IMediusResponse
     {
@@ -35,14 +38,11 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>(); 
             reader.ReadBytes(3);
 
-            //
             StatusCode = reader.Read<MediusCallbackStatus>();
             PartyHostType = reader.Read<MediusGameHostType>();
             ConnectionInfo = reader.Read<NetConnectionInfo>();
@@ -53,14 +53,11 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(new byte[3]);
 
-            // 
             writer.Write(StatusCode);
             writer.Write(PartyHostType);
             writer.Write(ConnectionInfo);

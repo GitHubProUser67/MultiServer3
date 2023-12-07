@@ -16,7 +16,7 @@ namespace CryptoSporidium.Horizon.RT.Models.Lobby
         public MediusCallbackStatus StatusCode;
         public int SystemSpecificStatusCode;
 
-        //public MediusAssignedGameToJoin mediusAssignedGameToJoin;
+        public MediusAssignedGameToJoin? mediusAssignedGameToJoin;
 
         public uint GameWorldID;
         public uint TeamID;
@@ -54,65 +54,35 @@ namespace CryptoSporidium.Horizon.RT.Models.Lobby
             StatusCode = reader.Read<MediusCallbackStatus>();
             SystemSpecificStatusCode = reader.ReadInt32();
 
-            GameWorldID = reader.ReadUInt32();
-            TeamID = reader.ReadUInt32();
-            reader.ReadBytes(4);
-            PlayerCount = reader.ReadInt32();
-            GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
-            GameStats = reader.ReadBytes(Constants.GAMESTATS_MAXLEN);
-            MinPlayers = reader.ReadInt32();
-            MaxPlayers = reader.ReadInt32();
-            GameLevel = reader.ReadInt32();
-            PlayerSkillLevel = reader.ReadInt32();
-            RulesSet = reader.ReadInt32();
-            GenericField1 = reader.ReadInt32();
-            GenericField2 = reader.ReadInt32();
-            GenericField3 = reader.ReadInt32();
-            GenericField4 = reader.ReadInt32();
-            GenericField5 = reader.ReadInt32();
-            GenericField6 = reader.ReadInt32();
-            GenericField7 = reader.ReadInt32();
-            GenericField8 = reader.ReadInt32();
-            WorldStatus = reader.Read<MediusWorldStatus>();
-            JoinType = reader.Read<MediusJoinType>();
-            GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
-            GameHostType = reader.Read<MediusGameHostType>();
-            AddressList = reader.Read<NetAddressList>();
-            AppDataSize = reader.ReadUInt32();
-            AppData = reader.ReadBytes((int)AppDataSize);
-
-            /*
             if (StatusCode == MediusCallbackStatus.MediusJoinAssignedGame)
             {
-                
+                GameWorldID = reader.ReadUInt32();
+                TeamID = reader.ReadUInt32();
+                reader.ReadBytes(4);
+                PlayerCount = reader.ReadInt32();
+                GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
+                GameStats = reader.ReadBytes(Constants.GAMESTATS_MAXLEN);
+                MinPlayers = reader.ReadInt32();
+                MaxPlayers = reader.ReadInt32();
+                GameLevel = reader.ReadInt32();
+                PlayerSkillLevel = reader.ReadInt32();
+                RulesSet = reader.ReadInt32();
+                GenericField1 = reader.ReadInt32();
+                GenericField2 = reader.ReadInt32();
+                GenericField3 = reader.ReadInt32();
+                GenericField4 = reader.ReadInt32();
+                GenericField5 = reader.ReadInt32();
+                GenericField6 = reader.ReadInt32();
+                GenericField7 = reader.ReadInt32();
+                GenericField8 = reader.ReadInt32();
+                WorldStatus = reader.Read<MediusWorldStatus>();
+                JoinType = reader.Read<MediusJoinType>();
+                GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
+                GameHostType = reader.Read<MediusGameHostType>();
+                AddressList = reader.Read<NetAddressList>();
+                AppDataSize = reader.ReadUInt32();
+                AppData = reader.ReadBytes((int)AppDataSize);
             }
-
-            GameWorldID = reader.ReadUInt32();
-            TeamID = reader.ReadUInt32();
-            PlayerCount = reader.ReadInt32();
-            GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
-            GameStats = reader.ReadBytes(Constants.GAMESTATS_MAXLEN);
-            MinPlayers = reader.ReadInt32();
-            MaxPlayers = reader.ReadInt32();
-            GameLevel = reader.ReadInt32();
-            PlayerSkillLevel = reader.ReadInt32();
-            RulesSet = reader.ReadInt32();
-            GenericField1 = reader.ReadInt32();
-            GenericField2 = reader.ReadInt32();
-            GenericField3 = reader.ReadInt32();
-            GenericField4 = reader.ReadInt32();
-            GenericField5 = reader.ReadInt32();
-            GenericField6 = reader.ReadInt32();
-            GenericField7 = reader.ReadInt32();
-            GenericField8 = reader.ReadInt32();
-            WorldStatus = reader.Read<MediusWorldStatus>();
-            JoinType = reader.Read<MediusJoinType>();
-            GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
-            GameHostType = reader.Read<MediusGameHostType>();
-            AddressList = reader.Read<NetAddressList>();
-            AppDataSize = reader.ReadUInt32();
-            AppData = reader.ReadChars((int)AppDataSize);
-            */
         }
 
         public override void Serialize(MessageWriter writer)
@@ -125,39 +95,35 @@ namespace CryptoSporidium.Horizon.RT.Models.Lobby
             writer.Write(StatusCode);
             writer.Write(SystemSpecificStatusCode);
 
-            writer.Write(GameWorldID);
-            writer.Write(TeamID);
-            writer.Write(new byte[4]);
-            writer.Write(PlayerCount);
-            writer.Write(GameName, Constants.GAMENAME_MAXLEN);
-            writer.Write(GameStats, Constants.GAMESTATS_MAXLEN);
-            writer.Write(MinPlayers);
-            writer.Write(MaxPlayers);
-            writer.Write(GameLevel);
-            writer.Write(PlayerSkillLevel);
-            writer.Write(RulesSet);
-            writer.Write(GenericField1);
-            writer.Write(GenericField2);
-            writer.Write(GenericField3);
-            writer.Write(GenericField4);
-            writer.Write(GenericField5);
-            writer.Write(GenericField6);
-            writer.Write(GenericField7);
-            writer.Write(GenericField8);
-            writer.Write(WorldStatus);
-            writer.Write(JoinType);
-            writer.Write(GamePassword, Constants.GAMEPASSWORD_MAXLEN);
-            writer.Write(GameHostType);
-            writer.Write(AddressList);
-            writer.Write(AppDataSize);
-            writer.Write(AppData);
-
-            /*
             if (StatusCode == MediusCallbackStatus.MediusJoinAssignedGame)
             {
-                //writer.Write(mediusAssignedGameToJoin);
+                writer.Write(GameWorldID);
+                writer.Write(TeamID);
+                writer.Write(new byte[4]);
+                writer.Write(PlayerCount);
+                writer.Write(GameName, Constants.GAMENAME_MAXLEN);
+                writer.Write(GameStats, Constants.GAMESTATS_MAXLEN);
+                writer.Write(MinPlayers);
+                writer.Write(MaxPlayers);
+                writer.Write(GameLevel);
+                writer.Write(PlayerSkillLevel);
+                writer.Write(RulesSet);
+                writer.Write(GenericField1);
+                writer.Write(GenericField2);
+                writer.Write(GenericField3);
+                writer.Write(GenericField4);
+                writer.Write(GenericField5);
+                writer.Write(GenericField6);
+                writer.Write(GenericField7);
+                writer.Write(GenericField8);
+                writer.Write(WorldStatus);
+                writer.Write(JoinType);
+                writer.Write(GamePassword, Constants.GAMEPASSWORD_MAXLEN);
+                writer.Write(GameHostType);
+                writer.Write(AddressList);
+                writer.Write(AppDataSize);
+                writer.Write(AppData);
             }
-            */
         }
 
 

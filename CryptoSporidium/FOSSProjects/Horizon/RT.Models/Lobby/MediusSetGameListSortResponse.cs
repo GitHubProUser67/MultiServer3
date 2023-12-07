@@ -1,18 +1,19 @@
-using CryptoSporidium.Horizon.RT.Common;
+﻿using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.LIBRARY.Common.Stream;
 
 namespace CryptoSporidium.Horizon.RT.Models
 {
-    [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.SessionEndResponse)]
-    public class MediusSessionEndResponse : BaseLobbyMessage, IMediusResponse
+    [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.SetGameListSortResponse)]
+    public class MediusSetGameListSortResponse : BaseLobbyExtMessage, IMediusResponse
     {
-        public override byte PacketType => (byte)MediusLobbyMessageIds.SessionEndResponse;
+        public override byte PacketType => (byte)MediusLobbyExtMessageIds.SetGameListSortResponse;
 
         public bool IsSuccess => StatusCode >= 0;
 
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
+        public int SortID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -20,8 +21,8 @@ namespace CryptoSporidium.Horizon.RT.Models
 
             MessageID = reader.Read<MessageId>();
 
-            reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
+            SortID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -30,10 +31,9 @@ namespace CryptoSporidium.Horizon.RT.Models
 
             writer.Write(MessageID ?? MessageId.Empty);
 
-            writer.Write(new byte[3]);
             writer.Write(StatusCode);
+            writer.Write(SortID);
         }
-
 
         public override string ToString()
         {

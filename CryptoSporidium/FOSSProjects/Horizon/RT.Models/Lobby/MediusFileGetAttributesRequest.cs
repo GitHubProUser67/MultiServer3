@@ -15,25 +15,19 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MediusFileInfo = reader.Read<MediusFile>();
 
-            //
             MessageID = reader.Read<MessageId>();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(MediusFileInfo);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
         }
 

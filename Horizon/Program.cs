@@ -14,7 +14,6 @@ public static class HorizonServerConfiguration
     public static bool EnableMuis { get; set; } = true;
     public static bool EnableBWPS { get; set; } = true;
     public static bool EnableNAT { get; set; } = true;
-    public static bool UseSonyNAT { get; set; } = true;
     public static string? PlayerAPIStaticPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string? DMEConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dme.json";
     public static string? MEDIUSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/medius.json";
@@ -63,7 +62,6 @@ public static class HorizonServerConfiguration
             MUISConfig = config.muis.config;
             NATConfig = config.nat.config;
             BWPSConfig = config.bwps.config;
-            UseSonyNAT = config.use_sony_nat;
             PluginsFolder = config.plugins_folder;
             DatabaseConfig = config.database;
             HomeVersionBetaHDK = config.home_version_beta_hdk;

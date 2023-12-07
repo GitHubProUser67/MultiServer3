@@ -21,7 +21,7 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            if(reader.MediusVersion == 109)
+            if (reader.MediusVersion == 109)
             {
 
             }
@@ -29,13 +29,14 @@ namespace CryptoSporidium.Horizon.RT.Models
             {
 
                 tokenMsgType = reader.Read<RT_TOKEN_MESSAGE_TYPE>();
-                targetToken = reader.Read<ushort>();
+                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED)
+                    targetToken = reader.Read<ushort>();
             }
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            if(writer.MediusVersion == 109)
+            if (writer.MediusVersion == 109)
             {
                 writer.Write(Field1);
                 writer.Write(Host);
@@ -46,10 +47,12 @@ namespace CryptoSporidium.Horizon.RT.Models
                 writer.Write(Field7);
                 writer.Write(Host);
                 writer.Write(Field9);
-            } else
+            }
+            else
             {
                 writer.Write(tokenMsgType);
-                writer.Write(targetToken);
+                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED)
+                    writer.Write(targetToken);
             }
         }
 

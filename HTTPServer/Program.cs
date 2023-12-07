@@ -13,7 +13,7 @@ public static class HTTPServerConfiguration
     public static int HTTPPort { get; set; } = 80;
     public static int DefaultPluginsPort { get; set; } = 61850;
     public static int BufferSize = 4096;
-    public static string HttpVersion = "1.0";
+    public static string HttpVersion = "1.1";
     public static string PluginParams { get; set; } = string.Empty;
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";

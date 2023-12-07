@@ -17,14 +17,11 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MediusFileInfo = reader.Read<MediusFile>();
             MediusFileAttributesResponse = reader.Read<MediusFileAttributes>();
 
-            //
             StatusCode = reader.Read<MediusCallbackStatus>();
             MessageID = reader.Read<MessageId>();
             reader.ReadBytes(3);
@@ -32,16 +29,14 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
-            // 
+
             writer.Write(MediusFileInfo);
             writer.Write(MediusFileAttributesResponse);
 
-            //
             writer.Write(StatusCode);
             writer.Write(MessageID ?? MessageId.Empty);
-            writer.Write(3);
+            writer.Write(new byte[3]);
         }
 
         public override string ToString()

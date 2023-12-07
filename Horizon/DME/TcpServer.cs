@@ -400,7 +400,7 @@ namespace Horizon.DME
 
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcp.AccessToken);
 
-                        if (!scertClient.IsPS3Client && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION))
+                        if (enableEncryption == true && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null)
                         {
                             //Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         }
@@ -597,18 +597,18 @@ namespace Horizon.DME
                             }, clientChannel);
                             break;
                         }
-
+                        /*
                         Queue(new RT_MSG_SERVER_APP()
                         {
                             Message = new TypePing()
                             {
-                                TimeOfSend = Utils.GetUnixTime(),
-                                PingInstance = ping.PingInstance,
-                                RequestEcho = ping.RequestEcho
+                               TimeOfSend = Utils.GetUnixTime(),
+                               PingInstance = ping.PingInstance,
+                               RequestEcho = ping.RequestEcho
                             }
-                        });
-                        /*
-                        data.ClientObject.EnqueueTcp(new RT_MSG_SERVER_APP() { 
+                         });
+                       */
+                        data?.ClientObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()
                             {
                                 TimeOfSend = Utils.GetUnixTime(),
@@ -616,7 +616,7 @@ namespace Horizon.DME
                                 RequestEcho = ping.RequestEcho
                             }
                         });
-                        */
+
                         break;
                     }
             }

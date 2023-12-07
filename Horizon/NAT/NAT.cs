@@ -4,6 +4,7 @@ using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
 using System.Net;
+using CustomLogger;
 
 namespace Horizon.NAT
 {
@@ -24,7 +25,7 @@ namespace Horizon.NAT
         }
 
         /// <summary>
-        /// Start the NAT UDP Server.
+        /// Start the SCE-RT Server.
         /// </summary>
         public async Task Start()
         {
@@ -38,17 +39,10 @@ namespace Horizon.NAT
                 // Send ip and port back if the last byte isn't 0xD4
                 if (message.Content.ReadableBytes == 4 && message.Content.GetByte(message.Content.ReaderIndex + 3) != 0xD4)
                 {
+                    LoggerAccessor.LogInfo($"Recieved External IP {(message.Sender as IPEndPoint).Address.MapToIPv4()} & Port {(ushort)(message.Sender as IPEndPoint).Port} request, sending their IP & Port as response!");
                     var buffer = channel.Allocator.Buffer(6);
-                    if (NATClass.Settings.OverridePort.HasValue)
-                    {
-                        buffer.WriteBytes((message.Recipient as IPEndPoint).Address.MapToIPv4().GetAddressBytes());
-                        buffer.WriteUnsignedShort((ushort)NATClass.Settings.OverridePort.Value);
-                    }
-                    else
-                    {
-                        buffer.WriteBytes((message.Sender as IPEndPoint).Address.MapToIPv4().GetAddressBytes());
-                        buffer.WriteUnsignedShort((ushort)(message.Sender as IPEndPoint).Port);
-                    }
+                    buffer.WriteBytes((message.Sender as IPEndPoint).Address.MapToIPv4().GetAddressBytes());
+                    buffer.WriteUnsignedShort((ushort)(message.Sender as IPEndPoint).Port);
                     channel.WriteAndFlushAsync(new DatagramPacket(buffer, message.Sender));
                 }
             };
