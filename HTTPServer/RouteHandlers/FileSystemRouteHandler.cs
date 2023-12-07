@@ -146,10 +146,10 @@ namespace HTTPServer.RouteHandlers
                                     ms.Write(ContentRange, 0, ContentRange.Length);
                                     ms.WriteByte(Separator);
                                     long TotalBytes = endByte - startByte;
-                                    // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 12.5
+                                    // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 20.5
                                     // This is an AWESOME WORKAROUND for larger than 2gb files.
-                                    if (TotalBytes > HTTPServerConfiguration.BufferSize * 12.5)
-                                        TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 12.5);
+                                    if (TotalBytes > HTTPServerConfiguration.BufferSize * 20.5)
+                                        TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 20.5);
                                     Span<byte> buffer = new byte[TotalBytes];
                                     fs.Position = startByte;
                                     TotalBytes = fs.Read(buffer);
@@ -218,10 +218,10 @@ namespace HTTPServer.RouteHandlers
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
                         long TotalBytes = endByte - startByte;
-                        // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 12.5
+                        // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 20.5
                         // This is an AWESOME WORKAROUND for larger than 2gb files.
-                        if (TotalBytes > HTTPServerConfiguration.BufferSize * 12.5)
-                            TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 12.5);
+                        if (TotalBytes > HTTPServerConfiguration.BufferSize * 20.5)
+                            TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 20.5);
                         Span<byte> buffer = new byte[TotalBytes];
                         fs.Position = startByte;
                         TotalBytes = fs.Read(buffer);
