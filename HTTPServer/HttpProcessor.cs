@@ -514,6 +514,16 @@ namespace HTTPServer
             {
                 LoggerAccessor.LogError($"[HTTP] - WriteResponse thrown an assertion : {ex}");
             }
+
+            try
+            {
+                if (response != null && response.ContentStream != null)
+                    response.ContentStream.Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                // ContentStream has been disposed already.
+            }
         }
 
         private void WriteLineToStream(Stream stream, string text)
