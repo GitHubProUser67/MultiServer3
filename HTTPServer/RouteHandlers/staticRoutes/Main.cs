@@ -24,7 +24,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
 
                                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                 {
-                                    using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                    using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                     {
                                         byte[]? buffer = null;
 
