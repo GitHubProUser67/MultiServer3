@@ -469,11 +469,12 @@ namespace HTTPServer
                         if (!response.Headers.ContainsKey("Content-Length"))
                             response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
 
-                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok)
+                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent)
                         {
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                            if (File.Exists(filePath))
+                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                         }
 
                         string keepalive = request.GetHeaderValue("Connection");

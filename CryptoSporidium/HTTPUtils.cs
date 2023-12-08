@@ -731,7 +731,7 @@ namespace CryptoSporidium
 
             using (MemoryStream output = new())
             {
-                using (GZipStream gzipStream = new(output, CompressionMode.Compress, leaveOpen: false))
+                using (GZipStream gzipStream = new(output, CompressionLevel.SmallestSize, leaveOpen: false))
                 {
                     gzipStream.Write(input, 0, input.Length);
                     gzipStream.Flush();
