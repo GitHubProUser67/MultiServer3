@@ -46,7 +46,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                     }
                                 }
                                 else
-                                    return HttpResponse.Send(new FileStream(indexFile, FileMode.Open, FileAccess.Read, FileShare.Read), "text/html");
+                                    return HttpResponse.Send(new FileStream(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                             }
                         }
 
