@@ -5,6 +5,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<DockerfileRunArguments>-p 10901:10901 -p 10902:10902 -p 11100:11100 -p 11140:11140 -p 21870:21870</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 

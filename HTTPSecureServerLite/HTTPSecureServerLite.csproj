@@ -5,6 +5,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<DockerfileRunArguments>-443:443</DockerfileRunArguments>
     <ApplicationIcon>HTTPS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
