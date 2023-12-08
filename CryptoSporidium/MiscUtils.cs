@@ -101,6 +101,28 @@ namespace CryptoSporidium
             return bytes;
         }
 
+        public static byte[] ReadSmallFileChunck(string filePath, int bytesToRead)
+        {
+            byte[] result = new byte[bytesToRead];
+
+            using (FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                using (BinaryReader reader = new(fileStream))
+                {
+                    int bytesRead = reader.Read(result, 0, bytesToRead);
+
+                    // If the file is less than 10 bytes, pad with null bytes
+                    for (int i = bytesRead; i < bytesToRead; i++)
+                    {
+                        result[i] = 0;
+                    }
+                    reader.Close();
+                }
+            }
+
+            return result;
+        }
+
         public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
         {
             try

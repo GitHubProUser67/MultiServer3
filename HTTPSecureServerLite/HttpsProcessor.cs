@@ -541,7 +541,25 @@ namespace HTTPSecureServerLite
                                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));
                                                         ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                         ctx.Response.StatusCode = (int)statusCode;
-                                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                        if (ContentType == "application/octet-stream")
+                                                        {
+                                                            bool matched = false;
+                                                            byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(filePath, 10);
+                                                            foreach (var entry in HTTPUtils.PathernDictionary)
+                                                            {
+                                                                if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                {
+                                                                    matched = true;
+                                                                    ctx.Response.ContentType = entry.Key;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!matched)
+                                                                ctx.Response.ContentType = ContentType;
+                                                        }
+                                                        else
+                                                            ctx.Response.ContentType = ContentType;
                                                         await ctx.Response.SendAsync(buffer);
                                                     }
                                                     else
@@ -556,7 +574,22 @@ namespace HTTPSecureServerLite
                                                 }
                                             }
                                             else
-                                                SendFile(ctx, filePath, HTTPUtils.GetMimeType(Path.GetExtension(filePath)), _BufferSize);
+                                            {
+                                                string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                if (ContentType == "application/octet-stream")
+                                                {
+                                                    byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(filePath, 10);
+                                                    foreach (var entry in HTTPUtils.PathernDictionary)
+                                                    {
+                                                        if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                        {
+                                                            ContentType = entry.Key;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                SendFile(ctx, filePath, ContentType, _BufferSize);
+                                            }
                                         }
                                         else
                                         {
@@ -959,7 +992,25 @@ namespace HTTPSecureServerLite
                             if (fileInfo.Exists)
                             {
                                 statusCode = HttpStatusCode.OK;
-                                ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                if (ContentType == "application/octet-stream")
+                                {
+                                    bool matched = false;
+                                    byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(filePath, 10);
+                                    foreach (var entry in HTTPUtils.PathernDictionary)
+                                    {
+                                        if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                        {
+                                            matched = true;
+                                            ctx.Response.ContentType = entry.Key;
+                                            break;
+                                        }
+                                    }
+                                    if (!matched)
+                                        ctx.Response.ContentType = ContentType;
+                                }
+                                else
+                                    ctx.Response.ContentType = ContentType;
                                 ctx.Response.Headers.Set("Content-Length", fileInfo.Length.ToString());
                                 ctx.Response.Headers.Set("Date", DateTime.Now.ToString("r"));
                                 ctx.Response.Headers.Set("Last-Modified", File.GetLastWriteTime(absolutepath).ToString("r"));

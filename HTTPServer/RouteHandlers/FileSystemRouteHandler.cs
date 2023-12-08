@@ -1,5 +1,8 @@
 ﻿// Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
+using CryptoSporidium;
+using HTTPServer.API;
 using HTTPServer.Models;
+using System.Collections.Generic;
 using System.Text;
 
 namespace HTTPServer.RouteHandlers
@@ -26,7 +29,25 @@ namespace HTTPServer.RouteHandlers
                 {
                     HttpStatusCode = HttpStatusCode.Ok
                 };
-                response.Headers["Content-Type"] = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                if (ContentType == "application/octet-stream")
+                {
+                    bool matched = false;
+                    byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(local_path, 10);
+                    foreach (var entry in HTTPUtils.PathernDictionary)
+                    {
+                        if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                        {
+                            matched = true;
+                            response.Headers["Content-Type"] = entry.Key;
+                            break;
+                        }
+                    }
+                    if (!matched)
+                        response.Headers["Content-Type"] = ContentType;
+                }
+                else
+                    response.Headers["Content-Type"] = ContentType;
 
                 return response;
             }
@@ -40,7 +61,26 @@ namespace HTTPServer.RouteHandlers
             {
                 HttpStatusCode = HttpStatusCode.Ok
             };
-            response.Headers["Content-Type"] = CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+            string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+            if (ContentType == "application/octet-stream")
+            {
+                bool matched = false;
+                byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(local_path, 10);
+                foreach (var entry in HTTPUtils.PathernDictionary)
+                {
+                    if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                    {
+                        matched = true;
+                        response.Headers["Content-Type"] = entry.Key;
+                        break;
+                    }
+                }
+                if (!matched)
+                    response.Headers["Content-Type"] = ContentType;
+            }
+            else
+                response.Headers["Content-Type"] = ContentType;
+
             response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
@@ -90,7 +130,20 @@ namespace HTTPServer.RouteHandlers
                             byte[] Separator = new byte[] { 0x0D, 0x0A };
                             byte[] MultiPart = Encoding.UTF8.GetBytes("--multiserver_separator");
                             byte[] EndingMultiPart = Encoding.UTF8.GetBytes("--multiserver_separator--");
-                            byte[] MimeType = Encoding.UTF8.GetBytes($"Content-Type: {CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path))}");
+                            string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                            if (ContentType == "application/octet-stream")
+                            {
+                                byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(local_path, 10);
+                                foreach (var entry in HTTPUtils.PathernDictionary)
+                                {
+                                    if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                    {
+                                        ContentType = entry.Key;
+                                        break;
+                                    }
+                                }
+                            }
+                            byte[] MimeType = Encoding.UTF8.GetBytes($"Content-Type: {ContentType}");
                             // Split the ranges based on the comma (',') separator
                             string[] rangeValues = HeaderString.Split(',');
                             foreach (string RangeSelect in rangeValues)
@@ -140,7 +193,7 @@ namespace HTTPServer.RouteHandlers
                                         HttpStatusCode = HttpStatusCode.Ok
                                     };
                                     okresponse.Headers.Add("Accept-Ranges", "bytes");
-                                    okresponse.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
+                                    okresponse.Headers.Add("Content-Type", ContentType);
                                     okresponse.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                                     return okresponse;
@@ -217,7 +270,25 @@ namespace HTTPServer.RouteHandlers
                             HttpStatusCode = HttpStatusCode.Ok
                         };
                         okresponse.Headers.Add("Accept-Ranges", "bytes");
-                        okresponse.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
+                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                        if (ContentType == "application/octet-stream")
+                        {
+                            bool matched = false;
+                            byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(local_path, 10);
+                            foreach (var entry in HTTPUtils.PathernDictionary)
+                            {
+                                if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                {
+                                    matched = true;
+                                    okresponse.Headers["Content-Type"] = entry.Key;
+                                    break;
+                                }
+                            }
+                            if (!matched)
+                                okresponse.Headers["Content-Type"] = ContentType;
+                        }
+                        else
+                            okresponse.Headers["Content-Type"] = ContentType;
                         okresponse.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                         return okresponse;
@@ -239,7 +310,25 @@ namespace HTTPServer.RouteHandlers
                         fs.Flush();
                         fs.Close();
                         TotalBytes = startByte + buffer.Length; // We optimize the spare integer to store total bytes.
-                        response.Headers.Add("Content-Type", CryptoSporidium.HTTPUtils.GetMimeType(Path.GetExtension(local_path)));
+                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                        if (ContentType == "application/octet-stream")
+                        {
+                            bool matched = false;
+                            byte[] VerificationChunck = MiscUtils.ReadSmallFileChunck(local_path, 10);
+                            foreach (var entry in HTTPUtils.PathernDictionary)
+                            {
+                                if (MiscUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                {
+                                    matched = true;
+                                    response.Headers["Content-Type"] = entry.Key;
+                                    break;
+                                }
+                            }
+                            if (!matched)
+                                response.Headers["Content-Type"] = ContentType;
+                        }
+                        else
+                            response.Headers["Content-Type"] = ContentType;
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, TotalBytes - 1, filesize));
                         response.ContentStream = new HugeMemoryStream(buffer);
@@ -272,15 +361,15 @@ namespace HTTPServer.RouteHandlers
 
             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
             {
-                byte[]? CompresedFileBytes = CryptoSporidium.HTTPUtils.Compress(
-                    Encoding.UTF8.GetBytes(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1))));
+                byte[]? CompresedFileBytes = HTTPUtils.Compress(
+                    Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1))));
                 if (CompresedFileBytes != null)
                     return HttpResponse.Send(CompresedFileBytes, "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                 else
                     return HttpBuilder.InternalServerError();
             }
             else
-                return HttpResponse.Send(CryptoSporidium.FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1)), "application/json");
+                return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1)), "application/json");
         }
     }
 

@@ -580,6 +580,12 @@ namespace CryptoSporidium
             #endregion
         };
 
+        public static readonly Dictionary<string, byte[]> PathernDictionary = new()
+        {
+            { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } }
+            // Add more entries as needed
+        };
+
         public static string[] DefaultDocuments =
         {
             "/index.html",
