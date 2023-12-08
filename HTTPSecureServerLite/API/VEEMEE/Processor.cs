@@ -2,6 +2,7 @@
 using System.Text;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
+using CryptoSporidium;
 
 namespace HTTPSecureServerLite.API.VEEMEE
 {
@@ -13,11 +14,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
 
             using (var sha1 = SHA1.Create())
             {
-                CryptoSporidium.MiscUtils? utils = new();
-
-                hashBytes = sha1.ComputeHash(utils.Combinebytearay(Encoding.UTF8.GetBytes("veemeeHTTPRequ9R3UMWDAT8F3*#@&$^"), Encoding.UTF8.GetBytes(data)));
-
-                utils = null;
+                hashBytes = sha1.ComputeHash(MiscUtils.Combinebytearay(Encoding.UTF8.GetBytes("veemeeHTTPRequ9R3UMWDAT8F3*#@&$^"), Encoding.UTF8.GetBytes(data)));
 
                 sha1.Clear();
             }

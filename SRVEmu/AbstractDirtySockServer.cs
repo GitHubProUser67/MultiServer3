@@ -89,7 +89,7 @@ namespace SRVEmu
 
                 if (lowlevel) // Can be used a SSL workaround for testing.
                 {
-                    string hexdata = new MiscUtils().ByteArrayToHexString(data);
+                    string hexdata = MiscUtils.ByteArrayToHexString(data);
 
                     CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", "")}}}");
 

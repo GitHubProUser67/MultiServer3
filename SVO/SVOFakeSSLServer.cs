@@ -75,9 +75,9 @@ namespace SVO
                                         switch (mode)
                                         {
                                             case 0:
-                                                byte[] SCERT_Packet = new MiscUtils().HexStringToByteArray(SSLPackets.SCERT_HELLO);
+                                                byte[] SCERT_Packet = MiscUtils.HexStringToByteArray(SSLPackets.SCERT_HELLO);
                                                 ClientStream.Write(SCERT_Packet);
-                                                SCERT_Packet = new MiscUtils().HexStringToByteArray(SSLPackets.SCERT_HELLO_CONFIRM);
+                                                SCERT_Packet = MiscUtils.HexStringToByteArray(SSLPackets.SCERT_HELLO_CONFIRM);
                                                 ClientStream.Write(SCERT_Packet);
                                                 break;
                                             default:

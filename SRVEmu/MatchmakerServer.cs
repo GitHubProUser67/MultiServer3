@@ -45,7 +45,7 @@ namespace SRVEmu
                 { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
                 { "gpsc", null }, //?
                 { "gqwk", null }, //?
-                { "news", null }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
+                { "news", typeof(News) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
                 { "rank", null }, //unknown. { RANK = "Unranked", TIME = 866 }
             };
 
@@ -55,7 +55,7 @@ namespace SRVEmu
         public IDatabase Database;
         private Thread PingThread;
 
-        public MatchmakerServer(ushort port,  bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null) : base(port, lowlevel)
+        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null) : base(port, lowlevel)
         {
             Database = new JSONDatabase();
             Rooms.Server = this;

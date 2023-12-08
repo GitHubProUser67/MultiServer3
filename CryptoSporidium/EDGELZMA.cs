@@ -192,7 +192,7 @@ namespace CryptoSporidium
                         }
 
                         // Concatenate the byte arrays into a single byte array
-                        byte[] FileData = new MiscUtils().ConcatenateArrays(arrayOfArrays);
+                        byte[] FileData = ConcatenateArrays(arrayOfArrays);
 
                         if (FileData.Length == OriginalSize)
                             return FileData;
@@ -216,7 +216,7 @@ namespace CryptoSporidium
             return null;
         }
 
-        public static void SegmentDecompress(Stream inStream, Stream outStream)
+        private static void SegmentDecompress(Stream inStream, Stream outStream)
         {
             byte[] properties = new byte[5];
             inStream.Read(properties, 0, 5);
@@ -230,6 +230,21 @@ namespace CryptoSporidium
             }
             long compressedSize = inStream.Length - inStream.Position;
             decoder.Code(inStream, outStream, compressedSize, outSize, null);
+        }
+
+        private byte[] ConcatenateArrays(byte[][] arrays)
+        {
+            int totalLength = arrays.Sum(arr => arr.Length);
+            byte[] result = new byte[totalLength];
+            int offset = 0;
+
+            foreach (var array in arrays)
+            {
+                Buffer.BlockCopy(array, 0, result, offset, array.Length);
+                offset += array.Length;
+            }
+
+            return result;
         }
     }
 }

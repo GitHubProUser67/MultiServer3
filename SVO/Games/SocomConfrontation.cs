@@ -275,14 +275,10 @@ namespace SVO.Games
                                             // Convert the modified data to a string
                                             psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
-                                            CryptoSporidium.MiscUtils? utils = new();
-
-                                            if (utils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                            if (MiscUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                                                 LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
                                             else
                                                 LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on PSN");
-
-                                            utils = null;
 
                                             ms.Flush();
                                         }

@@ -18,35 +18,27 @@ namespace CryptoSporidium.FileHelper
                     EDGELZMA? lzma = new();
                     byte[]? DecompressedData = lzma.Decompress(src, false);
                     lzma = null;
-                    MiscUtils? utils = new();
-                    if (!string.IsNullOrEmpty(key) && DecompressedData!= null && DecompressedData.Length > 9 && utils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                    if (!string.IsNullOrEmpty(key) && DecompressedData!= null && DecompressedData.Length > 9 && MiscUtils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
-                        utils = null;
                         byte[] dst = new byte[DecompressedData.Length - 9];
                         Array.Copy(DecompressedData, 9, dst, 0, dst.Length);
                         return FileHelperCryptoClass.DecryptData(dst, FileHelperCryptoClass.GetEncryptionKey(key));
                     }
                     else
                     {
-                        utils = null;
                         return DecompressedData;
                     }
                 }
                 else
                 {
-                    MiscUtils? utils = new();
-                    if (!string.IsNullOrEmpty(key) && src.Length > 9 && utils.FindbyteSequence(src, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                    if (!string.IsNullOrEmpty(key) && src.Length > 9 && MiscUtils.FindbyteSequence(src, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
-                        utils = null;
                         byte[] dst = new byte[src.Length - 9];
                         Array.Copy(src, 9, dst, 0, dst.Length);
                         return FileHelperCryptoClass.DecryptData(dst, FileHelperCryptoClass.GetEncryptionKey(key));
                     }
                     else
-                    {
-                        utils = null;
                         return src;
-                    }
                 }
             }
             catch (Exception ex)
@@ -70,35 +62,25 @@ namespace CryptoSporidium.FileHelper
                     EDGELZMA? lzma = new();
                     byte[]? DecompressedData = lzma.Decompress(src, false);
                     lzma = null;
-                    MiscUtils? utils = new();
-                    if (!string.IsNullOrEmpty(key) && DecompressedData != null && DecompressedData.Length > 9 && utils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                    if (!string.IsNullOrEmpty(key) && DecompressedData != null && DecompressedData.Length > 9 && MiscUtils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
-                        utils = null;
                         byte[] dst = new byte[DecompressedData.Length - 9];
                         Array.Copy(DecompressedData, 9, dst, 0, dst.Length);
                         return Encoding.UTF8.GetString(FileHelperCryptoClass.DecryptData(dst, FileHelperCryptoClass.GetEncryptionKey(key)));
                     }
                     else if (DecompressedData != null)
-                    {
-                        utils = null;
                         return Encoding.UTF8.GetString(DecompressedData);
-                    }
                 }
                 else
                 {
-                    MiscUtils? utils = new();
-                    if (!string.IsNullOrEmpty(key) && src.Length > 9 && utils.FindbyteSequence(src, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
+                    if (!string.IsNullOrEmpty(key) && src.Length > 9 && MiscUtils.FindbyteSequence(src, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
-                        utils = null;
                         byte[] dst = new byte[src.Length - 9];
                         Array.Copy(src, 9, dst, 0, dst.Length);
                         return Encoding.UTF8.GetString(FileHelperCryptoClass.DecryptData(dst, FileHelperCryptoClass.GetEncryptionKey(key)));
                     }
                     else
-                    {
-                        utils = null;
                         return Encoding.UTF8.GetString(src);
-                    }
                 }
             }
             catch (Exception ex)

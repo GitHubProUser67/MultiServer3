@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using CryptoSporidium.FileHelper;
 using CryptoSporidium.WebAPIs.SSFW;
+using CryptoSporidium;
 
 namespace SSFWServer
 {
@@ -48,9 +49,7 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                CryptoSporidium.MiscUtils? utils = new();
-
-                if (utils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) && !SSFWServerConfiguration.SSFWCrossSave)
+                if (MiscUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) && !SSFWServerConfiguration.SSFWCrossSave)
                 {
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
 

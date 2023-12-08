@@ -34,7 +34,7 @@ namespace MitmDNS
                 if (endPoint is IPEndPoint EndPointIp)
                 {
                     LoggerAccessor.LogInfo($"[DNS] - Received request from {endPoint}");
-                    Span<byte> Buffer = ProcRequest(new MiscUtils().TrimArray(bytes));
+                    Span<byte> Buffer = ProcRequest(TrimArray(bytes));
                     if (Buffer != null)
                         _ = udp.SendAsync(EndPointIp, Buffer.ToArray());
                 }
@@ -114,6 +114,15 @@ namespace MitmDNS
                 return HTTPUtils.MakeDnsResponsePacket(data, ip);
 
             return null;
+        }
+
+        private byte[] TrimArray(byte[] arr)
+        {
+            int i = arr.Length - 1;
+            while (arr[i] == 0) i--;
+            byte[] data = new byte[i + 1];
+            Array.Copy(arr, data, i + 1);
+            return data;
         }
     }
 

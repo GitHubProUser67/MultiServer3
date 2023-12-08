@@ -63,9 +63,7 @@ namespace TycoonServer
                         extractedData[i] = 0x20;
                 }
 
-                MiscUtils? utils = new();
-
-                if (utils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                if (MiscUtils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
                     LoggerAccessor.LogInfo($"[Tycoon] : User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
 
@@ -117,8 +115,6 @@ namespace TycoonServer
                         md5.Clear();
                     }
                 }
-
-                utils = null;
 
                 return $"<response><Thing>{userid};{sessionid}</Thing></response>";
             }

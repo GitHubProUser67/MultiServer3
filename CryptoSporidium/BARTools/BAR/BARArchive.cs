@@ -359,7 +359,7 @@ namespace CryptoSporidium.BARTools.BAR
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, new MiscUtils().ByteArrayToHexString(m_header.IV));
+                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, MiscUtils.ByteArrayToHexString(m_header.IV));
                     num += 16U;
                 }
                 textWriter.WriteLine("{0:X8} User: {1}", num, m_header.UserData);
@@ -368,7 +368,7 @@ namespace CryptoSporidium.BARTools.BAR
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, new MiscUtils().ByteArrayToHexString(m_header.Key));
+                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, MiscUtils.ByteArrayToHexString(m_header.Key));
                     num += 16U;
                 }
                 textWriter.WriteLine("\n== Table of Contents ==");
@@ -392,7 +392,7 @@ namespace CryptoSporidium.BARTools.BAR
                         tocentry.Path,
                         (uint)tocentry.FileName.Value,
                         tocentry.Size,
-                        new MiscUtils().ByteArrayToHexString(tocentry.IV)
+                        MiscUtils.ByteArrayToHexString(tocentry.IV)
                         });
                         num += 24U;
                     }
@@ -611,7 +611,6 @@ namespace CryptoSporidium.BARTools.BAR
                     array2 = toolsImpl.ICSharpEdgeCompress(array);
                 if (array2 != null && (uint)array2.Length + 28 <= array.Length)
                 {
-                    MiscUtils? miscutils = new();
                     tocEntry.CompressedSize = (uint)array2.Length + 28;
                     tocEntry.Compression = CompressionMethod.Encrypted;
                     using (MemoryStream memoryStream = new(array))
@@ -621,8 +620,7 @@ namespace CryptoSporidium.BARTools.BAR
                     }
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
-                    tocEntry.RawData = miscutils.Combinebytearay(miscutils.Combinebytearay(toolsImpl.ApplyPaddingPrefix(new byte[20]), Utils.IntToByteArray(array2.Length)), array2);
-                    miscutils = null;
+                    tocEntry.RawData = MiscUtils.Combinebytearay(MiscUtils.Combinebytearay(toolsImpl.ApplyPaddingPrefix(new byte[20]), Utils.IntToByteArray(array2.Length)), array2);
                 }
                 else if (array2 != null && array2.Length < array.Length)
                 {

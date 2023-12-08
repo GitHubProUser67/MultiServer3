@@ -99,7 +99,7 @@ class Program
             if (!CryptoSporidium.MiscUtils.IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin");
-                if (CryptoSporidium.MiscUtils.StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
+                if (StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                     Environment.Exit(0);
             }
 
@@ -151,6 +151,30 @@ class Program
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
             Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+        }
+    }
+
+    private static bool StartAsAdmin(string filePath)
+    {
+        try
+        {
+            var proc = new Process
+            {
+                StartInfo =
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    }
+            };
+
+            proc.Start();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 }

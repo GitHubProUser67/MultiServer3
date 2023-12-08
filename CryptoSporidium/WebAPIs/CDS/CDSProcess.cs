@@ -1,4 +1,5 @@
 ﻿using CryptoSporidium.BARTools.UnBAR;
+using CustomLogger;
 
 namespace CryptoSporidium.WebAPIs.CDS
 {
@@ -6,9 +7,7 @@ namespace CryptoSporidium.WebAPIs.CDS
     {
         public static byte[]? CDSEncrypt_Decrypt(byte[] buffer, string sha1)
         {
-            MiscUtils? utils = new();
-            byte[]? digest = utils.ConvertSha1StringToByteArray(sha1.ToUpper());
-            utils = null;
+            byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
             {
                 ToolsImpl? toolsimpl = new();
@@ -47,6 +46,26 @@ namespace CryptoSporidium.WebAPIs.CDS
             }
 
             return null;
+        }
+
+
+        private static byte[]? ConvertSha1StringToByteArray(string sha1String)
+        {
+            if (sha1String.Length % 2 != 0)
+            {
+                LoggerAccessor.LogError("Input string length must be even.");
+                return null;
+            }
+
+            byte[] byteArray = new byte[sha1String.Length / 2];
+
+            for (int i = 0; i < sha1String.Length; i += 2)
+            {
+                string hexByte = sha1String.Substring(i, 2);
+                byteArray[i / 2] = Convert.ToByte(hexByte, 16);
+            }
+
+            return byteArray;
         }
     }
 }

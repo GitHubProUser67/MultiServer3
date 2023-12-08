@@ -5,8 +5,9 @@ using Newtonsoft.Json.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Net;
-using System.Diagnostics;
 using System.Security.Principal;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace CryptoSporidium
 {
@@ -50,13 +51,11 @@ namespace CryptoSporidium
             return null;
         }
 
-        public string? ExtractFirst16Characters(string input)
+        public static string GetCurrentDateTime()
         {
-            // Check if the input string is not null and has at least 16 characters
-            if (input != null && input.Length >= 16)
-                // Use Substring to get the first 16 characters
-                return input.Substring(0, 16);
-            return null;
+            DateTime currentDateTime = DateTime.Now;
+            string formattedDateTime = $"{currentDateTime:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
+            return formattedDateTime;
         }
 
         public static string GetNanoseconds()
@@ -68,65 +67,7 @@ namespace CryptoSporidium
             return nanoseconds.ToString("00000000"); // Pad with zeros to 8 digits
         }
 
-        public static string GetCurrentDateTime()
-        {
-            DateTime currentDateTime = DateTime.Now;
-            string formattedDateTime = $"{currentDateTime:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
-            return formattedDateTime;
-        }
-
-        public static string GenerateDynamicCacheGuid(string input)
-        {
-            string md5hash = string.Empty;
-
-            using (MD5 md5 = MD5.Create())
-            {
-                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(GetCurrentDateTime() + input));
-                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                md5.Clear();
-            }
-
-            return md5hash;
-        }
-
-        public byte[] ReadBinaryFile(string filePath, int offset, int length)
-        {
-            using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read))
-            {
-                fs.Seek(offset, SeekOrigin.Begin);
-
-                byte[] data = new byte[length];
-                fs.Read(data, 0, length);
-
-                fs.Flush();
-
-                return data;
-            }
-        }
-
-        public int FindDataPosInBinary(byte[] data1, byte[] data2)
-        {
-            for (int i = 0; i < data1.Length - data2.Length + 1; i++)
-            {
-                bool found = true;
-                for (int j = 0; j < data2.Length; j++)
-                {
-                    if (data1[i + j] != data2[j])
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-
-                if (found)
-                    return i;
-            }
-
-            return -1; // Data2 not found in Data1
-        }
-
-        public byte[] HexStringToByteArray(string hex)
+        public static byte[] HexStringToByteArray(string hex)
         {
             int len = hex.Length;
             byte[] byteArray = new byte[len / 2];
@@ -138,7 +79,7 @@ namespace CryptoSporidium
             return byteArray;
         }
 
-        public string ByteArrayToHexString(byte[] byteArray)
+        public static string ByteArrayToHexString(byte[] byteArray)
         {
             StringBuilder hex = new StringBuilder(byteArray.Length * 2);
             foreach (byte b in byteArray)
@@ -149,68 +90,7 @@ namespace CryptoSporidium
             return hex.ToString();
         }
 
-        public string StringToHexString(string input, string formatExpression)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(input);
-            StringBuilder hexBuilder = new(bytes.Length * 2);
-
-            foreach (byte b in bytes)
-            {
-                hexBuilder.AppendFormat(formatExpression, b);
-            }
-
-            return hexBuilder.ToString();
-        }
-
-        public byte[] ConcatenateArrays(byte[][] arrays)
-        {
-            int totalLength = arrays.Sum(arr => arr.Length);
-            byte[] result = new byte[totalLength];
-            int offset = 0;
-
-            foreach (var array in arrays)
-            {
-                Buffer.BlockCopy(array, 0, result, offset, array.Length);
-                offset += array.Length;
-            }
-
-            return result;
-        }
-
-        public byte[]? GetRequiredBlocks(byte[] byteArray, int blockSize)
-        {
-            if (blockSize <= 0)
-            {
-                LoggerAccessor.LogError("Block size must be greater than zero.");
-                return null;
-            }
-
-            if (byteArray.Length == 0)
-                return new byte[0]; // If the input array is empty, return an empty array.
-
-            // Create a new byte array with the calculated length.
-            byte[] result = new byte[blockSize];
-
-            // Copy the required blocks from the input array to the result array.
-            Array.Copy(byteArray, result, blockSize);
-
-            return result;
-        }
-
-        public byte[] ReverseByteArray(byte[] input)
-        {
-            byte[] reversedArray = new byte[input.Length];
-            int lastIndex = input.Length - 1;
-
-            for (int i = 0; i < input.Length; i++)
-            {
-                reversedArray[i] = input[lastIndex - i];
-            }
-
-            return reversedArray;
-        }
-
-        public byte[] Combinebytearay(byte[] first, byte[]? second)
+        public static byte[] Combinebytearay(byte[] first, byte[]? second)
         {
             if (second == null)
                 return first;
@@ -221,96 +101,116 @@ namespace CryptoSporidium
             return bytes;
         }
 
-        public bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
+        public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
         {
             try
             {
-                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
+                if (Avx2.IsSupported)
                 {
-                    if (byteArray[i] == sequenceToFind[0])
+                    int vectorSize = Vector256<byte>.Count;
+
+                    // Fallback to classic parser, we not need avx2.
+                    if (byteArray.Length < vectorSize)
                     {
-                        bool found = true;
-                        for (int j = 1; j < sequenceToFind.Length; j++)
+                        // Handle small arrays with a simple loop
+                        for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
                         {
-                            if (byteArray[i + j] != sequenceToFind[j])
+                            if (byteArray[i] == sequenceToFind[0])
                             {
-                                found = false;
-                                break;
+                                bool found = true;
+                                for (int j = 1; j < sequenceToFind.Length; j++)
+                                {
+                                    if (byteArray[i + j] != sequenceToFind[j])
+                                    {
+                                        found = false;
+                                        break;
+                                    }
+                                }
+
+                                if (found)
+                                    return true;
                             }
                         }
+                    }
+                    else
+                    {
+                        // Process blocks using AVX2 vectors
+                        Vector256<byte> targetVector = Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]);
 
-                        if (found)
-                            return true;
+                        for (int i = 0; i < byteArray.Length - vectorSize + 1; i += vectorSize)
+                        {
+                            Vector256<byte> dataVector = LoadVector(byteArray, i);
+
+                            // Compare the first element
+                            Vector256<byte> compareResult = Avx2.CompareEqual(targetVector, dataVector);
+
+                            // Extract the result to check if the first element matches
+                            if (Avx2.MoveMask(compareResult) != 0)
+                            {
+                                // Check the remaining elements
+                                bool found = true;
+                                for (int j = 1; j < sequenceToFind.Length; j++)
+                                {
+                                    if (byteArray[i + j] != sequenceToFind[j])
+                                    {
+                                        found = false;
+                                        break;
+                                    }
+                                }
+
+                                if (found)
+                                    return true;
+                            }
+                        }
                     }
                 }
+                else
+                {
+                    for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
+                    {
+                        if (byteArray[i] == sequenceToFind[0])
+                        {
+                            bool found = true;
+                            for (int j = 1; j < sequenceToFind.Length; j++)
+                            {
+                                if (byteArray[i + j] != sequenceToFind[j])
+                                {
+                                    found = false;
+                                    break;
+                                }
+                            }
 
-                return false;
+                            if (found)
+                                return true;
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Server has throw an exception in FindRPCNSequence : {ex}");
-
-                return false;
+                LoggerAccessor.LogError($"[MiscUtils] - Server has throw an exception in FindbyteSequence : {ex}");
             }
+
+            return false;
         }
 
-        public byte[] TrimArray(byte[] arr)
+        public static string ReverseString(string input)
         {
-            int i = arr.Length - 1;
-            while (arr[i] == 0) i--;
-            byte[] data = new byte[i + 1];
-            Array.Copy(arr, data, i + 1);
-            return data;
+            char[] charArray = input.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
         }
 
-        public byte[] TrimStart(byte[] byteArray, int index)
+        public static string XORString(string input, string key)
         {
-            if (index >= byteArray.Length)
-            {
-                // If the index is greater than or equal to the length of the array,
-                // return an empty byte array.
-                return new byte[0];
-            }
-            else
-            {
-                // Create a new byte array starting from the specified index.
-                byte[] trimmedArray = new byte[byteArray.Length - index];
-                Array.Copy(byteArray, index, trimmedArray, 0, trimmedArray.Length);
-                return trimmedArray;
-            }
-        }
+            StringBuilder result = new();
 
-        public string TrimString(byte[] str)
-        {
-            int i = str.Length - 1;
-            while (str[i] == 0)
+            for (int i = 0; i < input.Length; i++)
             {
-                Array.Resize(ref str, i);
-                i -= 1;
-            }
-            string res = Encoding.ASCII.GetString(str);
-            //if (res.ToLower() == "www") return null; Some sites do not work without www
-            /* else*/
-            return res;
-        }
-
-        public byte[]? ConvertSha1StringToByteArray(string sha1String)
-        {
-            if (sha1String.Length % 2 != 0)
-            {
-                LoggerAccessor.LogError("Input string length must be even.");
-                return null;
+                result.Append((char)(input[i] ^ key[i % key.Length]));
             }
 
-            byte[] byteArray = new byte[sha1String.Length / 2];
-
-            for (int i = 0; i < sha1String.Length; i += 2)
-            {
-                string hexByte = sha1String.Substring(i, 2);
-                byteArray[i / 2] = Convert.ToByte(hexByte, 16);
-            }
-
-            return byteArray;
+            return result.ToString();
         }
 
         public static IPAddress? GetIp(string hostname)
@@ -330,12 +230,11 @@ namespace CryptoSporidium
                         IPAddress[] addresses = Dns.GetHostAddresses(hostname);
                         foreach (IPAddress address in addresses)
                         {
-                            if (address.AddressFamily == AddressFamily.InterNetworkV6)
+                            if (address.AddressFamily == AddressFamily.InterNetworkV6 || address.AddressFamily == AddressFamily.InterNetwork)
                                 return address;
                         }
+                        // Fallback
                         return addresses.FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
-                    default:
-                        return null;
                 }
             }
             catch (Exception ex)
@@ -343,21 +242,23 @@ namespace CryptoSporidium
                 LoggerAccessor.LogError($"[GetIp] - An Error Occurred - {ex}");
             }
 
-            return null;
+            return IPAddress.Loopback;
         }
 
         public static string GetPublicIPAddress(bool allowipv6 = false)
         {
-            try
+            using (HttpClient client = new())
             {
-                if (allowipv6)
-                    return new WebClient().DownloadString("http://icanhazip.com/").Replace("\\r\\n", "").Replace("\\n", "").Trim();
-                else
-                    return new WebClient().DownloadString("http://ipv4.icanhazip.com/").Replace("\\r\\n", "").Replace("\\n", "").Trim();
-            }
-            catch (Exception)
-            {
+                try
+                {
+                    HttpResponseMessage response = client.GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;
+                    response.EnsureSuccessStatusCode();
+                    return response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                }
+                catch (HttpRequestException)
+                {
 
+                }
             }
 
             return GetLocalIPAddress().ToString();
@@ -549,47 +450,18 @@ namespace CryptoSporidium
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
-        public static bool StartAsAdmin(string filePath)
+        public static bool IsFileOutdated(string filePath, TimeSpan maxAge)
         {
-            try
-            {
-                var proc = new Process
-                {
-                    StartInfo =
-                    {
-                        FileName = filePath,
-                        UseShellExecute = true,
-                        Verb = "runas"
-                    }
-                };
+            if (!File.Exists(filePath))
+                return true; // The file is outdated
 
-                proc.Start();
+            DateTime lastModified = File.GetLastWriteTime(filePath);
+            DateTime currentTime = DateTime.Now;
 
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+            if (lastModified < currentTime - maxAge)
+                return true; // The file is outdated
 
-        public static string ReverseString(string input)
-        {
-            char[] charArray = input.ToCharArray();
-            Array.Reverse(charArray);
-            return new string(charArray);
-        }
-
-        public static string XORString(string input, string key)
-        {
-            StringBuilder result = new();
-
-            for (int i = 0; i < input.Length; i++)
-            {
-                result.Append((char)(input[i] ^ key[i % key.Length]));
-            }
-
-            return result.ToString();
+            return false; // The file is up to date
         }
 
         public static string ComputeMD5(string input)
@@ -636,7 +508,7 @@ namespace CryptoSporidium
             using (SHA256 sha256Hash = SHA256.Create())
             {
                 // ComputeHash - returns byte array  
-                byte[] PassBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(new MiscUtils().ByteArrayToHexString(sha256Hash.ComputeHash
+                byte[] PassBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(ByteArrayToHexString(sha256Hash.ComputeHash
                     (Encoding.UTF8.GetBytes(XORString(input + "ssaPD3Tl1SyM" + ComputeMD5("MyS1lT3DPass" + input), ReverseString(input)))))));
 
                 // Convert byte array to a string   
@@ -650,18 +522,31 @@ namespace CryptoSporidium
             }
         }
 
-        public static bool IsFileOutdated(string filePath, TimeSpan maxAge)
+        private static Vector256<byte> LoadVector(byte[] array, int index)
         {
-            if (!File.Exists(filePath))
-                return true; // The file is outdated
+            if (index + Vector256<byte>.Count <= array.Length)
+            {
+                return Vector256<byte>.Zero.WithElement(0, array[index])
+                                          .WithElement(1, array[index + 1])
+                                          .WithElement(2, array[index + 2])
+                                          .WithElement(3, array[index + 3])
+                                          .WithElement(4, array[index + 4])
+                                          .WithElement(5, array[index + 5])
+                                          .WithElement(6, array[index + 6])
+                                          .WithElement(7, array[index + 7])
+                                          .WithElement(8, array[index + 8])
+                                          .WithElement(9, array[index + 9])
+                                          .WithElement(10, array[index + 10])
+                                          .WithElement(11, array[index + 11])
+                                          .WithElement(12, array[index + 12])
+                                          .WithElement(13, array[index + 13])
+                                          .WithElement(14, array[index + 14])
+                                          .WithElement(15, array[index + 15]);
+            }
 
-            DateTime lastModified = File.GetLastWriteTime(filePath);
-            DateTime currentTime = DateTime.Now;
+            LoggerAccessor.LogDebug("[MiscUtils] - LoadVector - Not enough elements in the array to load a vector.");
 
-            if (lastModified < currentTime - maxAge)
-                return true; // The file is outdated
-
-            return false; // The file is up to date
+            return Vector256<byte>.Zero;
         }
     }
 }

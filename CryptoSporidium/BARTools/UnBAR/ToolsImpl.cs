@@ -494,9 +494,7 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public byte[] ApplyPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            MiscUtils? utils = new();
-            byte[] returnbytes = utils.Combinebytearay(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
-            utils = null;
+            byte[] returnbytes = MiscUtils.Combinebytearay(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
             return returnbytes;
         }
 
@@ -520,7 +518,6 @@ namespace CryptoSporidium.BARTools.UnBAR
             if (IVA != null && IVA.Length >= blockSize && (blockSize == 16 || blockSize == 8))
             {
                 StringBuilder? hexStr = new();
-                MiscUtils? utils = new();
                 LIBSECURE? libsecure = new();
                 byte[]? returnstring = null;
                 int i = blockSize; // Start index for processing.
@@ -553,19 +550,18 @@ namespace CryptoSporidium.BARTools.UnBAR
 
                         Array.Copy(ISO97971, 0, block, blockLength, ISO97971.Length); // Copy the ISO97971 padding at the beginning
 
-                        string hexresult = libsecure.MemXOR(utils.ByteArrayToHexString(ivBlk), utils.ByteArrayToHexString(block), blockSize);
+                        string hexresult = libsecure.MemXOR(MiscUtils.ByteArrayToHexString(ivBlk), MiscUtils.ByteArrayToHexString(block), blockSize);
                         hexStr.Append(hexresult.Substring(0, hexresult.Length - BytesToFill * 2)); // Pemdas rule necessary, and we double size because we work with bytes in a string.
                     }
                     else
-                        hexStr.Append(libsecure.MemXOR(utils.ByteArrayToHexString(ivBlk), utils.ByteArrayToHexString(block), blockSize));
+                        hexStr.Append(libsecure.MemXOR(MiscUtils.ByteArrayToHexString(ivBlk), MiscUtils.ByteArrayToHexString(block), blockSize));
 
                     i += blockSize;
                 }
 
-                returnstring = utils.HexStringToByteArray(hexStr.ToString());
+                returnstring = MiscUtils.HexStringToByteArray(hexStr.ToString());
 
                 hexStr = null;
-                utils = null;
                 libsecure = null;
 
                 return returnstring;

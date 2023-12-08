@@ -6,6 +6,9 @@ namespace SRVEmu.Messages
     {
         public override string _Name { get => "auth"; }
 
+        public string? SKU { get; set; }
+        public string? SDKVERS { get; set; }
+        public string? BUILDDATE { get; set; }
         public string? NAME { get; set; }
         public string? PASS { get; set; }
         public string? TOS { get; set; }

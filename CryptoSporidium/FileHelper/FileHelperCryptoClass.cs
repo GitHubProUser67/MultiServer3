@@ -44,7 +44,6 @@ namespace CryptoSporidium.FileHelper
 
         public static byte[]? EncryptData(string encryptionKey, byte[] data)
         {
-            MiscUtils? utils = new();
             CustomXTEA? xtea = new();
             byte[]? encryptedDataBytes = null;
 
@@ -68,7 +67,9 @@ namespace CryptoSporidium.FileHelper
 
                 // TripleDes is improved with a custom crypto on top.
 
-                cipheredkey = InitiateCustomXTEACipheredKey(xteakey, utils.ReverseByteArray(xteakey));
+                Array.Reverse(xteakey);
+
+                cipheredkey = InitiateCustomXTEACipheredKey(xteakey, xteakey);
 
                 if (cipheredkey != null)
                 {
@@ -77,7 +78,7 @@ namespace CryptoSporidium.FileHelper
                     byte[]? cipheredbytes = xtea.Encrypt(encryptedDataBytes, cipheredkey);
 
                     if (cipheredbytes != null)
-                        encryptedDataBytes = utils.Combinebytearay(outfile, cipheredbytes);
+                        encryptedDataBytes = MiscUtils.Combinebytearay(outfile, cipheredbytes);
                 }
 
                 des.Dispose();
@@ -87,7 +88,6 @@ namespace CryptoSporidium.FileHelper
                 LoggerAccessor.LogInfo($"[FileHelperCryptoClass] : has throw an exception in EncryptData - {ex}");
             }
 
-            utils = null;
             xtea = null;
 
             return encryptedDataBytes;
@@ -95,7 +95,6 @@ namespace CryptoSporidium.FileHelper
 
         public static byte[]? DecryptData(byte[] encryptedData, string encryptionKey)
         {
-            MiscUtils? utils = new();
             CustomXTEA? xtea = new();
             byte[]? plainDataBytes = null;
 
@@ -110,7 +109,7 @@ namespace CryptoSporidium.FileHelper
 
                 Array.Copy(encryptedData, 0, firstSixBytes, 0, firstSixBytes.Length);
 
-                if (utils.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
+                if (MiscUtils.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
                 {
                     byte[] xteakey = new byte[16];
 
@@ -120,7 +119,9 @@ namespace CryptoSporidium.FileHelper
 
                     // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, utils.ReverseByteArray(xteakey));
+                    Array.Reverse(xteakey);
+
+                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, xteakey);
 
                     if (cipheredkey != null)
                     {
@@ -132,14 +133,12 @@ namespace CryptoSporidium.FileHelper
 
                         if (encryptedData == null)
                         {
-                            utils = null;
                             xtea = null;
                             return null;
                         }
                     }
                     else
                     {
-                        utils = null;
                         xtea = null;
                         return null;
                     }
@@ -157,7 +156,6 @@ namespace CryptoSporidium.FileHelper
                 LoggerAccessor.LogInfo($"[FileHelperCryptoClass] : has throw an exception in DecryptData - {ex}");
             }
 
-            utils = null;
             xtea = null;
 
             return plainDataBytes;

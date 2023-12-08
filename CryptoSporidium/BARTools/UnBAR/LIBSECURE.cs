@@ -13,7 +13,6 @@ namespace CryptoSporidium.BARTools.UnBAR
             if (KeyBytes != null && KeyBytes.Length == 16 && m_iv != null && m_iv.Length == 8 && FileBytes != null)
             {
                 MiscUtils? utils = new();
-                byte[]? returnbytes = null;
                 // Create the cipher
                 IBufferedCipher? cipher = null;
 
@@ -33,13 +32,16 @@ namespace CryptoSporidium.BARTools.UnBAR
 
                 if (BitConverter.IsLittleEndian) // KeyBytes endian check directly in libsecure.
                 {
-                    returnbytes = utils.GetRequiredBlocks(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(ciphertextBytes, 4), blocksize);
+                    byte[]? returnbytes = new byte[blocksize];
+                    Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(ciphertextBytes, 4), 0, returnbytes, 0, returnbytes.Length);
                     utils = null;
                     return returnbytes;
                 }
                 else
                 {
-                    returnbytes = utils.GetRequiredBlocks(ciphertextBytes, blocksize);
+                    byte[]? returnbytes = new byte[blocksize];
+                    Buffer.BlockCopy(ciphertextBytes, 0, returnbytes, 0, returnbytes.Length);
+                    utils = null;
                     return returnbytes;
                 }
             }
@@ -53,7 +55,6 @@ namespace CryptoSporidium.BARTools.UnBAR
         {
             string? returnstring = null;
             StringBuilder? CryptoBytes = new();
-            MiscUtils? utils = new();
 
             if (blocksize == 8)
             {
@@ -70,7 +71,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                     string output = Xor.ToString("X4");
                     try
                     {
-                        CryptoBytes.Append(utils.ByteArrayToHexString(utils.HexStringToByteArray(output)));
+                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(output)));
                     }
                     catch (Exception ex)
                     {
@@ -93,7 +94,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                     string output = Xor.ToString("X8");
                     try
                     {
-                        CryptoBytes.Append(utils.ByteArrayToHexString(utils.HexStringToByteArray(output)));
+                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(output)));
                     }
                     catch (Exception ex)
                     {
@@ -105,7 +106,6 @@ namespace CryptoSporidium.BARTools.UnBAR
             returnstring = CryptoBytes.ToString();
 
             CryptoBytes = null;
-            utils = null;
 
             return returnstring;
         }

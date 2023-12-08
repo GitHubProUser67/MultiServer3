@@ -249,7 +249,7 @@ namespace Horizon.DME
             try
             {
                 if (_bootstrap != null)
-                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(MiscUtils.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
+                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(MiscUtils.GetIp(DmeClass.Settings.MPS.Ip) ?? IPAddress.Loopback, DmeClass.Settings.MPS.Port));
             }
             catch (Exception)
             {

@@ -774,21 +774,33 @@ namespace CryptoSporidium
             int type = (Req[2] >> 3) & 0xF;
             if (type == 0)
             {
-                MiscUtils? utils = new();
                 int lenght = Req[12];
                 int i = 12;
                 while (lenght > 0)
                 {
                     byte[] tmp = new byte[i + lenght];
                     Buffer.BlockCopy(Req, i + 1, tmp, 0, lenght);
-                    string partialaddr = utils.TrimString(tmp);
+                    string partialaddr = TrimString(tmp);
                     if (partialaddr != null) addr.Add(partialaddr);
                     i += lenght + 1;
                     lenght = Req[i];
                 }
-                utils = null;
             }
             return addr;
+        }
+
+        private static string TrimString(byte[] str)
+        {
+            int i = str.Length - 1;
+            while (str[i] == 0)
+            {
+                Array.Resize(ref str, i);
+                i -= 1;
+            }
+            string res = Encoding.ASCII.GetString(str);
+            //if (res.ToLower() == "www") return null; Some sites do not work without www
+            /* else*/
+            return res;
         }
     }
 }

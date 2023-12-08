@@ -5,6 +5,8 @@ using CryptoSporidium.WebAPIs.ChannelID;
 using CustomLogger;
 using HttpMultipartParser;
 using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CryptoSporidium.WebAPIs
 {
@@ -16,7 +18,7 @@ namespace CryptoSporidium.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -65,7 +67,7 @@ namespace CryptoSporidium.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
+                                string guid = GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -269,7 +271,7 @@ namespace CryptoSporidium.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -326,7 +328,7 @@ namespace CryptoSporidium.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
+                                string guid = GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -469,7 +471,7 @@ namespace CryptoSporidium.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/CDS_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/CDS_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -499,7 +501,7 @@ namespace CryptoSporidium.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
+                                string guid = GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -509,7 +511,7 @@ namespace CryptoSporidium.WebAPIs
                                 {
                                     if (!string.IsNullOrEmpty(sha1))
                                     {
-                                        sha1 = new MiscUtils().ExtractFirst16Characters(sha1);
+                                        sha1 = sha1[..16];
 
                                         if (!string.IsNullOrEmpty(sha1))
                                         {
@@ -647,7 +649,7 @@ namespace CryptoSporidium.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/TicketList_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/TicketList_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -685,7 +687,7 @@ namespace CryptoSporidium.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
+                                string guid = GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -704,7 +706,7 @@ namespace CryptoSporidium.WebAPIs
                                 }
                                 else if (version1 == "on")
                                 {
-                                    byte[] ProcessedFileBytes = new MiscUtils().Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer));
+                                    byte[] ProcessedFileBytes = MiscUtils.Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer));
 
                                     File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
 
@@ -723,7 +725,7 @@ namespace CryptoSporidium.WebAPIs
                                 }
                                 else
                                 {
-                                    byte[] ProcessedFileBytes = new MiscUtils().Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer));
+                                    byte[] ProcessedFileBytes = MiscUtils.Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer));
 
                                     File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
 
@@ -754,7 +756,7 @@ namespace CryptoSporidium.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/INF_cache/{MiscUtils.GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/INF_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -783,7 +785,7 @@ namespace CryptoSporidium.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = MiscUtils.GenerateDynamicCacheGuid(filename);
+                                string guid = GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -967,7 +969,7 @@ namespace CryptoSporidium.WebAPIs
             return res;
         }
 
-        public static void UncompressFile(string compressedFilePath, string extractionFolderPath)
+        private static void UncompressFile(string compressedFilePath, string extractionFolderPath)
         {
             try
             {
@@ -978,5 +980,21 @@ namespace CryptoSporidium.WebAPIs
                 LoggerAccessor.LogError($"[File Uncompress] - An error occurred: {ex}");
             }
         }
+
+        private static string GenerateDynamicCacheGuid(string input)
+        {
+            string md5hash = string.Empty;
+
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(MiscUtils.GetCurrentDateTime() + input));
+                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+
+                md5.Clear();
+            }
+
+            return md5hash;
+        }
+
     }
 }
