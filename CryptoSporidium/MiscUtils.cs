@@ -129,60 +129,59 @@ namespace CryptoSporidium
             {
                 if (Avx2.IsSupported)
                 {
-                    int vectorSize = Vector256<byte>.Count;
+                    // Compare the first element
+                    Vector256<byte> compareResult = new();
 
-                    // Fallback to classic parser, we not need avx2.
-                    if (byteArray.Length < vectorSize)
+                    for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
                     {
-                        // Handle small arrays with a simple loop
-                        for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
-                        {
-                            if (byteArray[i] == sequenceToFind[0])
-                            {
-                                bool found = true;
-                                for (int j = 1; j < sequenceToFind.Length; j++)
-                                {
-                                    if (byteArray[i + j] != sequenceToFind[j])
-                                    {
-                                        found = false;
-                                        break;
-                                    }
-                                }
+                        // Compare the first element
+                        compareResult = Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, byteArray[i]), Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]));
 
-                                if (found)
-                                    return true;
+                        // Extract the result to check if the first element matches
+                        if (Avx2.MoveMask(compareResult) != 0)
+                        {
+                            // Check the remaining elements
+                            bool found = true;
+                            for (int j = 1; j < sequenceToFind.Length; j++)
+                            {
+                                if (byteArray[i + j] != sequenceToFind[j])
+                                {
+                                    found = false;
+                                    break;
+                                }
                             }
+
+                            if (found)
+                                return true;
                         }
                     }
-                    else
+                }
+                else if (Sse2.IsSupported)
+                {
+                    // Compare the first element
+                    Vector128<byte> compareResult = new();
+
+                    for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
                     {
-                        // Process blocks using AVX2 vectors
-                        Vector256<byte> targetVector = Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]);
+                        // Compare the first element
+                        compareResult = Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, byteArray[i]), Vector128<byte>.Zero.WithElement(0, sequenceToFind[0]));
 
-                        for (int i = 0; i < byteArray.Length - vectorSize + 1; i += vectorSize)
+                        // Extract the result to check if the first element matches
+                        if (Sse2.MoveMask(compareResult) != 0)
                         {
-                            Vector256<byte> dataVector = LoadVector(byteArray, i);
-
-                            // Compare the first element
-                            Vector256<byte> compareResult = Avx2.CompareEqual(targetVector, dataVector);
-
-                            // Extract the result to check if the first element matches
-                            if (Avx2.MoveMask(compareResult) != 0)
+                            // Check the remaining elements
+                            bool found = true;
+                            for (int j = 1; j < sequenceToFind.Length; j++)
                             {
-                                // Check the remaining elements
-                                bool found = true;
-                                for (int j = 1; j < sequenceToFind.Length; j++)
+                                if (byteArray[i + j] != sequenceToFind[j])
                                 {
-                                    if (byteArray[i + j] != sequenceToFind[j])
-                                    {
-                                        found = false;
-                                        break;
-                                    }
+                                    found = false;
+                                    break;
                                 }
-
-                                if (found)
-                                    return true;
                             }
+
+                            if (found)
+                                return true;
                         }
                     }
                 }
@@ -542,33 +541,6 @@ namespace CryptoSporidium
 
                 return builder.ToString().ToUpper(); // To Upper for a nicer output.
             }
-        }
-
-        private static Vector256<byte> LoadVector(byte[] array, int index)
-        {
-            if (index + Vector256<byte>.Count <= array.Length)
-            {
-                return Vector256<byte>.Zero.WithElement(0, array[index])
-                                          .WithElement(1, array[index + 1])
-                                          .WithElement(2, array[index + 2])
-                                          .WithElement(3, array[index + 3])
-                                          .WithElement(4, array[index + 4])
-                                          .WithElement(5, array[index + 5])
-                                          .WithElement(6, array[index + 6])
-                                          .WithElement(7, array[index + 7])
-                                          .WithElement(8, array[index + 8])
-                                          .WithElement(9, array[index + 9])
-                                          .WithElement(10, array[index + 10])
-                                          .WithElement(11, array[index + 11])
-                                          .WithElement(12, array[index + 12])
-                                          .WithElement(13, array[index + 13])
-                                          .WithElement(14, array[index + 14])
-                                          .WithElement(15, array[index + 15]);
-            }
-
-            LoggerAccessor.LogDebug("[MiscUtils] - LoadVector - Not enough elements in the array to load a vector.");
-
-            return Vector256<byte>.Zero;
         }
     }
 }
