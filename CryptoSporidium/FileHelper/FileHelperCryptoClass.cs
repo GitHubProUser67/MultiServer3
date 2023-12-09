@@ -42,61 +42,13 @@ namespace CryptoSporidium.FileHelper
             return Encoding.UTF8.GetString(combineKey);
         }
 
-        public static byte[]? EncryptData(string encryptionKey, byte[] data)
+        public static byte[] DecryptData(byte[]? encryptedData, string encryptionKey)
         {
+            if (encryptedData == null || string.IsNullOrEmpty(encryptionKey))
+                return Array.Empty<byte>();
+
             CustomXTEA? xtea = new();
-            byte[]? encryptedDataBytes = null;
-
-            try
-            {
-                byte[] xteakey = new byte[16];
-
-                byte[] cipheredkey = new byte[xteakey.Length];
-
-                TripleDES des = TripleDES.Create();
-                des.Mode = CipherMode.ECB;
-                des.Padding = PaddingMode.PKCS7;
-                des.Key = Encoding.UTF8.GetBytes(encryptionKey);
-
-                Array.Copy(des.Key, 0, xteakey, 0, xteakey.Length);
-
-                ICryptoTransform cryptoTransform = des.CreateEncryptor();
-                encryptedDataBytes = cryptoTransform.TransformFinalBlock(data, 0, data.Length);
-
-                cryptoTransform.Dispose();
-
-                // TripleDes is improved with a custom crypto on top.
-
-                Array.Reverse(xteakey);
-
-                cipheredkey = InitiateCustomXTEACipheredKey(xteakey, xteakey);
-
-                if (cipheredkey != null)
-                {
-                    byte[] outfile = new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 };
-
-                    byte[]? cipheredbytes = xtea.Encrypt(encryptedDataBytes, cipheredkey);
-
-                    if (cipheredbytes != null)
-                        encryptedDataBytes = MiscUtils.Combinebytearay(outfile, cipheredbytes);
-                }
-
-                des.Dispose();
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogInfo($"[FileHelperCryptoClass] : has throw an exception in EncryptData - {ex}");
-            }
-
-            xtea = null;
-
-            return encryptedDataBytes;
-        }
-
-        public static byte[]? DecryptData(byte[] encryptedData, string encryptionKey)
-        {
-            CustomXTEA? xtea = new();
-            byte[]? plainDataBytes = null;
+            byte[] plainDataBytes = Array.Empty<byte>();
 
             try
             {
@@ -119,9 +71,7 @@ namespace CryptoSporidium.FileHelper
 
                     // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    Array.Reverse(xteakey);
-
-                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, xteakey);
+                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, ReverseArray(xteakey));
 
                     if (cipheredkey != null)
                     {
@@ -133,14 +83,16 @@ namespace CryptoSporidium.FileHelper
 
                         if (encryptedData == null)
                         {
+                            des.Dispose();
                             xtea = null;
-                            return null;
+                            return Array.Empty<byte>();
                         }
                     }
                     else
                     {
+                        des.Dispose();
                         xtea = null;
-                        return null;
+                        return Array.Empty<byte>();
                     }
                 }
 
@@ -161,12 +113,12 @@ namespace CryptoSporidium.FileHelper
             return plainDataBytes;
         }
 
-        public static byte[] InitiateCustomXTEACipheredKey(byte[] KeyBytes, byte[] Key)
+        public static byte[] InitiateCustomXTEACipheredKey(byte[] KeyBytes, byte[] ReversedKeyBytes)
         {
             // Create the cipher
             IBufferedCipher? cipher = CipherUtilities.GetCipher("AES/ECB/NOPADDING");
 
-            cipher.Init(true, new KeyParameter(Key));
+            cipher.Init(true, new KeyParameter(ReversedKeyBytes));
 
             // Encrypt the plaintext
             byte[] ciphertextBytes = new byte[cipher.GetOutputSize(KeyBytes.Length)];
@@ -176,6 +128,12 @@ namespace CryptoSporidium.FileHelper
             cipher = null;
 
             return ciphertextBytes;
+        }
+
+        private static byte[] ReverseArray(byte[] InArray)
+        {
+            Array.Reverse(InArray);
+            return InArray;
         }
     }
 }

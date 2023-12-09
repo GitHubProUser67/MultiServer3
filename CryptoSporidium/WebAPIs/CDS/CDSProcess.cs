@@ -1,4 +1,5 @@
-﻿using CryptoSporidium.BARTools.UnBAR;
+﻿using CryptoSporidium.BARTools;
+using CryptoSporidium.BARTools.UnBAR;
 using CustomLogger;
 
 namespace CryptoSporidium.WebAPIs.CDS

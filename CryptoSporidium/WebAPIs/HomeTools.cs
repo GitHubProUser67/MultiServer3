@@ -1,4 +1,5 @@
-﻿using CryptoSporidium.BARTools.BAR;
+﻿using CryptoSporidium.BARTools;
+using CryptoSporidium.BARTools.BAR;
 using CryptoSporidium.BARTools.UnBAR;
 using CryptoSporidium.WebAPIs.CDS;
 using CryptoSporidium.WebAPIs.ChannelID;

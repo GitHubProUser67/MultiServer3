@@ -15,9 +15,7 @@ namespace CryptoSporidium.FileHelper
                 byte[] src = File.ReadAllBytes(filepath);
                 if (src.Length > 4 && src[0] == 'T' && src[1] == 'L' && src[2] == 'Z' && src[3] == 'C')
                 {
-                    EDGELZMA? lzma = new();
-                    byte[]? DecompressedData = lzma.Decompress(src, false);
-                    lzma = null;
+                    byte[]? DecompressedData = new EDGELZMA().Decompress(src, false);
                     if (!string.IsNullOrEmpty(key) && DecompressedData!= null && DecompressedData.Length > 9 && MiscUtils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         byte[] dst = new byte[DecompressedData.Length - 9];
@@ -59,9 +57,7 @@ namespace CryptoSporidium.FileHelper
                 byte[] src = File.ReadAllBytes(filepath);
                 if (src.Length > 4 && src[0] == 'T' && src[1] == 'L' && src[2] == 'Z' && src[3] == 'C')
                 {
-                    EDGELZMA? lzma = new();
-                    byte[]? DecompressedData = lzma.Decompress(src, false);
-                    lzma = null;
+                    byte[]? DecompressedData = new EDGELZMA().Decompress(src, false);
                     if (!string.IsNullOrEmpty(key) && DecompressedData != null && DecompressedData.Length > 9 && MiscUtils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         byte[] dst = new byte[DecompressedData.Length - 9];
@@ -85,7 +81,7 @@ namespace CryptoSporidium.FileHelper
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[FileHelper] - ReadAllBytes errored out with this exception : {ex}");
+                LoggerAccessor.LogError($"[FileHelper] - ReadAllText errored out with this exception : {ex}");
             }
 
             return null;

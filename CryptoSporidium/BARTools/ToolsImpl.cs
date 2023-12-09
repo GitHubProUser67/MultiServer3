@@ -6,8 +6,9 @@ using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ComponentAce.Compression.Libs.zlib;
 using CryptoSporidium.BARTools.BAR;
+using CryptoSporidium.BARTools.UnBAR;
 
-namespace CryptoSporidium.BARTools.UnBAR
+namespace CryptoSporidium.BARTools
 {
     public class ToolsImpl
     {
