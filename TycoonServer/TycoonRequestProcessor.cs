@@ -55,7 +55,7 @@ namespace TycoonServer
                 if (!string.IsNullOrEmpty(Command))
                 {
                     Directory.CreateDirectory($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data");
-                    Console.WriteLine(Command);
+					
                     switch (Command)
                     {
                         case "QueryMotd":
