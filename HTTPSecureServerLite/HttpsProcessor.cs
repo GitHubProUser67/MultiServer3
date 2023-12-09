@@ -139,26 +139,14 @@ namespace HTTPSecureServerLite
                                 {
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                     {
-                                        buffer = HTTPUtils.Compress(buffer);
-
-                                        if (buffer != null)
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(indexFile).ToString("r"));
-                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                            ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(indexFile));
-                                            await ctx.Response.SendAsync(buffer);
-                                        }
-                                        else
-                                        {
-                                            statusCode = HttpStatusCode.InternalServerError;
-                                            ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = "text/plain";
-                                            ctx.Response.Send(true);
-                                        }
+                                        statusCode = HttpStatusCode.OK;
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(indexFile).ToString("r"));
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(indexFile));
+                                        await ctx.Response.SendAsync(HTTPUtils.Compress(buffer));
                                     }
                                     else
                                     {
@@ -446,40 +434,28 @@ namespace HTTPSecureServerLite
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
-                                            byte[]? buffer = HTTPUtils.Compress(CollectPHP.Item1);
-
-                                            if (buffer != null)
+                                            statusCode = HttpStatusCode.OK;
+                                            if (CollectPHP.Item2 != null)
                                             {
-                                                statusCode = HttpStatusCode.OK;
-                                                if (CollectPHP.Item2 != null)
+                                                foreach (var innerArray in CollectPHP.Item2)
                                                 {
-                                                    foreach (var innerArray in CollectPHP.Item2)
+                                                    // Ensure the inner array has at least two elements
+                                                    if (innerArray.Length >= 2)
                                                     {
-                                                        // Ensure the inner array has at least two elements
-                                                        if (innerArray.Length >= 2)
-                                                        {
-                                                            // Extract two values from the inner array
-                                                            string value1 = innerArray[0];
-                                                            string value2 = innerArray[1];
-                                                            ctx.Response.Headers.Add(value1, value2);
-                                                        }
+                                                        // Extract two values from the inner array
+                                                        string value1 = innerArray[0];
+                                                        string value2 = innerArray[1];
+                                                        ctx.Response.Headers.Add(value1, value2);
                                                     }
                                                 }
-                                                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                                ctx.Response.StatusCode = (int)statusCode;
-                                                ctx.Response.ContentType = "text/html";
-                                                await ctx.Response.SendAsync(buffer);
                                             }
-                                            else
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                ctx.Response.StatusCode = (int)statusCode;
-                                                ctx.Response.ContentType = "text/plain";
-                                                ctx.Response.Send(true);
-                                            }
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = "text/html";
+                                            await ctx.Response.SendAsync(HTTPUtils.Compress(CollectPHP.Item1));
                                         }
                                         else
                                         {
@@ -838,40 +814,28 @@ namespace HTTPSecureServerLite
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
-                                            byte[]? buffer = HTTPUtils.Compress(CollectPHP.Item1);
-
-                                            if (buffer != null)
+                                            statusCode = HttpStatusCode.OK;
+                                            if (CollectPHP.Item2 != null)
                                             {
-                                                statusCode = HttpStatusCode.OK;
-                                                if (CollectPHP.Item2 != null)
+                                                foreach (var innerArray in CollectPHP.Item2)
                                                 {
-                                                    foreach (var innerArray in CollectPHP.Item2)
+                                                    // Ensure the inner array has at least two elements
+                                                    if (innerArray.Length >= 2)
                                                     {
-                                                        // Ensure the inner array has at least two elements
-                                                        if (innerArray.Length >= 2)
-                                                        {
-                                                            // Extract two values from the inner array
-                                                            string value1 = innerArray[0];
-                                                            string value2 = innerArray[1];
-                                                            ctx.Response.Headers.Add(value1, value2);
-                                                        }
+                                                        // Extract two values from the inner array
+                                                        string value1 = innerArray[0];
+                                                        string value2 = innerArray[1];
+                                                        ctx.Response.Headers.Add(value1, value2);
                                                     }
                                                 }
-                                                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                                ctx.Response.StatusCode = (int)statusCode;
-                                                ctx.Response.ContentType = "text/html";
-                                                await ctx.Response.SendAsync(buffer);
                                             }
-                                            else
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                ctx.Response.StatusCode = (int)statusCode;
-                                                ctx.Response.ContentType = "text/plain";
-                                                ctx.Response.Send(true);
-                                            }
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = "text/html";
+                                            await ctx.Response.SendAsync(HTTPUtils.Compress(CollectPHP.Item1));
                                         }
                                         else
                                         {

@@ -37,12 +37,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
 
                                         stream.Flush();
 
-                                        byte[]? CompressedBuffer = HTTPUtils.Compress(buffer);
-
-                                        if (CompressedBuffer != null)
-                                            return HttpResponse.Send(CompressedBuffer, "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
-                                        else
-                                            return HttpResponse.Send(buffer, "text/html");
+                                        return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                     }
                                 }
                                 else

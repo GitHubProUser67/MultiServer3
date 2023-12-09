@@ -224,17 +224,7 @@ namespace HTTPServer
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                     string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                    {
-                                                                        byte[]? CompressedBuffer = HTTPUtils.Compress(CollectPHP.Item1);
-
-                                                                        if (CompressedBuffer != null)
-                                                                        {
-                                                                            CollectPHP.Item2 = MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" });
-                                                                            response = HttpResponse.Send(CompressedBuffer, "text/html", CollectPHP.Item2);
-                                                                        }
-                                                                        else
-                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                    }
+                                                                        response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
@@ -344,17 +334,7 @@ namespace HTTPServer
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                     string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                    {
-                                                                        byte[]? CompressedBuffer = HTTPUtils.Compress(CollectPHP.Item1);
-
-                                                                        if (CompressedBuffer != null)
-                                                                        {
-                                                                            CollectPHP.Item2 = MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" });
-                                                                            response = HttpResponse.Send(CompressedBuffer, "text/html", CollectPHP.Item2);
-                                                                        }
-                                                                        else
-                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                    }
+                                                                        response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }

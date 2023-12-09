@@ -725,9 +725,9 @@ namespace CryptoSporidium
                 return input;
         }
 
-        public static byte[]? Compress(byte[] input)
+        public static byte[] Compress(byte[] input)
         {
-            byte[]? byteoutput = null;
+            byte[] byteoutput = Array.Empty<byte>();
 
             using (MemoryStream output = new())
             {

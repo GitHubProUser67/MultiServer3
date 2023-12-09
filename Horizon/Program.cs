@@ -96,9 +96,13 @@ class Program
         {
             Horizon.MEDIUS.MediusClass.MediusMain();
 
-            _ = Horizon.HTTPSERVICE.HttpClass.RunServerAsync(61920);
+            Horizon.HTTPSERVICE.CrudServerHandler httpserver = new("*", 61920);
 
-            _ = Horizon.HTTPSERVICE.HttpClass.RunServerAsync(8443, true);
+            Horizon.HTTPSERVICE.CrudServerHandler httpsecureserver = new("*", 8443);
+
+            httpserver.StartServer();
+
+            httpsecureserver.StartServer(HorizonServerConfiguration.HTTPSCertificateFile, "qwerty");
         }
 
         if (HorizonServerConfiguration.EnableNAT)

@@ -360,14 +360,8 @@ namespace HTTPServer.RouteHandlers
             string? encoding = request.GetHeaderValue("Accept-Encoding");
 
             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-            {
-                byte[]? CompresedFileBytes = HTTPUtils.Compress(
-                    Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1))));
-                if (CompresedFileBytes != null)
-                    return HttpResponse.Send(CompresedFileBytes, "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
-                else
-                    return HttpBuilder.InternalServerError();
-            }
+                return HttpResponse.Send(HTTPUtils.Compress(
+                        Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1]))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
             else
                 return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1)), "application/json");
         }

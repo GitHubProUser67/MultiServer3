@@ -1,106 +1,101 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-using System.Text;
-using DotNetty.Buffers;
-using DotNetty.Codecs.Http;
-using DotNetty.Common.Utilities;
-using DotNetty.Transport.Channels;
-using DotNetty.Common;
+using CryptoSporidium;
 using CustomLogger;
+using HttpServerLite;
+using System.Net;
+using System.Text;
 
 namespace Horizon.HTTPSERVICE
 {
-    sealed class CrudServerHandler : ChannelHandlerAdapter
+    public class CrudServerHandler
     {
-        static readonly ThreadLocalCache Cache = new();
+        public static bool IsStarted = false;
+        private static Webserver? _Server;
+        private string ip;
+        private int port;
 
-        sealed class ThreadLocalCache : FastThreadLocal<AsciiString>
+        public CrudServerHandler(string ip, int port)
         {
-            protected override AsciiString GetInitialValue()
+            this.ip = ip;
+            this.port = port;
+        }
+
+        public void StartServer(string certpath = "", string certpass = "")
+        {
+            if (_Server != null && _Server.IsListening)
+                LoggerAccessor.LogWarn("CrudHandler Server already initiated");
+            else
             {
-                DateTime dateTime = DateTime.UtcNow;
-                return AsciiString.Cached($"{dateTime.DayOfWeek}, {dateTime:dd MMM yyyy HH:mm:ss z}");
+                if (!string.IsNullOrEmpty(certpath) && !string.IsNullOrEmpty(certpass))
+                {
+                    _Server = new Webserver(ip, port, true, certpath, certpass, DefaultRoute);
+                    _Server.Settings.Headers.Host = "https://" + ip + ":" + port;
+                }
+                else
+                {
+                    _Server = new Webserver(ip, port, false, null, null, DefaultRoute);
+                    _Server.Settings.Headers.Host = "http://" + ip + ":" + port;
+                }
+                _Server.Events.Logger = LoggerAccessor.LogInfo;
+                _Server.Settings.Debug.Responses = true;
+                _Server.Settings.Debug.Routing = true;
+                _Server.Start();
+                IsStarted = true;
+                LoggerAccessor.LogInfo("CrudHandler Server initiated...");
             }
         }
 
-        private static readonly AsciiString TypeJson = AsciiString.Cached("application/json");
-        private static readonly AsciiString TypeIco = AsciiString.Cached("image/x-icon");
-        private static readonly AsciiString ServerName = AsciiString.Cached("Microsoft HTTP API 2.0");
-        private static readonly AsciiString CORS = AsciiString.Cached("Access-Control-Allow-Origin");
-        private static readonly AsciiString ETAG = AsciiString.Cached("ETag");
-        private static readonly AsciiString ContentTypeEntity = HttpHeaderNames.ContentType;
-        private static readonly AsciiString DateEntity = HttpHeaderNames.Date;
-        private static readonly AsciiString ContentLengthEntity = HttpHeaderNames.ContentLength;
-        private static readonly AsciiString ServerEntity = HttpHeaderNames.Server;
-
-        volatile ICharSequence date = Cache.Value;
-
-        public override void ChannelRead(IChannelHandlerContext ctx, object message)
+        private static Task DefaultRoute(HttpContext ctx)
         {
-            if (message is IHttpRequest request)
+            ctx.Response.StatusCode = 403;
+            ctx.Response.ContentType = "text/plain";
+            ctx.Response.Send(true);
+
+            return Task.CompletedTask;
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.GET, "/GetRooms/")]
+        public static async Task CrudJsonRoute(HttpContext ctx)
+        {
+            ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+            ctx.Response.ContentType = "application/json";
+            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+            string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
             {
-                try
-                {
-                    Process(ctx, request);
-                }
-                finally
-                {
-                    ReferenceCountUtil.Release(message);
-                }
+                ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
             }
             else
-                ctx.FireChannelRead(message);
+                await ctx.Response.SendAsync(CrudRoomManager.ToJson());
         }
 
-        private void Process(IChannelHandlerContext ctx, IHttpRequest request)
+        [StaticRoute(HttpServerLite.HttpMethod.GET, "/favicon.ico")]
+        public static async Task FaviconRoute(HttpContext ctx)
         {
-            LoggerAccessor.LogInfo($"[Crud_Room_Manager] - Client - {ctx.Channel.RemoteAddress} Requested the HTTP/S Server with URL : {request.Uri}");
-
-            switch (request.Uri)
+            if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
             {
-                case "/GetRooms/":
-                    byte[] json = Encoding.UTF8.GetBytes(CrudRoomManager.ToJson());
-                    WriteResponse(ctx, Unpooled.WrappedBuffer(json), TypeJson, AsciiString.Cached($"{json.Length}"));
-                    break;
-                case "/favicon.ico":
-                    if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/http_service_favicon.ico"))
-                    {
-                        byte[] favicon = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/http_service_favicon.ico");
-                        WriteResponse(ctx, Unpooled.WrappedBuffer(favicon), TypeIco, AsciiString.Cached($"{favicon.Length}"));
-                    }
-                    else
-                    {
-                        DefaultFullHttpResponse notfoundresponse = new(HttpVersion.Http11, HttpResponseStatus.NotFound, Unpooled.Empty, false);
-                        ctx.WriteAndFlushAsync(notfoundresponse);
-                        ctx.CloseAsync();
-                    }
-                    break;
-                default:
-                    DefaultFullHttpResponse defaultresponse = new(HttpVersion.Http11, HttpResponseStatus.Forbidden, Unpooled.Empty, false);
-                    ctx.WriteAndFlushAsync(defaultresponse);
-                    ctx.CloseAsync();
-                    break;
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                ctx.Response.ContentType = "image/x-icon";
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                {
+                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                    await ctx.Response.SendAsync(HTTPUtils.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                }
+                else
+                    await ctx.Response.SendAsync(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));
+            }
+            else
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.Send(true);
             }
         }
-
-        private void WriteResponse(IChannelHandlerContext ctx, IByteBuffer buf, ICharSequence contentType, ICharSequence contentLength)
-        {
-            // Build the response object.
-            DefaultFullHttpResponse response = new(HttpVersion.Http11, HttpResponseStatus.OK, buf, false);
-            HttpHeaders headers = response.Headers;
-            headers.Set(ContentTypeEntity, contentType);
-            headers.Set(ServerEntity, ServerName);
-            headers.Set(DateEntity, date);
-            headers.Set(ContentLengthEntity, contentLength);
-            headers.Set(CORS, "*");
-            headers.Set(ETAG, Guid.NewGuid().ToString());
-
-            // Close the non-keep-alive connection after the write operation is done.
-            ctx.WriteAsync(response);
-        }
-
-        public override void ExceptionCaught(IChannelHandlerContext context, Exception exception) => context.CloseAsync();
-
-        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
     }
 }
