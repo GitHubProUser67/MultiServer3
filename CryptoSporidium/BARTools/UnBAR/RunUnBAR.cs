@@ -401,7 +401,7 @@ namespace CryptoSporidium.BARTools.UnBAR
 
                 try
                 {
-                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(await toolsImpl.ProcessXTEABlocksAsync(data, Key, tableOfContent.IV));
+                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(toolsImpl.ProcessXTEABlocksAsync(data, Key, tableOfContent.IV));
                 }
                 catch (Exception ex)
                 {

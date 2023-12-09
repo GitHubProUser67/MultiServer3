@@ -324,13 +324,11 @@ namespace CryptoSporidium.BARTools
             return array3;
         }
 
-        public async Task<byte[]> ProcessXTEABlocksAsync(byte[] inputArray, byte[] Key, byte[] IV)
+        public byte[] ProcessXTEABlocksAsync(byte[] inputArray, byte[] Key, byte[] IV)
         {
-            int inputLength = inputArray.Length;
             int inputIndex = 0;
-            int outputIndex = 0;
+            int inputLength = inputArray.Length;
             byte[]? output = new byte[inputLength];
-            SemaphoreSlim semaphore = new(1);
             ToolsImpl? toolsimpl = new();
             LIBSECURE? libsecure = new();
 
@@ -339,27 +337,14 @@ namespace CryptoSporidium.BARTools
                 int blockSize = Math.Min(8, inputLength - inputIndex);
                 byte[] block = new byte[blockSize];
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-
-                TaskCompletionSource<byte[]> tcs = new();
-
-                await Task.Run(() =>
-                {
-                    tcs.SetResult(libsecure.InitiateLibSecureXTEACTRBuffer(block, Key, IV, blockSize) ?? new byte[blockSize]); // Null Bytes if failed.
-                });
-
+                byte[]? taskResult = libsecure.InitiateLibSecureXTEACTRBuffer(block, Key, IV, blockSize) ?? null;
+                if (taskResult == null) // We failed so we send original file back.
+                    return inputArray;
                 toolsimpl.IncrementIVBytes(IV, 1);
-
-                await semaphore.WaitAsync();
-
-                byte[] taskResult = await tcs.Task;
-                Buffer.BlockCopy(taskResult, 0, output, outputIndex, blockSize);
-                outputIndex += blockSize;
-                semaphore.Release();
-
+                Buffer.BlockCopy(taskResult, 0, output, inputIndex, blockSize);
                 inputIndex += blockSize;
             }
 
-            semaphore.Dispose();
             toolsimpl = null;
             libsecure = null;
 
