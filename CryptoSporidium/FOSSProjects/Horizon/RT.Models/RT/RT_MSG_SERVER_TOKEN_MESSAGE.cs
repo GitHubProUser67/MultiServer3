@@ -27,9 +27,8 @@ namespace CryptoSporidium.Horizon.RT.Models
             }
             else
             {
-
                 tokenMsgType = reader.Read<RT_TOKEN_MESSAGE_TYPE>();
-                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED)
+                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED)
                     targetToken = reader.Read<ushort>();
             }
         }
@@ -51,7 +50,7 @@ namespace CryptoSporidium.Horizon.RT.Models
             else
             {
                 writer.Write(tokenMsgType);
-                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED)
+                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED)
                     writer.Write(targetToken);
             }
         }
