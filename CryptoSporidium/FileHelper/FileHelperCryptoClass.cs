@@ -42,13 +42,12 @@ namespace CryptoSporidium.FileHelper
             return Encoding.UTF8.GetString(combineKey);
         }
 
-        public static byte[] DecryptData(byte[]? encryptedData, string encryptionKey)
+        public static byte[] DecryptData(byte[] encryptedData, string encryptionKey)
         {
-            if (encryptedData == null || string.IsNullOrEmpty(encryptionKey))
+            if (string.IsNullOrEmpty(encryptionKey))
                 return Array.Empty<byte>();
 
             CustomXTEA? xtea = new();
-            byte[] plainDataBytes = Array.Empty<byte>();
 
             try
             {
@@ -71,7 +70,7 @@ namespace CryptoSporidium.FileHelper
 
                     // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, ReverseArray(xteakey));
+                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, ReverseByteArray(xteakey));
 
                     if (cipheredkey != null)
                     {
@@ -97,7 +96,7 @@ namespace CryptoSporidium.FileHelper
                 }
 
                 ICryptoTransform cryptoTransform = des.CreateDecryptor();
-                plainDataBytes = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+                encryptedData = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
 
                 cryptoTransform.Dispose();
 
@@ -110,7 +109,7 @@ namespace CryptoSporidium.FileHelper
 
             xtea = null;
 
-            return plainDataBytes;
+            return encryptedData;
         }
 
         public static byte[] InitiateCustomXTEACipheredKey(byte[] KeyBytes, byte[] ReversedKeyBytes)
@@ -130,10 +129,17 @@ namespace CryptoSporidium.FileHelper
             return ciphertextBytes;
         }
 
-        private static byte[] ReverseArray(byte[] InArray)
+        private static byte[] ReverseByteArray(byte[] input)
         {
-            Array.Reverse(InArray);
-            return InArray;
+            byte[] reversedArray = new byte[input.Length];
+            int lastIndex = input.Length - 1;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                reversedArray[i] = input[lastIndex - i];
+            }
+
+            return reversedArray;
         }
     }
 }

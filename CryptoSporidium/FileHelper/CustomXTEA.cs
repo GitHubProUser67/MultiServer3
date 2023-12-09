@@ -11,46 +11,6 @@ namespace CryptoSporidium.FileHelper
 		private const uint Rounds = 64;
 
         /// <summary>
-        /// Encrypts the given data with the provided key.
-        /// </summary>
-        /// <param name="data">The data to encrypt.</param>
-        /// <param name="key">The key used for encryption.</param>
-        /// <returns></returns>
-        public byte[]? Encrypt(byte[] data, byte[] key)
-        {
-            try
-            {
-                var keyBuffer = CreateKey(key);
-                var blockBuffer = new uint[2];
-                var result = new byte[NextMultipleOf8(data.Length + 4)];
-                var lengthBuffer = BitConverter.GetBytes(data.Length);
-                Array.Copy(lengthBuffer, result, lengthBuffer.Length);
-                Array.Copy(data, 0, result, lengthBuffer.Length, data.Length);
-                using (var stream = new MemoryStream(result))
-                {
-                    using (var writer = new BinaryWriter(stream))
-                    {
-                        for (int i = 0; i < result.Length; i += 8)
-                        {
-                            blockBuffer[0] = BitConverter.ToUInt32(result, i);
-                            blockBuffer[1] = BitConverter.ToUInt32(result, i + 4);
-                            Encrypt(Rounds, blockBuffer, keyBuffer);
-                            writer.Write(blockBuffer[0]);
-                            writer.Write(blockBuffer[1]);
-                        }
-                    }
-                }
-                return result;
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogInfo($"[CUSTOMXTEA] : has throw an exception in CUSTOMXTEA Encrypt - {ex}");
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Decrypts the given data with the provided key.
         /// Throws an exception if the length of the data array is not a multiple of 8.
         /// Throws an exception if the decrypted length is longer than the actual array.
@@ -58,12 +18,12 @@ namespace CryptoSporidium.FileHelper
         /// <param name="data">The encrypted data.</param>
         /// <param name="key">The key used for decryption.</param>
         /// <returns></returns>
-        public byte[]? Decrypt(byte[] data, byte[] key)
+        public byte[] Decrypt(byte[] data, byte[] key)
         {
             try
             {
                 if (data.Length % 8 != 0)
-                    return Encoding.UTF8.GetBytes("ERROR in Decrypt");
+                    return Array.Empty<byte>();
                 var keyBuffer = CreateKey(key);
                 var blockBuffer = new uint[2];
                 var buffer = new byte[data.Length];
@@ -85,7 +45,7 @@ namespace CryptoSporidium.FileHelper
                 // verify valid length
                 var length = BitConverter.ToUInt32(buffer, 0);
                 if (length > buffer.Length - 4)
-                    return Encoding.UTF8.GetBytes("ERROR in Decrypt");
+                    return Array.Empty<byte>();
                 var result = new byte[length];
                 Array.Copy(buffer, 4, result, 0, length);
                 return result;
@@ -95,7 +55,7 @@ namespace CryptoSporidium.FileHelper
                 LoggerAccessor.LogInfo($"[CUSTOMXTEA] : has throw an exception in CUSTOMXTEA Decrypt - {ex}");
             }
 
-            return null;
+            return Array.Empty<byte>();
         }
 
         public int NextMultipleOf8(int length)
