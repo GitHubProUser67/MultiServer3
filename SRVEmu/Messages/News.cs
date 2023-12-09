@@ -23,7 +23,11 @@ namespace SRVEmu.Messages
                     "TOS_URL=http://ps3burnout08.ea.com/TOS.txt\nNEWS_TEXT=VTSTech.is.reviving.games_NEWS\n" +
                     "TOS_TEXT=VTSTech.is.reviving.games_TOS\nNEWS_DATE=2023.12.06-02:48:57 NEWS_URL=http://ps3burnout08.ea.com/news.txt\n"); // Lenght is VERY IMPORTANT.
 
-                client.SendMessage(MiscUtils.Combinebytearay(NewsPayload, MiscUtils.Combinebytearay(newstext, new byte[] { 0x00 })));
+                client.SendMessage(MiscUtils.CombineByteArrays(NewsPayload, new byte[][]
+                                   {
+                                       newstext,
+                                       new byte[] { 0x00 }
+                                   }));
             }
             else
                 CustomLogger.LoggerAccessor.LogWarn($"[DirtySocks] - News - Client Requested an unknown config type: {NAME}, not responding");

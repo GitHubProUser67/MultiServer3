@@ -620,7 +620,11 @@ namespace CryptoSporidium.BARTools.BAR
                     }
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
-                    tocEntry.RawData = MiscUtils.Combinebytearay(MiscUtils.Combinebytearay(toolsImpl.ApplyPaddingPrefix(new byte[20]), Utils.IntToByteArray(array2.Length)), array2);
+                    tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyPaddingPrefix(new byte[20]), new byte[][]
+                                       {
+                                           Utils.IntToByteArray(array2.Length),
+                                           array2
+                                       });
                 }
                 else if (array2 != null && array2.Length < array.Length)
                 {

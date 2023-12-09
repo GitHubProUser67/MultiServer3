@@ -90,7 +90,7 @@ namespace CryptoSporidium
             return hex.ToString();
         }
 
-        public static byte[] Combinebytearay(byte[] first, byte[]? second)
+        public static byte[] CombineByteArray(byte[] first, byte[]? second)
         {
             if (second == null)
                 return first;
@@ -99,6 +99,26 @@ namespace CryptoSporidium
             Buffer.BlockCopy(first, 0, bytes, 0, first.Length);
             Buffer.BlockCopy(second, 0, bytes, first.Length, second.Length);
             return bytes;
+        }
+
+        public static byte[] CombineByteArrays(byte[] first, byte[][]? second)
+        {
+            if (second == null || second.Length == 0)
+                return first;
+
+            int totalLength = first.Length + second.Sum(arr => arr.Length);
+            byte[] result = new byte[totalLength];
+
+            Buffer.BlockCopy(first, 0, result, 0, first.Length);
+
+            int offset = first.Length;
+            foreach (var array in second)
+            {
+                Buffer.BlockCopy(array, 0, result, offset, array.Length);
+                offset += array.Length;
+            }
+
+            return result;
         }
 
         public static byte[] ReadSmallFileChunck(string filePath, int bytesToRead)

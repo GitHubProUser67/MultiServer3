@@ -480,7 +480,7 @@ namespace CryptoSporidium.BARTools
 
         public byte[] ApplyPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            byte[] returnbytes = MiscUtils.Combinebytearay(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
+            byte[] returnbytes = MiscUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
             return returnbytes;
         }
 

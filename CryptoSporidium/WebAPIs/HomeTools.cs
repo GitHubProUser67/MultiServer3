@@ -707,7 +707,7 @@ namespace CryptoSporidium.WebAPIs
                                 }
                                 else if (version1 == "on")
                                 {
-                                    byte[] ProcessedFileBytes = MiscUtils.Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer));
+                                    byte[] ProcessedFileBytes = MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer));
 
                                     File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
 
@@ -726,7 +726,7 @@ namespace CryptoSporidium.WebAPIs
                                 }
                                 else
                                 {
-                                    byte[] ProcessedFileBytes = MiscUtils.Combinebytearay(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer));
+                                    byte[] ProcessedFileBytes = MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer));
 
                                     File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
 

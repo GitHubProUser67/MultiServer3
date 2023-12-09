@@ -67,7 +67,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                     RawBarData = File.ReadAllBytes(filePath);
                     byte[] BigEndianMagic = new byte[] { 0xAD, 0xEF, 0x17, 0xE1 };
                     // Check if the first 8 bytes match the specified pattern
-                    byte[] pattern = MiscUtils.Combinebytearay(BigEndianMagic, new byte[] { 0x02, 0x00, 0x00, 0x00 });
+                    byte[] pattern = MiscUtils.CombineByteArray(BigEndianMagic, new byte[] { 0x02, 0x00, 0x00, 0x00 });
 
                     for (int i = 0; i < 8; i++)
                     {
@@ -99,43 +99,46 @@ namespace CryptoSporidium.BARTools.UnBAR
 
                                 if (SharcHeader != Array.Empty<byte>())
                                 {
-                                    byte[]? NumOfFiles = ExtractNumOfFilesBigEndian(SharcHeader);
+                                    byte[] NumOfFiles = new byte[4];
 
-                                    if (NumOfFiles != null)
+                                    Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(SharcHeader, 4), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+
+                                    byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
+
+                                    Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
+
+                                    if (SharcTOC != null)
                                     {
-                                        byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
+                                        byte[] OriginalIV = new byte[HeaderIV.Length];
 
-                                        Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
+                                        Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
 
-                                        if (SharcTOC != null)
+                                        toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+
+                                        SharcTOC = aes256.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
+
+                                        if (SharcTOC != Array.Empty<byte>())
                                         {
-                                            byte[] OriginalIV = new byte[HeaderIV.Length];
+                                            byte[] SharcData = new byte[RawBarData.Length - (52 + SharcTOC.Length)];
 
-                                            Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
+                                            Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
 
-                                            toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
-
-                                            SharcTOC = aes256.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
-
-                                            if (SharcTOC != Array.Empty<byte>())
+                                            byte[] FileBytes = MiscUtils.CombineByteArrays(pattern, new byte[][]
                                             {
-                                                byte[] SharcData = new byte[RawBarData.Length - (52 + SharcTOC.Length)];
+                                                OriginalIV,
+                                                SharcHeader,
+                                                SharcTOC,
+                                                SharcData
+                                            });
 
-                                                Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
+                                            Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
-                                                byte[] FileBytes = MiscUtils.Combinebytearay(pattern,
-                                                MiscUtils.Combinebytearay(OriginalIV, MiscUtils.Combinebytearay(SharcHeader,
-                                                MiscUtils.Combinebytearay(SharcTOC, SharcData))));
+                                            File.WriteAllBytes(filePath, FileBytes);
 
-                                                Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                                                BitConverter.ToString(new byte[] { FileBytes[29], FileBytes[30], FileBytes[31], FileBytes[32] }).Replace("-", ""));
 
-                                                File.WriteAllBytes(filePath, FileBytes);
-
-                                                File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                                                    BitConverter.ToString(new byte[] { FileBytes[29], FileBytes[30], FileBytes[31], FileBytes[32] }).Replace("-", ""));
-
-                                                LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
-                                            }
+                                            LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
                                         }
                                     }
                                 }
@@ -229,6 +232,10 @@ namespace CryptoSporidium.BARTools.UnBAR
 
                     if (File.Exists(filePath + ".map"))
                         File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
+                    else if (filePath.Length > 4 && File.Exists(filePath[..^4] + ".sharc.map"))
+                        File.Move(filePath[..^4] + ".sharc.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
+                    else if (filePath.Length > 4 && File.Exists(filePath[..^4] + ".bar.map"))
+                        File.Move(filePath[..^4] + ".bar.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
                 }
             }
             catch (Exception ex)
