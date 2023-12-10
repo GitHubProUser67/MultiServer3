@@ -30,7 +30,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         public string? SvoURL; // UNIVERSE_SVO_URL_MAXLEN
         public bool EndOfList;
 
-        public List<int> approvedList = new List<int> { 10421, 10994, 20043, 20464, 21093, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 22073, 20464, 22500, 22920, 22924 };
+        public List<int> approvedList = new List<int> { 10421, 10994, 20043, 20464, 21093, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 22073, 20464, 22500, 22920, 22924, 22930 };
 
         public override void Deserialize(MessageReader reader)
         {

@@ -93,9 +93,7 @@ class Program
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
-            ThreadPool.QueueUserWorkItem(delegate {
-                Horizon.MEDIUS.MediusClass.MediusMain();
-            }, null);
+            Horizon.MEDIUS.MediusClass.MediusMain();
 
             Horizon.HTTPSERVICE.CrudServerHandler httpserver = new("*", 61920);
 
@@ -107,24 +105,16 @@ class Program
         }
 
         if (HorizonServerConfiguration.EnableNAT)
-            ThreadPool.QueueUserWorkItem(delegate {
-                Horizon.NAT.NATClass.NATMain();
-            }, null);
+            Horizon.NAT.NATClass.NATMain();
 
         if (HorizonServerConfiguration.EnableBWPS)
-            ThreadPool.QueueUserWorkItem(delegate {
-                Horizon.BWPS.BWPSClass.BWPSMain();
-            }, null);
+            Horizon.BWPS.BWPSClass.BWPSMain();
 
         if (HorizonServerConfiguration.EnableMuis)
-            ThreadPool.QueueUserWorkItem(delegate {
-                Horizon.MUIS.MuisClass.MuisMain();
-            }, null);
+            Horizon.MUIS.MuisClass.MuisMain();
 
         if (HorizonServerConfiguration.EnableDME)
-            ThreadPool.QueueUserWorkItem(delegate {
-                Horizon.DME.DmeClass.DmeMain();
-            }, null);
+            Horizon.DME.DmeClass.DmeMain();
 
         return Task.CompletedTask;
     }

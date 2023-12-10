@@ -339,6 +339,24 @@ namespace Horizon.DME
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
+
+                        if (data.ClientObject == null)
+                        {
+                            LoggerAccessor.LogWarn("[DME] - Access Token for client not found, fallback to Sessionkey!");
+                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
+                        }
+
+
+                        if (data.ClientObject == null)
+                        {
+                            LoggerAccessor.LogWarn("[DME] - AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
+                            //var clients = DmeClass.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
+                            //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
+                            ClientObject clientObject = new(clientConnectTcpAuxUdp.SessionKey);
+                            clientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
+                            data.ClientObject = clientObject;
+                        }
+
                         /*
                         if (data.ClientObject == null || data.ClientObject.DmeWorld == null || data.ClientObject.DmeWorld.WorldId != clientConnectTcpAuxUdp.ARG1)
                             throw new Exception($"Client connected with invalid world id!");

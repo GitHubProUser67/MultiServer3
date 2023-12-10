@@ -430,19 +430,19 @@ namespace Horizon.DME
                         var world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
                         if (world == null)
                         {
-                            if (ApplicationId == 20371)
+                            if (ApplicationId == 20371 || ApplicationId == 20374)
                             {
-                                World worldHome = new(this, 20371, 256);
+                                World worldHome = new(this, ApplicationId, 256);
                                 _worlds.Add(worldHome);
 
                                 Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
                             }
-                            else if (ApplicationId == 20374)
+                            else if (ApplicationId == 22920)
                             {
-                                World worldHome = new(this, 20374, 256);
-                                _worlds.Add(worldHome);
+                                World worldParty = new World(this, ApplicationId, 64);
+                                _worlds.Add(worldParty);
 
-                                Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
+                                Enqueue(await worldParty.OnJoinGameRequest(joinGameRequest));
                             }
                             else
                             {

@@ -482,19 +482,19 @@ namespace CryptoSporidium.Horizon.RT.Common
         /// </summary>
         MediusPass = 4,
         /// <summary>
-        /// Join Queue?
+        /// Join Queue for PS3 TicketLogin
         /// </summary>
         MediusInQueue = 5,
         /// <summary>
-        /// Join Assigned Game pre-determined by database/server
+        /// Join Assigned Game pre-determined by server
         /// </summary>
-        MediusJoinAssignedGame = 6, //MediusTypeAssignedGameToJoinMessage
+        MediusJoinAssignedGame = 6,
         /// <summary>
         /// If no games exist for matchmaking host one pre-determined by database/server
         /// </summary>
         MediusMatchTypeHostGame = 7,
         /// <summary>
-        /// Referral to Medius Matchmaking Server <br></br> 
+        /// Referral to Medius Matchmaking Service <br></br> 
         /// 3rd possible response from MediusMatchPartyResponse 
         /// </summary>
         MediusMatchTypeReferral = 8,
@@ -1324,7 +1324,7 @@ namespace CryptoSporidium.Horizon.RT.Common
         /// </summary>
         WorldStaging,
         /// <summary>
-        /// Players are playing in the game world.
+        /// Players are to join and play in the game world.
         /// </summary>
         WorldActive,
         /// <summary>
@@ -3558,6 +3558,46 @@ namespace CryptoSporidium.Horizon.RT.Common
         kOtgResultCategory_Assertion = 0xA,
         kOtgResultCategory_Count = 0xB,
         kOtgResultCategory_ResultExtra = -1
+    }
+
+    #endregion
+
+    #region SVO
+
+    public enum SVOStatsState : int
+    {
+        kCompleted_0 = 1,
+        kHostDisconnect_0 = 2,
+        kLocalDisconnect_0 = 3,
+        kLostConnection_0 = 4,
+        kGamePlayError_0 = 5,
+        kHostPlayerKicked_0 = 6,
+        kLocalPlayerKicked_0 = 7
+    }
+
+    public enum SVOBinaryStatsStarhawk : int
+    {
+        kDeprecrated1 = 1,
+        kPlayerDetailsData = 1,
+        kPlayerDetailsPost = 2,
+        KPlayerSummary = 2,
+        kClanDetailsPost = 3,
+        kTournamentAwardsSummary = 3,
+        kTournamentSoloPost = 4,
+        kVehiclesSummary = 4,
+        kTournamentClanPost = 5,
+        kBnBPartsSummary = 5,
+        kWeaponDetailsPost = 6,
+        kAwardsSummary = 6,
+        kVehicleDetailsPost = 7,
+        kTroopWeaponsSummary = 7,
+        kBnBPartDetailsPost = 8,
+        kStarhawkWeaponsSummary = 8,
+        kAwardDetailsPost = 9,
+        kBaseWeaponDetailsData = 0x64,
+        kBaseVehicleDetailsData = 0x12C,
+        kBaseBnBPartDetailsData = 0x1F4
+
     }
 
     #endregion

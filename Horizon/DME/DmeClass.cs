@@ -326,6 +326,11 @@ namespace Horizon.DME
             return Managers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
         }
 
+        public static ClientObject GetClientBySessionKey(string sessionKey)
+        {
+            return Managers.Select(x => x.Value.GetClientBySessionKey(sessionKey)).FirstOrDefault(x => x != null);
+        }
+
         public static AppSettings GetAppSettingsOrDefault(int appId)
         {
             if (_appSettings.TryGetValue(appId, out var appSettings))
