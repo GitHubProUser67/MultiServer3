@@ -90,7 +90,17 @@ class Program
         }
     }
 
-    static Task HorizonStarter()
+    private static async Task PeriodicGC() // Workaround until we find root cause of the leak.
+    {
+        while (true)
+        {
+            GC.Collect();
+
+            await Task.Delay(6000);
+        }
+    }
+
+    public static Task HorizonStarter()
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
@@ -116,6 +126,8 @@ class Program
 
         if (HorizonServerConfiguration.EnableDME)
             Horizon.DME.DmeClass.DmeMain();
+
+        _ = PeriodicGC();
 
         return Task.CompletedTask;
     }
