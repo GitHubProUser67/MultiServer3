@@ -19,6 +19,14 @@ namespace HTTPServer
             };
         }
 
+        public static HttpResponse NotImplemented()
+        {
+            return new HttpResponse(false)
+            {
+                HttpStatusCode = HttpStatusCode.NotImplemented,
+            };
+        }
+
         public static HttpResponse InternalServerError()
         {
             return new HttpResponse(false)

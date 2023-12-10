@@ -1,20 +1,19 @@
 ﻿// Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
 using CryptoSporidium;
-using HTTPServer.API;
 using HTTPServer.Models;
-using System.Collections.Generic;
 using System.Text;
 
 namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string filepath)
+        public static HttpResponse Handle(HttpRequest request, string filepath, string UserAgentLowercase)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
                 return Handle_LocalDir(request, filepath);
-            else if (File.Exists(filepath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Range can only be sent once.
-                return Handle_LocalFile_Stream(request, filepath);
+            else if (File.Exists(filepath) && request.Headers.Keys.Count(x => x == "Range") == 1
+                && !UserAgentLowercase.Contains("vlc") && !UserAgentLowercase.Contains("lavf")) // Range can only be sent once, put here UserAgent of clients not liking our Range system.
+                return Handle_LocalFile_Stream(request, filepath);                              // Most apps are fine with the idea of a Range bellow what requested (which should work), VLC and MPC-HC don't...
             else if (File.Exists(filepath))
                 return Handle_LocalFile(filepath);
             else
@@ -115,6 +114,9 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalFile_Stream(HttpRequest request, string local_path)
         {
+            // We handle Range slightly differently, for now we limit a range of 500000 bytes at a maximum (magic c# memory compliant value).
+            // This decision was made to not stress the server too much.
+
             using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 long startByte = -1;
@@ -201,10 +203,10 @@ namespace HTTPServer.RouteHandlers
                                 else
                                 {
                                     long TotalBytes = endByte - startByte;
-                                    // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 20.5
+                                    // Check if endByte - startByte exceeds 500000 (value from DLNA Server : https://www.codeproject.com/Articles/1079847/DLNA-Media-Server-to-feed-Smart-TVs)
                                     // This is an AWESOME WORKAROUND for larger than 2gb files.
-                                    if (TotalBytes > HTTPServerConfiguration.BufferSize * 20.5)
-                                        TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 20.5);
+                                    if (TotalBytes > 500000)
+                                        TotalBytes = 500000;
                                     Span<byte> buffer = new byte[TotalBytes];
                                     fs.Position = startByte;
                                     TotalBytes = fs.Read(buffer);
@@ -300,10 +302,10 @@ namespace HTTPServer.RouteHandlers
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
                         long TotalBytes = endByte - startByte;
-                        // Check if endByte - startByte exceeds ConfigurationDefaults.BufferSize * 20.5
+                        // Check if endByte - startByte exceeds 500000 (value from DLNA Server : https://www.codeproject.com/Articles/1079847/DLNA-Media-Server-to-feed-Smart-TVs)
                         // This is an AWESOME WORKAROUND for larger than 2gb files.
-                        if (TotalBytes > HTTPServerConfiguration.BufferSize * 20.5)
-                            TotalBytes = (long)(HTTPServerConfiguration.BufferSize * 20.5);
+                        if (TotalBytes > 500000)
+                            TotalBytes = 500000;
                         Span<byte> buffer = new byte[TotalBytes];
                         fs.Position = startByte;
                         TotalBytes = fs.Read(buffer);

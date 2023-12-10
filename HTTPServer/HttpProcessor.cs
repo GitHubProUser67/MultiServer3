@@ -234,7 +234,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     response = RouteRequest(inputStream, outputStream, request, absolutepath, Host);
-                                                                    response ??= FileSystemRouteHandler.Handle(request, filePath);
+                                                                    response ??= FileSystemRouteHandler.Handle(request, filePath, request.GetHeaderValue("User-Agent").ToLower());
                                                                 }
                                                                 break;
                                                         }
@@ -355,6 +355,13 @@ namespace HTTPServer
                                                     case "HEAD":
                                                         response = FileSystemRouteHandler.HandleHEAD(filePath);
                                                         break;
+                                                    case "OPTIONS":
+                                                        response = HttpBuilder.Ok();
+                                                        response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
+                                                        break;
+                                                    case "PROPFIND":
+                                                        response = HttpBuilder.NotImplemented();
+                                                        break;
                                                     default:
                                                         response = HttpBuilder.NotAllowed();
                                                         break;
@@ -372,6 +379,8 @@ namespace HTTPServer
                                     {
                                         if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
                                             LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", request.Url, response.HttpStatusCode));
+                                        else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                                            LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                                         else
                                             LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                                     }

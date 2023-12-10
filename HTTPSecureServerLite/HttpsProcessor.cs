@@ -924,6 +924,19 @@ namespace HTTPSecureServerLite
                             ctx.Response.ContentType = "text/plain";
                             ctx.Response.Send(true);
                             break;
+                        case "OPTIONS":
+                            statusCode = HttpStatusCode.OK;
+                            ctx.Response.StatusCode = (int)statusCode;
+                            ctx.Response.ContentType = "text/plain";
+                            ctx.Response.Headers.Set("Allow", "OPTIONS, GET, HEAD, POST");
+                            ctx.Response.Send(true);
+                            break;
+                        case "PROPFIND":
+                            statusCode = HttpStatusCode.NotImplemented;
+                            ctx.Response.StatusCode = (int)statusCode;
+                            ctx.Response.ContentType = "text/plain";
+                            ctx.Response.Send(true);
+                            break;
                         default:
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
