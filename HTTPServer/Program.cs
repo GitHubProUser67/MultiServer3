@@ -104,13 +104,19 @@ class Program
 
         HttpServer httpServer = new(80, route_config);
 
-        Thread thread = new(new ThreadStart(httpServer.Listen));
+        HttpServer DLNAServer = new(9090, route_config);
 
         HttpServer QAhttpServer = new(10010, route_config);
+
+        Thread thread = new(new ThreadStart(httpServer.Listen));
+
+        Thread DLNAthread = new(new ThreadStart(DLNAServer.Listen));
 
         Thread QAthread = new(new ThreadStart(QAhttpServer.Listen));
 
         thread.Start();
+
+        DLNAthread.Start();
 
         QAthread.Start();
 
