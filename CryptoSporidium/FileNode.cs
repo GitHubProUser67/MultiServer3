@@ -68,7 +68,7 @@ namespace CryptoSporidium
                         fileNode.Childrens.Add(new FileNode
                         {
                             Name = file.Name,
-                            Type = HTTPUtils.mimeTypes[Path.GetExtension(file.FullName)],
+                            Type = HTTPUtils.GetMimeType(Path.GetExtension(file.FullName)),
                             Size = file.Length,
                             CreationDate = file.CreationTimeUtc
                         });
