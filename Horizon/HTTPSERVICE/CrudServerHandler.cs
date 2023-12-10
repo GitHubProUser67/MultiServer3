@@ -66,15 +66,6 @@ namespace Horizon.HTTPSERVICE
             }
             else
             {
-                if (ctx.Request.Method.ToString() == "OPTIONS")
-                {
-                    ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                    ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
-                    ctx.Response.Headers.Add("Access-Control-Max-Age", "1728000");
-                }
-
-                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-
                 ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                 ctx.Response.ContentType = "application/json";
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
@@ -100,15 +91,6 @@ namespace Horizon.HTTPSERVICE
             }
             else
             {
-                if (ctx.Request.Method.ToString() == "OPTIONS")
-                {
-                    ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                    ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
-                    ctx.Response.Headers.Add("Access-Control-Max-Age", "1728000");
-                }
-
-                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-
                 if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
                 {
                     ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.

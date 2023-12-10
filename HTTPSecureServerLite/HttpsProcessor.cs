@@ -106,15 +106,6 @@ namespace HTTPSecureServerLite
                 // Process the request based on the HTTP method
                 string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath[1..]);
 
-                if (ctx.Request.Method.ToString() == "OPTIONS")
-                {
-                    ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                    ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
-                    ctx.Response.Headers.Add("Access-Control-Max-Age", "1728000");
-                }
-
-                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-
                 if ((absolutepath == "/" || absolutepath == "\\") && ctx.Request.Method.ToString() == "GET")
                 {
                     foreach (string indexFile in HTTPUtils.DefaultDocuments)
