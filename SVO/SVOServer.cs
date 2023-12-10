@@ -138,7 +138,7 @@ namespace SVO
                 else
                 {
                     string? UserAgent = ctx.Request.UserAgent;
-                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident")))
+                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident") || UserAgent.ToLower().Contains("bytespider"))) // Get Away TikTok.
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
                     else
                     {

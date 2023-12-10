@@ -85,7 +85,7 @@ namespace HTTPServer
                             {
                                 HttpRequest? request = GetRequest(inputStream);
 
-                                if (request != null && !string.IsNullOrEmpty(request.Url))
+                                if (request != null && !string.IsNullOrEmpty(request.Url) && !request.GetHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                                 {
                                     string Host = request.GetHeaderValue("Host");
 
@@ -215,6 +215,9 @@ namespace HTTPServer
                                                         {
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
+                                                                break;
+                                                            case "/robots.txt":
+                                                                response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
                                                                 break;
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))

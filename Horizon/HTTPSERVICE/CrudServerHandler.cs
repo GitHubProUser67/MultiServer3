@@ -58,43 +58,77 @@ namespace Horizon.HTTPSERVICE
         [StaticRoute(HttpServerLite.HttpMethod.GET, "/GetRooms/")]
         public static async Task CrudJsonRoute(HttpContext ctx)
         {
-            ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-            ctx.Response.ContentType = "application/json";
-            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-            string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
-            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+            if (ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
             {
-                ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
+                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.Send(true);
             }
             else
-                await ctx.Response.SendAsync(CrudRoomManager.ToJson());
-        }
-
-        [StaticRoute(HttpServerLite.HttpMethod.GET, "/favicon.ico")]
-        public static async Task FaviconRoute(HttpContext ctx)
-        {
-            if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
             {
+                if (ctx.Request.Method.ToString() == "OPTIONS")
+                {
+                    ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                    ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
+                    ctx.Response.Headers.Add("Access-Control-Max-Age", "1728000");
+                }
+
                 ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+
                 ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                ctx.Response.ContentType = "image/x-icon";
+                ctx.Response.ContentType = "application/json";
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                 string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    await ctx.Response.SendAsync(HTTPUtils.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                    await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
                 }
                 else
-                    await ctx.Response.SendAsync(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));
+                    await ctx.Response.SendAsync(CrudRoomManager.ToJson());
+            }
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.GET, "/favicon.ico")]
+        public static async Task FaviconRoute(HttpContext ctx)
+        {
+            if (ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.Send(true);
             }
             else
             {
-                ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                ctx.Response.ContentType = "text/plain";
-                ctx.Response.Send(true);
+                if (ctx.Request.Method.ToString() == "OPTIONS")
+                {
+                    ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                    ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
+                    ctx.Response.Headers.Add("Access-Control-Max-Age", "1728000");
+                }
+
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+
+                if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
+                {
+                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                    ctx.Response.ContentType = "image/x-icon";
+                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                    string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        await ctx.Response.SendAsync(HTTPUtils.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                    }
+                    else
+                        await ctx.Response.SendAsync(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));
+                }
+                else
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    ctx.Response.ContentType = "text/plain";
+                    ctx.Response.Send(true);
+                }
             }
         }
     }

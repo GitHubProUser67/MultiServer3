@@ -95,7 +95,7 @@ namespace SSFWServer
 
                 string UserAgent = GetHeaderValue(Headers, "User-Agent");
 
-                if (!string.IsNullOrEmpty(UserAgent) && !string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS") && !IsIPBanned(GetHeaderValue(Headers, "Host")))
+                if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS") && !IsIPBanned(GetHeaderValue(Headers, "Host"))) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Url}");
 

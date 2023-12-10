@@ -68,18 +68,17 @@ namespace HTTPSecureServerLite
         {
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             string absolutepath = string.Empty;
-            string UserAgent = ctx.Request.RetrieveHeaderValue("User-Agent");
             string Host = ctx.Request.RetrieveHeaderValue("Host");
             string clientip = ctx.Request.Source.IpAddress;
             string clientport = ctx.Request.Source.Port.ToString();
 
             try
             {
-                if (string.IsNullOrEmpty(Host))
+                if (string.IsNullOrEmpty(Host)) // DNS HTTPS do not expose a UserAgent.
                     LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with invalid parameters!");
                 else
                 {
-                    if (ctx.Request.Url != null)
+                    if (ctx.Request.Url != null && !ctx.Request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {ctx.Request.Url.Full}");
 
@@ -381,6 +380,12 @@ namespace HTTPSecureServerLite
                                             }
                                         }
                                     }
+                                    break;
+                                case "/robots.txt": // Get Away Google.
+                                    statusCode = HttpStatusCode.OK;
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "text/plain";
+                                    await ctx.Response.SendAsync("User-agent: *\nDisallow: / ");
                                     break;
                                 default:
                                     if (filePath.EndsWith("/"))
