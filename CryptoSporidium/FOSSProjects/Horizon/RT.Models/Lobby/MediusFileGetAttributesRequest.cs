@@ -9,9 +9,9 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override byte PacketType => (byte)MediusLobbyMessageIds.FileGetAttributes;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
-        public MediusFile MediusFileInfo;
+        public MediusFile? MediusFileInfo;
 
         public override void Deserialize(MessageReader reader)
         {

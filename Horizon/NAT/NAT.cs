@@ -9,7 +9,7 @@ using CustomLogger;
 namespace Horizon.NAT
 {
     /// <summary>
-    /// Unimplemented NAT.
+    /// NAT Server.
     /// </summary>
     public class NAT
     {

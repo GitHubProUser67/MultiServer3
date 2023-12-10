@@ -14,7 +14,6 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public MGCL_ALERT_LEVEL MGCL_ALERT_LEVEL { get; protected set; } = MGCL_ALERT_LEVEL.MGCL_ALERT_NONE;
         public int Port { get; protected set; } = 0;
-        public int UdpPort { get; protected set; } = 50000;
         public IPAddress? IP { get; protected set; } = IPAddress.Any;
 
         public override bool Timedout => false; // (Utils.GetHighPrecisionUtcTime() - UtcLastEcho).TotalSeconds > Program.Settings.DmeTimeoutSeconds;

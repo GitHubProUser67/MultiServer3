@@ -2,7 +2,6 @@ using CustomLogger;
 using CryptoSporidium.Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
-using System.Runtime;
 
 public static class HorizonServerConfiguration
 {
@@ -90,21 +89,13 @@ class Program
         }
     }
 
-    private static async Task PeriodicGC() // Workaround until we find root cause of the leak.
-    {
-        while (true)
-        {
-            GC.Collect();
-
-            await Task.Delay(6000);
-        }
-    }
-
-    public static Task HorizonStarter()
+    static Task HorizonStarter()
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
-            Horizon.MEDIUS.MediusClass.MediusMain();
+            ThreadPool.QueueUserWorkItem(delegate {
+                Horizon.MEDIUS.MediusClass.MediusMain();
+            }, null);
 
             Horizon.HTTPSERVICE.CrudServerHandler httpserver = new("*", 61920);
 
@@ -116,27 +107,30 @@ class Program
         }
 
         if (HorizonServerConfiguration.EnableNAT)
-            Horizon.NAT.NATClass.NATMain();
+            ThreadPool.QueueUserWorkItem(delegate {
+                Horizon.NAT.NATClass.NATMain();
+            }, null);
 
         if (HorizonServerConfiguration.EnableBWPS)
-            Horizon.BWPS.BWPSClass.BWPSMain();
+            ThreadPool.QueueUserWorkItem(delegate {
+                Horizon.BWPS.BWPSClass.BWPSMain();
+            }, null);
 
         if (HorizonServerConfiguration.EnableMuis)
-            Horizon.MUIS.MuisClass.MuisMain();
+            ThreadPool.QueueUserWorkItem(delegate {
+                Horizon.MUIS.MuisClass.MuisMain();
+            }, null);
 
         if (HorizonServerConfiguration.EnableDME)
-            Horizon.DME.DmeClass.DmeMain();
-
-        _ = PeriodicGC();
+            ThreadPool.QueueUserWorkItem(delegate {
+                Horizon.DME.DmeClass.DmeMain();
+            }, null);
 
         return Task.CompletedTask;
     }
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
         LoggerAccessor.SetupLogger("Horizon");
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");

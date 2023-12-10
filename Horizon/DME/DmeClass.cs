@@ -20,11 +20,11 @@ namespace Horizon.DME
 
         public static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
 
-        public static ServerSettings Settings = new();
+        public static ServerSettings Settings = new ServerSettings();
         private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
 
-        public static IPAddress? SERVER_IP;
+        public static IPAddress SERVER_IP = IPAddress.None;
         public static string? IP_TYPE;
 
         public static string DME_SERVER_VERSION = "3.05.0000";
@@ -216,14 +216,8 @@ namespace Horizon.DME
 
         public static void DmeMain()
         {
-            Initialize();
-            _ = StartServerAsync();
-        }
-
-        private static void Initialize()
-        {
-            RefreshServerIp();
             RefreshConfig();
+            _ = StartServerAsync();
         }
 
         /// <summary>
@@ -231,12 +225,12 @@ namespace Horizon.DME
         /// </summary>
         private static void RefreshConfig()
         {
-            var usePublicIp = Settings.UsePublicIp;
-
             var serializerSettings = new JsonSerializerSettings()
             {
                 MissingMemberHandling = MissingMemberHandling.Ignore,
             };
+
+            RefreshServerIp();
 
             // Load settings
             if (File.Exists(CONFIG_FILE))
@@ -249,13 +243,10 @@ namespace Horizon.DME
                 // Add the appids to the ApplicationIds list
                 Settings.ApplicationIds.AddRange(new List<int>
                 {
-                    10683, 10684, 11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920,
-                    21731, 21834, 23624, 20043, 20032, 20034, 20454, 20314, 21874, 21244,
-                    20304, 20463, 21614, 20344, 20434, 22204, 23360, 21513, 21064, 20804,
-                    20374, 21094, 22274, 20060, 10984, 10782, 10421, 10130, 24000, 24180, 
-                    10954, 21784, 21694, 50041, 50083, 50089, 50097, 50098, 50100, 50121,
-                    50130, 50132, 50135, 50141, 50160, 50161, 50162, 50165, 50170, 50175, 
-                    50180, 50182, 50183, 50185, 50186
+                    10683, 10684, 11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
+                    20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
+                    20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
+                    10984, 10782, 10421, 10130, 24000, 24180, 10954, 21784
                 });
 
                 Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
@@ -268,10 +259,6 @@ namespace Horizon.DME
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
-
-            // Determine server ip
-            if (usePublicIp != Settings.UsePublicIp)
-                RefreshServerIp();
 
             // refresh app settings
             _ = RefreshAppSettings();
@@ -328,24 +315,15 @@ namespace Horizon.DME
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress(false));
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }
-
-            Settings.MAS.Ip = SERVER_IP.ToString();
-
-            Settings.MPS.Ip = SERVER_IP.ToString();
         }
 
-        public static ClientObject? GetClientByAccessToken(string accessToken)
+        public static ClientObject GetClientByAccessToken(string accessToken)
         {
             return Managers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
-        }
-
-        public static ClientObject? GetClientBySessionKey(string sessionKey)
-        {
-            return Managers.Select(x => x.Value.GetClientBySessionKey(sessionKey)).FirstOrDefault(x => x != null);
         }
 
         public static AppSettings GetAppSettingsOrDefault(int appId)

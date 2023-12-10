@@ -211,10 +211,12 @@ namespace Horizon.MEDIUS.Medius.Models
             // player.Client.LeaveChannel(ChatChannel);
 
             // Remove from collection
-            RemovePlayer(player.Client);
+            await RemovePlayer(player.Client);
         }
 
-        public virtual void RemovePlayer(ClientObject client)
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        public virtual async Task RemovePlayer(ClientObject client)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: {client} removed.");
 

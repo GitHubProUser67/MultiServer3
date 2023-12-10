@@ -373,9 +373,8 @@ namespace Horizon.DME.Models
                 {
                     MessageID = request.MessageID,
                     DmeClientIndex = existingClient.Value.DmeId,
-                    AccessKey = request.ConnectInfo.AccessKey,
-                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                    pubKey = request.ConnectInfo.ServerKey
+                    AccessKey = existingClient.Value.Token,
+                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
                 };
             }
 
@@ -402,7 +401,9 @@ namespace Horizon.DME.Models
                     };
                 }
                 else
+                {
                     newClient.OnDestroyed += (client) => { UnregisterClientIndex(client.DmeId); };
+                }
             }
             else
             {
@@ -421,9 +422,8 @@ namespace Horizon.DME.Models
             {
                 MessageID = request.MessageID,
                 DmeClientIndex = newClient.DmeId,
-                AccessKey = request.ConnectInfo.AccessKey,
-                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                pubKey = request.ConnectInfo.ServerKey
+                AccessKey = newClient.Token,
+                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
             };
         }
 #pragma warning restore

@@ -24,40 +24,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         /// </summary>
         public long MaxPlayers;
 
-        public List<int> approvedMaxPlayersAppIds = new()
-        { 
-            20371,
-            20374,
-            20624,
-            22500,
-            22920,
-            22924,
-            22930,
-            24000,
-            24180,
-            50041,
-            50083,
-            50089,
-            50097,
-            50098,
-            50100,
-            50121,
-            50130,
-            50132,
-            50135,
-            50141,
-            50160,
-            50161,
-            50162,
-            50165,
-            50170,
-            50175,
-            50180,
-            50182,
-            50183,
-            50185,
-            50186
-        };
+        public List<int> approvedMaxPlayersAppIds = new List<int>() { 20371, 20374, 20624, 22500, 22920, 24000, 24180 };
 
         public override void Deserialize(MessageReader reader)
         {

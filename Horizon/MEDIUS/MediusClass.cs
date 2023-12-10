@@ -25,7 +25,7 @@ namespace Horizon.MEDIUS
 
         public static ServerSettings Settings = new();
 
-        public static IPAddress? SERVER_IP = null;
+        public static IPAddress SERVER_IP = IPAddress.None;
         public static string? IP_TYPE;
 
         public static MediusManager Manager = new();
@@ -131,7 +131,7 @@ namespace Horizon.MEDIUS
                 // tick
                 await TickAsync();
 
-                await Task.Delay(100);
+                await Task.Delay(1000 / 10);
             }
 
             await AuthenticationServer.Stop();
@@ -505,8 +505,6 @@ namespace Horizon.MEDIUS
         /// </summary>
         private static void RefreshConfig()
         {
-            var usePublicIp = Settings.UsePublicIp;
-
             var serializerSettings = new JsonSerializerSettings()
             {
                 MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -618,7 +616,7 @@ namespace Horizon.MEDIUS
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
                 {
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress(false));
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
                     IP_TYPE = "Public";
                 }
                 else

@@ -60,40 +60,19 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
             24000,
             24180,
             10954,
-            21784,
-            50041,
-            50083,
-            50089,
-            50097,
-            50098,
-            50100,
-            50121,
-            50130,
-            50132,
-            50135,
-            50141,
-            50160,
-            50161,
-            50162,
-            50165,
-            50170,
-            50175,
-            50180,
-            50182,
-            50183,
-            50185,
-            50186};
+            21784
+        };
         private string? _dbAccessToken = null;
         private string? _dbAccountName = null;
 
-        private List<AccountDTO> _simulatedAccounts = new();
-        private List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new();
-        private List<NpIdDTO> _simulatedNpIdAccounts = new();
-        private List<ClanDTO> _simulatedClans = new();
-        private List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new();
-        private List<FileDTO> _simulatedMediusFiles = new();
-        private List<FileMetaDataDTO> _simulatedFileMetaData = new();
-        private List<FileAttributesDTO> _simulatedFileAttributes = new();
+        private List<AccountDTO> _simulatedAccounts = new List<AccountDTO>();
+        private List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new List<AccountRelationInviteDTO>();
+        private List<NpIdDTO> _simulatedNpIdAccounts = new List<NpIdDTO>();
+        private List<ClanDTO> _simulatedClans = new List<ClanDTO>();
+        private List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new List<MatchmakingSupersetDTO>();
+        private List<FileDTO> _simulatedMediusFiles = new List<FileDTO>();
+        private List<FileMetaDataDTO> _simulatedFileMetaData = new List<FileMetaDataDTO>();
+        private List<FileAttributesDTO> _simulatedFileAttributes = new List<FileAttributesDTO>();
 
         public DbController(string configFile)
         {
@@ -1584,8 +1563,8 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                             ClanId = _simulatedClanIdCounter++,
                             ClanName = clanName,
                             ClanLeaderAccount = creatorAccount,
-                            ClanMember = new List<AccountDTO>(new AccountDTO[] { creatorAccount }),
-                            ClanInvitation = new List<ClanInvitationDTO>(),
+                            ClanMemberAccounts = new List<AccountDTO>(new AccountDTO[] { creatorAccount }),
+                            ClanMemberInvitations = new List<ClanInvitationDTO>(),
                             ClanMessages = new List<ClanMessageDTO>(),
                             ClanMediusStats = Convert.ToBase64String(new byte[Constants.CLANSTATS_MAXLEN]),
                             ClanStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
@@ -1616,452 +1595,6 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
         }
 
         /// <summary>
-        /// Creates a clan.
-        /// </summary>
-        /// <param name="CreateClanSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<ClanDTO> CreateClanSVO(int creatorAccountId, string clanName, string clanTAG, string playerName, int appId)
-        {
-            ClanDTO result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-
-                    var checkExisting = await GetClanByName(clanName, 0);
-                    if (checkExisting == null)
-                    {
-                        var creatorAccount = await GetAccountById(creatorAccountId);
-                        _simulatedClans.Add(result = new ClanDTO()
-                        {
-                            ClanId = _simulatedClanIdCounter++,
-                            ClanName = clanName,
-                            ClanLeaderAccount = creatorAccount,
-                            ClanMember = new List<AccountDTO>(new AccountDTO[] { creatorAccount }),
-                            ClanInvitation = new List<ClanInvitationDTO>(),
-                            ClanMessages = new List<ClanMessageDTO>(),
-                            ClanMediusStats = Convert.ToBase64String(new byte[Constants.CLANSTATS_MAXLEN]),
-                            ClanStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
-                            ClanWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
-                        });
-
-                        creatorAccount.ClanId = result.ClanId;
-                    }
-                    else
-                    {
-                        throw new Exception($"Clan creation failed clan name already exists!");
-                    }
-                }
-                else
-                {
-                    var response = await PostDbAsync($"Clan/createClanSVO?accountId={creatorAccountId}&playerName={playerName}&clanName={clanName}&clanTAG={clanTAG}&appId={appId}", null);
-
-                    // Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<ClanDTO>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanUpdateMetaDataSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<bool> ClanUpdateMetaDataSVO(int clanId, string metaDataKey, string metaDataValue)
-        {
-            bool result = false;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    result = (await PostDbAsync($"Clan/clanUpdateMetaDataSVO?&clanId={clanId}&metadatakey={metaDataKey}&metadatavalue={metaDataValue}", null)).IsSuccessStatusCode;
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanUpdateMetaDataSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<List<ClanMetaDataDTO>> ClanGetMetaDataSVO(int clanId)
-        {
-            List<ClanMetaDataDTO> result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/clan_GetMetaDataSVO?&clanId={clanId}");// Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<List<ClanMetaDataDTO>>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Get SVO Clan Info by ID
-        /// </summary>
-        /// <param name="Clan_GetClanInfoByIDSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<ClanDTO> Clan_GetClanInfoByIDSVO(int clanId, int appId)
-        {
-            ClanDTO result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/Clan_GetClanInfoByIDSVO?clanId={clanId}&appId={appId}");
-
-                    // Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<ClanDTO>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Get SVO Clan Info by ID
-        /// </summary>
-        /// <param name="Clan_GetClanInfoByIDSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<ClanDTO> Clan_GetClanInfoByAcctIDSVO(int acctId)
-        {
-            ClanDTO result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/Clan_GetClanInfoByAcctIDSVO?acctId={acctId}");
-
-                    // Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<ClanDTO>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Get SVO Clan Players
-        /// </summary>
-        /// <param name="Clan_GetClanPlayersSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<ClanPlayerDTO> Clan_GetClanPlayersSVO(int clanId, int start, int end)
-        {
-            ClanPlayerDTO result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/Clan_GetClanPlayersSVO?clanId={clanId}&start={start}&end={end}");
-
-                    // Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<ClanPlayerDTO>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanCreateNews">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<ClanNewsDTO> ClanCreateNews(int clanId, string news, int appId)
-        {
-            ClanNewsDTO result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/clan_CreateNewsSVO?clanId={clanId}&newsBody={news}&appId={appId}");// Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<ClanNewsDTO>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanModifyNews">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<bool> ClanModifyNews(int clanId, int newsID, bool newsEdit, bool newsDelete, string newsBody, int appId)
-        {
-            bool result = false;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    result = (await GetDbAsync($"Clan/clan_ModifyNewsSVO?clanId={clanId}&newsID={newsID}&newsEdit={newsEdit}&newsDelete={newsDelete}&newsBody={newsBody}&appId={appId}")).IsSuccessStatusCode;// Deserialize on success
-
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanRevokeInvite">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<bool> ClanRevokeInvite(int acctId, int clanId)
-        {
-            bool result = false;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    result = (await GetDbAsync($"Clan/clan_RevokeInviteSVO?acctId={acctId}&clanId={clanId}")).IsSuccessStatusCode;// Deserialize on success
-
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanRevokeInvite">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<bool> ClanRespondInvite(int clanInviteID, string news, bool accept, bool reject, int acctId)
-        {
-            bool result = false;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    result = (await GetDbAsync($"Clan/clan_RespondInviteSVO?clanInviteID={clanInviteID}&news={news}&accept={accept}&reject={reject}&acctId={acctId}")).IsSuccessStatusCode;// Deserialize on success
-
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanModifyNews">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<bool> ClanDisband(int clanId, int appId)
-        {
-            bool result = false;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    result = (await GetDbAsync($"Clan/clan_DisbandClanSVO?clanId={clanId}&appId={appId}")).IsSuccessStatusCode;// Deserialize on success
-
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanUpdateMetaDataSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<List<ClanNewsDTO>> ClanReadNews(int clanId, int appId)
-        {
-            List<ClanNewsDTO> result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/clan_ReadNewsSVO?clanId={clanId}&appId={appId}");// Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<List<ClanNewsDTO>>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// ClanUpdateMetaDataSVO
-        /// </summary>
-        /// <param name="ClanSendInviteNews">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<bool> ClanSendInvite(int clanId, string playerName, string inviteMsg, int appId)
-        {
-            bool result = false;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    result = (await GetDbAsync($"Clan/clan_SendInviteSVO?clanId={clanId}&playerName={playerName}&inviteMsg={inviteMsg}&appId={appId}")).IsSuccessStatusCode;// Deserialize on success
-
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Get SVO Clan Info by ID
-        /// </summary>
-        /// <param name="Clan_GetClanInfoByIDSVO">Clan creation parameters.</param>
-        /// <returns>Returns created clan.</returns>
-        public async Task<List<ClanInvitationDTO>> ClanViewInvites(int acctId)
-        {
-            List<ClanInvitationDTO> result = null;
-
-            try
-            {
-                if (_settings.SimulatedMode)
-                {
-                    //SVO unimplemented
-                }
-                else
-                {
-                    var response = await GetDbAsync($"Clan/clan_ViewInviteSVO?acctId={acctId}");
-
-                    // Deserialize on success
-                    if (response.IsSuccessStatusCode)
-                        result = JsonConvert.DeserializeObject<List<ClanInvitationDTO>>(await response.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerAccessor.LogError(e);
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Delete clan by id.
         /// </summary>
         /// <param name="clanId">Id of clan.</param>
@@ -2079,11 +1612,11 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                         return false;
 
                     // remove members
-                    foreach (var member in clan.ClanMember)
+                    foreach (var member in clan.ClanMemberAccounts)
                         member.ClanId = null;
 
                     // revoke invitations
-                    foreach (var inv in clan.ClanInvitation)
+                    foreach (var inv in clan.ClanMemberInvitations)
                         inv.ResponseStatus = 3;
 
                     // remove
@@ -2175,11 +1708,11 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                     if (clan.ClanLeaderAccount?.AccountId == accountId)
                         return false;
 
-                    var account = clan.ClanMember?.FirstOrDefault(x => x.AccountId == accountId);
+                    var account = clan.ClanMemberAccounts?.FirstOrDefault(x => x.AccountId == accountId);
                     if (account != null)
                     {
                         account.ClanId = null;
-                        clan.ClanMember.Remove(account);
+                        clan.ClanMemberAccounts.Remove(account);
                     }
 
                     result = true;
@@ -2226,19 +1759,19 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                         return false;
 
                     // check if invitations already made
-                    if (clan.ClanInvitation != null && clan.ClanInvitation.Any(x => x.AccountId == accountId && x.ResponseStatus == 0))
+                    if (clan.ClanMemberInvitations != null && clan.ClanMemberInvitations.Any(x => x.TargetAccountId == accountId && x.ResponseStatus == 0))
                         return false;
 
                     // add
-                    clan.ClanInvitation?.Add(new ClanInvitationDTO()
+                    clan.ClanMemberInvitations?.Add(new ClanInvitationDTO()
                     {
-                        Id = _simulatedClanInvitationIdCounter++,
+                        InvitationId = _simulatedClanInvitationIdCounter++,
                         AppId = clan.AppId,
                         ClanId = clanId,
                         ClanName = clan.ClanName,
-                        AccountId = accountId,
-                        AccountName = account.AccountName,
-                        InviteMsg = message
+                        TargetAccountId = accountId,
+                        TargetAccountName = account.AccountName,
+                        Message = message
                     });
 
                     return true;
@@ -2248,8 +1781,8 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                     result = (await PostDbAsync($"Clan/createInvitation?accountId={fromAccountId}", new ClanInvitationDTO()
                     {
                         ClanId = clanId,
-                        AccountId = accountId,
-                        InviteMsg = message
+                        TargetAccountId = accountId,
+                        Message = message
                     })).IsSuccessStatusCode;
                 }
             }
@@ -2276,14 +1809,14 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode)
                 {
                     // get clans
-                    var clans = _simulatedClans.Where(x => x.ClanInvitation != null && x.ClanInvitation.Any(y => y.AccountId == accountId));
+                    var clans = _simulatedClans.Where(x => x.ClanMemberInvitations != null && x.ClanMemberInvitations.Any(y => y.TargetAccountId == accountId));
 
                     result = clans
                         .Select(x => new AccountClanInvitationDTO()
                         {
                             LeaderAccountId = x.ClanLeaderAccount.AccountId,
                             LeaderAccountName = x.ClanLeaderAccount.AccountName,
-                            Invitation = x.ClanInvitation?.FirstOrDefault(y => y.AccountId == accountId)
+                            Invitation = x.ClanMemberInvitations?.FirstOrDefault(y => y.TargetAccountId == accountId)
                         })
                         .Where(x => x.Invitation != null)
                         .ToList();
@@ -2316,12 +1849,12 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode)
                 {
                     // find invitation
-                    var invite = _simulatedClans.Select(x => x.ClanInvitation?.FirstOrDefault(y => y.Id == inviteId)).FirstOrDefault(x => x != null);
+                    var invite = _simulatedClans.Select(x => x.ClanMemberInvitations?.FirstOrDefault(y => y.InvitationId == inviteId)).FirstOrDefault(x => x != null);
                     if (invite == null)
                         return false;
 
                     // get clan
-                    var clan = _simulatedClans.FirstOrDefault(x => x.ClanInvitation != null && x.ClanInvitation.Contains(invite));
+                    var clan = _simulatedClans.FirstOrDefault(x => x.ClanMemberInvitations != null && x.ClanMemberInvitations.Contains(invite));
                     if (clan == null)
                         return false;
 
@@ -2331,7 +1864,7 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                         return false;
 
                     // validate its for user
-                    if (invite.AccountId != accountId)
+                    if (invite.TargetAccountId != accountId)
                         return false;
 
                     // validate it's not already been decided
@@ -2346,7 +1879,7 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                     if (responseStatus == 1)
                     {
                         account.ClanId = invite.ClanId;
-                        clan.ClanMember?.Add(account);
+                        clan.ClanMemberAccounts?.Add(account);
                     }
 
                     result = true;
@@ -2396,7 +1929,7 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                         return false;
 
                     // find invitation
-                    var invite = clan.ClanInvitation?.FirstOrDefault(x => x.AccountId == targetAccountId);
+                    var invite = clan.ClanMemberInvitations?.FirstOrDefault(x => x.TargetAccountId == targetAccountId);
                     if (invite == null)
                         return false;
 
@@ -2722,42 +2255,6 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
             return result;
         }
 
-        /*
-       /// <summary>
-       /// Get player wide stats.
-       /// </summary>
-       /// <param name="accountId">Account id of player.</param>
-       /// <returns></returns>
-       public async Task<StatPostDTO> GetPlayerWideStats(int accountId, Dictionary<string, string> stats)
-       {
-           StatPostDTO result = null;
-           try
-           {
-               if (_settings.SimulatedMode)
-               {
-                   var stats = _simulatedAccounts.FirstOrDefault(x => x.AccountId == accountId)?.AccountWideStats;
-                   if (stats != null)
-                   {
-                       result = new StatPostDTO()
-                       {
-                           AccountId = accountId,
-                           Stats = stats
-                       };
-                   }
-               }
-               else
-               {
-                   result = await GetDbAsync<StatPostDTO>($"Stats/getStats?AccountId={accountId}");
-               }
-           }
-           catch (Exception e)
-           {
-               Logger.Error(e);
-           }
-           return result;
-       }
-       */
-
         #endregion
 
         #region Announcements / Policy
@@ -3066,8 +2563,8 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
                     {
                         OwnerByID = 2147483646;
 
-                        LoggerAccessor.LogWarn($"FileNameBeginsWith: {FileNameBeginsWith} OwnerByID: {OwnerByID}");
-                        result = await GetDbAsync<List<FileDTO>>($"FileServices/getFileList?AppId={appId}&FileNameBeginsWith={FileNameBeginsWith}&OwnerByID={OwnerByID}");
+                        LoggerAccessor.LogWarn($"FileNameBeginsWith: {FileNameBeginsWith.Remove(FileNameBeginsWith.Length - 1)} OwnerByID: {OwnerByID}");
+                        result = await GetDbAsync<List<FileDTO>>($"FileServices/getFileList?AppId={appId}&FileNameBeginsWith={FileNameBeginsWith.Remove(FileNameBeginsWith.Length - 1)}&OwnerByID={OwnerByID}");
 
                     }
                 }
@@ -4099,8 +3596,7 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    Array.Resize(ref SimulatedAppIdList, SimulatedAppIdList.Length + 1);
-                    SimulatedAppIdList[SimulatedAppIdList.Length - 1] = appId;
+
                 }
                 else
                     await PostDbAsync($"api/Keys/setSettings?appId={appId}", settings);

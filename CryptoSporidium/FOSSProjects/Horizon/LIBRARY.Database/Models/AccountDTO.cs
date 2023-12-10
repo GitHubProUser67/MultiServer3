@@ -75,16 +75,6 @@ namespace CryptoSporidium.Horizon.LIBRARY.Database.Models
         /// 
         /// </summary>
         public string? Metadata { get; set; }
-
-        //SVO SH
-        public int clanPlayerId { get; set; }
-        public int playerId { get; set; }
-        public DateTime playerLevelUpdateDate { get; set; }
-        public string playerName { get; set; }
-        public DateTime playerStatusUpdateDate { get; set; }
-        public int status { get; set; }
-        public int clanPlayerLevelId { get; set; }
-        public int lastMsgRead { get; set; }
     }
 
     public class CreateAccountDTO

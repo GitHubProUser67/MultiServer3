@@ -10,9 +10,7 @@ using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.PluginManager;
 using System.Net;
-using System.Net.Sockets;
 using CryptoSporidium;
-using Microsoft.Extensions.Logging;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -84,21 +82,10 @@ namespace Horizon.MEDIUS.Medius
 
                         if (clientConnectTcp.AccessToken == null && clientConnectTcp.SessionKey == null)
                         {
-                            char[] charsToRemove = { ':', 'f', '{', '}' };
                             var clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
+                            data.ClientObject = clientObjects.FirstOrDefault();
 
-                            string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
-
-                            //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
-                            foreach (var client in clientObjects)
-                            {
-                                string clientIPStr = client.IP.ToString().Trim(charsToRemove);
-
-                                if (clientIPStr == connectingIP)
-                                    data.ClientObject = client;
-
-                                LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
-                            }
+                            LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                         }
 
                         // If this is a PS3 client or medius version equal or superior to 109
@@ -209,10 +196,9 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusServerSessionBeginRequest mgclSessionBeginRequest:
                     {
-                        List<int> nonSecure = new List<int>() { 10010, 10031 };
-                        List<int> preCreateClient = new List<int>() { 10680 };
+                        List<int> nonSecure = new List<int>() { 10010, 10031, };
                         //UYA Public Beta v1.0
-                        if (preCreateClient.Contains(data.ApplicationId))
+                        if (mgclSessionBeginRequest.ApplicationID == 10680)
                         {
                             LoggerAccessor.LogInfo("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
                             // Create client object
@@ -936,10 +922,8 @@ namespace Horizon.MEDIUS.Medius
                 #region Version Server
                 case MediusVersionServerRequest mediusVersionServerRequest:
                     {
-                        List<int> appIdBeforeSession = new List<int> { 10442, 10724 };
-
                         // ERROR - Need a session
-                        if (data.ClientObject == null && !appIdBeforeSession.Contains(data.ApplicationId)) // KILLZONE PS2 GET VERSION SERVER INFO BEFORE SESSION
+                        if (data.ClientObject == null && data.ApplicationId != 10442) // KILLZONE PS2 CREATES A SESSION HERE FIRST ON CONNECT
                         {
                             LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {mediusVersionServerRequest} without a session.");
                             break;
@@ -972,20 +956,17 @@ namespace Horizon.MEDIUS.Medius
                             }
                             #endregion
 
-                            #region Killzone Beta/Retail
-                            else if (appIdBeforeSession.Contains(data.ApplicationId))
+                            #region Killzone TCES
+                            else if (data.ApplicationId == 10442)
                             {
-                                //data.ClientObject = Program.LobbyServer.ReserveClient(mediusVersionServerRequest);
+                                data.ClientObject = MediusClass.LobbyServer.ReserveClient(mediusVersionServerRequest);
 
 
-                                data.SendQueue.Enqueue(new RT_MSG_SERVER_APP()
+                                data.ClientObject.Queue(new MediusVersionServerResponse()
                                 {
-                                    Message = new MediusVersionServerResponse()
-                                    {
-                                        MessageID = mediusVersionServerRequest.MessageID,
-                                        VersionServer = "Medius Authentication Server Version 1.50.0009",
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                    }
+                                    MessageID = mediusVersionServerRequest.MessageID,
+                                    VersionServer = "Medius Authentication Server Version 1.50.0009",
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
                                 });
                             }
                             else
@@ -993,7 +974,7 @@ namespace Horizon.MEDIUS.Medius
 
                             //Default
                             {
-                                data?.ClientObject?.Queue(new MediusVersionServerResponse()
+                                data.ClientObject.Queue(new MediusVersionServerResponse()
                                 {
                                     MessageID = mediusVersionServerRequest.MessageID,
                                     VersionServer = "Medius Authentication Server Version 3.09",
@@ -1004,32 +985,21 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             // If MediusServerVersionOverride is false, we send our own Version String
-                            // AND if its Killzone PS2 we make the ClientObject BEFORE SESSIONBEGIN
-                            if (appIdBeforeSession.Contains(data.ApplicationId))
+                            // AND if its Killzone PS2 we make the ClientObject
+                            if (data.ApplicationId == 10442)
                             {
-                                //data.ClientObject = Program.LobbyServer.ReserveClient(mediusVersionServerRequest);
-                                data.SendQueue.Enqueue(new RT_MSG_SERVER_APP()
-                                {
-                                    Message = new MediusVersionServerResponse()
-                                    {
-                                        MessageID = mediusVersionServerRequest.MessageID,
-                                        VersionServer = "Medius Authentication Server Version 1.50.0009",
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                    }
-                                });
-                            }
-                            else
-                            {
-
-                                data?.ClientObject?.Queue(new MediusVersionServerResponse()
-                                {
-                                    MessageID = mediusVersionServerRequest.MessageID,
-                                    VersionServer = Settings.MASVersion,
-                                    StatusCode = MediusCallbackStatus.MediusSuccess,
-                                });
+                                data.ClientObject = MediusClass.LobbyServer.ReserveClient(mediusVersionServerRequest);
                             }
 
+
+                            data.ClientObject.Queue(new MediusVersionServerResponse()
+                            {
+                                MessageID = mediusVersionServerRequest.MessageID,
+                                VersionServer = Settings.MASVersion,
+                                StatusCode = MediusCallbackStatus.MediusSuccess,
+                            });
                         }
+
                         break;
                     }
 
@@ -2161,10 +2131,11 @@ namespace Horizon.MEDIUS.Medius
                                     }
                                     else
                                     {
+                                        //
                                         data.ClientObject.Queue(new MediusTextFilterResponse()
                                         {
                                             MessageID = textFilterRequest.MessageID,
-                                            StatusCode = MediusCallbackStatus.MediusPass,
+                                            StatusCode = MediusCallbackStatus.MediusSuccess,
                                             Text = textFilterRequest.Text.Trim()
                                         });
                                     }
@@ -2175,7 +2146,7 @@ namespace Horizon.MEDIUS.Medius
                                     data.ClientObject.Queue(new MediusTextFilterResponse()
                                     {
                                         MessageID = textFilterRequest.MessageID,
-                                        StatusCode = MediusCallbackStatus.MediusPass,
+                                        StatusCode = MediusCallbackStatus.MediusSuccess,
                                         Text = MediusClass.FilterTextFilter(data.ApplicationId, TextFilterContext.ACCOUNT_NAME, textFilterRequest.Text).Trim()
                                     });
                                     break;
@@ -2336,11 +2307,6 @@ namespace Horizon.MEDIUS.Medius
 
             List<int> pre108Secure = new List<int>() { 10124, 10680, 10683, 10684 };
 
-            if (data?.ClientObject?.ApplicationId == 10694)
-            {
-                char[] charsToRemove = { ':', 'f' };
-                data.ClientObject.SetIp(((System.Net.IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
-            }
             await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID
@@ -2361,30 +2327,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 #region PS Home PS3
                 //If PS Home don't GetOrCreateDefaultLobbyChannel, Home creates their own channels
-                if (data.ClientObject.ApplicationId == 20371 ||
-                    data.ClientObject.ApplicationId == 20374 ||
-                    data.ClientObject.ApplicationId == 50041 ||
-                    data.ClientObject.ApplicationId == 50083 ||
-                    data.ClientObject.ApplicationId == 50089 ||
-                    data.ClientObject.ApplicationId == 50097 ||
-                    data.ClientObject.ApplicationId == 50098 ||
-                    data.ClientObject.ApplicationId == 50100 ||
-                    data.ClientObject.ApplicationId == 50121 ||
-                    data.ClientObject.ApplicationId == 50130 ||
-                    data.ClientObject.ApplicationId == 50132 ||
-                    data.ClientObject.ApplicationId == 50135 ||
-                    data.ClientObject.ApplicationId == 50141 ||
-                    data.ClientObject.ApplicationId == 50160 ||
-                    data.ClientObject.ApplicationId == 50161 ||
-                    data.ClientObject.ApplicationId == 50162 ||
-                    data.ClientObject.ApplicationId == 50165 ||
-                    data.ClientObject.ApplicationId == 50170 ||
-                    data.ClientObject.ApplicationId == 50175 ||
-                    data.ClientObject.ApplicationId == 50180 ||
-                    data.ClientObject.ApplicationId == 50182 ||
-                    data.ClientObject.ApplicationId == 50183 ||
-                    data.ClientObject.ApplicationId == 50185 ||
-                    data.ClientObject.ApplicationId == 50186)
+                if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
                 {
                     data.ClientObject.Queue(new MediusTicketLoginResponse()
                     {
@@ -2496,7 +2439,7 @@ namespace Horizon.MEDIUS.Medius
                         },
                     });
                 }
-                else if (data.ClientObject.ApplicationId == 10031) //10683 - 10684
+                else if (data.ClientObject.ApplicationId == 10683 || data.ClientObject.ApplicationId == 10684)
                 {
                     data.ClientObject.Queue(new MediusAccountLoginResponse()
                     {
@@ -2504,13 +2447,13 @@ namespace Horizon.MEDIUS.Medius
                         StatusCode = MediusCallbackStatus.MediusSuccess,
                         AccountID = data.ClientObject.AccountId,
                         AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        MediusWorldID = 1,
                         ConnectInfo = new NetConnectionInfo()
                         {
                             AccessKey = data.ClientObject.Token,
                             SessionKey = data.ClientObject.SessionKey,
-                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = new RSA_KEY(),
+                            WorldID = 1,
+                            ServerKey = MediusClass.GlobalAuthPublic,
                             AddressList = new NetAddressList()
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
@@ -2538,7 +2481,7 @@ namespace Horizon.MEDIUS.Medius
                             AccessKey = data.ClientObject.Token,
                             SessionKey = data.ClientObject.SessionKey,
                             WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
+                            ServerKey = new RSA_KEY() { }, //Some Older Medius games don't set a RSA Key
                             AddressList = new NetAddressList()
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]

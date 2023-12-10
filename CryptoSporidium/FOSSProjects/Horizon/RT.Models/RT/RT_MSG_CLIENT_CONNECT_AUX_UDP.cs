@@ -14,7 +14,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         public IPEndPoint EndPoint;
         public ushort PlayerId;
         public ushort ScertId;
-        public ushort OrdinalID;
+        public ushort UNK_26;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -33,7 +33,7 @@ namespace CryptoSporidium.Horizon.RT.Models
                 EndPoint = new IPEndPoint(reader.ReadIPAddress(), (int)reader.ReadUInt16());
                 PlayerId = reader.ReadUInt16();
                 ScertId = reader.ReadUInt16();
-                OrdinalID = reader.ReadUInt16();
+                UNK_26 = reader.ReadUInt16();
             }
         }
 
@@ -56,7 +56,7 @@ namespace CryptoSporidium.Horizon.RT.Models
                 writer.Write((ushort)EndPoint.Port);
                 writer.Write(PlayerId);
                 writer.Write(ScertId);
-                writer.Write(OrdinalID);
+                writer.Write(UNK_26);
             }
         }
 
@@ -68,7 +68,7 @@ namespace CryptoSporidium.Horizon.RT.Models
                 $"EndPoint: {EndPoint} " +
                 $"PlayerId: {PlayerId} " +
                 $"ScertId: {ScertId} " +
-                $"UNK_26: {OrdinalID}";
+                $"UNK_26: {UNK_26}";
         }
     }
 }

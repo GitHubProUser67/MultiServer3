@@ -339,23 +339,6 @@ namespace Horizon.DME
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
-
-                        if (data.ClientObject == null)
-                        {
-                            LoggerAccessor.LogWarn("[DME] - Access Token for client not found, fallback to Sessionkey!");
-                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
-                        }
-
-                        if (data.ClientObject == null)
-                        {
-                            LoggerAccessor.LogWarn("[DME] - AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
-                            //var clients = Program.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
-                            //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                            ClientObject clientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey);
-                            clientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
-                            data.ClientObject = clientObject;
-                        }
-
                         /*
                         if (data.ClientObject == null || data.ClientObject.DmeWorld == null || data.ClientObject.DmeWorld.WorldId != clientConnectTcpAuxUdp.ARG1)
                             throw new Exception($"Client connected with invalid world id!");
@@ -597,18 +580,9 @@ namespace Horizon.DME
                             }, clientChannel);
                             break;
                         }
-                        /*
+
                         Queue(new RT_MSG_SERVER_APP()
                         {
-                            Message = new TypePing()
-                            {
-                               TimeOfSend = Utils.GetUnixTime(),
-                               PingInstance = ping.PingInstance,
-                               RequestEcho = ping.RequestEcho
-                            }
-                         });
-                       */
-                        data?.ClientObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()
                             {
                                 TimeOfSend = Utils.GetUnixTime(),
@@ -616,7 +590,16 @@ namespace Horizon.DME
                                 RequestEcho = ping.RequestEcho
                             }
                         });
-
+                        /*
+                        data.ClientObject.EnqueueTcp(new RT_MSG_SERVER_APP() { 
+                            Message = new TypePing()
+                            {
+                                TimeOfSend = Utils.GetUnixTime(),
+                                PingInstance = ping.PingInstance,
+                                RequestEcho = ping.RequestEcho
+                            }
+                        });
+                        */
                         break;
                     }
             }

@@ -16,7 +16,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
         /// <summary>
         /// Response code for the request to join a party
         /// </summary>
@@ -28,7 +28,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         /// <summary>
         /// ConnectionInfo of the player to return for this session
         /// </summary>
-        public NetConnectionInfo ConnectionInfo;
+        public NetConnectionInfo? ConnectionInfo;
 
         public int partyIndex;
 
@@ -38,11 +38,14 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
+            // 
             base.Deserialize(reader);
 
+            //
             MessageID = reader.Read<MessageId>(); 
             reader.ReadBytes(3);
 
+            //
             StatusCode = reader.Read<MediusCallbackStatus>();
             PartyHostType = reader.Read<MediusGameHostType>();
             ConnectionInfo = reader.Read<NetConnectionInfo>();
@@ -53,11 +56,14 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
+            // 
             base.Serialize(writer);
 
+            //
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(new byte[3]);
 
+            // 
             writer.Write(StatusCode);
             writer.Write(PartyHostType);
             writer.Write(ConnectionInfo);

@@ -11,6 +11,12 @@ namespace Horizon.MUIS.Config
         /// </summary>
         public int RefreshConfigInterval = 5000;
 
+        /// <summary>
+        /// Ports of the MUIS server.
+        /// Default is 10071, EU is 10080, and Japan is 10101
+        /// </summary>
+        public int[] Ports { get; set; } = new int[] { 10071, 10080, 10101 };
+
         #region PublicIp
         /// <summary>
         /// By default the server will grab its local ip.
@@ -24,12 +30,6 @@ namespace Horizon.MUIS.Config
         /// </summary>
         public string PublicIpOverride { get; set; } = string.Empty;
         #endregion
-
-        /// <summary>
-        /// Ports of the MUIS server.
-        /// Default is 10071, EU is 10080, and Japan is 10101
-        /// </summary>
-        public int[] Ports { get; set; } = new int[] { 10071, 10080, 10101 };
 
         public List<int> CompatibleApplicationIds { get; set; } = new();
 

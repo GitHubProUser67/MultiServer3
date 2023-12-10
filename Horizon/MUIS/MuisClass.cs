@@ -3,11 +3,10 @@ using Newtonsoft.Json;
 using CryptoSporidium.Horizon.RT.Models;
 using CryptoSporidium.Horizon.LIBRARY.Common;
 using Horizon.MUIS.Config;
-using Horizon.DME;
 using Horizon.PluginManager;
 using CryptoSporidium;
-using Horizon.HTTPSERVICE;
 using System.Net;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.MUIS
 {
@@ -17,7 +16,7 @@ namespace Horizon.MUIS
 
         public static ServerSettings Settings = new();
 
-        public static IPAddress? SERVER_IP = null;
+        public static IPAddress SERVER_IP = IPAddress.None;
         public static string? IP_TYPE;
 
         public static MediusManager Manager = new();
@@ -198,13 +197,10 @@ namespace Horizon.MUIS
                 // Add the appids to the ApplicationIds list
                 Settings.CompatibleApplicationIds.AddRange(new List<int>
                 {
-                    11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834,
-                    23624, 20043, 20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 
-                    21614, 20344, 20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 
-                    22274, 20060, 10984, 10782, 10421, 10130, 10954, 21784, 21694, 50041,
-                    50083, 50089, 50097, 50098, 50100, 50121, 50130, 50132, 50135, 50141,
-                    50160, 50161, 50162, 50165, 50170, 50175, 50180, 50182, 50183, 50185,
-                    50186
+                    11354, 21914, 21624, 20764, 20371, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
+                    20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
+                    20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
+                    10984, 10782, 10421, 10130, 10954, 21784
                 });
 
                 string? iptofile = SERVER_IP?.ToString();
@@ -704,424 +700,6 @@ namespace Horizon.MUIS
                     });
                 }
 
-                Settings.Universes.Add(50041, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = null,
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50083, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = null,
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50089, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = null,
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50097, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = null,
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50098, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = null,
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50100, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = null,
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50121, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.21 http://{iptofile}/01.21/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50130, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.30 http://{iptofile}/01.30/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50132, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.32 http://{iptofile}/01.32/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50135, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.35 http://{iptofile}/01.35/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50141, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.41 http://{iptofile}/01.41/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50160, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.60 http://{iptofile}/01.60/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50161, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.61 http://{iptofile}/01.61/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50162, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.62 http://{iptofile}/01.62/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50165, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.65 http://{iptofile}/01.65/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50170, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.70 http://{iptofile}/01.70/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50175, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.75 http://{iptofile}/01.75/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50180, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.80 http://{iptofile}/01.80/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50182, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.82 http://{iptofile}/01.82/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50183, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.83 http://{iptofile}/01.83/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50185, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.85 http://{iptofile}/01.85/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(50186, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "CPROD prod1 (Public MUIS)",
-                        Description = "01",
-                        Endpoint = iptofile,
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 15000,
-                        SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                        ExtendedInfo = $"01.86 http://{iptofile}/01.86/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
                 Settings.Universes.Add(21834, new UniverseInfo[]
                 {
                     new UniverseInfo()
@@ -1153,25 +731,6 @@ namespace Horizon.MUIS
                         Endpoint = iptofile,
                         SvoURL = $"http://{iptofile}:10060/socom3/index ",
                         ExtendedInfo = $"v1.60 http://{iptofile}/ftb2/manifest.txt",
-                        UniverseBilling = null,
-                        BillingSystemName = null,
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
-
-                Settings.Universes.Add(21694, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "Socom FTB3",
-                        Description = "FTB3 Test",
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 256,
-                        Endpoint = iptofile,
-                        SvoURL = $"http://{iptofile}:10060/FTB3_XML/index.jsp ",
-                        ExtendedInfo = null,
                         UniverseBilling = null,
                         BillingSystemName = null,
                         Port = 10075,
@@ -1410,15 +969,6 @@ namespace Horizon.MUIS
             CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
         }
 
-        public static async Task OnDatabaseAuthenticated()
-        {
-            // get supported app ids
-            var appids = await HorizonServerConfiguration.Database.GetAppIds();
-
-            // build dictionary of app ids from response
-            _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
-        }
-
         private static void RefreshServerIp()
         {
             #region Determine Server IP
@@ -1431,7 +981,7 @@ namespace Horizon.MUIS
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
                 {
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress(false));
+                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
                     IP_TYPE = "Public";
                 }
                 else
@@ -1441,6 +991,15 @@ namespace Horizon.MUIS
                 }
             }
             #endregion
+        }
+
+        public static async Task OnDatabaseAuthenticated()
+        {
+            // get supported app ids
+            var appids = await HorizonServerConfiguration.Database.GetAppIds();
+
+            // build dictionary of app ids from response
+            _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
         }
 
         private static async Task RefreshAppSettings()

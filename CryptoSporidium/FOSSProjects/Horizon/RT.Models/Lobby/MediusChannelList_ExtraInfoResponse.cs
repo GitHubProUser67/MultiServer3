@@ -1,7 +1,5 @@
 using CryptoSporidium.Horizon.RT.Common;
 using CryptoSporidium.Horizon.LIBRARY.Common.Stream;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CryptoSporidium.Horizon.RT.Models
 {
@@ -28,10 +26,6 @@ namespace CryptoSporidium.Horizon.RT.Models
         public string LobbyName; // LOBBYNAME_MAXLEN
         public bool EndOfList;
 
-        public List<int> channelListResponse0 = new List<int>() { };
-
-        public List<int> channelListResponse1 = new List<int>() { 10202, 10304, 10724 };
-
         public override void Deserialize(MessageReader reader)
         {
             base.Deserialize(reader);
@@ -45,7 +39,7 @@ namespace CryptoSporidium.Horizon.RT.Models
             MaxPlayers = reader.ReadUInt16();
 
             // Older Pre 1.50 Medius titles didn't include this
-            if (reader.MediusVersion > 108)
+            if (reader.MediusVersion > 108) 
             {
                 GameWorldCount = reader.ReadUInt16();
                 reader.ReadBytes(2);
@@ -54,15 +48,13 @@ namespace CryptoSporidium.Horizon.RT.Models
             SecurityLevel = reader.Read<MediusWorldSecurityLevelType>();
             GenericField1 = reader.ReadUInt32();
 
-            // Check pre-108 games that use channelList1
-            if (reader.MediusVersion == 108 && channelListResponse1.Contains(reader.AppId))
+            // CAREFULL, SOME GAMES MIGHT WANT THIS EXCLUDED
+
+            if (reader.MediusVersion < 108 && reader.AppId != 10304 && reader.AppId != 10202)
             {
-                GenericField2 = reader.ReadUInt32();
-                GenericField3 = reader.ReadUInt32();
-                GenericField4 = reader.ReadUInt32();
-                GenericFieldLevel = reader.Read<MediusWorldGenericFieldLevelType>();
+
             }
-            else if (reader.MediusVersion > 108) // Default generally for newer mediustitles
+            else
             {
                 GenericField2 = reader.ReadUInt32();
                 GenericField3 = reader.ReadUInt32();
@@ -96,14 +88,13 @@ namespace CryptoSporidium.Horizon.RT.Models
             writer.Write(SecurityLevel);
             writer.Write(GenericField1);
 
-            if (writer.MediusVersion == 108 && channelListResponse1.Contains(writer.AppId))
+            // CAREFULL, SOME GAMES MIGHT WANT THIS EXCLUDED
+
+            if (writer.MediusVersion < 108 && writer.AppId != 10304 && writer.AppId != 10202)
             {
-                writer.Write(GenericField2);
-                writer.Write(GenericField3);
-                writer.Write(GenericField4);
-                writer.Write(GenericFieldLevel);
+
             }
-            else if (writer.MediusVersion > 108)
+            else
             {
                 writer.Write(GenericField2);
                 writer.Write(GenericField3);

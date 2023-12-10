@@ -21,6 +21,8 @@ namespace Horizon.NAT
 
                 await Task.Delay(100);
             }
+
+            await NATServer.Stop();
         }
 
         private static Task StartServerAsync()

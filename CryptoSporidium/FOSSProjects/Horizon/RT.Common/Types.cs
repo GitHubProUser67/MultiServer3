@@ -482,11 +482,11 @@ namespace CryptoSporidium.Horizon.RT.Common
         /// </summary>
         MediusPass = 4,
         /// <summary>
-        /// Join Queue for PS3 TicketLogin
+        /// Join Queue?
         /// </summary>
         MediusInQueue = 5,
         /// <summary>
-        /// Join Assigned Game pre-determined by server
+        /// Join Assigned Game pre-determined by database/server
         /// </summary>
         MediusJoinAssignedGame = 6, //MediusTypeAssignedGameToJoinMessage
         /// <summary>
@@ -494,7 +494,7 @@ namespace CryptoSporidium.Horizon.RT.Common
         /// </summary>
         MediusMatchTypeHostGame = 7,
         /// <summary>
-        /// Referral to Medius Matchmaking Service <br></br> 
+        /// Referral to Medius Matchmaking Server <br></br> 
         /// 3rd possible response from MediusMatchPartyResponse 
         /// </summary>
         MediusMatchTypeReferral = 8,
@@ -892,14 +892,6 @@ namespace CryptoSporidium.Horizon.RT.Common
         BroadcastBinaryMsgAcrossEntireUniverseDeprecated0
     }
 
-    public enum MediusMessageType : int
-    {
-        /// <summary>
-        /// Applies to request to the annoncements message.
-        /// </summary>
-        AnnouncementMessage,
-    }
-
     [Flags]
     public enum MediusWorldGenericFieldLevelType : int
     {
@@ -958,16 +950,6 @@ namespace CryptoSporidium.Horizon.RT.Common
         /// </summary>
         ExtraMediusTextFilter = 0xffffff
     }
-    #endregion
-
-    #region MediusGameListSortDirection
-
-    public enum MediusGameListSortDirection : int
-    {
-        MEDIUS_SORT_ASCENDING,
-        MEDIUS_SORT_DESCENDING,
-    }
-
     #endregion
 
     public enum MediusSortOrder : int
@@ -1288,26 +1270,10 @@ namespace CryptoSporidium.Horizon.RT.Common
     [Flags]
     public enum MediusWorldAttributesType : int
     {
-        /// <summary>
-        /// Default game world attributes. Nothing special.
-        /// </summary>
         GAME_WORLD_NONE = 0,
-        /// <summary>
-        /// Supports connected spectator worlds
-        /// </summary>
         GAME_WORLD_ALLOW_REBROADCAST = 1,
-        /// <summary>
-        /// Indicates that this world is a spectator world
-        /// </summary>
         GAME_WORLD_ALLOW_SPECTATOR = 2,
-        /// <summary>
-        /// Indicates this world was generated internally <Br></Br>
-        /// Not by a client request
-        /// </summary>
         GAME_WORLD_INTERNAL = 4,
-        /// <summary>
-        /// Unknown
-        /// </summary>
         GAME_WORLD_RECORD = 8
     }
     #endregion
@@ -1358,7 +1324,7 @@ namespace CryptoSporidium.Horizon.RT.Common
         /// </summary>
         WorldStaging,
         /// <summary>
-        /// Players are to join and play in the game world.
+        /// Players are playing in the game world.
         /// </summary>
         WorldActive,
         /// <summary>
@@ -1897,17 +1863,17 @@ namespace CryptoSporidium.Horizon.RT.Common
         ServerSetAttributesResponse = 0x17,
         ServerCreateGameWithAttributesRequest = 0x18,
         ServerCreateGameWithAttributesResponse = 0x19,
+        ServerWorldReportOnMe = 0x20,
+        ServerSessionBeginRequest1 = 0x21,
+        ServerSessionBeginResponse1 = 0x22,
+        ServerSessionBeginRequest2 = 0x24,
+        ServerCreateGameWithAttributesRequest2 = 0x26, //TEST
         ServerConnectGamesRequest = 0x1A,
         ServerConnectGamesResponse = 0x1B,
         ServerConnectNotification = 0x1C,
         ServerCreateGameOnSelfRequest = 0x1D,
         ServerDisconnectPlayerRequest = 0x1E,
-        ServerCreateGameOnMeRequest = 0x1F,
-        ServerWorldReportOnMe = 0x20,
-        ServerSessionBeginRequest1 = 0x21,
-        ServerSessionBeginResponse1 = 0x22,
-        ServerSessionBeginRequest2 = 0x24,
-        ServerCreateGameWithAttributesRequest2 = 0x25 //TEST
+        ServerCreateGameOnMeRequest = 0x1F
     }
     #endregion
 
@@ -2274,7 +2240,7 @@ namespace CryptoSporidium.Horizon.RT.Common
         AddToBuddyListConfirmationResponse = 0x64,
         PartyCreateRequest = 0x65,
         PartyCreateResponse = 0x66,
-        PartyJoinRequest = 0x67,
+        PartyJoinRequest = 0x067,
         PartyJoinResponse = 0x68,
         GameListRequest = 0x69,
         PartyListResponse = 0x6A,
@@ -3592,46 +3558,6 @@ namespace CryptoSporidium.Horizon.RT.Common
         kOtgResultCategory_Assertion = 0xA,
         kOtgResultCategory_Count = 0xB,
         kOtgResultCategory_ResultExtra = -1
-    }
-
-    #endregion
-
-    #region SVO
-
-    public enum SVOStatsState : int
-    {
-        kCompleted_0 = 1,
-        kHostDisconnect_0 = 2,
-        kLocalDisconnect_0 = 3,
-        kLostConnection_0 = 4,
-        kGamePlayError_0 = 5,
-        kHostPlayerKicked_0 = 6,
-        kLocalPlayerKicked_0 = 7
-    }
-
-    public enum SVOBinaryStatsStarhawk : int
-    {
-        kDeprecrated1 = 1,
-        kPlayerDetailsData = 1,
-        kPlayerDetailsPost = 2,
-        KPlayerSummary = 2,
-        kClanDetailsPost = 3,
-        kTournamentAwardsSummary = 3,
-        kTournamentSoloPost = 4,
-        kVehiclesSummary = 4,
-        kTournamentClanPost = 5,
-        kBnBPartsSummary = 5,
-        kWeaponDetailsPost = 6,
-        kAwardsSummary = 6,
-        kVehicleDetailsPost = 7,
-        kTroopWeaponsSummary = 7,
-        kBnBPartDetailsPost = 8,
-        kStarhawkWeaponsSummary = 8,
-        kAwardDetailsPost = 9,
-        kBaseWeaponDetailsData = 0x64,
-        kBaseVehicleDetailsData = 0x12C,
-        kBaseBnBPartDetailsData = 0x1F4
-
     }
 
     #endregion

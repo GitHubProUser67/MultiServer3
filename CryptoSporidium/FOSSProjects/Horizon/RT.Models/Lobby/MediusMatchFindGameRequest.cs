@@ -60,29 +60,33 @@ namespace CryptoSporidium.Horizon.RT.Models
         /// <summary>
         /// GroupMemberListSize
         /// </summary>
-        public uint GroupMemberListSize;
+        public int GroupMemberListSize;
         /// <summary>
         /// ApplicationDataSize
         /// </summary>
-        public uint ApplicationDataSize;
+        public int ApplicationDataSize;
         /// <summary>
         /// GroupMemberAccountIDList
         /// </summary>
-        public char[] GroupMemberAccountIDList;
+        public string GroupMemberAccountIDList;
         /// <summary>
         /// ApplicationData
         /// </summary>
-        public char[] ApplicationData;
+        public string ApplicationData;
 
         public override void Deserialize(MessageReader reader)
         {
+            // 
             base.Deserialize(reader);
 
+            //
             MessageID = reader.Read<MessageId>();
 
+            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             //reader.ReadBytes(2);
-
+            
+            //
             SupersetID = reader.ReadUInt32();
             GameWorldID = reader.ReadUInt32();
             PlayerJoinType = reader.Read<MediusJoinType>();
@@ -93,21 +97,25 @@ namespace CryptoSporidium.Horizon.RT.Models
             ServerSessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             RequestData = reader.ReadString(Constants.REQUESTDATA_MAXLEN);
             //reader.ReadBytes(3);
-
-            GroupMemberListSize = reader.ReadUInt32();
-            ApplicationDataSize = reader.ReadUInt32();
-            GroupMemberAccountIDList = reader.ReadChars((int)GroupMemberListSize);
-            ApplicationData = reader.ReadChars((int)ApplicationDataSize);
+            
+            //
+            GroupMemberListSize = reader.ReadInt32();
+            ApplicationDataSize = reader.ReadInt32();
+            GroupMemberAccountIDList = reader.ReadString(GroupMemberListSize);
+            ApplicationData = reader.ReadString(ApplicationDataSize);
         }
 
         public override void Serialize(MessageWriter writer)
         {
+            // 
             base.Serialize(writer);
 
+            //
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             //writer.Write(new byte[2]);
 
+            //
             writer.Write(SupersetID);
             writer.Write(GameWorldID);
             writer.Write(PlayerJoinType);
@@ -119,10 +127,11 @@ namespace CryptoSporidium.Horizon.RT.Models
             writer.Write(RequestData, Constants.REQUESTDATA_MAXLEN);
             //writer.Write(new byte[3]);
 
+            //
             writer.Write(GroupMemberListSize);
             writer.Write(ApplicationDataSize);
-            writer.Write(GroupMemberAccountIDList);
-            writer.Write(ApplicationData);
+            writer.Write(GroupMemberAccountIDList, GroupMemberListSize);
+            writer.Write(ApplicationData, ApplicationDataSize);
         }
 
 
