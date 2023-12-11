@@ -151,28 +151,14 @@ namespace Horizon.HTTPSERVICE
             else if (input.Length > 16)
                 input = input[..16];
 
-            string checksum = new CRC32().ComputeHash(input + key);
-
-            input = CryptoSporidium.WebAPIs.OHS.EncryptDecrypt.Escape(CryptoSporidium.WebAPIs.OHS.EncryptDecrypt.Encrypt(input, CalculateOffsetNumber(gamename), 2));
+            string checksum = new CRC32().ComputeHash(input + key + gamename);
 
             for (int i = 0; i < input.Length; i++)
             {
-                result.Append((char)(input[i] ^ key[i % key.Length] + (checksum[0] ^ 0xFF) + checksum[4]));
+                result.Append((char)(input[i] ^ (key[i % key.Length] + (checksum[0] ^ 0xFF) + (gamename[2] * (gamename[0] ^ checksum[4])))));
             }
 
             return MiscUtils.ByteArrayToHexString(new CryptoSporidium.BARTools.ToolsImpl().ComponentAceEdgeZlibCompress(MiscUtils.HexStringToByteArray(checksum + MiscUtils.StringToHexString(result.ToString()))));
-        }
-
-        private static int CalculateOffsetNumber(string input)
-        {
-            int sum = 0;
-            foreach (char c in input)
-            {
-                // Add the ASCII value of each character to the sum
-                sum += c;
-            }
-            // Ensure the result is within the desired range (1 to 95*95)
-            return Math.Max(1, sum % (95 * 95));
         }
     }
 
