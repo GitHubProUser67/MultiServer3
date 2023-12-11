@@ -126,7 +126,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
             }
         }
 
-        public static void ScheduledUpdate(object state)
+        public static void ScheduledUpdate(object? state)
         {
             SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie", DateTime.Now.AddDays(-1));
             SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt", DateTime.Now.AddDays(-1));

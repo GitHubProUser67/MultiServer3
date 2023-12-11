@@ -1,5 +1,6 @@
 ﻿using CryptoSporidium;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace Horizon.HTTPSERVICE
 {
@@ -22,7 +23,7 @@ namespace Horizon.HTTPSERVICE
             {
                 World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
 
-                if (worldToUpdate == null && worldId != string.Empty)
+                if (worldToUpdate == null && !string.IsNullOrEmpty(worldId))
                 {
                     worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
                     roomToUpdate.Worlds?.Add(worldToUpdate);
@@ -30,22 +31,22 @@ namespace Horizon.HTTPSERVICE
 
                 GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
 
-                if (gameToUpdate == null && gameName != string.Empty)
+                if (gameToUpdate == null && !string.IsNullOrEmpty(gameName))
                 {
-                    gameToUpdate = new GameList { Name = gameName, Clients = new List<Player>() };
+                    gameToUpdate = new GameList { Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
                     worldToUpdate?.GameSessions?.Add(gameToUpdate);
                 }
 
                 Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
 
-                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && accountName != string.Empty && languageType != string.Empty)
+                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == MiscUtils.ComputeSHA512ReducedSizeCustom(accountName));
+                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { Name = MiscUtils.ComputeSHA512ReducedSizeCustom(accountName), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
@@ -79,7 +80,7 @@ namespace Horizon.HTTPSERVICE
                     if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
                     {
                         if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == MiscUtils.ComputeSHA512ReducedSizeCustom(accountName));
+                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
                         else
                             GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                     }
@@ -140,6 +141,26 @@ namespace Horizon.HTTPSERVICE
         {
             return JsonConvert.SerializeObject(rooms, Formatting.Indented);
         }
+
+        private static string XORString(string input, string key)
+        {
+            string checksum = new CRC32().ComputeHash(input + key);
+
+            StringBuilder result = new();
+
+            if (input.Length < 24)
+                input = input.PadRight(24, '@');
+            else if (input.Length > 24)
+                input = input[..24];
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                result.Append((char)(input[i] ^ key[i % key.Length] + checksum[0] + checksum[4]));
+            }
+
+            return MiscUtils.StringToHexString(checksum + result.ToString());
+        }
+
     }
 
     public class Room
@@ -157,6 +178,7 @@ namespace Horizon.HTTPSERVICE
     public class GameList
     {
         public string? Name { get; set; }
+        public DateTime CreationDate { get; set; }
         public List<Player>? Clients { get; set; }
     }
 

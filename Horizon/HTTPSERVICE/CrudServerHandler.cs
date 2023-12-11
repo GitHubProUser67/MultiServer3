@@ -21,15 +21,15 @@ namespace Horizon.HTTPSERVICE
             this.port = port;
         }
 
-        public void StartServer(string certpath = "", string certpass = "")
+        public void StartServer(string certpath = "")
         {
             if (_Server != null && _Server.IsListening)
                 LoggerAccessor.LogWarn("CrudHandler Server already initiated");
             else
             {
-                if (!string.IsNullOrEmpty(certpath) && !string.IsNullOrEmpty(certpass))
+                if (!string.IsNullOrEmpty(certpath))
                 {
-                    _Server = new Webserver(ip, port, true, certpath, certpass, DefaultRoute);
+                    _Server = new Webserver(ip, port, true, certpath, "qwerty", DefaultRoute);
                     _Server.Settings.Headers.Host = "https://" + ip + ":" + port;
                 }
                 else
@@ -66,6 +66,7 @@ namespace Horizon.HTTPSERVICE
             }
             else
             {
+                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                 ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                 ctx.Response.ContentType = "application/json";
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
@@ -93,6 +94,7 @@ namespace Horizon.HTTPSERVICE
             {
                 if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
                 {
+                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                     ctx.Response.ContentType = "image/x-icon";
                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;

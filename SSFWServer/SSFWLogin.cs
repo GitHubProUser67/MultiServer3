@@ -51,7 +51,7 @@ namespace SSFWServer
 
                 if (MiscUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) && !SSFWServerConfiguration.SSFWCrossSave)
                 {
-                    LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
+                    LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
@@ -80,7 +80,7 @@ namespace SSFWServer
                 }
                 else
                 {
-                    LoggerAccessor.LogInfo($"[SSFW] : {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on PSN");
+                    LoggerAccessor.LogInfo($"[SSFW] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData) + homeClientVersion;

@@ -120,7 +120,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
             }
         }
 
-        public static void ScheduledUpdate(object state)
+        public static void ScheduledUpdate(object? state)
         {
             SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish", DateTime.Now.AddDays(-1));
         }

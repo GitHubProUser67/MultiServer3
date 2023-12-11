@@ -19,6 +19,7 @@ public static class HorizonServerConfiguration
     public static string? MUISConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/muis.json";
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
+    public static string CrudRoomManagerAPIKey { get; set; } = "Sj2SGF!QStB1SVQ*OP8@4sQd!";
     public static string HomeVersionBetaHDK { get; set; } = "01.86";
     public static string HomeVersionRetail { get; set; } = "01.86";
 
@@ -61,6 +62,7 @@ public static class HorizonServerConfiguration
             MUISConfig = config.muis.config;
             NATConfig = config.nat.config;
             BWPSConfig = config.bwps.config;
+            CrudRoomManagerAPIKey = config.crud_room_manager_api_key;
             PluginsFolder = config.plugins_folder;
             DatabaseConfig = config.database;
             HomeVersionBetaHDK = config.home_version_beta_hdk;
@@ -101,7 +103,7 @@ class Program
 
             httpserver.StartServer();
 
-            httpsecureserver.StartServer(HorizonServerConfiguration.HTTPSCertificateFile, "qwerty");
+            httpsecureserver.StartServer(HorizonServerConfiguration.HTTPSCertificateFile);
         }
 
         if (HorizonServerConfiguration.EnableNAT)

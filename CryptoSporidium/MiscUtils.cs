@@ -235,23 +235,24 @@ namespace CryptoSporidium
             return false;
         }
 
+        public static string StringToHexString(string input)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(input);
+            StringBuilder hexStringBuilder = new(bytes.Length * 2);
+
+            foreach (byte b in bytes)
+            {
+                hexStringBuilder.AppendFormat("{0:x2}", b);
+            }
+
+            return hexStringBuilder.ToString();
+        }
+
         public static string ReverseString(string input)
         {
             char[] charArray = input.ToCharArray();
             Array.Reverse(charArray);
             return new string(charArray);
-        }
-
-        public static string XORString(string input, string key)
-        {
-            StringBuilder result = new();
-
-            for (int i = 0; i < input.Length; i++)
-            {
-                result.Append((char)(input[i] ^ key[i % key.Length]));
-            }
-
-            return result.ToString();
         }
 
         public static IPAddress? GetIp(string hostname)
@@ -540,26 +541,6 @@ namespace CryptoSporidium
                 sha256Hash.Clear();
 
                 return builder.ToString();
-            }
-        }
-
-        public static string ComputeSHA512ReducedSizeCustom(string input)
-        {
-            // Create a SHA256 that is calculated 2 times.
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] PassBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(ByteArrayToHexString(sha256Hash.ComputeHash
-                    (Encoding.UTF8.GetBytes(XORString(input + "ssaPD3Tl1SyM" + ComputeMD5("MyS1lT3DPass" + input), ReverseString(input)))))));
-
-                // Convert byte array to a string   
-                StringBuilder builder = new();
-                for (int i = 0; i < PassBytes.Length; i++)
-                    builder.Append(PassBytes[i].ToString("x2"));
-
-                sha256Hash.Clear();
-
-                return builder.ToString().ToUpper(); // To Upper for a nicer output.
             }
         }
     }
