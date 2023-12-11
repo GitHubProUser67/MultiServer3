@@ -6,7 +6,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
 {
     public class Main
     {
-        public static List<Route> index = new List<Route>() {
+        public static List<Route> index = new() {
                 new() {
                     Name = "Hello Handler",
                     UrlRegex = @"^/$",

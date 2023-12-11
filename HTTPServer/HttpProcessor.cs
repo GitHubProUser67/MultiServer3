@@ -91,8 +91,6 @@ namespace HTTPServer
 
                                     LoggerAccessor.LogInfo(string.Format("{0} -> {1} -> {2} has connected", clientip, Host, request.Method));
 
-                                    HttpResponse? response;
-
                                     string absolutepath = HTTPUtils.RemoveQueryString(request.Url);
 
                                     // Split the URL into segments
@@ -104,83 +102,33 @@ namespace HTTPServer
                                     // Process the request based on the HTTP method
                                     string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
 
-                                    switch (Host)
+                                    HttpResponse? response = RouteRequest(inputStream, outputStream, request, absolutepath, Host);
+
+                                    if (response == null)
                                     {
-                                        default:
-                                            // A little bit out of the scope of Routes.
-                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && request.Method != null && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
-                                            {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
-
-                                                string? res = null;
-                                                int version = 0;
-                                                if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
-                                                    version = 2;
-                                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
-                                                    version = 2;
-                                                else if (absolutepath.Contains("/AirRace/"))
-                                                    version = 2;
-                                                else if (absolutepath.Contains("/Uncharted2/"))
-                                                    version = 1;
-                                                else if (absolutepath.Contains("/Infamous/"))
-                                                    version = 1;
-                                                else if (absolutepath.Contains("/warhawk_shooter/"))
-                                                    version = 1;
-                                                OHSClass ohs = new(request.Method, absolutepath, version);
-                                                using (MemoryStream postdata = new())
+                                        switch (Host)
+                                        {
+                                            default:
+                                                // A little bit out of the scope of Routes.
+                                                if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && request.Method != null && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
                                                 {
-                                                    request.getDataStream.CopyTo(postdata);
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
 
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = ohs.ProcessRequest(buffer, request.GetContentType(), filePath);
-                                                    postdata.Flush();
-                                                }
-                                                ohs.Dispose();
-                                                if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
-                                                else
-                                                    response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
-                                            }
-                                            else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
-                                            {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
-
-                                                string? res = null;
-                                                PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
-                                                using (MemoryStream postdata = new())
-                                                {
-                                                    request.getDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = agency.ProcessRequest(buffer, request.GetContentType());
-                                                    postdata.Flush();
-                                                }
-                                                agency.Dispose();
-                                                if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
-                                                else
-                                                    response = HttpResponse.Send(res, "text/xml");
-                                            }
-                                            else if (Host == "juggernaut-games.com" && request.Method != null && absolutepath.EndsWith(".php"))
-                                            {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a JUGGERNAUT method : {absolutepath}");
-
-                                                string? res = null;
-                                                JUGGERNAUTClass juggernaut = new(request.Method, absolutepath);
-                                                if (request.getDataStream != null)
-                                                {
+                                                    string? res = null;
+                                                    int version = 0;
+                                                    if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
+                                                        version = 2;
+                                                    else if (absolutepath.Contains("/SCEA/SaucerPop/"))
+                                                        version = 2;
+                                                    else if (absolutepath.Contains("/AirRace/"))
+                                                        version = 2;
+                                                    else if (absolutepath.Contains("/Uncharted2/"))
+                                                        version = 1;
+                                                    else if (absolutepath.Contains("/Infamous/"))
+                                                        version = 1;
+                                                    else if (absolutepath.Contains("/warhawk_shooter/"))
+                                                        version = 1;
+                                                    OHSClass ohs = new(request.Method, absolutepath, version);
                                                     using (MemoryStream postdata = new())
                                                     {
                                                         request.getDataStream.CopyTo(postdata);
@@ -192,182 +140,234 @@ namespace HTTPServer
                                                         byte[] buffer = new byte[contentLength];
                                                         // Read the contents of the memory stream into the byte array
                                                         postdata.Read(buffer, 0, contentLength);
-                                                        res = juggernaut.ProcessRequest(request.QueryParameters, buffer, request.GetContentType());
+                                                        res = ohs.ProcessRequest(buffer, request.GetContentType(), filePath);
                                                         postdata.Flush();
                                                     }
+                                                    ohs.Dispose();
+                                                    if (string.IsNullOrEmpty(res))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                        response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                                 }
-                                                else
-                                                    res = juggernaut.ProcessRequest(request.QueryParameters);
-                                                juggernaut.Dispose();
-                                                if (res == null)
-                                                    response = HttpBuilder.InternalServerError();
-                                                else if (res == string.Empty)
-                                                    response = HttpBuilder.Ok();
-                                                else
-                                                    response = HttpResponse.Send(res, "text/xml");
-                                            }
-                                            else
-                                            {
-                                                switch (request.Method)
+                                                else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
                                                 {
-                                                    case "GET":
-                                                        switch (absolutepath)
-                                                        {
-                                                            case "/networktest/get_2m":
-                                                                response = HttpResponse.Send(new byte[2097152]);
-                                                                break;
-                                                            case "/robots.txt":
-                                                                response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
-                                                                break;
-                                                            default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
-                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
-                                                                {
-                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
-                                                                    string? encoding = request.GetHeaderValue("Accept-Encoding");
-                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
-                                                                    else
-                                                                        response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                }
-                                                                else
-                                                                {
-                                                                    response = RouteRequest(inputStream, outputStream, request, absolutepath, Host);
-                                                                    response ??= FileSystemRouteHandler.Handle(request, filePath, request.GetHeaderValue("User-Agent").ToLower());
-                                                                }
-                                                                break;
-                                                        }
-                                                        break;
-                                                    case "POST":
-                                                        switch (absolutepath)
-                                                        {
-                                                            case "/networktest/post_128":
-                                                                response = HttpBuilder.Ok();
-                                                                break;
-                                                            case "/!HomeTools/MakeBarSdat/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var makeres = HomeTools.MakeBarSdat(request.getDataStream, request.GetContentType());
-                                                                    if (makeres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(makeres.Value.Item1, makeres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            case "/!HomeTools/UnBar/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var unbarres = HomeTools.UnBar(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
-                                                                    if (unbarres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(unbarres.Value.Item1, unbarres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            case "/!HomeTools/CDS/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var cdsres = HomeTools.CDS(request.getDataStream, request.GetContentType());
-                                                                    if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            case "/!HomeTools/TicketList/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var ticketlistres = HomeTools.TicketList(request.getDataStream, request.GetContentType());
-                                                                    if (ticketlistres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(ticketlistres.Value.Item1, ticketlistres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            case "/!HomeTools/INF/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var infres = HomeTools.INF(request.getDataStream, request.GetContentType());
-                                                                    if (infres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(infres.Value.Item1, infres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            case "/!HomeTools/ChannelID/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    string? channelres = HomeTools.ChannelID(request.getDataStream, request.GetContentType());
-                                                                    if (!string.IsNullOrEmpty(channelres))
-                                                                        response = HttpResponse.Send(channelres);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            case "/!HomeTools/SceneID/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    string? sceneres = HomeTools.SceneID(request.getDataStream, request.GetContentType());
-                                                                    if (!string.IsNullOrEmpty(sceneres))
-                                                                        response = HttpResponse.Send(sceneres);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
-                                                                break;
-                                                            default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
-                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
-                                                                {
-                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
-                                                                    string? encoding = request.GetHeaderValue("Accept-Encoding");
-                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
-                                                                    else
-                                                                        response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                }
-                                                                else
-                                                                    response = HttpBuilder.NotAllowed();
-                                                                break;
-                                                        }
-                                                        break;
-                                                    case "PUT":
-                                                        response = HttpBuilder.NotAllowed();
-                                                        break;
-                                                    case "DELETE":
-                                                        response = HttpBuilder.NotAllowed();
-                                                        break;
-                                                    case "HEAD":
-                                                        response = FileSystemRouteHandler.HandleHEAD(filePath);
-                                                        break;
-                                                    case "OPTIONS":
-                                                        response = HttpBuilder.Ok();
-                                                        response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
-                                                        break;
-                                                    case "PROPFIND":
-                                                        response = HttpBuilder.NotImplemented();
-                                                        break;
-                                                    default:
-                                                        response = HttpBuilder.NotAllowed();
-                                                        break;
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
+
+                                                    string? res = null;
+                                                    PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
+                                                    using (MemoryStream postdata = new())
+                                                    {
+                                                        request.getDataStream.CopyTo(postdata);
+
+                                                        postdata.Position = 0;
+                                                        // Find the number of bytes in the stream
+                                                        int contentLength = (int)postdata.Length;
+                                                        // Create a byte array
+                                                        byte[] buffer = new byte[contentLength];
+                                                        // Read the contents of the memory stream into the byte array
+                                                        postdata.Read(buffer, 0, contentLength);
+                                                        res = agency.ProcessRequest(buffer, request.GetContentType());
+                                                        postdata.Flush();
+                                                    }
+                                                    agency.Dispose();
+                                                    if (string.IsNullOrEmpty(res))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                        response = HttpResponse.Send(res, "text/xml");
                                                 }
-                                            }
-                                            break;
+                                                else if (Host == "juggernaut-games.com" && request.Method != null && absolutepath.EndsWith(".php"))
+                                                {
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a JUGGERNAUT method : {absolutepath}");
+
+                                                    string? res = null;
+                                                    JUGGERNAUTClass juggernaut = new(request.Method, absolutepath);
+                                                    if (request.getDataStream != null)
+                                                    {
+                                                        using (MemoryStream postdata = new())
+                                                        {
+                                                            request.getDataStream.CopyTo(postdata);
+
+                                                            postdata.Position = 0;
+                                                            // Find the number of bytes in the stream
+                                                            int contentLength = (int)postdata.Length;
+                                                            // Create a byte array
+                                                            byte[] buffer = new byte[contentLength];
+                                                            // Read the contents of the memory stream into the byte array
+                                                            postdata.Read(buffer, 0, contentLength);
+                                                            res = juggernaut.ProcessRequest(request.QueryParameters, buffer, request.GetContentType());
+                                                            postdata.Flush();
+                                                        }
+                                                    }
+                                                    else
+                                                        res = juggernaut.ProcessRequest(request.QueryParameters);
+                                                    juggernaut.Dispose();
+                                                    if (res == null)
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else if (res == string.Empty)
+                                                        response = HttpBuilder.Ok();
+                                                    else
+                                                        response = HttpResponse.Send(res, "text/xml");
+                                                }
+                                                else
+                                                {
+                                                    switch (request.Method)
+                                                    {
+                                                        case "GET":
+                                                            switch (absolutepath)
+                                                            {
+                                                                case "/networktest/get_2m":
+                                                                    response = HttpResponse.Send(new byte[2097152]);
+                                                                    break;
+                                                                case "/robots.txt":
+                                                                    response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
+                                                                    break;
+                                                                default:
+                                                                    if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                        response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
+                                                                    else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                    {
+                                                                        var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                                                                        string? encoding = request.GetHeaderValue("Accept-Encoding");
+                                                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                                                            response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
+                                                                    else
+                                                                        response = FileSystemRouteHandler.Handle(request, filePath, request.GetHeaderValue("User-Agent").ToLower());
+                                                                    break;
+                                                            }
+                                                            break;
+                                                        case "POST":
+                                                            switch (absolutepath)
+                                                            {
+                                                                case "/networktest/post_128":
+                                                                    response = HttpBuilder.Ok();
+                                                                    break;
+                                                                case "/!HomeTools/MakeBarSdat/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var makeres = HomeTools.MakeBarSdat(request.getDataStream, request.GetContentType());
+                                                                        if (makeres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(makeres.Value.Item1, makeres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/UnBar/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var unbarres = HomeTools.UnBar(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                        if (unbarres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(unbarres.Value.Item1, unbarres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/CDS/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var cdsres = HomeTools.CDS(request.getDataStream, request.GetContentType());
+                                                                        if (cdsres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/TicketList/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var ticketlistres = HomeTools.TicketList(request.getDataStream, request.GetContentType());
+                                                                        if (ticketlistres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(ticketlistres.Value.Item1, ticketlistres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/INF/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var infres = HomeTools.INF(request.getDataStream, request.GetContentType());
+                                                                        if (infres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(infres.Value.Item1, infres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/ChannelID/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        string? channelres = HomeTools.ChannelID(request.getDataStream, request.GetContentType());
+                                                                        if (!string.IsNullOrEmpty(channelres))
+                                                                            response = HttpResponse.Send(channelres);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/SceneID/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        string? sceneres = HomeTools.SceneID(request.getDataStream, request.GetContentType());
+                                                                        if (!string.IsNullOrEmpty(sceneres))
+                                                                            response = HttpResponse.Send(sceneres);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                default:
+                                                                    if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                        response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
+                                                                    else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                    {
+                                                                        var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                                                                        string? encoding = request.GetHeaderValue("Accept-Encoding");
+                                                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                                                            response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.NotAllowed();
+                                                                    break;
+                                                            }
+                                                            break;
+                                                        case "PUT":
+                                                            response = HttpBuilder.NotAllowed();
+                                                            break;
+                                                        case "DELETE":
+                                                            response = HttpBuilder.NotAllowed();
+                                                            break;
+                                                        case "HEAD":
+                                                            response = FileSystemRouteHandler.HandleHEAD(filePath);
+                                                            break;
+                                                        case "OPTIONS":
+                                                            response = HttpBuilder.Ok();
+                                                            response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
+                                                            break;
+                                                        case "PROPFIND":
+                                                            response = HttpBuilder.NotImplemented();
+                                                            break;
+                                                        default:
+                                                            response = HttpBuilder.NotAllowed();
+                                                            break;
+                                                    }
+                                                }
+                                                break;
+                                        }
                                     }
 
                                     WriteResponse(outputStream, request, response, filePath);
@@ -548,11 +548,15 @@ namespace HTTPServer
                 return null;
 
             request.Route = route;
+
             try
             {
-                HttpResponse result = route.Callable(request);
-                if (result.IsValid())
-                    return result;
+                if (route.Callable != null)
+                {
+                    HttpResponse result = route.Callable(request);
+                    if (result.IsValid())
+                        return result;
+                }
             }
             catch (Exception)
             {
