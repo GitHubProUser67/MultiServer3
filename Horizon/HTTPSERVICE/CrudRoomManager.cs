@@ -43,10 +43,10 @@ namespace Horizon.HTTPSERVICE
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, gameToUpdate.Name, HorizonServerConfiguration.CrudRoomManagerAPIKey));
+                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey, gameToUpdate.Name));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { Name = XORString(accountName, gameToUpdate.Name, HorizonServerConfiguration.CrudRoomManagerAPIKey), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey, gameToUpdate.Name), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
@@ -80,7 +80,7 @@ namespace Horizon.HTTPSERVICE
                     if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
                     {
                         if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, GameToRemoveUser.Name, HorizonServerConfiguration.CrudRoomManagerAPIKey));
+                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey, GameToRemoveUser.Name));
                         else
                             GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                     }
@@ -172,7 +172,7 @@ namespace Horizon.HTTPSERVICE
                 sum += c;
             }
             // Ensure the result is within the desired range (1 to 95*95)
-            return Math.Max(1, sum % (95 * 95) + 1);
+            return Math.Max(1, sum % (95 * 95));
         }
     }
 
