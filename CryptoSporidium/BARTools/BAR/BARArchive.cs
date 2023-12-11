@@ -608,7 +608,7 @@ namespace CryptoSporidium.BARTools.BAR
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = toolsImpl.ICSharpEdgeCompress(array);
+                    array2 = toolsImpl.ICSharpEdgeZlibCompress(array);
                 if (array2 != null && (uint)array2.Length + 28 <= array.Length)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;

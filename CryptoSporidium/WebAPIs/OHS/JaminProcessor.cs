@@ -24,7 +24,7 @@ namespace CryptoSporidium.WebAPIs.OHS
         {
             try
             {
-                string? writekey = null;
+                string writekey = string.Empty;
 
                 // Execute the Lua script and get the result
                 object[]? returnValues = null;
@@ -41,18 +41,18 @@ namespace CryptoSporidium.WebAPIs.OHS
                 {
                     if (hashed)
                     {
-                        string InData = dataforohs.Substring(8); // We remove the hash.
-                        if (VerifyHash(InData, dataforohs.Substring(0, 8)))
+                        string InData = dataforohs[8..]; // We remove the hash.
+                        if (VerifyHash(InData, dataforohs[..8]))
                         {
-                            writekey = InData.Substring(0, 8);
-                            InData = InData.Substring(8); // We remove the writekey.
+                            writekey = InData[..8];
+                            InData = InData[8..]; // We remove the writekey.
                             returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
                         }
                     }
                     else
                     {
-                        writekey = dataforohs.Substring(0, 8);
-                        dataforohs = dataforohs.Substring(8); // We remove the writekey.
+                        writekey = dataforohs[..8];
+                        dataforohs = dataforohs[8..]; // We remove the writekey.
                         returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
                     }
 
@@ -93,8 +93,8 @@ namespace CryptoSporidium.WebAPIs.OHS
                 {
                     if (hashed)
                     {
-                        string InData = dataforohs.Substring(8); // We remove the hash.
-                        if (VerifyHash(InData, dataforohs.Substring(0, 8)))
+                        string InData = dataforohs[8..]; // We remove the hash.
+                        if (VerifyHash(InData, dataforohs[..8]))
                             returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
                     }
                     else
@@ -134,8 +134,7 @@ namespace CryptoSporidium.WebAPIs.OHS
 #endif
                     if (game != 0)
                     {
-                        Random random = new();
-                        string? cipheredoutput = EncryptDecrypt.Encrypt(LuaReturn, random.Next(1, 95 * 95), game);
+                        string? cipheredoutput = EncryptDecrypt.Encrypt(LuaReturn, new Random().Next(1, 95 * 95), game);
 #if DEBUG
                         LoggerAccessor.LogInfo($"[OHS] - Encrypted Data : {cipheredoutput}");
 #endif

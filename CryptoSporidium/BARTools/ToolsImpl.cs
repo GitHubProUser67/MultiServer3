@@ -165,7 +165,7 @@ namespace CryptoSporidium.BARTools
             }
         }
 
-        public byte[] ICSharpEdgeCompress(byte[] inData)
+        public byte[] ICSharpEdgeZlibCompress(byte[] inData)
         {
             MemoryStream memoryStream = new(inData.Length);
             MemoryStream memoryStream2 = new(inData);
@@ -207,7 +207,7 @@ namespace CryptoSporidium.BARTools
             return array3;
         }
 
-        public byte[]? ICSharpEdgeZlibDecompress(byte[] inData)
+        public byte[] ICSharpEdgeZlibDecompress(byte[] inData)
         {
             MemoryStream memoryStream = new();
             MemoryStream memoryStream2 = new(inData);
@@ -248,7 +248,7 @@ namespace CryptoSporidium.BARTools
             return memoryStream.ToArray();
         }
 
-        public byte[]? ComponentAceEdgeZlibDecompress(byte[] inData)
+        public byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
         {
             MemoryStream memoryStream = new();
             MemoryStream memoryStream2 = new(inData);
@@ -283,7 +283,7 @@ namespace CryptoSporidium.BARTools
             return memoryStream.ToArray();
         }
 
-        public byte[]? ComponentAceEdgeZlibCompress(byte[] inData)
+        public byte[] ComponentAceEdgeZlibCompress(byte[] inData)
         {
             MemoryStream memoryStream = new(inData.Length);
             MemoryStream memoryStream2 = new(inData);

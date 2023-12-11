@@ -43,10 +43,10 @@ namespace Horizon.HTTPSERVICE
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
+                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, gameToUpdate.Name, HorizonServerConfiguration.CrudRoomManagerAPIKey));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { Name = XORString(accountName, gameToUpdate.Name, HorizonServerConfiguration.CrudRoomManagerAPIKey), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
@@ -80,7 +80,7 @@ namespace Horizon.HTTPSERVICE
                     if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
                     {
                         if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
+                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, GameToRemoveUser.Name, HorizonServerConfiguration.CrudRoomManagerAPIKey));
                         else
                             GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                     }
@@ -142,25 +142,38 @@ namespace Horizon.HTTPSERVICE
             return JsonConvert.SerializeObject(rooms, Formatting.Indented);
         }
 
-        private static string XORString(string input, string key)
+        private static string XORString(string input, string key, string gamename)
         {
-            string checksum = new CRC32().ComputeHash(input + key);
-
             StringBuilder result = new();
 
-            if (input.Length < 24)
-                input = input.PadRight(24, '@');
-            else if (input.Length > 24)
-                input = input[..24];
+            if (input.Length < 16)
+                input = input.PadRight(16, '@');
+            else if (input.Length > 16)
+                input = input[..16];
+
+            string checksum = new CRC32().ComputeHash(input + key);
+
+            input = CryptoSporidium.WebAPIs.OHS.EncryptDecrypt.Escape(CryptoSporidium.WebAPIs.OHS.EncryptDecrypt.Encrypt(input, CalculateOffsetNumber(gamename), 2));
 
             for (int i = 0; i < input.Length; i++)
             {
-                result.Append((char)(input[i] ^ key[i % key.Length] + checksum[0] + checksum[4]));
+                result.Append((char)(input[i] ^ key[i % key.Length] + (checksum[0] ^ 0xFF) + checksum[4]));
             }
 
-            return MiscUtils.StringToHexString(checksum + result.ToString());
+            return MiscUtils.ByteArrayToHexString(new CryptoSporidium.BARTools.ToolsImpl().ComponentAceEdgeZlibCompress(MiscUtils.HexStringToByteArray(checksum + MiscUtils.StringToHexString(result.ToString()))));
         }
 
+        private static int CalculateOffsetNumber(string input)
+        {
+            int sum = 0;
+            foreach (char c in input)
+            {
+                // Add the ASCII value of each character to the sum
+                sum += c;
+            }
+            // Ensure the result is within the desired range (1 to 95*95)
+            return Math.Max(1, sum % (95 * 95) + 1);
+        }
     }
 
     public class Room

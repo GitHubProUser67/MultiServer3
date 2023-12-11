@@ -13,15 +13,15 @@ namespace CryptoSporidium.WebAPIs.OHS
                 return index;
         }
 
-        public static string? Encrypt(string? str, int offset, int game)
+        public static string Encrypt(string? str, int offset, int game)
         {
             if (string.IsNullOrEmpty(str))
-                return null;
+                return string.Empty;
 
             if (offset > 95 * 95)
             {
                 LoggerAccessor.LogError("[OHS - Encrypt] - Offset is too large.");
-                return null;
+                return string.Empty;
             }
 
             var chars = new StringBuilder();
@@ -37,7 +37,7 @@ namespace CryptoSporidium.WebAPIs.OHS
                 if (srcbyte < 0 || srcbyte > 95)
                 {
                     LoggerAccessor.LogError("[OHS - Encrypt] - Invalid character in input string");
-                    return null;
+                    return string.Empty;
                 }
 
                 int cipherbyte = 0;
@@ -47,7 +47,7 @@ namespace CryptoSporidium.WebAPIs.OHS
                 else if (game == 2)
                     cipherbyte = StaticKeys.version2cipher[Wrapped(i + offset, StaticKeys.version2cipher.Length)];
                 else
-                    return null;
+                    return string.Empty;
 
                 int encbyte = (srcbyte + cipherbyte) % 95 + 32;
 
@@ -57,10 +57,10 @@ namespace CryptoSporidium.WebAPIs.OHS
             return chars.ToString();
         }
 
-        public static string? Decrypt(string str, int game)
+        public static string Decrypt(string str, int game)
         {
             if (string.IsNullOrEmpty(str))
-                return null;
+                return string.Empty;
 
             var chars = new StringBuilder();
 
@@ -74,7 +74,7 @@ namespace CryptoSporidium.WebAPIs.OHS
                 if (srcbyte < 0 || srcbyte > 95)
                 {
                     LoggerAccessor.LogError("[OHS - Decrypt] - Invalid character in input string");
-                    return null;
+                    return string.Empty;
                 }
 
                 int cipherbyte = 0;
@@ -84,7 +84,7 @@ namespace CryptoSporidium.WebAPIs.OHS
                 else if (game == 2)
                     cipherbyte = StaticKeys.version2cipher[Wrapped(i - 2 + offset, StaticKeys.version2cipher.Length)];
                 else
-                    return null;
+                    return string.Empty;
 
                 int decbyte = (srcbyte - cipherbyte + 95) % 95 + 32;
 

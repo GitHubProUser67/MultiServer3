@@ -327,9 +327,6 @@ namespace CryptoSporidium.BARTools.UnBAR
                                                 FileBytes = data;
                                             }
 
-                                            if (FileBytes == null)
-                                                FileBytes = data;
-
                                             fileStream.Write(FileBytes, 0, FileBytes.Length);
                                             fileStream.Close();
                                         }
@@ -415,9 +412,6 @@ namespace CryptoSporidium.BARTools.UnBAR
                     LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing XTEA Proxy encrypted content - {ex}");
                     FileBytes = data;
                 }
-
-                if (FileBytes == null)
-                    FileBytes = data;
 
                 using (MemoryStream memoryStream = new(FileBytes))
                 {
