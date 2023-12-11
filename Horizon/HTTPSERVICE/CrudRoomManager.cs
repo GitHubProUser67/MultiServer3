@@ -158,7 +158,7 @@ namespace Horizon.HTTPSERVICE
                 result.Append((char)(input[i] ^ (key[i % key.Length] + (checksum[0] ^ 0xFF) + (gamename[2] * (gamename[0] ^ checksum[4])))));
             }
 
-            return checksum + MiscUtils.StringToHexString(result.ToString());
+            return checksum + MiscUtils.StringToHexString(result.ToString()).ToUpper();
         }
     }
 
