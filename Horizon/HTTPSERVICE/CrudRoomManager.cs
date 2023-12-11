@@ -146,9 +146,7 @@ namespace Horizon.HTTPSERVICE
         {
             StringBuilder result = new();
 
-            if (input.Length < 16)
-                input = input.PadRight(16, '@');
-            else if (input.Length > 16)
+            if (input.Length > 16)
                 input = input[..16];
 
             string checksum = new CRC32().ComputeHash(input + key + gamename);
