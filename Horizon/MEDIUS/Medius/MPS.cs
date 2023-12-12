@@ -229,20 +229,20 @@ namespace Horizon.MEDIUS.Medius
                             int gameOrPartyId = int.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[0]);
                             int accountId = int.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[1]);
                             string msgId = createGameWithAttrResponse.MessageID.Value.Split('-')[2];
-                            bool partyType = false;
+                            int partyType = 0;
                             var game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
                             var party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
                             var rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
                             try
                             {
-                                partyType = bool.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[3]);
+                                partyType = int.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[3]);
                             }
                             catch (Exception)
                             {
                                 // Not Important.
                             }
 
-                            if (partyType == true)
+                            if (partyType == 1)
                             {
                                 party.DMEWorldId = createGameWithAttrResponse.WorldID;
                                 await party.PartyCreated();
@@ -337,13 +337,13 @@ namespace Horizon.MEDIUS.Medius
                         int gameOrPartyId = int.Parse(joinGameResponse.MessageID.Value.Split('-')[0]);
                         int accountId = int.Parse(joinGameResponse.MessageID.Value.Split('-')[1]);
                         string msgId = joinGameResponse.MessageID.Value.Split('-')[2];
-                        bool partyType = false;
+                        int partyType = 0;
                         var game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
                         var party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
                         var rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
                         try
                         {
-                            partyType = bool.Parse(joinGameResponse.MessageID.Value.Split('-')[3]);
+                            partyType = int.Parse(joinGameResponse.MessageID.Value.Split('-')[3]);
                         }
                         catch (Exception)
                         {
@@ -352,7 +352,7 @@ namespace Horizon.MEDIUS.Medius
 
                         IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
 
-                        if (partyType == true)
+                        if (partyType == 1)
                         {
                             rClient?.Queue(new MediusPartyJoinByIndexResponse()
                             {
@@ -780,7 +780,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusServerMoveGameWorldOnMeRequest serverMoveGameWorldOnMeRequest:
                     {
                         //Fetch Current Game, and Update it with the new one
-                        var game = MediusClass.Manager.GetGameByGameId(serverMoveGameWorldOnMeRequest.CurrentMediusWorldID);
+                        var game = MediusClass.Manager.GetGameByDmeWorldId(data.ClientObject.SessionKey, serverMoveGameWorldOnMeRequest.CurrentMediusWorldID);
                         if (game.WorldID != serverMoveGameWorldOnMeRequest.CurrentMediusWorldID)
                         {
                             data.ClientObject.Queue(new MediusServerMoveGameWorldOnMeResponse()
@@ -824,6 +824,8 @@ namespace Horizon.MEDIUS.Medius
                 /// </summary>
                 case MediusServerEndGameOnMeRequest serverEndGameOnMeRequest:
                     {
+                        //await CrudRoomManager.RemoveGame(data.ClientObject.ApplicationId.ToString(), serverEndGameOnMeRequest.MediusWorldID.ToString(), GameName);
+
                         data.ClientObject.Queue(new MediusServerEndGameOnMeResponse()
                         {
                             MessageID = serverEndGameOnMeRequest.MessageID,
@@ -850,6 +852,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusServerConnectNotification connectNotification:
                     {
                         LoggerAccessor.LogInfo("MediusServerConnectNotification Received");
+                        //LoggerAccessor.LogWarn($"sessionkey {(data.ClientObject as DMEObject).SessionKey} worldid {(int)connectNotification.MediusWorldUID}");
                         if (MediusClass.Manager.GetGameByDmeWorldId((data.ClientObject as DMEObject).SessionKey, (int)connectNotification.MediusWorldUID) != null)
                             await MediusClass.Manager.GetGameByDmeWorldId((data.ClientObject as DMEObject).SessionKey, (int)connectNotification.MediusWorldUID)?.OnMediusServerConnectNotification(connectNotification);
                         else
@@ -860,9 +863,8 @@ namespace Horizon.MEDIUS.Medius
                         /*
                         if (data.ClientObject.SessionKey == null)
                         {
-                            Logger.Warn($"ServerConnectNotificationHandler - DmeServerGetConnectKeys error = {data.ClientObject.SessionKey} is null");
+                            LoggerAccessor.LogWarn($"ServerConnectNotificationHandler - DmeServerGetConnectKeys error = {data.ClientObject.SessionKey} is null");
                             return;
-                        } else {
                         }
                         */
                         break;

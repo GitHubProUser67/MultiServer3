@@ -51,11 +51,11 @@ namespace Horizon.MEDIUS.Medius.Models
         public int GenericField6;
         public int GenericField7;
         public int GenericField8;
-        public string? RequestData;
+        public byte[]? RequestData;
         public uint GroupMemberListSize;
-        public char[]? GroupMemberList;
+        public byte[]? GroupMemberList;
         public uint AppDataSize;
-        public char[]? AppData;
+        public byte[]? AppData;
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
@@ -337,14 +337,14 @@ namespace Horizon.MEDIUS.Medius.Models
             }
         }
 
-        public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification notification)
+        public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification connectNotification)
         {
-            var player = Clients.FirstOrDefault(x => x.Client?.SessionKey == notification.PlayerSessionKey);
+            var player = Clients.FirstOrDefault(x => x.Client?.SessionKey == connectNotification.PlayerSessionKey);
 
             if (player == null)
                 return;
 
-            switch (notification.ConnectEventType)
+            switch (connectNotification.ConnectEventType)
             {
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT:
                     {
@@ -353,7 +353,7 @@ namespace Horizon.MEDIUS.Medius.Models
                     }
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_DISCONNECT:
                     {
-                        await OnPlayerLeft(player);
+                        await OnPlayerLeft(player, connectNotification);
                         break;
                     }
             }
@@ -424,7 +424,7 @@ namespace Horizon.MEDIUS.Medius.Models
             //client.CurrentChannel?.SendSystemMessage(client, $"Gamemode is {CustomGamemode?.FullName ?? "default"}.");
         }
 
-        protected virtual async Task OnPlayerLeft(GameClient player)
+        protected virtual async Task OnPlayerLeft(GameClient player, MediusServerConnectNotification connectNotification)
         {
             LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
@@ -437,6 +437,10 @@ namespace Horizon.MEDIUS.Medius.Models
             // Remove from collection
             if (player.Client.CurrentGame != null)
                 await RemovePlayer(player.Client, player.Client.ApplicationId);
+
+            // Update player object
+            await player.Client.LeaveGame(this);
+            await player.Client.LeaveChannel(ChatChannel);
         }
 
         public virtual async Task RemovePlayer(ClientObject client, int appid)

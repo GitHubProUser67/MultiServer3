@@ -32,11 +32,11 @@ namespace CryptoSporidium.Horizon.RT.Models
         public MediusWorldAttributesType WorldAttributesType;
         public MediusMatchOptions MatchOptions;
         public string? ServerSessionKey; // SESSIONKEY_MAXLEN
-        public string? RequestData; // REQUESTDATA_MAXLEN
+        public byte[] RequestData = new byte[Constants.REQUESTDATA_MAXLEN]; // REQUESTDATA_MAXLEN
         public uint GroupMemberListSize;
         public uint ApplicationDataSize;
-        public char[] GroupMemberAccountIDList;
-        public char[] ApplicationData;
+        public byte[]? GroupMemberAccountIDList;
+        public byte[]? ApplicationData;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -69,14 +69,13 @@ namespace CryptoSporidium.Horizon.RT.Models
             WorldAttributesType = reader.Read<MediusWorldAttributesType>();
             MatchOptions = reader.Read<MediusMatchOptions>();
             ServerSessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            RequestData = reader.ReadString(Constants.REQUESTDATA_MAXLEN);
+            RequestData = reader.ReadBytes(Constants.REQUESTDATA_MAXLEN);
             //reader.ReadBytes(3);
 
             GroupMemberListSize = reader.ReadUInt32();
             ApplicationDataSize = reader.ReadUInt32();
-            GroupMemberAccountIDList = reader.ReadChars((int)GroupMemberListSize);
-            ApplicationData = reader.ReadChars((int)ApplicationDataSize);
-
+            GroupMemberAccountIDList = reader.ReadBytes((int)GroupMemberListSize);
+            ApplicationData = reader.ReadBytes((int)GroupMemberListSize);
         }
 
         public override void Serialize(MessageWriter writer)
@@ -110,7 +109,7 @@ namespace CryptoSporidium.Horizon.RT.Models
             writer.Write(WorldAttributesType);
             writer.Write(MatchOptions);
             writer.Write(ServerSessionKey, Constants.SESSIONKEY_MAXLEN);
-            writer.Write(RequestData, Constants.REQUESTDATA_MAXLEN);
+            writer.Write(RequestData);
             //writer.Write(new byte[3]);
 
             writer.Write(GroupMemberListSize);

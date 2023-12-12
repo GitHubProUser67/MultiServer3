@@ -1811,140 +1811,71 @@ namespace Horizon.MEDIUS.Medius
                         // Responses
                         List<MediusGetBuddyList_ExtraInfoResponse> friendListResponses = new List<MediusGetBuddyList_ExtraInfoResponse>();
 
+                        List<int> rcpsp = new List<int> { 20770, 20774 };
+
                         if (data.ClientObject.MediusVersion >= 112 &&
-                            data.ClientObject.ApplicationId == 20770 || //PSP R&C Should not go through this route
-                            data.ClientObject.ApplicationId == 20774)
+                           !rcpsp.Contains(data.ClientObject.ApplicationId)) //PSP R&C Should not go through this route
                         {
-
-                            await HorizonServerConfiguration.Database.GetAccountById(data.ClientObject.AccountId).ContinueWith((r) =>
+                            if (data.ClientObject.MediusVersion == 113 && data.ClientObject.FriendsListPS3 == null)
                             {
-                                if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
-                                    return;
-
-                                if (r.IsCompletedSuccessfully && r.Result != null)
+                                // No friends
+                                data.ClientObject.Queue(new MediusGetBuddyList_ExtraInfoResponse()
                                 {
-                                    if (data.ClientObject.MediusVersion == 113 && data.ClientObject.FriendsListPS3 == null)
-                                    {
-                                        // No friends
-                                        data.ClientObject.Queue(new MediusGetBuddyList_ExtraInfoResponse()
-                                        {
-                                            MessageID = getBuddyList_ExtraInfoRequest.MessageID,
-                                            StatusCode = MediusCallbackStatus.MediusNoResult,
-                                            EndOfList = true
-                                        });
-                                        return;
-                                    }
+                                    MessageID = getBuddyList_ExtraInfoRequest.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusNoResult,
+                                    EndOfList = true
+                                });
+                                return;
+                            }
 
-                                    // Iterate through friends and build a response for each
-                                    foreach (var friend in data.ClientObject.FriendsListPS3)
-                                    {
-                                        var friendClient = new ClientObject();
+                            // Iterate through friends and build a response for each
+                            foreach (var friend in data.ClientObject.FriendsListPS3)
+                            {
+                                var friendClient = new ClientObject();
 
-                                        var friendClientCached = HorizonServerConfiguration.Database.GetAccountByName(friend, data.ClientObject.ApplicationId);
-                                        friendClient = MediusClass.Manager.GetClientByAccountName(friend, data.ClientObject.ApplicationId);
+                                var friendClientCached = HorizonServerConfiguration.Database.GetAccountByName(friend, data.ClientObject.ApplicationId);
+                                friendClient = MediusClass.Manager.GetClientByAccountName(friend, data.ClientObject.ApplicationId);
 
-                                        if (friendClient == null)
-                                        {
-                                            friendListResponses.Add(new MediusGetBuddyList_ExtraInfoResponse()
-                                            {
-                                                MessageID = getBuddyList_ExtraInfoRequest.MessageID,
-                                                StatusCode = MediusCallbackStatus.MediusSuccess,
-                                                AccountID = friendClientCached?.Result?.AccountId ?? MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed),
-                                                AccountName = friend,
-                                                OnlineState = new MediusPlayerOnlineState()
-                                                {
-                                                    ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
-                                                    MediusLobbyWorldID = -1,
-                                                    MediusGameWorldID = -1,
-                                                    GameName = friendClient?.CurrentGame?.GameName ?? "",
-                                                    LobbyName = friendClient?.CurrentChannel?.Name ?? ""
-                                                },
-                                                EndOfList = false
-                                            });
-                                        }
-                                        else
-                                        {
-                                            if (friendClient.CurrentGame != null)
-                                            {
-                                                var game = MediusClass.Manager.GetGameByGameId(friendClient.CurrentGame.Id);
-
-                                                friendListResponses.Add(new MediusGetBuddyList_ExtraInfoResponse()
-                                                {
-                                                    MessageID = getBuddyList_ExtraInfoRequest.MessageID,
-                                                    StatusCode = MediusCallbackStatus.MediusSuccess,
-                                                    AccountID = friendClient.AccountId,
-                                                    AccountName = friendClient.AccountName,
-                                                    OnlineState = new MediusPlayerOnlineState()
-                                                    {
-                                                        ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
-                                                        MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? -1, /*Program.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id*/
-                                                        MediusGameWorldID = friendClient?.CurrentGame?.Id ?? -1,
-                                                        GameName = friendClient?.CurrentGame?.GameName ?? "",
-                                                        LobbyName = friendClient?.CurrentChannel?.Name ?? ""
-                                                    },
-                                                    EndOfList = false
-                                                });
-                                            }
-
-                                        }
-                                    }
-
-                                    // If we have any responses then send them
-                                    if (friendListResponses.Count > 0)
-                                    {
-                                        // Ensure the last response is tagged as EndOfList
-                                        friendListResponses[friendListResponses.Count - 1].EndOfList = true;
-
-                                        // Send friends
-                                        data.ClientObject.Queue(friendListResponses);
-                                    }
-                                    else
-                                    {
-                                        // No friends
-                                        data.ClientObject.Queue(new MediusGetBuddyList_ExtraInfoResponse()
-                                        {
-                                            MessageID = getBuddyList_ExtraInfoRequest.MessageID,
-                                            StatusCode = MediusCallbackStatus.MediusNoResult,
-                                            EndOfList = true
-                                        });
-                                    }
-                                }
-                                else
+                                friendListResponses.Add(new MediusGetBuddyList_ExtraInfoResponse()
                                 {
-                                    // DB error
-                                    data.ClientObject.Queue(new MediusGetBuddyList_ExtraInfoResponse()
+                                    MessageID = getBuddyList_ExtraInfoRequest.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                    AccountID = friendClientCached?.Result?.AccountId ?? -1,
+                                    AccountName = friend,
+                                    OnlineState = new MediusPlayerOnlineState()
                                     {
-                                        MessageID = getBuddyList_ExtraInfoRequest.MessageID,
-                                        StatusCode = MediusCallbackStatus.MediusDBError,
-                                        EndOfList = true
-                                    });
-                                }
-                            });
+                                        ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
+                                        MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? -1,
+                                        MediusGameWorldID = friendClient?.CurrentGame?.Id ?? -1,
+                                        GameName = friendClient?.CurrentGame?.GameName ?? "",
+                                        LobbyName = friendClient?.CurrentChannel?.Name ?? ""
+                                    },
+                                    EndOfList = false
+                                });
+                            }
 
+                            // If we have any responses then send them
+                            if (friendListResponses.Count > 0)
+                            {
+                                // Ensure the last response is tagged as EndOfList
+                                friendListResponses[friendListResponses.Count - 1].EndOfList = true;
+
+                                // Send friends
+                                data.ClientObject.Queue(friendListResponses);
+                            }
+                            else
+                            {
+                                // No friends
+                                data.ClientObject.Queue(new MediusGetBuddyList_ExtraInfoResponse()
+                                {
+                                    MessageID = getBuddyList_ExtraInfoRequest.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusNoResult,
+                                    EndOfList = true
+                                });
+                            }
                         }
                         else
                         {
-                            await HorizonServerConfiguration.Database.GetAccountById(data.ClientObject.AccountId).ContinueWith((r) =>
-                            {
-                                if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
-                                    return;
-
-                                if (r.IsCompletedSuccessfully && r.Result != null)
-                                {
-                                    
-                                }
-                                else
-                                {
-                                    // DB error
-                                    data.ClientObject.Queue(new MediusGetBuddyList_ExtraInfoResponse()
-                                    {
-                                        MessageID = getBuddyList_ExtraInfoRequest.MessageID,
-                                        StatusCode = MediusCallbackStatus.MediusDBError,
-                                        EndOfList = true
-                                    });
-                                }
-                            });
-
                             // Iterate through friends and build a response for each
                             foreach (var friend in data.ClientObject.FriendsList)
                             {
@@ -5875,66 +5806,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        string? appName = null;
-
-                        var appIds = HorizonServerConfiguration.Database.GetAppIds();
-                        var appIdList = appIds.Result.ToList();
-
-                        var gametofilter = MediusClass.Manager.GetGameByName(findWorldByNameRequest.Name, data.ClientObject);
-
-                        if (gametofilter != null)
-                        {
-                            foreach (var AppId in appIdList)
-                            {
-                                if (AppId.AppIds.Contains(data.ClientObject.ApplicationId))
-                                    appName = AppId.Name;
-                            };
-
-                            var gameWorldName = new MediusFindWorldByNameResponse()
-                            {
-                                MessageID = findWorldByNameRequest.MessageID,
-                                StatusCode = MediusCallbackStatus.MediusSuccess,
-                                ApplicationID = data.ClientObject.ApplicationId,
-                                ApplicationName = appName,
-                                ApplicationType = MediusApplicationType.MediusAppTypeGame,
-                                MediusWorldID = gametofilter.Id,
-                                WorldName = findWorldByNameRequest.Name,
-                                WorldStatus = gametofilter.WorldStatus,
-                                EndOfList = true
-                            };
-
-                            data.ClientObject.Queue(gameWorldName);
-
-                            break;
-                        }
-
-                        var partytofilter = MediusClass.Manager.GetPartyByName(findWorldByNameRequest.Name, data.ClientObject);
-
-                        if (partytofilter != null && data != null && data.ClientObject != null && data.ClientObject.CurrentGame != null) // Cannot have a party without a game (medius client symbols)
-                        {
-                            foreach (var AppId in appIdList)
-                            {
-                                if (AppId.AppIds.Contains(data.ClientObject.ApplicationId))
-                                    appName = AppId.Name;
-                            };
-
-                            var partyWorldName = new MediusFindWorldByNameResponse()
-                            {
-                                MessageID = findWorldByNameRequest.MessageID,
-                                StatusCode = MediusCallbackStatus.MediusSuccess,
-                                ApplicationID = data.ClientObject.ApplicationId,
-                                ApplicationName = appName,
-                                ApplicationType = MediusApplicationType.MediusAppTypeGame,
-                                MediusWorldID = partytofilter.Id,
-                                WorldName = findWorldByNameRequest.Name,
-                                WorldStatus = data.ClientObject.CurrentGame.WorldStatus,
-                                EndOfList = true
-                            };
-
-                            data.ClientObject.Queue(partyWorldName);
-
-                            break;
-                        }
+                        MediusFindWorldByNameResponse[]? gameWorldNameList = null;
 
                         var channel = MediusClass.Manager.GetWorldByName(findWorldByNameRequest.Name);
 
@@ -5968,6 +5840,10 @@ namespace Horizon.MEDIUS.Medius
                                 LoggerAccessor.LogInfo($"WorldType: {findWorldByNameRequest.WorldType} ({findWorldType})");
                             }
 
+                            var appIds = HorizonServerConfiguration.Database.GetAppIds();
+                            var appIdList = appIds.Result.ToList();
+                            string? appName = null;
+
                             foreach (var AppId in appIdList)
                             {
                                 if (AppId.AppIds.Contains(data.ClientObject.ApplicationId))
@@ -5977,19 +5853,19 @@ namespace Horizon.MEDIUS.Medius
                             #region FindGameWorld
                             if (findWorldByNameRequest.WorldType == MediusFindWorldType.FindGameWorld)
                             {
-                                var gameWorldNameList = channel.Channels.Where(x => x.Name == channel.Name)
-                                    .Select(x => new MediusFindWorldByNameResponse()
-                                    {
-                                        MessageID = findWorldByNameRequest.MessageID,
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        ApplicationID = data.ClientObject.ApplicationId,
-                                        ApplicationName = appName,
-                                        ApplicationType = MediusApplicationType.LobbyChatChannel,
-                                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
-                                        WorldName = channel.Name,
-                                        WorldStatus = channel.WorldStatus,
-                                        EndOfList = false
-                                    }).ToArray();
+                                gameWorldNameList = channel.Channels.Where(x => x.Name == channel.Name)
+                                .Select(x => new MediusFindWorldByNameResponse()
+                                {
+                                    MessageID = findWorldByNameRequest.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                    ApplicationID = data.ClientObject.ApplicationId,
+                                    ApplicationName = appName,
+                                    ApplicationType = MediusApplicationType.LobbyChatChannel,
+                                    MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                    WorldName = channel.Name,
+                                    WorldStatus = channel.WorldStatus,
+                                    EndOfList = false
+                                }).ToArray();
 
                                 if (gameWorldNameList.Length == 0)
                                 {
@@ -8415,7 +8291,15 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        var path = MediusClass.GetFileSystemPath(data.ClientObject.ApplicationId, fileCreateRequest.MediusFileToCreate.FileName);
+                        string? fileDir = null;
+                        string? fileName = null;
+                        if (fileCreateRequest.MediusFileToCreate.FileName.Contains("/"))
+                        {
+                            fileDir = fileCreateRequest.MediusFileToCreate.FileName.Split("/").First();
+                            fileName = fileCreateRequest.MediusFileToCreate.FileName.Split("/").Last();
+                        }
+
+                        var path = MediusClass.GetFileSystemPath(data.ClientObject.ApplicationId, fileDir);
                         if (path == null)
                         {
                             data.ClientObject.Queue(new MediusFileCreateResponse()
@@ -8437,10 +8321,10 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            Directory.CreateDirectory(Path.GetDirectoryName(path));
+                            Directory.CreateDirectory(path);
 
                             //Create File
-                            using (var fs = File.Create(path))
+                            using (var fs = File.Create(path + "/" + fileName))
                             {
                                 fs.Write(new byte[fileCreateRequest.MediusFileToCreate.FileSize]);
                             }
@@ -8454,7 +8338,6 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     LoggerAccessor.LogInfo($"md5 checksum generated: {BitConverter.ToString(md5.ComputeHash(stream))}");
                                     string serverCheckSumGenerated = BitConverter.ToString(md5.ComputeHash(stream));
-
 
                                     LoggerAccessor.LogWarn($"{serverCheckSumGenerated} checksum CHECK");
                                     FileDTO fileDTO = new FileDTO()
@@ -8533,8 +8416,6 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             }
                             #endregion
-
-
                         }
                         break;
                     }
@@ -9153,6 +9034,8 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusBinaryMessageType.BroadcastBinaryMsgAcrossEntireUniverse:
                                 {
+                                    LoggerAccessor.LogInfo($"Sending BroadcastBinaryMsgAcrossEntireUniverse({binaryMessage.Message}) binary message ");
+
                                     var channels = MediusClass.Manager.GetChannelListUnfiltered(data.ClientObject.ApplicationId, 1, 50);
 
                                     foreach (var channel in channels)
@@ -9160,8 +9043,8 @@ namespace Horizon.MEDIUS.Medius
                                         channel.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
                                     }
 
+                                    //MUMBinaryFwdFromLobby() Error %d MID %s, Orig AID %d, Whisper Target AID %d
                                     LoggerAccessor.LogInfo($"Sending BroadcastBinaryMsgAcrossEntireUniverse({data.ClientObject.AccountId}) binary message ({BitConverter.ToString(binaryMessage.Message)})");
-
                                     break;
                                 }
                             default:
@@ -9204,8 +9087,10 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         target?.Queue(new MediusBinaryFwdMessage1()
                                         {
+                                            MessageID = binaryMessage.MessageID,
                                             MessageType = binaryMessage.MessageType,
                                             OriginatorAccountID = data.ClientObject.AccountId,
+                                            MessageSize = binaryMessage.MessageSize,
                                             Message = binaryMessage.Message
                                         });
                                     }
@@ -10039,10 +9924,46 @@ namespace Horizon.MEDIUS.Medius
             uint gameCount = MediusClass.Manager.GetGameCount(clientObject.ApplicationId);
             if (gameCount == 0)
             {
+
                 clientObject.Queue(new MediusAssignedGameToJoinMessage()
                 {
-                    MessageID = matchFindGameRequest.MessageID,
-                    StatusCode = MediusCallbackStatus.MediusNoResult
+                    AssignedGameMessageRequestData = new byte[Constants.REQUESTDATA_MAXLEN],
+                    AssignedGameMessageID = 0,
+                    AssignedGameType = MediusAssignedGameType.AssignedGameTypeMMS,
+                    StatusCode = MediusCallbackStatus.MediusNoResult,
+                    SystemSpecificStatusCode = 0,
+
+                    GameWorldID = 0, //TEMP
+                    TeamID = 0,
+                    PlayerCount = 0,
+                    GameName = string.Empty,
+                    GameStats = new byte[Constants.GAMESTATS_MAXLEN],
+                    MinPlayers = 0,
+                    MaxPlayers = 0,
+                    GameLevel = 0,
+                    PlayerSkillLevel = 0,
+                    GenericField1 = 0,
+                    GenericField2 = 0,
+                    GenericField3 = 0,
+                    GenericField4 = 0,
+                    GenericField5 = 0,
+                    GenericField6 = 0,
+                    GenericField7 = 0,
+                    GenericField8 = 0,
+                    WorldStatus = MediusWorldStatus.WorldInactive,
+                    JoinType = MediusJoinType.MediusJoinAsPlayer,
+                    GamePassword = string.Empty,
+                    GameHostType = MediusGameHostType.MediusGameHostClientServer,
+                    AddressList = new NetAddressList()
+                    {
+                        AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                        {
+                            new NetAddress() { AddressType = NetAddressType.NetAddressNone },
+                            new NetAddress() { AddressType = NetAddressType.NetAddressNone }
+                         }
+                    },
+                    AppDataSize = 0,
+                    AppData = new byte[0]
                 });
             }
             else
@@ -10061,8 +9982,43 @@ namespace Horizon.MEDIUS.Medius
                         AssignedGameType = MediusAssignedGameType.AssignedGameTypeMMS,
                         StatusCode = MediusCallbackStatus.MediusJoinAssignedGame,
                         SystemSpecificStatusCode = 0,
+                        /*
+                        GameWorldID = (uint)gameInfo.Id, //TEMP
+                        TeamID = 1,
+                        PlayerCount = 0,
+                        GameName = string.Empty,
+                        GameStats = new byte[Constants.GAMESTATS_MAXLEN],
+                        MinPlayers = 0,
+                        MaxPlayers = 0,
+                        GameLevel = 0,
+                        PlayerSkillLevel = 0,
+                        GenericField1 = 0,
+                        GenericField2 = 0,
+                        GenericField3 = 0,
+                        GenericField4 = 0,
+                        GenericField5 = 0,
+                        GenericField6 = 0,
+                        GenericField7 = 0,
+                        GenericField8 = 0,
+                        WorldStatus = gameInfo.WorldStatus,
+                        JoinType = MediusJoinType.MediusJoinAsPlayer,
+                        GamePassword = string.Empty,
+                        GameHostType = gameInfo.GameHostType,
+                        AddressList = new NetAddressList()
+                        {
+                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                            {
+                                //new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                new NetAddress() { AddressType = NetAddressType.NetAddressNone },
+                                new NetAddress() { AddressType = NetAddressType.NetAddressNone } 
+                                //new NetAddress() { Address = host.AddressList.First().ToString(), Port = Program.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
+                            }
+                        },
+                        AppDataSize = 0,
+                        AppData = new char[0]
+                        */
 
-                        GameWorldID = 0, //TEMP
+                        GameWorldID = 0,//(uint)gameInfo.Id, //TEMP
                         TeamID = 0,
                         PlayerCount = gameInfo.PlayerCount,
                         GameName = gameInfo.GameName,
@@ -10083,19 +10039,17 @@ namespace Horizon.MEDIUS.Medius
                         JoinType = MediusJoinType.MediusJoinAsPlayer,
                         GamePassword = gameInfo.GamePassword,
                         GameHostType = gameInfo.GameHostType,
-
                         AddressList = new NetAddressList()
                         {
                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                            {
-                               new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                               new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
-                            }
+                                {
+                                    new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone }
+                                    //new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
+                                }
                         },
-
                         AppDataSize = gameInfo.AppDataSize,
                         AppData = gameInfo.AppData
-
                     });
                 }
                 else
@@ -10108,12 +10062,13 @@ namespace Horizon.MEDIUS.Medius
                     clientObject.Queue(new MediusAssignedGameToJoinMessage()
                     {
                         AssignedGameMessageRequestData = gameMatchFound.RequestData,
-                        AssignedGameMessageID = 0,
+                        AssignedGameMessageID = 2,
                         AssignedGameType = MediusAssignedGameType.AssignedGameTypeMMS,
                         StatusCode = MediusCallbackStatus.MediusJoinAssignedGame,
                         SystemSpecificStatusCode = 0,
 
-                        GameWorldID = 0, // TEMP
+                        GameWorldID = 0,//(ushort)gameMatchFound.Id, // TEMP
+
                         TeamID = 0,
                         PlayerCount = gameMatchFound.PlayerCount,
                         GameName = gameMatchFound.GameName,
@@ -10134,19 +10089,17 @@ namespace Horizon.MEDIUS.Medius
                         JoinType = MediusJoinType.MediusJoinAsPlayer,
                         GamePassword = gameMatchFound.GamePassword,
                         GameHostType = gameMatchFound.GameHostType,
-
                         AddressList = new NetAddressList()
                         {
                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                             {
                                 new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
+                                new NetAddress() { AddressType = NetAddressType.NetAddressNone } 
+                                //new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
                             }
                         },
-
                         AppDataSize = gameMatchFound.AppDataSize,
                         AppData = gameMatchFound.AppData
-
                     });
                 }
             }

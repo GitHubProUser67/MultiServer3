@@ -9,7 +9,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_APP_SINGLE;
 
         public short TargetOrSource = 0;
-        public byte[] Payload;
+        public byte[]? Payload;
 
         public override void Deserialize(MessageReader reader)
         {
