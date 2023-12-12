@@ -1,13 +1,11 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json.Linq;
-using QuazalServer.QNetZ;
 using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
     public static string? ServerBindAddress { get; set; } = "0.0.0.0";
     public static int RDVServerPort { get; set; } = 30200;
-    public static int BackendServiceServerPort { get; set; } = 21006;
     public static string? ServerFilesPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/quazal";
     public static string? AccessKey { get; set; } = "yh64s"; // TDU_PS2 access key - Driver San Fransisco: w6kAtr3T
 
@@ -36,7 +34,6 @@ public static class QuazalServerConfiguration
 
             ServerBindAddress = config.server_bind_address;
             RDVServerPort = config.server_rdv_port;
-            BackendServiceServerPort = config.backend_server_port;
             ServerFilesPath = config.server_files_path;
             AccessKey = config.access_key;
         }
@@ -71,12 +68,6 @@ class Program
         LoggerAccessor.SetupLogger("QuazalServer");
 
         QuazalServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/quazal.json");
-
-        QCheckSum.Instance = new();
-		
-        QuazalServer.ServerProcessors.BackendServicesServer.Start();
-
-        QuazalServer.ServerProcessors.RDVServer.Start();
 
         _ = Task.Run(RefreshConfig);
 
