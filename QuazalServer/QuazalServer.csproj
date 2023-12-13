@@ -21,9 +21,5 @@
   <ItemGroup>
     <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Utils\" />
-  </ItemGroup>
-
+  
 </Project>
