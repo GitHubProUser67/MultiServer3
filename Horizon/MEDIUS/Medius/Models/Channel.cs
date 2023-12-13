@@ -38,9 +38,10 @@ namespace Horizon.MEDIUS.Medius.Models
         public MediusGameHostType GameHostType;
         public MediusWorldStatus WorldStatus;
 
-        public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || ((Utils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) && GameCount == 0);
+        public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || ((Utils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) && GameCount == 0 && PartyCount == 0);
         public virtual int PlayerCount => Clients.Count;
         public int GameCount => _games.Count;
+        public int PartyCount => _parties.Count;
 
         protected List<Game> _games = new List<Game>();
         protected List<Party> _parties = new List<Party>();

@@ -8,7 +8,7 @@ namespace CryptoSporidium.Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_CRYPTKEY_PUBLIC;
 
-        public byte[] PublicKey = null;
+        public byte[]? PublicKey = null;
 
         public override void Deserialize(MessageReader reader)
         {

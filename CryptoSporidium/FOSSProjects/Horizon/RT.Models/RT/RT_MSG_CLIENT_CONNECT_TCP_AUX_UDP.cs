@@ -10,10 +10,10 @@ namespace CryptoSporidium.Horizon.RT.Models
 
         public uint ARG1;
         public int AppId;
-        public RSA_KEY Key;
+        public RSA_KEY? Key;
 
-        public string SessionKey = null;
-        public string AccessToken = null;
+        public string? SessionKey = null;
+        public string? AccessToken = null;
 
         public override void Deserialize(MessageReader reader)
         {

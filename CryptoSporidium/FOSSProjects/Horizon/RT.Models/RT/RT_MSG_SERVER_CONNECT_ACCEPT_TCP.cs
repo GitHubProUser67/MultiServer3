@@ -15,7 +15,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         public ushort PlayerCount = 0x0001;
 
         public byte[] UNK_07 = { 0x01, 0x08, 0x10 };
-        public IPAddress IP;
+        public IPAddress? IP;
 
         public override void Deserialize(MessageReader reader)
         {

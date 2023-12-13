@@ -599,6 +599,7 @@ namespace Horizon.DME
                             break;
                         }
 
+                        /*
                         Queue(new RT_MSG_SERVER_APP()
                         {
                             Message = new TypePing()
@@ -608,7 +609,8 @@ namespace Horizon.DME
                                 RequestEcho = ping.RequestEcho
                             }
                         });
-                        /*
+                        */
+
                         data.ClientObject.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()
                             {
@@ -617,7 +619,7 @@ namespace Horizon.DME
                                 RequestEcho = ping.RequestEcho
                             }
                         });
-                        */
+
                         break;
                     }
             }
@@ -778,7 +780,7 @@ namespace Horizon.DME
 
         #endregion
 
-        public ClientObject GetClientByScertId(ushort scertId)
+        public ClientObject? GetClientByScertId(ushort scertId)
         {
             if (_scertIdToClient.TryGetValue(scertId, out var result))
                 return result;

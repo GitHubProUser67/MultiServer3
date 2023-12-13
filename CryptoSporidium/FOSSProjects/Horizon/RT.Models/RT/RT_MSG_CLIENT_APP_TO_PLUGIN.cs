@@ -8,7 +8,7 @@ namespace CryptoSporidium.Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_APP_TO_PLUGIN;
 
-        public BaseMediusPluginMessage Message { get; set; } = null;
+        public BaseMediusPluginMessage? Message { get; set; } = null;
 
         public override void Deserialize(MessageReader reader)
         {

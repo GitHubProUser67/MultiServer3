@@ -8,7 +8,7 @@ namespace CryptoSporidium.Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_FLUSH_ALL;
 
-        public byte[] Contents;
+        public byte[]? Contents;
 
         public override void Deserialize(MessageReader reader)
         {

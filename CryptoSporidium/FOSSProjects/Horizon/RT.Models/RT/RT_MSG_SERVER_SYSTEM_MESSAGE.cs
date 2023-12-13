@@ -15,7 +15,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         public DME_SERVER_ENCODING_TYPE EncodingType;
         public DME_SERVER_LANGUAGE_TYPE LanguageType;
         public bool EndOfMessage;
-        public string Message;
+        public string? Message;
 
         public override void Deserialize(MessageReader reader)
         {

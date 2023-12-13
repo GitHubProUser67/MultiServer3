@@ -364,7 +364,7 @@ namespace Horizon.MEDIUS.Medius
                                     AccessKey = rClient.Token,
                                     SessionKey = rClient.SessionKey,
                                     WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(rClient.ApplicationId).Id,
-                                    ServerKey = new RSA_KEY(),
+                                    ServerKey = joinGameResponse.pubKey,
                                     AddressList = new NetAddressList()
                                     {
                                         AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
@@ -780,7 +780,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusServerMoveGameWorldOnMeRequest serverMoveGameWorldOnMeRequest:
                     {
                         //Fetch Current Game, and Update it with the new one
-                        var game = MediusClass.Manager.GetGameByDmeWorldId(data.ClientObject.SessionKey, serverMoveGameWorldOnMeRequest.CurrentMediusWorldID);
+                        Game? game = MediusClass.Manager.GetGameByGameId(serverMoveGameWorldOnMeRequest.CurrentMediusWorldID);
                         if (game.WorldID != serverMoveGameWorldOnMeRequest.CurrentMediusWorldID)
                         {
                             data.ClientObject.Queue(new MediusServerMoveGameWorldOnMeResponse()
@@ -971,13 +971,14 @@ namespace Horizon.MEDIUS.Medius
             return null;
         }
 
-        public void SendServerCreateGameWithAttributesRequest(string messageId, int acctId, int gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)
+        public void SendServerCreateGameWithAttributesRequest(string msgId, int acctId, int gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)
         {
+            //{gameId}-{acctId}-{messageId}-{partyType}
             Queue(new RT_MSG_SERVER_APP()
             {
                 Message = new MediusServerCreateGameWithAttributesRequest()
                 {
-                    MessageID = new MessageId($"{gameId}-{acctId}-{messageId}-{partyType}"),
+                    MessageID = new MessageId($"{gameId}-{acctId}-{msgId}-{1}"),
                     MediusWorldUID = (uint)gameId,
                     Attributes = (MediusWorldAttributesType)gameAttributes,
                     ApplicationID = clientAppId,

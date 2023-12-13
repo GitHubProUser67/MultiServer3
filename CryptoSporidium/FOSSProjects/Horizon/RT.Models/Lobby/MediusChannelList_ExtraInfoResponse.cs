@@ -23,8 +23,12 @@ namespace CryptoSporidium.Horizon.RT.Models
         public uint GenericField3;
         public uint GenericField4;
         public MediusWorldGenericFieldLevelType GenericFieldLevel;
-        public string LobbyName; // LOBBYNAME_MAXLEN
+        public string? LobbyName; // LOBBYNAME_MAXLEN
         public bool EndOfList;
+
+        public List<int> channelListResponse0 = new List<int>() { };
+
+        public List<int> channelListResponse1 = new List<int>() { 10202, 10304, 10724 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -48,13 +52,15 @@ namespace CryptoSporidium.Horizon.RT.Models
             SecurityLevel = reader.Read<MediusWorldSecurityLevelType>();
             GenericField1 = reader.ReadUInt32();
 
-            // CAREFULL, SOME GAMES MIGHT WANT THIS EXCLUDED
-
-            if (reader.MediusVersion < 108 && reader.AppId != 10304 && reader.AppId != 10202)
+            // Check pre-108 games that use channelList1
+            if (reader.MediusVersion == 108 && channelListResponse1.Contains(reader.AppId))
             {
-
+                GenericField2 = reader.ReadUInt32();
+                GenericField3 = reader.ReadUInt32();
+                GenericField4 = reader.ReadUInt32();
+                GenericFieldLevel = reader.Read<MediusWorldGenericFieldLevelType>();
             }
-            else
+            else if (reader.MediusVersion > 108) // Default generally for newer mediustitles
             {
                 GenericField2 = reader.ReadUInt32();
                 GenericField3 = reader.ReadUInt32();
@@ -90,11 +96,14 @@ namespace CryptoSporidium.Horizon.RT.Models
 
             // CAREFULL, SOME GAMES MIGHT WANT THIS EXCLUDED
 
-            if (writer.MediusVersion < 108 && writer.AppId != 10304 && writer.AppId != 10202)
+            if (writer.MediusVersion == 108 && channelListResponse1.Contains(writer.AppId))
             {
-
+                writer.Write(GenericField2);
+                writer.Write(GenericField3);
+                writer.Write(GenericField4);
+                writer.Write(GenericFieldLevel);
             }
-            else
+            else if (writer.MediusVersion > 108)
             {
                 writer.Write(GenericField2);
                 writer.Write(GenericField3);

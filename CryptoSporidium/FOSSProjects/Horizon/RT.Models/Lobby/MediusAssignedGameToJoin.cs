@@ -31,7 +31,7 @@ namespace CryptoSporidium.Horizon.RT.Models
         public MediusGameHostType GameHostType;
         public NetAddressList? AddressList;
         public uint AppDataSize;
-        public char[]? AppData;
+        public byte[]? AppData;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -61,7 +61,7 @@ namespace CryptoSporidium.Horizon.RT.Models
             GameHostType = reader.Read<MediusGameHostType>();
             AddressList = reader.Read<NetAddressList>();
             AppDataSize = reader.ReadUInt32();
-            AppData = reader.ReadChars((int)AppDataSize);
+            AppData = reader.ReadBytes((int)AppDataSize);
         }
 
         public override void Serialize(MessageWriter writer)

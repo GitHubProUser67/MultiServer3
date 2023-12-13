@@ -619,7 +619,7 @@ namespace Horizon.MEDIUS.Medius.Models
         {
             if (CurrentParty != null)
             {
-                await CurrentParty.RemovePlayer(this);
+                CurrentParty.RemovePlayer(this);
                 CurrentParty = null;
             }
             PartyIndex = null;
