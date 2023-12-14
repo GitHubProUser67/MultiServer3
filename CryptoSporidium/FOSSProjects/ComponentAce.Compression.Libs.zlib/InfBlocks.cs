@@ -62,13 +62,13 @@ internal sealed class InfBlocks
 
 	internal int index;
 
-	internal int[] blens;
+	internal int[]? blens;
 
 	internal int[] bb = new int[1];
 
 	internal int[] tb = new int[1];
 
-	internal InfCodes codes;
+	internal InfCodes? codes;
 
 	internal int last;
 
@@ -100,7 +100,7 @@ internal sealed class InfBlocks
 		reset(z, null);
 	}
 
-	internal void reset(ZStream z, long[] c)
+	internal void reset(ZStream z, long[]? c)
 	{
 		if (c != null)
 		{

@@ -574,7 +574,7 @@ namespace CryptoSporidium.BARTools.BAR
                 LoggerAccessor.LogError(string.Format("File paths cannot contain whitespace: {0}", text));
                 return null;
             }
-            AfsHash afsHash = new AfsHash(text);
+            AfsHash afsHash = new(text);
             bool flag = false;
             int num;
             if (Path.GetExtension(filePath) == string.Empty && int.TryParse(Path.GetFileName(filePath), out num))
@@ -621,10 +621,10 @@ namespace CryptoSporidium.BARTools.BAR
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyPaddingPrefix(new byte[20]), new byte[][]
-                                       {
-                                           Utils.IntToByteArray(array2.Length),
-                                           array2
-                                       });
+                    {
+                        Utils.IntToByteArray(array2.Length),
+                        array2
+                    });
                 }
                 else if (array2 != null && array2.Length < array.Length)
                 {
@@ -693,7 +693,7 @@ namespace CryptoSporidium.BARTools.BAR
 
         public void VerifyFileIsInDirectory(DirectoryInfo directory, string filePath)
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(Path.GetDirectoryName(filePath));
+            DirectoryInfo directoryInfo = new(Path.GetDirectoryName(filePath));
             bool flag = false;
             DirectoryInfo? directoryInfo2 = directoryInfo;
             string b = directory.FullName.ToLower().TrimEnd(new char[]
@@ -720,11 +720,6 @@ namespace CryptoSporidium.BARTools.BAR
             {
                 ResourceRoot = resourceRoot
             };
-        }
-
-        public void BeginUpdate()
-        {
-            m_asyncOp = AsyncOperationManager.CreateOperation(null);
         }
 
         public void AddFile(string filePath)
@@ -759,8 +754,8 @@ namespace CryptoSporidium.BARTools.BAR
         public bool ContainsFile(string filePath)
         {
             string inBARPath = GetInBARPath(filePath);
-            AfsHash afsHash = new AfsHash(inBARPath);
-            HashedFileName filename = new HashedFileName(afsHash.Value);
+            AfsHash afsHash = new(inBARPath);
+            HashedFileName filename = new(afsHash.Value);
             TOCEntry? tocentry = m_toc[filename];
             return tocentry != null;
         }
@@ -768,7 +763,7 @@ namespace CryptoSporidium.BARTools.BAR
         public void ReplaceFile(string filePath, BARAddFileOptions options)
         {
             string inBARPath = GetInBARPath(filePath);
-            AfsHash afsHash = new AfsHash(inBARPath);
+            AfsHash afsHash = new(inBARPath);
             HashedFileName filename = (HashedFileName)afsHash.Value;
             TOCEntry? tocEntry = m_toc[filename];
             FileStream inStream = File.OpenRead(filePath);
@@ -892,9 +887,9 @@ namespace CryptoSporidium.BARTools.BAR
                 {
                     BlowfishCTREncryptDecrypt? blowfish = new();
                     byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
-                    byte[] OriginalSigntureIV = new byte[SignatureIV.Length];
                     if (BitConverter.IsLittleEndian)
                         Array.Reverse(SignatureIV);
+                    byte[] OriginalSigntureIV = new byte[SignatureIV.Length];
                     Buffer.BlockCopy(SignatureIV, 0, OriginalSigntureIV, 0, OriginalSigntureIV.Length);
                     toolsImpl.IncrementIVBytes(SignatureIV, 3);
                     byte[]? FileBytes = new byte[(int)tocentry.CompressedSize - 28];
@@ -975,7 +970,7 @@ namespace CryptoSporidium.BARTools.BAR
             foreach (object obj in hashtable.Keys)
             {
                 HashedFileName hashedFileName2 = (HashedFileName)obj;
-                TOCEntry tocentry = m_toc[hashedFileName2];
+                TOCEntry? tocentry = m_toc[hashedFileName2];
                 if (tocentry != null)
                 {
                     tocentry.Path = (string)hashtable[hashedFileName2];
@@ -1032,16 +1027,16 @@ namespace CryptoSporidium.BARTools.BAR
             foreach (HashedFileName hashedFileName in fileNames)
             {
                 TOCEntry? tocentry = m_toc[hashedFileName];
-                if (newMethod == tocentry.Compression && BARHeader.Flags == newFlags)
+                if (newMethod == tocentry?.Compression && BARHeader.Flags == newFlags)
                     LoggerAccessor.LogDebug("Skipped " + hashedFileName, Array.Empty<object>());
                 else if (newMethod != CompressionMethod.Uncompressed && !ShouldCompress(tocentry.Path, BARAddFileOptions.Default))
                     LoggerAccessor.LogDebug("Skipped " + hashedFileName, Array.Empty<object>());
                 else
                 {
                     byte[]? array = CompressionFactory.Decompress(tocentry, tocentry.Compression, m_header.Flags);
-                    tocentry.RawData = array;
+                    tocentry.RawData = array ?? Array.Empty<byte>();
                     byte[]? array2 = CompressionFactory.Compress(tocentry, newMethod, newFlags);
-                    if (newMethod != CompressionMethod.Uncompressed && array2.Length >= array.Length && newMethod != CompressionMethod.Encrypted)
+                    if (newMethod != CompressionMethod.Uncompressed && array2?.Length >= array?.Length && newMethod != CompressionMethod.Encrypted)
                     {
                         tocentry.Compression = CompressionMethod.Uncompressed;
                         tocentry.CompressedSize = (uint)array.Length;
@@ -1067,8 +1062,8 @@ namespace CryptoSporidium.BARTools.BAR
         public byte[]? GetRawFileData(string FileName)
         {
             string inBARPath = GetInBARPath(FileName);
-            AfsHash afsHash = new AfsHash(inBARPath);
-            HashedFileName fileName = new HashedFileName(afsHash.Value);
+            AfsHash afsHash = new(inBARPath);
+            HashedFileName fileName = new(afsHash.Value);
             return GetRawFileData(fileName);
         }
 
@@ -1084,7 +1079,7 @@ namespace CryptoSporidium.BARTools.BAR
         {
             TOCEntry? tocentry = m_toc[FileName];
             string path = string.Empty;
-            if (tocentry.Path == null || tocentry.Path == string.Empty)
+            if (string.IsNullOrEmpty(tocentry.Path))
                 path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, FileName);
             else
             {
@@ -1118,7 +1113,7 @@ namespace CryptoSporidium.BARTools.BAR
             foreach (object obj in m_toc)
             {
                 TOCEntry tocentry = (TOCEntry)obj;
-                string? key = Path.GetDirectoryName(tocentry.Path).Replace(Path.DirectorySeparatorChar, '/');
+                string? key = Path.GetDirectoryName(tocentry.Path)?.Replace(Path.DirectorySeparatorChar, '/');
                 string fileName = Path.GetFileName(tocentry.Path);
                 List<string> list;
                 if (hashtable.ContainsKey(key))
@@ -1128,7 +1123,7 @@ namespace CryptoSporidium.BARTools.BAR
                     list = new List<string>();
                     hashtable[key] = list;
                 }
-                list.Add(fileName);
+                list?.Add(fileName);
             }
             return hashtable;
         }
@@ -1136,11 +1131,11 @@ namespace CryptoSporidium.BARTools.BAR
         public void CreateManifest()
         {
             Hashtable fileTree = GetFileTree();
-            XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
+            XmlWriterSettings xmlWriterSettings = new();
             xmlWriterSettings.Indent = true;
             xmlWriterSettings.Encoding = Encoding.UTF8;
             xmlWriterSettings.OmitXmlDeclaration = true;
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
             XmlWriter xmlWriter = XmlWriter.Create(stringBuilder, xmlWriterSettings);
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("manifest");
@@ -1162,7 +1157,7 @@ namespace CryptoSporidium.BARTools.BAR
             xmlWriter.WriteEndDocument();
             xmlWriter.Close();
             byte[] bytes = Encoding.UTF8.GetBytes(stringBuilder.ToString());
-            MemoryStream inStream = new MemoryStream(bytes);
+            MemoryStream inStream = new(bytes);
             string filePath = m_resourceRoot + "\\__$manifest$__";
             AddFile(filePath, inStream, BARAddFileOptions.ForceCompress);
         }
@@ -1179,23 +1174,17 @@ namespace CryptoSporidium.BARTools.BAR
             }
         }
 
-        public const uint HEADERSIZE = 20U;
-
-        public const uint TOCENTRYSIZE = 16U;
-
         internal const long TE_DATA_CHUNKSIZE = 4194304L;
 
         protected string m_sourceFile = string.Empty;
 
         private string m_resourceRoot = string.Empty;
 
-        private readonly Header m_header = new Header();
+        private readonly Header m_header = new();
 
         private readonly TOC m_toc;
 
         private readonly Dictionary<HashedFileName, TOCEntry> m_deletedFileSection;
-
-        private AsyncOperation m_asyncOp;
 
         private bool m_dirty;
 
@@ -1209,11 +1198,11 @@ namespace CryptoSporidium.BARTools.BAR
 
         public bool IsEditMode;
 
-        protected Stream m_outputStream;
+        protected Stream? m_outputStream;
 
-        protected Stream m_outputStreamCopy;
+        protected Stream? m_outputStreamCopy;
 
-        protected Stream m_sourceStream;
+        protected Stream? m_sourceStream;
 
         private delegate void LoadBARDelegate();
 

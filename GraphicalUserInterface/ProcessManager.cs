@@ -92,7 +92,7 @@ namespace GraphicalUserInterface
         {
             lock (lockObject)
             {
-                if (processes.TryGetValue(appid, out Process process))
+                if (processes.TryGetValue(appid, out Process? process))
                 {
                     Console.WriteLine($"Shutting down [{appid}]...");
                     // Add any additional cleanup or shutdown logic here

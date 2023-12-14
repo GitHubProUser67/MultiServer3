@@ -106,7 +106,6 @@ namespace CryptoSporidium.WebAPIs
                                     bararchive.DefaultCompression = CompressionMethod.EdgeZLib;
                                 }
                                 bararchive.AllowWhitespaceInFilenames = true;
-                                bararchive.BeginUpdate();
                                 foreach (string path in enumerable)
                                 {
                                     bararchive.AddFile(Path.Combine(unzipdir, path));
@@ -124,7 +123,7 @@ namespace CryptoSporidium.WebAPIs
                                 // Loop through the files and write their paths to the text file
                                 foreach (string file in files)
                                 {
-                                    string relativePath = "file=\"" + file.Replace(unzipdir, string.Empty).Substring(1) + "\"";
+                                    string relativePath = string.Concat("file=\"", file.Replace(unzipdir, string.Empty).AsSpan(1), "\"");
                                     writer.WriteLine(relativePath.Replace(@"\", "/"));
                                 }
 
@@ -701,9 +700,12 @@ namespace CryptoSporidium.WebAPIs
                                     Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
                                     ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV1Process(ProcessedFileBytes);
 
-                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
+                                    if (ProcessedFileBytes != null)
+                                    {
+                                        File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
 
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
+                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
+                                    }
                                 }
                                 else if (version1 == "on")
                                 {
@@ -720,9 +722,12 @@ namespace CryptoSporidium.WebAPIs
                                     Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
                                     ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV0Process(ProcessedFileBytes);
 
-                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
+                                    if (ProcessedFileBytes != null)
+                                    {
+                                        File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
 
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
+                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
+                                    }
                                 }
                                 else
                                 {

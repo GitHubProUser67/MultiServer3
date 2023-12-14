@@ -484,14 +484,14 @@ namespace CryptoSporidium
             var os = Environment.OSVersion;
             return os.Platform == PlatformID.Win32NT;
         }
-
+#pragma warning disable
         public static bool IsAdministrator()
         {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new(identity);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
-
+#pragma warning restore
         public static bool IsFileOutdated(string filePath, TimeSpan maxAge)
         {
             if (!File.Exists(filePath))

@@ -6,7 +6,7 @@ internal sealed class Adler32
 
 	private const int NMAX = 5552;
 
-	internal long adler32(long adler, byte[] buf, int index, int len)
+	internal long adler32(long adler, byte[]? buf, int index, int len)
 	{
 		if (buf == null)
 		{

@@ -78,7 +78,7 @@ internal sealed class Inflate
 
 	internal int wbits;
 
-	internal InfBlocks blocks;
+	internal InfBlocks? blocks;
 
 	private static byte[] mark = new byte[4]
 	{
@@ -97,7 +97,7 @@ internal sealed class Inflate
 		z.total_in = (z.total_out = 0L);
 		z.msg = null;
 		z.istate.mode = ((z.istate.nowrap != 0) ? 7 : 0);
-		z.istate.blocks.reset(z, null);
+		z.istate.blocks?.reset(z, null);
 		return 0;
 	}
 

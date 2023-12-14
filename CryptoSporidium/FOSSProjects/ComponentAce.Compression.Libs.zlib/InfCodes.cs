@@ -50,7 +50,7 @@ internal sealed class InfCodes
 
 	internal int len;
 
-	internal int[] tree;
+	internal int[]? tree;
 
 	internal int tree_index;
 

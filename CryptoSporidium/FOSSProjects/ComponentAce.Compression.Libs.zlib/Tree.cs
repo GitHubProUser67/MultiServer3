@@ -156,11 +156,11 @@ internal sealed class Tree
 		1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576
 	};
 
-	internal short[] dyn_tree;
+	internal short[]? dyn_tree;
 
 	internal int max_code;
 
-	internal StaticTree stat_desc;
+	internal StaticTree? stat_desc;
 
 	internal static int d_code(int dist)
 	{
@@ -173,7 +173,7 @@ internal sealed class Tree
 
 	internal void gen_bitlen(Deflate s)
 	{
-		short[] array = dyn_tree;
+		short[]? array = dyn_tree;
 		short[] static_tree = stat_desc.static_tree;
 		int[] extra_bits = stat_desc.extra_bits;
 		int extra_base = stat_desc.extra_base;
@@ -249,7 +249,7 @@ internal sealed class Tree
 
 	internal void build_tree(Deflate s)
 	{
-		short[] array = dyn_tree;
+		short[]? array = dyn_tree;
 		short[] static_tree = stat_desc.static_tree;
 		int elems = stat_desc.elems;
 		int num = -1;

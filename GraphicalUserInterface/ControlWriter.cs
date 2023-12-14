@@ -15,7 +15,7 @@ namespace GraphicalUserInterface
             textbox.Text += value;
         }
 
-        public override void Write(string value)
+        public override void Write(string? value)
         {
             textbox.Text += value;
         }

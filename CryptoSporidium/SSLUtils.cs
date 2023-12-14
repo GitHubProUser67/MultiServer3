@@ -443,7 +443,7 @@ namespace CryptoSporidium
 
         public static void InitCerts(string certpath)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(certpath));
+            Directory.CreateDirectory(Path.GetDirectoryName(certpath) ?? Directory.GetCurrentDirectory() + "/static/SSL");
 
             if (!File.Exists(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca.pem")
                 || !File.Exists(certpath) || !File.Exists(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_selfsigned.pfx"))
@@ -564,7 +564,7 @@ namespace CryptoSporidium
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 
-            return null;
+            return Array.Empty<byte>();
         }
 
         /// <summary>

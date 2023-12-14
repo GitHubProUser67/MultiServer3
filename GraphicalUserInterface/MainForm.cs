@@ -21,7 +21,7 @@ namespace GraphicalUserInterface
             FormClosing += MainForm_FormClosing;
         }
 
-        private async void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Your code to execute when the form is closing
             // For example, you can show a confirmation dialog

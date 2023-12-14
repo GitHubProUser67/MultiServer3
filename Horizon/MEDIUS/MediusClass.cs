@@ -514,8 +514,8 @@ namespace Horizon.MEDIUS
             // Create Defaults if File doesn't exist
             if (!File.Exists(CONFIG_FILE))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
-                File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE) ?? Directory.GetCurrentDirectory() + "/static");
+                File.WriteAllText(CONFIG_FILE ?? Directory.GetCurrentDirectory() + "/static/medius.json", JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
             else
                 // Populate existing object

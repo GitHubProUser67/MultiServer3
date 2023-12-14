@@ -959,10 +959,10 @@ namespace Horizon.MUIS
                     }
                 });
 
-                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
+                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE) ?? Directory.GetCurrentDirectory() + "/static");
 
                 // Save defaults
-                File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                File.WriteAllText(CONFIG_FILE ?? Directory.GetCurrentDirectory() + "/static/muis.json", JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
 
             // Update default rsa key

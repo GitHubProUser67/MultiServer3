@@ -319,7 +319,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                                         {
                                             try
                                             {
-                                                FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                                                FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
                                             }
                                             catch (Exception ex)
                                             {

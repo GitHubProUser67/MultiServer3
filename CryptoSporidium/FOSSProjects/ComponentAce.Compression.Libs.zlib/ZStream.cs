@@ -36,7 +36,7 @@ public sealed class ZStream
 
 	private static readonly int DEF_WBITS = 15;
 
-	public byte[] next_in;
+	public byte[]? next_in;
 
 	public int next_in_index;
 
@@ -44,7 +44,7 @@ public sealed class ZStream
 
 	public long total_in;
 
-	public byte[] next_out;
+	public byte[]? next_out;
 
 	public int next_out_index;
 
@@ -52,17 +52,17 @@ public sealed class ZStream
 
 	public long total_out;
 
-	public string msg;
+	public string? msg;
 
-	internal Deflate dstate;
+	internal Deflate? dstate;
 
-	internal Inflate istate;
+	internal Inflate? istate;
 
 	internal int data_type;
 
 	public long adler;
 
-	internal Adler32 _adler = new Adler32();
+	internal Adler32? _adler = new();
 
 	public int inflateInit()
 	{
@@ -171,7 +171,7 @@ public sealed class ZStream
 		}
 		if (pending != 0)
 		{
-			if (dstate.pending_buf.Length > dstate.pending_out && next_out.Length > next_out_index && dstate.pending_buf.Length >= dstate.pending_out + pending)
+			if (dstate.pending_buf.Length > dstate.pending_out && next_out?.Length > next_out_index && dstate.pending_buf.Length >= dstate.pending_out + pending)
 			{
 				_ = next_out.Length;
 				_ = next_out_index + pending;
@@ -201,7 +201,7 @@ public sealed class ZStream
 			return 0;
 		}
 		avail_in -= num;
-		if (dstate.noheader == 0)
+		if (dstate?.noheader == 0)
 		{
 			adler = _adler.adler32(adler, next_in, next_in_index, num);
 		}

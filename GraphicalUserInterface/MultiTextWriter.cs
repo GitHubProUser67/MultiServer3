@@ -20,7 +20,7 @@ namespace GraphicalUserInterface
                 writer.Write(value);
         }
 
-        public override void Write(string value)
+        public override void Write(string? value)
         {
             foreach (var writer in writers)
                 writer.Write(value);

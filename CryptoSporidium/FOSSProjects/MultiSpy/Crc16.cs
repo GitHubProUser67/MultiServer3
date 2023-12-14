@@ -15,7 +15,7 @@ namespace CryptoSporidium.FOSSProjects.MultiSpy
         /// <summary>
         /// The Crc16 Table
         /// </summary>
-        public ushort[] CrcTable { get; protected set; }
+        public ushort[]? CrcTable { get; protected set; }
 
         public Crc16()
         {

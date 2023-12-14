@@ -151,9 +151,9 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             return ((dist) < 256 ? _dist_code[dist] : _dist_code[256+((dist)>>7)]);
         }
 
-        internal short[] dyn_tree;      // the dynamic tree
+        internal short[]? dyn_tree;      // the dynamic tree
         internal int     max_code;      // largest code with non zero frequency
-        internal StaticTree stat_desc;  // the corresponding static tree
+        internal StaticTree? stat_desc;  // the corresponding static tree
 
         // Compute the optimal bit lengths for a tree and update the total bit length
         // for the current block.

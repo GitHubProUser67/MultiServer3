@@ -1,11 +1,17 @@
-﻿using CustomLogger;
+﻿using CryptoSporidium;
+using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
+    public static string? ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
     public static int RDVServerPort { get; set; } = 30200;
+    public static int BackendServiceServerPort { get; set; } = 21006;
+    public static bool EnableRMCCompression { get; set; } = true;
+    public static bool EnableLZOCompression { get; set; } = true;
     public static string? ServerFilesPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/quazal";
+    public static string AccessKey { get; set; } = "yh64s"; // TDU_PS2 access key - Driver San Fransisco: w6kAtr3T
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -30,8 +36,13 @@ public static class QuazalServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
 
+            ServerBindAddress = config.server_bind_address;
             RDVServerPort = config.server_rdv_port;
+            BackendServiceServerPort = config.backend_server_port;
+            EnableRMCCompression = config.enable_rmc_compression;
+            EnableLZOCompression = config.enable_lz4compression;
             ServerFilesPath = config.server_files_path;
+            AccessKey = config.access_key;
         }
         catch (Exception)
         {
@@ -58,16 +69,22 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("QuazalServer");
 
         QuazalServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/quazal.json");
 
+        QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
+
+        QuazalServer.ServerProcessors.BackendServicesServer.Start();
+
+        QuazalServer.ServerProcessors.RDVServer.Start();
+
         _ = Task.Run(RefreshConfig);
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (MiscUtils.IsWindows())
         {
             while (true)
             {

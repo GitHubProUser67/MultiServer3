@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 30200:30200</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 21005:21005 -p 21006:21006 -p 30200:30200</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
@@ -21,5 +21,5 @@
   <ItemGroup>
     <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
   </ItemGroup>
-  
+
 </Project>

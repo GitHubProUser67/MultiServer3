@@ -13,6 +13,7 @@
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLua" Version="1.6.3" />
+    <PackageReference Include="SevenZip" Version="19.0.0" />
   </ItemGroup>
 
   <ItemGroup>

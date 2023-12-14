@@ -8,7 +8,7 @@ public class ZOutputStream : Stream
 
 	protected internal int flush_Renamed_Field;
 
-	protected internal byte[] buf;
+	protected internal byte[]? buf;
 
 	protected internal byte[] buf1 = new byte[1];
 

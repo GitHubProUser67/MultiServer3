@@ -230,7 +230,7 @@ internal sealed class InfTree
 		9, 9, 10, 10, 11, 11, 12, 12, 13, 13
 	};
 
-	internal static int huft_build(int[] b, int bindex, int n, int s, int[] d, int[] e, int[] t, int[] m, int[] hp, int[] hn, int[] v)
+	internal static int huft_build(int[]? b, int bindex, int n, int s, int[]? d, int[]? e, int[] t, int[] m, int[] hp, int[] hn, int[] v)
 	{
 		int[] array = new int[16];
 		int[] array2 = new int[3];
@@ -403,7 +403,7 @@ internal sealed class InfTree
 		return -5;
 	}
 
-	internal static int inflate_trees_bits(int[] c, int[] bb, int[] tb, int[] hp, ZStream z)
+	internal static int inflate_trees_bits(int[]? c, int[] bb, int[] tb, int[] hp, ZStream z)
 	{
 		int[] hn = new int[1];
 		int[] v = new int[19];

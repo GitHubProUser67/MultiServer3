@@ -249,9 +249,9 @@ namespace Horizon.DME
                     10984, 10782, 10421, 10130, 24000, 24180, 10954, 21784
                 });
 
-                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE));
+                Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE) ?? Directory.GetCurrentDirectory() + "/static");
 
-                File.WriteAllText(CONFIG_FILE, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                File.WriteAllText(CONFIG_FILE ?? Directory.GetCurrentDirectory() + "/static/dme.json", JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
 
             // Update default rsa key
@@ -321,12 +321,12 @@ namespace Horizon.DME
             }
         }
 
-        public static ClientObject GetClientByAccessToken(string accessToken)
+        public static ClientObject? GetClientByAccessToken(string accessToken)
         {
             return Managers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
         }
 
-        public static ClientObject GetClientBySessionKey(string sessionKey)
+        public static ClientObject? GetClientBySessionKey(string sessionKey)
         {
             return Managers.Select(x => x.Value.GetClientBySessionKey(sessionKey)).FirstOrDefault(x => x != null);
         }
