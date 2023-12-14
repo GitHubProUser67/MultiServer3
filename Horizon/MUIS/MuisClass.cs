@@ -327,7 +327,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "GT4 Online Public Beta",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 0,
                         MaxUsers = 15000,
@@ -344,7 +344,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Arc the Lad: Generations Preview",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 0,
                         MaxUsers = 10000,
@@ -359,7 +359,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Arc the Lad: EoD US",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 0,
                         MaxUsers = 10000,
@@ -391,7 +391,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "F1 2006",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 0,
                         MaxUsers = 10000,
@@ -483,7 +483,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Motorstorm PSP",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -502,7 +502,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Wipeout HD",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -540,7 +540,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Motorstorm NTSC",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 4,
@@ -557,7 +557,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Motorstorm PAL",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 5,
@@ -574,7 +574,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Motorstorm: Pacific Rift",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 4,
@@ -591,7 +591,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Wipeout Pulse PSP",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 4,
@@ -705,7 +705,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Twisted Metal X Online",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -724,7 +724,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Socom FTB2",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -743,7 +743,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Socom FTB Pubeta",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -798,7 +798,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Resistance 2 Private Beta",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 2,
@@ -813,7 +813,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Buzz! Quiz Player",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 2,
@@ -829,7 +829,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Warhawk Pubeta NTSC",
-                        Description = "A Emulated Server project by PSORG",
+                        Description = "A Emulated Server project by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 7,
@@ -846,7 +846,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Socom FTB Prod",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -861,7 +861,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Killzone Lib v1.20",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 4,
@@ -878,7 +878,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Lemmings PSP",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 4,
@@ -897,7 +897,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Resistance PSP",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -914,7 +914,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Socom Tactical PSP",
-                        Description = "Revival by PSORG",
+                        Description = "Revival by MultiServer",
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
@@ -933,7 +933,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "Syphon Filter: Dark Mirror Pre-Prod 0.02",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         UniverseId = 2,
@@ -949,7 +949,7 @@ namespace Horizon.MUIS
                     new UniverseInfo()
                     {
                         Name = "WTS 2006",
-                        Description = "Revived by PSORG",
+                        Description = "Revived by MultiServer",
                         Endpoint = iptofile,
                         Port = 10075,
                         Status = 1,
