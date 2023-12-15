@@ -15,7 +15,7 @@ namespace QuazalServer.QNetZ
 			if (p.uiSeqId > client.SeqCounter)
 				client.SeqCounter = p.uiSeqId;
 
-			var rmc = new RMCPacket(p);
+            RMCPacket rmc = new(p);
 			if (rmc.isRequest)
 				HandleRequest(handler, client, p, rmc);
 			else
@@ -25,7 +25,7 @@ namespace QuazalServer.QNetZ
 		public static void HandleResponse(QPacketHandlerPRUDP handler, QClient client, QPacket p, RMCPacket rmc)
 		{
 			WriteLog(client, $"Received Response : {rmc}", false);
-			var message = rmc.success ? "Success" : $"Fail : {rmc.error:X8} for callID = {rmc.callID}";
+			string message = rmc.success ? "Success" : $"Fail : {rmc.error:X8} for callID = {rmc.callID}";
 			WriteLog(client, $"Got response for {rmc.proto} = {message}", false);
 
 			handler.SendACK(p, client);
@@ -38,8 +38,14 @@ namespace QuazalServer.QNetZ
 
 			WriteLog(client, "Request : " + rmc.ToString(), false);
 
-			MemoryStream m = new (p.payload);
-			m.Seek(rmc._afterProtocolOffset, SeekOrigin.Begin);
+			if (p.payload == null)
+			{
+                WriteLog(client, $"NULL Payload for packet protocol '{rmc.proto}' (protocolId = {(int)rmc.proto})", true);
+				return;
+            }
+
+            MemoryStream m = new(p.payload);
+            m.Seek(rmc._afterProtocolOffset, SeekOrigin.Begin);
 
             RMCContext rmcContext = new(rmc, handler, client, p);
 
@@ -81,17 +87,9 @@ namespace QuazalServer.QNetZ
 				{
 					if (typeof(RMCResult).IsAssignableFrom(returnValue.GetType()))
 					{
-						var rmcResult = (RMCResult)returnValue;
+                        RMCResult rmcResult = (RMCResult)returnValue;
 
-						if (QuazalServerConfiguration.EnableRMCCompression)
-                            SendResponseWithACK(
-                                handler,
-                                rmcContext.Packet,
-                                rmcContext.RMC,
-                                rmcContext.Client,
-                                rmcResult.Response,
-                                rmcResult.Compression, rmcResult.Error);
-						else // For very old PRUDP clients.
+						if (QuazalServerConfiguration.EnableLZOCompression) // No need to send compressed.
                             SendResponseWithACK(
                                 handler,
                                 rmcContext.Packet,
@@ -99,6 +97,14 @@ namespace QuazalServer.QNetZ
                                 rmcContext.Client,
                                 rmcResult.Response,
                                 false, rmcResult.Error);
+						else
+                            SendResponseWithACK(
+                                handler,
+                                rmcContext.Packet,
+                                rmcContext.RMC,
+                                rmcContext.Client,
+                                rmcResult.Response,
+                                rmcResult.Compression, rmcResult.Error);
                     }
 					else
 					{
@@ -146,7 +152,7 @@ namespace QuazalServer.QNetZ
 
 			packet.type = QPacket.PACKETTYPE.DATA;
 			packet.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
-			packet.payload = new byte[0];
+			packet.payload = Array.Empty<byte>();
 			packet.m_bySessionID = client.SessionID;
 
 			var rmc = new RMCPacket();
@@ -187,7 +193,7 @@ namespace QuazalServer.QNetZ
 
 			var rmcRequestData = rmc.ToBuffer();
 
-			QPacket np = new QPacket(p.toBuffer());
+			QPacket np = new(p.toBuffer());
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
 			np.m_uiSignature = client.IDsend;
 			np.usesCompression = useCompression;

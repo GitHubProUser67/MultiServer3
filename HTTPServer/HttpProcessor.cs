@@ -469,11 +469,6 @@ namespace HTTPServer
                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                         }
 
-                        string keepalive = request.GetHeaderValue("Connection");
-
-                        if (keepalive != "close" && !response.Headers.ContainsKey("Connection"))
-                            response.Headers.Add("Connection", "Keep-Alive");
-
                         WriteLineToStream(stream, response.ToHeader());
 
                         stream.Flush();

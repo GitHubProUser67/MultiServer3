@@ -18,8 +18,7 @@ namespace QuazalServer.RDVServices.Services
 			// Then clients communicate with each other...
 			foreach (var urlTarget in urlTargetList)
 			{
-                IPEndPoint endp = new(IPAddress.Parse(urlTarget.Address), urlTarget.Parameters["port"]);
-				QClient? qclient = Context?.Handler.GetQClientByEndPoint(endp);
+				QClient? qclient = Context?.Handler.GetQClientByEndPoint(new(IPAddress.Parse(urlTarget.Address), urlTarget.Parameters["port"]));
 
 				if (qclient != null)
 				{

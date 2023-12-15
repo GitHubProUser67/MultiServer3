@@ -71,9 +71,10 @@ class Program
 
         Processor server = new("*", 61900);
 
-        server.StartServer();
-
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => server.StartServer(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

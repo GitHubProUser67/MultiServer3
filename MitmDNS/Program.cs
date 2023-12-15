@@ -69,9 +69,10 @@ class Program
 
         MitmDNS.MitmDNSClass? dns = new();
 
-        _ = Task.Run(dns.MitmDNSMain);
-
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => dns.MitmDNSMain(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

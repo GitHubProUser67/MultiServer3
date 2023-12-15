@@ -181,6 +181,18 @@ namespace HTTPServer.RouteHandlers
                                         HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
                                     };
                                     invalidresponse.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                                    invalidresponse.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                                    invalidresponse.ContentAsUTF8 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                                        "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                                        "        <head>\r\n" +
+                                        "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                                        "        </head>\r\n" +
+                                        "        <body>\r\n" +
+                                        "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                                        "        </body>\r\n" +
+                                        "</html>";
 
                                     return invalidresponse;
                                 }
@@ -260,6 +272,18 @@ namespace HTTPServer.RouteHandlers
                             HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
                         };
                         invalidresponse.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                        invalidresponse.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                        invalidresponse.ContentAsUTF8 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                            "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                            "        <head>\r\n" +
+                            "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                            "        </head>\r\n" +
+                            "        <body>\r\n" +
+                            "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                            "        </body>\r\n" +
+                            "</html>";
 
                         return invalidresponse;
                     }
@@ -365,7 +389,7 @@ namespace HTTPServer.RouteHandlers
                 return HttpResponse.Send(HTTPUtils.Compress(
                         Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1]))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
             else
-                return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path.Substring(0, local_path.Length - 1)), "application/json");
+                return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1]), "application/json");
         }
     }
 

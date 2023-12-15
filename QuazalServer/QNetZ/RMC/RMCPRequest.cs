@@ -26,7 +26,7 @@ namespace QuazalServer.QNetZ
 
 		public override byte[] ToBuffer()
 		{
-			var m = new MemoryStream();
+            MemoryStream m = new();
 			DDLSerializer.WriteObject(objectData, m);
 
 			return m.ToArray();

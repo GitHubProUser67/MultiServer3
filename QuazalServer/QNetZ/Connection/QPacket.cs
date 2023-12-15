@@ -87,7 +87,7 @@ namespace QuazalServer.QNetZ
 		public ushort payloadSize;
 		public byte[]? payload;
 		public byte checkSum;
-		public bool usesCompression = QuazalServerConfiguration.EnableRMCCompression;
+		public bool usesCompression = true;
 		public uint realSize;
 
 		public QPacket()

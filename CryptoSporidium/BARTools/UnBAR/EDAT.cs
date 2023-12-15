@@ -232,37 +232,35 @@ namespace CryptoSporidium.BARTools.UnBAR
             byte[] o1 = new byte[160];
             byte[] expectedHash = new byte[16];
             int version = 0;
-            if (npd.getVersion() == 0L)
+            switch (npd.getVersion())
             {
-                if ((data.getFlags() & 2147483646L) != 0L)
-                    return STATUS_ERROR_INCORRECT_FLAGS;
+                case 0L:
+                    if ((data.getFlags() & 2147483646L) != 0L)
+                        return STATUS_ERROR_INCORRECT_FLAGS;
+                    break;
+                case 1L:
+                    version = 1;
+                    if ((data.getFlags() & 2147483646L) != 0L)
+                        return STATUS_ERROR_INCORRECT_FLAGS;
+                    break;
+                case 2L:
+                    version = 2;
+                    if ((data.getFlags() & 2130706400L) != 0L)
+                        return STATUS_ERROR_INCORRECT_FLAGS;
+                    break;
+                case 3L:
+                    version = 3;
+                    if ((data.getFlags() & 2130706368L) != 0L)
+                        return STATUS_ERROR_INCORRECT_FLAGS;
+                    break;
+                case 4L:
+                    version = 4;
+                    if ((data.getFlags() & 2130706368L) != 0L)
+                        return STATUS_ERROR_INCORRECT_FLAGS;
+                    break;
+                default:
+                    return STATUS_ERROR_INCORRECT_VERSION;
             }
-            else if (npd.getVersion() == 1L)
-            {
-                version = 1;
-                if ((data.getFlags() & 2147483646L) != 0L)
-                    return STATUS_ERROR_INCORRECT_FLAGS;
-            }
-            else if (npd.getVersion() == 2L)
-            {
-                version = 2;
-                if ((data.getFlags() & 2130706400L) != 0L)
-                    return STATUS_ERROR_INCORRECT_FLAGS;
-            }
-            else if (npd.getVersion() == 3L)
-            {
-                version = 3;
-                if ((data.getFlags() & 2130706368L) != 0L)
-                    return STATUS_ERROR_INCORRECT_FLAGS;
-            }
-            else if (npd.getVersion() == 4L)
-            {
-                version = 4;
-                if ((data.getFlags() & 2130706368L) != 0L)
-                    return STATUS_ERROR_INCORRECT_FLAGS;
-            }
-            else
-                return STATUS_ERROR_INCORRECT_VERSION;
             i.Read(numArray, 0, numArray.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
             AppLoader appLoader1 = new AppLoader();
@@ -273,7 +271,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                 return STATUS_ERROR_HEADERCHECK;
             if ((data.getFlags() & FLAG_0x20) == 0L)
             {
-                AppLoader appLoader2 = new AppLoader();
+                AppLoader appLoader2 = new();
                 appLoader2.doInit(hashFlag, version, 1, new byte[16], new byte[16], rifKey);
                 int num1 = (data.getFlags() & FLAG_COMPRESSED) != 0L ? 32 : 16;
                 int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)11) / (BigInteger)data.getBlockSize());
@@ -396,7 +394,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                     ConversionUtils.arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
                 int num8 = 268435458;
                 int num9 = 268435457;
-                AppLoaderReverse appLoaderReverse = new AppLoaderReverse();
+                AppLoaderReverse appLoaderReverse = new();
                 byte[] digest = npd.getDigest();
                 byte[] numArray5 = new byte[20];
                 int hashFlag = num9;

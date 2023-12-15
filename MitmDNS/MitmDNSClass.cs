@@ -61,7 +61,7 @@ namespace MitmDNS
                 DicRules = ParseSimpleDNSRules(Filename, DicRules);
             else
             {
-                HashSet<string> processedDomains = new HashSet<string>();
+                HashSet<string> processedDomains = new();
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
                 foreach (string s in rules)
                 {
@@ -94,7 +94,8 @@ namespace MitmDNS
                                 dns.Address = MiscUtils.GetLocalIPAddress().ToString();
                             break;
                         default:
-                            throw new Exception("Can't parse rules !");
+                            LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
+                            break;
                     }
 
                     string domain = split[0].Trim();

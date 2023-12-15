@@ -8,8 +8,8 @@ public static class QuazalServerConfiguration
     public static string? ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
     public static int RDVServerPort { get; set; } = 30200;
     public static int BackendServiceServerPort { get; set; } = 21006;
-    public static bool EnableRMCCompression { get; set; } = true;
     public static bool EnableLZOCompression { get; set; } = true;
+    public static bool LegacyDefaultPassword { get; set; } = true;
     public static string? ServerFilesPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/quazal";
     public static string AccessKey { get; set; } = "yh64s"; // TDU_PS2 access key - Driver San Fransisco: w6kAtr3T
 
@@ -39,8 +39,8 @@ public static class QuazalServerConfiguration
             ServerBindAddress = config.server_bind_address;
             RDVServerPort = config.server_rdv_port;
             BackendServiceServerPort = config.backend_server_port;
-            EnableRMCCompression = config.enable_rmc_compression;
-            EnableLZOCompression = config.enable_lz4compression;
+            EnableLZOCompression = config.enable_lzocompression;
+            LegacyDefaultPassword = config.legacy_default_password;
             ServerFilesPath = config.server_files_path;
             AccessKey = config.access_key;
         }
@@ -78,11 +78,11 @@ class Program
 
         QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
 
-        QuazalServer.ServerProcessors.BackendServicesServer.Start();
-
-        QuazalServer.ServerProcessors.RDVServer.Start();
-
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => QuazalServer.ServerProcessors.BackendServicesServer.Start(),
+                    () => QuazalServer.ServerProcessors.RDVServer.Start(),
+                    () => RefreshConfig()
+                ));
 
         if (MiscUtils.IsWindows())
         {

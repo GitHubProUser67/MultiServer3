@@ -12,7 +12,7 @@ namespace QuazalServer.QNetZ.DDL
         {
             var paramsInstances = new List<object>();
 
-            foreach (var type in typeList)
+            foreach (Type? type in typeList)
             {
                 if (type == null)
 				{
@@ -29,14 +29,14 @@ namespace QuazalServer.QNetZ.DDL
         // Complex objects
 
         // reads type and returns new object instance
-        public static T ReadObject<T>(Stream s) where T : class
+        public static T? ReadObject<T>(Stream s) where T : class
 		{
-            return (T)ReadObject(typeof(T), s);
+            return (T?)ReadObject(typeof(T), s);
 		}
 
         public static object? ReadObject(Type currentType, Stream str)
 		{
-            object? instance;
+            object? instance = null;
 
             // handle types
             if (currentType == typeof(string))
@@ -163,7 +163,6 @@ namespace QuazalServer.QNetZ.DDL
 
                 if (allPropertyTypes != null)
                 {
-
                     // this will recurse
                     var allPropertyValues = ReadPropertyValues(allPropertyTypes.ToArray(), str);
 
@@ -180,10 +179,8 @@ namespace QuazalServer.QNetZ.DDL
                 }
             }
 
-            return null;
+            return instance;
 		}
-
-        //------------------------------------------------------------------------
 
         // writes object to buffer
 		public static void WriteObject<T>(T obj, Stream s) where T : class

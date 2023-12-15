@@ -114,11 +114,12 @@ class Program
 
         Thread QAthread = new(new ThreadStart(QAhttpServer.Listen));
 
-        thread.Start();
-
-        DLNAthread.Start();
-
-        QAthread.Start();
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => thread.Start(),
+                    () => DLNAthread.Start(),
+                    () => QAthread.Start(),
+                    () => RefreshConfig()
+                ));
 
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
@@ -127,8 +128,6 @@ class Program
                 _ = plugin.HTTPStartPlugin("MultiServer", HTTPServerConfiguration.DefaultPluginsPort);
             }
         }
-
-        _ = Task.Run(RefreshConfig);
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

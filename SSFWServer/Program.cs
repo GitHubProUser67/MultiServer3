@@ -81,8 +81,10 @@ class Program
 
         SSFWClass server = new(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
 
-        _ = Task.Run(server.StartSSFW);
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => server.StartSSFW(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

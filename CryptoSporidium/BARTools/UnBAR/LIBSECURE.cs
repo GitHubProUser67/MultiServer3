@@ -12,7 +12,6 @@ namespace CryptoSporidium.BARTools.UnBAR
         {
             if (KeyBytes != null && KeyBytes.Length == 16 && m_iv != null && m_iv.Length == 8 && FileBytes != null)
             {
-                MiscUtils? utils = new();
                 // Create the cipher
                 IBufferedCipher? cipher = null;
 
@@ -32,16 +31,14 @@ namespace CryptoSporidium.BARTools.UnBAR
 
                 if (BitConverter.IsLittleEndian) // KeyBytes endian check directly in libsecure.
                 {
-                    byte[]? returnbytes = new byte[blocksize];
+                    byte[] returnbytes = new byte[blocksize];
                     Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(ciphertextBytes, 4), 0, returnbytes, 0, returnbytes.Length);
-                    utils = null;
                     return returnbytes;
                 }
                 else
                 {
-                    byte[]? returnbytes = new byte[blocksize];
+                    byte[] returnbytes = new byte[blocksize];
                     Buffer.BlockCopy(ciphertextBytes, 0, returnbytes, 0, returnbytes.Length);
-                    utils = null;
                     return returnbytes;
                 }
             }
@@ -53,25 +50,20 @@ namespace CryptoSporidium.BARTools.UnBAR
 
         public string MemXOR(string IV, string block, int blocksize)
         {
-            string? returnstring = null;
             StringBuilder? CryptoBytes = new();
 
             if (blocksize == 8)
             {
                 for (int i = 4; i != 0; --i)
                 {
-                    string BlockIV = IV.Substring(0, 4);
-                    string CipherBlock = block.Substring(0, 4);
-                    IV = IV.Substring(4);
-                    block = block.Substring(4);
-                    ushort uBlockIV = Convert.ToUInt16(BlockIV, 16);
-                    ushort uCipherBlock = Convert.ToUInt16(CipherBlock, 16);
-
-                    ushort Xor = (ushort)(uBlockIV ^ uCipherBlock);
-                    string output = Xor.ToString("X4");
+                    string BlockIV = IV[..4];
+                    string CipherBlock = block[..4];
+                    IV = IV[4..];
+                    block = block[4..];
                     try
                     {
-                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(output)));
+                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(
+                            ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                     }
                     catch (Exception ex)
                     {
@@ -83,18 +75,14 @@ namespace CryptoSporidium.BARTools.UnBAR
             {
                 for (int i = 4; i != 0; --i)
                 {
-                    string BlockIV = IV.Substring(0, 8);
-                    string CipherBlock = block.Substring(0, 8);
-                    IV = IV.Substring(8);
-                    block = block.Substring(8);
-                    uint uBlockIV = Convert.ToUInt32(BlockIV, 16);
-                    uint uCipherBlock = Convert.ToUInt32(CipherBlock, 16);
-
-                    uint Xor = uBlockIV ^ uCipherBlock;
-                    string output = Xor.ToString("X8");
+                    string BlockIV = IV[..8];
+                    string CipherBlock = block[..8];
+                    IV = IV[8..];
+                    block = block[8..];
                     try
                     {
-                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(output)));
+                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(
+                            (Convert.ToUInt32(BlockIV, 16) ^ Convert.ToUInt32(CipherBlock, 16)).ToString("X8"))));
                     }
                     catch (Exception ex)
                     {
@@ -103,11 +91,7 @@ namespace CryptoSporidium.BARTools.UnBAR
                 }
             }
 
-            returnstring = CryptoBytes.ToString();
-
-            CryptoBytes = null;
-
-            return returnstring;
+            return CryptoBytes.ToString();
         }
     }
 }

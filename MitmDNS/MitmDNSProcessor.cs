@@ -10,7 +10,7 @@ namespace MitmDNS
     {
         public static bool DnsStarted = false;
         public Dictionary<string, DnsSettings> dicRules = new();
-        public List<KeyValuePair<string, DnsSettings>>? regRules = new();
+        public List<KeyValuePair<string, DnsSettings>> regRules = new();
         public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
         public void RunDns(Dictionary<string, DnsSettings>? dicRules, List<KeyValuePair<string, DnsSettings>>? regRules)

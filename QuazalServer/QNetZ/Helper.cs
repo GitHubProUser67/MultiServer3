@@ -2,6 +2,8 @@ using System.Text;
 using System.Security.Cryptography;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.Zip.Compression;
+using System.IO.Compression;
+using lzo.net;
 
 namespace QuazalServer.QNetZ
 {
@@ -218,29 +220,41 @@ namespace QuazalServer.QNetZ
 			WriteU64(s, value);
 		}
 
-        public static byte[] Decompress(byte[] inData)
+        public static byte[] Decompress(byte[] InData)
         {
-            // TODO, implement LZO!
-
-            MemoryStream baseInputStream = new(inData);
-            Inflater inf = new();
-            InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+            MemoryStream baseInputStream = new(InData);
             MemoryStream memoryStream = new();
-            byte[] array = new byte[4096];
-            for (; ; )
-            {
-                int num = inflaterInputStream.Read(array, 0, array.Length);
-                if (num <= 0)
-                    break;
-                memoryStream.Write(array, 0, num);
+
+            if (QuazalServerConfiguration.EnableLZOCompression)
+			{
+                using (LzoStream lzo = new(baseInputStream, CompressionMode.Decompress))
+                {
+                    lzo.CopyTo(memoryStream);
+					memoryStream.Position = 0;
+                    return memoryStream.ToArray();
+                }
             }
-            inflaterInputStream.Close();
-            return memoryStream.ToArray();
+			else
+			{
+                Inflater inf = new();
+                InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+                byte[] array = new byte[4096];
+                for (; ; )
+                {
+                    int num = inflaterInputStream.Read(array, 0, array.Length);
+                    if (num <= 0)
+                        break;
+                    memoryStream.Write(array, 0, num);
+                }
+                inflaterInputStream.Close();
+                return memoryStream.ToArray();
+            }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-			// TODO, implement LZO!
+            if (QuazalServerConfiguration.EnableLZOCompression) // When using LZO, it seems compression is trivial.
+                return InData;
 
             MemoryStream memoryStream = new();
             Deflater deflater = new(9);
@@ -306,7 +320,7 @@ namespace QuazalServer.QNetZ
 			s[j] = c;
 		}
 
-		public static byte[] DeriveKey(uint pid, string input = "UbiDummyPwd")
+		public static byte[] DeriveKey(uint pid, string input)
 		{
 			uint count = 65000 + (pid % 1024);
 			MD5 md5 = MD5.Create();

@@ -119,14 +119,16 @@ class Program
         SVOFakeSSLServer fakehttpsserver = new(10061);
 
         if (HttpListener.IsSupported)
-            httpserver.Start();
+            _ = Task.Run(httpserver.Start);
         else
             LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so HTTP Server not started.");
 
-        _ = Task.Run(httpsserver.StartSVO);
-        _ = Task.Run(fakehttpsserver.Listen);
-        _ = Task.Run(SVOManager.StartTickPooling);
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => httpsserver.StartSVO(),
+                    () => fakehttpsserver.Listen(),
+                    async () => await SVOManager.StartTickPooling(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

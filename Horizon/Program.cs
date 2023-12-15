@@ -129,9 +129,10 @@ class Program
 
         CryptoSporidium.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
 
-        _ = Task.Run(HorizonStarter);
-
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => HorizonStarter(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

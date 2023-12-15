@@ -38,7 +38,7 @@ namespace QuazalServer.ServerProcessors
 			packetHandler = new QPacketHandlerPRUDP(listener, serverPID, listenPort, "BackendServices");
 			packetHandler.Updates.Add(() => NetworkPlayers.DropPlayers());
 
-            LoggerAccessor.LogInfo($"Backend Server initiated on port: {listenPort}...");
+            LoggerAccessor.LogInfo($"Backend Service Server initiated on port: {listenPort}...");
 
             while (true)
 			{
@@ -72,14 +72,14 @@ namespace QuazalServer.ServerProcessors
                 {
                     if (ex.InnerException is SocketException socketException &&
                         socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
-                        LoggerAccessor.LogError($"[Backend] - HandleClient thrown an exception : {ex}");
+                        LoggerAccessor.LogError($"[Backend Service] - HandleClient thrown an exception : {ex}");
                     CurrentRecvTask = null;
                 }
 
                 Thread.Sleep(1);
             }
 
-            LoggerAccessor.LogWarn($"Backend Server stopped.");
+            LoggerAccessor.LogWarn($"Backend Service Server stopped.");
 
             CurrentRecvTask = null;
 			listener.Close();

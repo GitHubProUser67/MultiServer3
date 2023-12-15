@@ -5,6 +5,9 @@ using System.Runtime;
 
 public static class HTTPSServerConfiguration
 {
+    public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
+    public static string DNSOnlineConfig { get; set; } = string.Empty;
+    public static bool DNSAllowUnsafeRequests { get; set; } = false;
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
@@ -38,6 +41,9 @@ public static class HTTPSServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
 
+            DNSOnlineConfig = config.online_routes_config;
+            DNSConfig = config.routes_config;
+            DNSAllowUnsafeRequests = config.allow_unsafe_requests;
             PHPRedirectUrl = config.php.redirct_url;
             PHPVersion = config.php.version;
             PHPStaticFolder = config.php.static_folder;
@@ -92,15 +98,16 @@ class Program
 
         HttpsProcessor server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443);
 
-        server.StartServer();
-
         // Timer for scheduled updates every 24 hours
         Timer timer = new(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         // Timer for scheduled updates every 24 hours
         Timer timer1 = new(HTTPSecureServerLite.API.VEEMEE.gofish.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => server.StartServer(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {

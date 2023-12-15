@@ -138,6 +138,7 @@ namespace CryptoSporidium
                     }
                     reader.Close();
                 }
+                fileStream.Flush();
             }
 
             return result;

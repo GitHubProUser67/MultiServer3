@@ -70,9 +70,10 @@ class Program
 
         SRVEmuServer server = new();
 
-        _ = Task.Run(server.Run);
-
-        _ = Task.Run(RefreshConfig);
+        _ = Task.Run(() => Parallel.Invoke(
+                    () => server.Run(),
+                    () => RefreshConfig()
+                ));
 
         if (CryptoSporidium.MiscUtils.IsWindows())
         {
