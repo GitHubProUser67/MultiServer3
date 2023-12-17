@@ -4,6 +4,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using System.IO.Compression;
 using lzo.net;
+using CryptoSporidium;
 
 namespace QuazalServer.QNetZ
 {
@@ -322,12 +323,24 @@ namespace QuazalServer.QNetZ
 
 		public static byte[] DeriveKey(uint pid, string input)
 		{
-			uint count = 65000 + (pid % 1024);
-			MD5 md5 = MD5.Create();
-			byte[] buff = Encoding.ASCII.GetBytes(input);
-			for (uint i = 0; i < count; i++)
-				buff = md5.ComputeHash(buff);
-			return buff;
+			uint count = 0;
+			byte[] buff = Array.Empty<byte>();
+            MD5 md5 = MD5.Create();
+            if (input == "h7fyctiuucf" || input == "UbiDummyPwd")
+			{
+                count = 65000 + (pid % 1024);
+                buff = Encoding.ASCII.GetBytes(input);
+            }
+			else
+			{
+                count = pid % 1024;
+                buff = MiscUtils.HexStringToByteArray(input);
+            }
+
+            for (uint i = 0; i < count; i++)
+                buff = md5.ComputeHash(buff);
+
+            return buff;
 		}
 
 		public static byte[] MakeHMAC(byte[] key, byte[] data)

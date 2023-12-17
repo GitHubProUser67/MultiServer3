@@ -10,7 +10,7 @@ public static class QuazalServerConfiguration
     public static int BackendServiceServerPort { get; set; } = 21006;
     public static bool EnableLZOCompression { get; set; } = true;
     public static bool LegacyDefaultPassword { get; set; } = true;
-    public static string? ServerFilesPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/quazal";
+    public static string ServerFilesPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static string AccessKey { get; set; } = "yh64s"; // TDU_PS2 access key - Driver San Fransisco: w6kAtr3T
 
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Attributes;
+using QuazalServer.QNetZ.Connection;
 using QuazalServer.QNetZ.Interfaces;
 
 namespace QuazalServer.RDVServices.Services
@@ -10,8 +11,10 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(1)]
         public RMCResult CreateAccount(string strPrincipalName, string strKey, uint uiGroups, string strEmail)
         {
-            UNIMPLEMENTED();
-            return Error(0);
+            if (DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail))
+                return new RMCResult(new RMCPResponseEmpty(), true, 0);
+            else
+                return Error((int)ErrorCode.Core_RegistrationError);
         }
 
         [RMCMethod(2)]

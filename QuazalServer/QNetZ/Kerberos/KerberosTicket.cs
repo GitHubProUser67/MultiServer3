@@ -49,9 +49,9 @@ namespace QuazalServer.QNetZ
                 byte[] key = Array.Empty<byte>();
 
 				if (QuazalServerConfiguration.LegacyDefaultPassword)
-                    key = Helper.DeriveKey(userPID, input ?? DefaultPasswords[0]);
+                    key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
 				else
-                    key = Helper.DeriveKey(userPID, input ?? DefaultPasswords[1]);
+                    key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");
 
                 buff = Helper.Encrypt(key, buff);
 
@@ -67,7 +67,7 @@ namespace QuazalServer.QNetZ
 			return null;
 		}
 
-		public override string ToString()
+        public override string ToString()
 		{
 			StringBuilder sb = new();
 			sb.AppendLine("\t[Kerberos Ticket]");
