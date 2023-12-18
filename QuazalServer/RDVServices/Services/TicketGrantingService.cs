@@ -28,6 +28,7 @@ namespace QuazalServer.RDVServices.Services
                     !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
                     (DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds < Constants.ClientTimeoutSeconds)
                 {
+                    // Todo, drop player and continue.
                     CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} DENIED - concurrent login!");
                     return Error((int)ErrorCode.RendezVous_ConcurrentLoginDenied);
                 }
@@ -240,21 +241,26 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(3)]
 		public RMCResult RequestTicket(uint sourcePID, uint targetPID)
 		{
-            KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.ticket);
-
-            User? user = DBHelper.GetUserByPID(sourcePID);
-
-            TicketData ticketData = new()
+            if (Context != null)
             {
-                retVal = (int)ErrorCode.Core_NoError,
-            };
+                KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.ticket);
 
-            if (user != null && File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
-                ticketData.pbufResponse = kerberos.toBuffer(File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
-            else
-                ticketData.pbufResponse = kerberos.toBuffer();
+                User? user = DBHelper.GetUserByPID(sourcePID);
 
-            return Result(ticketData);
+                TicketData ticketData = new()
+                {
+                    retVal = (int)ErrorCode.Core_NoError,
+                };
+
+                if (user != null && File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
+                    ticketData.pbufResponse = kerberos.toBuffer(File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
+                else
+                    ticketData.pbufResponse = kerberos.toBuffer();
+
+                return Result(ticketData);
+            }
+
+            return Error(0);
         }
     }
 

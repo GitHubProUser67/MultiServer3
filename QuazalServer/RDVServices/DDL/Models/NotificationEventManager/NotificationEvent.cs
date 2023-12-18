@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace DSFServices.DDL.Models
+namespace QuazalServer.RDVServices.DDL.Models
 {
 	public enum NotificationEventsType
 	{
