@@ -1,27 +1,27 @@
 ﻿using System.Net.Sockets;
 using CustomLogger;
 using QuazalServer.QNetZ;
-using QuazalServer.RDVServices;
 
 namespace QuazalServer.ServerProcessors
 {
-	public static class RDVServer
+	public class RDVServer
 	{
-		public static readonly object _sync = new();
-		public static bool _exit = false;
-		private static UdpClient? listener;
-		public static ushort _skipNextNAT = 0xFFFF;
-		static QPacketHandlerPRUDP? packetHandler;
+		public readonly object _sync = new();
+		public uint BackendPID = 2;
+		public bool _exit = false;
+		private UdpClient? listener;
+		public ushort _skipNextNAT = 0xFFFF;
+		QPacketHandlerPRUDP? packetHandler;
+		Task<UdpReceiveResult>? CurrentRecvTask = null;
 
-		static Task<UdpReceiveResult>? CurrentRecvTask = null;
-
-		public static void Start()
+		public void Start(int listenPort, int BackendPort, uint BackendPID, string AccessKey)
 		{
-			_exit = false;
-            new Thread(HandleClient).Start();
+			this.BackendPID = BackendPID;
+            _exit = false;
+            new Thread(() => HandleClient(listenPort, BackendPort, AccessKey, null)).Start();
 		}
 
-		public static void Stop()
+		public void Stop()
 		{
 			lock (_sync)
 			{
@@ -29,12 +29,10 @@ namespace QuazalServer.ServerProcessors
 			}
 		}
 
-		public static void HandleClient(object? obj)
+		public void HandleClient(int listenPort, int BackendPort, string AccessKey, object? obj)
 		{
-			int listenPort = QuazalServerConfiguration.RDVServerPort;
-
 			listener = new UdpClient(listenPort);
-			packetHandler = new QPacketHandlerPRUDP(listener, BackendServicesServer.serverPID, listenPort, "RendezVous");
+			packetHandler = new QPacketHandlerPRUDP(listener, BackendPID, listenPort, BackendPort, AccessKey, "RendezVous");
 
             LoggerAccessor.LogInfo($"Rendez-vous Server initiated on port: {listenPort}...");
 

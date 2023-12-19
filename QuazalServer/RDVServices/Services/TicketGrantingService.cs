@@ -73,7 +73,7 @@ namespace QuazalServer.RDVServices.Services
                                     "prudps",
                                     string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
                                     new Dictionary<string, int>() {
-                                    { "port", QuazalServerConfiguration.BackendServiceServerPort },
+                                    { "port", Context.Handler.BackendPort },
                                     { "CID", 1 },
                                     { "PID", (int)Context.Client.sPID },
                                     { "sid", 1 },
@@ -82,7 +82,7 @@ namespace QuazalServer.RDVServices.Services
                                     })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer()
+                            pbufResponse = kerberos.toBuffer(Context.Handler.Port)
                         };
                     else if (File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
                         reply = new(plInfo.PID)
@@ -94,7 +94,7 @@ namespace QuazalServer.RDVServices.Services
                                 "prudps",
                                 string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
                                 new Dictionary<string, int>() {
-                                { "port", QuazalServerConfiguration.BackendServiceServerPort },
+                                { "port", Context.Handler.BackendPort },
                                 { "CID", 1 },
                                 { "PID", (int)Context.Client.sPID },
                                 { "sid", 1 },
@@ -103,7 +103,7 @@ namespace QuazalServer.RDVServices.Services
                                 })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer(File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
+                            pbufResponse = kerberos.toBuffer(Context.Handler.Port, File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
                         };
 
                     return Result(reply);
@@ -214,7 +214,7 @@ namespace QuazalServer.RDVServices.Services
                                     "prudps",
                                     string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
                                     new Dictionary<string, int>() {
-                                    { "port", QuazalServerConfiguration.BackendServiceServerPort },
+                                    { "port", Context.Handler.BackendPort },
                                     { "CID", 1 },
                                     { "PID", (int)Context.Client.sPID },
                                     { "sid", 1 },
@@ -223,7 +223,7 @@ namespace QuazalServer.RDVServices.Services
                                     })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer()
+                            pbufResponse = kerberos.toBuffer(Context.Handler.Port)
                         };
 
                         return Result(loginData);
@@ -253,9 +253,9 @@ namespace QuazalServer.RDVServices.Services
                 };
 
                 if (user != null && File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
-                    ticketData.pbufResponse = kerberos.toBuffer(File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.Port, File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
                 else
-                    ticketData.pbufResponse = kerberos.toBuffer();
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.Port);
 
                 return Result(ticketData);
             }
@@ -274,7 +274,8 @@ namespace QuazalServer.RDVServices.Services
         private static string Hash(string password, int iterations)
         {
             // Create salt
-            byte[] salt;
+            byte[] salt = Array.Empty<byte>();
+
             using (RNGCryptoServiceProvider rng = new())
             {
                 rng.GetBytes(salt = new byte[SaltSize]);
@@ -324,9 +325,7 @@ namespace QuazalServer.RDVServices.Services
             for (var i = 0; i < HashSize; i++)
             {
                 if (hashBytes[i + SaltSize] != hash[i])
-                {
                     return false;
-                }
             }
             return true;
         }

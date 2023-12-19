@@ -8,26 +8,30 @@ namespace QuazalServer.QNetZ
 {
 	public partial class QPacketHandlerPRUDP
 	{
-		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, string sourceName = "PRUDP Handler")
+		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
 		{
 			UDP = udp;
 			SourceName = sourceName;
-			PID = pid;
+			this.AccessKey = AccessKey;
+            PID = pid;
 			Port = port;
+			this.BackendPort = BackendPort;
         }
 
         private readonly UdpClient UDP;
 		public string SourceName;
+		public string AccessKey;
 		public readonly uint PID;
 		public readonly int Port;
-		private List<QPacket> AccumulatedPackets = new();
+        public readonly int BackendPort;
+        private List<QPacket> AccumulatedPackets = new();
 		private List<QReliableResponse> CachedResponses = new();
 		private readonly List<ulong> NATPingTimeToIgnore = new();
 
 		public List<QClient> Clients = new();
 		public List<Action> Updates = new();
 
-		public uint ClientIdCounter = 0x12345678;   // or client signature
+		public uint ClientIdCounter = 0x12345678; // or client signature
 
 		private QPacket ProcessSYN(QPacket p, IPEndPoint from)
 		{
@@ -71,8 +75,6 @@ namespace QuazalServer.QNetZ
                 byte[] kerberosTicket = new byte[size];
                 m.Read(kerberosTicket, 0, (int)size);
 
-                KerberosTicket ticketData = new(kerberosTicket);
-
                 // read encrypted data
                 size = Helper.ReadU32(m) - 16;
                 byte[] buff = new byte[size];
@@ -85,7 +87,7 @@ namespace QuazalServer.QNetZ
                 uint connectionId = Helper.ReadU32(m); // TODO: utilize
 
                 // assign player to client and also re-assign new client to player
-                var playerInfo = NetworkPlayers.GetPlayerInfoByPID(userPrincipalID);
+                PlayerInfo? playerInfo = NetworkPlayers.GetPlayerInfoByPID(userPrincipalID);
 
                 if (playerInfo == null)
                 {
@@ -134,7 +136,7 @@ namespace QuazalServer.QNetZ
 		{
 			StringBuilder sb = new();
 
-			var data = sendPacket.toBuffer();
+			var data = sendPacket.toBuffer(Port, AccessKey);
 			foreach (byte b in data)
 				sb.Append(b.ToString("X2") + " ");
 
@@ -151,7 +153,7 @@ namespace QuazalServer.QNetZ
 
 		public QPacket MakeACK(QPacket p, QClient client)
 		{
-			QPacket np = new(p.toBuffer());
+			QPacket np = new(Port, p.toBuffer(Port, AccessKey));
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_ACK, QPacket.PACKETFLAG.FLAG_HAS_SIZE };
 
 			np.m_oSourceVPort = p.m_oDestinationVPort;
@@ -165,7 +167,7 @@ namespace QuazalServer.QNetZ
 		public void SendACK(QPacket p, QClient client)
 		{
 			var np = MakeACK(p, client);
-			var data = np.toBuffer();
+			var data = np.toBuffer(Port, AccessKey);
 
 			UDP.Send(data, data.Length, client.Endpoint);
 		}
@@ -197,7 +199,7 @@ namespace QuazalServer.QNetZ
 				newPacket.payload = buff;
 				newPacket.payloadSize = (ushort)newPacket.payload.Length;
 
-				Send(reqPacket, new QPacket(newPacket.toBuffer()), client.Endpoint);
+				Send(reqPacket, new QPacket(Port, newPacket.toBuffer(Port, AccessKey)), client.Endpoint);
 
 				newPacket.m_byPartNumber++;
 				numFragments++;
@@ -221,7 +223,7 @@ namespace QuazalServer.QNetZ
 		{
 			while (true)
 			{
-                QPacket packetIn = new(data);
+                QPacket packetIn = new(Port, data);
 				{
                     MemoryStream m = new(data);
 

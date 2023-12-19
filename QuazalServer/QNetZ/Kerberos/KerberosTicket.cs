@@ -4,7 +4,6 @@ namespace QuazalServer.QNetZ
 {
 	public class KerberosTicket
 	{
-		public string[] DefaultPasswords = new string[] { "h7fyctiuucf", "UbiDummyPwd" };
 		public uint userPID;
 		public byte[]? sessionKey;
 		public uint serverPID;
@@ -18,22 +17,7 @@ namespace QuazalServer.QNetZ
 			ticket = ticketData;
 		}
 
-		public KerberosTicket(byte[] encryptedBuffer)
-		{
-            // TODO: decrypt the token
-
-            /*byte[] encrypted = new byte[encryptedBuffer.Length - 16];
-            Buffer.BlockCopy(encryptedBuffer, 0, encrypted, 0, encrypted.Length);
-
-            byte[] sessionkey = new byte[16];
-			Buffer.BlockCopy(encryptedBuffer, encryptedBuffer.Length - 16, sessionkey, 0, sessionkey.Length);
-
-            Helper.Decrypt(sessionkey, encrypted);*/
-
-			// TODO - verify output.
-        }
-
-        public byte[]? toBuffer(string? input = null)
+        public byte[]? toBuffer(int Port, string? input = null)
 		{
 			if (sessionKey != null && ticket != null)
 			{
@@ -48,10 +32,16 @@ namespace QuazalServer.QNetZ
                 byte[] buff = m.ToArray();
                 byte[] key = Array.Empty<byte>();
 
-				if (QuazalServerConfiguration.LegacyDefaultPassword)
-                    key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
-				else
-                    key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");
+				switch (Port)
+				{
+					case 30200:
+					case 30201:
+                        key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
+						break;
+					default:
+                        key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");
+                        break;
+                }
 
                 buff = Helper.Encrypt(key, buff);
 

@@ -5,24 +5,24 @@ using System.Net.Sockets;
 
 namespace QuazalServer.ServerProcessors
 {
-	public static class BackendServicesServer
+	public class BackendServicesServer
 	{
-		public static readonly uint serverPID = 2;
-		public static readonly object _sync = new();
-		public static bool _exit = false;
-		public static UdpClient? listener;
-		public static ushort _skipNextNAT = 0xFFFF;
-		public static QPacketHandlerPRUDP? packetHandler;
+		public uint serverPID = 2;
+		public readonly object _sync = new();
+		public bool _exit = false;
+		public UdpClient? listener;
+		public ushort _skipNextNAT = 0xFFFF;
+		public QPacketHandlerPRUDP? packetHandler;
+		Task<UdpReceiveResult>? CurrentRecvTask = null;
 
-		static Task<UdpReceiveResult>? CurrentRecvTask = null;
-
-		public static void Start()
+		public void Start(int listenport, uint PID, string AccessKey)
 		{
-			_exit = false;
-            new Thread(HandleClient).Start();
+			serverPID = PID;
+            _exit = false;
+            new Thread(() => HandleClient(listenport, AccessKey, null)).Start();
 		}
 
-		public static void Stop()
+		public void Stop()
 		{
 			lock (_sync)
 			{
@@ -30,12 +30,10 @@ namespace QuazalServer.ServerProcessors
 			}
 		}
 
-		public static void HandleClient(object? obj)
+		public void HandleClient(int listenPort, string AccessKey, object? obj)
 		{
-			int listenPort = QuazalServerConfiguration.BackendServiceServerPort;
-
 			listener = new UdpClient(listenPort);
-			packetHandler = new QPacketHandlerPRUDP(listener, serverPID, listenPort, "BackendServices");
+			packetHandler = new QPacketHandlerPRUDP(listener, serverPID, listenPort, listenPort, AccessKey, "BackendServices");
 			packetHandler.Updates.Add(() => NetworkPlayers.DropPlayers());
 
             LoggerAccessor.LogInfo($"Backend Service Server initiated on port: {listenPort}...");
@@ -85,7 +83,7 @@ namespace QuazalServer.ServerProcessors
 			listener.Close();
 		}
 
-		public static void ProcessPacket(byte[] data, IPEndPoint ep)
+		public void ProcessPacket(byte[] data, IPEndPoint ep)
 		{
 			packetHandler?.ProcessPacket(data, ep);
 		}

@@ -1,6 +1,5 @@
 using CustomLogger;
 using System.Net;
-using System.Net.Sockets;
 
 namespace QuazalServer.QNetZ
 {
@@ -29,18 +28,16 @@ namespace QuazalServer.QNetZ
 		public QPacket SrcPacket;
 		public List<QPacketState> ResponseList;
 
-		public DateTime DropTime;       // if ACKs not recieved, in this time it will be dropped
+		public DateTime DropTime; // if ACKs not recieved, in this time it will be dropped
 		public DateTime ResendTime;
-		public IPEndPoint Endpoint;     // client endpoint
+		public IPEndPoint Endpoint; // client endpoint
 	}
-
-	//-----------------------------------------------------
 
 	public partial class QPacketHandlerPRUDP
 	{
 		bool Defrag(QClient client, QPacket packet)
 		{
-			if (packet.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
+			if (packet.flags != null && packet.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
 				return true;
 
 			if (!packet.flags.Contains(QPacket.PACKETFLAG.FLAG_RELIABLE))
@@ -72,7 +69,7 @@ namespace QuazalServer.QNetZ
 					break;
 			}
 
-			var fragments = orderedFragments.Take(numPackets).ToArray();
+			QPacket[] fragments = orderedFragments.Take(numPackets).ToArray();
 
 			// remove fragments that we processed
 			AccumulatedPackets.Clear();//RemoveAll(x => fragments.Contains(x));
@@ -112,12 +109,12 @@ namespace QuazalServer.QNetZ
 				// acks are required for each packet
 				foreach (var fragPacket in fragments)
 				{
-					if (fragPacket.flags.Contains(QPacket.PACKETFLAG.FLAG_NEED_ACK))
+					if (fragPacket.flags != null && fragPacket.flags.Contains(QPacket.PACKETFLAG.FLAG_NEED_ACK))
 						SendACK(fragPacket, client);
-				}
+                }
 
-				var fullPacketData = new MemoryStream();
-				foreach (var fragPacket in fragments)
+                MemoryStream fullPacketData = new();
+				foreach (QPacket? fragPacket in fragments)
 					fullPacketData.Write(fragPacket.payload, 0, fragPacket.payload.Length);
 
 				// replace packet payload with defragmented data
@@ -173,9 +170,9 @@ namespace QuazalServer.QNetZ
 			return CachedResponses.FirstOrDefault(cr =>
 					cr.SrcPacket.type == packet.type &&
 					cr.SrcPacket.m_uiSignature == packet.m_uiSignature &&
-					cr.SrcPacket.m_oSourceVPort.type == packet.m_oSourceVPort.type &&
+					cr.SrcPacket.m_oSourceVPort?.type == packet.m_oSourceVPort.type &&
 					cr.SrcPacket.m_oSourceVPort.port == packet.m_oSourceVPort.port &&
-					cr.SrcPacket.m_oDestinationVPort.type == packet.m_oDestinationVPort.type &&
+					cr.SrcPacket.m_oDestinationVPort?.type == packet.m_oDestinationVPort.type &&
 					cr.SrcPacket.m_oDestinationVPort.port == packet.m_oDestinationVPort.port &&
 					cr.SrcPacket.uiSeqId == packet.uiSeqId &&
 					cr.SrcPacket.checkSum == packet.checkSum);
@@ -195,7 +192,7 @@ namespace QuazalServer.QNetZ
 			if (responsePacket.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
 				return false;
 
-			var cache = GetCachedResponseByRequestPacket(requestPacket);
+			QReliableResponse? cache = GetCachedResponseByRequestPacket(requestPacket);
 			if (cache == null)
 			{
 				cache = new QReliableResponse(requestPacket, ep);
@@ -217,7 +214,7 @@ namespace QuazalServer.QNetZ
 			{
 				foreach (var crp in cache.ResponseList)
 				{
-                    var data = crp.Packet.toBuffer();
+                    var data = crp.Packet.toBuffer(Port, AccessKey);
                     UDP.Send(data, data.Length, cache.Endpoint);
 
                     crp.ReSendCount++;

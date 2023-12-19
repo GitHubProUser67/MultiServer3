@@ -34,6 +34,7 @@ namespace QuazalServer.QNetZ
 		{
 			objectData = data;
 		}
+
 		T objectData;
 
 		public override string PayloadToString()

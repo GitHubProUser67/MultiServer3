@@ -42,7 +42,7 @@ namespace QuazalServer.RDVServices.Services
 
             UNIMPLEMENTED();
 
-            var privilege = new PrivilegeGroup();
+            PrivilegeGroup privilege = new();
 			privilege.m_description = uniqueKey + " unlock";
 			privilege.m_privileges = privilegeList;
 
@@ -66,6 +66,5 @@ namespace QuazalServer.RDVServices.Services
 		{
 			UNIMPLEMENTED();
 		}
-
 	}
 }

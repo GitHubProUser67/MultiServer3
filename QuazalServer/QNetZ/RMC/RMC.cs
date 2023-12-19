@@ -15,7 +15,7 @@ namespace QuazalServer.QNetZ
 			if (p.uiSeqId > client.SeqCounter)
 				client.SeqCounter = p.uiSeqId;
 
-            RMCPacket rmc = new(p);
+            RMCPacket rmc = new(handler.Port, p);
 			if (rmc.isRequest)
 				HandleRequest(handler, client, p, rmc);
 			else
@@ -60,10 +60,10 @@ namespace QuazalServer.QNetZ
 			}
 
 			// set the execution context
-			var serviceInstance = serviceFactory();
+			RMCServiceBase? serviceInstance = serviceFactory();
 
 			serviceInstance.Context = rmcContext;
-			var bestMethod = serviceInstance.GetServiceMethodById(rmc.methodID);
+			MethodInfo? bestMethod = serviceInstance.GetServiceMethodById(rmc.methodID);
 
 			if (bestMethod == null)
 			{
@@ -75,13 +75,13 @@ namespace QuazalServer.QNetZ
 			// try invoke method method
 			// TODO: extended info
 			var typeList = bestMethod.GetParameters().Select(x => x.ParameterType);
-			var parameters = DDLSerializer.ReadPropertyValues(typeList.ToArray(), m);
+			object[]? parameters = DDLSerializer.ReadPropertyValues(typeList.ToArray(), m);
 
 			WriteLog(client, () => "Request parameters: " + DDLSerializer.ObjectToString(parameters), false);
 
 			try
 			{
-				var returnValue = bestMethod.Invoke(serviceInstance, parameters);
+				object? returnValue = bestMethod.Invoke(serviceInstance, parameters);
 
 				if (returnValue != null)
 				{
@@ -89,22 +89,28 @@ namespace QuazalServer.QNetZ
 					{
                         RMCResult rmcResult = (RMCResult)returnValue;
 
-						if (QuazalServerConfiguration.EnableLZOCompression) // No need to send compressed.
-                            SendResponseWithACK(
+						switch (handler.Port) // Legacy LZO clients not compress.
+						{
+							case 30200:
+							case 30201:
+                                SendResponseWithACK(
                                 handler,
                                 rmcContext.Packet,
                                 rmcContext.RMC,
                                 rmcContext.Client,
                                 rmcResult.Response,
                                 false, rmcResult.Error);
-						else
-                            SendResponseWithACK(
+                                break;
+							default:
+                                SendResponseWithACK(
                                 handler,
                                 rmcContext.Packet,
                                 rmcContext.RMC,
                                 rmcContext.Client,
                                 rmcResult.Response,
                                 rmcResult.Compression, rmcResult.Error);
+                                break;
+						}
                     }
 					else
 					{
@@ -155,7 +161,7 @@ namespace QuazalServer.QNetZ
 			packet.payload = Array.Empty<byte>();
 			packet.m_bySessionID = client.SessionID;
 
-			var rmc = new RMCPacket();
+            RMCPacket rmc = new();
 
 			rmc.proto = protoId;
 			rmc.methodID = methodId;
@@ -172,9 +178,9 @@ namespace QuazalServer.QNetZ
 			rmc.response = reply;
 			rmc.error = error;
 
-			var rmcResponseData = rmc.ToBuffer();
+			byte[] rmcResponseData = rmc.ToBuffer();
 
-			QPacket np = new(p.toBuffer());
+			QPacket np = new(handler.Port, p.toBuffer(handler.Port, handler.AccessKey));
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_NEED_ACK, QPacket.PACKETFLAG.FLAG_RELIABLE };
 			np.m_oSourceVPort = p.m_oDestinationVPort;
 			np.m_oDestinationVPort = p.m_oSourceVPort;
@@ -191,9 +197,9 @@ namespace QuazalServer.QNetZ
 			rmc.error = error;
 			rmc.callID = ++client.CallCounterRMC;
 
-			var rmcRequestData = rmc.ToBuffer();
+			byte[] rmcRequestData = rmc.ToBuffer();
 
-			QPacket np = new(p.toBuffer());
+			QPacket np = new(handler.Port, p.toBuffer(handler.Port, handler.AccessKey));
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
 			np.m_uiSignature = client.IDsend;
 			np.usesCompression = useCompression;

@@ -15,13 +15,13 @@ namespace QuazalServer.RDVServices.Services
 			if (Context != null && Context.Client.Info != null)
 			{
                 PlayerInfo? plInfo = Context.Client.Info;
-                var presence = plInfo.GameData().CurrentPresence;
+                PresenceElement? presence = plInfo.GameData().CurrentPresence;
 
                 //QLog.WriteLine(1, $"Presence set to {phraseId}, {argument.data}");
 
                 if (presence == null)
                 {
-                    presence = new PresenceElement();
+                    presence = new();
                     plInfo.GameData().CurrentPresence = presence;
                 }
 
@@ -39,7 +39,7 @@ namespace QuazalServer.RDVServices.Services
 		{
 			var presenceResult = new List<PresenceElement>();
 
-			foreach(uint principalId in pids)
+			foreach (uint principalId in pids)
 			{
 				PlayerInfo? playerInfo = NetworkPlayers.GetPlayerInfoByPID(principalId);
 				if (playerInfo != null && playerInfo.GameData().CurrentPresence != null)

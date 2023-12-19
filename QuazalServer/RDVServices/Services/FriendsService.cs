@@ -55,7 +55,7 @@ namespace QuazalServer.RDVServices.Services
                 NotificationEvent notification = new(NotificationEventsType.FriendEvent, 0)
                 {
                     m_pidSource = myUserPid,
-                    m_uiParam1 = myUserPid,       // i'm just guessing
+                    m_uiParam1 = myUserPid, // i'm just guessing
                     m_uiParam2 = 3
                 };
 

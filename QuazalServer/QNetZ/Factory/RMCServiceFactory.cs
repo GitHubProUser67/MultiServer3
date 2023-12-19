@@ -41,14 +41,14 @@ namespace QuazalServer.QNetZ.Factory
                 return existingFactory;
 
             Assembly asm = Assembly.GetExecutingAssembly();
-			var classList = asm.GetTypes()
+			Type[]? classList = asm.GetTypes()
 								  .Where(t => string.Equals(t.Namespace, "QuazalServer.QNetZ.Services", StringComparison.Ordinal))
 								  .ToArray();
 
 			// search for new controller
-			foreach (var protoClass in classList)
+			foreach (Type? protoClass in classList)
 			{
-				var protocolAttribute = protoClass.GetCustomAttribute<RMCServiceAttribute>();
+				RMCServiceAttribute? protocolAttribute = protoClass.GetCustomAttribute<RMCServiceAttribute>();
 
 				if (protocolAttribute == null)
 					continue;

@@ -32,9 +32,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(4)]
 		public RMCResult GetItem(uint group, string strTag)
 		{
-			var reply = new StorageFile();
+            StorageFile reply = new();
 
-			var path = Path.Combine(QuazalServerConfiguration.ServerFilesPath, strTag);
+			string path = Path.Combine(QuazalServerConfiguration.ServerFilesPath, strTag);
 
 			if (File.Exists(path))
 			{

@@ -48,12 +48,10 @@ namespace QuazalServer.QNetZ
 
 		public static void DropPlayerInfo(PlayerInfo plInfo)
 		{
-			if(plInfo.Client != null)
-			{
-				plInfo.Client.Info = null;
-			}
+			if (plInfo.Client != null)
+                plInfo.Client.Info = null;
 
-			plInfo.OnDropped();
+            plInfo.OnDropped();
 			LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - dropping player: {plInfo.Name}");
 			
 			Players.Remove(plInfo);

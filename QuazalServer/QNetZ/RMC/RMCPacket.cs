@@ -23,7 +23,7 @@ namespace QuazalServer.QNetZ
 
 		}
 
-		public RMCPacket(QPacket p)
+		public RMCPacket(int port, QPacket p)
 		{
 			if (p.payload != null)
 			{
@@ -44,6 +44,15 @@ namespace QuazalServer.QNetZ
                         b = Helper.ReadU16(m);
                         proto = (RMCProtocolId)(b);
                     }
+
+					switch (port) // Legacy servers.
+					{
+						case 30200:
+						case 30201:
+                            if (proto == RMCProtocolId.FriendsService)
+                                proto = RMCProtocolId.LegacyFriendsService;
+                            break;
+					}
                 }
                 catch
                 {
@@ -107,7 +116,7 @@ namespace QuazalServer.QNetZ
 
 		public byte[] ToBuffer()
 		{
-			var packetData = new MemoryStream();
+            MemoryStream packetData = new();
 
 			if ((ushort)proto < 0x7F)
 			{
@@ -122,7 +131,7 @@ namespace QuazalServer.QNetZ
 				Helper.WriteU16(packetData, (ushort)proto);
 			}
 
-			byte[] buff;
+			byte[] buff = Array.Empty<byte>();
 
 			if (isRequest && request != null)
 			{

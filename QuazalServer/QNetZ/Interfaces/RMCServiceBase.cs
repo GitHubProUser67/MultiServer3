@@ -14,7 +14,7 @@ namespace QuazalServer.QNetZ.Interfaces
 			get { return _context; }
 			set {
 				// make it so user won't override it
-				if(_context == null)
+				if (_context == null)
 					_context = value;
 			} 
 		}

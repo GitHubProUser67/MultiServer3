@@ -133,7 +133,7 @@ namespace QuazalServer.RDVServices.Services
 				// move all participants too
 				foreach (var pid in oldSession.PublicParticipants)
 				{
-					var participantPlInfo = NetworkPlayers.GetPlayerInfoByPID(pid);
+					PlayerInfo? participantPlInfo = NetworkPlayers.GetPlayerInfoByPID(pid);
 
 					if (participantPlInfo != null)
 						participantPlInfo.GameData().CurrentSessionID = newSession.Id;
@@ -141,7 +141,7 @@ namespace QuazalServer.RDVServices.Services
 
 				foreach (var pid in oldSession.Participants)
 				{
-					var participantPlInfo = NetworkPlayers.GetPlayerInfoByPID(pid);
+					PlayerInfo? participantPlInfo = NetworkPlayers.GetPlayerInfoByPID(pid);
 
 					if (participantPlInfo != null)
 						participantPlInfo.GameData().CurrentSessionID = newSession.Id;
@@ -226,9 +226,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(6)]
 		public RMCResult GetSession(GameSessionKey gameSessionKey)
 		{
-			var searchResult = new GameSessionSearchResult();
+            GameSessionSearchResult? searchResult = new();
 
-			var session = GameSessions.SessionList.FirstOrDefault(x => x.Id == gameSessionKey.m_sessionID && x.TypeID == gameSessionKey.m_typeID);
+			GameSessionData? session = GameSessions.SessionList.FirstOrDefault(x => x.Id == gameSessionKey.m_sessionID && x.TypeID == gameSessionKey.m_typeID);
 
 			if (session != null)
 			{
@@ -247,7 +247,6 @@ namespace QuazalServer.RDVServices.Services
 
 			return Result(searchResult);
 		}
-
 
 		[RMCMethod(7)]
 		public RMCResult SearchSessions(uint m_typeID, uint m_queryID, IEnumerable<GameSessionProperty> m_parameters)
@@ -293,7 +292,6 @@ namespace QuazalServer.RDVServices.Services
 
 			return Result(resultList);
 		}
-
 
 		[RMCMethod(8)]
 		public RMCResult AddParticipants(GameSessionKey gameSessionKey, IEnumerable<uint> publicParticipantIDs, IEnumerable<uint> privateParticipantIDs)
@@ -396,7 +394,6 @@ namespace QuazalServer.RDVServices.Services
             return Error(0);
 		}
 
-
 		[RMCMethod(10)]
 		public RMCResult GetParticipantCount(GameSessionKey gameSessionKey, IEnumerable<uint> participantIDs)
 		{
@@ -404,13 +401,11 @@ namespace QuazalServer.RDVServices.Services
 			return Error(0);
 		}
 
-
 		[RMCMethod(11)]
 		public void GetParticipants()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(12)]
 		public void SendInvitation()
@@ -418,13 +413,11 @@ namespace QuazalServer.RDVServices.Services
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(13)]
 		public void GetInvitationReceivedCount()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(14)]
 		public void GetInvitationsReceived()
@@ -432,13 +425,11 @@ namespace QuazalServer.RDVServices.Services
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(15)]
 		public void GetInvitationSentCount()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(16)]
 		public void GetInvitationsSent()
@@ -446,13 +437,11 @@ namespace QuazalServer.RDVServices.Services
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(17)]
 		public void AcceptInvitation()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(18)]
 		public void DeclineInvitation()
@@ -460,20 +449,17 @@ namespace QuazalServer.RDVServices.Services
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(19)]
 		public void CancelInvitation()
 		{
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(20)]
 		public void SendTextMessage()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(21)]
 		public RMCResult RegisterURLs(IEnumerable<StationURL> stationURLs)
@@ -496,13 +482,11 @@ namespace QuazalServer.RDVServices.Services
             return Error(0);
 		}
 
-
 		[RMCMethod(22)]
 		public void JoinSession()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(23)]
 		public RMCResult AbandonSession(GameSessionKey gameSessionKey)
@@ -510,13 +494,11 @@ namespace QuazalServer.RDVServices.Services
 			return LeaveSession(gameSessionKey);
 		}
 
-
 		[RMCMethod(24)]
 		public void SearchSessionsWithParticipants()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(25)]
 		public void GetSessions()
@@ -524,13 +506,11 @@ namespace QuazalServer.RDVServices.Services
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(26)]
 		public void GetParticipantsURLs()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(27)]
 		public void MigrateSessionHost()
@@ -538,20 +518,17 @@ namespace QuazalServer.RDVServices.Services
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(28)]
 		public void SplitSession()
 		{
 			UNIMPLEMENTED();
 		}
 
-
 		[RMCMethod(29)]
 		public void SearchSocialSessions()
 		{
 			UNIMPLEMENTED();
 		}
-
 
 		[RMCMethod(30)]
 		public void ReportUnsuccessfulJoinSessions()

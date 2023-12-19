@@ -45,7 +45,7 @@ namespace QuazalServer.QNetZ
 			}
 		}
 
-		public List<BitFieldEntry> entries = new List<BitFieldEntry>();
+		public List<BitFieldEntry> entries = new();
 
 		public BitFieldU32(List<BitFieldEntry> e, uint data = 0)
 		{

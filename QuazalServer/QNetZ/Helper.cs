@@ -221,49 +221,53 @@ namespace QuazalServer.QNetZ
 			WriteU64(s, value);
 		}
 
-        public static byte[] Decompress(byte[] InData)
+        public static byte[] Decompress(int Port, byte[] InData)
         {
             MemoryStream baseInputStream = new(InData);
             MemoryStream memoryStream = new();
 
-            if (QuazalServerConfiguration.EnableLZOCompression)
+			switch (Port)
 			{
-                using (LzoStream lzo = new(baseInputStream, CompressionMode.Decompress))
-                {
-                    lzo.CopyTo(memoryStream);
-					memoryStream.Position = 0;
+				case 30200:
+				case 30201:
+                    using (LzoStream lzo = new(baseInputStream, CompressionMode.Decompress))
+                    {
+                        lzo.CopyTo(memoryStream);
+                        memoryStream.Position = 0;
+                        return memoryStream.ToArray();
+                    }
+				default:
+                    Inflater inf = new();
+                    InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+                    byte[] array = new byte[4096];
+                    for (; ; )
+                    {
+                        int num = inflaterInputStream.Read(array, 0, array.Length);
+                        if (num <= 0)
+                            break;
+                        memoryStream.Write(array, 0, num);
+                    }
+                    inflaterInputStream.Close();
                     return memoryStream.ToArray();
-                }
-            }
-			else
-			{
-                Inflater inf = new();
-                InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
-                byte[] array = new byte[4096];
-                for (; ; )
-                {
-                    int num = inflaterInputStream.Read(array, 0, array.Length);
-                    if (num <= 0)
-                        break;
-                    memoryStream.Write(array, 0, num);
-                }
-                inflaterInputStream.Close();
-                return memoryStream.ToArray();
-            }
+			}
         }
 
-        public static byte[] Compress(byte[] InData)
+        public static byte[] Compress(int Port, byte[] InData)
         {
-            if (QuazalServerConfiguration.EnableLZOCompression) // When using LZO, it seems compression is trivial.
-                return InData;
-
-            MemoryStream memoryStream = new();
-            Deflater deflater = new(9);
-            DeflaterOutputStream deflaterOutputStream = new(memoryStream, deflater);
-            deflaterOutputStream.Write(InData, 0, InData.Length);
-            deflaterOutputStream.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray(); // Send OG data if compressed size higher?
+			switch (Port)
+			{
+				case 30200:
+				case 30201:
+                    return InData; // When using LZO, it seems compression is trivial.
+                default:
+                    MemoryStream memoryStream = new();
+                    Deflater deflater = new(9);
+                    DeflaterOutputStream deflaterOutputStream = new(memoryStream, deflater);
+                    deflaterOutputStream.Write(InData, 0, InData.Length);
+                    deflaterOutputStream.Close();
+                    memoryStream.Close();
+                    return memoryStream.ToArray(); // Send OG data if compressed size higher?
+            }
         }
 
         public static byte[] Encrypt(string key, byte[] data)
@@ -326,15 +330,17 @@ namespace QuazalServer.QNetZ
 			uint count = 0;
 			byte[] buff = Array.Empty<byte>();
             MD5 md5 = MD5.Create();
-            if (input == "h7fyctiuucf" || input == "UbiDummyPwd")
+			switch (input)
 			{
-                count = 65000 + (pid % 1024);
-                buff = Encoding.ASCII.GetBytes(input);
-            }
-			else
-			{
-                count = pid % 1024;
-                buff = MiscUtils.HexStringToByteArray(input);
+				case "h7fyctiuucf":
+				case "UbiDummyPwd":
+                    count = 65000 + (pid % 1024);
+                    buff = Encoding.ASCII.GetBytes(input);
+                    break;
+				default:
+                    count = pid % 1024;
+                    buff = MiscUtils.HexStringToByteArray(input);
+                    break;
             }
 
             for (uint i = 0; i < count; i++)

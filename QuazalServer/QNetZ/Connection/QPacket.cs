@@ -14,7 +14,7 @@ namespace QuazalServer.QNetZ
 			SessionDiscovery,
 			NATEcho,
 			Routing,
-			LastStreamType,
+			LastStreamType
 		}
 
 		public enum PACKETFLAG
@@ -89,17 +89,20 @@ namespace QuazalServer.QNetZ
 		public byte checkSum;
 		public bool usesCompression = true;
 		public uint realSize;
+		public uint Port;
 
 		public QPacket()
 		{
+
 		}
 
-		public QPacket(byte[] data) 
-			: this(new MemoryStream(data))
+		public QPacket(int Port, byte[] data) 
+			: this(Port, new MemoryStream(data))
 		{
+
 		}
 
-		public QPacket(Stream stream)
+		public QPacket(int Port, Stream stream)
 		{
 			m_oSourceVPort = new VPort(Helper.ReadU8(stream));
 			m_oDestinationVPort = new VPort(Helper.ReadU8(stream));
@@ -143,7 +146,7 @@ namespace QuazalServer.QNetZ
 				{
 					MemoryStream m2 = new();
 					m2.Write(payload, 1, payload.Length - 1);
-					payload = Helper.Decompress(m2.ToArray());
+					payload = Helper.Decompress(Port, m2.ToArray());
 				}
 				else
 				{
@@ -158,7 +161,7 @@ namespace QuazalServer.QNetZ
 			realSize = (uint)stream.Position;
 		}
 
-		public byte[]? getProcessedPayload()
+		public byte[]? getProcessedPayload(int Port)
 		{
 			byte[]? tmpPayload = payload;
 
@@ -167,7 +170,7 @@ namespace QuazalServer.QNetZ
 				if (usesCompression)
 				{
 					uint sizeBefore = (uint)tmpPayload.Length;
-					byte[] buff = Helper.Compress(tmpPayload);
+					byte[] buff = Helper.Compress(Port, tmpPayload);
 					byte count = (byte)(sizeBefore / buff.Length);
 
 					if ((sizeBefore % buff.Length) != 0)
@@ -193,7 +196,7 @@ namespace QuazalServer.QNetZ
 			return tmpPayload;
 		}
 
-		public byte[] toBuffer()
+		public byte[] toBuffer(int Port, string AccessKey)
 		{
 			// process type flags
 			byte typeFlag = (byte)type;
@@ -205,7 +208,7 @@ namespace QuazalServer.QNetZ
             }
 
 			// write
-			MemoryStream m = new MemoryStream();
+			MemoryStream m = new();
 			if (m_oSourceVPort != null)
                 Helper.WriteU8(m, m_oSourceVPort.toByte());
 			if (m_oDestinationVPort != null)
@@ -222,7 +225,7 @@ namespace QuazalServer.QNetZ
 				Helper.WriteU8(m, m_byPartNumber);
 
 			// compress
-			var processedPayload = getProcessedPayload();
+			byte[]? processedPayload = getProcessedPayload(Port);
 
 			if (processedPayload != null)
 			{
@@ -231,30 +234,30 @@ namespace QuazalServer.QNetZ
 
                 m.Write(processedPayload, 0, processedPayload.Length);
 
-                return AddCheckSum(m.ToArray());
+                return AddCheckSum(m.ToArray(), AccessKey);
             }
 
 			return Array.Empty<byte>();
         }
 
-		private byte[] AddCheckSum(byte[] buff)
+		private byte[] AddCheckSum(byte[] buff, string AccessKey)
 		{
 			byte[] result = new byte[buff.Length + 1];
 
 			for (int i = 0; i < buff.Length; i++)
 				result[i] = buff[i];
 
-			result[buff.Length] = checkSum = MakeChecksum(buff);
+			result[buff.Length] = checkSum = MakeChecksum(buff, AccessKey);
 
 			return result;
 		}
 
-		private static byte GetProtocolSetting(byte proto)
+		private static byte GetProtocolSetting(byte proto, string AccessKey)
 		{
 			switch (proto)
 			{
 				case 3:
-                    return (byte)Encoding.ASCII.GetBytes(QuazalServerConfiguration.AccessKey).Sum(b => b);
+                    return (byte)Encoding.ASCII.GetBytes(AccessKey).Sum(b => b);
                 case 1:
 				case 5:
 				default:
@@ -262,10 +265,10 @@ namespace QuazalServer.QNetZ
 			}
 		}
 
-		public static byte MakeChecksum(byte[] data, byte setting = 0xFF)
+		public static byte MakeChecksum(byte[] data, string AccessKey, byte setting = 0xFF)
 		{
 			if (setting == 0xFF)
-				setting = GetProtocolSetting((byte)(data[0] >> 4));
+				setting = GetProtocolSetting((byte)(data[0] >> 4), AccessKey);
 
 			uint tmp = 0;
 			for (int i = 0; i < data.Length / 4; i++)
