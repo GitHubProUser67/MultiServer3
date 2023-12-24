@@ -172,7 +172,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = uriStore.Length;
                                                 response.OutputStream.Write(uriStore, 0, uriStore.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -288,7 +287,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = sp_Login.Length;
                                                 response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -415,7 +413,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = File_Service.Length;
                                                     response.OutputStream.Write(File_Service, 0, File_Service.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -471,7 +468,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = strArr.Length;
                                                     response.OutputStream.Write(strArr, 0, strArr.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -621,7 +617,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = stats_BinaryStatsDownload_Submit.Length;
                                                 response.OutputStream.Write(stats_BinaryStatsDownload_Submit, 0, stats_BinaryStatsDownload_Submit.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -682,7 +677,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = stats_BinaryStatsDownload_Submit.Length;
                                                 response.OutputStream.Write(stats_BinaryStatsDownload_Submit, 0, stats_BinaryStatsDownload_Submit.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -734,7 +728,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = game_Create_Submit.Length;
                                                 response.OutputStream.Write(game_Create_Submit, 0, game_Create_Submit.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -974,7 +967,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = game_Finish_Submit.Length;
                                                 response.OutputStream.Write(game_Finish_Submit, 0, game_Finish_Submit.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1063,7 +1055,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_homw.Length;
                                                 response.OutputStream.Write(clan_homw, 0, clan_homw.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1119,7 +1110,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_CreateWithTag_Submit.Length;
                                                 response.OutputStream.Write(clan_CreateWithTag_Submit, 0, clan_CreateWithTag_Submit.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1178,7 +1168,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_ViewInvites.Length;
                                                 response.OutputStream.Write(clan_ViewInvites, 0, clan_ViewInvites.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1231,7 +1220,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_ViewInvites.Length;
                                                 response.OutputStream.Write(clan_ViewInvites, 0, clan_ViewInvites.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1285,7 +1273,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_GetClanPlayers.Length;
                                                 response.OutputStream.Write(clan_GetClanPlayers, 0, clan_GetClanPlayers.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1342,7 +1329,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_ViewSentInvites.Length;
                                                 response.OutputStream.Write(clan_ViewSentInvites, 0, clan_ViewSentInvites.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1396,7 +1382,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = clan_ReadNews.Length;
                                                 response.OutputStream.Write(clan_ReadNews, 0, clan_ReadNews.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1466,7 +1451,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = Calendar_GetEvents.Length;
                                                 response.OutputStream.Write(Calendar_GetEvents, 0, Calendar_GetEvents.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {

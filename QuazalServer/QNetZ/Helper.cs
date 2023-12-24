@@ -4,7 +4,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using System.IO.Compression;
 using lzo.net;
-using CryptoSporidium;
+using BackendProject;
 
 namespace QuazalServer.QNetZ
 {
@@ -221,15 +221,14 @@ namespace QuazalServer.QNetZ
 			WriteU64(s, value);
 		}
 
-        public static byte[] Decompress(int Port, byte[] InData)
+        public static byte[] Decompress(string AccessKey, byte[] InData)
         {
             MemoryStream baseInputStream = new(InData);
             MemoryStream memoryStream = new();
 
-			switch (Port)
+			switch (AccessKey)
 			{
-				case 30200:
-				case 30201:
+				case "yh64s":
                     using (LzoStream lzo = new(baseInputStream, CompressionMode.Decompress))
                     {
                         lzo.CopyTo(memoryStream);
@@ -252,12 +251,11 @@ namespace QuazalServer.QNetZ
 			}
         }
 
-        public static byte[] Compress(int Port, byte[] InData)
+        public static byte[] Compress(string AccessKey, byte[] InData)
         {
-			switch (Port)
+			switch (AccessKey)
 			{
-				case 30200:
-				case 30201:
+				case "yh64s":
                     return InData; // When using LZO, it seems compression is trivial.
                 default:
                     MemoryStream memoryStream = new();

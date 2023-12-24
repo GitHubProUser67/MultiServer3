@@ -2,14 +2,14 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
+using BackendProject.Horizon.LIBRARY.Pipeline.Udp;
 using System.Net;
 using CustomLogger;
 
 namespace Horizon.NAT
 {
     /// <summary>
-    /// NAT Server.
+    /// SCE-RT NAT.
     /// </summary>
     public class NAT
     {

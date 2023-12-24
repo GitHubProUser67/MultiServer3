@@ -17,7 +17,7 @@ namespace QuazalServer.QNetZ
 			ticket = ticketData;
 		}
 
-        public byte[]? toBuffer(int Port, string? input = null)
+        public byte[]? toBuffer(string AccessKey, string? input = null)
 		{
 			if (sessionKey != null && ticket != null)
 			{
@@ -32,10 +32,9 @@ namespace QuazalServer.QNetZ
                 byte[] buff = m.ToArray();
                 byte[] key = Array.Empty<byte>();
 
-				switch (Port)
+				switch (AccessKey)
 				{
-					case 30200:
-					case 30201:
+					case "yh64s":
                         key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
 						break;
 					default:

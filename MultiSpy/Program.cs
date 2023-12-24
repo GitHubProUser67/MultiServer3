@@ -56,18 +56,18 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!BackendProject.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("MultiSpy");
 
         MULTISPYServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/multispy.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(MULTISPYServerConfiguration.HTTPSCertificateFile);
+        BackendProject.SSLUtils.InitCerts(MULTISPYServerConfiguration.HTTPSCertificateFile);
 
         _ = Task.Run(RefreshConfig);
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

@@ -214,7 +214,7 @@ namespace QuazalServer.QNetZ
 			{
 				foreach (var crp in cache.ResponseList)
 				{
-                    var data = crp.Packet.toBuffer(Port, AccessKey);
+                    var data = crp.Packet.toBuffer(AccessKey);
                     UDP.Send(data, data.Length, cache.Endpoint);
 
                     crp.ReSendCount++;

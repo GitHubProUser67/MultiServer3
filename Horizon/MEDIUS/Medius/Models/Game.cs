@@ -1,8 +1,8 @@
 using CustomLogger;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
-using CryptoSporidium.Horizon.LIBRARY.Database.Models;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
@@ -55,7 +55,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public uint GroupMemberListSize;
         public byte[]? GroupMemberList;
         public uint AppDataSize;
-        public byte[]? AppData;
+        public string? AppData;
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
@@ -86,11 +86,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject dmeServer)
         {
             if (createGame is MediusCreateGameRequest r)
-            {
-                if (client.ApplicationId == 24180)
-                    r.MaxPlayers = 10;
                 FromCreateGameRequest(r);
-            }
             else if (createGame is MediusCreateGameRequest0 r0)
                 FromCreateGameRequest0(r0);
             else if (createGame is MediusCreateGameRequest1 r1)

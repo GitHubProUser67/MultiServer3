@@ -2,16 +2,16 @@ using CustomLogger;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Cryptography;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
-using CryptoSporidium.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Cryptography;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Pipeline.Tcp;
+using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute;
-using CryptoSporidium;
+using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
+using BackendProject;
 
 namespace Horizon.DME
 {
@@ -33,6 +33,7 @@ namespace Horizon.DME
             AUTHENTICATED
         }
 
+        private ConcurrentDictionary<string, ClientObject> _appIdToClient = new();
         private ConcurrentDictionary<string, ClientObject> _accessTokenToClient = new();
         private ConcurrentDictionary<string, ClientObject> _sessionKeyToClient = new();
 
@@ -56,7 +57,13 @@ namespace Horizon.DME
         }
 
         #region Clients
+        public ClientObject? GetClientByAppId(string appId)
+        {
+            if (_accessTokenToClient.TryGetValue(appId, out var result))
+                return result;
 
+            return null;
+        }
         public ClientObject? GetClientByAccessToken(string accessToken)
         {
             if (_accessTokenToClient.TryGetValue(accessToken, out var result))
@@ -263,9 +270,9 @@ namespace Horizon.DME
 
             _mpsState = MPSConnectionState.CONNECTED;
 
-            if (_mpsChannel != null && !_mpsChannel.HasAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                _mpsChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = _mpsChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (_mpsChannel != null && !_mpsChannel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                _mpsChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = _mpsChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
             scertClient.CipherService.GenerateCipher(scertClient.RsaAuthKey);
 
@@ -290,7 +297,7 @@ namespace Horizon.DME
         private async Task ProcessMessage(BaseScertMessage message, IChannel serverChannel)
         {
             // Get ScertClient data
-            var scertClient = serverChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = serverChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
             switch (message)
             {

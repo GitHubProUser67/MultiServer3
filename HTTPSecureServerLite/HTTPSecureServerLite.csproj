@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
+    <ProjectReference Include="..\BackendProject\BackendProject.csproj" />
   </ItemGroup>
 
   <ItemGroup>

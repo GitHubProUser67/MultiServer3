@@ -23,7 +23,7 @@ namespace QuazalServer.QNetZ
 
 		}
 
-		public RMCPacket(int port, QPacket p)
+		public RMCPacket(string AccessKey, QPacket p)
 		{
 			if (p.payload != null)
 			{
@@ -45,10 +45,9 @@ namespace QuazalServer.QNetZ
                         proto = (RMCProtocolId)(b);
                     }
 
-					switch (port) // Legacy servers.
+					switch (AccessKey) // Legacy servers.
 					{
-						case 30200:
-						case 30201:
+						case "yh64s":
                             if (proto == RMCProtocolId.FriendsService)
                                 proto = RMCProtocolId.LegacyFriendsService;
                             break;

@@ -1,16 +1,20 @@
 using DotNetty.Transport.Channels;
-using CryptoSporidium.Horizon.LIBRARY.Common;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Udp;
+using BackendProject.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
+using Microsoft.Extensions.Logging;
+using CustomLogger;
 
 namespace Horizon.DME.Models
 {
     public class ClientObject
     {
         protected static Random RNG = new();
+
+        public IPAddress IP { get; protected set; } = IPAddress.Any;
 
         /// <summary>
         /// 
@@ -135,7 +139,7 @@ namespace Horizon.DME.Models
         public virtual bool IsDestroyed { get; protected set; } = false;
         public virtual bool IsAggTime => !LastAggTime.HasValue || (Utils.GetMillisecondsSinceStartup() - LastAggTime.Value) >= AggTimeMs;
 
-        public Action<ClientObject> OnDestroyed;
+        public Action<ClientObject>? OnDestroyed;
 
 
         private DateTime _lastServerEchoValue = DateTime.UnixEpoch;
@@ -341,6 +345,30 @@ namespace Horizon.DME.Models
 
             return RecvFlag.HasFlag(flag);
         }
+
+        #region SetIP
+        public void SetIp(string ip)
+        {
+            switch (Uri.CheckHostName(ip))
+            {
+                case UriHostNameType.IPv4:
+                    {
+                        IP = IPAddress.Parse(ip).MapToIPv4() ?? IPAddress.Any;
+                        break;
+                    }
+                case UriHostNameType.Dns:
+                    {
+                        IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
+                        break;
+                    }
+                default:
+                    {
+                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in DMEObject.SetIp()");
+                        break;
+                    }
+            }
+        }
+        #endregion
 
         public override string ToString()
         {

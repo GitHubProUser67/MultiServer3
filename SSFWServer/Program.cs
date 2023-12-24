@@ -70,14 +70,14 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!BackendProject.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SSFWServer");
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
+        BackendProject.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
 
         SSFWClass server = new(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
 
@@ -86,7 +86,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

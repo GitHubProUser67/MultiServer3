@@ -1,9 +1,9 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Cryptography;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.RT.Models.ServerPlugins;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Cryptography;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.RT.Models.ServerPlugins;
 using Horizon.MEDIUS.Medius.Models;
 using System.Net;
 
@@ -22,7 +22,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -127,7 +127,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected virtual void ProcessMediusPluginMessage(BaseMediusPluginMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
             {
                 LoggerAccessor.LogWarn($"MessageType is Null!");
@@ -146,23 +146,23 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
                         data.ClientObject.OnConnected();
 
-                        var ProtoBytesReversed = ReverseBytesUInt(1958);
-                        var BuildNumber = ReverseBytesUInt(10);
+                        data.ClientObject.Queue(new NetMAPSHelloMessage()
+                        {
+                            m_success = false,
+                            m_isOnline = false,
+                            m_availableFactions = new byte[3] { 1, 2, 3 }
+                        });
+
+                        /*
+                        var ProtoBytesReversed = ReverseBytesUInt(1725);
+                        var BuildNumber = ReverseBytesUInt(0);
                         data.ClientObject.Queue(new NetMessageTypeProtocolInfo()
                         {
                             protocolInfo = ProtoBytesReversed, //1725 //1958
                             //protocolInfo = 1958,
                             buildNumber = BuildNumber
                         });
-
-                        /*
-                       data.ClientObject.Queue(new NetMAPSHelloMessage()
-                       {
-                           m_success = true,
-                           m_isOnline = true,
-                           m_availableFactions = new byte[1] { 1 }
-                       });
-                       */
+                        */
 
                         break;
                     }
@@ -184,22 +184,28 @@ namespace Horizon.MEDIUS.Medius
                         var sequence = new byte[1];
                         var type = new byte[1];
 
-                        data.ClientObject?.Queue(new NetMessageNewsEulaResponse()
+                        /*
+                        data.ClientObject.Queue(new NetMessageNewsEulaRequest()
+                        {
+                            m_languageExtension = "",
+                        });
+                        */
+                        /*
+                        data.ClientObject.Queue(new NetMessageNewsEulaResponse()
                         {
                             m_finished = BitShift(sequence, 1).First(),
                             m_content = newsBs,
                             m_type = (NetMessageNewsEulaResponseContentType)BitShift(type, 1).First(),
                             m_timestamp = timeBS
                         });
-
-                        /*
-                        data.ClientObject?.Queue(new NetMessageNewsEulaResponse()
+                        data.ClientObject.Queue(new NetMessageNewsEulaResponse()
                         {
                             m_finished = 1,
                             m_content = eulaBs,
                             m_type = (NetMessageNewsEulaResponseContentType)eulaBS,
                             m_timestamp = timeBS
                         });
+                        
                         */
 
                         break;

@@ -2,10 +2,15 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 using SRVEmu;
+using BackendProject;
 
 public static class SRVEMUServerConfiguration
 {
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+    public static string TheaterBindAddress { get; set; } = "theater.ps3.arcadia";
+    public static string GameServerBindAddress { get; set; } = "gameserver1.ps3.arcadia";
+    public static int GameServerPort { get; set; } = 1003;
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ea.db.json";
 
     /// <summary>
@@ -32,6 +37,10 @@ public static class SRVEMUServerConfiguration
             dynamic config = JObject.Parse(json);
 
             HTTPSCertificateFile = config.certificate_file;
+            ServerBindAddress = config.server_bind_address;
+            TheaterBindAddress = config.theater_bind_address;
+            GameServerBindAddress = config.game_server_bind_address;
+            GameServerPort = config.game_server_port;
             DatabaseConfig = config.database;
         }
         catch (Exception)
@@ -59,23 +68,23 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SRVEmu");
 
         SRVEMUServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(SRVEMUServerConfiguration.HTTPSCertificateFile);
-
-        SRVEmuServer server = new();
+        SSLUtils.InitCerts(SRVEMUServerConfiguration.HTTPSCertificateFile);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => server.Run(),
+                    () => new DirtySocksServer().Run(),
+                    () => new SRVEmu.Arcadia.Services.FeslHostedService().StartAsync(new CancellationTokenSource().Token),
+                    () => new SRVEmu.Arcadia.Services.TheaterHostedService().StartAsync(new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (MiscUtils.IsWindows())
         {
             while (true)
             {

@@ -48,7 +48,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -124,7 +123,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -188,7 +186,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {

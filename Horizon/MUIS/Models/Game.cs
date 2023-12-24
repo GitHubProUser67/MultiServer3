@@ -1,9 +1,9 @@
 using CustomLogger;
 using DotNetty.Common.Internal.Logging;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
-using CryptoSporidium.Horizon.LIBRARY.Database.Models;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 using Horizon.MUIS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;

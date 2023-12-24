@@ -1,4 +1,4 @@
-﻿using CryptoSporidium;
+﻿using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Text;
@@ -188,7 +188,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = index.Length;
                                                 response.OutputStream.Write(index, 0, index.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -326,7 +325,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = sp_Login.Length;
                                                 response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -376,7 +374,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = homesvml.Length;
                                                 response.OutputStream.Write(homesvml, 0, homesvml.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -424,7 +421,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = homesvml.Length;
                                                 response.OutputStream.Write(homesvml, 0, homesvml.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -555,7 +551,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = menusvml.Length;
                                                 response.OutputStream.Write(menusvml, 0, menusvml.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {

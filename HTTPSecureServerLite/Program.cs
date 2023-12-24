@@ -85,18 +85,16 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!BackendProject.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("HTTPSecureServer");
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
+        BackendProject.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
-        CryptoSporidium.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
-
-        HttpsProcessor server = new(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443);
+        BackendProject.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         // Timer for scheduled updates every 24 hours
         Timer timer = new(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
@@ -104,12 +102,15 @@ class Program
         // Timer for scheduled updates every 24 hours
         Timer timer1 = new(HTTPSecureServerLite.API.VEEMEE.gofish.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
+        // Timer for scheduled updates every 24 hours
+        Timer timer2 = new(HTTPSecureServerLite.API.VEEMEE.olm.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+
         _ = Task.Run(() => Parallel.Invoke(
-                    () => server.StartServer(),
+                    () => new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443).StartServer(),
                     () => RefreshConfig()
                 ));
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

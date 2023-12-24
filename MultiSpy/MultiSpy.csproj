@@ -7,7 +7,12 @@
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<ApplicationIcon>MultiSpy.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="MultiSpy.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="5.7.0">
@@ -18,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
+    <ProjectReference Include="..\BackendProject\BackendProject.csproj" />
   </ItemGroup>
 
 </Project>

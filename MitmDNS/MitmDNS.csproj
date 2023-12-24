@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
+    <ProjectReference Include="..\BackendProject\BackendProject.csproj" />
   </ItemGroup>
   
   <Target Name="CopyFolderToBuildDirectory" AfterTargets="Build">

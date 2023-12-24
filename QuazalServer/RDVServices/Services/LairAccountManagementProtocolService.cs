@@ -10,7 +10,12 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(1)]
         public RMCResult AmhLairLogin()
         {
-            return Result(new { retVal = 0x10001 });
+            // We need to send the EDNET ip in hex endian swaped.
+
+            if (AmhLairProxy.TryConvertIpAddressToHex(QuazalServerConfiguration.EdNetBindAddress, out uint result))
+                return Result(new { retVal = result });
+            else
+                return Result(new { retVal = result });
         }
     }
 }

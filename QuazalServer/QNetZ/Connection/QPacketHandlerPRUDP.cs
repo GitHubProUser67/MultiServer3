@@ -1,4 +1,4 @@
-using CryptoSporidium;
+using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Net.Sockets;
@@ -136,7 +136,7 @@ namespace QuazalServer.QNetZ
 		{
 			StringBuilder sb = new();
 
-			var data = sendPacket.toBuffer(Port, AccessKey);
+			byte[] data = sendPacket.toBuffer(AccessKey);
 			foreach (byte b in data)
 				sb.Append(b.ToString("X2") + " ");
 
@@ -153,7 +153,7 @@ namespace QuazalServer.QNetZ
 
 		public QPacket MakeACK(QPacket p, QClient client)
 		{
-			QPacket np = new(Port, p.toBuffer(Port, AccessKey));
+			QPacket np = new(AccessKey, p.toBuffer(AccessKey));
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_ACK, QPacket.PACKETFLAG.FLAG_HAS_SIZE };
 
 			np.m_oSourceVPort = p.m_oDestinationVPort;
@@ -167,7 +167,7 @@ namespace QuazalServer.QNetZ
 		public void SendACK(QPacket p, QClient client)
 		{
 			var np = MakeACK(p, client);
-			var data = np.toBuffer(Port, AccessKey);
+			var data = np.toBuffer(AccessKey);
 
 			UDP.Send(data, data.Length, client.Endpoint);
 		}
@@ -199,7 +199,7 @@ namespace QuazalServer.QNetZ
 				newPacket.payload = buff;
 				newPacket.payloadSize = (ushort)newPacket.payload.Length;
 
-				Send(reqPacket, new QPacket(Port, newPacket.toBuffer(Port, AccessKey)), client.Endpoint);
+				Send(reqPacket, new QPacket(AccessKey, newPacket.toBuffer(AccessKey)), client.Endpoint);
 
 				newPacket.m_byPartNumber++;
 				numFragments++;
@@ -223,7 +223,7 @@ namespace QuazalServer.QNetZ
 		{
 			while (true)
 			{
-                QPacket packetIn = new(Port, data);
+                QPacket packetIn = new(AccessKey, data);
 				{
                     MemoryStream m = new(data);
 
@@ -235,11 +235,11 @@ namespace QuazalServer.QNetZ
 					foreach (byte b in data)
 						sb.Append(b.ToString("X2") + " ");
 
-                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {MiscUtils.ByteArrayToHexString(buff)}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{MiscUtils.ByteArrayToHexString(buff)}");
 
-					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received : {packetIn.ToStringShort()}");
-					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received : {sb}");
-					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received : {packetIn.ToStringDetailed()}");
+					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
+					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
+					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringDetailed()}");
 				}
 
 				QPacket? reply = null;

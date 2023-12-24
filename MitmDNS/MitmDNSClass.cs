@@ -1,4 +1,4 @@
-using CryptoSporidium;
+using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Net.Security;
@@ -11,13 +11,13 @@ namespace MitmDNS
     {
         public MitmDNSProcessor? proc = new(); // = null to dispose server.
 
+        public static Dictionary<string, DnsSettings>? DicRules = null;
+        public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
+
         public void MitmDNSMain()
         {
             if (proc != null)
             {
-                Dictionary<string, DnsSettings>? dicRules = null;
-                List<KeyValuePair<string, DnsSettings>>? regRules = null;
-
                 if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
@@ -29,7 +29,7 @@ namespace MitmDNS
                         HttpResponseMessage response = client.GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
                         response.EnsureSuccessStatusCode();
                         content = response.Content.ReadAsStringAsync().Result;
-                        ParseRules(content, out dicRules, out regRules, false);
+                        ParseRules(content, false);
                     }
                     catch (Exception ex)
                     {
@@ -37,10 +37,10 @@ namespace MitmDNS
                         return;
                     }
                 }
-                else if (dicRules == null)
+                else if (DicRules == null)
                 {
                     if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
-                        ParseRules(MitmDNSServerConfiguration.DNSConfig, out dicRules, out regRules);
+                        ParseRules(MitmDNSServerConfiguration.DNSConfig);
                     else
                     {
                         LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
@@ -48,11 +48,11 @@ namespace MitmDNS
                     }
                 }
 
-                proc.RunDns(dicRules, regRules);
+                proc.RunDns();
             }
         }
 
-        private void ParseRules(string Filename, out Dictionary<string, DnsSettings> DicRules, out List<KeyValuePair<string, DnsSettings>> StarRules, bool IsFilename = true)
+        private void ParseRules(string Filename, bool IsFilename = true)
         {
             DicRules = new Dictionary<string, DnsSettings>();
             StarRules = new List<KeyValuePair<string, DnsSettings>>();
@@ -63,70 +63,75 @@ namespace MitmDNS
             {
                 HashSet<string> processedDomains = new();
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (string s in rules)
-                {
-                    if (s.StartsWith(";") || s.Trim() == string.Empty) continue;
-                    string[] split = s.Split(',');
-                    DnsSettings dns = new();
-                    switch (split[1].Trim().ToLower())
+                Parallel.ForEach(rules, s => {
+                    if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
-                        case "deny":
-                            dns.Mode = HandleMode.Deny;
-                            break;
-                        case "allow":
-                            dns.Mode = HandleMode.Allow;
-                            break;
-                        case "redirect":
-                            dns.Mode = HandleMode.Redirect;
-                            string IpFromConfig = split[2].Trim();
-                            if (Regex.IsMatch(IpFromConfig, @"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,7}:$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|"
-                                                            + @"^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|"
-                                                            + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
-                                dns.Address = IpFromConfig;
+                       
+                    }
+                    else
+                    {
+                        string[] split = s.Split(',');
+                        DnsSettings dns = new();
+                        switch (split[1].Trim().ToLower())
+                        {
+                            case "deny":
+                                dns.Mode = HandleMode.Deny;
+                                break;
+                            case "allow":
+                                dns.Mode = HandleMode.Allow;
+                                break;
+                            case "redirect":
+                                dns.Mode = HandleMode.Redirect;
+                                string IpFromConfig = split[2].Trim();
+                                if (Regex.IsMatch(IpFromConfig, @"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,7}:$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|"
+                                                                + @"^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|"
+                                                                + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
+                                    dns.Address = IpFromConfig;
+                                else
+                                    dns.Address = MiscUtils.GetLocalIPAddress().ToString();
+                                break;
+                            default:
+                                LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
+                                break;
+                        }
+
+                        string domain = split[0].Trim();
+
+                        // Check if the domain has been processed before
+                        if (!processedDomains.Contains(domain))
+                        {
+                            processedDomains.Add(domain);
+
+                            if (domain.Contains("*"))
+                            {
+                                // Escape all possible URI characters conflicting with Regex
+                                domain = domain.Replace(".", "\\.");
+                                domain = domain.Replace("$", "\\$");
+                                domain = domain.Replace("[", "\\[");
+                                domain = domain.Replace("]", "\\]");
+                                domain = domain.Replace("(", "\\(");
+                                domain = domain.Replace(")", "\\)");
+                                domain = domain.Replace("+", "\\+");
+                                domain = domain.Replace("?", "\\?");
+                                // Replace "*" characters with ".*" which means any number of any character for Regexp
+                                domain = domain.Replace("*", ".*");
+                                StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
+                            }
                             else
-                                dns.Address = MiscUtils.GetLocalIPAddress().ToString();
-                            break;
-                        default:
-                            LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
-                            break;
-                    }
-
-                    string domain = split[0].Trim();
-
-                    // Check if the domain has been processed before
-                    if (!processedDomains.Contains(domain))
-                    {
-                        processedDomains.Add(domain);
-
-                        if (domain.Contains("*"))
-                        {
-                            // Escape all possible URI characters conflicting with Regex
-                            domain = domain.Replace(".", "\\.");
-                            domain = domain.Replace("$", "\\$");
-                            domain = domain.Replace("[", "\\[");
-                            domain = domain.Replace("]", "\\]");
-                            domain = domain.Replace("(", "\\(");
-                            domain = domain.Replace(")", "\\)");
-                            domain = domain.Replace("+", "\\+");
-                            domain = domain.Replace("?", "\\?");
-                            // Replace "*" characters with ".*" which means any number of any character for Regexp
-                            domain = domain.Replace("*", ".*");
-                            StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                        }
-                        else
-                        {
-                            DicRules.Add(domain, dns);
-                            DicRules.Add("www." + domain, dns);
+                            {
+                                DicRules.Add(domain, dns);
+                                DicRules.Add("www." + domain, dns);
+                            }
                         }
                     }
-                }
+                });
             }
 
             LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
@@ -140,9 +145,7 @@ namespace MitmDNS
             // Define a list to store extracted hostnames
             List<string> hostnames = new();
 
-            // Iterate through each line in the file
-            foreach (string line in lines)
-            {
+            Parallel.ForEach(lines, line => {
                 // Split the line by tab character
                 string[] parts = line.Split('\t');
 
@@ -155,13 +158,12 @@ namespace MitmDNS
                     // Add the hostname to the list
                     hostnames.Add(hostname);
                 }
-            }
+            });
 
             DnsSettings dns = new();
 
             // Iterate through the extracted hostnames and search for corresponding .dns files
-            foreach (string hostname in hostnames)
-            {
+            Parallel.ForEach(hostnames, hostname => {
                 string dnsFilePath = Path.GetDirectoryName(Filename) + $"/{hostname}.dns";
 
                 // Check if the .dns file exists
@@ -199,7 +201,7 @@ namespace MitmDNS
                         }
                     }
                 }
-            }
+            });
 
             return DicRules;
         }

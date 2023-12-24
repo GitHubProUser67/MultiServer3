@@ -148,7 +148,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = uriStore.Length;
                                                 response.OutputStream.Write(uriStore, 0, uriStore.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -207,7 +206,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = eulaCheck.Length;
                                                     response.OutputStream.Write(eulaCheck, 0, eulaCheck.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -269,7 +267,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = unityNpLogin.Length;
                                                     response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -331,7 +328,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = unityNpLogin.Length;
                                                     response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -398,7 +394,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = eulaDisplay.Length;
                                                 response.OutputStream.Write(eulaDisplay, 0, eulaDisplay.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -461,7 +456,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = unityNpLogin.Length;
                                                 response.OutputStream.Write(unityNpLogin, 0, unityNpLogin.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -579,7 +573,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = sp_Login.Length;
                                                 response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -639,7 +632,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = Medius_Announcement_Read.Length;
                                                 response.OutputStream.Write(Medius_Announcement_Read, 0, Medius_Announcement_Read.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -686,7 +678,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = homeEnterWorld.Length;
                                                 response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -730,7 +721,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = homeEnterWorld.Length;
                                                 response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -794,7 +784,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -876,7 +865,6 @@ namespace SVO
                                                         {
                                                             response.ContentLength64 = strArr.Length;
                                                             response.OutputStream.Write(strArr, 0, strArr.Length);
-                                                            response.OutputStream.Close();
                                                         }
                                                         catch (Exception)
                                                         {
@@ -964,7 +952,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1039,7 +1026,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -1097,7 +1083,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = xmlMessage.Length;
                                                     response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -1126,7 +1111,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = xmlMessage.Length;
                                                     response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -1155,7 +1139,6 @@ namespace SVO
                                                 {
                                                     response.ContentLength64 = xmlMessage.Length;
                                                     response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                    response.OutputStream.Close();
                                                 }
                                                 catch (Exception)
                                                 {
@@ -1210,7 +1193,6 @@ namespace SVO
                                             {
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {

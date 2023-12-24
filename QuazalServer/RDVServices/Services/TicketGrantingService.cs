@@ -82,9 +82,9 @@ namespace QuazalServer.RDVServices.Services
                                     })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer(Context.Handler.Port)
+                            pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey)
                         };
-                    else if (File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
+                    else if (File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
                         reply = new(plInfo.PID)
                         {
                             retVal = (int)ErrorCode.Core_NoError,
@@ -103,7 +103,7 @@ namespace QuazalServer.RDVServices.Services
                                 })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer(Context.Handler.Port, File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
+                            pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
                         };
 
                     return Result(reply);
@@ -223,7 +223,7 @@ namespace QuazalServer.RDVServices.Services
                                     })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer(Context.Handler.Port)
+                            pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey)
                         };
 
                         return Result(loginData);
@@ -252,10 +252,10 @@ namespace QuazalServer.RDVServices.Services
                     retVal = (int)ErrorCode.Core_NoError,
                 };
 
-                if (user != null && File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.Port, File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
+                if (user != null && File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
                 else
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.Port);
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
 
                 return Result(ticketData);
             }

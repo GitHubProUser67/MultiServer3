@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Math;
-using CryptoSporidium.Horizon.RT.Cryptography.RSA;
-using CryptoSporidium;
+using BackendProject.Horizon.RT.Cryptography.RSA;
+using BackendProject;
 
 namespace Horizon.MUIS.Config
 {
@@ -72,6 +72,8 @@ namespace Horizon.MUIS.Config
         /// Whether or not to encrypt messages.
         /// </summary>
         public bool EncryptMessages { get; set; } = true;
+
+        public bool PokePatchOn { get; set; } = true;
 
         /// <summary>
         /// Universes.

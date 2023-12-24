@@ -1,5 +1,5 @@
 using DotNetty.Extensions;
-using CryptoSporidium;
+using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -9,19 +9,10 @@ namespace MitmDNS
     public class MitmDNSProcessor
     {
         public static bool DnsStarted = false;
-        public Dictionary<string, DnsSettings> dicRules = new();
-        public List<KeyValuePair<string, DnsSettings>> regRules = new();
         public IPAddress LocalHostIp = IPAddress.None; // NXDOMAIN
 
-        public void RunDns(Dictionary<string, DnsSettings>? dicRules, List<KeyValuePair<string, DnsSettings>>? regRules)
+        public void RunDns()
         {
-            if (dicRules == null || regRules == null)
-                return;
-
-            this.dicRules = dicRules;
-
-            this.regRules = regRules;
-
             UdpSocket udp = new(53);
 
             udp.OnStart(() =>
@@ -64,17 +55,17 @@ namespace MitmDNS
             string url = string.Empty;
             bool treated = false;
 
-            if (dicRules.ContainsKey(fullname))
+            if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.ContainsKey(fullname))
             {
-                if (dicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                else if (dicRules[fullname].Mode == HandleMode.Redirect) url = dicRules[fullname].Address ?? "127.0.0.1";
-                else if (dicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
+                if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
+                else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Redirect) url = MitmDNSClass.DicRules[fullname].Address ?? "127.0.0.1";
+                else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
                 treated = true;
             }
 
-            if (!treated && regRules != null)
+            if (!treated && MitmDNSClass.StarRules != null)
             {
-                foreach (KeyValuePair<string, DnsSettings> rule in regRules)
+                foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
                 {
                     Regex regex = new(rule.Key);
                     if (!regex.IsMatch(fullname))

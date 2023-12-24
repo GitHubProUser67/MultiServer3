@@ -12,7 +12,7 @@ namespace SRVEmu.Messages
         public string FROM { get; set; } = "US";
         public string LANG { get; set; } = "en";
         public string SPAM { get; set; } = "NN";
-        public string? PERSONAS { get; set; } //comma separated list
+        public string? PERSONAS { get; set; } // comma separated list
         public string LAST { get; set; } = "2003.12.8 15:51:38";
     }
 }

@@ -13,7 +13,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = CryptoSporidium.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "KEqZKh3At4Ev")
                 {
@@ -28,16 +28,16 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
                 if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml"))
                 {
-                    /*try
+                    try
                     {
                         ScoreBoardData.UpdateScoreBoard(psnid, throws, int.Parse(score));
                         ScoreBoardData.UpdateAllTimeScoreboardXml(); // We finalized edit, so we issue a write.
-                        ScoreBoardData.UpdateTodayScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
+                        ScoreBoardData.UpdateWeeklyScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {
                         // Not Important
-                    }*/
+                    }
 
                     // Load the XML string into an XmlDocument
                     XmlDocument xmlDoc = new();
@@ -83,7 +83,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = CryptoSporidium.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "KEqZKh3At4Ev")
                 {

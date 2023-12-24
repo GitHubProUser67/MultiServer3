@@ -3,11 +3,11 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Cryptography;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
-using CryptoSporidium.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Cryptography;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Pipeline.Tcp;
+using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
@@ -302,7 +302,7 @@ namespace Horizon.DME
         protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -342,19 +342,34 @@ namespace Horizon.DME
 
                         if (data.ClientObject == null)
                         {
-                            LoggerAccessor.LogWarn("[DME] - Access Token for client not found, fallback to Sessionkey!");
+                            LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
                             data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
-                        }
+                            if (data.ClientObject != null)
+                            {
+                                LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
+                                //var clients = Program.GetClients(clientConnectTcpAuxUdp.AppId);
+                                //Logger.Warn($"Clients Count for AppId {clients.Count()}");
+                                /*
+                                foreach (var client in clients)
+                                {
+                                    if (client.Token == clientConnectTcp.AccessToken)
+                                    {
 
-
-                        if (data.ClientObject == null)
-                        {
-                            LoggerAccessor.LogWarn("[DME] - AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
-                            //var clients = DmeClass.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
-                            //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                            ClientObject clientObject = new(clientConnectTcpAuxUdp.SessionKey);
-                            clientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
-                            data.ClientObject = clientObject;
+                                        LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
+                                        data.ClientObject = client;
+                                    }
+                                }
+                                */
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
+                                //var clients = Program.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
+                                //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
+                                ClientObject clientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey);
+                                clientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
+                                data.ClientObject = clientObject;
+                            }
                         }
 
                         /*
@@ -401,9 +416,35 @@ namespace Horizon.DME
 
                         data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcp.AccessToken);
 
+                        if (data.ClientObject == null)
+                        {
+                            LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
+                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcp.SessionKey);
+                            if (data.ClientObject != null)
+                                LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
+                            else
+                            {
+                                LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
+                                //var clients = DmeClass.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
+                                //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
+                                ClientObject clientObject = new(clientConnectTcp.SessionKey);
+                                clientObject.ApplicationId = clientConnectTcp.AppId;
+                                data.ClientObject = clientObject;
+                            }
+                        }
+
                         if (enableEncryption == true && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null)
                         {
                             //Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        }
+
+                        data.ClientObject.OnTcpConnected(clientChannel);
+                        data.ClientObject.ScertId = GenerateNewScertClientId();
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion;
+                        if (!_scertIdToClient.TryAdd(data.ClientObject.ScertId, data.ClientObject))
+                        {
+                            LoggerAccessor.LogWarn($"Duplicate scert client id");
+                            break;
                         }
 
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
@@ -413,6 +454,8 @@ namespace Horizon.DME
                             PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
+
+                        //pre108Complete
 
                         if (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684)
                         {
@@ -494,10 +537,10 @@ namespace Horizon.DME
                 case RT_MSG_CLIENT_SET_AGG_TIME setAggTime:
                     {
                         LoggerAccessor.LogInfo($"rt_msg_server_process_client_set_agg_time_msg: new agg time = {setAggTime.AggTime}");
-                        if (scertClient.ApplicationID != 10954 || scertClient.ApplicationID != 10952)
-                        {
-                            data.ClientObject.AggTimeMs = setAggTime.AggTime;
-                        } // We don't set AggTime here YET, the client object isn't created! for Pre-108 clients
+                        List<int> preClientObject = new List<int> { 10952, 10954, 10130 };
+
+                        if (preClientObject.Contains(scertClient.ApplicationID))
+                            data.ClientObject.AggTimeMs = setAggTime.AggTime; //Else we don't set AggTime here YET, the client object isn't created! for Pre-108 clients
                         break;
                     }
                 case RT_MSG_CLIENT_FLUSH_ALL flushAll:

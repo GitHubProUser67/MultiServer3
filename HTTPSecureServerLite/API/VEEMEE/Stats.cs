@@ -10,7 +10,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
             if (!get)
             {
                 string id = string.Empty;
-                string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
                 if (boundary != null && PostData != null)
                 {
@@ -50,7 +50,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
             string numpeople = string.Empty;
             string objectid = string.Empty;
             string objectname = string.Empty;
-            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {
@@ -105,7 +105,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
         public static string? Usage(byte[]? PostData, string? ContentType)
         {
             string usage = string.Empty;
-            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {

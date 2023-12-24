@@ -1,5 +1,5 @@
 using CustomLogger;
-using CryptoSporidium.Horizon.LIBRARY.Database;
+using BackendProject.Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
 
@@ -127,14 +127,14 @@ class Program
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
+        BackendProject.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => HorizonStarter(),
                     () => RefreshConfig()
                 ));
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

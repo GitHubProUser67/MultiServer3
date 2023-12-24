@@ -1,12 +1,13 @@
-﻿using CryptoSporidium;
+﻿using BackendProject;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string? ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
-    public static string ServerFilesPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
+    public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+    public static string EdNetBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+    public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -32,7 +33,8 @@ public static class QuazalServerConfiguration
             dynamic config = JObject.Parse(json);
 
             ServerBindAddress = config.server_bind_address;
-            ServerFilesPath = config.server_files_path;
+            EdNetBindAddress = config.ednet_bind_address;
+            QuazalStaticFolder = config.server_static_folder;
         }
         catch (Exception)
         {

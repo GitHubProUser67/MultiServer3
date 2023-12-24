@@ -9,7 +9,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
         {
             string config = string.Empty;
             string product = string.Empty;
-            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {
@@ -59,7 +59,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
             string product = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {
@@ -91,7 +91,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
         {
             string psnid = string.Empty;
             string profile = string.Empty;
-            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {

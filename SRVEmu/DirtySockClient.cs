@@ -59,47 +59,50 @@ namespace SRVEmu
                     int off = 0;
                     while (len > 0)
                     {
-                        //got some data
+                        // got some data
                         if (ExpectedBytes == -1)
                         {
-                            //new packet
+                            // new packet
                             InHeader = true;
-                            ExpectedBytes = 12; //header
+                            ExpectedBytes = 12; // header
                             TempData = new byte[12];
                             TempDatOff = 0;
                         }
 
-                        int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                        Array.Copy(bytes, off, TempData, TempDatOff, copyLen);
-                        off += copyLen;
-                        TempDatOff += copyLen;
-                        len -= copyLen;
-
-                        if (TempDatOff == TempData.Length)
+                        if (TempData != null)
                         {
-                            if (InHeader)
+                            int copyLen = Math.Min(len, TempData.Length - TempDatOff);
+                            Array.Copy(bytes, off, TempData, TempDatOff, copyLen);
+                            off += copyLen;
+                            TempDatOff += copyLen;
+                            len -= copyLen;
+
+                            if (TempDatOff == TempData.Length)
                             {
-                                //header complete.
-                                InHeader = false;
-                                int size = TempData[11] | (TempData[10] << 8) | (TempData[9] << 16) | (TempData[8] << 24);
-                                if (size > MAX_SIZE)
+                                if (InHeader)
                                 {
-                                    ClientTcp.Close(); //either something terrible happened or they're trying to mess with us
-                                    break;
+                                    //header complete.
+                                    InHeader = false;
+                                    int size = TempData[11] | (TempData[10] << 8) | (TempData[9] << 16) | (TempData[8] << 24);
+                                    if (size > MAX_SIZE)
+                                    {
+                                        ClientTcp.Close(); // either something terrible happened or they're trying to mess with us
+                                        break;
+                                    }
+                                    CommandName = Encoding.ASCII.GetString(TempData).Substring(0, 4);
+
+                                    TempData = new byte[size - 12];
+                                    TempDatOff = 0;
                                 }
-                                CommandName = Encoding.ASCII.GetString(TempData).Substring(0, 4);
+                                else
+                                {
+                                    // message complete
+                                    GotMessage(CommandName, TempData);
 
-                                TempData = new byte[size - 12];
-                                TempDatOff = 0;
-                            }
-                            else
-                            {
-                                //message complete
-                                GotMessage(CommandName, TempData);
-
-                                TempDatOff = 0;
-                                ExpectedBytes = -1;
-                                TempData = null;
+                                    TempDatOff = 0;
+                                    ExpectedBytes = -1;
+                                    TempData = null;
+                                }
                             }
                         }
                     }
@@ -132,7 +135,7 @@ namespace SRVEmu
             }
             catch (Exception)
             {
-                //something bad happened :(
+                // something bad happened :(
             }
         }
 
@@ -144,7 +147,7 @@ namespace SRVEmu
             }
             catch (Exception)
             {
-                //something bad happened :(
+                // something bad happened :(
             }
         }
 

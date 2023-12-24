@@ -2,7 +2,7 @@ using SVO;
 using CustomLogger;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
-using CryptoSporidium.Horizon.LIBRARY.Database;
+using BackendProject.Horizon.LIBRARY.Database;
 using System.Runtime;
 using System.Net;
 
@@ -95,22 +95,22 @@ class Program
 
     static void Main()
     {
-        if (CryptoSporidium.MiscUtils.IsWindows())
-            if (!CryptoSporidium.MiscUtils.IsAdministrator())
+        if (BackendProject.MiscUtils.IsWindows())
+            if (!BackendProject.MiscUtils.IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                     Environment.Exit(0);
             }
 
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!BackendProject.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SVO");
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 
-        CryptoSporidium.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
+        BackendProject.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
 
         SVOServer httpserver = new("*");
 
@@ -130,7 +130,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

@@ -60,7 +60,7 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!BackendProject.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("MitmDNS");
@@ -74,7 +74,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

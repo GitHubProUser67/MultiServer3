@@ -1,4 +1,4 @@
-using CryptoSporidium;
+using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Text;
@@ -168,7 +168,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = TicketLoginActionData.Length;
                                             response.OutputStream.Write(TicketLoginActionData, 0, TicketLoginActionData.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -245,7 +244,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = actionListData.Length;
                                             response.OutputStream.Write(actionListData, 0, actionListData.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -278,7 +276,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = SyncFriendsActionData.Length;
                                             response.OutputStream.Write(SyncFriendsActionData, 0, SyncFriendsActionData.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -314,7 +311,6 @@ namespace SVO
                                         {
                                             response.ContentLength64 = GetPlaylistsActionData.Length;
                                             response.OutputStream.Write(GetPlaylistsActionData, 0, GetPlaylistsActionData.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {

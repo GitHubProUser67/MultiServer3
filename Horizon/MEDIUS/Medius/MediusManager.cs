@@ -1,8 +1,8 @@
 using CustomLogger;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
-using CryptoSporidium.Horizon.LIBRARY.Database.Models;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 using Horizon.MEDIUS.Medius.Models;
 using System.Collections.Concurrent;
 using System.Net;
@@ -394,8 +394,26 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
+            Game? game = null;
+            Channel? gameChannel = null;
             if (request is MediusCreateGameRequest r)
+            {
                 gameName = r.GameName;
+                if (client.ApplicationId == 23360)
+                {
+                    gameChannel = new Channel()
+                    {
+                        MaxPlayers = r.MaxPlayers,
+                        MinPlayers = r.MinPlayers,
+                        ApplicationId = r.ApplicationID,
+                        Name = gameName,
+                        Type = ChannelType.Game,
+
+                    };
+
+                    await MediusClass.Manager.AddChannel(gameChannel);
+                }
+            }
             else if (request is MediusCreateGameRequest1 r1)
                 gameName = r1.GameName;
 
@@ -434,7 +452,10 @@ namespace Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                var game = new Game(client, request, client.CurrentChannel, dme);
+                if (client.ApplicationId == 23360)
+                    game = new Game(client, request, gameChannel, dme);
+                else
+                    game = new Game(client, request, client.CurrentChannel, dme);
                 await AddGame(game);
 
                 // Send create game request to dme server
@@ -565,7 +586,7 @@ namespace Horizon.MEDIUS.Medius
                 return;
             }
 
-            //P2P
+            //P2P Matchmaking (Twisted Metal X)
             if (client.ApplicationId == 21834)
             {
 
@@ -598,7 +619,7 @@ namespace Horizon.MEDIUS.Medius
                         return;
                     }
 
-                    mps.SendServerCreateGameWithAttributesRequest(matchCreateGameRequest.MessageID.ToString(), client.AccountId, game.Id, false, (int)game.Attributes, client.ApplicationId, game.MaxPlayers);
+                    mps.SendServerCreateGameWithAttributesRequestP2P(matchCreateGameRequest.MessageID.ToString(), client.AccountId, game.Id, false, game, client);
 
                     /*
                     client.Queue(new MediusMatchCreateGameResponse()
@@ -1102,6 +1123,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
                             WorldID = game.DMEWorldId,
+                            AccessKey = client.Token,
                             SessionKey = client.SessionKey,
                             ServerKey = MediusClass.GlobalAuthPublic
                         }
@@ -1117,6 +1139,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             Type = NetConnectionType.NetConnectionTypeClientServerTCP,
                             WorldID = game.DMEWorldId,
+                            AccessKey = client.Token,
                             SessionKey = client.SessionKey,
                             ServerKey = MediusClass.GlobalAuthPublic
                         }
@@ -1348,11 +1371,13 @@ namespace Horizon.MEDIUS.Medius
             {
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: Error in retrieving party info from MUM cache [{request.MediusWorldID}]");
                 
+                /*
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusNoResult
                 });
+                */
             }
 
             #region Password
@@ -1564,6 +1589,7 @@ namespace Horizon.MEDIUS.Medius
                     return;
                 }
                 /*
+                //TEMP
                 client.Queue(new MediusPartyCreateResponse()
                 {
                     MessageID = request.MessageID,

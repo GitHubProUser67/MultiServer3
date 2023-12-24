@@ -1,5 +1,5 @@
 using DotNetty.Transport.Channels;
-using CryptoSporidium.Horizon.RT.Models;
+using BackendProject.Horizon.RT.Models;
 using Horizon.MUIS.Models;
 
 namespace Horizon.MUIS.PluginArgs

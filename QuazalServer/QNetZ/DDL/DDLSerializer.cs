@@ -219,7 +219,7 @@ namespace QuazalServer.QNetZ.DDL
                 Helper.WriteU16(str, (ushort)(short)obj);
             else if (currentType == typeof(byte[])) // This is Quazal.Buffer with 32 bit size
             {
-                var array = (byte[])obj;
+                byte[] array = (byte[])obj;
 
                 // byte arrays are special
                 Helper.WriteU32(str, (uint)array.Length);
@@ -228,15 +228,15 @@ namespace QuazalServer.QNetZ.DDL
 			else if (typeof(IAnyData).IsAssignableFrom(currentType))
 			{
 				// emit new AnyData and read it
-				var anyObject = (IAnyData)obj;
+				IAnyData anyObject = (IAnyData)obj;
 				anyObject.Write(str);
 			}
 			else if (typeof(IDictionary).IsAssignableFrom(currentType))
 			{
-                var dictionary = (IDictionary)obj;
-                var size = dictionary.Keys.Count;
+                IDictionary dictionary = (IDictionary)obj;
+                int size = dictionary.Keys.Count;
 
-                var dictTypes = dictionary.GetType().GetGenericArguments();
+                Type[] dictTypes = dictionary.GetType().GetGenericArguments();
 
                 Helper.WriteU32(str, (uint)size);
 
@@ -254,9 +254,9 @@ namespace QuazalServer.QNetZ.DDL
             {
                 var arrayValues = (IEnumerable<object>)obj;
 
-                var arrayItemType = currentType.GetGenericArguments().SingleOrDefault();
+                Type? arrayItemType = currentType.GetGenericArguments().SingleOrDefault();
 
-                var size = arrayValues.Count();
+                int size = arrayValues.Count();
 
                 // store array size
                 Helper.WriteU32(str, (uint)size);
@@ -274,7 +274,7 @@ namespace QuazalServer.QNetZ.DDL
 				BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly;
 				var allProperties = new List<PropertyInfo>();
 
-				var nType = currentType;
+				Type? nType = currentType;
 				int n = 0;
 				do
 				{

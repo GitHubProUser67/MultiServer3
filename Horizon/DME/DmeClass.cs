@@ -1,13 +1,13 @@
 using CustomLogger;
 using Newtonsoft.Json;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.DME.Config;
 using Horizon.DME.Models;
 using System.Diagnostics;
 using System.Net;
 using Horizon.PluginManager;
-using CryptoSporidium;
+using BackendProject;
 using Horizon.HTTPSERVICE;
 
 namespace Horizon.DME
@@ -255,7 +255,7 @@ namespace Horizon.DME
             }
 
             // Update default rsa key
-            CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            BackendProject.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
@@ -319,6 +319,11 @@ namespace Horizon.DME
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }
+        }
+
+        public static ClientObject? GetClients(string appId)
+        {
+            return Managers.Select(x => x.Value.GetClientByAppId(appId)).FirstOrDefault(x => x != null);
         }
 
         public static ClientObject? GetClientByAccessToken(string accessToken)

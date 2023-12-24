@@ -23,7 +23,7 @@ namespace QuazalServer.RDVServices.Services
 
 			foreach (var name in FileList.Skip(indexStart).Take(numElements))
 			{
-				var path = Path.Combine(QuazalServerConfiguration.ServerFilesPath, name);
+				var path = Path.Combine(QuazalServerConfiguration.QuazalStaticFolder, name);
 
 				if (!File.Exists(path))
 					continue;

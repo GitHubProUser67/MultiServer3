@@ -1,5 +1,5 @@
 ﻿// Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
-using CryptoSporidium;
+using BackendProject;
 using HTTPServer.Models;
 using System.Text;
 
@@ -114,7 +114,7 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalFile_Stream(HttpRequest request, string local_path)
         {
-            // We handle Range slightly differently, for now we limit a range of 500000 bytes at a maximum (magic c# memory compliant value).
+            // We handle Range slightly differently, for now we limit a range of 8000000 bytes at a maximum (magic c# memory compliant value).
             // This decision was made to not stress the server too much.
 
             using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -215,10 +215,10 @@ namespace HTTPServer.RouteHandlers
                                 else
                                 {
                                     long TotalBytes = endByte - startByte;
-                                    // Check if endByte - startByte exceeds 500000 (value from DLNA Server : https://www.codeproject.com/Articles/1079847/DLNA-Media-Server-to-feed-Smart-TVs)
+                                    // Check if endByte - startByte exceeds 8000000 (value from DLNA Server : https://www.codeproject.com/Articles/1079847/DLNA-Media-Server-to-feed-Smart-TVs)
                                     // This is an AWESOME WORKAROUND for larger than 2gb files.
-                                    if (TotalBytes > 500000)
-                                        TotalBytes = 500000;
+                                    if (TotalBytes > 8000000)
+                                        TotalBytes = 8000000;
                                     Span<byte> buffer = new byte[TotalBytes];
                                     fs.Position = startByte;
                                     TotalBytes = fs.Read(buffer);
@@ -326,10 +326,10 @@ namespace HTTPServer.RouteHandlers
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
                         long TotalBytes = endByte - startByte;
-                        // Check if endByte - startByte exceeds 500000 (value from DLNA Server : https://www.codeproject.com/Articles/1079847/DLNA-Media-Server-to-feed-Smart-TVs)
+                        // Check if endByte - startByte exceeds 8000000 (value from DLNA Server : https://www.codeproject.com/Articles/1079847/DLNA-Media-Server-to-feed-Smart-TVs)
                         // This is an AWESOME WORKAROUND for larger than 2gb files.
-                        if (TotalBytes > 500000)
-                            TotalBytes = 500000;
+                        if (TotalBytes > 8000000)
+                            TotalBytes = 8000000;
                         Span<byte> buffer = new byte[TotalBytes];
                         fs.Position = startByte;
                         TotalBytes = fs.Read(buffer);

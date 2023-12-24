@@ -1,4 +1,4 @@
-using CryptoSporidium.Horizon.RT.Models.Misc;
+using BackendProject.Horizon.RT.Models.Misc;
 using Horizon.MEDIUS.Medius.Models;
 
 namespace Horizon.MEDIUS.PluginArgs

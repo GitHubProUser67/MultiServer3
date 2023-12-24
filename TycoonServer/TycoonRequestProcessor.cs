@@ -10,7 +10,7 @@ namespace TycoonServer
             if (PostData == null || string.IsNullOrEmpty(ContentType))
                 return null;
 
-            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             string Command = string.Empty;
             string UserID = string.Empty;

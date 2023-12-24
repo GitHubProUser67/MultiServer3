@@ -15,7 +15,7 @@ namespace QuazalServer.QNetZ
 			if (p.uiSeqId > client.SeqCounter)
 				client.SeqCounter = p.uiSeqId;
 
-            RMCPacket rmc = new(handler.Port, p);
+            RMCPacket rmc = new(handler.AccessKey, p);
 			if (rmc.isRequest)
 				HandleRequest(handler, client, p, rmc);
 			else
@@ -24,7 +24,7 @@ namespace QuazalServer.QNetZ
 
 		public static void HandleResponse(QPacketHandlerPRUDP handler, QClient client, QPacket p, RMCPacket rmc)
 		{
-			WriteLog(client, $"Received Response : {rmc}", false);
+			WriteLog(client, $"Received Response:{rmc}", false);
 			string message = rmc.success ? "Success" : $"Fail : {rmc.error:X8} for callID = {rmc.callID}";
 			WriteLog(client, $"Got response for {rmc.proto} = {message}", false);
 
@@ -36,7 +36,7 @@ namespace QuazalServer.QNetZ
 			if (rmc.callID > client.CallCounterRMC)
 				client.CallCounterRMC = rmc.callID;
 
-			WriteLog(client, "Request : " + rmc.ToString(), false);
+			WriteLog(client, "Request:" + rmc.ToString(), false);
 
 			if (p.payload == null)
 			{
@@ -77,7 +77,7 @@ namespace QuazalServer.QNetZ
 			var typeList = bestMethod.GetParameters().Select(x => x.ParameterType);
 			object[]? parameters = DDLSerializer.ReadPropertyValues(typeList.ToArray(), m);
 
-			WriteLog(client, () => "Request parameters: " + DDLSerializer.ObjectToString(parameters), false);
+			WriteLog(client, () => "Request parameters:" + DDLSerializer.ObjectToString(parameters), false);
 
 			try
 			{
@@ -89,10 +89,9 @@ namespace QuazalServer.QNetZ
 					{
                         RMCResult rmcResult = (RMCResult)returnValue;
 
-						switch (handler.Port) // Legacy LZO clients not compress.
+						switch (handler.AccessKey) // Legacy LZO clients not compress.
 						{
-							case 30200:
-							case 30201:
+							case "yh64s":
                                 SendResponseWithACK(
                                 handler,
                                 rmcContext.Packet,
@@ -141,8 +140,8 @@ namespace QuazalServer.QNetZ
 
 		public static void SendResponseWithACK(QPacketHandlerPRUDP handler, QPacket p, RMCPacket rmc, QClient client, RMCPResponse reply, bool useCompression = true, uint error = 0)
 		{
-			WriteLog(client, "Response : " + reply.ToString(), false);
-			WriteLog(client, () => "Response data : \n" + reply.PayloadToString(), false);
+			WriteLog(client, "Response:" + reply.ToString(), false);
+			WriteLog(client, () => "Response data:" + reply.PayloadToString(), false);
 
 			handler.SendACK(p, client);
 
@@ -167,7 +166,7 @@ namespace QuazalServer.QNetZ
 			rmc.methodID = methodId;
 
 			WriteLog(client, $"Sending call { protoId }.{ methodId }", false);
-			WriteLog(client, () => "Call data : " + requestData.PayloadToString(), false);
+			WriteLog(client, () => "Call data:" + requestData.PayloadToString(), false);
 
 			SendRequestPacket(handler, packet, rmc, client, requestData, true, 0);
 		}
@@ -180,7 +179,7 @@ namespace QuazalServer.QNetZ
 
 			byte[] rmcResponseData = rmc.ToBuffer();
 
-			QPacket np = new(handler.Port, p.toBuffer(handler.Port, handler.AccessKey));
+			QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey));
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_NEED_ACK, QPacket.PACKETFLAG.FLAG_RELIABLE };
 			np.m_oSourceVPort = p.m_oDestinationVPort;
 			np.m_oDestinationVPort = p.m_oSourceVPort;
@@ -199,7 +198,7 @@ namespace QuazalServer.QNetZ
 
 			byte[] rmcRequestData = rmc.ToBuffer();
 
-			QPacket np = new(handler.Port, p.toBuffer(handler.Port, handler.AccessKey));
+			QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey));
 			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
 			np.m_uiSignature = client.IDsend;
 			np.usesCompression = useCompression;

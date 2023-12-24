@@ -1,7 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json;
 using Horizon.BWPS.Config;
-using CryptoSporidium.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.LIBRARY.Common;
 using System.Diagnostics;
 using Horizon.PluginManager;
 

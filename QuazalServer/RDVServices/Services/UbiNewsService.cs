@@ -14,21 +14,18 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(1)]
 		public RMCResult GetChannel()
 		{
-			var result = new NewsChannel
-			{
-				m_ID = 1,
-				m_ownerPID = Context.Client.sPID,
-				m_locale = "en-US",
-				m_name = "Name",
-				m_description = "Description",
-				
-				m_subscribable = false,
-				m_type = "UbiNews",
-				m_creationTime = DateTime.MinValue,
-				m_expirationTime = DateTime.MinValue,
-			};
-
-			return Result(result);
+			return Result(new NewsChannel
+            {
+                m_ID = 1,
+                m_ownerPID = Context.Client.sPID,
+                m_locale = "en-US",
+                m_name = "Name",
+                m_description = "Description",
+                m_subscribable = false,
+                m_type = "UbiNews",
+                m_creationTime = DateTime.MinValue,
+                m_expirationTime = DateTime.MinValue,
+            });
 		}
 	}
 }

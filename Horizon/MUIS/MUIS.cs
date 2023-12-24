@@ -4,15 +4,16 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Cryptography;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Cryptography;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
+using Horizon.MEDIUS;
 
 namespace Horizon.MUIS
 {
@@ -186,7 +187,7 @@ namespace Horizon.MUIS
         protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;
 
             switch (message)
@@ -211,7 +212,7 @@ namespace Horizon.MUIS
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerComplete = new List<int>() { 10334, 10421, 10442, 10540, 10724 };
+                        List<int> pre108ServerComplete = new List<int>() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
 
                         if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
@@ -354,10 +355,58 @@ namespace Horizon.MUIS
                 #region MediusGetUniverse_ExtraInfo
                 case MediusGetUniverse_ExtraInfoRequest getUniverse_ExtraInfoRequest:
                     {
-                        int compAppId = MuisClass.Settings.CompatibleApplicationIds.Find(appId => appId == data.ApplicationId);
-
-                        if (data.ApplicationId == compAppId)
+                        if (data.ApplicationId == MuisClass.Settings.CompatibleApplicationIds.Find(appId => appId == data.ApplicationId))
                         {
+                            if (MuisClass.Settings.PokePatchOn == true && MediusClass.Settings.AntiCheatOn) // Requires AntiCheat.
+                            {
+                                if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
+                                {
+                                    try
+                                    {
+                                        var jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
+
+                                        foreach (var appProperty in jsonObject.Properties())
+                                        {
+                                            string? appId = appProperty.Name;
+
+                                            if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
+                                            {
+                                                var innerObject = appProperty.Value as JObject;
+
+                                                if (innerObject != null)
+                                                {
+                                                    foreach (var offsetProperty in innerObject.Properties())
+                                                    {
+                                                        string? offset = offsetProperty.Name;
+                                                        string? valuestr = offsetProperty.Value.ToString();
+
+                                                        if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", ""), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.HexNumber, null, out uint hexValue))
+                                                        {
+                                                            LoggerAccessor.LogInfo($"[MUIS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
+                                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                                                            {
+                                                                start_Address = offsetValue,
+                                                                Payload = BitConverter.GetBytes(hexValue),
+                                                                SkipEncryption = true
+
+                                                            }, clientChannel);
+                                                        }
+                                                        else
+                                                            LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to initialise! {ex}.");
+                                    }
+                                }
+                                else
+                                    LoggerAccessor.LogWarn($"[MUIS] - No MemoryPoke config found.");
+                            }
+
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
                                 if (getUniverse_ExtraInfoRequest.InfoType == 0)
@@ -529,6 +578,24 @@ namespace Horizon.MUIS
                                             }
                                         }, clientChannel);
                                         #endregion
+
+                                        #region News
+                                        if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
+                                        {
+                                            LoggerAccessor.LogInfo("MUIS: News bit set in request");
+
+                                            Queue(new RT_MSG_SERVER_APP()
+                                            {
+                                                Message = new MediusUniverseNewsResponse()
+                                                {
+                                                    MessageID = getUniverseInfo.MessageID,
+                                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                                    News = "Simulated News",
+                                                    EndOfList = isLast
+                                                }
+                                            }, clientChannel);
+                                        }
+                                        #endregion
                                     }
                                     else
                                     {
@@ -565,53 +632,6 @@ namespace Horizon.MUIS
                                         }
                                         #endregion
 
-                                        // Requires AntiCheat.
-
-                                        if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
-                                        {
-                                            try
-                                            {
-                                                var jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
-
-                                                foreach (var appProperty in jsonObject.Properties())
-                                                {
-                                                    string? appId = appProperty.Name;
-
-                                                    if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
-                                                    {
-                                                        var innerObject = appProperty.Value as JObject;
-
-                                                        if (innerObject != null)
-                                                        {
-                                                            foreach (var offsetProperty in innerObject.Properties())
-                                                            {
-                                                                string? offset = offsetProperty.Name;
-                                                                string? valuestr = offsetProperty.Value.ToString();
-
-                                                                if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", ""), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.HexNumber, null, out uint hexValue))
-                                                                {
-                                                                    LoggerAccessor.LogInfo($"[MUIS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
-                                                                    Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                                                    {
-                                                                        start_Address = offsetValue,
-                                                                        Payload = BitConverter.GetBytes(hexValue),
-                                                                        SkipEncryption = true
-
-                                                                    }, clientChannel);
-                                                                }
-                                                                else
-                                                                    LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to initialise! {ex}.");
-                                            }
-                                        }
-
                                         Queue(new RT_MSG_SERVER_APP()
                                         {
                                             Message = new MediusUniverseVariableInformationResponse()
@@ -634,25 +654,25 @@ namespace Horizon.MUIS
                                                 EndOfList = isLast
                                             }
                                         }, clientChannel);
-                                    }
 
-                                    #region News
-                                    if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
-                                    {
-                                        LoggerAccessor.LogInfo("[MUIS] - News bit set in request");
-
-                                        Queue(new RT_MSG_SERVER_APP()
+                                        #region News
+                                        if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
                                         {
-                                            Message = new MediusUniverseNewsResponse()
+                                            LoggerAccessor.LogInfo("MUIS: News bit set in request");
+
+                                            Queue(new RT_MSG_SERVER_APP()
                                             {
-                                                MessageID = getUniverseInfo.MessageID,
-                                                StatusCode = MediusCallbackStatus.MediusSuccess,
-                                                News = "Simulated News",
-                                                EndOfList = true
-                                            }
-                                        }, clientChannel);
+                                                Message = new MediusUniverseNewsResponse()
+                                                {
+                                                    MessageID = getUniverseInfo.MessageID,
+                                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                                    News = "Simulated News",
+                                                    EndOfList = isLast
+                                                }
+                                            }, clientChannel);
+                                        }
+                                        #endregion
                                     }
-                                    #endregion
 
                                     LoggerAccessor.LogInfo($"[MUIS] - send univ info:  [{MuisClass.Settings.Universes.ToArray().Length}]");
                                 }

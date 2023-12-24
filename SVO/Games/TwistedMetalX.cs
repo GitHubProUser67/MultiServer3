@@ -92,7 +92,6 @@ namespace SVO.Games
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -208,7 +207,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = sp_Login.Length;
                                                 response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -248,7 +246,6 @@ namespace SVO.Games
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -286,7 +283,6 @@ namespace SVO.Games
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -324,7 +320,6 @@ namespace SVO.Games
                                         {
                                             response.ContentLength64 = xmlMessage.Length;
                                             response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                            response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {
@@ -366,7 +361,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {
@@ -433,7 +427,6 @@ namespace SVO.Games
                                             {
                                                 response.ContentLength64 = xmlMessage.Length;
                                                 response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
-                                                response.OutputStream.Close();
                                             }
                                             catch (Exception)
                                             {

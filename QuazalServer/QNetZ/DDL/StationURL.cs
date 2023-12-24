@@ -29,7 +29,7 @@ namespace QuazalServer.QNetZ.DDL
 			_urlScheme = scheme;
 			_address = address;
 
-			if(parameters != null)
+			if (parameters != null)
 			{
 				foreach(var key in parameters.Keys)
 				{
@@ -93,9 +93,9 @@ namespace QuazalServer.QNetZ.DDL
 				return;
 			}
 
-			var paramsString = string.Join(";", _parameters.Keys.Select(x => $"{x}={_parameters[x]}"));
+			string paramsString = string.Join(";", _parameters.Keys.Select(x => $"{x}={_parameters[x]}"));
 
-			var strSep = paramsString.Length > 0 ? ";" : string.Empty;
+			string strSep = paramsString.Length > 0 ? ";" : string.Empty;
 
 			_urlString = $"{ _urlScheme }:/address={ _address }{strSep}{ paramsString }";
 			Valid = true;

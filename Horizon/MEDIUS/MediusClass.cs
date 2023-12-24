@@ -1,19 +1,20 @@
 using CustomLogger;
 using Newtonsoft.Json;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
 using Horizon.MEDIUS.Medius.Models;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using CryptoSporidium.Horizon.LIBRARY.libAntiCheat;
+using BackendProject.Horizon.LIBRARY.libAntiCheat;
 using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
-using CryptoSporidium;
+using BackendProject;
 using Horizon.HTTPSERVICE;
+using Microsoft.Extensions.Logging;
 
 namespace Horizon.MEDIUS
 {
@@ -40,7 +41,7 @@ namespace Horizon.MEDIUS
         public static MPS ProxyServer = new();
 
         public static AntiCheat AntiCheatPlugin = new();
-        public static CryptoSporidium.Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
+        public static BackendProject.Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
 
         private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
@@ -529,7 +530,7 @@ namespace Horizon.MEDIUS
                 Settings.NATIp = SERVER_IP.ToString();
 
             // Update default rsa key
-            CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            BackendProject.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
@@ -777,6 +778,38 @@ namespace Horizon.MEDIUS
             return;
         }
         #endregion
+
+        public static List<MediusGetPolicyResponse> GetPolicyFromText(MessageId messageId, string policy)
+        {
+            List<MediusGetPolicyResponse> policies = new();
+            int i = 0;
+
+            while (i < policy.Length)
+            {
+                // Determine length of string
+                int len = policy.Length - i;
+                if (len > Constants.POLICY_MAXLEN)
+                    len = Constants.POLICY_MAXLEN;
+
+                // Add policy subtext
+                policies.Add(new MediusGetPolicyResponse()
+                {
+                    MessageID = messageId,
+                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                    Policy = policy.Substring(i, len)
+                });
+
+                // Increment i
+                i += len;
+                LoggerAccessor.LogDebug($"Sending Policy Chunk {i} of {len} Len {policy.Length} bytes");
+            }
+
+            // Set end of text
+            if (policies.Count > 0)
+                policies[policies.Count - 1].EndOfText = true;
+
+            return policies;
+        }
 
         public static void MFS_transferInit()
         {

@@ -1,4 +1,4 @@
-﻿using CryptoSporidium;
+﻿using BackendProject;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -43,10 +43,10 @@ namespace Horizon.HTTPSERVICE
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey, gameToUpdate.Name));
+                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey, gameToUpdate.Name), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
@@ -80,7 +80,7 @@ namespace Horizon.HTTPSERVICE
                     if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
                     {
                         if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey, GameToRemoveUser.Name));
+                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
                         else
                             GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                     }
@@ -142,21 +142,16 @@ namespace Horizon.HTTPSERVICE
             return JsonConvert.SerializeObject(rooms, Formatting.Indented);
         }
 
-        private static string XORString(string input, string key, string gamename)
+        private static string XORString(string input, string key)
         {
             StringBuilder result = new();
 
-            if (input.Length > 16)
-                input = input[..16];
-
-            string checksum = new CRC32().ComputeHash(input + key + gamename);
-
             for (int i = 0; i < input.Length; i++)
             {
-                result.Append((char)(input[i] ^ (key[i % key.Length] + (checksum[0] ^ 0xFF) + (gamename[2] * (gamename[0] ^ checksum[4])))));
+                result.Append((char)(input[i] ^ key[i % key.Length]));
             }
 
-            return checksum + MiscUtils.StringToHexString(result.ToString()).ToUpper();
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(result.ToString()));
         }
     }
 

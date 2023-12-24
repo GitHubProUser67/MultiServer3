@@ -1,15 +1,16 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Cryptography;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Cryptography;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Attribute;
+using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
 using System.Net;
 using Horizon.PluginManager;
+using BackendProject.Horizon.RT.Models.MGCL;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -32,9 +33,9 @@ namespace Horizon.MEDIUS.Medius
         protected override Task OnConnected(IChannel clientChannel)
         {
             // Get ScertClient data
-            if (!clientChannel.HasAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (!clientChannel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = MediusClass.Settings.MPSKey;
             scertClient.CipherService.GenerateCipher(MediusClass.Settings.MPSKey);
 
@@ -47,7 +48,7 @@ namespace Horizon.MEDIUS.Medius
             channel = clientChannel;
 
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(CryptoSporidium.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.CipherService.EnableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
 
@@ -108,7 +109,7 @@ namespace Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        List<int> pre108ServerConnect = new List<int>() { 10114, 10164, 10190, 10124, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10540, 10680, 10683, 10684, 10724 };
+                        List<int> pre108ServerConnect = new List<int>() { 10114, 10164, 10190, 10124, 10130, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
 
                         if (clientConnectTcp.AccessToken != null)
                         {
@@ -969,6 +970,38 @@ namespace Horizon.MEDIUS.Medius
             }
 
             return null;
+        }
+
+        public void SendServerCreateGameWithAttributesRequestP2P(string msgId, int acctId, int gameId, bool partyType, Game game, ClientObject client)
+        {
+            //{gameId}-{acctId}-{messageId}-{partyType}
+            Queue(new RT_MSG_SERVER_APP()
+            {
+                Message = new MediusServerCreateGameWithAttributesRequest2()
+                {
+                    MessageID = new MessageId($"{msgId}"),
+                    MediusWorldUID = (uint)gameId,
+                    Attributes = game.Attributes,
+                    ApplicationID = client.ApplicationId,
+                    MaxClients = game.MaxPlayers,
+                    ConnectInfo = new NetConnectionInfo()
+                    {
+                        AccessKey = client.Token,
+                        SessionKey = client.SessionKey,
+                        WorldID = gameId,
+                        ServerKey = new RSA_KEY(),
+                        AddressList = new NetAddressList()
+                        {
+                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                              {
+                                  new NetAddress() { BinaryAddress = BitConverter.ToUInt32(client.IP.GetAddressBytes()), BinaryPort = 0, AddressType = NetAddressType.NetAddressTypeBinaryExternal }, //Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeBinaryExternal},
+                                  new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                              }
+                        },
+                        Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
+                    }
+                }
+            }, channel);
         }
 
         public void SendServerCreateGameWithAttributesRequest(string msgId, int acctId, int gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)

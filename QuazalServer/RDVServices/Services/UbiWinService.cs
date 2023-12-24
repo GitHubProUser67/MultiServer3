@@ -143,7 +143,7 @@ namespace QuazalServer.RDVServices.Services
             {
 				m_completed = true,
 				m_platformCode = platformCode,
-				m_specificKey = ""
+				m_specificKey = string.Empty
 			});
 
 			return Result(unlockedAction);

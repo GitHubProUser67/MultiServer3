@@ -1,8 +1,8 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
-using CryptoSporidium;
-using CryptoSporidium.WebAPIs;
-using CryptoSporidium.WebAPIs.OHS;
-using CryptoSporidium.WebAPIs.PREMIUMAGENCY;
+using BackendProject;
+using BackendProject.WebAPIs;
+using BackendProject.WebAPIs.OHS;
+using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
 using HTTPServer.API.JUGGERNAUT;
 using HTTPServer.Extensions;
@@ -420,6 +420,13 @@ namespace HTTPServer
 
         #region Private Methods
 
+        private string DecodeUrl(string Value)
+        {
+            //Decode request from the DLNA device
+            if (string.IsNullOrEmpty(Value)) return string.Empty;
+            return Value.Replace("%20", " ").Replace("%26", "&").Replace("%27", "'");
+        }
+
         private string Readline(Stream stream)
         {
             int next_char;
@@ -455,6 +462,8 @@ namespace HTTPServer
 
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
 
+                        response.Headers.Add("Server", MiscUtils.GenerateServerSignature());
+
                         if (!response.Headers.ContainsKey("Content-Type"))
                             response.Headers.Add("Content-Type", "text/plain");
 
@@ -473,12 +482,16 @@ namespace HTTPServer
 
                         stream.Flush();
 
+                        int buffersize = HTTPServerConfiguration.BufferSize;
                         long totalBytes = response.ContentStream.Length;
                         long bytesLeft = totalBytes;
 
+                        if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                            buffersize = 500000;
+
                         while (bytesLeft > 0)
                         {
-                            Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
                             int n = response.ContentStream.Read(buffer);
 
                             stream.Write(buffer);
@@ -563,19 +576,20 @@ namespace HTTPServer
 
         private HttpRequest? GetRequest(Stream inputStream)
         {
-            //Read Request Line
+            string line = string.Empty;
+
+            // Read Request Line
             string request = Readline(inputStream);
 
             string[] tokens = request.Split(' ');
             if (tokens.Length != 3)
                 return null;
-            string method = tokens[0].ToUpper();
-            string url = tokens[1];
-            //string protocolVersion = tokens[2]; // Unused.
+            // string protocolVersion = tokens[2]; // Unused.
 
-            //Read Headers
+            byte[]? DataBytes = null;
+
+            // Read Headers
             Dictionary<string, string> headers = new();
-            string line;
             while ((line = Readline(inputStream)) != null)
             {
                 if (line.Equals(string.Empty))
@@ -584,18 +598,15 @@ namespace HTTPServer
                 int separator = line.IndexOf(':');
                 if (separator == -1)
                     return null;
-                string name = line.Substring(0, separator);
+                string name = line[..separator];
                 int pos = separator + 1;
                 while ((pos < line.Length) && (line[pos] == ' '))
                 {
                     pos++;
                 }
 
-                string value = line.Substring(pos, line.Length - pos);
-                headers.Add(name, value);
+                headers.Add(name, line[pos..]);
             }
-
-            byte[]? DataBytes = null;
 
             using (MemoryStream contentStream = new())
             {
@@ -622,8 +633,8 @@ namespace HTTPServer
 
             return new HttpRequest()
             {
-                Method = method,
-                Url = url,
+                Method = tokens[0].ToUpper(),
+                Url = DecodeUrl(tokens[1]),
                 Headers = headers,
                 Data = DataBytes
             };

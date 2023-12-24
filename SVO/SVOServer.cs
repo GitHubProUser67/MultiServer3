@@ -96,7 +96,7 @@ namespace SVO
             }
             catch (Exception e)
             {
-                LoggerAccessor.LogError("[SVO] - ERROR: " + e.Message);
+                LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                 threadActive = false;
                 return;
             }
@@ -112,12 +112,12 @@ namespace SVO
                 }
                 catch (HttpListenerException e)
                 {
-                    if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - ERROR: " + e.Message);
+                    if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     threadActive = false;
                 }
                 catch (Exception e)
                 {
-                    LoggerAccessor.LogError("[SVO] - ERROR: " + e.Message);
+                    LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     threadActive = false;
                 }
             }
@@ -172,7 +172,7 @@ namespace SVO
                                 {
                                     ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                     ctx.Response.Headers.Set("Content-Language", string.Empty);
-                                    string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
+                                    string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
 
                                     var data = MultipartFormDataParser.Parse(ctx.Request.InputStream, boundary);
 
@@ -203,7 +203,6 @@ namespace SVO
                                         {
                                             ctx.Response.ContentLength64 = datatooutput.Length;
                                             ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
-                                            ctx.Response.OutputStream.Close();
                                         }
                                         catch (Exception)
                                         {

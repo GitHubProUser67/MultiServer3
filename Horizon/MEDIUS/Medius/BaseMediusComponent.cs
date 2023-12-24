@@ -4,13 +4,13 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using CryptoSporidium.Horizon.RT.Common;
-using CryptoSporidium.Horizon.RT.Models;
-using CryptoSporidium.Horizon.LIBRARY.Common;
-using CryptoSporidium.Horizon.RT.Cryptography.RC;
+using BackendProject.Horizon.RT.Common;
+using BackendProject.Horizon.RT.Models;
+using BackendProject.Horizon.LIBRARY.Common;
+using BackendProject.Horizon.RT.Cryptography.RC;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
-using CryptoSporidium.Horizon.LIBRARY.Pipeline.Tcp;
+using BackendProject.Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -18,7 +18,7 @@ namespace Horizon.MEDIUS.Medius
 {
     public abstract class BaseMediusComponent : IMediusComponent
     {
-        public static Random RNG = new Random();
+        public static Random RNG = new();
 
         public enum ClientState
         {
@@ -33,7 +33,7 @@ namespace Horizon.MEDIUS.Medius
         public abstract int TCPPort { get; }
         public abstract int UDPPort { get; }
 
-        public IPAddress? IPAddress => MediusClass.SERVER_IP;
+        public IPAddress IPAddress => MediusClass.SERVER_IP;
 
         protected IEventLoopGroup? _bossGroup = null;
         protected IEventLoopGroup? _workerGroup = null;

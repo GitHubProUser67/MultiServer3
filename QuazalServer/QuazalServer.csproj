@@ -6,9 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 21005:21005 -p 21006:21006 -p 30200:30200</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 21005:21005 -p 21006:21006 -p 21032:21032 -p 30200:30200 -p 30201:30201</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<ApplicationIcon>QuazalServer.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="QuazalServer.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="5.7.0">
@@ -20,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CryptoSporidium\CryptoSporidium.csproj" />
+    <ProjectReference Include="..\BackendProject\BackendProject.csproj" />
   </ItemGroup>
 
 </Project>

@@ -22,20 +22,20 @@ namespace QuazalServer.QNetZ
 
 		public StateType State;
 
-		public uint sPID;				// server PID
-		public ushort sPort;			// server port
-		public IPEndPoint Endpoint;     // client endpoint
+		public uint sPID; // server PID
+		public ushort sPort; // server port
+		public IPEndPoint Endpoint; // client endpoint
 		public DateTime LastPacketTime;
 
 		public byte SessionID;
 
-		public uint IDrecv;		// connection signature for recieving
-		public uint IDsend;		// connection signature for sending
+		public uint IDrecv;	// connection signature for recieving
+		public uint IDsend;	// connection signature for sending
 
 		public ushort SeqCounter;
 		public ushort SeqCounterOut;
 		public uint CallCounterRMC;
 
-		public PlayerInfo? Info;      // unique player info instance
+		public PlayerInfo? Info; // unique player info instance
 	}
 }

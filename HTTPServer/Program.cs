@@ -91,7 +91,7 @@ class Program
 
     static void Main()
     {
-        if (!CryptoSporidium.MiscUtils.IsWindows())
+        if (!BackendProject.MiscUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("HTTPServer");
@@ -100,24 +100,12 @@ class Program
 
         var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
 
-        CryptoSporidium.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
-
-        HttpServer httpServer = new(80, route_config);
-
-        HttpServer DLNAServer = new(9090, route_config);
-
-        HttpServer QAhttpServer = new(10010, route_config);
-
-        Thread thread = new(new ThreadStart(httpServer.Listen));
-
-        Thread DLNAthread = new(new ThreadStart(DLNAServer.Listen));
-
-        Thread QAthread = new(new ThreadStart(QAhttpServer.Listen));
+        BackendProject.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => thread.Start(),
-                    () => DLNAthread.Start(),
-                    () => QAthread.Start(),
+                    () => new Thread(new ThreadStart(new HttpServer(80, route_config).Listen)).Start(),
+                    () => new Thread(new ThreadStart(new HttpServer(9090, route_config).Listen)).Start(),
+                    () => new Thread(new ThreadStart(new HttpServer(10010, route_config).Listen)).Start(),
                     () => RefreshConfig()
                 ));
 
@@ -129,7 +117,7 @@ class Program
             }
         }
 
-        if (CryptoSporidium.MiscUtils.IsWindows())
+        if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
             {

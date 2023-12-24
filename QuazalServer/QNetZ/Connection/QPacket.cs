@@ -1,3 +1,4 @@
+using BackendProject.Horizon.RT.Models;
 using System.Text;
 
 namespace QuazalServer.QNetZ
@@ -96,13 +97,13 @@ namespace QuazalServer.QNetZ
 
 		}
 
-		public QPacket(int Port, byte[] data) 
-			: this(Port, new MemoryStream(data))
+		public QPacket(string AccessKey, byte[] data) 
+			: this(AccessKey, new MemoryStream(data))
 		{
 
 		}
 
-		public QPacket(int Port, Stream stream)
+		public QPacket(string AccessKey, Stream stream)
 		{
 			m_oSourceVPort = new VPort(Helper.ReadU8(stream));
 			m_oDestinationVPort = new VPort(Helper.ReadU8(stream));
@@ -146,7 +147,7 @@ namespace QuazalServer.QNetZ
 				{
 					MemoryStream m2 = new();
 					m2.Write(payload, 1, payload.Length - 1);
-					payload = Helper.Decompress(Port, m2.ToArray());
+					payload = Helper.Decompress(AccessKey, m2.ToArray());
 				}
 				else
 				{
@@ -161,7 +162,7 @@ namespace QuazalServer.QNetZ
 			realSize = (uint)stream.Position;
 		}
 
-		public byte[]? getProcessedPayload(int Port)
+		public byte[]? getProcessedPayload(string AccessKey)
 		{
 			byte[]? tmpPayload = payload;
 
@@ -170,7 +171,7 @@ namespace QuazalServer.QNetZ
 				if (usesCompression)
 				{
 					uint sizeBefore = (uint)tmpPayload.Length;
-					byte[] buff = Helper.Compress(Port, tmpPayload);
+					byte[] buff = Helper.Compress(AccessKey, tmpPayload);
 					byte count = (byte)(sizeBefore / buff.Length);
 
 					if ((sizeBefore % buff.Length) != 0)
@@ -196,7 +197,7 @@ namespace QuazalServer.QNetZ
 			return tmpPayload;
 		}
 
-		public byte[] toBuffer(int Port, string AccessKey)
+		public byte[] toBuffer(string AccessKey)
 		{
 			// process type flags
 			byte typeFlag = (byte)type;
@@ -225,7 +226,7 @@ namespace QuazalServer.QNetZ
 				Helper.WriteU8(m, m_byPartNumber);
 
 			// compress
-			byte[]? processedPayload = getProcessedPayload(Port);
+			byte[]? processedPayload = getProcessedPayload(AccessKey);
 
 			if (processedPayload != null)
 			{
@@ -322,29 +323,29 @@ namespace QuazalServer.QNetZ
 
 		public string ToStringDetailed()
 		{
-			StringBuilder sb = new();
-			sb.AppendLine("UDPPacket {");
-			sb.AppendLine("\tFrom         : " + m_oSourceVPort);
-			sb.AppendLine("\tTo           : " + m_oDestinationVPort);
-			sb.AppendLine("\tFlags        : " + GetFlagsString());
-			sb.AppendLine("\tType         : " + type);
-			sb.AppendLine("\tSession ID   : 0x" + m_bySessionID.ToString("X2"));
-			sb.AppendLine("\tSignature    : 0x" + m_uiSignature.ToString("X8"));
-			sb.AppendLine("\tSequence ID  : 0x" + uiSeqId.ToString("X4"));
+            StringBuilder sb = new();
+			sb.AppendLine(" UDPPacket {");
+			sb.AppendLine(" From:" + m_oSourceVPort);
+			sb.AppendLine(" To:" + m_oDestinationVPort);
+			sb.AppendLine(" Flags:" + GetFlagsString());
+			sb.AppendLine(" Type:" + type);
+			sb.AppendLine(" Session ID:0x" + m_bySessionID.ToString("X2"));
+			sb.AppendLine(" Signature:0x" + m_uiSignature.ToString("X8"));
+			sb.AppendLine(" Sequence ID:0x" + uiSeqId.ToString("X4"));
 			if (type == PACKETTYPE.SYN || type == PACKETTYPE.CONNECT)
-				sb.AppendLine("\tConn. Sig.   : 0x" + m_uiConnectionSignature.ToString("X8"));
+				sb.AppendLine(" Conn. Sig.:0x" + m_uiConnectionSignature.ToString("X8"));
 			if (type == PACKETTYPE.DATA)
-				sb.AppendLine("\tPart Number  : 0x" + m_byPartNumber.ToString("X2"));
+				sb.AppendLine(" Part Number:0x" + m_byPartNumber.ToString("X2"));
 			if (flags != null && flags.Contains(PACKETFLAG.FLAG_HAS_SIZE))
-				sb.AppendLine("\tPayload Size : 0x" + payloadSize.ToString("X4"));
-			sb.Append("\tPayLoad      : ");
+				sb.AppendLine(" Payload Size:0x" + payloadSize.ToString("X4"));
+			sb.Append(" PayLoad:");
 			if (payload != null)
 			{
                 foreach (byte b in payload)
                     sb.Append(b.ToString("X2") + " ");
             }
 			sb.AppendLine();
-			sb.AppendLine("\tChecksum     : 0x" + checkSum.ToString("X2"));
+			sb.AppendLine(" Checksum:0x" + checkSum.ToString("X2"));
 			sb.AppendLine("}");
 			return sb.ToString();
 		}

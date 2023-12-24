@@ -29,9 +29,9 @@ namespace QuazalServer.RDVServices.Services
             {
                 PlayerInfo? plInfo = Context.Client.Info;
 
-				if (File.Exists(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{plInfo.PID}_legacy_friends-list.json"))
+				if (File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{plInfo.PID}_legacy_friends-list.json"))
 				{
-                    List<FriendData>? list = JsonConvert.DeserializeObject<List<FriendData>>(File.ReadAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{plInfo.PID}_legacy_friends-list.json"));
+                    List<FriendData>? list = JsonConvert.DeserializeObject<List<FriendData>>(File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{plInfo.PID}_legacy_friends-list.json"));
 
                     if (list != null)
                         return Result(list);
@@ -55,9 +55,9 @@ namespace QuazalServer.RDVServices.Services
                             }
                         };
 
-                        Directory.CreateDirectory(QuazalServerConfiguration.ServerFilesPath + $"/Accounts");
+                        Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts");
 
-                        File.WriteAllText(QuazalServerConfiguration.ServerFilesPath + $"/Accounts/{plInfo.PID}_legacy_friends-list.json", JsonConvert.SerializeObject(result, Formatting.Indented));
+                        File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{plInfo.PID}_legacy_friends-list.json", JsonConvert.SerializeObject(result, Formatting.Indented));
 
                         return Result(result);
                     }

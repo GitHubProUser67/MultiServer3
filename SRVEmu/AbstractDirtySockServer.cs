@@ -1,4 +1,4 @@
-using CryptoSporidium;
+using BackendProject;
 using SRVEmu.Messages;
 using System.Net;
 using System.Net.Sockets;
@@ -12,7 +12,7 @@ namespace SRVEmu
         public bool lowlevel = false;
         public int SessionID = 1;
 
-        public List<DirtySockClient> SrvEmuClients = new();
+        public List<DirtySockClient> DirtySocksClients = new();
         public TcpListener Listener;
 
         private Thread ListenerThread;
@@ -37,11 +37,10 @@ namespace SRVEmu
                     TcpClient client = Listener.AcceptTcpClient();
                     if (client != null)
                     {
-                        DirtySockClient eaC = new(this, client)
+                        AddClient(new DirtySockClient(this, client)
                         {
                             SessionID = SessionID++
-                        };
-                        AddClient(eaC);
+                        });
                     }
                     await Task.Delay(1);
                 }
@@ -54,29 +53,28 @@ namespace SRVEmu
 
         public virtual void AddClient(DirtySockClient client)
         {
-            lock (SrvEmuClients)
+            lock (DirtySocksClients)
             {
-                SrvEmuClients.Add(client);
+                DirtySocksClients.Add(client);
             }
         }
 
         public virtual void RemoveClient(DirtySockClient client)
         {
-            lock (SrvEmuClients)
+            lock (DirtySocksClients)
             {
-                SrvEmuClients.Remove(client);
+                DirtySocksClients.Remove(client);
             }
         }
 
         public void Broadcast(AbstractMessage msg)
         {
-            byte[] data = msg.GetData();
-            lock (SrvEmuClients)
+            lock (DirtySocksClients)
             {
-                foreach (var user in SrvEmuClients)
+                foreach (DirtySockClient? user in DirtySocksClients)
                 {
                     user.PingSendTick = DateTime.Now.Ticks;
-                    user.SendMessage(data);
+                    user.SendMessage(msg.GetData());
                 }
             }
         }

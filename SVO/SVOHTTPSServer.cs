@@ -44,13 +44,13 @@ namespace SVO
         {
             string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
 
-            foreach ((string HeaderIndex, string HeaderItem) header in headers)
+            foreach ((string HeaderIndex, string HeaderItem) in headers)
             {
-                Match match = Regex.Match(header.HeaderItem, pattern);
+                Match match = Regex.Match(HeaderItem, pattern);
 
-                if (header.HeaderIndex == requestedHeaderIndex)
-                    return header.HeaderItem;
-                else if (header.HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                if (HeaderIndex == requestedHeaderIndex)
+                    return HeaderItem;
+                else if (HeaderItem.Contains(requestedHeaderIndex) && match.Success)
                     return match.Groups[2].Value;
             }
             return string.Empty; // Return empty string if the header index is not found, why not null, because in this case it prevents us
@@ -86,7 +86,7 @@ namespace SVO
 
                 string UserAgent = GetHeaderValue(Headers, "User-Agent");
 
-                if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident")))
+                if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident") || UserAgent.ToLower().Contains("bytespider"))) // Get Away TikTok.
                 {
                     LoggerAccessor.LogInfo($"[SVO_HTTPS] - Client - {Host} Requested the SVO_HTTPS Server while not being allowed!");
                     Response.Clear();
@@ -123,7 +123,7 @@ namespace SVO
                                             Response.SetHeader("Content-Language", string.Empty);
                                             Response.SetHeader("Transfer-Encoding", "chunked");
 
-                                            string? boundary = CryptoSporidium.HTTPUtils.ExtractBoundary(ContentType);
+                                            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
                                             var data = MultipartFormDataParser.Parse(new MemoryStream(request.BodyBytes), boundary);
 
