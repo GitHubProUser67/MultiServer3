@@ -1,0 +1,32 @@
+name: Docker Image CI
+
+on:
+    workflow_dispatch:
+        inputs:
+            choice:
+              type: choice
+              description: Choose to build
+              options:
+              - PSMultiServer
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y_%m_%d')"
+    
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag psmultiserver:latest_${{steps.date.outputs.date}}
+
+    - name: Upload image
+      uses: ishworkh/docker-image-artifact-upload@646456a9efccc4dfcecd79ab9f24518ce39a4ed7
+      with:
+        image: "psmultiserver:latest_${{steps.date.outputs.date}}"
+        retention_days: "2"
