@@ -142,8 +142,11 @@ namespace Horizon.HTTPSERVICE
             return JsonConvert.SerializeObject(rooms, Formatting.Indented);
         }
 
-        private static string XORString(string input, string key)
+        private static string XORString(string input, string? key)
         {
+            if (string.IsNullOrEmpty(key))
+                key = "@00000000000000000000000!";
+
             StringBuilder result = new();
 
             for (int i = 0; i < input.Length; i++)
