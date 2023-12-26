@@ -13,6 +13,7 @@ namespace HTTPServer.Models
 
         public string? Method { get; set; }
         public string? Url { get; set; }
+        public string IP { get; set; } = string.Empty;
         public byte[]? Data { get; set; }
         public Route? Route { get; set; }
         public Dictionary<string, string> Headers { get; set; }

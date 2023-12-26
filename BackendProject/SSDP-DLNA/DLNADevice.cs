@@ -126,7 +126,7 @@ namespace BackendProject.SSDP_DLNA
     public class DLNADevice
     {
         private int PlayListPointer = 0;
-        private Dictionary<int, string> PlayListQueue = new Dictionary<int, string>();
+        private Dictionary<int, string> PlayListQueue = new();
         public string ControlURL = string.Empty;
         public bool Connected = false;
         public int ReturnCode = 0;
@@ -196,11 +196,13 @@ namespace BackendProject.SSDP_DLNA
 
         private string XMLHead = "<?xml version=\"1.0\"?>" + Environment.NewLine + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + Environment.NewLine + "<SOAP-ENV:Body>" + Environment.NewLine;
         private string XMLFoot = "</SOAP-ENV:Body>" + Environment.NewLine + "</SOAP-ENV:Envelope>" + Environment.NewLine;
+
         public string GetPosition()
         {
             // Returns the current position for the track that is playing on the DLNA server
             return GetPosition(ControlURL);
         }
+
         private string GetPosition(string ControlURL)
         {
             // Returns the current position for the track that is playing on the DLNA server
