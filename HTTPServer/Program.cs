@@ -103,9 +103,9 @@ class Program
         BackendProject.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new Thread(new ThreadStart(new HttpServer(80, route_config).Listen)).Start(),
-                    () => new Thread(new ThreadStart(new HttpServer(9090, route_config).Listen)).Start(),
-                    () => new Thread(new ThreadStart(new HttpServer(10010, route_config).Listen)).Start(),
+                    () => new Thread(new HttpServer(80, route_config).Listen).Start(),
+                    () => new Thread(new HttpServer(9090, route_config).Listen).Start(),
+                    () => new Thread(new HttpServer(10010, route_config).Listen).Start(),
                     () => RefreshConfig()
                 ));
 

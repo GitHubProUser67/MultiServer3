@@ -444,51 +444,69 @@ namespace HTTPSecureServerLite
                                     await ctx.Response.SendAsync("User-agent: *\nDisallow: / ");
                                     break;
                                 case "/!DLNADiscovery/":
-                                    statusCode = HttpStatusCode.OK;
-                                    SSDP.Start(); // Start a service as this will take a long time
-                                    Thread.Sleep(14000); // Wait for each TV/Device to reply to the broadcast
-                                    SSDP.Stop(); // Stop the service if it has not stopped already
-                                    List<DlnaDeviceInfo> devices = new();
-                                    // 2 Threads only.
-                                    Parallel.ForEach(SSDP.Servers.Split(' '), new ParallelOptions { MaxDegreeOfParallelism = 2 }, url => {
-                                        string? xmlContent = FetchDLNARemote.FetchXmlContent(url);
-                                        if (!string.IsNullOrEmpty(xmlContent))
-                                            devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
-                                    });
-                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                    ctx.Response.StatusCode = (int)statusCode;
-                                    ctx.Response.ContentType = "application/json;charset=UTF-8";
-                                    string? encoding0 = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
-                                    if (!string.IsNullOrEmpty(encoding0) && encoding0.Contains("gzip"))
-                                    {
-                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                        await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
-                                    }
-                                    else
-                                        await ctx.Response.SendAsync(JsonConvert.SerializeObject(devices, Formatting.Indented));
-                                    break;
-                                case "/!DLNAPlay/":
-                                    string? src = ctx.Request.RetrieveQueryValue("src");
-                                    string? dst = ctx.Request.RetrieveQueryValue("dst");
-                                    ctx.Response.ContentType = "text/plain";
-                                    if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst))
+                                    if (IsIPAllowed(clientip))
                                     {
                                         statusCode = HttpStatusCode.OK;
+                                        SSDP.Start(); // Start a service as this will take a long time
+                                        Thread.Sleep(14000); // Wait for each TV/Device to reply to the broadcast
+                                        SSDP.Stop(); // Stop the service if it has not stopped already
+                                        List<DlnaDeviceInfo> devices = new();
+                                        // 2 Threads only.
+                                        Parallel.ForEach(SSDP.Servers.Split(' '), new ParallelOptions { MaxDegreeOfParallelism = 2 }, url => {
+                                            string? xmlContent = FetchDLNARemote.FetchXmlContent(url);
+                                            if (!string.IsNullOrEmpty(xmlContent))
+                                                devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
+                                        });
                                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
-                                        DLNADevice Device = new(src);
-                                        if (Device.IsConnected())
-                                            await ctx.Response.SendAsync($"DLNA Player returned {Device.TryToPlayFile(dst)}");
+                                        ctx.Response.ContentType = "application/json;charset=UTF-8";
+                                        string? encoding0 = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                                        if (!string.IsNullOrEmpty(encoding0) && encoding0.Contains("gzip"))
+                                        {
+                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                            await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
+                                        }
                                         else
-                                            await ctx.Response.SendAsync("Failed to send to TV");
+                                            await ctx.Response.SendAsync(JsonConvert.SerializeObject(devices, Formatting.Indented));
                                     }
                                     else
                                     {
                                         ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        ctx.Response.Send(true);
+                                    }
+                                    break;
+                                case "/!DLNAPlay/":
+                                    if (IsIPAllowed(clientip))
+                                    {
+                                        string? src = ctx.Request.RetrieveQueryValue("src");
+                                        string? dst = ctx.Request.RetrieveQueryValue("dst");
+                                        ctx.Response.ContentType = "text/plain";
+                                        if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst))
+                                        {
+                                            statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            DLNADevice Device = new(src);
+                                            if (Device.IsConnected())
+                                                await ctx.Response.SendAsync($"DLNA Player returned {Device.TryToPlayFile(dst)}");
+                                            else
+                                                await ctx.Response.SendAsync("Failed to send to TV");
+                                        }
+                                        else
+                                        {
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.Send(true);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
                                         ctx.Response.Send(true);
                                     }
                                     break;

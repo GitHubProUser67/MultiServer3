@@ -83,7 +83,7 @@ namespace HTTPServer
                         {
                             if (tcpClient.Available > 0 && outputStream.CanWrite)
                             {
-                                HttpRequest? request = GetRequest(inputStream);
+                                HttpRequest? request = GetRequest(inputStream, clientip);
 
                                 if (request != null && !string.IsNullOrEmpty(request.Url) && !request.GetHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                                 {
@@ -567,7 +567,7 @@ namespace HTTPServer
             return null;
         }
 
-        private HttpRequest? GetRequest(Stream inputStream)
+        private HttpRequest? GetRequest(Stream inputStream, string clientip)
         {
             string line = string.Empty;
 
@@ -629,7 +629,8 @@ namespace HTTPServer
                 Method = tokens[0].ToUpper(),
                 Url = HTTPUtils.DecodeUrl(tokens[1]),
                 Headers = headers,
-                Data = DataBytes
+                Data = DataBytes,
+                IP = clientip
             };
         }
         #endregion

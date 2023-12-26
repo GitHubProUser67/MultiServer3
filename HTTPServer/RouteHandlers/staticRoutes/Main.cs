@@ -90,21 +90,27 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = string.Empty,
                     Callable = (HttpRequest request) => {
-                        SSDP.Start(); // Start a service as this will take a long time
-                        Thread.Sleep(14000); // Wait for each TV/Device to reply to the broadcast
-                        SSDP.Stop(); // Stop the service if it has not stopped already
-                        List<DlnaDeviceInfo> devices = new();
-                        // 2 Threads only.
-                        Parallel.ForEach(SSDP.Servers.Split(' '), new ParallelOptions { MaxDegreeOfParallelism = 2 }, url => {
-                            string? xmlContent = FetchDLNARemote.FetchXmlContent(url);
-                            if (!string.IsNullOrEmpty(xmlContent))
-                               devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
-                        });
-                        string? encoding = request.GetHeaderValue("Accept-Encoding");
-                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                            return HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))), "application/json;charset=UTF-8", new string[][] { new string[] { "Content-Encoding", "gzip" } });
-                        else
-                            return HttpResponse.Send(JsonConvert.SerializeObject(devices, Formatting.Indented), "application/json;charset=UTF-8");
+                        string clientip = request.IP;
+                        if ((HTTPServerConfiguration.AllowedIPs != null && HTTPServerConfiguration.AllowedIPs.Contains(clientip)) || clientip == "127.0.0.1" || clientip.ToLower() == "localhost")
+                        {
+                            SSDP.Start(); // Start a service as this will take a long time
+                            Thread.Sleep(14000); // Wait for each TV/Device to reply to the broadcast
+                            SSDP.Stop(); // Stop the service if it has not stopped already
+                            List<DlnaDeviceInfo> devices = new();
+                            // 2 Threads only.
+                            Parallel.ForEach(SSDP.Servers.Split(' '), new ParallelOptions { MaxDegreeOfParallelism = 2 }, url => {
+                                string? xmlContent = FetchDLNARemote.FetchXmlContent(url);
+                                if (!string.IsNullOrEmpty(xmlContent))
+                                   devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
+                            });
+                            string? encoding = request.GetHeaderValue("Accept-Encoding");
+                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                return HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))), "application/json;charset=UTF-8", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                            else
+                                return HttpResponse.Send(JsonConvert.SerializeObject(devices, Formatting.Indented), "application/json;charset=UTF-8");
+                        }
+
+                        return HttpBuilder.NotAllowed();
                      }
                 },
                 new() {
@@ -113,7 +119,8 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = string.Empty,
                     Callable = (HttpRequest request) => {
-                        if (request.QueryParameters != null)
+                        string clientip = request.IP;
+                        if (((HTTPServerConfiguration.AllowedIPs != null && HTTPServerConfiguration.AllowedIPs.Contains(clientip)) || clientip == "127.0.0.1" || clientip.ToLower() == "localhost") && request.QueryParameters != null)
                         {
                             string? src = request.QueryParameters["src"];
                             string? dst = request.QueryParameters["dst"];
