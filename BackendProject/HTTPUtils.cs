@@ -596,6 +596,13 @@ namespace BackendProject
             "/default.php"
         };
 
+        public static string DecodeUrl(string Value)
+        {
+            //Decode request from the DLNA device
+            if (string.IsNullOrEmpty(Value)) return string.Empty;
+            return Value.Replace("%20", " ").Replace("%26", "&").Replace("%27", "'");
+        }
+
         // HTTP requires that responses contain the proper MIME type. This quick mapping list below
         // contains many more mimetypes than System.Web.MimeMapping
 

@@ -26,15 +26,13 @@ namespace BackendProject
                 if (!Directory.Exists(rootDirectory))
                     return "[]";
 
-                var rootFileNode = CreateFileNode(rootDirectory);
-                var fileStructure = new FileStructure { root = rootFileNode };
+                FileNode? rootFileNode = CreateFileNode(rootDirectory);
+                FileStructure fileStructure = new() { root = rootFileNode };
 
-                var jsonSettings = new JsonSerializerSettings
+                return JsonConvert.SerializeObject(fileStructure, Formatting.Indented, new JsonSerializerSettings()
                 {
                     NullValueHandling = NullValueHandling.Ignore
-                };
-
-                return JsonConvert.SerializeObject(fileStructure, Formatting.Indented, jsonSettings);
+                });
             }
             catch (Exception ex)
             {
@@ -53,8 +51,8 @@ namespace BackendProject
         {
             try
             {
-                var directoryInfo = new DirectoryInfo(directoryPath);
-                var fileNode = new FileNode
+                DirectoryInfo directoryInfo = new(directoryPath);
+                FileNode fileNode = new()
                 {
                     Name = directoryInfo.Name,
                     Type = "Directory",

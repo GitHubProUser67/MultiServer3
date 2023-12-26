@@ -1,9 +1,11 @@
 ﻿using BackendProject;
+using BackendProject.SSDP_DLNA;
 using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
 using HttpServerLite;
+using Newtonsoft.Json;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -97,6 +99,7 @@ namespace HTTPSecureServerLite
         static async Task DefaultRoute(HttpContext ctx)
         {
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
+            string fullurl = string.Empty;
             string absolutepath = string.Empty;
             string Host = ctx.Request.RetrieveHeaderValue("Host");
             string clientip = ctx.Request.Source.IpAddress;
@@ -110,10 +113,12 @@ namespace HTTPSecureServerLite
                 {
                     if (ctx.Request.Url != null && !ctx.Request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                     {
-                        LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {ctx.Request.Url.Full}");
+                        fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.Full);
+
+                        LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {fullurl}");
 
                         // get filename path
-                        absolutepath = HTTPUtils.RemoveQueryString(ctx.Request.Url.Full);
+                        absolutepath = HTTPUtils.RemoveQueryString(fullurl);
                         statusCode = HttpStatusCode.Continue;
                     }
                     else
@@ -438,13 +443,62 @@ namespace HTTPSecureServerLite
                                     ctx.Response.ContentType = "text/plain";
                                     await ctx.Response.SendAsync("User-agent: *\nDisallow: / ");
                                     break;
+                                case "/!DLNADiscovery/":
+                                    statusCode = HttpStatusCode.OK;
+                                    SSDP.Start(); // Start a service as this will take a long time
+                                    Thread.Sleep(14000); // Wait for each TV/Device to reply to the broadcast
+                                    SSDP.Stop(); // Stop the service if it has not stopped already
+                                    List<DlnaDeviceInfo> devices = new();
+                                    // 2 Threads only.
+                                    Parallel.ForEach(SSDP.Servers.Split(' '), new ParallelOptions { MaxDegreeOfParallelism = 2 }, url => {
+                                        string? xmlContent = FetchDLNARemote.FetchXmlContent(url);
+                                        if (!string.IsNullOrEmpty(xmlContent))
+                                            devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
+                                    });
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "application/json;charset=UTF-8";
+                                    string? encoding0 = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                                    if (!string.IsNullOrEmpty(encoding0) && encoding0.Contains("gzip"))
+                                    {
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
+                                    }
+                                    else
+                                        await ctx.Response.SendAsync(JsonConvert.SerializeObject(devices, Formatting.Indented));
+                                    break;
+                                case "/!DLNAPlay/":
+                                    string? src = ctx.Request.RetrieveQueryValue("src");
+                                    string? dst = ctx.Request.RetrieveQueryValue("dst");
+                                    ctx.Response.ContentType = "text/plain";
+                                    if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst))
+                                    {
+                                        statusCode = HttpStatusCode.OK;
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        DLNADevice Device = new(src);
+                                        if (Device.IsConnected())
+                                            await ctx.Response.SendAsync($"DLNA Player returned {Device.TryToPlayFile(dst)}");
+                                        else
+                                            await ctx.Response.SendAsync("Failed to send to TV");
+                                    }
+                                    else
+                                    {
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.Send(true);
+                                    }
+                                    break;
                                 default:
                                     if (filePath.EndsWith("/"))
                                     {
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                         {
-                                            byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1))));
+                                            byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1])));
 
                                             if (buffer != null)
                                             {
@@ -473,7 +527,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "application/json";
-                                            await ctx.Response.SendAsync(FileStructureToJson.GetFileStructureAsJson(filePath.Substring(0, filePath.Length - 1)));
+                                            await ctx.Response.SendAsync(FileStructureToJson.GetFileStructureAsJson(filePath[..^1]));
                                         }
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
@@ -993,6 +1047,7 @@ namespace HTTPSecureServerLite
                                 ctx.Response.Headers.Set("Content-Length", fileInfo.Length.ToString());
                                 ctx.Response.Headers.Set("Date", DateTime.Now.ToString("r"));
                                 ctx.Response.Headers.Set("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                ctx.Response.ContentLength = fileInfo.Length;
                             }
                             else
                             {
