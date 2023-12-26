@@ -420,13 +420,6 @@ namespace HTTPServer
 
         #region Private Methods
 
-        private string DecodeUrl(string Value)
-        {
-            //Decode request from the DLNA device
-            if (string.IsNullOrEmpty(Value)) return string.Empty;
-            return Value.Replace("%20", " ").Replace("%26", "&").Replace("%27", "'");
-        }
-
         private string Readline(Stream stream)
         {
             int next_char;
@@ -634,7 +627,7 @@ namespace HTTPServer
             return new HttpRequest()
             {
                 Method = tokens[0].ToUpper(),
-                Url = DecodeUrl(tokens[1]),
+                Url = HTTPUtils.DecodeUrl(tokens[1]),
                 Headers = headers,
                 Data = DataBytes
             };

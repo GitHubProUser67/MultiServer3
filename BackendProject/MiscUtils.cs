@@ -9,10 +9,41 @@ using System.Security.Principal;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace BackendProject
 {
+    public static class StaticMiscUtils
+    {
+        public static string ChopOffBefore(this string s, string Before)
+        {
+            //Usefull function for chopping up strings
+            int End = s.ToUpper().IndexOf(Before.ToUpper());
+            if (End > -1)
+                return s[(End + Before.Length)..];
+            return s;
+        }
+
+        public static string ChopOffAfter(this string s, string After)
+        {
+            //Usefull function for chopping up strings
+            int End = s.ToUpper().IndexOf(After.ToUpper());
+            if (End > -1)
+                return s[..End];
+            return s;
+        }
+
+        public static string ReplaceIgnoreCase(this string Source, string Pattern, string Replacement)
+        {
+            // using \\$ in the pattern will screw this regex up
+            //return Regex.Replace(Source, Pattern, Replacement, RegexOptions.IgnoreCase);
+
+            if (Regex.IsMatch(Source, Pattern, RegexOptions.IgnoreCase))
+                Source = Regex.Replace(Source, Pattern, Replacement, RegexOptions.IgnoreCase);
+            return Source;
+        }
+    }
+
     public class MiscUtils
     {
         public static T[][] AddElementToLastPosition<T>(T[][] jaggedArray, T[] newElement)

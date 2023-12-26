@@ -48,6 +48,8 @@ namespace HTTPServer.RouteHandlers
                 else
                     response.Headers["Content-Type"] = ContentType;
 
+                response.Headers.Add("Content-Length", new FileInfo(local_path).Length.ToString());
+
                 return response;
             }
             else
