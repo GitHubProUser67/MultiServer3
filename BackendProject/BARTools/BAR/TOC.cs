@@ -164,6 +164,37 @@ namespace BackendProject.BARTools.BAR
             return memoryStream.ToArray();
         }
 
+        public byte[] GetBytesVersion2(string key, byte[] IV, EndianType endian)
+        {
+            MemoryStream memoryStream = new();
+            BinaryWriter binaryWriter = new(memoryStream);
+            foreach (TOCEntry tocentry in m_entries.Values.Reverse()) // IMPORTANT, HOME EBOOT WANT THE TOC BACKWARD (spent a considerable amount of reverse...)
+            {
+                if (endian == EndianType.BigEndian)
+                {
+                    binaryWriter.Write(Utils.EndianSwap((int)tocentry.FileName));
+                    uint num = tocentry.DataOffset;
+                    num |= (uint)tocentry.Compression;
+                    binaryWriter.Write(Utils.EndianSwap(num));
+                    binaryWriter.Write(Utils.EndianSwap(tocentry.Size));
+                    binaryWriter.Write(Utils.EndianSwap(tocentry.CompressedSize));
+                }
+                else
+                {
+                    binaryWriter.Write((int)tocentry.FileName);
+                    uint num = tocentry.DataOffset;
+                    num |= (uint)tocentry.Compression;
+                    binaryWriter.Write(num);
+                    binaryWriter.Write(tocentry.Size);
+                    binaryWriter.Write(tocentry.CompressedSize);
+                }
+                
+                binaryWriter.Write(tocentry.IV);
+            }
+            binaryWriter.Close();
+            return new UnBAR.AESCTR256EncryptDecrypt().InitiateCTRBuffer(memoryStream.ToArray(), Convert.FromBase64String(key), IV);
+        }
+
         public uint Version1Size
         {
             get
@@ -195,7 +226,7 @@ namespace BackendProject.BARTools.BAR
         internal void ResortOffsets()
         {
             TOCEntry[] collection = SortByDataSectionOffset();
-            LinkedList<TOCEntry> linkedList = new LinkedList<TOCEntry>(collection);
+            LinkedList<TOCEntry> linkedList = new(collection);
             LinkedListNode<TOCEntry>? linkedListNode = linkedList.First;
             if (linkedListNode != null)
             {

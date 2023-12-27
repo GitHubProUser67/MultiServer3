@@ -1,11 +1,9 @@
 using CustomLogger;
 using System.Collections;
-using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using BackendProject.BARTools.UnBAR;
 
 namespace BackendProject.BARTools.BAR
 {
@@ -32,6 +30,8 @@ namespace BackendProject.BARTools.BAR
 
         private bool encrypt = false;
 
+        private string version2key = string.Empty;
+
         public BARArchive()
         {
             m_toc = new TOC(this);
@@ -41,13 +41,20 @@ namespace BackendProject.BARTools.BAR
             m_allowWhitespaceInFilenames = true;
         }
 
-        public BARArchive(string sourceFilePath, string resourceRoot, int UserData = 0, bool encrypt = false) : this()
+        public BARArchive(string sourceFilePath, string resourceRoot, int UserData = 0, bool encrypt = false, bool bigendian = false, string version2key = "") : this()
         {
             m_sourceFile = sourceFilePath;
             m_resourceRoot = resourceRoot;
             m_header.UserData = UserData;
+            if (bigendian)
+                m_endian = EndianType.BigEndian;
             if (encrypt)
                 this.encrypt = true;
+            if (!string.IsNullOrEmpty(version2key))
+            {
+                this.version2key = version2key;
+                m_header.Version = 512;
+            }
         }
 
         public bool Dirty
@@ -188,8 +195,7 @@ namespace BackendProject.BARTools.BAR
                     if (m_header.Version == 512)
                         num = 52U;
 
-                    bool flag = (ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1;
-                    if (flag)
+                    if ((ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1 && m_header.Version != 512)
                     {
                         EndianAwareBinaryReader endianAwareBinaryReader = EndianAwareBinaryReader.Create(dataReadStream, m_endian);
                         uint num2 = endianAwareBinaryReader.ReadUInt32();
@@ -241,8 +247,7 @@ namespace BackendProject.BARTools.BAR
                             byte[] array2;
                             for (long num5 = 0L; num5 < (long)(ulong)tocentry.CompressedSize; num5 += array2.LongLength)
                             {
-                                int length = (int)Math.Min(4194304L, (long)(tocentry.CompressedSize - (ulong)num5));
-                                array2 = endianAwareBinaryReader3.ReadBytes(length);
+                                array2 = endianAwareBinaryReader3.ReadBytes((int)Math.Min(4194304L, (long)(tocentry.CompressedSize - (ulong)num5)));
                                 Array.Copy(array2, 0L, array, num5, array2.Length);
                             }
                         }
@@ -482,7 +487,7 @@ namespace BackendProject.BARTools.BAR
                 m_header.UserData = endianAwareBinaryReader.ReadInt32();
                 m_header.NumFiles = endianAwareBinaryReader.ReadUInt32();
             }
-            if (m_header.Version == 512)
+            else if (m_header.Version == 512)
             {
                 LoggerAccessor.LogInfo("BAR Version 2 Detected", m_sourceFile);
                 if (m_endian == EndianType.BigEndian)
@@ -561,9 +566,47 @@ namespace BackendProject.BARTools.BAR
             num = num << 16 | (uint)m_header.Flags;
             writer.Write(m_header.Magic);
             writer.Write(num);
-            writer.Write(m_header.Priority);
-            writer.Write(m_header.UserData);
-            writer.Write(m_header.NumFiles);
+            if (m_header.Version == 512)
+            {
+                byte[] IV = new byte[16];
+                byte[] CipheredHeaderData = new byte[28];
+                byte[] PriorityBytes = BitConverter.GetBytes(m_header.Priority);
+                byte[] UserDataBytes = BitConverter.GetBytes(m_header.UserData);
+                byte[] NumFilesBytes = BitConverter.GetBytes(m_header.NumFiles);
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(PriorityBytes);
+                    Array.Reverse(UserDataBytes);
+                    Array.Reverse(NumFilesBytes);
+                }
+                if (m_endian == EndianType.LittleEndian) // By default data is in big endian.
+                {
+                    PriorityBytes = Utils.EndianSwap(PriorityBytes);
+                    UserDataBytes = Utils.EndianSwap(UserDataBytes);
+                    NumFilesBytes = Utils.EndianSwap(NumFilesBytes);
+                }
+                Buffer.BlockCopy(m_header.IV, 0, IV, 0, m_header.IV.Length);
+                Buffer.BlockCopy(PriorityBytes, 0, CipheredHeaderData, 0, PriorityBytes.Length);
+                Buffer.BlockCopy(UserDataBytes, 0, CipheredHeaderData, PriorityBytes.Length, UserDataBytes.Length);
+                Buffer.BlockCopy(NumFilesBytes, 0, CipheredHeaderData, PriorityBytes.Length + UserDataBytes.Length, NumFilesBytes.Length);
+                Buffer.BlockCopy(m_header.Key, 0, CipheredHeaderData, PriorityBytes.Length + UserDataBytes.Length + NumFilesBytes.Length, m_header.Key.Length);
+                if (m_endian == EndianType.BigEndian) // This data is always little endian.
+                {
+                    writer.Write(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(IV, 4));
+                    writer.Write(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new UnBAR.AESCTR256EncryptDecrypt().InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV), 4));
+                }
+                else
+                {
+                    writer.Write(IV);
+                    writer.Write(new UnBAR.AESCTR256EncryptDecrypt().InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV));
+                }
+            }
+            else
+            {
+                writer.Write(m_header.Priority);
+                writer.Write(m_header.UserData);
+                writer.Write(m_header.NumFiles);
+            }
         }
 
         private TOCEntry? GetTocEntryFromFilepath(string filePath, uint dataLength)
@@ -596,7 +639,51 @@ namespace BackendProject.BARTools.BAR
 
         private void CompressAndAddFile(bool compress, bool encrypt, Stream inStream, TOCEntry tocEntry)
         {
-            if (m_header.Version != 512 && encrypt)
+            if (m_header.Version == 512)
+            {
+                ToolsImpl? toolsImpl = new();
+                bool isvalid = true;
+                if (inStream.Length == 0L)
+                    isvalid = false;
+                byte[] array = new byte[(int)inStream.Length];
+                tocEntry.Size = (uint)inStream.Length;
+                inStream.Read(array, 0, (int)inStream.Length);
+                inStream.Close();
+                byte[]? array2 = null;
+                if (isvalid)
+                    array2 = toolsImpl.ComponentAceEdgeZlibCompress(array);
+                if (array2 != null)
+                {
+                    tocEntry.CompressedSize = (uint)array2.Length;
+                    tocEntry.Compression = CompressionMethod.Encrypted;
+                    using (MemoryStream memoryStream = new(array))
+                    {
+                        tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                        memoryStream.Close();
+                    }
+                    int count = (int)m_toc.Count;
+                    tocEntry.Index = count;
+                    byte[] IV = new byte[8];
+                    Buffer.BlockCopy(tocEntry.IV, 0, IV, 0, tocEntry.IV.Length);
+                    tocEntry.RawData = toolsImpl.ProcessXTEABlocksAsync(array2, m_header.Key, IV);
+                }
+                else
+                {
+                    array2 = array;
+                    tocEntry.CompressedSize = (uint)array2.Length;
+                    tocEntry.Compression = CompressionMethod.Uncompressed;
+                    using (MemoryStream memoryStream = new(array))
+                    {
+                        tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                        memoryStream.Close();
+                    }
+                    int count = (int)m_toc.Count;
+                    tocEntry.Index = count;
+                    tocEntry.RawData = array2;
+                }
+                toolsImpl = null;
+            }
+            else if (m_header.Version != 512 && encrypt && m_endian == EndianType.LittleEndian) // Only little endian for now, needs further eboot research.
             {
                 ToolsImpl? toolsImpl = new();
                 bool isvalid = true;
@@ -609,7 +696,7 @@ namespace BackendProject.BARTools.BAR
                 byte[]? array2 = null;
                 if (isvalid)
                     array2 = toolsImpl.ICSharpEdgeZlibCompress(array);
-                if (array2 != null && (uint)array2.Length + 28 <= array.Length)
+                if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;
                     tocEntry.Compression = CompressionMethod.Encrypted;
@@ -620,24 +707,11 @@ namespace BackendProject.BARTools.BAR
                     }
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
-                    tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyPaddingPrefix(new byte[20]), new byte[][]
+                    tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                     {
-                        Utils.IntToByteArray(array2.Length),
-                        array2
+                         Utils.IntToByteArray(array2.Length),
+                         array2
                     });
-                }
-                else if (array2 != null && array2.Length < array.Length)
-                {
-                    tocEntry.CompressedSize = (uint)array2.Length;
-                    tocEntry.Compression = CompressionMethod.EdgeZLib;
-                    using (MemoryStream memoryStream = new(array))
-                    {
-                        tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
-                        memoryStream.Close();
-                    }
-                    int count = (int)m_toc.Count;
-                    tocEntry.Index = count;
-                    tocEntry.RawData = array2;
                 }
                 else
                 {
@@ -841,18 +915,26 @@ namespace BackendProject.BARTools.BAR
                 m_toc.ResortOffsets();
             EndianAwareBinaryWriter endianAwareBinaryWriter = EndianAwareBinaryWriter.Create(dataWriterStream, m_endian);
             EndianAwareBinaryWriter endianAwareBinaryWriter2 = EndianAwareBinaryWriter.Create(dataWriterStream, EndianType.LittleEndian);
-            byte[] array = m_toc.GetBytesVersion1();
-            if (m_endian == EndianType.BigEndian)
+            byte[] array = Array.Empty<byte>();
+            if (m_header.Version == 512)
+            {
+                byte[] IV = new byte[16];
+                Buffer.BlockCopy(m_header.IV, 0, IV, 0, m_header.IV.Length);
+                new ToolsImpl().IncrementIVBytes(IV, 1); // IV so we increment.
+                array = m_toc.GetBytesVersion2(version2key, IV, m_endian);
+            }
+            else
+                array = m_toc.GetBytesVersion1();
+            if (m_endian == EndianType.BigEndian && m_header.Version != 512)
                 array = Utils.EndianSwap(array);
-            bool flag = (ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1;
-            if (flag)
+            if ((ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1 && m_header.Version != 512)
             {
                 CompressionMethod method = CompressionMethod.ZLib;
                 byte[]? array2 = CompressionFactory.Compress(array, method, m_header.Flags);
                 if (array2 != null)
                 {
                     uint num = (uint)Utils.GetFourByteAligned(array2.Length);
-                    if (m_header.Version != 512 && num + 4U < m_toc.Version1Size || m_header.Version == 512 && num + 4U < m_toc.Version2Size)
+                    if (num + 4U < m_toc.Version1Size)
                     {
                         WriteHeader(endianAwareBinaryWriter);
                         endianAwareBinaryWriter.Write(num);
@@ -883,9 +965,9 @@ namespace BackendProject.BARTools.BAR
             }
             foreach (TOCEntry tocentry in m_toc.SortByDataSectionOffset())
             {
-                if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted)
+                if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted && m_endian == EndianType.LittleEndian) // Only little endian for now, needs further eboot research.
                 {
-                    BlowfishCTREncryptDecrypt? blowfish = new();
+                    UnBAR.BlowfishCTREncryptDecrypt? blowfish = new();
                     byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
                     if (BitConverter.IsLittleEndian)
                         Array.Reverse(SignatureIV);
@@ -912,8 +994,7 @@ namespace BackendProject.BARTools.BAR
                         LoggerAccessor.LogError("[Encryption Proxy] - Encryption of FileBytes failed! Entry will be corrupted!");
                     blowfish = null;
                 }
-                byte[] rawData = tocentry.RawData;
-                WriteDataAlignedSection(rawData, dataWriterStream);
+                WriteDataAlignedSection(tocentry.RawData, dataWriterStream);
             }
             if (m_outputStreamCopy != null)
             {
@@ -924,7 +1005,10 @@ namespace BackendProject.BARTools.BAR
             endianAwareBinaryWriter2.Close();
             endianAwareBinaryWriter.Close();
             WriteMap(fileName);
-            LoggerAccessor.LogDebug("BAR Archive complete", Array.Empty<object>());
+            if (m_header.Version == 512)
+                LoggerAccessor.LogDebug("SHARC Archive complete", Array.Empty<object>());
+            else
+                LoggerAccessor.LogDebug("BAR Archive complete", Array.Empty<object>());
             Dirty = false;
             FileName = fileName;
             toolsImpl = null;
@@ -989,7 +1073,7 @@ namespace BackendProject.BARTools.BAR
         public byte[] GetFileData(string FileName)
         {
             AfsHash afsHash = new AfsHash(FileName);
-            HashedFileName fileName = new HashedFileName(afsHash.Value);
+            HashedFileName fileName = new(afsHash.Value);
             return GetFileData(fileName);
         }
 

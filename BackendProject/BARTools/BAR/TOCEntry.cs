@@ -108,6 +108,7 @@ namespace BackendProject.BARTools.BAR
 
         public TOCEntry()
         {
+            Random random = new();
             m_size = 0U;
             m_fileNameHash = (HashedFileName)0;
             m_compressedSize = 0U;
@@ -116,22 +117,31 @@ namespace BackendProject.BARTools.BAR
             m_tocIndex = -1;
             m_fileType = HomeFileType.Unknown;
             m_path = string.Empty;
+            m_data = Array.Empty<byte>();
             m_iv = new byte[8];
+            random.NextBytes(m_iv);
         }
 
         public TOCEntry(HashedFileName fileName, uint size) : this()
         {
+            Random random = new();
             m_size = size;
             m_fileNameHash = fileName;
-            m_data = null;
+            m_data = Array.Empty<byte>();
+            m_iv = new byte[8];
+            random.NextBytes(m_iv);
         }
 
         public TOCEntry(int fileName, uint size, uint compressedSize, uint offset) : this()
         {
+            Random random = new();
             m_size = size;
             m_fileNameHash = (HashedFileName)fileName;
             m_dataOffset = offset;
             m_compressedSize = compressedSize;
+            m_data = Array.Empty<byte>();
+            m_iv = new byte[8];
+            random.NextBytes(m_iv);
         }
 
         public TOCEntry(int fileName, uint size, uint compressedSize, uint offset, byte[] IV) : this()
@@ -140,6 +150,7 @@ namespace BackendProject.BARTools.BAR
             m_fileNameHash = (HashedFileName)fileName;
             m_dataOffset = offset;
             m_compressedSize = compressedSize;
+            m_data = Array.Empty<byte>();
             m_iv = IV;
         }
 
@@ -158,13 +169,11 @@ namespace BackendProject.BARTools.BAR
             byte[]? array2 = null;
             try
             {
-                byte[]? array = null;
-
                 try
                 {
-                    array = CompressionFactory.Decompress(this, Compression, flags);
+                    byte[]? array = CompressionFactory.Decompress(this, Compression, flags);
 
-                    if (array.Length > (long)(ulong)m_size)
+                    if (Compression != CompressionMethod.Encrypted && array != null && array.Length > (long)(ulong)m_size)
                     {
                         array2 = new byte[m_size];
                         Array.Copy(array, array2, (long)(ulong)m_size);
@@ -184,7 +193,7 @@ namespace BackendProject.BARTools.BAR
             {
                 array2 = null;
             }
-            return array2;
+            return array2 ?? Array.Empty<byte>();
         }
 
         public byte[] RawData
