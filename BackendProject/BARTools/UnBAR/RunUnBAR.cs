@@ -57,7 +57,8 @@ namespace BackendProject.BARTools.UnBAR
 
         private async Task RunExtract(string filePath, string outDir, string options)
         {
-            bool isSharc = true;
+            bool isSharc = false;
+            bool isLittleEndian = false;
             byte[]? RawBarData = null;
 
             if (File.Exists(filePath))
@@ -65,18 +66,15 @@ namespace BackendProject.BARTools.UnBAR
                 try
                 {
                     RawBarData = File.ReadAllBytes(filePath);
-                    byte[] BigEndianMagic = new byte[] { 0xAD, 0xEF, 0x17, 0xE1 };
-                    // Check if the first 8 bytes match the specified pattern
-                    byte[] pattern = MiscUtils.CombineByteArray(BigEndianMagic, new byte[] { 0x02, 0x00, 0x00, 0x00 });
 
-                    for (int i = 0; i < 8; i++)
+                    if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
+                        isSharc = true;
+                    else if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
                     {
-                        if (RawBarData[i] != pattern[i])
-                        {
-                            isSharc = false;
-                            break;
-                        }
+                        isSharc = true;
+                        isLittleEndian = true;
                     }
+
                     if (isSharc && RawBarData.Length > 52)
                     {
                         AESCTR256EncryptDecrypt? aes256 = new();
@@ -97,11 +95,16 @@ namespace BackendProject.BARTools.UnBAR
                                 SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
                                  Convert.FromBase64String(options), HeaderIV);
 
+                                Console.WriteLine(MiscUtils.ByteArrayToHexString(HeaderIV));
+
                                 if (SharcHeader != Array.Empty<byte>())
                                 {
                                     byte[] NumOfFiles = new byte[4];
 
-                                    Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(SharcHeader, 4), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+                                    if (isLittleEndian == true)
+                                        Buffer.BlockCopy(SharcHeader, SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+                                    else
+                                        Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(SharcHeader, 4), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
 
                                     byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
 
@@ -123,20 +126,43 @@ namespace BackendProject.BARTools.UnBAR
 
                                             Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
 
-                                            byte[] FileBytes = MiscUtils.CombineByteArrays(pattern, new byte[][]
+                                            byte[] FileBytes = new byte[0];
+
+                                            if (isLittleEndian)
                                             {
-                                                OriginalIV,
-                                                SharcHeader,
-                                                SharcTOC,
-                                                SharcData
-                                            });
+                                                FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
+                                                {
+                                                    OriginalIV,
+                                                    SharcHeader,
+                                                    SharcTOC,
+                                                    SharcData
+                                                });
+                                            }
+                                            else
+                                            {
+                                                FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                                {
+                                                    OriginalIV,
+                                                    SharcHeader,
+                                                    SharcTOC,
+                                                    SharcData
+                                                });
+                                            }
 
                                             Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
                                             File.WriteAllBytes(filePath, FileBytes);
 
-                                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                                                BitConverter.ToString(new byte[] { FileBytes[29], FileBytes[30], FileBytes[31], FileBytes[32] }).Replace("-", ""));
+                                            if (isLittleEndian)
+                                            {
+                                                File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                                                BitConverter.ToString(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }, 4)).Replace("-", ""));
+                                            }
+                                            else
+                                            {
+                                                File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                                                BitConverter.ToString(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }).Replace("-", ""));
+                                            }
 
                                             LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
                                         }
@@ -154,17 +180,27 @@ namespace BackendProject.BARTools.UnBAR
                     }
                     else
                     {
-                        BigEndianMagic = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(BigEndianMagic, 4);
-                        for (int i = 0; i < 4; i++)
+                        if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
                         {
-                            if (RawBarData[i] != BigEndianMagic[i])
-                                return; // File not a bar, we return.
+
                         }
+                        else if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
+                            isLittleEndian = true;
+                        else
+                            return; // File not a BAR.
 
                         Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
-                        File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                        if (isLittleEndian)
+                        {
+                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                            BitConverter.ToString(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new byte[] { RawBarData[12], RawBarData[13], RawBarData[14], RawBarData[15] }, 4)).Replace("-", ""));
+                        }
+                        else
+                        {
+                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
                             BitConverter.ToString(new byte[] { RawBarData[12], RawBarData[13], RawBarData[14], RawBarData[15] }).Replace("-", ""));
+                        }
 
                         LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
                     }
@@ -194,12 +230,12 @@ namespace BackendProject.BARTools.UnBAR
                         if (FileData != null)
                         {
                             // Create a task for each iteration
-                            Task task = Task.Run(async () =>
+                            Task task = Task.Run(() =>
                             {
                                 try
                                 {
                                     if (archive.GetHeader().Version == 512)
-                                        await ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
                                     {
                                         using (MemoryStream memoryStream = new(FileData))
@@ -214,7 +250,7 @@ namespace BackendProject.BARTools.UnBAR
                                 {
                                     LoggerAccessor.LogWarn(ex.ToString());
                                     if (archive.GetHeader().Version == 512)
-                                        await ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
                                         ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), ".unknown");
                                 }
@@ -262,7 +298,7 @@ namespace BackendProject.BARTools.UnBAR
                 using (FileStream fileStream = File.Open(path, (FileMode)2))
                 {
                     byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
-                    if (tableOfContent.Compression == CompressionMethod.Encrypted && data.Length > 28 && data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01)
+                    if (tableOfContent.Compression == CompressionMethod.Encrypted && data.Length > 28 && data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && archive.Endian == EndianType.LittleEndian) // Only little endian for now, needs further eboot research.
                     {
                         if (File.Exists(outDir + "/timestamp.txt") && RawBarData != null)
                         {
@@ -274,7 +310,7 @@ namespace BackendProject.BARTools.UnBAR
                                 ToolsImpl? toolsImpl = new();
                                 uint compressedSize = tableOfContent.CompressedSize;
                                 uint fileSize = tableOfContent.Size;
-                                int userData = BitConverter.ToInt32(MiscUtils.HexStringToByteArray(File.ReadAllText(outDir + "/timestamp.txt")));
+                                int userData = Utils.EndianSwap(BitConverter.ToInt32(MiscUtils.HexStringToByteArray(File.ReadAllText(outDir + "/timestamp.txt"))));
 #if DEBUG
                                 LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
                                 LoggerAccessor.LogInfo($"CompressedSize - {compressedSize}");
@@ -379,7 +415,7 @@ namespace BackendProject.BARTools.UnBAR
             tableOfContent = null;
         }
 
-        public async Task ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
+        public void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
         {
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             ToolsImpl? toolsImpl = new();

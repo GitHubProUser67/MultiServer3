@@ -100,20 +100,25 @@ namespace BackendProject.BARTools.BAR
 
         internal Header()
         {
+            Random random = new();
             m_magic = 2918127585U;
             m_version = 256;
             UserData = (int)DateTime.Now.ToFileTime();
             m_priority = 0;
             m_numFiles = 0U;
             m_iv = new byte[16];
+            random.NextBytes(m_iv);
             m_key = new byte[16];
+            random.NextBytes(m_key);
         }
 
         public const uint BIG_MAGIC = 2918127585U;
 
         public const uint LITTLE_MAGIC = 3776442285U;
 
-        public const ushort AFS_VERSION = 256;
+        public const ushort AFS_VERSION1 = 256;
+
+        public const ushort AFS_VERSION2 = 512;
 
         private uint m_magic;
 

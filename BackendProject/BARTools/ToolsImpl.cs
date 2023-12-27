@@ -478,7 +478,7 @@ namespace BackendProject.BARTools
             return v1;
         }
 
-        public byte[] ApplyPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
+        public byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
             byte[] returnbytes = MiscUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
             return returnbytes;
