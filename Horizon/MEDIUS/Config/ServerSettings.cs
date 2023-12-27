@@ -11,6 +11,13 @@ namespace Horizon.MEDIUS.Config
         /// </summary>
         public int RefreshConfigInterval = 5000;
 
+        #region MEDIUS SCE-RT Service Location
+        /// <summary>
+        /// IP of the MEDIUS.
+        /// </summary>
+        public string MEDIUSIp { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+        #endregion
+
         #region PublicIp
         /// <summary>
         /// By default the server will grab its local ip.

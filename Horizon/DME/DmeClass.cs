@@ -311,7 +311,7 @@ namespace Horizon.DME
         private static void RefreshServerIp()
         {
             if (!Settings.UsePublicIp)
-                SERVER_IP = MiscUtils.GetLocalIPAddress();
+                SERVER_IP = IPAddress.Parse(Settings.DMEIp);
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))

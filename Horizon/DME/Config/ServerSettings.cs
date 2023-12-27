@@ -35,6 +35,13 @@ namespace Horizon.DME.Config
         /// </summary>
         public List<int> ApplicationIds { get; set; } = new();
 
+        #region DME SCE-RT Service Location
+        /// <summary>
+        /// IP of the DME.
+        /// </summary>
+        public string DMEIp { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+        #endregion
+
         #region PublicIp
         /// <summary>
         /// By default the server will grab its local ip.

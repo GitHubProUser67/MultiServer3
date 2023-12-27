@@ -14,7 +14,6 @@ using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
 using BackendProject;
 using Horizon.HTTPSERVICE;
-using Microsoft.Extensions.Logging;
 
 namespace Horizon.MEDIUS
 {
@@ -610,7 +609,7 @@ namespace Horizon.MEDIUS
             #region Determine Server IP
             if (!Settings.UsePublicIp)
             {
-                SERVER_IP = MiscUtils.GetLocalIPAddress();
+                SERVER_IP = IPAddress.Parse(Settings.MEDIUSIp);
                 IP_TYPE = "Local";
             }
             else

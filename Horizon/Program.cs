@@ -23,7 +23,7 @@ public static class HorizonServerConfiguration
     public static string HomeVersionBetaHDK { get; set; } = "01.86";
     public static string HomeVersionRetail { get; set; } = "01.86";
 
-    public static DbController? Database = new(DatabaseConfig);
+    public static DbController Database = new(DatabaseConfig);
 
     public static List<IPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
