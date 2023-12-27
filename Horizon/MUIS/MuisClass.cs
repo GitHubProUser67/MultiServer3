@@ -974,7 +974,7 @@ namespace Horizon.MUIS
             #region Determine Server IP
             if (!Settings.UsePublicIp)
             {
-                SERVER_IP = MiscUtils.GetLocalIPAddress();
+                SERVER_IP = IPAddress.Parse(Settings.MUISIp);
                 IP_TYPE = "Local";
             }
             else

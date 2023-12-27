@@ -17,6 +17,13 @@ namespace Horizon.MUIS.Config
         /// </summary>
         public int[] Ports { get; set; } = new int[] { 10071, 10080, 10101 };
 
+        #region MUIS SCE-RT Service Location
+        /// <summary>
+        /// IP of the MUIS.
+        /// </summary>
+        public string MUISIp { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+        #endregion
+
         #region PublicIp
         /// <summary>
         /// By default the server will grab its local ip.
