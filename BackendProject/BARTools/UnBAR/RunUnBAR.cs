@@ -298,7 +298,8 @@ namespace BackendProject.BARTools.UnBAR
                 using (FileStream fileStream = File.Open(path, (FileMode)2))
                 {
                     byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
-                    if (tableOfContent.Compression == CompressionMethod.Encrypted && data.Length > 28 && data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01 && archive.Endian == EndianType.LittleEndian) // Only little endian for now, needs further eboot research.
+                    if (tableOfContent.Compression == CompressionMethod.Encrypted && data.Length > 28 && 
+                        ((data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01) || (data[0] == 0x01 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)))
                     {
                         if (File.Exists(outDir + "/timestamp.txt") && RawBarData != null)
                         {
@@ -327,7 +328,7 @@ namespace BackendProject.BARTools.UnBAR
                                 byte[] EncryptedHeaderSHA1 = new byte[24];
 
                                 // Copy the first 24 bytes from the source array to the destination array
-                                Array.Copy(data, 4, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
+                                Buffer.BlockCopy(data, 4, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
 
                                 byte[]? DecryptedHeaderSHA1 = blowfish.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
 
