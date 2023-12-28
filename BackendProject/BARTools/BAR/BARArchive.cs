@@ -683,7 +683,7 @@ namespace BackendProject.BARTools.BAR
                 }
                 toolsImpl = null;
             }
-            else if (m_header.Version != 512 && encrypt && m_endian == EndianType.LittleEndian) // Only little endian for now, needs further eboot research.
+            else if (m_header.Version != 512 && encrypt)
             {
                 ToolsImpl? toolsImpl = new();
                 bool isvalid = true;
@@ -707,12 +707,19 @@ namespace BackendProject.BARTools.BAR
                     }
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
-                    tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
-                    {
-                         Utils.IntToByteArray(array2.Length),
-                         array2
-                    });
-                }
+                    if (m_endian == EndianType.BigEndian)
+                        tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        {
+                             Utils.EndianSwap(Utils.IntToByteArray(array2.Length)),
+                             array2
+                        });
+                    else
+                        tocEntry.RawData = MiscUtils.CombineByteArrays(toolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        {
+                             Utils.IntToByteArray(array2.Length),
+                             array2
+                        });
+                    }
                 else
                 {
                     array2 = array;
@@ -965,7 +972,7 @@ namespace BackendProject.BARTools.BAR
             }
             foreach (TOCEntry tocentry in m_toc.SortByDataSectionOffset())
             {
-                if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted && m_endian == EndianType.LittleEndian) // Only little endian for now, needs further eboot research.
+                if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted)
                 {
                     UnBAR.BlowfishCTREncryptDecrypt? blowfish = new();
                     byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
