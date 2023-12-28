@@ -16,18 +16,15 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = string.Empty,
                     Callable = (HttpRequest request) => {
-                        bool handled = false;
                         foreach (string indexFile in HTTPUtils.DefaultDocuments)
                         {
-                            if (File.Exists(Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, indexFile)))
+                            if (File.Exists(HTTPServerConfiguration.HTTPStaticFolder + indexFile))
                             {
-                                handled = true;
-
                                 string? encoding = request.GetHeaderValue("Accept-Encoding");
 
                                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                 {
-                                    using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                    using (FileStream stream = new(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                     {
                                         byte[]? buffer = null;
 
@@ -44,24 +41,15 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                     }
                                 }
                                 else
-                                    return HttpResponse.Send(new FileStream(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                    return HttpResponse.Send(new FileStream(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                             }
                         }
 
-                        if (!handled)
-                        {
-                            return new HttpResponse(false)
+                        return new HttpResponse(false)
                                 {
                                     HttpStatusCode = HttpStatusCode.NotFound,
                                     ContentAsUTF8 = string.Empty
                                 };
-                        }
-
-                        return new HttpResponse(false)
-                            {
-                                HttpStatusCode = HttpStatusCode.InternalServerError,
-                                ContentAsUTF8 = string.Empty
-                            };
                      }
                 },
                 new() {
