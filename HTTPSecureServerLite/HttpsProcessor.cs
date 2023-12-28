@@ -520,7 +520,7 @@ namespace HTTPSecureServerLite
                                     }
                                     break;
                                 default:
-                                    if (filePath.EndsWith("/"))
+                                    if (Directory.Exists(filePath) && filePath.EndsWith("/"))
                                     {
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
