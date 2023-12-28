@@ -473,6 +473,7 @@ namespace HTTPSecureServerLite
                                     }
                                     else
                                     {
+                                        statusCode = HttpStatusCode.Forbidden;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
                                         ctx.Response.Send(true);
@@ -499,12 +500,15 @@ namespace HTTPSecureServerLite
                                         }
                                         else
                                         {
+                                            statusCode = HttpStatusCode.Forbidden;
                                             ctx.Response.StatusCode = (int)statusCode;
+											ctx.Response.ContentType = "text/plain";
                                             ctx.Response.Send(true);
                                         }
                                     }
                                     else
                                     {
+                                        statusCode = HttpStatusCode.Forbidden;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
                                         ctx.Response.Send(true);
@@ -1021,6 +1025,7 @@ namespace HTTPSecureServerLite
                                     }
                                     else
                                     {
+                                        statusCode = HttpStatusCode.Forbidden;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
                                         ctx.Response.Send(true);
@@ -1029,11 +1034,13 @@ namespace HTTPSecureServerLite
                             }
                             break;
                         case "PUT":
+                            statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
                             ctx.Response.Send(true);
                             break;
                         case "DELETE":
+                            statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
                             ctx.Response.Send(true);
@@ -1091,6 +1098,7 @@ namespace HTTPSecureServerLite
                             ctx.Response.Send(true);
                             break;
                         default:
+                            statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
                             ctx.Response.Send(true);
@@ -1100,7 +1108,7 @@ namespace HTTPSecureServerLite
             }
             else
             {
-                ctx.Response.StatusCode = (int)statusCode;
+                ctx.Response.StatusCode = (int)statusCode; // Send the other status.
                 ctx.Response.ContentType = "text/plain";
                 ctx.Response.Send(true);
             }
