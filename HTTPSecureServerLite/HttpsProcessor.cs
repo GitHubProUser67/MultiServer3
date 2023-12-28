@@ -145,13 +145,17 @@ namespace HTTPSecureServerLite
 
                 if ((absolutepath == "/" || absolutepath == "\\") && ctx.Request.Method.ToString() == "GET")
                 {
+                    bool handled = false;
+
                     foreach (string indexFile in HTTPUtils.DefaultDocuments)
                     {
-                        if (File.Exists(Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, indexFile)))
+                        if (File.Exists(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile))
                         {
+                            handled = true;
+
                             string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
 
-                            using (FileStream stream = new(indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            using (FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                             {
                                 byte[]? buffer = null;
 
@@ -169,10 +173,10 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.OK;
                                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(indexFile).ToString("r"));
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                         ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                         ctx.Response.StatusCode = (int)statusCode;
-                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(indexFile));
+                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
                                         await ctx.Response.SendAsync(HTTPUtils.Compress(buffer));
                                     }
                                     else
@@ -180,9 +184,9 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.OK;
                                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(indexFile).ToString("r"));
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
-                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(indexFile));
+                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
                                         await ctx.Response.SendAsync(buffer);
                                     }
                                 }
@@ -198,13 +202,14 @@ namespace HTTPSecureServerLite
                             }
                             break;
                         }
-                        else
-                        {
-                            statusCode = HttpStatusCode.NotFound;
-                            ctx.Response.StatusCode = (int)statusCode;
-                            ctx.Response.ContentType = "text/plain";
-                            ctx.Response.Send(true);
-                        }
+                    }
+
+                    if (!handled)
+                    {
+                        statusCode = HttpStatusCode.NotFound;
+                        ctx.Response.StatusCode = (int)statusCode;
+                        ctx.Response.ContentType = "text/plain";
+                        ctx.Response.Send(true);
                     }
                 }
                 else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
@@ -1109,6 +1114,25 @@ namespace HTTPSecureServerLite
             else
             {
                 ctx.Response.StatusCode = (int)statusCode; // Send the other status.
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.Send(true);
+            }
+        }
+
+        [ParameterRoute(HttpServerLite.HttpMethod.GET, "/objects/D2CDD8B2-DE444593-A64C68CB-0B5EDE23/{id}.xml")]
+        public static async Task SportWalkQuizRoute(HttpContext ctx)
+        {
+            string? QuizID = ctx.Request.Url.Parameters["id"];
+
+            if (!string.IsNullOrEmpty(QuizID))
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.SendAsync("<Root></Root>"); // TODO - Figure out this complicated LUAC in object : D2CDD8B2-DE444593-A64C68CB-0B5EDE23
+            }
+            else
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 ctx.Response.ContentType = "text/plain";
                 ctx.Response.Send(true);
             }
