@@ -53,7 +53,7 @@ namespace BackendProject.WebAPIs.OHS
                         if (jObject != null)
                         {
                             // Check if the key name already exists in the JSON
-                            JToken? existingKey = jObject.SelectToken($"$..{key}");
+                            JToken? existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == key);
 
                             if (existingKey != null && value != null)
                                 // Update the value of the existing key
@@ -171,20 +171,17 @@ namespace BackendProject.WebAPIs.OHS
                 LoggerAccessor.LogError($"[UserCounter] - Json Format Error - {ex}");
             }
 
-            if (string.IsNullOrEmpty(output))
-                output = "{ }";
-
             if (!string.IsNullOrEmpty(batchparams))
             {
                 if (string.IsNullOrEmpty(output))
-                    return null;
+                    return "{ }";
                 else
                     return output;
             }
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
                 else
                     dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }
@@ -247,20 +244,17 @@ namespace BackendProject.WebAPIs.OHS
                 LoggerAccessor.LogError($"[UserCounter] - Json Format Error - {ex}");
             }
 
-            if (string.IsNullOrEmpty(output))
-                output = "{ }";
-
             if (!string.IsNullOrEmpty(batchparams))
             {
                 if (string.IsNullOrEmpty(output))
-                    return null;
+                    return "{ }";
                 else
                     return output;
             }
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
                 else
                     dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }

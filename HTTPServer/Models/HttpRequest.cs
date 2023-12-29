@@ -11,7 +11,7 @@ namespace HTTPServer.Models
 
         #region Properties
 
-        public string? Method { get; set; }
+        public string Method { get; set; } = string.Empty;
         public string? Url { get; set; }
         public string IP { get; set; } = string.Empty;
         public byte[]? Data { get; set; }
