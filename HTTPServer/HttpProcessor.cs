@@ -110,7 +110,7 @@ namespace HTTPServer
                                         {
                                             default:
                                                 // A little bit out of the scope of Routes.
-                                                if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && request.Method != null && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
+                                                if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
 

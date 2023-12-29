@@ -253,7 +253,7 @@ namespace HTTPSecureServerLite
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res);
                 }
-                else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.Contains("/ohs") && absolutepath.EndsWith("/"))
+                else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a OHS method : {absolutepath}");
 
