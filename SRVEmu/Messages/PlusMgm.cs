@@ -18,5 +18,20 @@
         public string ROOM { get; set; } = "0";
         public string WHEN { get; set; } = DateTime.Now.ToString("yyyy.MM.dd-hh:mm:ss");
         public string WHENC { get; set; } = DateTime.Now.ToString("yyyy.MM.dd-hh:mm:ss");
+        public string? GPSHOST { get; set; }
+        public string? HOST { get; set; }
+        public string? CUSTFLAGS { get; set; }
+        public string? MINSIZE { get; set; }
+        public string? MAXSIZE { get; set; }
+        public string? NAME { get; set; }
+        public string? PARAMS { get; set; }
+        public string? PASS { get; set; }
+        public string? PRIV { get; set; }
+        public string? SEED { get; set; }
+        public string? SYSFLAGS { get; set; }
+        public string? FORCE_LEAVE { get; set; }
+        public string? USERPARAMS { get; set; }
+        public string? USERFLAGS { get; set; }
+        public string OPGUEST { get; set; } = "0";
     }
 }
