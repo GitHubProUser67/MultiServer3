@@ -59,6 +59,7 @@ namespace SRVEmu.DataStore
         public bool CreateNew(DbAccount info)
         {
             if (info.Username == null) return false;
+            info.Personas.Add(info.Username); // Burnout Paradise seems to want at least one entry which is username itself.
             lock (Accounts)
             {
                 if (GetByName(info.Username) != null) return false; //already exists

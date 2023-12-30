@@ -113,7 +113,16 @@ namespace SRVEmu
                     return;
                 }
 
-                AbstractMessage? msg = (AbstractMessage?)Activator.CreateInstance(c);
+                AbstractMessage? msg = null;
+
+                try
+                {
+                    msg = (AbstractMessage?)Activator.CreateInstance(c);
+                }
+                catch (Exception)
+                {
+                    // Not Important.
+                }
 
                 if (msg != null)
                 {
@@ -121,9 +130,9 @@ namespace SRVEmu
                     msg.Process(this, client);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                CustomLogger.LoggerAccessor.LogError($"[AbstractDirtySockServer] - HandleMessage thrown an exception : {ex}");
             }
         }
 

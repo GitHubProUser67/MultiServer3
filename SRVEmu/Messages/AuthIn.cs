@@ -1,4 +1,5 @@
 using SRVEmu.DataStore;
+using System.Text.RegularExpressions;
 
 namespace SRVEmu.Messages
 {
@@ -9,7 +10,14 @@ namespace SRVEmu.Messages
         public string? SKU { get; set; }
         public string? SDKVERS { get; set; }
         public string? BUILDDATE { get; set; }
+        public string? SHARE { get; set; }
+        public string? GEND { get; set; }
+        public string? SPAM { get; set; }
         public string? NAME { get; set; }
+        public string? MAIL { get; set; }
+        public string? TICK { get; set; }
+        public string MADDR { get; set; } = string.Empty;
+        public string? MAC { get; set; }
         public string? PASS { get; set; }
         public string? TOS { get; set; }
         public string? MID { get; set; }
@@ -17,7 +25,7 @@ namespace SRVEmu.Messages
         public string LANG { get; set; } = "en";
 
         public string? PROD { get; set; }
-        public string? VERS { get; set; }
+        public string VERS { get; set; } = string.Empty;
         public string? SLUS { get; set; }
         public string? REGN { get; set; }
         public string? CLST { get; set; }
@@ -29,6 +37,22 @@ namespace SRVEmu.Messages
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
+            if (VERS == "BURNOUT5/ISLAND")
+            {
+                if (SKU == "PS3")
+                {
+                    // Create a Regex object and match the pattern
+                    Regex regex = new(@"(.*?)\$");
+
+                    Match match = regex.Match(MADDR);
+
+                    // Check if a match is found
+                    if (match.Success)
+                        // Extract and print the captured value
+                        NAME = match.Groups[1].Value;
+                }
+            }
+
             DbAccount? user = mc.Database.GetByName(NAME);
             if (user == null)
             {
@@ -37,7 +61,7 @@ namespace SRVEmu.Messages
             }
 
             CustomLogger.LoggerAccessor.LogInfo("Logged in: " + user.Username);
-            mc.TryLogin(user, client);
+            mc.TryLogin(user, client, VERS);
         }
     }
 }

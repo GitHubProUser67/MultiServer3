@@ -1,6 +1,7 @@
 using SRVEmu.DataStore;
 using SRVEmu.Messages;
 using SRVEmu.Model;
+using System;
 
 namespace SRVEmu
 {
@@ -26,12 +27,13 @@ namespace SRVEmu
                 { "fupd", null }, //Room equiv
                 { "peek", null }, //?
                 { "pers", typeof(PersIn) }, //select persona
-                { "sdta", null }, //?
+                { "sdta", typeof(SdtaIn) }, //?
                 { "sele", typeof(SeleIn) }, //gets info for the current server
                 { "skey", typeof(SKeyIn) }, //session key?
+                { "slst", typeof(SlstIn) }, //lobby details?
                 { "sviw", typeof(Sviw) }, //pers with Ping.
                 { "user", typeof(UserIn) }, //get my user info
-                { "usld", typeof(Ping) }, //Ping Equiv?
+                { "usld", typeof(UsldIn) }, //Ping Equiv?
                 { "onln", typeof(OnlnIn) }, //search for a user's info
                 { "rvup", null }, //?
                 { "addr", typeof(Addr) }, //the client tells us their IP and port (ephemeral). The IP is usually wrong.
@@ -43,8 +45,8 @@ namespace SRVEmu
                 { "gsea", null }, //?
                 { "gsta", null }, //game start. return gstanepl if not enough people, empty gsta if enough.
                 { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
-                { "gpsc", null }, //?
-                { "gqwk", null }, //?
+                { "gpsc", typeof(GpscIn) }, //?
+                { "gqwk", typeof(GqwkIn) }, //Quick join.
                 { "news", typeof(News) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
                 { "rank", null }, //unknown. { RANK = "Unranked", TIME = 866 }
             };
@@ -116,7 +118,7 @@ namespace SRVEmu
                 user.Connection?.SendMessage(msg);
         }
 
-        public void TryLogin(DbAccount user, DirtySockClient client)
+        public void TryLogin(DbAccount user, DirtySockClient client, string VERS = "")
         {
             //is someone else already logged in as this user?
             User? oldUser = Users.GetUserByName(user.Username);
@@ -127,7 +129,7 @@ namespace SRVEmu
             }
 
             string[] personas = new string[4];
-            for (int i=0; i<user.Personas.Count; i++)
+            for (int i = 0; i < user.Personas.Count; i++)
             {
                 personas[i] = user.Personas[i];
             }
@@ -147,8 +149,9 @@ namespace SRVEmu
 
             client.SendMessage(new AuthOut()
             {
-                TOS = user.ID.ToString(),
+                TOS = user.TOS,
                 NAME = user.Username,
+                MAIL = user.MAIL,
                 PERSONAS = string.Join(',', user.Personas)
             });
 

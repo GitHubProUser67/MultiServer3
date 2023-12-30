@@ -53,6 +53,26 @@ namespace SRVEmu.Model
             return true;
         }
 
+        public void SendPlusWho(User user)
+        {
+            //send who to this user to tell them who they are
+
+            PlusUser info = user.GetInfo();
+
+            PlusWho who = new()
+            {
+                I = info.I ?? string.Empty,
+                N = info.N,
+                M = info.M,
+                A = info.A ?? string.Empty,
+                X = info.X,
+                R = Room.Name,
+                RI = Room.ID.ToString()
+            };
+
+            user.Connection?.SendMessage(who);
+        }
+
         public void RefreshUser(User target)
         {
             PlusUser info = target.GetInfo();

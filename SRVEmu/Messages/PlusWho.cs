@@ -1,11 +1,11 @@
 namespace SRVEmu.Messages
 {
-    class PlusWho : AbstractMessage
+    public class PlusWho : AbstractMessage
     {
         public override string _Name { get => "+who"; }
         public string? M { get; set; }
         public string? N { get; set; }
-        public string MA { get; set; } = string.Empty;
+        public string MA { get; set; } = "$000acd3789c8";
         public string A { get; set; } = "24.141.39.62";
         public string LA { get; set; } = "192.168.0.133";
         public string P { get; set; } = "1";
@@ -17,9 +17,11 @@ namespace SRVEmu.Messages
         public string LO { get; set; } = "enUS";
         public string LV { get; set; } = "1049601";
         public string MD { get; set; } = "0";
-        public string PRES { get; set; } = string.Empty;
+        public string PRES { get; set; } = "1";
         public string RP { get; set; } = "0";
         public string S { get; set; } = string.Empty;
+        public string AT { get; set; } = string.Empty;
+        public string C { get; set; } = "4000,,7,1,1,,1,1,5553";
         public string US { get; set; } = "0";
         public string VERS { get; set; } = "5";
         public string? X { get; set; } = string.Empty;
