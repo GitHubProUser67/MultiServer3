@@ -1,8 +1,8 @@
 ﻿namespace SRVEmu.Messages
 {
-    public class GpscOut : AbstractMessage
+    public class PlusGam : AbstractMessage
     {
-        public override string _Name { get => "gpsc"; }
+        public override string _Name { get => "+gam"; }
 
         public string COUNT { get; set; } = "1";
         public string NUMPART { get; set; } = "1";
