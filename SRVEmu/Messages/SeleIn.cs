@@ -13,6 +13,9 @@ namespace SRVEmu.Messages
         public string? STATS { get; set; }
         public string RANKS { get; set; } = "1";
         public string? USERSETS { get; set; }
+        public string? INGAME { get; set; }
+        public string? ASYNC { get; set; }
+
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

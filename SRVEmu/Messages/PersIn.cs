@@ -5,6 +5,8 @@ namespace SRVEmu.Messages
         public override string _Name { get => "pers"; }
 
         public string? PERS { get; set; }
+        public string? MADDR { get; set; }
+        public string? MAC { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

@@ -8,7 +8,7 @@ namespace SRVEmu
         AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         AbstractDirtySockServer? RedirectorTSBO_PAL;
         AbstractDirtySockServer? RedirectorBOP_PS3;
-        AbstractDirtySockServer? Matchmaker;
+        AbstractDirtySockServer? BurnoutMatchmaker;
         AbstractDirtySockServer? SimsMatchmaker;
 
         public Task Run()
@@ -44,7 +44,14 @@ namespace SRVEmu
 
             try
             {
-                SimsMatchmaker = new MatchmakerServer(10901, true);
+                // Create a List to store pairs of string and bool
+                List<Tuple<string, bool>> BurnoutParadiseRoom = new()
+                {
+                    // Add some sample data
+                    new Tuple<string, bool>("OnlineFreeBurnLobby", true)
+                };
+
+                BurnoutMatchmaker = new MatchmakerServer(10901, true, BurnoutParadiseRoom);
             }
             catch (Exception ex)
             {
