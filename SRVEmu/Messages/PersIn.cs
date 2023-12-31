@@ -17,10 +17,16 @@ namespace SRVEmu.Messages
             if (user == null || user.SelectedPersona != -1) return;
             user.SelectPersona(PERS);
             if (user.SelectedPersona == -1) return; //failed?
-            client.SendMessage(new PersOut() {
+
+            client.SendMessage(new PersOut()
+            {
                 NAME = user.Username,
-                PERS = user.PersonaName
+                PERS = user.PersonaName,
+                MA = MAC,
+                A = client.IP
             });
+
+            user.SendPlusWho(user);
         }
     }
 }

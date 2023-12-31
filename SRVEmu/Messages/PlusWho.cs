@@ -6,7 +6,7 @@ namespace SRVEmu.Messages
         public string? M { get; set; }
         public string? N { get; set; }
         public string MA { get; set; } = "$000acd3789c8";
-        public string A { get; set; } = "24.141.39.62";
+        public string? A { get; set; }
         public string LA { get; set; } = "192.168.0.133";
         public string P { get; set; } = "1";
         public string CL { get; set; } = "511";

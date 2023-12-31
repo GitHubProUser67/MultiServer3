@@ -64,7 +64,7 @@ namespace SRVEmu.Messages
 
                             OPID = users.Select(x => x.ID.ToString()).ToArray(),
                             OPPO = users.Select(x => x.PersonaName).ToArray(),
-                            ADDR = users.Select(x => x.IP).ToArray(),
+                            ADDR = users.Select(x => x.Connection.IP).ToArray(),
 
                             SEED = new Random().Next().ToString(),
                             SELF = user.PersonaName

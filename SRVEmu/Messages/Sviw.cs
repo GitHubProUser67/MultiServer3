@@ -19,16 +19,7 @@ namespace SRVEmu.Messages
 
             if (VIEW == "DLC")
             {
-                string? RoomName = "OnlineFreeBurnLobby";
-                if (user.CurrentRoom != null)
-                    RoomName = user.CurrentRoom.Name;
-                Room? room = mc.Rooms.GetRoomByName(RoomName);
-                if (room != null)
-                {
-                    if (room.Users != null)
-                        room.Users.SendPlusWho(user);
-                }
-
+                user.SendPlusWho(user);
                 client.SendMessage(new Dlc());
             }
             else
