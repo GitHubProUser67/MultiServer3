@@ -122,20 +122,25 @@ namespace SRVEmu.Messages
                 CUSTFLAGS = CUSTFLAGS,
             });
 
-            client.SendMessage(new GpscOut() // Game will disconnect if this command is not sent, perhaps a little clue.
+            /*client.SendMessage(new PlusMgm()
             {
+                ADDR1 = client.IP,
                 CUSTFLAGS = CUSTFLAGS,
-                MINSIZE = MINSIZE,
-                MAXSIZE = MAXSIZE,
+                GPSHOST = NAME,
                 NAME = NAME,
+                OPPO1 = NAME,
                 PARAMS = PARAMS,
-                PASS = PASS,
                 PRIV = PRIV,
                 SEED = SEED,
                 SYSFLAGS = SYSFLAGS,
-                FORCE_LEAVE = FORCE_LEAVE,
-                USERPARAMS = USERPARAMS,
-                USERFLAGS = USERFLAGS
+                OPID1 = user.ID.ToString(),
+                OPFLAG1 = USERFLAGS
+            });*/
+
+            client.SendMessage(new GpscOut() // Game will disconnect if this command is not sent, perhaps a little clue.
+            {
+                GPSHOST = user.Username,
+                HOST = user.Username
             });
         }
     }

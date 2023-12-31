@@ -1,4 +1,5 @@
 ﻿using SRVEmu.Model;
+using System.Text;
 
 namespace SRVEmu.Messages
 {
@@ -13,7 +14,7 @@ namespace SRVEmu.Messages
             MatchmakerServer? mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            // Todo, send proper news data.
+            // Todo, send proper news data for burnout.
 
             if (NAME == "client.cfg") // TODO, do a real config file.
             {
@@ -22,12 +23,12 @@ namespace SRVEmu.Messages
                     
                 });
             }
-            else if (NAME == "8") // TODO, should we really create room here?
+            else if (NAME == "0" || NAME == "1" || NAME == "3")
+                client.SendMessage(Encoding.ASCII.GetBytes("MultiServer Driven EA Server."));
+            else if (NAME == "8")
             {
                 User? user = client.User;
                 if (user == null) return;
-
-                user.SendPlusWho(user);
 
                 client.SendMessage(new PlusFup()
                 {

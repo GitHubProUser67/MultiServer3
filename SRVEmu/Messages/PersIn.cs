@@ -25,6 +25,8 @@ namespace SRVEmu.Messages
                 MA = MAC,
                 A = client.IP
             });
+
+            user.SendPlusWho(user);
         }
     }
 }
