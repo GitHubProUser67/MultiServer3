@@ -1,6 +1,4 @@
-﻿using BackendProject;
-using SRVEmu.Model;
-using System.Text;
+﻿using SRVEmu.Model;
 
 namespace SRVEmu.Messages
 {
@@ -26,6 +24,16 @@ namespace SRVEmu.Messages
             }
             else if (NAME == "8") // TODO, should we really create room here?
             {
+                User? user = client.User;
+                if (user == null) return;
+
+                user.SendPlusWho(user);
+
+                client.SendMessage(new PlusFup()
+                {
+
+                });
+
                 client.SendMessage(new Newsnew8()
                 {
 

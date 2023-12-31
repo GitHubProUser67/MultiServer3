@@ -7,8 +7,10 @@ namespace SRVEmu
         public static bool IsStarted = false;
         AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         AbstractDirtySockServer? RedirectorTSBO_PAL;
+        AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         AbstractDirtySockServer? RedirectorBOP_PS3;
         AbstractDirtySockServer? RedirectorBOP_PC;
+        AbstractDirtySockServer? BurnoutUltimateBoxMatchmaker;
         AbstractDirtySockServer? BurnoutMatchmaker;
         AbstractDirtySockServer? SimsMatchmaker;
 
@@ -36,11 +38,20 @@ namespace SRVEmu
 
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21870, BackendProject.MiscUtils.GetLocalIPAddress().ToString(), 10901, false);
+                RedirectorBOP_PS3 = new RedirectorServer(21850, BackendProject.MiscUtils.GetLocalIPAddress().ToString(), 21851, false);
             }
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[RedirectorBOP_PS3] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, BackendProject.MiscUtils.GetLocalIPAddress().ToString(), 10901, false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RedirectorBOPULTIMATEBOX_PS3] Failed to start! Exception: {ex}");
             }
 
             try
@@ -54,11 +65,20 @@ namespace SRVEmu
 
             try
             {
-                BurnoutMatchmaker = new MatchmakerServer(10901, true);
+                BurnoutMatchmaker = new MatchmakerServer(21851, true);
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[BurnoutMatchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                BurnoutUltimateBoxMatchmaker = new MatchmakerServer(10901, true);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[BurnoutUltimateBoxMatchmaker] Failed to start! Exception: {ex}");
             }
 
             try
