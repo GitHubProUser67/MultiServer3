@@ -42,7 +42,7 @@ namespace SRVEmu
                 { "gget", null }, //get game by name
                 { "gjoi", null }, //join game by name
                 { "gdel", null }, //delete game by name
-                { "gsea", null }, //?
+                { "gsea", typeof(GseaIn) }, //Game search
                 { "gsta", null }, //game start. return gstanepl if not enough people, empty gsta if enough.
                 { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
                 { "gpsc", typeof(GpscIn) }, //?
@@ -141,7 +141,6 @@ namespace SRVEmu
                 ID = user.ID,
                 Personas = personas,
                 Username = user.Username,
-                IP = client.IP
             };
 
             Users.AddUser(user2);

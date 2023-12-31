@@ -16,7 +16,7 @@ namespace SRVEmu.Messages
             UserOut result = new()
             {
                 MESG = user.Username,
-                ADDR = user.IP,
+                ADDR = client.IP,
             };
 
             client.SendMessage(result);

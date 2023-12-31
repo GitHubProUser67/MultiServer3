@@ -81,6 +81,9 @@ namespace SRVEmu.Messages
                 case "LUID":
                     key = "_LUID";
                     break;
+                case "EXtelemetry":
+                    key = "EX-telemetry";
+                    break;
                 default:
                     break;
             }
@@ -95,9 +98,11 @@ namespace SRVEmu.Messages
 
         public byte[] GetData()
         {
-            var plaintext = _Name.Length == 8;
-            var body = (plaintext ? PlaintextData : Write()) + "\0";
-            var size = body.Length + 12;
+            bool plaintext = _Name.Length == 8;
+            if (plaintext)
+                PlaintextData = Write();
+            string body = (plaintext ? PlaintextData : Write()) + "\0";
+            int size = body.Length + 12;
 
             MemoryStream mem = new();
             BinaryWriter io = new(mem);

@@ -27,20 +27,8 @@ namespace SRVEmu.Messages
             User? user = client.User;
             if (user == null) return;
 
-            string? RoomName = "OnlineFreeBurnLobby";
-            if (user.CurrentRoom != null)
-                RoomName = user.CurrentRoom.Name;
-            Room? room = mc.Rooms.GetRoomByName(RoomName);
-            if (room != null)
-            {
-                if (room.Users != null)
-                    room.Users.SendPlusWho(user);
-            }
-
             client.SendMessage(new GpscOut() // Game will disconnect if this command is not sent, perhaps a little clue.
             {
-                GPSHOST = NAME,
-                HOST = NAME,
                 CUSTFLAGS = CUSTFLAGS,
                 MINSIZE = MINSIZE,
                 MAXSIZE = MAXSIZE,
@@ -57,44 +45,35 @@ namespace SRVEmu.Messages
 
             client.SendMessage(new PlusMgm()
             {
-                GPSHOST = NAME,
-                HOST =  NAME,
+                ADDR1 = client.IP,
                 CUSTFLAGS = CUSTFLAGS,
-                MINSIZE = MINSIZE,
-                MAXSIZE = MAXSIZE,
+                GPSHOST = NAME,
                 NAME = NAME,
+                OPPO1 = NAME,
                 PARAMS = PARAMS,
-                PASS = PASS,
                 PRIV = PRIV,
                 SEED = SEED,
                 SYSFLAGS = SYSFLAGS,
-                FORCE_LEAVE = FORCE_LEAVE,
-                USERPARAMS = USERPARAMS,
-                USERFLAGS = USERFLAGS
+                OPID1 = user.ID.ToString(),
+                OPFLAG1 = USERFLAGS
             });
 
             client.SendMessage(new PlusGam()
             {
-                GPSHOST = NAME,
-                HOST = NAME,
+                ADDR1 = client.IP,
                 CUSTFLAGS = CUSTFLAGS,
-                MINSIZE = MINSIZE,
-                MAXSIZE = MAXSIZE,
+                GPSHOST = NAME,
                 NAME = NAME,
+                OPPO1 = NAME,
                 PARAMS = PARAMS,
-                PASS = PASS,
                 PRIV = PRIV,
                 SEED = SEED,
                 SYSFLAGS = SYSFLAGS,
-                FORCE_LEAVE = FORCE_LEAVE,
-                USERPARAMS = USERPARAMS,
-                USERFLAGS = USERFLAGS
+                OPID1 = user.ID.ToString(),
+                OPFLAG1 = USERFLAGS
             });
 
-            client.SendMessage(new GjoiOut()
-            {
-                H = NAME
-            });
+            user.SendPlusWho(user);
         }
     }
 }

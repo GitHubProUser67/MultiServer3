@@ -8,6 +8,7 @@ namespace SRVEmu
         AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         AbstractDirtySockServer? RedirectorTSBO_PAL;
         AbstractDirtySockServer? RedirectorBOP_PS3;
+        AbstractDirtySockServer? RedirectorBOP_PC;
         AbstractDirtySockServer? BurnoutMatchmaker;
         AbstractDirtySockServer? SimsMatchmaker;
 
@@ -44,14 +45,16 @@ namespace SRVEmu
 
             try
             {
-                // Create a List to store pairs of string and bool
-                List<Tuple<string, bool>> BurnoutParadiseRoom = new()
-                {
-                    // Add some sample data
-                    new Tuple<string, bool>("OnlineFreeBurnLobby", true)
-                };
+                RedirectorBOP_PC = new RedirectorServer(21841, BackendProject.MiscUtils.GetLocalIPAddress().ToString(), 10901, false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RedirectorBOP_PC] Failed to start! Exception: {ex}");
+            }
 
-                BurnoutMatchmaker = new MatchmakerServer(10901, true, BurnoutParadiseRoom);
+            try
+            {
+                BurnoutMatchmaker = new MatchmakerServer(10901, true);
             }
             catch (Exception ex)
             {
