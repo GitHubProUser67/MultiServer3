@@ -15,6 +15,7 @@ namespace SRVEmu.Messages
         public string? REGN { get; set; }
         public string? CLST { get; set; }
         public string? NETV { get; set; }
+        public string? LOC { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
