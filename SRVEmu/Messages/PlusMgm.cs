@@ -1,6 +1,4 @@
-﻿using BackendProject;
-
-namespace SRVEmu.Messages
+﻿namespace SRVEmu.Messages
 {
     public class PlusMgm : AbstractMessage
     {
