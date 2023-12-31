@@ -28,6 +28,7 @@ namespace SRVEmu.Messages
         public string? PROD { get; set; }
         public string? VERS { get; set; }
         public string? SLUS { get; set; }
+        public string? LOC { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
@@ -48,6 +49,41 @@ namespace SRVEmu.Messages
                         // Extract and print the captured value
                         NAME = match.Groups[1].Value;
                 }
+
+                DbAccount info = new()
+                {
+                    Username = NAME,
+                    TOS = TOS,
+                    SHARE = SHARE,
+                    MAIL = MAIL,
+                    Password = PASS,
+                };
+
+                bool created = mc.Database.CreateNew(info);
+                if (created)
+                {
+                    CustomLogger.LoggerAccessor.LogInfo("Created new account: " + info.Username);
+                    client.SendMessage(new AcctOut()
+                    {
+                        NAME = NAME,
+                        PERSONAS = NAME,
+                        AGE = "24"
+                    });
+                }
+                else
+                    client.SendMessage(new AcctDupl());
+            }
+            else if (VERS == "BURNOUT5/PSN_DAVIS")
+            {
+                // Create a Regex object and match the pattern
+                Regex regex = new(@"(.*?)\$");
+
+                Match match = regex.Match(MADDR);
+
+                // Check if a match is found
+                if (match.Success)
+                    // Extract and print the captured value
+                    NAME = match.Groups[1].Value;
 
                 DbAccount info = new()
                 {

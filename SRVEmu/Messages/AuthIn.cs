@@ -23,7 +23,7 @@ namespace SRVEmu.Messages
         public string? MID { get; set; }
         public string FROM { get; set; } = "US";
         public string LANG { get; set; } = "en";
-
+        public string? LOC { get; set; }
         public string? PROD { get; set; }
         public string VERS { get; set; } = string.Empty;
         public string? SLUS { get; set; }
@@ -51,6 +51,18 @@ namespace SRVEmu.Messages
                         // Extract and print the captured value
                         NAME = match.Groups[1].Value;
                 }
+            }
+            else if (VERS == "BURNOUT5/PSN_DAVIS")
+            {
+                // Create a Regex object and match the pattern
+                Regex regex = new(@"(.*?)\$");
+
+                Match match = regex.Match(MADDR);
+
+                // Check if a match is found
+                if (match.Success)
+                    // Extract and print the captured value
+                    NAME = match.Groups[1].Value;
             }
 
             DbAccount? user = mc.Database.GetByName(NAME);
