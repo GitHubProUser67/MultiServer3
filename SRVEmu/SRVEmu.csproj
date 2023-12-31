@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 10901:10901 -p 10902:10902 -p 11100:11100 -p 11140:11140 -p 21870:21870</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 10900:10900 -p 10901:10901 -p 10902:10902 -p 11000:11000 -p 11001:11001 -p 11101:11101 -p 11140:11140 -p 14300:14300 -p 14301:14301 -p 11500:11500 -p 11501:11501 -p 11600:11600 -p 11601:11601 -p 20000:20000 -p 20001:20001 -p 20600:20600 -p 20601:20601 -p 21500:21500 -p 21501:21501 -p 21800:21800 -p 21801:21801 -p 21840:21840 -p 21841:21841 -p 21842:21842 -p 21845:21845 -p 21850:21850 -p 21851:21851 -p 21870:21870 -p 21871:21871 -p 30600:30600 -p 30601:30601 -p 30900:30900 -p 30901:30901</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<ApplicationIcon>SRVEmu.ico</ApplicationIcon>
   </PropertyGroup>

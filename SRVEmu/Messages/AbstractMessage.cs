@@ -99,7 +99,7 @@ namespace SRVEmu.Messages
         public byte[] GetData()
         {
             bool plaintext = _Name.Length == 8;
-            if (plaintext)
+            if (plaintext && string.IsNullOrEmpty(PlaintextData))
                 PlaintextData = Write();
             string body = (plaintext ? PlaintextData : Write()) + "\0";
             int size = body.Length + 12;
