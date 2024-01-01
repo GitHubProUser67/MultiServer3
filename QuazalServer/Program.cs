@@ -73,8 +73,10 @@ class Program
         _ = Task.Run(() => Parallel.Invoke(
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(30201, 2, "yh64s"), // TDU
                     () => new QuazalServer.ServerProcessors.RDVServer().Start(30200, 30201, 2, "yh64s"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(21006, 2, "w6kAtr3T"), // DFS
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(21005, 21006, 2, "w6kAtr3T"),
+                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(60106, 2, "w6kAtr3T"), // DFSPC
+                    () => new QuazalServer.ServerProcessors.RDVServer().Start(60105, 60106, 2, "w6kAtr3T"),
+                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(61111, 2, "QusaPha9"), // DFSPS3
+                    () => new QuazalServer.ServerProcessors.RDVServer().Start(61110, 61111, 2, "QusaPha9"),
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(21032, 2, "8dtRv2oj"), // GRO
                     () => RefreshConfig()
                 ));

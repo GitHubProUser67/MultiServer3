@@ -7,8 +7,8 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
     {
         private static Dictionary<string, string> DriverSanFransiscoPCResponse = new()
         {
-            { "SandboxUrl",                     @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=21005;serviceid=UPxxxx-MYGAME"},
-            { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:21005"},
+            { "SandboxUrl",                     @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=60105;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:60105"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
@@ -20,8 +20,8 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
 
         private static Dictionary<string, string> DriverSanFransiscoPS3Response = new()
         {
-            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=21010;serviceid=UPxxxx-MYGAME"},
-            { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:21010"},
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=61110;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:61110"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
@@ -33,8 +33,8 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
 
         private static Dictionary<string, string> GhostReconFutureSoliderPS3Response = new()
         {
-            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=21020;serviceid=UPxxxx-MYGAME"},
-            { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:21020"},
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=61120;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:61120"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},

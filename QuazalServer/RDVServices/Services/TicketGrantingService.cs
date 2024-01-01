@@ -39,7 +39,7 @@ namespace QuazalServer.RDVServices.Services
 
                 User? user = DBHelper.GetUserByName(userName);
 
-                if (user != null || userName == "guest")
+                if (user != null || userName == "guest" || userName == "Tracking")
                 {
                     // var trackingLoginData = "01 00 01 00 69 00 00 00 4C 00 00 00 99 39 C6 CB 93 13 50 8C 0B 02 C2 0B BC E4 94 6E B8 57 D0 15 A7 A1 AB 03 57 3F C1 69 F6 8E DC 55 0A A3 72 61 81 37 EB 6C A5 0C A2 C2 66 D5 B0 C6 23 15 E5 99 5A 3C 1F EC F7 90 55 2F 33 1E B7 C1 05 52 41 83 A0 1E 3F E8 18 02 7B 3B 4A 00 70 72 75 64 70 73 3A 2F 61 64 64 72 65 73 73 3D 31 38 35 2E 33 38 2E 32 31 2E 38 33 3B 70 6F 72 74 3D 32 31 30 30 36 3B 43 49 44 3D 31 3B 50 49 44 3D 32 3B 73 69 64 3D 31 3B 73 74 72 65 61 6D 3D 33 3B 74 79 70 65 3D 32 00 00 00 00 00 01 00 00 01 00 00";
                     // 
@@ -55,6 +55,8 @@ namespace QuazalServer.RDVServices.Services
                     }
                     else
                     {
+                        if (userName == "guest")
+                            plInfo.PID = 100;
                         plInfo.AccountId = userName;
                         plInfo.Name = userName;
                     }
@@ -64,12 +66,14 @@ namespace QuazalServer.RDVServices.Services
                     Login reply = new(0);
 
                     if (user == null)
-                        reply = new(0)
-                        {
-                            retVal = (int)ErrorCode.Core_NoError,
-                            pConnectionData = new RVConnectionData()
+                    {
+                        if (userName == "Tracking")
+                            reply = new(0)
                             {
-                                m_urlRegularProtocols = new(
+                                retVal = (int)ErrorCode.Core_NoError,
+                                pConnectionData = new RVConnectionData()
+                                {
+                                    m_urlRegularProtocols = new(
                                     "prudps",
                                     string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
                                     new Dictionary<string, int>() {
@@ -80,10 +84,32 @@ namespace QuazalServer.RDVServices.Services
                                     { "stream", 3 },
                                     { "type", 2 }
                                     })
-                            },
-                            strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey)
-                        };
+                                },
+                                strReturnMsg = string.Empty,
+                                pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "JaDe!")
+                            };
+                        else
+                            reply = new(plInfo.PID)
+                            {
+                                retVal = (int)ErrorCode.Core_NoError,
+                                pConnectionData = new RVConnectionData()
+                                {
+                                    m_urlRegularProtocols = new(
+                                    "prudps",
+                                    string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                    new Dictionary<string, int>() {
+                                    { "port", Context.Handler.BackendPort },
+                                    { "CID", 1 },
+                                    { "PID", (int)Context.Client.sPID },
+                                    { "sid", 1 },
+                                    { "stream", 3 },
+                                    { "type", 2 }
+                                    })
+                                },
+                                strReturnMsg = string.Empty,
+                                pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey)
+                            };
+                    }
                     else if (File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{userName}_{plInfo.PID}_password.txt"))
                         reply = new(plInfo.PID)
                         {
@@ -245,17 +271,22 @@ namespace QuazalServer.RDVServices.Services
             {
                 KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.ticket);
 
-                User? user = DBHelper.GetUserByPID(sourcePID);
-
                 TicketData ticketData = new()
                 {
                     retVal = (int)ErrorCode.Core_NoError,
                 };
 
-                if (user != null && File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
+                if (sourcePID == 0) // Ubisoft tracker account.
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "JaDe!");
                 else
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
+                {
+                    User? user = DBHelper.GetUserByPID(sourcePID);
+
+                    if (user != null && File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{user.Name}_{sourcePID}_password.txt"))
+                        ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{user.Name}_{sourcePID}_password.txt"));
+                    else
+                        ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
+                }
 
                 return Result(ticketData);
             }
