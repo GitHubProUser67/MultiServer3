@@ -104,8 +104,10 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new Thread(new HttpServer(80, route_config).Listen).Start(),
+                    () => new Thread(new HttpServer(3074, route_config).Listen).Start(),
                     () => new Thread(new HttpServer(9090, route_config).Listen).Start(),
                     () => new Thread(new HttpServer(10010, route_config).Listen).Start(),
+                    () => new Thread(new HttpServer(33000, route_config).Listen).Start(),
                     () => RefreshConfig()
                 ));
 
