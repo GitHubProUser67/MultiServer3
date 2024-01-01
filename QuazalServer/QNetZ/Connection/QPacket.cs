@@ -1,4 +1,3 @@
-using BackendProject.Horizon.RT.Models;
 using System.Text;
 
 namespace QuazalServer.QNetZ
@@ -255,10 +254,13 @@ namespace QuazalServer.QNetZ
 
 		private static byte GetProtocolSetting(byte proto, string AccessKey)
 		{
-			switch (proto)
+            switch (proto)
 			{
 				case 3:
-                    return (byte)Encoding.ASCII.GetBytes(AccessKey).Sum(b => b);
+					if (AccessKey == "0xE3")
+						return 0xE3;
+					else
+                        return (byte)Encoding.ASCII.GetBytes(AccessKey).Sum(b => b);
                 case 1:
 				case 5:
 				default:

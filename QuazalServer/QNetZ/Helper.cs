@@ -1,10 +1,8 @@
 using System.Text;
 using System.Security.Cryptography;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using ICSharpCode.SharpZipLib.Zip.Compression;
-using System.IO.Compression;
 using lzo.net;
 using BackendProject;
+using Ionic.Zlib;
 
 namespace QuazalServer.QNetZ
 {
@@ -229,26 +227,18 @@ namespace QuazalServer.QNetZ
 			switch (AccessKey)
 			{
 				case "yh64s":
-                    using (LzoStream lzo = new(baseInputStream, CompressionMode.Decompress))
+                    using (LzoStream lzo = new(baseInputStream, System.IO.Compression.CompressionMode.Decompress))
                     {
                         lzo.CopyTo(memoryStream);
                         memoryStream.Position = 0;
                         return memoryStream.ToArray();
                     }
 				default:
-                    Inflater inf = new();
-                    InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
-                    byte[] array = new byte[4096];
-                    for (; ; )
-                    {
-                        int num = inflaterInputStream.Read(array, 0, array.Length);
-                        if (num <= 0)
-                            break;
-                        memoryStream.Write(array, 0, num);
-                    }
-                    inflaterInputStream.Close();
-                    return memoryStream.ToArray();
-			}
+                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Decompress);
+                    MemoryStream result = new();
+                    s.CopyTo(result);
+                    return result.ToArray();
+            }
         }
 
         public static byte[] Compress(string AccessKey, byte[] InData)
@@ -258,13 +248,10 @@ namespace QuazalServer.QNetZ
 				case "yh64s":
                     return InData; // When using LZO, it seems compression is trivial.
                 default:
-                    MemoryStream memoryStream = new();
-                    Deflater deflater = new(9);
-                    DeflaterOutputStream deflaterOutputStream = new(memoryStream, deflater);
-                    deflaterOutputStream.Write(InData, 0, InData.Length);
-                    deflaterOutputStream.Close();
-                    memoryStream.Close();
-                    return memoryStream.ToArray(); // Send OG data if compressed size higher?
+                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
+                    MemoryStream result = new();
+                    s.CopyTo(result);
+                    return result.ToArray();
             }
         }
 
@@ -332,6 +319,7 @@ namespace QuazalServer.QNetZ
 			{
 				case "h7fyctiuucf":
 				case "UbiDummyPwd":
+				case "JaDe!":
                     count = 65000 + (pid % 1024);
                     buff = Encoding.ASCII.GetBytes(input);
                     break;
