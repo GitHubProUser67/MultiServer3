@@ -53,6 +53,37 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                      }
                 },
                 new() {
+                    Name = "Ubisoft MasterAdServerInitXml",
+                    UrlRegex = "/MasterAdServerWS/MasterAdServerWS.asmx/InitXml",
+                    Method = "POST",
+                    Host = "master10.doublefusion.com",
+                    Callable = (HttpRequest request) => {
+                        return new HttpResponse(false)
+                                {
+                                    HttpStatusCode = HttpStatusCode.NotFound,
+                                    ContentAsUTF8 = string.Empty
+                                };
+                     }
+                },
+                new() {
+                    Name = "Ubisoft GetOnlineConfig (including PSN)",
+                    UrlRegex = "/OnlineConfigService.svc/GetOnlineConfig",
+                    Method = "GET",
+                    Host = "onlineconfigservice.ubi.com",
+                    Callable = (HttpRequest request) => {
+                        return HttpResponse.Send(API.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters["onlineConfigID"]), "application/json; charset=utf-8");
+                     }
+                },
+                new() {
+                    Name = "Ubisoft MatchMakingConfig.aspx",
+                    UrlRegex = "/MatchMakingConfig.aspx",
+                    Method = "GET",
+                    Host = "gconnect.ubi.com",
+                    Callable = (HttpRequest request) => {
+                        return HttpResponse.Send("<xml></xml>", "text/xml");
+                     }
+                },
+                new() {
                     Name = "UFC Home Connector",
                     UrlRegex = "/index.php",
                     Method = "POST",
