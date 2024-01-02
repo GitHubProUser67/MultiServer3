@@ -1,5 +1,3 @@
-using QuazalServer.QNetZ.DDL;
-
 namespace QuazalServer.RDVServices.DDL.Models
 {
 	public class UbiAuthenticationLoginCustomData
