@@ -1,4 +1,6 @@
 using CustomLogger;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace QuazalServer.QNetZ
 {
@@ -70,7 +72,31 @@ namespace QuazalServer.QNetZ
 				}
 				return false;
 			});
-
 		}
-	}
+
+        public static uint GenerateUniqueUint(string input)
+        {
+            uint PID;
+
+            do
+            {
+                PID = (uint)new Random().Next();
+            } while (PID <= 1000); // We exclude PIDs equal or inferior to 1000 (reserved accounts).
+
+			return PID ^ CalculateXorKey(input);
+        }
+
+        // Helper method to calculate XOR key from the input string
+        private static uint CalculateXorKey(string input)
+        {
+            uint xorKey = 0;
+
+            foreach (char c in input)
+            {
+                xorKey ^= c;
+            }
+
+            return xorKey;
+        }
+    }
 }

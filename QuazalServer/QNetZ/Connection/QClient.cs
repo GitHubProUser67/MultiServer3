@@ -22,7 +22,8 @@ namespace QuazalServer.QNetZ
 
 		public StateType State;
 
-		public uint sPID; // server PID
+		public string? WIIFriendCode; // If WII, store this Variable
+        public uint sPID; // server PID
 		public ushort sPort; // server port
 		public IPEndPoint Endpoint; // client endpoint
 		public DateTime LastPacketTime;

@@ -392,7 +392,7 @@ namespace QuazalServer.QNetZ
 					return c;
 			}
 
-			LoggerAccessor.LogError($"[PRUDP Handler] - [{SourceName}] Error : unknown client: 0x{id:X8}");
+			LoggerAccessor.LogWarn($"[PRUDP Handler] - [{SourceName}] unknown client: 0x{id:X8}");
 			return null;
 		}
 

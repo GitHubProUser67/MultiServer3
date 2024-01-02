@@ -1,7 +1,6 @@
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.DDL.Models;
-using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ;
 
 namespace QuazalServer.RDVServices.Services
@@ -10,7 +9,7 @@ namespace QuazalServer.RDVServices.Services
 	public class RichPresenceService : RMCServiceBase
 	{
 		[RMCMethod(1)]
-		public RMCResult SetPresence(int phraseId, qBuffer argument)
+		public RMCResult SetPresence(int phraseId, QNetZ.DDL.qBuffer argument)
 		{
 			if (Context != null && Context.Client.Info != null)
 			{
@@ -51,7 +50,7 @@ namespace QuazalServer.RDVServices.Services
 						phraseId = 2,
 						isConnected = false,
 						principalId = principalId,
-						argument = new qBuffer()
+						argument = new QNetZ.DDL.qBuffer()
 					});
 				}
 			}

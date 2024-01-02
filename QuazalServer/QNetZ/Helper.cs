@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using lzo.net;
 using BackendProject;
 using Ionic.Zlib;
+using System.Text.RegularExpressions;
 
 namespace QuazalServer.QNetZ
 {
@@ -210,11 +211,11 @@ namespace QuazalServer.QNetZ
 			ulong value;
 
 			value = (ulong)v.Year << 26;
-			value |= ((ulong)v.Month << 22 & 15);
-			value |= ((ulong)v.Day << 17 & 31);
-			value |= ((ulong)v.Hour << 12 & 31);
-			value |= ((ulong)v.Minute << 6 & 63);
-			value |= ((ulong)v.Second & 63);
+			value |= (ulong)v.Month << 22 & 15;
+			value |= (ulong)v.Day << 17 & 31;
+			value |= (ulong)v.Hour << 12 & 31;
+			value |= (ulong)v.Minute << 6 & 63;
+			value |= (ulong)v.Second & 63;
 
 			WriteU64(s, value);
 		}
@@ -315,18 +316,15 @@ namespace QuazalServer.QNetZ
 			uint count = 0;
 			byte[] buff = Array.Empty<byte>();
             MD5 md5 = MD5.Create();
-			switch (input)
+            if (input.Length == 32 && Regex.IsMatch(input, @"\b[a-fA-F0-9]{32}\b")) // Might maybe conflict if user type in a md5 like pass, which is a very bad idea ^^.
 			{
-				case "h7fyctiuucf":
-				case "UbiDummyPwd":
-				case "JaDe!":
-                    count = 65000 + (pid % 1024);
-                    buff = Encoding.ASCII.GetBytes(input);
-                    break;
-				default:
-                    count = pid % 1024;
-                    buff = MiscUtils.HexStringToByteArray(input);
-                    break;
+                count = pid % 1024;
+                buff = MiscUtils.HexStringToByteArray(input);
+            }
+            else
+            {
+                count = 65000 + (pid % 1024);
+                buff = Encoding.ASCII.GetBytes(input);
             }
 
             for (uint i = 0; i < count; i++)

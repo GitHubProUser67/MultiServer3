@@ -17,8 +17,6 @@ namespace QuazalServer.RDVServices
 			{
 				RMCServiceFactory.RegisterService(protoClass);
 			}
-
-			DBHelper.RegisterUserWithPID("dummy", "dummy", 0, "dummy", 1000); // Dummy user for some games.
         }
 	}
 }

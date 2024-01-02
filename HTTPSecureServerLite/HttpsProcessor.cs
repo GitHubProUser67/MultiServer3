@@ -760,7 +760,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/MakeBarSdat/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var makeres = HomeTools.MakeBarSdat(ctx.Request.Data, ctx.Request.ContentType);
+                                        var makeres = HomeToolsInterface.MakeBarSdat(ctx.Request.Data, ctx.Request.ContentType);
                                         if (makeres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -790,7 +790,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/UnBar/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var unbarres = HomeTools.UnBar(ctx.Request.Data, ctx.Request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                        var unbarres = HomeToolsInterface.UnBar(ctx.Request.Data, ctx.Request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                         if (unbarres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -820,7 +820,37 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/CDS/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var cdsres = HomeTools.CDS(ctx.Request.Data, ctx.Request.ContentType);
+                                        var cdsres = HomeToolsInterface.CDS(ctx.Request.Data, ctx.Request.ContentType);
+                                        if (cdsres != null)
+                                        {
+                                            statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            await ctx.Response.SendAsync(cdsres.Value.Item1);
+                                        }
+                                        else // We are vague on the status code.
+                                        {
+                                            statusCode = HttpStatusCode.InternalServerError;
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = "text/plain";
+                                            ctx.Response.Send(true);
+                                        }
+                                    }
+                                    else // We are vague on the status code.
+                                    {
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        ctx.Response.Send(true);
+                                    }
+                                    break;
+                                case "/!HomeTools/CDSBruteforce/":
+                                    if (IsIPAllowed(clientip))
+                                    {
+                                        var cdsres = HomeToolsInterface.CDSBruteforce(ctx.Request.Data, ctx.Request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder);
                                         if (cdsres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -850,7 +880,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/TicketList/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var ticketlistres = HomeTools.TicketList(ctx.Request.Data, ctx.Request.ContentType);
+                                        var ticketlistres = HomeToolsInterface.TicketList(ctx.Request.Data, ctx.Request.ContentType);
                                         if (ticketlistres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -880,7 +910,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/INF/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var infres = HomeTools.INF(ctx.Request.Data, ctx.Request.ContentType);
+                                        var infres = HomeToolsInterface.INF(ctx.Request.Data, ctx.Request.ContentType);
                                         if (infres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -910,7 +940,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/ChannelID/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        string? channelres = HomeTools.ChannelID(ctx.Request.Data, ctx.Request.ContentType);
+                                        string? channelres = HomeToolsInterface.ChannelID(ctx.Request.Data, ctx.Request.ContentType);
                                         if (!string.IsNullOrEmpty(channelres))
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -939,7 +969,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/SceneID/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        string? sceneres = HomeTools.SceneID(ctx.Request.Data, ctx.Request.ContentType);
+                                        string? sceneres = HomeToolsInterface.SceneID(ctx.Request.Data, ctx.Request.ContentType);
                                         if (!string.IsNullOrEmpty(sceneres))
                                         {
                                             statusCode = HttpStatusCode.OK;

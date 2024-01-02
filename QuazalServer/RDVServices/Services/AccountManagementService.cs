@@ -11,7 +11,7 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(1)]
         public RMCResult CreateAccount(string strPrincipalName, string strKey, uint uiGroups, string strEmail)
         {
-            if (DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail))
+            if (Context != null && Context.Handler.AccessKey != null && DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail, Context.Handler.AccessKey))
                 return new RMCResult(new RMCPResponseEmpty(), true, 0);
             else
                 return Error((int)ErrorCode.Core_RegistrationError);

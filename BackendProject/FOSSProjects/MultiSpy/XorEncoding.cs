@@ -31,9 +31,6 @@ namespace BackendProject.FOSSProjects.MultiSpy
         public static byte[] Encode(byte[] plaintext, XorType type)
         {
             string seed0 = "gamespy";
-            string seed1 = "GameSpy3D";
-            string seed2 = "Industries";
-            string seed3 = "ProjectAphex";
 
             int length = plaintext.Length;
             int index = 0;
@@ -44,13 +41,13 @@ namespace BackendProject.FOSSProjects.MultiSpy
                     temp = Encoding.UTF8.GetBytes(seed0);
                     break;
                 case XorType.Type1:
-                    temp = Encoding.UTF8.GetBytes(seed1);
+                    temp = Encoding.UTF8.GetBytes("GameSpy3D");
                     break;
                 case XorType.Type2:
-                    temp = Encoding.UTF8.GetBytes(seed2);
+                    temp = Encoding.UTF8.GetBytes("Industries");
                     break;
                 case XorType.Type3:
-                    temp = Encoding.UTF8.GetBytes(seed3);
+                    temp = Encoding.UTF8.GetBytes("ProjectAphex");
                     break;
                 default:
                     temp = Encoding.UTF8.GetBytes(seed0);

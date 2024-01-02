@@ -5,12 +5,11 @@ namespace QuazalServer.RDVServices
 {
 	public static class DBHelper
 	{
-		public static User? GetUserByName(string name)
+		public static User? GetUserByName(string name, string AccessKey)
 		{
-            if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts"))
+            if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}"))
             {
-                // Assuming file name is in the format {username}_{PID}.json
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts", $"{name}_*.json");
+                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{name}_*.json");
 
                 if (parts.Length == 1 && File.Exists(parts[0]))
                     return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts[0]));
@@ -19,12 +18,11 @@ namespace QuazalServer.RDVServices
             return null;
 		}
 
-		public static User? GetUserByPID(uint PID)
+		public static User? GetUserByPID(uint PID, string AccessKey)
 		{
-            if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts"))
+            if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}"))
             {
-                // Assuming file name is in the format {username}_{PID}.json
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts", $"*_{PID}.json");
+                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"*_{PID}.json");
 
                 if (parts.Length == 1 && File.Exists(parts[0]))
                     return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts[0]));
@@ -33,13 +31,19 @@ namespace QuazalServer.RDVServices
             return null;
         }
 
-        public static bool RegisterUser(string strPrincipalName, string strKey, uint uiGroups, string strEmail)
+        public static bool RegisterUser(string strPrincipalName, string strKey, uint uiGroups, string strEmail, string AccessKey)
 		{
-            uint PID = (uint)new Random().Next();
+            uint PID;
+
+            do
+            {
+                PID = (uint)new Random().Next();
+            } while (PID <= 1000); // We exclude PIDs equal or inferior to 1000 (reserved accounts).
 
             DateTime servertime = DateTime.Now;
 
-            User newUser = new()
+            // Serialize the user object to JSON
+            string? json = JsonConvert.SerializeObject(new User()
             {
                 Id = PID,
                 Username = strPrincipalName,
@@ -52,22 +56,18 @@ namespace QuazalServer.RDVServices
                 EffectiveDate = servertime,
                 ExpiryDate = servertime.AddYears(500),
                 Password = strKey
-            };
-
-            // Serialize the user object to JSON
-            string? json = JsonConvert.SerializeObject(newUser, Formatting.Indented);
+            }, Formatting.Indented);
 
             if (!string.IsNullOrEmpty(json))
             {
-                Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + "/Accounts" ?? Directory.GetCurrentDirectory() + "/static/Quazal/Accounts");
+                Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}" ?? Directory.GetCurrentDirectory() + $"/static/Quazal/Accounts/{AccessKey}");
 
-                // Assuming file name is in the format {username}_{PID}.json
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts", $"{strPrincipalName}_*.json");
+                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{strPrincipalName}_*.json");
 
                 if (parts.Length <= 0 ) // Not create account with same name.
                 {
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{strPrincipalName}_{PID}.json", json);
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{strPrincipalName}_{PID}_password.txt", strKey);
+                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}.json", json);
+                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_password.txt", strKey);
                     return true;
                 }
             }
@@ -75,11 +75,12 @@ namespace QuazalServer.RDVServices
             return false;
         }
 
-        public static bool RegisterUserWithPID(string strPrincipalName, string strKey, uint uiGroups, string strEmail, uint PID)
+        public static bool RegisterUserWithPID(string strPrincipalName, string strKey, uint uiGroups, string strEmail, uint PID, string AccessKey)
         {
             DateTime servertime = DateTime.Now;
 
-            User newUser = new()
+            // Serialize the user object to JSON
+            string? json = JsonConvert.SerializeObject(new User()
             {
                 Id = PID,
                 Username = strPrincipalName,
@@ -92,22 +93,18 @@ namespace QuazalServer.RDVServices
                 EffectiveDate = servertime,
                 ExpiryDate = servertime.AddYears(500),
                 Password = strKey
-            };
-
-            // Serialize the user object to JSON
-            string? json = JsonConvert.SerializeObject(newUser, Formatting.Indented);
+            }, Formatting.Indented);
 
             if (!string.IsNullOrEmpty(json))
             {
-                Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + "/Accounts" ?? Directory.GetCurrentDirectory() + "/static/Quazal/Accounts");
+                Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}" ?? Directory.GetCurrentDirectory() + $"/static/Quazal/Accounts/{AccessKey}");
 
-                // Assuming file name is in the format {username}_{PID}.json
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts", $"{strPrincipalName}_*.json");
+                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{strPrincipalName}_*.json");
 
                 if (parts.Length <= 0) // Not create account with same name.
                 {
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{strPrincipalName}_{PID}.json", json);
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{strPrincipalName}_{PID}_password.txt", strKey);
+                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}.json", json);
+                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_password.txt", strKey);
                     return true;
                 }
             }

@@ -1,5 +1,4 @@
-﻿using BackendProject.BARTools;
-using BackendProject.BARTools.UnBAR;
+﻿using BackendProject.HomeTools.Crypto;
 using CustomLogger;
 
 namespace BackendProject.WebAPIs.CDS
@@ -11,12 +10,12 @@ namespace BackendProject.WebAPIs.CDS
             byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
             {
-                ToolsImpl? toolsimpl = new();
-                byte[] tranformedSHA1 = BitConverter.GetBytes(toolsimpl.Sha1toNonce(digest));
-                toolsimpl = null;
+                byte[] tranformedSHA1 = BitConverter.GetBytes(new ToolsImpl().Sha1toNonce(digest));
 
-                if (!BitConverter.IsLittleEndian)
-                    Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(tranformedSHA1);
+
+                Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
 
                 BlowfishCTREncryptDecrypt? blowfish = new();
                 byte[]? FileBytes = blowfish.InitiateCTRBuffer(buffer, tranformedSHA1);
@@ -32,12 +31,12 @@ namespace BackendProject.WebAPIs.CDS
         {
             if (sha1 != null)
             {
-                ToolsImpl? toolsimpl = new();
-                byte[] tranformedSHA1 = BitConverter.GetBytes(toolsimpl.Sha1toNonce(sha1));
-                toolsimpl = null;
+                byte[] tranformedSHA1 = BitConverter.GetBytes(new ToolsImpl().Sha1toNonce(sha1));
 
-                if (!BitConverter.IsLittleEndian)
-                    Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(tranformedSHA1);
+
+                Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
 
                 BlowfishCTREncryptDecrypt? blowfish = new();
                 byte[]? FileBytes = blowfish.InitiateCTRBuffer(buffer, tranformedSHA1);

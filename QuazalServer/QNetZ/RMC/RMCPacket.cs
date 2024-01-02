@@ -47,7 +47,11 @@ namespace QuazalServer.QNetZ
 
 					switch (AccessKey) // Legacy servers.
 					{
-						case "yh64s":
+                        case "QusaPha9":
+                            if (proto == RMCProtocolId.SecureConnectionService)
+                                proto = RMCProtocolId.UBISOFTPS3SecureConnectionService;
+                            break;
+                        case "yh64s":
                             if (proto == RMCProtocolId.FriendsService)
                                 proto = RMCProtocolId.LegacyFriendsService;
                             break;
