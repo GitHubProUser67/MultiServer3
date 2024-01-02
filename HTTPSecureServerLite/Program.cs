@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
+using BackendProject.HomeTools.Crypto;
 
 public static class HTTPSServerConfiguration
 {
@@ -94,7 +95,7 @@ class Program
 
         BackendProject.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
-        BackendProject.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
+        BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         // Timer for scheduled updates every 24 hours
         Timer timer = new(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));

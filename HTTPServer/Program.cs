@@ -2,6 +2,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
+using BackendProject.HomeTools.Crypto;
 
 public static class HTTPServerConfiguration
 {
@@ -100,7 +101,7 @@ class Program
 
         var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
 
-        BackendProject.BARTools.UnBAR.BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
+        BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new Thread(new HttpServer(80, route_config).Listen).Start(),

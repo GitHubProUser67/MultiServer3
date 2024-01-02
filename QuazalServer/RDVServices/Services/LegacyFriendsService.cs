@@ -29,24 +29,22 @@ namespace QuazalServer.RDVServices.Services
             {
                 PlayerInfo? plInfo = Context.Client.Info;
 
-				if (File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{plInfo.PID}_legacy_friends-list.json"))
+				if (File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{plInfo.Name}_{plInfo.PID}_legacy_friends-list.json"))
 				{
-                    List<FriendData>? list = JsonConvert.DeserializeObject<List<FriendData>>(File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{plInfo.PID}_legacy_friends-list.json"));
+                    List<FriendData>? list = JsonConvert.DeserializeObject<List<FriendData>>(File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{plInfo.Name}_{plInfo.PID}_legacy_friends-list.json"));
 
                     if (list != null)
                         return Result(list);
                 }
 				else
 				{
-                    User? user = DBHelper.GetUserByPID(plInfo.PID);
+                    User? user = DBHelper.GetUserByPID(plInfo.PID, Context.Handler.AccessKey);
 
                     if (user != null)
 					{
-                        // is that always has to be empty?
                         var result = new List<FriendData>
                         {
-                            new FriendData
-                            {
+                            new() {
                                 m_pid = plInfo.PID,
                                 m_strName = plInfo.Name,
                                 m_byRelationship = 0,
@@ -55,9 +53,9 @@ namespace QuazalServer.RDVServices.Services
                             }
                         };
 
-                        Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts");
+                        Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}");
 
-                        File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{plInfo.PID}_legacy_friends-list.json", JsonConvert.SerializeObject(result, Formatting.Indented));
+                        File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{plInfo.Name}_{plInfo.PID}_legacy_friends-list.json", JsonConvert.SerializeObject(result, Formatting.Indented));
 
                         return Result(result);
                     }

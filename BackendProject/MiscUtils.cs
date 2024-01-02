@@ -163,6 +163,16 @@ namespace BackendProject
             return result;
         }
 
+        public static byte[] CopyBytes(byte[] source, int offset, int length)
+        {
+            if (source == null || offset < 0 || length < 0 || offset >= source.Length)
+                return Array.Empty<byte>();
+
+            byte[] result = new byte[length];
+            Buffer.BlockCopy(source, offset, result, 0, source.Length);
+            return result;
+        }
+
         public static byte[] ReadSmallFileChunck(string filePath, int bytesToRead)
         {
             byte[] result = new byte[bytesToRead];
@@ -202,91 +212,84 @@ namespace BackendProject
 
         public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
         {
-            try
+            if (Avx2.IsSupported)
             {
-                if (Avx2.IsSupported)
+                // Compare the first element
+                Vector256<byte> compareResult = new();
+
+                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
                 {
                     // Compare the first element
-                    Vector256<byte> compareResult = new();
+                    compareResult = Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, byteArray[i]), Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]));
 
-                    for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
+                    // Extract the result to check if the first element matches
+                    if (Avx2.MoveMask(compareResult) != 0)
                     {
-                        // Compare the first element
-                        compareResult = Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, byteArray[i]), Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]));
-
-                        // Extract the result to check if the first element matches
-                        if (Avx2.MoveMask(compareResult) != 0)
+                        // Check the remaining elements
+                        bool found = true;
+                        for (int j = 1; j < sequenceToFind.Length; j++)
                         {
-                            // Check the remaining elements
-                            bool found = true;
-                            for (int j = 1; j < sequenceToFind.Length; j++)
+                            if (byteArray[i + j] != sequenceToFind[j])
                             {
-                                if (byteArray[i + j] != sequenceToFind[j])
-                                {
-                                    found = false;
-                                    break;
-                                }
+                                found = false;
+                                break;
                             }
-
-                            if (found)
-                                return true;
                         }
-                    }
-                }
-                else if (Sse2.IsSupported)
-                {
-                    // Compare the first element
-                    Vector128<byte> compareResult = new();
 
-                    for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
-                    {
-                        // Compare the first element
-                        compareResult = Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, byteArray[i]), Vector128<byte>.Zero.WithElement(0, sequenceToFind[0]));
-
-                        // Extract the result to check if the first element matches
-                        if (Sse2.MoveMask(compareResult) != 0)
-                        {
-                            // Check the remaining elements
-                            bool found = true;
-                            for (int j = 1; j < sequenceToFind.Length; j++)
-                            {
-                                if (byteArray[i + j] != sequenceToFind[j])
-                                {
-                                    found = false;
-                                    break;
-                                }
-                            }
-
-                            if (found)
-                                return true;
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
-                    {
-                        if (byteArray[i] == sequenceToFind[0])
-                        {
-                            bool found = true;
-                            for (int j = 1; j < sequenceToFind.Length; j++)
-                            {
-                                if (byteArray[i + j] != sequenceToFind[j])
-                                {
-                                    found = false;
-                                    break;
-                                }
-                            }
-
-                            if (found)
-                                return true;
-                        }
+                        if (found)
+                            return true;
                     }
                 }
             }
-            catch (Exception ex)
+            else if (Sse2.IsSupported)
             {
-                LoggerAccessor.LogError($"[MiscUtils] - Server has throw an exception in FindbyteSequence : {ex}");
+                // Compare the first element
+                Vector128<byte> compareResult = new();
+
+                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
+                {
+                    // Compare the first element
+                    compareResult = Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, byteArray[i]), Vector128<byte>.Zero.WithElement(0, sequenceToFind[0]));
+
+                    // Extract the result to check if the first element matches
+                    if (Sse2.MoveMask(compareResult) != 0)
+                    {
+                        // Check the remaining elements
+                        bool found = true;
+                        for (int j = 1; j < sequenceToFind.Length; j++)
+                        {
+                            if (byteArray[i + j] != sequenceToFind[j])
+                            {
+                                found = false;
+                                break;
+                            }
+                        }
+
+                        if (found)
+                            return true;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
+                {
+                    if (byteArray[i] == sequenceToFind[0])
+                    {
+                        bool found = true;
+                        for (int j = 1; j < sequenceToFind.Length; j++)
+                        {
+                            if (byteArray[i + j] != sequenceToFind[j])
+                            {
+                                found = false;
+                                break;
+                            }
+                        }
+
+                        if (found)
+                            return true;
+                    }
+                }
             }
 
             return false;

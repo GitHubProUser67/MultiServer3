@@ -37,7 +37,10 @@ namespace QuazalServer.QNetZ
 					case "yh64s":
                         key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
 						break;
-					default:
+                    case "QusaPha9":
+                        key = Helper.DeriveKey(userPID, input ?? "PS3NPDummyPwd");
+                        break;
+                    default:
                         key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");
                         break;
                 }

@@ -247,7 +247,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/MakeBarSdat/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var makeres = HomeTools.MakeBarSdat(request.getDataStream, request.GetContentType());
+                                                                        var makeres = HomeToolsInterface.MakeBarSdat(request.getDataStream, request.GetContentType());
                                                                         if (makeres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(makeres.Value.Item1, makeres.Value.Item2);
                                                                         else
@@ -259,7 +259,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/UnBar/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var unbarres = HomeTools.UnBar(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                        var unbarres = HomeToolsInterface.UnBar(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                         if (unbarres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(unbarres.Value.Item1, unbarres.Value.Item2);
                                                                         else
@@ -271,7 +271,19 @@ namespace HTTPServer
                                                                 case "/!HomeTools/CDS/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var cdsres = HomeTools.CDS(request.getDataStream, request.GetContentType());
+                                                                        var cdsres = HomeToolsInterface.CDS(request.getDataStream, request.GetContentType());
+                                                                        if (cdsres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
+                                                                case "/!HomeTools/CDSBruteforce/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var cdsres = HomeToolsInterface.CDSBruteforce(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder);
                                                                         if (cdsres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
                                                                         else
@@ -283,7 +295,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/TicketList/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var ticketlistres = HomeTools.TicketList(request.getDataStream, request.GetContentType());
+                                                                        var ticketlistres = HomeToolsInterface.TicketList(request.getDataStream, request.GetContentType());
                                                                         if (ticketlistres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(ticketlistres.Value.Item1, ticketlistres.Value.Item2);
                                                                         else
@@ -295,7 +307,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/INF/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var infres = HomeTools.INF(request.getDataStream, request.GetContentType());
+                                                                        var infres = HomeToolsInterface.INF(request.getDataStream, request.GetContentType());
                                                                         if (infres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(infres.Value.Item1, infres.Value.Item2);
                                                                         else
@@ -307,7 +319,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/ChannelID/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        string? channelres = HomeTools.ChannelID(request.getDataStream, request.GetContentType());
+                                                                        string? channelres = HomeToolsInterface.ChannelID(request.getDataStream, request.GetContentType());
                                                                         if (!string.IsNullOrEmpty(channelres))
                                                                             response = HttpResponse.Send(channelres);
                                                                         else
@@ -319,7 +331,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/SceneID/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        string? sceneres = HomeTools.SceneID(request.getDataStream, request.GetContentType());
+                                                                        string? sceneres = HomeToolsInterface.SceneID(request.getDataStream, request.GetContentType());
                                                                         if (!string.IsNullOrEmpty(sceneres))
                                                                             response = HttpResponse.Send(sceneres);
                                                                         else

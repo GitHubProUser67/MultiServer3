@@ -40,6 +40,7 @@ namespace QuazalServer.QNetZ
         Game2WebService              	= 122,
         UplayPassService             	= 123,
         OverlordFriendsService       	= 5005,
-        LegacyFriendsService            = 35555 // Custom built for older Rendez-vous clients.
+        UBISOFTPS3SecureConnectionService = int.MaxValue -1, // Custom built for PS3 Ubisoft Rendez-vous clients.
+        LegacyFriendsService = int.MaxValue // Custom built for older Rendez-vous clients.
     }
 }
