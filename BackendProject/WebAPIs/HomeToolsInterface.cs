@@ -636,9 +636,9 @@ namespace BackendProject.WebAPIs
 
                                     if (ProcessedFileBytes != null)
                                     {
-                                        if (buffer.Length > 4 && (buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c
+                                        if (buffer.Length >= 8 && (buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c
                                             || buffer[0] == 0x3c && buffer[1] == 0x58 && buffer[2] == 0x4d && buffer[3] == 0x4c
-                                            || buffer[0] == 0x3c && buffer[1] == 0x3f && buffer[2] == 0x78 && buffer[3] == 0x6d
+                                            || buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF && buffer[3] == 0x3C && buffer[4] == 0x3F && buffer[5] == 0x78 && buffer[6] == 0x6D && buffer[7] == 0x6C
                                             || buffer[0] == 0x3c && buffer[1] == 0x53 && buffer[2] == 0x43 && buffer[3] == 0x45))
                                         {
                                             if (filename.ToLower().Contains(".sdc"))
@@ -680,8 +680,10 @@ namespace BackendProject.WebAPIs
                                         }
                                         else
                                         {
-                                            if (ProcessedFileBytes.Length > 4 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
-                                            || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c))
+                                            if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
+                                            || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
+                                            || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
+                                            || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
                                             {
                                                 if (filename.ToLower().Contains(".sdc"))
                                                 {
@@ -704,17 +706,9 @@ namespace BackendProject.WebAPIs
                                             }
                                             else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
                                             {
-                                                byte[]? DecompressedData = new EDGELZMA().Decompress(ProcessedFileBytes, true);
-                                                if (DecompressedData != null)
-                                                {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.sql", DecompressedData);
-                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.sql"), $"{filename}_Decrypted.sql");
-                                                }
-                                                else
-                                                {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.hcdb", ProcessedFileBytes);
-                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.hcdb"), $"{filename}_Decrypted.hcdb");
-                                                }
+                                                File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.hcdb", ProcessedFileBytes);
+
+                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.hcdb"), $"{filename}_Decrypted.hcdb");
                                             }
                                             else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0xAD && ProcessedFileBytes[1] == 0xEF && ProcessedFileBytes[2] == 0x17 && ProcessedFileBytes[3] == 0xE1)
                                             {
@@ -773,6 +767,15 @@ namespace BackendProject.WebAPIs
                         string filename = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         string? charset = data.GetParameterValue("charset");
+                        string classicmethod = string.Empty;
+                        try
+                        {
+                            classicmethod = data.GetParameterValue("classicmethod");
+                        }
+                        catch (Exception)
+                        {
+
+                        }
                         foreach (var multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
@@ -792,7 +795,22 @@ namespace BackendProject.WebAPIs
 
                                 BruteforceProcess? proc = new(buffer);
 
-                                output = (proc.StartBruteForce(HelperStaticFolder, charset).Result, $"{filename}_Bruteforced.bin");
+                                if (classicmethod == "on")
+                                    output = (proc.StartBruteForce(HelperStaticFolder, charset, false).Result, $"{filename}_Bruteforced.bin");
+                                else
+                                {
+                                    if (filename.ToLower().Contains(".hcdb"))
+                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 1).Result, $"{filename}_Bruteforced.hcdb");
+                                    else if (filename.ToLower().Contains(".bar"))
+                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 2).Result, $"{filename}_Bruteforced.bar");
+                                    else if (filename.ToLower().Contains(".sharc"))
+                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 3).Result, $"{filename}_Bruteforced.sharc");
+                                    else if (filename.ToLower().Contains(".sdat"))
+                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 4).Result, $"{filename}_Bruteforced.sdat");
+                                    else
+                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true).Result, $"{filename}_Bruteforced.xml");
+
+                                }
 
                                 proc = null;
 
@@ -924,6 +942,9 @@ namespace BackendProject.WebAPIs
         public static (byte[]?, string)? INF(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
+
+            if (ToolsImpl.INFIVA == null)
+                BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 
 namespace BackendProject.WebAPIs.CDS
@@ -48,7 +49,7 @@ namespace BackendProject.WebAPIs.CDS
             return charactersToTest;
         }
 
-        public async Task<byte[]> StartBruteForce(string helperfolder, string charset)
+        public async Task<byte[]> StartBruteForce(string helperfolder, string charset, bool ExploitAttack, bool servermode = true, int path = 0)
         {
             DateTime timeStarted = DateTime.Now;
             CustomLogger.LoggerAccessor.LogWarn("[CDS] - BruteforceProcess - BruteForce started at: - {0}", timeStarted.ToString());
@@ -84,9 +85,9 @@ namespace BackendProject.WebAPIs.CDS
 
                                 if (ProcessedFileBytes != null)
                                 {
-                                    if (ProcessedFileBytes.Length > 4 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
+                                    if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
                                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
-                                                            || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x3f && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6d
+                                                            || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
                                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
                                     {
                                         CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - File Type: XML Dectected! - {0}", DateTime.Now.ToString());
@@ -130,28 +131,49 @@ namespace BackendProject.WebAPIs.CDS
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(charset))
-                        charactersToTest = GetCharArray(charset);
-
-                    // The length of the array is stored permanently during runtime
-                    charactersToTestLength = charactersToTest.Length;
-
-                    await startBruteForce(16, TempBuffer); // SHA1 IV is always 16 characters.
-
-                    if (ResultIV == "NOMATCH")
+                    if (ExploitAttack)
                     {
-                        CustomLogger.LoggerAccessor.LogError("[CDS] - BruteforceProcess - Nothing matched! - Make sure the input was correct. - {0}", DateTime.Now.ToString());
-                        DecryptedFileBytes = Encoding.UTF8.GetBytes(ResultIV);
+                        DecryptedFileBytes = CTRExploitProcess.ProcessExploit(TempBuffer, EncryptedFileBytes, path, servermode) ?? Array.Empty<byte>();
+
+                        if (DecryptedFileBytes != Array.Empty<byte>())
+                        {
+                            using (SHA1 sha1 = SHA1.Create())
+                            {
+                                CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved SHA1: {0}", BitConverter.ToString(sha1.ComputeHash(DecryptedFileBytes)).Replace("-", "").ToUpper());
+                                sha1.Clear();
+                            }
+                        }
+                        else
+                        {
+                            CustomLogger.LoggerAccessor.LogError("[CDS] - BruteforceProcess - Nothing matched! - Make sure the input was correct. - {0}", DateTime.Now.ToString());
+                            DecryptedFileBytes = Encoding.UTF8.GetBytes("NOMATCH");
+                        }
                     }
                     else
                     {
-                        CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - IV matched! - {0}", DateTime.Now.ToString());
-                        CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved IV: {0}", ResultIV);
+                        if (!string.IsNullOrEmpty(charset))
+                            charactersToTest = GetCharArray(charset);
+
+                        // The length of the array is stored permanently during runtime
+                        charactersToTestLength = charactersToTest.Length;
+
+                        await startBruteForce(16, TempBuffer); // SHA1 IV is always 16 characters.
+
+                        if (ResultIV == "NOMATCH")
+                        {
+                            CustomLogger.LoggerAccessor.LogError("[CDS] - BruteforceProcess - Nothing matched! - Make sure the input was correct. - {0}", DateTime.Now.ToString());
+                            DecryptedFileBytes = Encoding.UTF8.GetBytes(ResultIV);
+                        }
+                        else
+                        {
+                            CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - IV matched! - {0}", DateTime.Now.ToString());
+                            CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved IV: {0}", ResultIV);
+                            CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Computed IVs: {0}", computedKeys);
+                        }
                     }
                 }
 #if DEBUG
                 CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Time passed: {0}s", DateTime.Now.Subtract(timeStarted).TotalSeconds);
-                CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Computed IVs: {0}", computedKeys);
 #endif
             }
             else
@@ -223,9 +245,9 @@ namespace BackendProject.WebAPIs.CDS
 
                         if (ProcessedFileBytes != null)
                         {
-                            if (ProcessedFileBytes.Length > 4 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
+                            if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
                                                     || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
-                                                    || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x3f && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6d
+                                                    || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
                                                     || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
                             {
                                 CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - File Type: XML Dectected! - {0}", DateTime.Now.ToString());

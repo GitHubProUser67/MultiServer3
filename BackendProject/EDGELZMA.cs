@@ -5,10 +5,10 @@ namespace BackendProject
 {
     public class EDGELZMA
     {
-        public byte[]? Decompress(byte[] data, bool SegsMode)
+        public byte[]? Decompress(byte[] data, bool SegsMode, bool safemode = true)
         {
             if (SegsMode)
-                return SegmentsDecompress(data);
+                return SegmentsDecompress(data, safemode);
             else
                 return Decompress(data);
         }
@@ -122,7 +122,7 @@ namespace BackendProject
             return result.ToArray();
         }
 
-        public byte[]? SegmentsDecompress(byte[] inbuffer) // Todo, make it multithreaded like original sdk.
+        public byte[]? SegmentsDecompress(byte[] inbuffer, bool safemode) // Todo, make it multithreaded like original sdk.
         {
             try
             {
@@ -196,21 +196,22 @@ namespace BackendProject
 
                         if (FileData.Length == OriginalSize)
                             return FileData;
-                        else
+                        else if (safemode)
                         {
                             LoggerAccessor.LogError("[EdgeLzmaSegs] - File size is different than the one indicated in TOC! Sending input file instead.");
                             return inbuffer;
                         }
                     }
-                    else
+                    else if (safemode)
                         LoggerAccessor.LogError("[EdgeLzmaSegs] - The byte array length is not evenly divisible by 8, decompression failed!");
                 }
-                else
+                else if (safemode)
                     LoggerAccessor.LogError("[EdgeLzmaSegs] - File is not a valid segment based EdgeLzma compressed file!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
+                if (safemode)
+                    LoggerAccessor.LogError($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
             }
 
             return null;

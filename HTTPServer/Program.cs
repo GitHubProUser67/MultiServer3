@@ -2,8 +2,6 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-using BackendProject.HomeTools.Crypto;
-
 public static class HTTPServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
@@ -101,14 +99,12 @@ class Program
 
         var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
 
-        BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
-
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new Thread(new HttpServer(80, route_config).Listen).Start(),
-                    () => new Thread(new HttpServer(3074, route_config).Listen).Start(),
-                    () => new Thread(new HttpServer(9090, route_config).Listen).Start(),
-                    () => new Thread(new HttpServer(10010, route_config).Listen).Start(),
-                    () => new Thread(new HttpServer(33000, route_config).Listen).Start(),
+                    () => new HttpServer(80, route_config).Listen(),
+                    () => new HttpServer(3074, route_config).Listen(),
+                    () => new HttpServer(9090, route_config).Listen(),
+                    () => new HttpServer(10010, route_config).Listen(),
+                    () => new HttpServer(33000, route_config).Listen(),
                     () => RefreshConfig()
                 ));
 
