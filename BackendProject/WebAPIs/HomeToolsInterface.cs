@@ -803,13 +803,8 @@ namespace BackendProject.WebAPIs
                                         output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 1).Result, $"{filename}_Bruteforced.hcdb");
                                     else if (filename.ToLower().Contains(".bar"))
                                         output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 2).Result, $"{filename}_Bruteforced.bar");
-                                    else if (filename.ToLower().Contains(".sharc"))
-                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 3).Result, $"{filename}_Bruteforced.sharc");
-                                    else if (filename.ToLower().Contains(".sdat"))
-                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 4).Result, $"{filename}_Bruteforced.sdat");
                                     else
                                         output = (proc.StartBruteForce(HelperStaticFolder, charset, true).Result, $"{filename}_Bruteforced.xml");
-
                                 }
 
                                 proc = null;
