@@ -86,41 +86,58 @@ namespace BackendProject
 
         public static string GetCurrentDateTime()
         {
-            DateTime currentDateTime = DateTime.Now;
-            string formattedDateTime = $"{currentDateTime:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
-            return formattedDateTime;
+            return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
         }
 
         public static string GetNanoseconds()
         {
             // C# DateTime only provides up to ticks (100 nanoseconds) resolution
             long ticks = DateTime.Now.Ticks;
-            long nanoseconds = (ticks % TimeSpan.TicksPerMillisecond) * 100;
 
-            return nanoseconds.ToString("00000000"); // Pad with zeros to 8 digits
-        }
-
-        public static byte[] HexStringToByteArray(string hex)
-        {
-            int len = hex.Length;
-            byte[] byteArray = new byte[len / 2];
-            for (int i = 0; i < len; i += 2)
-            {
-                byteArray[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            }
-
-            return byteArray;
+            return (ticks % TimeSpan.TicksPerMillisecond * 100).ToString("00000000"); // Pad with zeros to 8 digits
         }
 
         public static string ByteArrayToHexString(byte[] byteArray)
         {
-            StringBuilder hex = new StringBuilder(byteArray.Length * 2);
+            StringBuilder hex = new(byteArray.Length * 2);
             foreach (byte b in byteArray)
             {
                 hex.AppendFormat("{0:X2}", b);
             }
 
             return hex.ToString();
+        }
+
+        public static bool AreArraysIdentical(byte[] arr1, byte[] arr2)
+        {
+            // Check if the length of both arrays is the same
+            if (arr1.Length != arr2.Length)
+                return false;
+
+            // Compare each element in the arrays
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i])
+                    return false;
+            }
+
+            // If all elements are identical, return true
+            return true;
+        }
+
+        /// <summary>
+        /// Convert a hex-formatted string to byte array.
+        /// </summary>
+        /// <param name="hex">A string looking like "300D06092A864886F70D0101050500".</param>
+        /// <returns>A byte array.</returns>
+        public static byte[] HexStringToByteArray(string hex)
+        {
+            //copypasted from:
+            //https://social.msdn.microsoft.com/Forums/en-US/851492fa-9ddb-42d7-8d9a-13d5e12fdc70/convert-from-a-hex-string-to-a-byte-array-in-c?forum=aspgettingstarted
+            return Enumerable.Range(0, hex.Length)
+                             .Where(x => x % 2 == 0)
+                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                             .ToArray();
         }
 
         public static byte[][] SplitAt(byte[] source, int index)
@@ -168,9 +185,18 @@ namespace BackendProject
             if (source == null || offset < 0 || length < 0 || offset >= source.Length)
                 return Array.Empty<byte>();
 
-            byte[] result = new byte[length];
-            Buffer.BlockCopy(source, offset, result, 0, source.Length);
-            return result;
+            if (source.Length > length)
+            {
+                byte[] result = new byte[length];
+                Buffer.BlockCopy(source, offset, result, 0, result.Length);
+                return result;
+            }
+            else
+            {
+                byte[] result = new byte[source.Length];
+                Buffer.BlockCopy(source, offset, result, 0, result.Length);
+                return result;
+            }
         }
 
         public static byte[] ReadSmallFileChunck(string filePath, int bytesToRead)
@@ -208,6 +234,11 @@ namespace BackendProject
             }
 
             return result;
+        }
+
+        public static byte[] XORBytes(byte[] array1, byte[] array2)
+        {
+            return array1.Zip(array2, (x, y) => (byte)(x ^ y)).ToArray();
         }
 
         public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)

@@ -552,34 +552,19 @@ namespace BackendProject
             const string SHA512id = "300D06092A864886F70D01010D0500";
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
-                return HexToByteArray(MD5id);
+                return MiscUtils.HexStringToByteArray(MD5id);
             if (hashAlgorithm == HashAlgorithmName.SHA1)
-                return HexToByteArray(SHA1id);
+                return MiscUtils.HexStringToByteArray(SHA1id);
             if (hashAlgorithm == HashAlgorithmName.SHA256)
-                return HexToByteArray(SHA256id);
+                return MiscUtils.HexStringToByteArray(SHA256id);
             if (hashAlgorithm == HashAlgorithmName.SHA384)
-                return HexToByteArray(SHA384id);
+                return MiscUtils.HexStringToByteArray(SHA384id);
             if (hashAlgorithm == HashAlgorithmName.SHA512)
-                return HexToByteArray(SHA512id);
+                return MiscUtils.HexStringToByteArray(SHA512id);
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 
             return Array.Empty<byte>();
-        }
-
-        /// <summary>
-        /// Convert a hex-formatted string to byte array.
-        /// </summary>
-        /// <param name="hex">A string looking like "300D06092A864886F70D0101050500".</param>
-        /// <returns>A byte array.</returns>
-        public static byte[] HexToByteArray(string hex)
-        {
-            //copypasted from:
-            //https://social.msdn.microsoft.com/Forums/en-US/851492fa-9ddb-42d7-8d9a-13d5e12fdc70/convert-from-a-hex-string-to-a-byte-array-in-c?forum=aspgettingstarted
-            return Enumerable.Range(0, hex.Length)
-                             .Where(x => x % 2 == 0)
-                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                             .ToArray();
         }
 
         /// <summary>
