@@ -80,30 +80,6 @@ namespace BackendProject
             "GeWwqZW30oPWbDOFsAECQQC076s5komcJC1YipfTYGdpyNS5tAGeLJfE7IlpVrwt\r\n" +
             "n9rAHnFapGDVIRpkhIWWOmFzUttc+zUglqERusjqAAYj\r\n" +
             "-----END RSA PRIVATE KEY-----\r\n";
-        public const string FESL_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\n" +
-            "MIIBOwIBAAJBANnZdpfwsaidD/HXgQN6aI/hkJFuVhZxdMjFGRDbsHQCih+tjZCy\n" +
-            "Yl7rBefxvOkgeleSANB+hxbxBMOW6udWqpsCAwEAAQJAf1d72GMtJnfxCxhC5OqX\n" +
-            "1osu+6P4lJPrhTSZa15P7e89yW9i+DojDNVjaAlFrRdkvWFb59vd44Jl0ZjSpX/X\n" +
-            "iQIhAPW+0PFasaMLIbGzs9mu/+7U4aNXHB9cNwyEDVhd70hdAiEA4vCl5CMmnzfS\n" +
-            "7GN4Gc6sCWI2F+2Kir/4ZT1mwUPsL1cCIQDsDWbW769CVib/cwaHSzo8R/CV3c79\n" +
-            "sK6QLyhCgbifYQIgI25e+Bdk2Ebm73E4Nw9FXNGwkFvN3YvLREMp39Ky9VECIQC0\n" +
-            "W4I6GWlJLLa4pswGt4yDBxKiSJjEl3OOgAJgIX9WLg==\n" +
-            "-----END RSA PRIVATE KEY-----\n";
-        public const string OTG3_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\n" +
-            "MIICXAIBAAKBgQDaAtOA0KtniG0rERd+/08fuoCjBw6PA23uncDzC/i4BRYWTcDU\n" +
-            "gn9HpIo7yhKd0p0ZYdhWYUeliNwkj5DJpBy/+FfgL0d4Lq5acOVVut024WwXkzHk\n" +
-            "+SIDgWmYyC7fvg4zncPgwCCFUs0/BfXLQS9nEJFq0VnawSM+cQifINQ9bQIBAwKB\n" +
-            "gQCRVzerNceaWvNyC2T/VN9qfFXCBLRfV56fE9X3XVB6rg65iSs4Vv+FGFwn3Axp\n" +
-            "NxNmQTrkQNpuWz1ttQsxGBMpaiHwamktfDAPj7cqFyJ1n841jxOZ9AmvXxFzGQxj\n" +
-            "Qv70hpwpGfIYVFzSzhua/9zXfCuuLhmZAvbm5aBaDY0OEwJBAPkLnhjETsg9dP7a\n" +
-            "vUx/nJUbDPHXdPjyr8QQpcO0aSQq2epH8zMB9MggBfp/wda15kvG5o0/0EFnWOif\n" +
-            "7WBJlu8CQQDgGVl25WUsKM4ad9lLqencm7pKvQkSIMyuvsZe5+G1ZOrpka/mM2wM\n" +
-            "IfzWTKDqrj2KiP7+86T7SYsv+CqsNxFjAkEApge+uy2J2tOjVJHTiFUTDhIIoTpN\n" +
-            "+0x1LWBugnhGGByRRtqiIgFN2sAD/FUr5HlEMoSZs3/gK5o7Rb/zlYZknwJBAJVm\n" +
-            "O6SY7h1wiWb6kN0b8T29Jtx+BgwV3cnUhD9FQSOYnJu2dUQiSAgWqI7dwJx0KQcF\n" +
-            "/1Sibfzbsh/6xx16C5cCQFu7jXAYr8lWe9R+oOxzPRELHnmGcJnIi4VF5J77yDOA\n" +
-            "KX0tBMEhRPnoqnbaZCirm/OiwiUGy5K8ZMpB37qp26c=\n" +
-            "-----END RSA PRIVATE KEY-----\n";
         public const string PS2_DNAS_EU_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\r\n" +
             "MIICXgIBAAKBgQDmN7Q4yJVmwseYOtCp2u/dODh4sX2Sye8ss7mr745XRIMmuGNc\r\n" +
             "Ygh/9MAa0RRSlJb/3SbOpFb49qoLzem0mGdFlZc2bz9wrC/1Vj79Zf0lxQA4/VF2\r\n" +
@@ -260,7 +236,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
                 // Set additional properties of the certificate
                 request.CertificateExtensions.Add(

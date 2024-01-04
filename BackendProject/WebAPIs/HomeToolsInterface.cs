@@ -639,6 +639,7 @@ namespace BackendProject.WebAPIs
                                         if (buffer.Length >= 8 && (buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c
                                             || buffer[0] == 0x3c && buffer[1] == 0x58 && buffer[2] == 0x4d && buffer[3] == 0x4c
                                             || buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF && buffer[3] == 0x3C && buffer[4] == 0x3F && buffer[5] == 0x78 && buffer[6] == 0x6D && buffer[7] == 0x6C
+                                            || buffer[0] == 0x3C && buffer[1] == 0x3F && buffer[2] == 0x78 && buffer[3] == 0x6D && buffer[4] == 0x6C && buffer[5] == 0x20 && buffer[6] == 0x76 && buffer[7] == 0x65
                                             || buffer[0] == 0x3c && buffer[1] == 0x53 && buffer[2] == 0x43 && buffer[3] == 0x45))
                                         {
                                             if (filename.ToLower().Contains(".sdc"))
@@ -683,6 +684,7 @@ namespace BackendProject.WebAPIs
                                             if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
                                             || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
+                                            || ProcessedFileBytes[0] == 0x3C && ProcessedFileBytes[1] == 0x3F && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6D && ProcessedFileBytes[4] == 0x6C && ProcessedFileBytes[5] == 0x20 && ProcessedFileBytes[6] == 0x76 && ProcessedFileBytes[7] == 0x65
                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
                                             {
                                                 if (filename.ToLower().Contains(".sdc"))
@@ -808,6 +810,58 @@ namespace BackendProject.WebAPIs
                                 }
 
                                 proc = null;
+
+                                i++;
+                                filedata.Flush();
+                            }
+                        }
+                        ms.Flush();
+                    }
+                }
+            }
+
+            return output;
+        }
+
+        public static (byte[]?, string)? HCDBUnpack(Stream? PostData, string? ContentType)
+        {
+            (byte[]?, string)? output = null;
+
+            if (PostData != null && !string.IsNullOrEmpty(ContentType))
+            {
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new())
+                    {
+                        PostData.CopyTo(ms);
+                        ms.Position = 0;
+                        int i = 0;
+                        string filename = string.Empty;
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        foreach (var multipartfile in data.Files)
+                        {
+                            using (Stream filedata = multipartfile.Data)
+                            {
+                                filedata.Position = 0;
+
+                                // Find the number of bytes in the stream
+                                int contentLength = (int)filedata.Length;
+
+                                // Create a byte array
+                                byte[] buffer = new byte[contentLength];
+
+                                // Read the contents of the memory stream into the byte array
+                                filedata.Read(buffer, 0, contentLength);
+
+                                filename = multipartfile.FileName;
+
+                                byte[]? DecompressedData = new EDGELZMA().Decompress(buffer, true);
+
+                                if (DecompressedData != null && DecompressedData[0] != 0x73 && DecompressedData[1] != 0x65 && DecompressedData[2] != 0x67 && DecompressedData[3] != 0x73)
+                                    output = (DecompressedData, $"{filename}_Unpacked.sql");
+                                else
+                                    output = (buffer, $"{filename}.failed");
 
                                 i++;
                                 filedata.Flush();

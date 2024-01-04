@@ -22,6 +22,6 @@ namespace BackendProject.HomeTools.BARFramework
 
         public abstract CompressionMethod Method { get; }
 
-        public BARArchive BarReference;
+        public BARArchive? BarReference;
     }
 }

@@ -16,8 +16,8 @@ namespace BackendProject.HomeTools.BARFramework
 
         public override byte[] Compress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream(inData.Length);
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new(inData.Length);
+            MemoryStream memoryStream2 = new(inData);
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
@@ -33,8 +33,8 @@ namespace BackendProject.HomeTools.BARFramework
 
         private byte[] CompressChunk(byte[] InData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, true);
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, 9, true);
             zoutputStream.Write(InData, 0, InData.Length);
             zoutputStream.Close();
             memoryStream.Close();
@@ -57,8 +57,8 @@ namespace BackendProject.HomeTools.BARFramework
 
         public override byte[] Decompress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new();
+            MemoryStream memoryStream2 = new(inData);
             byte[] array = new byte[ChunkHeader.SizeOf];
             while (memoryStream2.Position < memoryStream2.Length)
             {
@@ -80,8 +80,8 @@ namespace BackendProject.HomeTools.BARFramework
         {
             if (header.CompressedSize == header.SourceSize)
                 return inData;
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, true);
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, true);
             byte[] array = new byte[inData.Length];
             Array.Copy(inData, 0, array, 0, inData.Length);
             zoutputStream.Write(array, 0, array.Length);

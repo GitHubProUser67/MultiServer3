@@ -17,8 +17,8 @@ namespace BackendProject.HomeTools.BARFramework
 
         public override byte[] Compress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream(inData.Length);
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new(inData.Length);
+            MemoryStream memoryStream2 = new(inData);
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
@@ -34,9 +34,9 @@ namespace BackendProject.HomeTools.BARFramework
 
         private byte[] CompressChunk(byte[] InData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            Deflater deflater = new Deflater(9, true);
-            DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(memoryStream, deflater);
+            MemoryStream memoryStream = new();
+            Deflater deflater = new(9, true);
+            DeflaterOutputStream deflaterOutputStream = new(memoryStream, deflater);
             deflaterOutputStream.Write(InData, 0, InData.Length);
             deflaterOutputStream.Close();
             memoryStream.Close();
@@ -59,8 +59,8 @@ namespace BackendProject.HomeTools.BARFramework
 
         public override byte[] Decompress(byte[] inData)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
+            MemoryStream memoryStream = new();
+            MemoryStream memoryStream2 = new(inData);
             byte[] array = new byte[ChunkHeader.SizeOf];
             while (memoryStream2.Position < memoryStream2.Length)
             {
@@ -82,10 +82,10 @@ namespace BackendProject.HomeTools.BARFramework
         {
             if (header.CompressedSize == header.SourceSize)
                 return inData;
-            MemoryStream baseInputStream = new MemoryStream(inData);
+            MemoryStream baseInputStream = new(inData);
             Inflater inf = new Inflater(true);
-            InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, inf);
-            MemoryStream memoryStream = new MemoryStream();
+            InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+            MemoryStream memoryStream = new();
             byte[] array = new byte[4096];
             for (; ; )
             {

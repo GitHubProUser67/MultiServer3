@@ -8,14 +8,10 @@ namespace BackendProject.HomeTools.UnBAR
     {
         public async Task Run(string inputfile, string outputpath, bool edat, string options)
         {
-            RunUnBAR? run = new();
-
             if (edat)
                 await RunDecrypt(inputfile, outputpath, options);
             else
-                await run.RunExtract(inputfile, outputpath, options);
-
-            run = null;
+                await new RunUnBAR().RunExtract(inputfile, outputpath, options);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -40,20 +36,12 @@ namespace BackendProject.HomeTools.UnBAR
 
         private async Task RunDecrypt(string filePath, string outDir, string options)
         {
-            EDAT? edatInstance = new();
-
-            RunUnBAR? run = new();
-
-            int status = edatInstance.decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
+            int status = new EDAT().decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
 
             if (status == 0)
-                await run.RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir, options);
+                await new RunUnBAR().RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir, options);
             else
                 LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {status}");
-
-            edatInstance = null;
-
-            run = null;
         }
 
         private async Task RunExtract(string filePath, string outDir, string options)
