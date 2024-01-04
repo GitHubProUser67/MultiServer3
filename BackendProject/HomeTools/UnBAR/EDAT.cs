@@ -102,7 +102,7 @@ namespace BackendProject.HomeTools.UnBAR
             byte[] numArray4 = new byte[160];
             byte[] numArray5 = new byte[160];
             o1.Read(numArray4, 0, numArray4.Length);
-            AppLoaderReverse appLoaderReverse = new AppLoaderReverse();
+            AppLoaderReverse appLoaderReverse = new();
             byte[] numArray6 = new byte[16];
             int hashFlag2 = hashFlag1;
             byte[] i1 = numArray4;
@@ -153,7 +153,7 @@ namespace BackendProject.HomeTools.UnBAR
             byte[] src1;
             byte[] src2;
             byte[] klicensee1;
-            if (sdatFile != "")
+            if (!string.IsNullOrEmpty(sdatFile))
             {
                 src1 = new byte[16];
                 byte[] klicensee2 = new byte[16];
@@ -264,7 +264,7 @@ namespace BackendProject.HomeTools.UnBAR
             }
             i.Read(numArray, 0, numArray.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
-            AppLoader appLoader1 = new AppLoader();
+            AppLoader appLoader1 = new();
             int hashFlag = (data.getFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
             if ((data.getFlags() & FLAG_DEBUG) != 0L)
                 hashFlag |= 16777216;
@@ -495,8 +495,12 @@ namespace BackendProject.HomeTools.UnBAR
                     num8 |= 16777216;
                     num9 |= 16777216;
                 }
-                AppLoader appLoader = new AppLoader();
+                AppLoader appLoader = new();
                 byte[] numArray5 = npd.getVersion() <= 1L ? new byte[16] : npd.getDigest();
+                if (npd.getVersion() > 1L && MiscUtils.AreArraysIdentical(numArray5, new byte[16]))
+                    // Unsure about this, but a SDATv2 or higher with empty IV is not documented.
+                    // So we assume that we need to disable the cryptography when it's the case.
+                    num8 = 1;
                 int hashFlag = num9;
                 int cryptoFlag = num8;
                 byte[] i = numArray1;

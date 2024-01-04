@@ -292,6 +292,18 @@ namespace HTTPServer
                                                                     else
                                                                         response = HttpBuilder.InternalServerError(); // We are vague on the status code.
                                                                     break;
+                                                                case "/!HomeTools/HCDBUnpack/":
+                                                                    if (IsIPAllowed(clientip))
+                                                                    {
+                                                                        var cdsres = HomeToolsInterface.HCDBUnpack(request.getDataStream, request.GetContentType());
+                                                                        if (cdsres != null)
+                                                                            response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    break;
                                                                 case "/!HomeTools/TicketList/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
@@ -390,7 +402,7 @@ namespace HTTPServer
                                     else
                                     {
                                         if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
-                                            LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", request.Url, response.HttpStatusCode));
+                                            LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", filePath, response.HttpStatusCode));
                                         else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
                                             LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                                         else

@@ -5,11 +5,11 @@ namespace BackendProject.HomeTools.BARFramework
 {
     internal static class ZLibCompressor
     {
-        internal static byte[]? Compress(byte[] inData, bool NoHeader)
+        internal static byte[] Compress(byte[] inData, bool NoHeader)
         {
             byte[]? result = null;
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, NoHeader);
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, 9, NoHeader);
             try
             {
                 zoutputStream.Write(inData, 0, inData.Length);
@@ -17,7 +17,7 @@ namespace BackendProject.HomeTools.BARFramework
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[ZlibCompressor] - Compressed errored out with this exception - {ex}");
-                return null;
+                return Array.Empty<byte>();
             }
             finally
             {
@@ -30,8 +30,8 @@ namespace BackendProject.HomeTools.BARFramework
 
         internal static byte[] Decompress(byte[] inData, bool NoHeader)
         {
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, NoHeader);
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, NoHeader);
             zoutputStream.Write(inData, 0, inData.Length);
             zoutputStream.Close();
             memoryStream.Close();

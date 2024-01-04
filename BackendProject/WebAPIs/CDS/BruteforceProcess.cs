@@ -88,6 +88,7 @@ namespace BackendProject.WebAPIs.CDS
                                     if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
                                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
                                                             || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
+                                                            || ProcessedFileBytes[0] == 0x3C && ProcessedFileBytes[1] == 0x3F && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6D && ProcessedFileBytes[4] == 0x6C && ProcessedFileBytes[5] == 0x20 && ProcessedFileBytes[6] == 0x76 && ProcessedFileBytes[7] == 0x65
                                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
                                     {
                                         CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - File Type: XML Dectected! - {0}", DateTime.Now.ToString());
@@ -248,6 +249,7 @@ namespace BackendProject.WebAPIs.CDS
                             if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
                                                     || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
                                                     || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
+                                                    || ProcessedFileBytes[0] == 0x3C && ProcessedFileBytes[1] == 0x3F && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6D && ProcessedFileBytes[4] == 0x6C && ProcessedFileBytes[5] == 0x20 && ProcessedFileBytes[6] == 0x76 && ProcessedFileBytes[7] == 0x65
                                                     || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
                             {
                                 CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - File Type: XML Dectected! - {0}", DateTime.Now.ToString());

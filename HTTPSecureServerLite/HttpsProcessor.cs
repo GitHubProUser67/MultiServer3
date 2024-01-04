@@ -877,6 +877,36 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Send(true);
                                     }
                                     break;
+                                case "/!HomeTools/HCDBUnpack/":
+                                    if (IsIPAllowed(clientip))
+                                    {
+                                        var cdsres = HomeToolsInterface.HCDBUnpack(ctx.Request.Data, ctx.Request.ContentType);
+                                        if (cdsres != null)
+                                        {
+                                            statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            await ctx.Response.SendAsync(cdsres.Value.Item1);
+                                        }
+                                        else // We are vague on the status code.
+                                        {
+                                            statusCode = HttpStatusCode.InternalServerError;
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = "text/plain";
+                                            ctx.Response.Send(true);
+                                        }
+                                    }
+                                    else // We are vague on the status code.
+                                    {
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        ctx.Response.Send(true);
+                                    }
+                                    break;
                                 case "/!HomeTools/TicketList/":
                                     if (IsIPAllowed(clientip))
                                     {
