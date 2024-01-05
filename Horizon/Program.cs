@@ -13,6 +13,7 @@ public static class HorizonServerConfiguration
     public static bool EnableMuis { get; set; } = true;
     public static bool EnableBWPS { get; set; } = true;
     public static bool EnableNAT { get; set; } = true;
+    public static bool EnableDiscordPlugin { get; set; } = true;
     public static string? PlayerAPIStaticPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string? DMEConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dme.json";
     public static string? MEDIUSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/medius.json";
@@ -22,6 +23,8 @@ public static class HorizonServerConfiguration
     public static string CrudRoomManagerAPIKey { get; set; } = "Sj2SGF!QStB1SVQ*OP8@4sQd!";
     public static string HomeVersionBetaHDK { get; set; } = "01.86";
     public static string HomeVersionRetail { get; set; } = "01.86";
+    public static string DiscordBotToken { get; set; } = string.Empty;
+    public static string DiscordChannelID { get; set; } = string.Empty;
 
     public static DbController Database = new(DatabaseConfig);
 
@@ -67,6 +70,9 @@ public static class HorizonServerConfiguration
             DatabaseConfig = config.database;
             HomeVersionBetaHDK = config.home_version_beta_hdk;
             HomeVersionRetail = config.home_version_retail;
+            DiscordBotToken = config.discord_bot_token;
+            DiscordChannelID = config.discord_channel_id;
+            EnableDiscordPlugin = config.discord_plugin.enabled;
         }
         catch (Exception)
         {
@@ -128,6 +134,9 @@ class Program
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
 
         BackendProject.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
+
+        if (HorizonServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HorizonServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HorizonServerConfiguration.DiscordBotToken))
+            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HorizonServerConfiguration.DiscordChannelID, HorizonServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => HorizonStarter(),

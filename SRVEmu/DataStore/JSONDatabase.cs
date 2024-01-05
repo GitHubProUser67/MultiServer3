@@ -17,9 +17,9 @@ namespace SRVEmu.DataStore
 
             try
             {
-                if (File.Exists(SRVEMUServerConfiguration.DatabaseConfig))
+                if (File.Exists(SRVEmuServerConfiguration.DatabaseConfig))
                 {
-                    using (FileStream file = File.Open(SRVEMUServerConfiguration.DatabaseConfig, FileMode.Open, FileAccess.Read, FileShare.None))
+                    using (FileStream file = File.Open(SRVEmuServerConfiguration.DatabaseConfig, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
                         using (StreamReader io = new(file))
                         {
@@ -124,8 +124,8 @@ namespace SRVEmu.DataStore
             {
                 data = JsonConvert.SerializeObject(Accounts);
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(SRVEMUServerConfiguration.DatabaseConfig));
-            using (FileStream file = File.Open(SRVEMUServerConfiguration.DatabaseConfig, FileMode.Create, FileAccess.Write, FileShare.None))
+            Directory.CreateDirectory(Path.GetDirectoryName(SRVEmuServerConfiguration.DatabaseConfig));
+            using (FileStream file = File.Open(SRVEmuServerConfiguration.DatabaseConfig, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 using (StreamWriter io = new(file))
                 {

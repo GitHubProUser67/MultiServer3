@@ -263,7 +263,7 @@ public class FeslHandler
                     { "TXN", "Hello" },
                     { "activityTimeoutSecs", 0 },
                     { "curTime", DateTime.UtcNow.ToString("MMM-dd-yyyy HH:mm:ss 'UTC'", CultureInfo.InvariantCulture)},
-                    { "theaterIp", SRVEMUServerConfiguration.TheaterBindAddress },
+                    { "theaterIp", SRVEmuServerConfiguration.TheaterBindAddress },
                     { "theaterPort", Beach.TheaterPort }
                 };
 

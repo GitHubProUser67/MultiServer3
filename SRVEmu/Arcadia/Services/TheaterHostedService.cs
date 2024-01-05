@@ -18,7 +18,7 @@ public class TheaterHostedService
 
     public TheaterHostedService()
     {
-        IPEndPoint endpoint = new(IPAddress.Parse(SRVEMUServerConfiguration.ServerBindAddress), Beach.TheaterPort);
+        IPEndPoint endpoint = new(IPAddress.Parse(SRVEmuServerConfiguration.ServerBindAddress), Beach.TheaterPort);
         _tcpListener = new TcpListener(endpoint);
         _udpListener = new UdpClient(endpoint);
     }
@@ -30,7 +30,7 @@ public class TheaterHostedService
         _tcpListener.Start();
         _tcpServer = Task.Run(async () =>
         {
-            CustomLogger.LoggerAccessor.LogInfo("[Theater] - listening on {address}:{port}", SRVEMUServerConfiguration.ServerBindAddress, Beach.TheaterPort);
+            CustomLogger.LoggerAccessor.LogInfo("[Theater] - listening on {address}:{port}", SRVEmuServerConfiguration.ServerBindAddress, Beach.TheaterPort);
 
             while (!_cts.Token.IsCancellationRequested)
             {

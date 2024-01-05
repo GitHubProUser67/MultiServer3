@@ -337,7 +337,77 @@ namespace BackendProject
             {
                 for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
                 {
-                    if (buffer[i] == searchPattern[0])
+                    if (Avx2.IsSupported)
+                    {
+                        // Compare the first element
+                        Vector256<byte> compareResult = new();
+
+                        // Compare the first element
+                        compareResult = Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]));
+
+                        // Extract the result to check if the first element matches
+                        if (Avx2.MoveMask(compareResult) != 0)
+                        {
+                            if (buffer.Length > 1)
+                            {
+                                bool matched = true;
+                                for (int y = 1; y <= searchPattern.Length - 1; y++)
+                                {
+                                    if (buffer[i + y] != searchPattern[y])
+                                    {
+                                        matched = false;
+                                        break;
+                                    }
+                                }
+                                if (matched)
+                                {
+                                    found = i;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                found = i;
+                                break;
+                            }
+                        }
+                    }
+                    else if (Sse2.IsSupported)
+                    {
+                        // Compare the first element
+                        Vector128<byte> compareResult = new();
+
+                        // Compare the first element
+                        compareResult = Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]));
+
+                        // Extract the result to check if the first element matches
+                        if (Sse2.MoveMask(compareResult) != 0)
+                        {
+                            if (buffer.Length > 1)
+                            {
+                                bool matched = true;
+                                for (int y = 1; y <= searchPattern.Length - 1; y++)
+                                {
+                                    if (buffer[i + y] != searchPattern[y])
+                                    {
+                                        matched = false;
+                                        break;
+                                    }
+                                }
+                                if (matched)
+                                {
+                                    found = i;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                found = i;
+                                break;
+                            }
+                        }
+                    }
+                    else if (buffer[i] == searchPattern[0])
                     {
                         if (buffer.Length > 1)
                         {
@@ -483,7 +553,7 @@ namespace BackendProject
                 }
                 catch (HttpRequestException)
                 {
-
+                    // Not Important.
                 }
             }
 
@@ -495,7 +565,7 @@ namespace BackendProject
             try
             {
                 if (!NetworkInterface.GetIsNetworkAvailable())
-                    return IPAddress.Parse("127.0.0.1");
+                    return IPAddress.Loopback;
 
                 // Get all network interfaces on the machine.
                 NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
@@ -527,7 +597,7 @@ namespace BackendProject
             }
 
             // If no valid interface with the desired IP version is found.
-            return IPAddress.Parse("127.0.0.1");
+            return IPAddress.Loopback;
         }
 
         public static string GetFirstActiveIPAddress(string hostName, string fallback)

@@ -1,5 +1,4 @@
 ﻿using CustomLogger;
-using System.Text;
 
 namespace BackendProject.FileHelper
 {
@@ -24,29 +23,28 @@ namespace BackendProject.FileHelper
             {
                 if (data.Length % 8 != 0)
                     return Array.Empty<byte>();
-                var keyBuffer = CreateKey(key);
-                var blockBuffer = new uint[2];
-                var buffer = new byte[data.Length];
+                uint[] blockBuffer = new uint[2];
+                byte[] buffer = new byte[data.Length];
                 Array.Copy(data, buffer, data.Length);
-                using (var stream = new MemoryStream(buffer))
+                using (MemoryStream stream = new(buffer))
                 {
-                    using (var writer = new BinaryWriter(stream))
+                    using (BinaryWriter writer = new(stream))
                     {
                         for (int i = 0; i < buffer.Length; i += 8)
                         {
                             blockBuffer[0] = BitConverter.ToUInt32(buffer, i);
                             blockBuffer[1] = BitConverter.ToUInt32(buffer, i + 4);
-                            Decrypt(Rounds, blockBuffer, keyBuffer);
+                            Decrypt(Rounds, blockBuffer, CreateKey(key));
                             writer.Write(blockBuffer[0]);
                             writer.Write(blockBuffer[1]);
                         }
                     }
                 }
                 // verify valid length
-                var length = BitConverter.ToUInt32(buffer, 0);
+                uint length = BitConverter.ToUInt32(buffer, 0);
                 if (length > buffer.Length - 4)
                     return Array.Empty<byte>();
-                var result = new byte[length];
+                byte[] result = new byte[length];
                 Array.Copy(buffer, 4, result, 0, length);
                 return result;
             }
@@ -73,7 +71,7 @@ namespace BackendProject.FileHelper
         {
             // It might be a better idea to just calculate the MD5 hash of the key: var hash = MD5.Create().ComputeHash(key);
             // But we don't want to depend on the Cryptography namespace, because it would increase the build size for some Unity3d platforms.
-            var hash = new byte[16];
+            byte[] hash = new byte[16];
             for (int i = 0; i < key.Length; i++)
             {
                 hash[i % 16] = (byte)(31 * hash[i % 16] ^ key[i]);
