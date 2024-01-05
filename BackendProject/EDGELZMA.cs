@@ -59,7 +59,7 @@ namespace BackendProject
             // reserve space for the stream lengths. we'll fill them in later after we know what they are.
             bw.Write(new byte[streamCount * 2]);
 
-            List<int> streamSizes = new List<int>();
+            List<int> streamSizes = new();
 
             for (int i = 0; i < streamCount; i++)
             {

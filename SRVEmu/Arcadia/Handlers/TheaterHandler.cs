@@ -205,7 +205,7 @@ public class TheaterHandler
             ["HN"] = "beach.server.p",
             ["B-U-level"] = "levels/coral_sea",
             ["N"] = "nrtps3313601",
-            ["I"] = SRVEMUServerConfiguration.GameServerBindAddress,
+            ["I"] = SRVEmuServerConfiguration.GameServerBindAddress,
             ["J"] = 0,
             ["HU"] = 201104017,
             ["B-U-Time"] = "T%3a0.00 S%3a 6.65 L%3a 0.00",
@@ -309,8 +309,8 @@ public class TheaterHandler
 
     private async Task SendEGEG(Packet request)
     {
-        string serverIp = SRVEMUServerConfiguration.GameServerBindAddress;
-        int serverPort = SRVEMUServerConfiguration.GameServerPort;
+        string serverIp = SRVEmuServerConfiguration.GameServerBindAddress;
+        int serverPort = SRVEmuServerConfiguration.GameServerPort;
 
         var serverInfo = new Dictionary<string, object>
         {
@@ -340,8 +340,8 @@ public class TheaterHandler
 
     private async Task SendEGRQ()
     {
-        string serverIp = SRVEMUServerConfiguration.GameServerBindAddress;
-        int serverPort = SRVEMUServerConfiguration.GameServerPort;
+        string serverIp = SRVEmuServerConfiguration.GameServerBindAddress;
+        int serverPort = SRVEmuServerConfiguration.GameServerPort;
 
         var serverInfo = new Dictionary<string, object>
         {

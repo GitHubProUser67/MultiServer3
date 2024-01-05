@@ -84,8 +84,6 @@ namespace BackendProject.HomeTools.UnBAR
                                 SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
                                  Convert.FromBase64String(options), HeaderIV);
 
-                                Console.WriteLine(MiscUtils.ByteArrayToHexString(HeaderIV));
-
                                 if (SharcHeader != Array.Empty<byte>())
                                 {
                                     byte[] NumOfFiles = new byte[4];

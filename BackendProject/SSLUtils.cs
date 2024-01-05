@@ -236,7 +236,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
                 // Set additional properties of the certificate
                 request.CertificateExtensions.Add(

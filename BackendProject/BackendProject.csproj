@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.13.0" />
     <PackageReference Include="DotNetty.Handlers" Version="0.7.5" />
     <PackageReference Include="DotNetty.Transport" Version="0.7.5" />
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />

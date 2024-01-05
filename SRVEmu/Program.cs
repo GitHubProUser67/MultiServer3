@@ -4,7 +4,7 @@ using System.Runtime;
 using SRVEmu;
 using BackendProject;
 
-public static class SRVEMUServerConfiguration
+public static class SRVEmuServerConfiguration
 {
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
@@ -12,6 +12,9 @@ public static class SRVEMUServerConfiguration
     public static string GameServerBindAddress { get; set; } = "gameserver1.ps3.arcadia";
     public static int GameServerPort { get; set; } = 1003;
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ea.db.json";
+    public static bool EnableDiscordPlugin { get; set; } = true;
+    public static string DiscordBotToken { get; set; } = string.Empty;
+    public static string DiscordChannelID { get; set; } = string.Empty;
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -42,6 +45,9 @@ public static class SRVEMUServerConfiguration
             GameServerBindAddress = config.game_server_bind_address;
             GameServerPort = config.game_server_port;
             DatabaseConfig = config.database;
+            DiscordBotToken = config.discord_bot_token;
+            DiscordChannelID = config.discord_channel_id;
+            EnableDiscordPlugin = config.discord_plugin.enabled;
         }
         catch (Exception)
         {
@@ -62,7 +68,7 @@ class Program
             // Your task logic goes here
             LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
 
-            SRVEMUServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
+            SRVEmuServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
         }
     }
 
@@ -73,9 +79,12 @@ class Program
 
         LoggerAccessor.SetupLogger("SRVEmu");
 
-        SRVEMUServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
+        SRVEmuServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
 
-        SSLUtils.InitCerts(SRVEMUServerConfiguration.HTTPSCertificateFile);
+        SSLUtils.InitCerts(SRVEmuServerConfiguration.HTTPSCertificateFile);
+
+        if (SRVEmuServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(SRVEmuServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(SRVEmuServerConfiguration.DiscordBotToken))
+            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(SRVEmuServerConfiguration.DiscordChannelID, SRVEmuServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new DirtySocksServer().Run(),

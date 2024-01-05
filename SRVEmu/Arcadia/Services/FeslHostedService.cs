@@ -54,9 +54,9 @@ public class FeslHostedService
     {
         Task serverFesl = Task.Run(async () =>
         {
-            TcpListener listener = new(System.Net.IPAddress.Parse(SRVEMUServerConfiguration.ServerBindAddress), listenerPort);
+            TcpListener listener = new(System.Net.IPAddress.Parse(SRVEmuServerConfiguration.ServerBindAddress), listenerPort);
             listener.Start();
-            CustomLogger.LoggerAccessor.LogInfo("[fesl] - listening on {address}:{port}", SRVEMUServerConfiguration.ServerBindAddress, listenerPort);
+            CustomLogger.LoggerAccessor.LogInfo("[fesl] - listening on {address}:{port}", SRVEmuServerConfiguration.ServerBindAddress, listenerPort);
             _listeners.Add(listener);
 
             while (!_cts.Token.IsCancellationRequested)

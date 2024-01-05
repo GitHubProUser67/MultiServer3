@@ -259,7 +259,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/UnBar/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var unbarres = HomeToolsInterface.UnBar(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                        var unbarres = HomeToolsInterface.UnBarAsync(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                         if (unbarres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(unbarres.Value.Item1, unbarres.Value.Item2);
                                                                         else
@@ -283,7 +283,7 @@ namespace HTTPServer
                                                                 case "/!HomeTools/CDSBruteforce/":
                                                                     if (IsIPAllowed(clientip))
                                                                     {
-                                                                        var cdsres = HomeToolsInterface.CDSBruteforce(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder);
+                                                                        var cdsres = HomeToolsInterface.CDSBruteforceAsync(request.getDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                         if (cdsres != null)
                                                                             response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
                                                                         else

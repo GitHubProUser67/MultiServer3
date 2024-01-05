@@ -1,5 +1,4 @@
-﻿using BackendProject;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Text;
 
 namespace Horizon.HTTPSERVICE
@@ -145,7 +144,7 @@ namespace Horizon.HTTPSERVICE
         private static string XORString(string input, string? key)
         {
             if (string.IsNullOrEmpty(key))
-                key = "@00000000000000000000000!";
+                key = "@00000000000!00000000000!";
 
             StringBuilder result = new();
 

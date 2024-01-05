@@ -8,6 +8,9 @@ public static class QuazalServerConfiguration
     public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
     public static string EdNetBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
+    public static bool EnableDiscordPlugin { get; set; } = true;
+    public static string DiscordBotToken { get; set; } = string.Empty;
+    public static string DiscordChannelID { get; set; } = string.Empty;
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -35,6 +38,9 @@ public static class QuazalServerConfiguration
             ServerBindAddress = config.server_bind_address;
             EdNetBindAddress = config.ednet_bind_address;
             QuazalStaticFolder = config.server_static_folder;
+            DiscordBotToken = config.discord_bot_token;
+            DiscordChannelID = config.discord_channel_id;
+            EnableDiscordPlugin = config.discord_plugin.enabled;
         }
         catch (Exception)
         {
@@ -69,6 +75,9 @@ class Program
         QuazalServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/quazal.json");
 
         QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
+
+        if (QuazalServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordBotToken))
+            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(QuazalServerConfiguration.DiscordChannelID, QuazalServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(30201, 2, "yh64s"), // TDU

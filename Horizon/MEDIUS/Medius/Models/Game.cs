@@ -344,7 +344,7 @@ namespace Horizon.MEDIUS.Medius.Models
             {
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT:
                     {
-                        await OnPlayerJoined(player);
+                        await OnPlayerJoined(player, false);
                         break;
                     }
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_DISCONNECT:
@@ -362,7 +362,7 @@ namespace Horizon.MEDIUS.Medius.Models
             if (player == null)
                 return;
 
-            await OnPlayerJoined(player);
+            await OnPlayerJoined(player, true);
         }
 
         public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest)
@@ -371,10 +371,10 @@ namespace Horizon.MEDIUS.Medius.Models
             if (player == null)
                 return;
 
-            await OnPlayerJoined(player);
+            await OnPlayerJoined(player, true);
         }
 
-        public virtual async Task OnPlayerJoined(GameClient player)
+        public virtual async Task OnPlayerJoined(GameClient player, bool logevent)
         {
             bool ishost = false;
 
@@ -388,6 +388,14 @@ namespace Horizon.MEDIUS.Medius.Models
             }
             else
                 LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+
+            if (!string.IsNullOrEmpty(player.Client.CurrentGame.GameName) && !player.Client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(player.Client.WorldId.ToString()) && !string.IsNullOrEmpty(player.Client.AccountName) && logevent)
+            {
+                if (ishost)
+                    _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {player.Client.WorldId} as the Host.");
+                else
+                    _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {player.Client.WorldId}.");
+            }
 
             try
             {
@@ -442,6 +450,9 @@ namespace Horizon.MEDIUS.Medius.Models
         public virtual async Task RemovePlayer(ClientObject client, int appid)
         {
             LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} removed.");
+
+            if (!string.IsNullOrEmpty(client.CurrentGame.GameName) && !client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(client.WorldId.ToString()) && !string.IsNullOrEmpty(client.AccountName))
+                _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {client.AccountName} Left: {client.CurrentGame.GameName} in world: {client.WorldId}");
 
             try
             {

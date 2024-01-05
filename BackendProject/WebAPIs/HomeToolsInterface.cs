@@ -13,9 +13,74 @@ namespace BackendProject.WebAPIs
 {
     public class HomeToolsInterface
     {
+        public static int maxBARTasks = Environment.ProcessorCount / 2;
+        public static int maxCDSBruteforceTasks = Environment.ProcessorCount / 2;
+        public static int BARTasksCounter = 0;
+        public static int CDSBruteforceTasksCounter = 0;
+
+        public static async Task<(byte[]?, string)?> UnBarAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
+        {
+            // Set the timeout duration
+            TimeSpan timeoutDuration = TimeSpan.FromHours(8);
+
+            // Create a cancellation token source with the timeout
+            using (CancellationTokenSource cancellationTokenSource = new(timeoutDuration))
+            {
+                // Run the function in a separate task
+                try
+                {
+                    return await Task.Run(() => UnBar(PostData, ContentType, HelperStaticFolder), cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Handle cancellation due to timeout
+                    LoggerAccessor.LogError("[HomeToolsInterface] - UnBarAsync - A Task took too long, so it was canceled!");
+
+                    return null;
+                }
+                catch (Exception)
+                {
+                    // Handle other exceptions
+                    return null;
+                }
+            }
+        }
+
+        public static async Task<(byte[]?, string)?> CDSBruteforceAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
+        {
+            // Set the timeout duration
+            TimeSpan timeoutDuration = TimeSpan.FromDays(21);
+
+            // Create a cancellation token source with the timeout
+            using (CancellationTokenSource cancellationTokenSource = new(timeoutDuration))
+            {
+                // Run the function in a separate task
+                try
+                {
+                    return await Task.Run(() => CDSBruteforce(PostData, ContentType, HelperStaticFolder), cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Handle cancellation due to timeout
+                    LoggerAccessor.LogError("[HomeToolsInterface] - CDSBruteforceAsync - A Task took too long, so it was canceled!");
+
+                    return null;
+                }
+                catch (Exception)
+                {
+                    // Handle other exceptions
+                    return null;
+                }
+            }
+        }
+
         public static (byte[]?, string)? MakeBarSdat(Stream? PostData, string? ContentType)
         {
+            BARTasksCounter++;
             (byte[]?, string)? output = null;
+            if (BARTasksCounter >= maxBARTasks)
+                return output;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -250,7 +315,7 @@ namespace BackendProject.WebAPIs
                                         }
                                     }
 
-                                    output = (File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip");
+                                    TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
                                 }
                                 else if (mode == "sdatnpd" && File.Exists(Directory.GetCurrentDirectory() + "/static/model.sdat"))
                                 {
@@ -306,7 +371,7 @@ namespace BackendProject.WebAPIs
                                         }
                                     }
 
-                                    output = (File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip");
+                                    TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
                                 }
                                 else
                                 {
@@ -362,7 +427,7 @@ namespace BackendProject.WebAPIs
                                         }
                                     }
 
-                                    output = (File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip");
+                                    TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
                                 }
 
                                 if (Directory.Exists(tempdir))
@@ -381,12 +446,43 @@ namespace BackendProject.WebAPIs
                     Directory.Delete(maindir, true);
             }
 
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"MakeBarSdat_Results.zip");
+                }
+            }
+
+            BARTasksCounter--;
+
             return output;
         }
 
         public static async Task<(byte[]?, string)?> UnBar(Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
+            BARTasksCounter++;
             (byte[]?, string)? output = null;
+            if (BARTasksCounter >= maxBARTasks)
+                return output;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -510,10 +606,9 @@ namespace BackendProject.WebAPIs
                                             await map.MapperStart(unbardir + $"/{filename}", HelperStaticFolder, prefix, bruteforce);
                                     }
 
-
                                     ZipFile.CreateFromDirectory(unbardir + $"/{filename}", tempdir + $"/{filename}_Mapped.zip");
 
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip");
+                                    TasksResult.Add((File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip"));
                                 }
                                 else if (Directory.Exists(unbardir + $"/{filename}"))
                                 {
@@ -537,7 +632,7 @@ namespace BackendProject.WebAPIs
 
                                     ZipFile.CreateFromDirectory(unbardir + $"/{filename}", tempdir + $"/{filename}_Mapped.zip");
 
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip");
+                                    TasksResult.Add((File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip"));
                                 }
                                 else
                                 {
@@ -561,7 +656,7 @@ namespace BackendProject.WebAPIs
 
                                     ZipFile.CreateFromDirectory(unbardir, tempdir + $"/{filename}_Mapped.zip");
 
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip");
+                                    TasksResult.Add((File.ReadAllBytes(tempdir + $"/{filename}_Mapped.zip"), $"{filename}_Mapped.zip"));
                                 }
 
                                 map = null;
@@ -581,17 +676,43 @@ namespace BackendProject.WebAPIs
                     Directory.Delete(maindir, true);
             }
 
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"UnBar_Results.zip");
+                }
+            }
+
+            BARTasksCounter--;
+
             return output;
         }
 
         public static (byte[]?, string)? CDS(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/CDS_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
-                Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -602,7 +723,16 @@ namespace BackendProject.WebAPIs
                         int i = 0;
                         string filename = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
+                        string? decrypt = string.Empty;
                         string? sha1 = data.GetParameterValue("sha1");
+                        try
+                        {
+                            decrypt = data.GetParameterValue("decrypt");
+                        }
+                        catch (Exception)
+                        {
+                            // Not Important
+                        }
                         foreach (var multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
@@ -620,121 +750,66 @@ namespace BackendProject.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = GenerateDynamicCacheGuid(filename);
-
-                                string tempdir = $"{maindir}/{guid}";
-
-                                if (sha1.Length < 16)
-                                    LoggerAccessor.LogWarn($"[HomeTools] - CDSProcess - Invalid SHA1 given via interface.");
-                                else if (!string.IsNullOrEmpty(sha1))
+                                if (decrypt == "on" && sha1.Length >= 16)
                                 {
-                                    Directory.CreateDirectory(tempdir);
-
-                                    // We identify how input is like.
-
                                     byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, sha1[..16]);
 
                                     if (ProcessedFileBytes != null)
                                     {
-                                        if (buffer.Length >= 8 && (buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c
-                                            || buffer[0] == 0x3c && buffer[1] == 0x58 && buffer[2] == 0x4d && buffer[3] == 0x4c
-                                            || buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF && buffer[3] == 0x3C && buffer[4] == 0x3F && buffer[5] == 0x78 && buffer[6] == 0x6D && buffer[7] == 0x6C
-                                            || buffer[0] == 0x3C && buffer[1] == 0x3F && buffer[2] == 0x78 && buffer[3] == 0x6D && buffer[4] == 0x6C && buffer[5] == 0x20 && buffer[6] == 0x76 && buffer[7] == 0x65
-                                            || buffer[0] == 0x3c && buffer[1] == 0x53 && buffer[2] == 0x43 && buffer[3] == 0x45))
-                                        {
-                                            if (filename.ToLower().Contains(".sdc"))
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.sdc", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.sdc"), $"{filename}_Encrypted.sdc");
-                                            }
-                                            else if (filename.ToLower().Contains(".odc"))
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.odc", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.odc"), $"{filename}_Encrypted.odc");
-                                            }
-                                            else
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Processed.xml", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.xml"), $"{filename}_Processed.xml");
-                                            }
-                                        }
-                                        else if (buffer.Length > 4 && buffer[0] == 0x73 && buffer[1] == 0x65 && buffer[2] == 0x67 && buffer[3] == 0x73)
-                                        {
-                                            File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.hcdb", ProcessedFileBytes);
-
-                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.hcdb"), $"{filename}_Encrypted.hcdb");
-                                        }
-                                        else if (buffer.Length > 4 && buffer[0] == 0xAD && buffer[1] == 0xEF && buffer[2] == 0x17 && buffer[3] == 0xE1)
-                                        {
-                                            File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.sharc", ProcessedFileBytes);
-
-                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.sharc"), $"{filename}_Encrypted.sharc");
-                                        }
-                                        else if (buffer.Length > 4 && buffer[0] == 0xE1 && buffer[1] == 0x17 && buffer[2] == 0xEF && buffer[3] == 0xAD)
-                                        {
-                                            File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.bar", ProcessedFileBytes);
-
-                                            output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.bar"), $"{filename}_Encrypted.bar");
-                                        }
-                                        else
-                                        {
-                                            if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
+                                        if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
                                             || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
                                             || ProcessedFileBytes[0] == 0x3C && ProcessedFileBytes[1] == 0x3F && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6D && ProcessedFileBytes[4] == 0x6C && ProcessedFileBytes[5] == 0x20 && ProcessedFileBytes[6] == 0x76 && ProcessedFileBytes[7] == 0x65
                                             || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
+                                        {
+                                            if (filename.ToLower().Contains(".sdc"))
+                                                TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.sdc"));
+                                            else if (filename.ToLower().Contains(".odc"))
+                                                TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.odc"));
+                                            else
+                                                TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.xml"));
+                                        }
+                                        else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
+                                            TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.hcdb"));
+                                        else if (ProcessedFileBytes.Length > 4 && ((ProcessedFileBytes[0] == 0xAD && ProcessedFileBytes[1] == 0xEF && ProcessedFileBytes[2] == 0x17 && ProcessedFileBytes[3] == 0xE1)
+                                            || (ProcessedFileBytes[0] == 0xE1 && ProcessedFileBytes[1] == 0x17 && ProcessedFileBytes[2] == 0xEF && ProcessedFileBytes[3] == 0xAD)))
+                                            TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.bar"));
+                                        else // If all scan failed, fallback.
+                                            TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.bin"));
+                                    }
+                                }
+                                else
+                                {
+                                    using (SHA1 sha1hash = SHA1.Create())
+                                    {
+                                        byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, BitConverter.ToString(sha1hash.ComputeHash(buffer)).Replace("-", "").ToUpper()[..16]);
+
+                                        if (ProcessedFileBytes != null)
+                                        {
+                                            if (buffer.Length >= 8 && (buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c
+                                                || buffer[0] == 0x3c && buffer[1] == 0x58 && buffer[2] == 0x4d && buffer[3] == 0x4c
+                                                || buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF && buffer[3] == 0x3C && buffer[4] == 0x3F && buffer[5] == 0x78 && buffer[6] == 0x6D && buffer[7] == 0x6C
+                                                || buffer[0] == 0x3C && buffer[1] == 0x3F && buffer[2] == 0x78 && buffer[3] == 0x6D && buffer[4] == 0x6C && buffer[5] == 0x20 && buffer[6] == 0x76 && buffer[7] == 0x65
+                                                || buffer[0] == 0x3c && buffer[1] == 0x53 && buffer[2] == 0x43 && buffer[3] == 0x45))
                                             {
                                                 if (filename.ToLower().Contains(".sdc"))
-                                                {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.sdc", ProcessedFileBytes);
-
-                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.sdc"), $"{filename}_Decrypted.sdc");
-                                                }
+                                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.sdc"));
                                                 else if (filename.ToLower().Contains(".odc"))
-                                                {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.odc", ProcessedFileBytes);
-
-                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.odc"), $"{filename}_Decrypted.odc");
-                                                }
+                                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.odc"));
                                                 else
-                                                {
-                                                    File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.xml", ProcessedFileBytes);
-
-                                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.xml"), $"{filename}_Decrypted.xml");
-                                                }
+                                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.xml"));
                                             }
-                                            else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.hcdb", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.hcdb"), $"{filename}_Decrypted.hcdb");
-                                            }
-                                            else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0xAD && ProcessedFileBytes[1] == 0xEF && ProcessedFileBytes[2] == 0x17 && ProcessedFileBytes[3] == 0xE1)
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.sharc", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.sharc"), $"{filename}_Decrypted.sharc");
-                                            }
-                                            else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0xE1 && ProcessedFileBytes[1] == 0x17 && ProcessedFileBytes[2] == 0xEF && ProcessedFileBytes[3] == 0xAD)
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.bar", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.bar"), $"{filename}_Decrypted.bar");
-                                            }
+                                            else if (buffer.Length > 4 && buffer[0] == 0x73 && buffer[1] == 0x65 && buffer[2] == 0x67 && buffer[3] == 0x73)
+                                                TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.hcdb"));
+                                            else if (buffer.Length > 4 && ((buffer[0] == 0xAD && buffer[1] == 0xEF && buffer[2] == 0x17 && buffer[3] == 0xE1)
+                                                || (buffer[0] == 0xE1 && buffer[1] == 0x17 && buffer[2] == 0xEF && buffer[3] == 0xAD)))
+                                                TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.bar"));
                                             else // If all scan failed, fallback.
-                                            {
-                                                File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", ProcessedFileBytes);
-
-                                                output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.bin"), $"{filename}_Processed.bin");
-                                            }
+                                                TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.bin"));
                                         }
-                                    }
 
-                                    if (Directory.Exists(tempdir))
-                                        Directory.Delete(tempdir, true);
+                                        sha1hash.Clear();
+                                    }
                                 }
 
                                 i++;
@@ -744,9 +819,31 @@ namespace BackendProject.WebAPIs
                         ms.Flush();
                     }
                 }
+            }
 
-                if (Directory.Exists(maindir))
-                    Directory.Delete(maindir, true);
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"CDS_Results.zip");
+                }
             }
 
             return output;
@@ -754,7 +851,11 @@ namespace BackendProject.WebAPIs
 
         public static (byte[]?, string)? CDSBruteforce(Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
+            CDSBruteforceTasksCounter++;
             (byte[]?, string)? output = null;
+            if (CDSBruteforceTasksCounter >= maxCDSBruteforceTasks)
+                return output;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -798,15 +899,15 @@ namespace BackendProject.WebAPIs
                                 BruteforceProcess? proc = new(buffer);
 
                                 if (classicmethod == "on")
-                                    output = (proc.StartBruteForce(HelperStaticFolder, charset, false).Result, $"{filename}_Bruteforced.bin");
+                                    TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, false).Result, $"{filename}_Bruteforced.bin"));
                                 else
                                 {
                                     if (filename.ToLower().Contains(".hcdb"))
-                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 1).Result, $"{filename}_Bruteforced.hcdb");
+                                        TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, true, true, 1).Result, $"{filename}_Bruteforced.hcdb"));
                                     else if (filename.ToLower().Contains(".bar"))
-                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true, true, 2).Result, $"{filename}_Bruteforced.bar");
+                                        TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, true, true, 2).Result, $"{filename}_Bruteforced.bar"));
                                     else
-                                        output = (proc.StartBruteForce(HelperStaticFolder, charset, true).Result, $"{filename}_Bruteforced.xml");
+                                        TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, true).Result, $"{filename}_Bruteforced.xml"));
                                 }
 
                                 proc = null;
@@ -820,12 +921,40 @@ namespace BackendProject.WebAPIs
                 }
             }
 
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"CDSBruteforce_Results.zip");
+                }
+            }
+
+            CDSBruteforceTasksCounter--;
+
             return output;
         }
 
         public static (byte[]?, string)? HCDBUnpack(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -859,9 +988,7 @@ namespace BackendProject.WebAPIs
                                 byte[]? DecompressedData = new EDGELZMA().Decompress(buffer, true);
 
                                 if (DecompressedData != null && DecompressedData[0] != 0x73 && DecompressedData[1] != 0x65 && DecompressedData[2] != 0x67 && DecompressedData[3] != 0x73)
-                                    output = (DecompressedData, $"{filename}_Unpacked.sql");
-                                else
-                                    output = (buffer, $"{filename}.failed");
+                                    TasksResult.Add((DecompressedData, $"{filename}_Unpacked.sql"));
 
                                 i++;
                                 filedata.Flush();
@@ -872,17 +999,41 @@ namespace BackendProject.WebAPIs
                 }
             }
 
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"HCDBUnpack_Results.zip");
+                }
+            }
+
             return output;
         }
 
         public static (byte[]?, string)? TicketList(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/TicketList_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
-                Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -921,57 +1072,30 @@ namespace BackendProject.WebAPIs
 
                                 string guid = GenerateDynamicCacheGuid(filename);
 
-                                string tempdir = $"{maindir}/{guid}";
-
-                                Directory.CreateDirectory(tempdir);
-
                                 if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                                      && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x01 && version1 == "on")
                                 {
                                     byte[]? ProcessedFileBytes = new byte[buffer.Length - 8];
                                     Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
                                     ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV1Process(ProcessedFileBytes);
-
                                     if (ProcessedFileBytes != null)
-                                    {
-                                        File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
-
-                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
-                                    }
+                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else if (version1 == "on")
-                                {
-                                    byte[] ProcessedFileBytes = MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer));
-
-                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
-
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.lst"), $"{filename}_Encrypted.lst");
-                                }
+                                    TasksResult.Add((MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer))
+                                            , $"{filename}_Encrypted.lst"));
                                 else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                                     && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
                                 {
                                     byte[]? ProcessedFileBytes = new byte[buffer.Length - 8];
                                     Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
                                     ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV0Process(ProcessedFileBytes);
-
                                     if (ProcessedFileBytes != null)
-                                    {
-                                        File.WriteAllBytes(tempdir + $"/{filename}_Decrypted.lst", ProcessedFileBytes);
-
-                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Decrypted.lst"), $"{filename}_Decrypted.lst");
-                                    }
+                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else
-                                {
-                                    byte[] ProcessedFileBytes = MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer));
-
-                                    File.WriteAllBytes(tempdir + $"/{filename}_Encrypted.lst", ProcessedFileBytes);
-
-                                    output = (File.ReadAllBytes(tempdir + $"/{filename}_Encrypted.lst"), $"{filename}_Encrypted.lst");
-                                }
-
-                                if (Directory.Exists(tempdir))
-                                    Directory.Delete(tempdir, true);
+                                    TasksResult.Add((MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer))
+                                            , $"{filename}_Encrypted.lst"));
 
                                 i++;
                                 filedata.Flush();
@@ -980,9 +1104,31 @@ namespace BackendProject.WebAPIs
                         ms.Flush();
                     }
                 }
+            }
 
-                if (Directory.Exists(maindir))
-                    Directory.Delete(maindir, true);
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"TicketList_Results.zip");
+                }
             }
 
             return output;
@@ -991,14 +1137,13 @@ namespace BackendProject.WebAPIs
         public static (byte[]?, string)? INF(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
+            List<(byte[]?, string)?> TasksResult = new();
 
             if (ToolsImpl.INFIVA == null)
                 BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/INF_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
-                Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -1026,14 +1171,8 @@ namespace BackendProject.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                string guid = GenerateDynamicCacheGuid(filename);
-
-                                string tempdir = $"{maindir}/{guid}";
-
                                 if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0x00 && buffer[3] == 0x01 && ToolsImpl.INFIVA != null)
                                 {
-                                    Directory.CreateDirectory(tempdir);
-
                                     ToolsImpl? toolsimpl = new();
 
                                     buffer = toolsimpl.RemovePaddingPrefix(buffer);
@@ -1043,34 +1182,18 @@ namespace BackendProject.WebAPIs
                                     toolsimpl = null;
 
                                     if (decryptedfilebytes != null)
-                                    {
-                                        File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", decryptedfilebytes);
-
-                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.bin"), $"{filename}_Processed.bin");
-                                    }
-
-                                    if (Directory.Exists(tempdir))
-                                        Directory.Delete(tempdir, true);
+                                        TasksResult.Add((decryptedfilebytes, $"{filename}_Decrypted.bin"));
                                 }
                                 else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5 && ToolsImpl.INFIVA != null)
                                 {
-                                    Directory.CreateDirectory(tempdir);
-
                                     ToolsImpl? toolsimpl = new();
 
                                     byte[]? encryptedfilebytes = toolsimpl.Crypt_Decrypt(buffer, ToolsImpl.INFIVA, 8);
 
                                     if (encryptedfilebytes != null)
-                                    {
-                                        File.WriteAllBytes(tempdir + $"/{filename}_Processed.bin", toolsimpl.ApplyLittleEndianPaddingPrefix(encryptedfilebytes));
-
-                                        output = (File.ReadAllBytes(tempdir + $"/{filename}_Processed.bin"), $"{filename}_Processed.bin");
-                                    }
+                                        TasksResult.Add((toolsimpl.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));
 
                                     toolsimpl = null;
-
-                                    if (Directory.Exists(tempdir))
-                                        Directory.Delete(tempdir, true);
                                 }
 
                                 i++;
@@ -1080,9 +1203,31 @@ namespace BackendProject.WebAPIs
                         ms.Flush();
                     }
                 }
+            }
 
-                if (Directory.Exists(maindir))
-                    Directory.Delete(maindir, true);
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"INF_Results.zip");
+                }
             }
 
             return output;
@@ -1175,7 +1320,7 @@ namespace BackendProject.WebAPIs
                             }
                             catch (SceneKeyException)
                             {
-                                res = "Invalid ChannelID or unsupported format";
+                                res = "Invalid ChannelID";
                             }
                             catch (Exception)
                             {
@@ -1194,7 +1339,7 @@ namespace BackendProject.WebAPIs
                             }
                             catch (SceneKeyException)
                             {
-                                res = "Invalid ChannelID or unsupported format";
+                                res = "Invalid ChannelID";
                             }
                             catch (Exception)
                             {
@@ -1208,6 +1353,20 @@ namespace BackendProject.WebAPIs
             }
 
             return res;
+        }
+
+        private static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)
+        {
+            contentStream.Position = 0;
+
+            // Create a new entry in the zip archive
+            ZipArchiveEntry entry = archive.CreateEntry(entryName);
+
+            // Write content to the entry
+            using (Stream entryStream = entry.Open())
+            {
+                contentStream.CopyTo(entryStream);
+            }
         }
 
         private static void UncompressFile(string compressedFilePath, string extractionFolderPath)
@@ -1230,7 +1389,6 @@ namespace BackendProject.WebAPIs
             {
                 byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(MiscUtils.GetCurrentDateTime() + input));
                 md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
                 md5.Clear();
             }
 

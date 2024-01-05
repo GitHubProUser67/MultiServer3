@@ -2,6 +2,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
+
 public static class HTTPServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
@@ -16,6 +17,9 @@ public static class HTTPServerConfiguration
     public static string PluginParams { get; set; } = string.Empty;
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
+    public static bool EnableDiscordPlugin { get; set; } = true;
+    public static string DiscordBotToken { get; set; } = string.Empty;
+    public static string DiscordChannelID { get; set; } = string.Empty;
     public static List<string>? BannedIPs { get; set; }
     public static List<string>? AllowedIPs { get; set; }
 
@@ -56,6 +60,9 @@ public static class HTTPServerConfiguration
             HttpVersion = config.http_version;
             PluginParams = config.plugin_params;
             PluginsFolder = config.plugins_folder;
+            DiscordBotToken = config.discord_bot_token;
+            DiscordChannelID = config.discord_channel_id;
+            EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists
             if (bannedIPsArray != null)
@@ -98,6 +105,9 @@ class Program
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
         var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
+
+        if (HTTPServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordBotToken))
+            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new HttpServer(80, route_config).Listen(),

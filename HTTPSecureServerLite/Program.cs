@@ -15,6 +15,9 @@ public static class HTTPSServerConfiguration
     public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
+    public static bool EnableDiscordPlugin { get; set; } = true;
+    public static string DiscordBotToken { get; set; } = string.Empty;
+    public static string DiscordChannelID { get; set; } = string.Empty;
     public static List<string>? BannedIPs { get; set; }
     public static List<string>? AllowedIPs { get; set; }
 
@@ -51,6 +54,9 @@ public static class HTTPSServerConfiguration
             HTTPSStaticFolder = config.https_static_folder;
             HTTPSCertificateFile = config.certificate_file;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
+            DiscordBotToken = config.discord_bot_token;
+            DiscordChannelID = config.discord_channel_id;
+            EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists
             if (bannedIPsArray != null)
@@ -102,6 +108,9 @@ class Program
 
         // Timer for scheduled updates every 24 hours
         Timer timer2 = new(HTTPSecureServerLite.API.VEEMEE.olm.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+
+        if (HTTPSServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordBotToken))
+            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPSServerConfiguration.DiscordChannelID, HTTPSServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443).StartServer(),
