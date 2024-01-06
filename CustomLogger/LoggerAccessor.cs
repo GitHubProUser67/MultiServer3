@@ -41,6 +41,11 @@ namespace CustomLogger
                 });
 
             Logger = loggerFactory.CreateLogger(string.Empty);
+
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT 
+                || Environment.OSVersion.Platform == PlatformID.Win32S 
+                || Environment.OSVersion.Platform == PlatformID.Win32Windows)
+                Task.Run(RessourcesLogger.StartPerfWatcher);
         }
 
 #pragma warning disable
