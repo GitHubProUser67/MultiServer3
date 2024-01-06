@@ -74,14 +74,12 @@ namespace QuazalServer.QNetZ
 
         public static uint GenerateUniqueUint(string input)
         {
-            uint PID;
+            uint PID = (uint)input.GetHashCode();
 
-            do
-            {
-                PID = (uint)new Random().Next();
-            } while (PID <= 1000); // We exclude PIDs equal or inferior to 1000 (reserved accounts).
+            if (PID <= 1000)
+                PID += Math.Min(1001, uint.MaxValue - PID + 1); // Ensure increment doesn't exceed remaining range + 1
 
-			return PID ^ CalculateXorKey(input);
+            return PID ^ CalculateXorKey(input);
         }
 
         // Helper method to calculate XOR key from the input string

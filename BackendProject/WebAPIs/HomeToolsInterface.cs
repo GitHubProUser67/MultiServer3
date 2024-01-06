@@ -35,7 +35,6 @@ namespace BackendProject.WebAPIs
                 {
                     // Handle cancellation due to timeout
                     LoggerAccessor.LogError("[HomeToolsInterface] - UnBarAsync - A Task took too long, so it was canceled!");
-
                     return null;
                 }
                 catch (Exception)
@@ -49,7 +48,7 @@ namespace BackendProject.WebAPIs
         public static async Task<(byte[]?, string)?> CDSBruteforceAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
             // Set the timeout duration
-            TimeSpan timeoutDuration = TimeSpan.FromDays(21);
+            TimeSpan timeoutDuration = TimeSpan.FromDays(14);
 
             // Create a cancellation token source with the timeout
             using (CancellationTokenSource cancellationTokenSource = new(timeoutDuration))
@@ -63,7 +62,6 @@ namespace BackendProject.WebAPIs
                 {
                     // Handle cancellation due to timeout
                     LoggerAccessor.LogError("[HomeToolsInterface] - CDSBruteforceAsync - A Task took too long, so it was canceled!");
-
                     return null;
                 }
                 catch (Exception)
@@ -109,7 +107,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         try
                         {
@@ -117,7 +115,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         try
                         {
@@ -125,7 +123,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         try
                         {
@@ -133,7 +131,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         switch (options)
                         {
@@ -508,7 +506,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         try
                         {
@@ -516,7 +514,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         foreach (var multipartfile in data.Files)
                         {
@@ -861,15 +859,23 @@ namespace BackendProject.WebAPIs
                         int i = 0;
                         string filename = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
-                        string? charset = data.GetParameterValue("charset");
+                        string charset = string.Empty;
                         string classicmethod = string.Empty;
+                        try
+                        {
+                            charset = data.GetParameterValue("charset");
+                        }
+                        catch (Exception)
+                        {
+                            // Not Important
+                        }
                         try
                         {
                             classicmethod = data.GetParameterValue("classicmethod");
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         foreach (var multipartfile in data.Files)
                         {
@@ -1043,7 +1049,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         foreach (var multipartfile in data.Files)
                         {
@@ -1247,7 +1253,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         try
                         {
@@ -1255,7 +1261,7 @@ namespace BackendProject.WebAPIs
                         }
                         catch (Exception)
                         {
-
+                            // Not Important
                         }
                         if (newerhome == "on")
                         {
