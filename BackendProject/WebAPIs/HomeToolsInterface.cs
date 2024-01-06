@@ -13,8 +13,8 @@ namespace BackendProject.WebAPIs
 {
     public class HomeToolsInterface
     {
-        public static int maxBARTasks = Environment.ProcessorCount / 2;
-        public static int maxCDSBruteforceTasks = Environment.ProcessorCount / 2;
+        public static int maxBARTasks = Environment.ProcessorCount;
+        public static int maxCDSBruteforceTasks = Environment.ProcessorCount;
         public static int BARTasksCounter = 0;
         public static int CDSBruteforceTasksCounter = 0;
 
