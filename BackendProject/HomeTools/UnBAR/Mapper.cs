@@ -5,6 +5,9 @@ namespace BackendProject.HomeTools.UnBAR
 {
     public class Mapper
     {
+        // Declare a global list to store file paths
+        private List<string> filePathList = new();
+
         public Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
         {
             MapperPrepareFiles(foldertomap);
@@ -19,6 +22,9 @@ namespace BackendProject.HomeTools.UnBAR
                     Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(foldertomap);
                     if (match.Success)
                         prefix = $"objects/{match.Groups[0].Value}/";
+                    File.WriteAllText(foldertomap + "/ObjectXMLBruteforce.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                        $" <XML>\r\n<asset source=\"objects/{match.Groups[0].Value}/object.xml\"/>\r\n<asset source=\"objects/{match.Groups[0].Value}/res" +
+                        $"ources.xml\"/>\r\n<asset source=\"objects/{match.Groups[0].Value}/localisation.xml\"/>\r\n</XML>");
                 }
 
                 IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl")
@@ -29,6 +35,7 @@ namespace BackendProject.HomeTools.UnBAR
                 {
                     mappedListList.AddRange(ScanForString(sourceFile));
                 }
+                uuidloop:
                 foreach (MappedList mappedList in mappedListList)
                 {
                     if (!string.IsNullOrEmpty(mappedList.file))
@@ -97,6 +104,12 @@ namespace BackendProject.HomeTools.UnBAR
                     }
                 }
 
+               if (!string.IsNullOrEmpty(prefix) && prefix.StartsWith("objects/") && prefix.Length == 44 && prefix.EndsWith("/"))
+                {
+                    prefix = string.Empty;
+                    goto uuidloop;
+                }
+
                 if (File.Exists(foldertomap + "/4E545585.dds") && !File.Exists(foldertomap + "/PLACEHOLDER_N.DDS"))
                     File.Move(foldertomap + "/4E545585.dds", foldertomap + "/PLACEHOLDER_N.DDS");
 
@@ -108,6 +121,15 @@ namespace BackendProject.HomeTools.UnBAR
 
                 if (File.Exists(foldertomap + "/D3A7AF9F.xml") && !File.Exists(foldertomap + "/__$manifest$__"))
                     File.Move(foldertomap + "/D3A7AF9F.xml", foldertomap + "/__$manifest$__");
+
+                if (File.Exists(foldertomap + "/ObjectXMLBruteforce.xml"))
+                    File.Delete(foldertomap + "/ObjectXMLBruteforce.xml");
+
+                foreach (string file in filePathList)
+                {
+                    if (File.Exists(file))
+                        File.Delete(file);
+                }
             }
             catch (Exception ex)
             {
@@ -227,7 +249,7 @@ namespace BackendProject.HomeTools.UnBAR
             }
         }
 
-        private static void CopyFiles(string sourceDir, string targetDir)
+        private void CopyFiles(string sourceDir, string targetDir)
         {
             // Check if the source directory exists
             if (!Directory.Exists(sourceDir))
@@ -241,6 +263,8 @@ namespace BackendProject.HomeTools.UnBAR
 
             foreach (string file in files)
             {
+                filePathList.Add(file);
+
                 try
                 {
                     string targetPath = Path.Combine(targetDir, Path.GetRelativePath(sourceDir, file));
@@ -266,7 +290,7 @@ namespace BackendProject.HomeTools.UnBAR
             return hash;
         }
 
-        internal static List<MappedList> ScanForString(string sourceFile)
+        internal List<MappedList> ScanForString(string sourceFile)
         {
             List<RegexPatterns> regexPatternsList = new()
               {
@@ -845,7 +869,6 @@ namespace BackendProject.HomeTools.UnBAR
     public class MappedList
     {
         public string? type;
-
         public string? file;
     }
 
