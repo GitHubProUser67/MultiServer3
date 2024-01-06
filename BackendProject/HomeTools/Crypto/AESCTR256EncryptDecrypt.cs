@@ -28,7 +28,7 @@ namespace BackendProject.HomeTools.Crypto
             else
                 LoggerAccessor.LogError("[AESCTR256EncryptDecrypt] - InitiateCTRBuffer - Invalid FileBytes, KeyByes or IV!");
 
-            return new byte[0];
+            return Array.Empty<byte>();
         }
     }
 }

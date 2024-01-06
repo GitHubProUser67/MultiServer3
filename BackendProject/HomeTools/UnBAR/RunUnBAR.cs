@@ -6,12 +6,12 @@ namespace BackendProject.HomeTools.UnBAR
 {
     public class RunUnBAR
     {
-        public async Task Run(string inputfile, string outputpath, bool edat, string options)
+        public async Task Run(string inputfile, string outputpath, bool edat)
         {
             if (edat)
-                await RunDecrypt(inputfile, outputpath, options);
+                await RunDecrypt(inputfile, outputpath);
             else
-                await new RunUnBAR().RunExtract(inputfile, outputpath, options);
+                await new RunUnBAR().RunExtract(inputfile, outputpath);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -34,20 +34,21 @@ namespace BackendProject.HomeTools.UnBAR
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        private async Task RunDecrypt(string filePath, string outDir, string options)
+        private async Task RunDecrypt(string filePath, string outDir)
         {
             int status = new EDAT().decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
 
             if (status == 0)
-                await new RunUnBAR().RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir, options);
+                await new RunUnBAR().RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir);
             else
                 LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {status}");
         }
 
-        private async Task RunExtract(string filePath, string outDir, string options)
+        private async Task RunExtract(string filePath, string outDir)
         {
             bool isSharc = false;
             bool isLittleEndian = false;
+            string options = ToolsImpl.base64DefaultSharcKey;
             byte[]? RawBarData = null;
 
             if (File.Exists(filePath))
@@ -84,75 +85,101 @@ namespace BackendProject.HomeTools.UnBAR
                                 SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
                                  Convert.FromBase64String(options), HeaderIV);
 
-                                if (SharcHeader != Array.Empty<byte>())
+                                if (SharcHeader == Array.Empty<byte>())
+                                    return; // Sharc Header failed to decrypt.
+                                else if (!MiscUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
-                                    byte[] NumOfFiles = new byte[4];
+                                    options = ToolsImpl.base64CDNKey1;
 
-                                    if (isLittleEndian == true)
-                                        Buffer.BlockCopy(SharcHeader, SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
-                                    else
-                                        Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(SharcHeader, 4), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+                                    Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                    byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
+                                    SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
+                                     Convert.FromBase64String(options), HeaderIV);
 
-                                    Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
-
-                                    if (SharcTOC != null)
+                                    if (SharcHeader == Array.Empty<byte>())
+                                        return; // Sharc Header failed to decrypt.
+                                    else if (!MiscUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
-                                        byte[] OriginalIV = new byte[HeaderIV.Length];
+                                        options = ToolsImpl.base64CDNKey2;
 
-                                        Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
+                                        Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                        toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+                                        SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
+                                         Convert.FromBase64String(options), HeaderIV);
 
-                                        SharcTOC = aes256.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
+                                        if (SharcHeader == Array.Empty<byte>())
+                                            return; // Sharc Header failed to decrypt.
+                                        else if (!MiscUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                            return; // All keys failed to decrypt.
+                                    }
+                                }
 
-                                        if (SharcTOC != Array.Empty<byte>())
+                                byte[] NumOfFiles = new byte[4];
+
+                                if (isLittleEndian == true)
+                                    Buffer.BlockCopy(SharcHeader, SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+                                else
+                                    Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(SharcHeader, 4), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+
+                                byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
+
+                                Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
+
+                                if (SharcTOC != null)
+                                {
+                                    byte[] OriginalIV = new byte[HeaderIV.Length];
+
+                                    Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
+
+                                    toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+
+                                    SharcTOC = aes256.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
+
+                                    if (SharcTOC != Array.Empty<byte>())
+                                    {
+                                        byte[] SharcData = new byte[RawBarData.Length - (52 + SharcTOC.Length)];
+
+                                        Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
+
+                                        byte[] FileBytes = new byte[0];
+
+                                        if (isLittleEndian)
                                         {
-                                            byte[] SharcData = new byte[RawBarData.Length - (52 + SharcTOC.Length)];
-
-                                            Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
-
-                                            byte[] FileBytes = new byte[0];
-
-                                            if (isLittleEndian)
+                                            FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
                                             {
-                                                FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
-                                                {
                                                     OriginalIV,
                                                     SharcHeader,
                                                     SharcTOC,
                                                     SharcData
-                                                });
-                                            }
-                                            else
-                                            {
-                                                FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
-                                                {
-                                                    OriginalIV,
-                                                    SharcHeader,
-                                                    SharcTOC,
-                                                    SharcData
-                                                });
-                                            }
-
-                                            Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
-
-                                            File.WriteAllBytes(filePath, FileBytes);
-
-                                            if (isLittleEndian)
-                                            {
-                                                File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                                                BitConverter.ToString(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }, 4)).Replace("-", ""));
-                                            }
-                                            else
-                                            {
-                                                File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                                                BitConverter.ToString(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }).Replace("-", ""));
-                                            }
-
-                                            LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
+                                            });
                                         }
+                                        else
+                                        {
+                                            FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                            {
+                                                    OriginalIV,
+                                                    SharcHeader,
+                                                    SharcTOC,
+                                                    SharcData
+                                            });
+                                        }
+
+                                        Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+
+                                        File.WriteAllBytes(filePath, FileBytes);
+
+                                        if (isLittleEndian)
+                                        {
+                                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                                            BitConverter.ToString(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }, 4)).Replace("-", ""));
+                                        }
+                                        else
+                                        {
+                                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
+                                            BitConverter.ToString(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }).Replace("-", ""));
+                                        }
+
+                                        LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
                                     }
                                 }
                             }
