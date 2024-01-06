@@ -19,7 +19,7 @@ namespace HTTPServer
     {
         #region Fields
 
-        private List<Route> Routes = new List<Route>();
+        private List<Route> Routes = new();
 
         #endregion
 
@@ -87,6 +87,8 @@ namespace HTTPServer
 
                                 if (request != null && !string.IsNullOrEmpty(request.Url) && !request.GetHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                                 {
+                                    string? keepalive = null;
+
                                     string Host = request.GetHeaderValue("Host");
 
                                     LoggerAccessor.LogInfo(string.Format("{0} -> {1} -> {2} has connected", clientip, Host, request.Method));
@@ -408,6 +410,15 @@ namespace HTTPServer
                                         else
                                             LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                                     }
+
+                                    request.Dispose();
+
+                                    if (response.Headers.TryGetValue("Connection", out keepalive) && !string.IsNullOrEmpty(keepalive) && keepalive == "Keep-Alive")
+                                    {
+
+                                    }
+                                    else
+                                        response.Dispose();
                                 }
                             }
                         }
