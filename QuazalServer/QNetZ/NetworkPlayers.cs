@@ -1,6 +1,4 @@
 using CustomLogger;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace QuazalServer.QNetZ
 {
