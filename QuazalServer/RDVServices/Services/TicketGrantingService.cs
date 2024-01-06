@@ -168,7 +168,7 @@ namespace QuazalServer.RDVServices.Services
                     }
                     else // PS and XBOX in theory.
                     {
-                        plInfo.PID = NetworkPlayers.GenerateUniqueUint(userName);
+                        plInfo.PID = NetworkPlayers.GenerateUniqueUint(userName + "a1nPut!");
                         plInfo.AccountId = userName;
                         plInfo.Name = userName;
 
