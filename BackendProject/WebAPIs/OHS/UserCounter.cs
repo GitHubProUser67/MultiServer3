@@ -2,6 +2,8 @@
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using System.Text.Json.Nodes;
+using System.Linq;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -116,6 +118,130 @@ namespace BackendProject.WebAPIs.OHS
             return dataforohs;
         }
 
+        public static string? Increment(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        {
+            string? dataforohs = null;
+            string? output = null;
+
+            if (string.IsNullOrEmpty(batchparams))
+            {
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                if (boundary != null)
+                {
+                    using (MemoryStream ms = new(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
+                        ms.Flush();
+                    }
+                }
+            }
+            else
+                dataforohs = batchparams;
+
+            object? key = null;
+
+            if (!string.IsNullOrEmpty(dataforohs))
+            {
+                // Deserialize the JSON data into a JObject
+                JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+
+                key = jObject.Value<string>("key");
+
+                string? user = jObject.Value<string>("user");
+
+                int value = jObject.Value<int>("value");
+                try
+                {
+                    string profileCurDataString = directorypath + $"User_Profiles/{user}_Currency.json";
+
+                    if (File.Exists(profileCurDataString))
+                    {
+                        JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
+
+                        if (jObjectFromFile != null)
+                        {
+                            JToken? existingKey = jObjectFromFile.SelectToken($"$..{key}");
+
+                            if (existingKey != null && existingKey.Type == JTokenType.Integer)
+                            {
+                                // Increment the value of the existing key (assuming it's an integer)
+                                int currentValue = existingKey.Value<int>();
+                                int newValue = 0;
+
+                                //CurrentValue is stored file value already, value is the requested change.
+                                if(currentValue > value)
+                                {
+                                    newValue = currentValue - value;
+                                } else
+                                {
+                                    newValue = currentValue + value;
+                                }
+
+                                existingKey.Replace(newValue);
+
+                                // Set the output to the incremented value
+                                output = (existingKey).ToString();
+                            }
+                            else
+                            {
+                                // If the key doesn't exist or its value is not an integer, handle accordingly
+                                // For example, you might want to set the value to 1 or handle an error.
+                                // Modify this part based on your specific requirements.
+                                existingKey = value;
+                                 // Set the output to the incremented value
+                                output = (value).ToString();
+                            }
+
+                            File.WriteAllText(output, jObject.ToString(Formatting.Indented));
+                        }
+                    }
+                    else if (key != null)
+                    {
+                        string? keystring = key.ToString();
+
+                        if (!string.IsNullOrEmpty(keystring) && user != null)
+                        {
+                            // Create a new profile with the key field and set it to 1
+                            var newProfile = new OHSUserProfile
+                            {
+                                user = user.ToString(),
+                                key = new JObject { { keystring, 1 } }
+                            };
+                            Directory.CreateDirectory(directorypath + "User_Profiles");
+                            File.WriteAllText(profileCurDataString, JsonConvert.SerializeObject(newProfile));
+
+                            // Set the output to incremented value
+                            output = (value).ToString();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[UserCounter] - Json Format Error - {ex}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(batchparams))
+            {
+                if (string.IsNullOrEmpty(output))
+                    return "{ }";
+                else
+                    return output;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(output))
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                else
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"{key}\"] = {output} }} }}", game);
+            }
+
+            return dataforohs;
+        }
+
         public static string? Get_All(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
             string? dataforohs = null;
@@ -152,6 +278,7 @@ namespace BackendProject.WebAPIs.OHS
                     if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
                     {
                         string tempreader = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Currency.json");
+                        string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Currency.json");
 
                         if (!string.IsNullOrEmpty(tempreader))
                         {

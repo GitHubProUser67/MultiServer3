@@ -102,6 +102,9 @@ namespace BackendProject.WebAPIs.OHS
                                     case "usercounter/set/":
                                         resultfromcommand = UserCounter.Set(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
+                                    case "usercounter/increment/":
+                                        resultfromcommand = UserCounter.Increment(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        break;
                                     case "usercounter/getall/":
                                         resultfromcommand = UserCounter.Get_All(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
