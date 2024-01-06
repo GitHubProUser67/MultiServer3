@@ -3,8 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace HTTPServer.Models
 {
-    public class HttpRequest
+    public class HttpRequest : IDisposable
     {
+        private bool disposedValue;
         #region Fields
 
         #endregion
@@ -101,6 +102,37 @@ namespace HTTPServer.Models
                 else
                     return null;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Url = null;
+                    Route = null;
+                    Data = null;
+                }
+
+                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
+                // TODO: affecter aux grands champs une valeur null
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
+        // ~HttpRequest()
+        // {
+        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }
