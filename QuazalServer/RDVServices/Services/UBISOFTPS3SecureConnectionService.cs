@@ -60,7 +60,7 @@ namespace QuazalServer.RDVServices.Services
                 byte[] extractedData = new byte[0x63 - 0x54 + 1];
 
                 // Copy it
-                Array.Copy(hCustomData.data.ticket.data, 0x54, extractedData, 0, extractedData.Length);
+                Array.Copy(hCustomData.data.ticket.data, 0x50, extractedData, 0, extractedData.Length);
 
                 // Convert 0x00 bytes to 0x48 so FileSystem can support it
                 for (int i = 0; i < extractedData.Length; i++)
