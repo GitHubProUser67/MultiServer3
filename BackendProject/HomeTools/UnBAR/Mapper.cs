@@ -25,6 +25,7 @@ namespace BackendProject.HomeTools.UnBAR
                     File.WriteAllText(foldertomap + "/ObjectXMLBruteforce.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                         $" <XML>\r\n<asset source=\"objects/{match.Groups[0].Value}/object.xml\"/>\r\n<asset source=\"objects/{match.Groups[0].Value}/res" +
                         $"ources.xml\"/>\r\n<asset source=\"objects/{match.Groups[0].Value}/localisation.xml\"/>\r\n</XML>");
+                    filePathList.Add(foldertomap + "/ObjectXMLBruteforce.xml");
                 }
 
                 IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl")
@@ -121,9 +122,6 @@ namespace BackendProject.HomeTools.UnBAR
 
                 if (File.Exists(foldertomap + "/D3A7AF9F.xml") && !File.Exists(foldertomap + "/__$manifest$__"))
                     File.Move(foldertomap + "/D3A7AF9F.xml", foldertomap + "/__$manifest$__");
-
-                if (File.Exists(foldertomap + "/ObjectXMLBruteforce.xml"))
-                    File.Delete(foldertomap + "/ObjectXMLBruteforce.xml");
 
                 foreach (string file in filePathList)
                 {
