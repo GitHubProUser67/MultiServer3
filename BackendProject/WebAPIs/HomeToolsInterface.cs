@@ -499,7 +499,6 @@ namespace BackendProject.WebAPIs
                         string filename = string.Empty;
                         string ogfilename = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
-                        string options = data.GetParameterValue("options");
                         string prefix = data.GetParameterValue("prefix");
                         string subfolder = string.Empty;
                         string bruteforce = string.Empty;
@@ -519,13 +518,6 @@ namespace BackendProject.WebAPIs
                         {
 
                         }
-                        if (options == "cdn1")
-                            options = ToolsImpl.base64CDNKey1;
-                        else if (options == "cdn2")
-                            options = ToolsImpl.base64CDNKey2;
-                        else
-                            options = ToolsImpl.base64DefaultSharcKey;
-
                         foreach (var multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
@@ -559,19 +551,19 @@ namespace BackendProject.WebAPIs
 
                                 if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
                                 {
-                                    await unbar.Run(barfile, unbardir, false, options);
+                                    await unbar.Run(barfile, unbardir, false);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 4).ToUpper();
                                 }
                                 else if (filename.ToLower().EndsWith(".sharc"))
                                 {
-                                    await unbar.Run(barfile, unbardir, false, options);
+                                    await unbar.Run(barfile, unbardir, false);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 6).ToUpper();
                                 }
                                 else if (filename.ToLower().EndsWith(".sdat"))
                                 {
-                                    await unbar.Run(barfile, unbardir, true, options);
+                                    await unbar.Run(barfile, unbardir, true);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 5).ToUpper();
                                 }
