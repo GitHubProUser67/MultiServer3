@@ -727,7 +727,7 @@ namespace BackendProject
 
         public static bool IsWindows()
         {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
+            return Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
         }
 #pragma warning disable
         public static bool IsAdministrator()
