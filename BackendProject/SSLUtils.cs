@@ -168,7 +168,9 @@ namespace BackendProject
         "starhawk-prod2.svo.online.scea.com",
         "secure.cprod.homeps3.online.scee.com",
         "destinationhome.live",
-        "prod.homemq.online.scee.com" };
+        "prod.homemq.online.scee.com",
+        "homeec.scej-nbs.jp"
+        };
 
         public static X509Certificate2 CreateRootCertificateAuthority(string FileName)
         {

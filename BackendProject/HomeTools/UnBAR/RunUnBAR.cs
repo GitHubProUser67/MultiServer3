@@ -211,7 +211,7 @@ namespace BackendProject.HomeTools.UnBAR
                     archive = new(filePath, outDir);
                     archive.Load();
                     archive.WriteMap(filePath);
-                    File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString());
+                    File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
 
                     // Create a list to hold the tasks
                     List<Task>? TOCTasks = new();

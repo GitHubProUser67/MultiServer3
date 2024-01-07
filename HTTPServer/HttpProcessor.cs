@@ -210,6 +210,34 @@ namespace HTTPServer
                                                     else
                                                         response = HttpResponse.Send(res, "text/xml");
                                                 }
+                                                else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp" || Host == "scej-home.playstation.net" || Host == "homeec.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
+                                                {
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
+
+                                                    string? res = null;
+                                                    PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
+                                                    if (request.getDataStream != null)
+                                                    {
+                                                        using (MemoryStream postdata = new())
+                                                        {
+                                                            request.getDataStream.CopyTo(postdata);
+
+                                                            postdata.Position = 0;
+                                                            // Find the number of bytes in the stream
+                                                            int contentLength = (int)postdata.Length;
+                                                            // Create a byte array
+                                                            byte[] buffer = new byte[contentLength];
+                                                            // Read the contents of the memory stream into the byte array
+                                                            postdata.Read(buffer, 0, contentLength);
+                                                            res = agency.ProcessRequest(buffer, request.GetContentType());
+                                                            postdata.Flush();
+                                                        }
+                                                    }
+                                                    if (string.IsNullOrEmpty(res))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                        response = HttpResponse.Send(res, "text/xml");
+                                                }
                                                 else
                                                 {
                                                     switch (request.Method)

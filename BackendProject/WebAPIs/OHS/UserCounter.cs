@@ -277,7 +277,6 @@ namespace BackendProject.WebAPIs.OHS
 
                     if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
                     {
-                        string tempreader = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Currency.json");
                         string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Currency.json");
 
                         if (!string.IsNullOrEmpty(tempreader))
