@@ -141,7 +141,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                         Buffer.BlockCopy(RawBarData, 52 + SharcTOC.Length, SharcData, 0, SharcData.Length);
 
-                                        byte[] FileBytes = new byte[0];
+                                        byte[] FileBytes = Array.Empty<byte>();
 
                                         if (isLittleEndian)
                                         {
@@ -167,17 +167,6 @@ namespace BackendProject.HomeTools.UnBAR
                                         Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
                                         File.WriteAllBytes(filePath, FileBytes);
-
-                                        if (isLittleEndian)
-                                        {
-                                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                                            BitConverter.ToString(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }, 4)).Replace("-", ""));
-                                        }
-                                        else
-                                        {
-                                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                                            BitConverter.ToString(new byte[] { FileBytes[28], FileBytes[29], FileBytes[30], FileBytes[31] }).Replace("-", ""));
-                                        }
 
                                         LoggerAccessor.LogInfo("Loading SHARC/dat: {0}", filePath);
                                     }
@@ -205,17 +194,6 @@ namespace BackendProject.HomeTools.UnBAR
 
                         Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
-                        if (isLittleEndian)
-                        {
-                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                            BitConverter.ToString(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(new byte[] { RawBarData[12], RawBarData[13], RawBarData[14], RawBarData[15] }, 4)).Replace("-", ""));
-                        }
-                        else
-                        {
-                            File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt",
-                            BitConverter.ToString(new byte[] { RawBarData[12], RawBarData[13], RawBarData[14], RawBarData[15] }).Replace("-", ""));
-                        }
-
                         LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
                     }
                 }
@@ -225,14 +203,15 @@ namespace BackendProject.HomeTools.UnBAR
                 }
             }
 
-            try
+            if (Directory.Exists(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath))))
             {
-                if (File.Exists(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt"))
+                try
                 {
                     BARArchive? archive = null;
                     archive = new(filePath, outDir);
                     archive.Load();
                     archive.WriteMap(filePath);
+                    File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString());
 
                     // Create a list to hold the tasks
                     List<Task>? TOCTasks = new();
@@ -254,8 +233,8 @@ namespace BackendProject.HomeTools.UnBAR
                                     {
                                         using (MemoryStream memoryStream = new(FileData))
                                         {
-                                            string registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
-                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), registeredExtension);
+                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
+                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
                                             memoryStream.Flush();
                                         }
                                     }
@@ -287,10 +266,10 @@ namespace BackendProject.HomeTools.UnBAR
                     else if (filePath.Length > 4 && File.Exists(filePath[..^4] + ".bar.map"))
                         File.Move(filePath[..^4] + ".bar.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
                 }
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                }
             }
         }
 
@@ -315,100 +294,91 @@ namespace BackendProject.HomeTools.UnBAR
                     if (tableOfContent.Compression == CompressionMethod.Encrypted && data.Length > 28 && 
                         ((data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01) || (data[0] == 0x01 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)))
                     {
-                        if (File.Exists(outDir + "/timestamp.txt") && RawBarData != null)
+                        int dataStart = FindDataPosInBinary(RawBarData, data);
+
+                        if (dataStart != -1)
                         {
-                            int dataStart = FindDataPosInBinary(RawBarData, data);
+                            BlowfishCTREncryptDecrypt? blowfish = new();
+                            ToolsImpl? toolsImpl = new();
+                            uint compressedSize = tableOfContent.CompressedSize;
+                            uint fileSize = tableOfContent.Size;
+                            int userData = archive.BARHeader.UserData;
+#if DEBUG
+                            LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
+                            LoggerAccessor.LogInfo($"CompressedSize - {compressedSize}");
+                            LoggerAccessor.LogInfo($"Size - {fileSize}");
+                            LoggerAccessor.LogInfo($"dataStart - 0x{dataStart:X}");
+                            LoggerAccessor.LogInfo($"UserData - 0x{userData:X}");
+#endif
+                            byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
 
-                            if (dataStart != -1)
+                            // If you want to ensure little-endian byte order explicitly, you can reverse the array
+                            if (BitConverter.IsLittleEndian)
+                                Array.Reverse(SignatureIV);
+
+                            byte[] EncryptedHeaderSHA1 = new byte[24];
+
+                            // Copy the first 24 bytes from the source array to the destination array
+                            Buffer.BlockCopy(data, 4, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
+
+                            byte[]? DecryptedHeaderSHA1 = blowfish.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
+
+                            if (DecryptedHeaderSHA1 != null)
                             {
-                                BlowfishCTREncryptDecrypt? blowfish = new();
-                                ToolsImpl? toolsImpl = new();
-                                uint compressedSize = tableOfContent.CompressedSize;
-                                uint fileSize = tableOfContent.Size;
-                                int userData = Utils.EndianSwap(BitConverter.ToInt32(MiscUtils.HexStringToByteArray(File.ReadAllText(outDir + "/timestamp.txt"))));
+                                string verificationsha1 = MiscUtils.ByteArrayToHexString(DecryptedHeaderSHA1);
 #if DEBUG
-                                LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                                LoggerAccessor.LogInfo($"CompressedSize - {compressedSize}");
-                                LoggerAccessor.LogInfo($"Size - {fileSize}");
-                                LoggerAccessor.LogInfo($"dataStart - 0x{dataStart:X}");
-                                LoggerAccessor.LogInfo($"UserData - 0x{userData:X}");
+                                LoggerAccessor.LogInfo($"SignatureHeader - {verificationsha1}");
 #endif
-                                byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
+                                // Create a new byte array to store the remaining content
+                                byte[]? FileBytes = new byte[data.Length - 28];
 
-                                // If you want to ensure little-endian byte order explicitly, you can reverse the array
-                                if (BitConverter.IsLittleEndian)
-                                    Array.Reverse(SignatureIV);
+                                // Copy the content after the first 28 bytes to the new array
+                                Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
-                                byte[] EncryptedHeaderSHA1 = new byte[24];
+                                string sha1 = toolsImpl.ValidateSha1(FileBytes);
 
-                                // Copy the first 24 bytes from the source array to the destination array
-                                Buffer.BlockCopy(data, 4, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
-
-                                byte[]? DecryptedHeaderSHA1 = blowfish.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
-
-                                if (DecryptedHeaderSHA1 != null)
+                                if (sha1 == verificationsha1[..^8]) // We strip the original file Compression size.
                                 {
-                                    string verificationsha1 = MiscUtils.ByteArrayToHexString(DecryptedHeaderSHA1);
-#if DEBUG
-                                    LoggerAccessor.LogInfo($"SignatureHeader - {verificationsha1}");
-#endif
-                                    // Create a new byte array to store the remaining content
-                                    byte[]? FileBytes = new byte[data.Length - 28];
+                                    toolsImpl.IncrementIVBytes(SignatureIV, 3);
 
-                                    // Copy the content after the first 28 bytes to the new array
-                                    Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
+                                    FileBytes = blowfish.InitiateCTRBuffer(FileBytes, SignatureIV);
 
-                                    string sha1 = toolsImpl.ValidateSha1(FileBytes);
-
-                                    if (sha1 == verificationsha1[..^8]) // We strip the original file Compression size.
+                                    if (FileBytes != null)
                                     {
-                                        toolsImpl.IncrementIVBytes(SignatureIV, 3);
-
-                                        FileBytes = blowfish.InitiateCTRBuffer(FileBytes, SignatureIV);
-
-                                        if (FileBytes != null)
+                                        try
                                         {
-                                            try
-                                            {
-                                                FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing Encryption Proxy encrypted content - {ex}");
-                                                FileBytes = data;
-                                            }
-
-                                            fileStream.Write(FileBytes, 0, FileBytes.Length);
-                                            fileStream.Close();
+                                            FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
                                         }
-                                        else
+                                        catch (Exception ex)
                                         {
-                                            LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file failed to decrypt, Writing original data.");
-                                            fileStream.Write(data, 0, data.Length);
-                                            fileStream.Close();
+                                            LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing Encryption Proxy encrypted content - {ex}");
+                                            FileBytes = data;
                                         }
+
+                                        fileStream.Write(FileBytes, 0, FileBytes.Length);
+                                        fileStream.Close();
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                        LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file failed to decrypt, Writing original data.");
                                         fileStream.Write(data, 0, data.Length);
                                         fileStream.Close();
                                     }
                                 }
+                                else
+                                {
+                                    LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                    fileStream.Write(data, 0, data.Length);
+                                    fileStream.Close();
+                                }
+                            }
 
-                                blowfish = null;
-                                toolsImpl = null;
-                            }
-                            else
-                            {
-                                LoggerAccessor.LogError("[RunUnBAR] - Encrypted data not found in BAR or false positive! Decryption has failed.");
-                                fileStream.Write(data, 0, data.Length);
-                                fileStream.Close();
-                            }
+                            blowfish = null;
+                            toolsImpl = null;
                         }
                         else
                         {
-                            LoggerAccessor.LogError("[RunUnBAR] - No TimeStamp Found! Decryption has failed.");
+                            LoggerAccessor.LogError("[RunUnBAR] - Encrypted data not found in BAR or false positive! Decryption has failed.");
                             fileStream.Write(data, 0, data.Length);
                             fileStream.Close();
                         }
