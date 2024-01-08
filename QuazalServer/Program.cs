@@ -92,6 +92,8 @@ class Program
                     () => new QuazalServer.ServerProcessors.RDVServer().Start(61110, 61111, 2, "QusaPha9"),
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(60116, 2, "OLjNg84Gh"), // HAWX2PS3
                     () => new QuazalServer.ServerProcessors.RDVServer().Start(60115, 60116, 2, "OLjNg84Gh"),
+                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(61126, 2, "cYoqGd4f"), // AC3PS3
+                    () => new QuazalServer.ServerProcessors.RDVServer().Start(61125, 61126, 2, "cYoqGd4f"),
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(60001, 2, "ridfebb9"), // RB3
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(21032, 2, "8dtRv2oj"), // GRO
                     () => RefreshConfig()

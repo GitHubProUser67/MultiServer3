@@ -33,12 +33,7 @@ namespace QuazalServer.RDVServices
 
         public static bool RegisterUser(string strPrincipalName, string strKey, uint uiGroups, string strEmail, string AccessKey)
 		{
-            uint PID;
-
-            do
-            {
-                PID = (uint)new Random().Next();
-            } while (PID <= 1000); // We exclude PIDs equal or inferior to 1000 (reserved accounts).
+            uint PID = QNetZ.NetworkPlayers.GenerateUniqueUint(strPrincipalName);
 
             DateTime servertime = DateTime.Now;
 

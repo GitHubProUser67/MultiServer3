@@ -57,12 +57,37 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
+
+        private static Dictionary<string, string> AC3PS3Response = new()
+        {
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod05.ubisoft.com;port=61125;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv05.ubisoft.com:61125"},
+            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
+            { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
+            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
+
         public static string GetOnlineConfigPSN(string? onlineConfigID)
         {
             var list = new List<OnlineConfigEntry>();
 
             switch (onlineConfigID)
             {
+                case "f70cace9c14a4656bccb03a661dbe660":
+                case "90a8c600b48142629f1e102133e18398":
+                    foreach (var v in AC3PS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
                 case "36e80e4e6db64f04877c928211c8bb71":
                     foreach (var v in Hawx2PS3Response)
                     {
