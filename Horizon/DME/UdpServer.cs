@@ -142,33 +142,33 @@ namespace Horizon.DME
         {
             var message = packet.Message;
 
-            //
             switch (message)
             {
                 case RT_MSG_CLIENT_CONNECT_AUX_UDP connectAuxUdp:
                     {
                         var clientObject = DmeClass.TcpServer.GetClientByScertId(connectAuxUdp.ScertId);
-                        if (clientObject != ClientObject && ClientObject.DmeId != connectAuxUdp.PlayerId)
+                        if (clientObject != ClientObject && ClientObject?.DmeId != connectAuxUdp.PlayerId)
                             break;
 
-                        //
                         AuthenticatedEndPoint = packet.Source;
 
-                        ClientObject.RemoteUdpEndpoint = AuthenticatedEndPoint as IPEndPoint;
-                        ClientObject.OnUdpConnected();
-
-                        //
-                        var msg = new RT_MSG_SERVER_CONNECT_ACCEPT_AUX_UDP()
+                        if (ClientObject != null && ClientObject.DmeWorld != null)
                         {
-                            PlayerId = (ushort)ClientObject.DmeId,
-                            ScertId = ClientObject.ScertId,
-                            PlayerCount = (ushort)ClientObject.DmeWorld.Clients.Count,
-                            EndPoint = ClientObject.RemoteUdpEndpoint
-                        };
+                            ClientObject.RemoteUdpEndpoint = AuthenticatedEndPoint as IPEndPoint;
+                            ClientObject.OnUdpConnected();
 
-                        // Send it twice in case of packet loss
-                        //_boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
-                        _boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
+                            RT_MSG_SERVER_CONNECT_ACCEPT_AUX_UDP msg = new()
+                            {
+                                PlayerId = (ushort)ClientObject.DmeId,
+                                ScertId = ClientObject.ScertId,
+                                PlayerCount = (ushort)ClientObject.DmeWorld.Clients.Count,
+                                EndPoint = ClientObject.RemoteUdpEndpoint
+                            };
+
+                            // Send it twice in case of packet loss
+                            //_boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
+                            _boundChannel?.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_AUX_UDP readyAuxUdp:
@@ -202,7 +202,7 @@ namespace Horizon.DME
                         if (AuthenticatedEndPoint == null || !AuthenticatedEndPoint.Equals(packet.Source))
                             break;
 
-                        ClientObject.DmeWorld?.BroadcastUdp(ClientObject, clientAppBroadcast.Payload);
+                        ClientObject?.DmeWorld?.BroadcastUdp(ClientObject, clientAppBroadcast.Payload);
                         break;
                     }
                 case RT_MSG_CLIENT_APP_LIST clientAppList:
@@ -210,7 +210,7 @@ namespace Horizon.DME
                         if (AuthenticatedEndPoint == null || !AuthenticatedEndPoint.Equals(packet.Source))
                             break;
 
-                        ClientObject.DmeWorld?.SendUdpAppList(ClientObject, clientAppList.Targets, clientAppList.Payload);
+                        ClientObject?.DmeWorld?.SendUdpAppList(ClientObject, clientAppList.Targets, clientAppList.Payload ?? Array.Empty<byte>());
                         break;
                     }
                 case RT_MSG_CLIENT_APP_SINGLE clientAppSingle:
@@ -218,7 +218,7 @@ namespace Horizon.DME
                         if (AuthenticatedEndPoint == null || !AuthenticatedEndPoint.Equals(packet.Source))
                             break;
 
-                        ClientObject.DmeWorld?.SendUdpAppSingle(ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload);
+                        ClientObject?.DmeWorld?.SendUdpAppSingle(ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
                         break;
                     }
                 case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
@@ -226,7 +226,8 @@ namespace Horizon.DME
                         if (AuthenticatedEndPoint == null || !AuthenticatedEndPoint.Equals(packet.Source))
                             break;
 
-                        ProcessMediusMessage(clientAppToServer.Message);
+                        if (clientAppToServer.Message != null)
+                            ProcessMediusMessage(clientAppToServer.Message);
                         break;
                     }
                 case RT_MSG_CLIENT_FLUSH_ALL flushAll:
@@ -317,7 +318,7 @@ namespace Horizon.DME
                 {
                     try
                     {
-                        if (!await PassMessageToPlugins(_boundChannel, ClientObject, message.Message, true))
+                        if (ClientObject != null && !await PassMessageToPlugins(_boundChannel, ClientObject, message.Message, true))
                             ProcessMessage(message);
                     }
                     catch (Exception e)
@@ -348,7 +349,7 @@ namespace Horizon.DME
                     // Add send queue to responses
                     while (_sendQueue.TryDequeue(out var message))
                     {
-                        if (!await PassMessageToPlugins(_boundChannel, ClientObject, message.Message, false))
+                        if (ClientObject != null && !await PassMessageToPlugins(_boundChannel, ClientObject, message.Message, false))
                             responses.Add(message);
                     }
 
@@ -387,7 +388,8 @@ namespace Horizon.DME
                     Channel = clientChannel,
                     Message = clientApp.Message
                 };
-                await DmeClass.Plugins.OnMediusMessageEvent(clientApp.Message.PacketClass, clientApp.Message.PacketType, onMediusMsg);
+                if (clientApp.Message != null)
+                    await DmeClass.Plugins.OnMediusMessageEvent(clientApp.Message.PacketClass, clientApp.Message.PacketType, onMediusMsg);
                 if (onMediusMsg.Ignore)
                     return true;
             }
@@ -399,7 +401,8 @@ namespace Horizon.DME
                     Channel = clientChannel,
                     Message = serverApp.Message
                 };
-                await DmeClass.Plugins.OnMediusMessageEvent(serverApp.Message.PacketClass, serverApp.Message.PacketType, onMediusMsg);
+                if (serverApp.Message != null)
+                    await DmeClass.Plugins.OnMediusMessageEvent(serverApp.Message.PacketClass, serverApp.Message.PacketType, onMediusMsg);
                 if (onMediusMsg.Ignore)
                     return true;
             }

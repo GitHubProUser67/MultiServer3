@@ -50,16 +50,10 @@ namespace BackendProject.FileHelper
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogInfo($"[CUSTOMXTEA] : has throw an exception in CUSTOMXTEA Decrypt - {ex}");
+                LoggerAccessor.LogError($"[CUSTOMXTEA] : Thrown an exception in CustomXTEA Decrypt - {ex}");
             }
 
             return Array.Empty<byte>();
-        }
-
-        public int NextMultipleOf8(int length)
-        {
-            // XTEA is a 64-bit block chiffre, therefore our data must be a multiple of 64 bit
-            return (length + 7) / 8 * 8; // this will give us the next multiple of 8
         }
 
         /// <summary>
@@ -77,7 +71,8 @@ namespace BackendProject.FileHelper
                 hash[i % 16] = (byte)(31 * hash[i % 16] ^ key[i]);
             }
             for (int i = key.Length; i < hash.Length; i++)
-            { // if key was too short
+            {
+                // if key was too short
                 hash[i] = (byte)(17 * i ^ key[i % key.Length]);
             }
             return new[] {
@@ -87,128 +82,6 @@ namespace BackendProject.FileHelper
         }
 
         #region Block Operations
-        /// <summary>
-        /// Performs an inplace encryption of the provided data array.
-        /// </summary>
-        /// <param name="rounds">The number of encryption rounds, the recommend value is 32.</param>
-        /// <param name="v">Data array containing two values.</param>
-        /// <param name="key">Key array containing 4 values.</param>
-        private void Encrypt(uint rounds, uint[] v, uint[] key)
-        {
-            uint v0 = v[0], v1 = v[1], sum = 0, delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-            for (uint i = 0; i < rounds; i++)
-            {
-                v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                sum += delta;
-                v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-            }
-            v[0] = v0 ^ 0x9E3779B9;
-            v[1] = v1 ^ 0x9E3779B9;
-
-            for (int j = 0; j <= 3; j++)
-            {
-                v0 = v[0]; v1 = v[1]; sum = 0; delta = 0x9E3779B9;
-                for (uint i = 0; i < rounds; i++)
-                {
-                    v0 += (v1 << 4 ^ v1 >> 5) + v1 ^ sum + key[sum & 3];
-                    sum += delta;
-                    v1 += (v0 << 4 ^ v0 >> 5) + v0 ^ sum + key[sum >> 11 & 3];
-                }
-                v[0] = v0 ^ 0x9E3779B9 ^ 0x9E3779B9 ^ 0x9E3779B9 ^ 0x9E3779B9 ^ 0x9E3779B9;
-                v[1] = v1 ^ 0x9E3779B9 ^ 0x9E3779B9 ^ 0x9E3779B9 ^ 0x9E3779B9 ^ 0x9E3779B9;
-            }
-        }
-
         /// <summary>
         /// Performs an inplace decryption of the provided data array.
         /// </summary>

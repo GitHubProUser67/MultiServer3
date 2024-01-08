@@ -122,3 +122,14 @@ tso-e.com,Redirect,IP
 ps3burnout08.ea.com,Redirect,IP
 tdulive.quazal.net,Redirect,IP
 gos.ea.com,Redirect,IP
+prod.homemq.online.scee.com,Redirect,IP
+pdc-lb-rdv-prod01.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod02.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod03.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod04.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod05.ubisoft.com,Redirect,IP
+wsuplay.ubi.com,Redirect,IP
+static8.cdn.ubi.com,Redirect,IP
+master10.doublefusion.com,Redirect,IP
+onlineconfigservice.ubi.com,Redirect,IP
+gconnect.ubi.com,Redirect,IP

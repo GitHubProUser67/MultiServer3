@@ -183,7 +183,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
                 // Configure the certificate as CA.
                 request.CertificateExtensions.Add(
@@ -195,21 +195,12 @@ namespace BackendProject
                         X509KeyUsageFlags.KeyCertSign,
                         true));
 
-                // Set the validity period of the certificate
-                DateTimeOffset notBefore = new(new DateTime(1980, 1, 1), TimeSpan.Zero);
-                DateTimeOffset notAfter = new(new DateTime(7980, 1, 1), TimeSpan.Zero);
-
-                RsaPkcs1SignatureGenerator customSignatureGenerator = new(rsa);
-
-                // Create a self-signed certificate from the certificate request
-                X509Certificate2 certificate = request.Create(
+                X509Certificate2 SelfSignedCertificate = request.Create(
                     request.SubjectName,
-                    customSignatureGenerator,
-                    notBefore,
-                    notAfter,
-                    certSerialNumber);
-
-                X509Certificate2 SelfSignedCertificate = certificate.CopyWithPrivateKey(rsa);
+                    new RsaPkcs1SignatureGenerator(rsa),
+                    new(new DateTime(1980, 1, 1), TimeSpan.Zero),
+                    new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                    certSerialNumber).CopyWithPrivateKey(rsa);
 
                 // Export the private key.
                 string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
@@ -238,7 +229,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
                 // Set additional properties of the certificate
                 request.CertificateExtensions.Add(
@@ -274,21 +265,13 @@ namespace BackendProject
                 sanBuilder.AddEmailAddress("MultiServer@gmail.com");
                 request.CertificateExtensions.Add(sanBuilder.Build());
 
-                // Set the validity period of the certificate
-                DateTimeOffset notBefore = new(new DateTime(1980, 1, 1), TimeSpan.Zero);
-                DateTimeOffset notAfter = new(new DateTime(7980, 1, 1), TimeSpan.Zero);
-
-                // Create a self-signed certificate from the certificate request
-                X509Certificate2 certificate = request.Create(
-                    issuerCertificate,
-                    notBefore,
-                    notAfter,
-                    certSerialNumber);
-
-                X509Certificate2 SelfSignedCertificate = certificate.CopyWithPrivateKey(rsa);
-
                 string certPassword = "qwerty"; // Set a password to protect the private key
-                File.WriteAllBytes(FileName, SelfSignedCertificate.Export(X509ContentType.Pfx, certPassword));
+
+                File.WriteAllBytes(FileName, request.Create(
+                    issuerCertificate,
+                    new(new DateTime(1980, 1, 1), TimeSpan.Zero),
+                    new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                    certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx, certPassword));
 
                 // Export the private key.
                 string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
@@ -320,7 +303,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=MultiServer Corp, L=New York, S=Northeastern United, C=United States", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
                 // Set additional properties of the certificate
                 request.CertificateExtensions.Add(
@@ -338,7 +321,7 @@ namespace BackendProject
                         true));
 
                 // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
-                var sanBuilder = new SubjectAlternativeNameBuilder();
+                SubjectAlternativeNameBuilder sanBuilder = new();
                 sanBuilder.AddDnsName("*.net");
                 sanBuilder.AddDnsName("*.com");
                 sanBuilder.AddDnsName("*.fr");
@@ -356,18 +339,12 @@ namespace BackendProject
                 sanBuilder.AddEmailAddress("MultiServer@gmail.com");
                 request.CertificateExtensions.Add(sanBuilder.Build());
 
-                // Set the validity period of the certificate
-                DateTimeOffset notBefore = new(new DateTime(1980, 1, 1), TimeSpan.Zero);
-                DateTimeOffset notAfter = new(new DateTime(7980, 1, 1), TimeSpan.Zero);
-
-                RsaPkcs1SignatureGenerator customSignatureGenerator = new(rsa);
-
                 // Create a self-signed certificate from the certificate request
                 X509Certificate2 certificate = request.Create(
                     request.SubjectName,
-                    customSignatureGenerator,
-                    notBefore,
-                    notAfter,
+                    new RsaPkcs1SignatureGenerator(rsa),
+                    new(new DateTime(1980, 1, 1), TimeSpan.Zero),
+                    new(new DateTime(7980, 1, 1), TimeSpan.Zero),
                     new byte[] { 0x00, 0x01, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -410,8 +387,7 @@ namespace BackendProject
                 if (store.IsKeyEntry(str))
                     alias = str;
             }
-            X509CertificateEntry certEntry = store.GetCertificate(alias);
-            return certEntry.Certificate;
+            return store.GetCertificate(alias).Certificate;
         }
 
         public static void CreateHomeCertificatesFile(string rootcaSubject, string selfsignedSubject, string FileName)
@@ -464,20 +440,14 @@ namespace BackendProject
 
         private static Org.BouncyCastle.X509.X509Certificate pemToX509Certificate(string signature)
         {
-            byte[] buffer = GetBytesFromPEM("CERTIFICATE", signature);
-            X509CertificateParser parser = new();
-            Org.BouncyCastle.X509.X509Certificate cert = parser.ReadCertificate(buffer);
-            return cert;
+            return new X509CertificateParser().ReadCertificate(GetBytesFromPEM("CERTIFICATE", signature));
         }
 
         private static byte[] GetBytesFromPEM(string type, string pem)
         {
             string header = string.Format("-----BEGIN {0}-----", type);
-            string footer = string.Format("-----END {0}-----", type);
             int start = pem.IndexOf(header) + header.Length;
-            int end = pem.IndexOf(footer, start);
-            string base64 = pem.Substring(start, (end - start));
-            return Convert.FromBase64String(base64);
+            return Convert.FromBase64String(pem[start..pem.IndexOf(string.Format("-----END {0}-----", type), start)]);
         }
     }
 

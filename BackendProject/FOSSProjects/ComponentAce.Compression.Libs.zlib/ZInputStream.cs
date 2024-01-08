@@ -67,25 +67,21 @@ public class ZInputStream : BinaryReader
 	public override int Read()
 	{
 		if (read(buf1, 0, 1) == -1)
-		{
-			return -1;
-		}
-		return buf1[0] & 0xFF;
+            return -1;
+        return buf1[0] & 0xFF;
 	}
 
 	public int read(byte[] b, int off, int len)
 	{
 		if (len == 0)
-		{
-			return 0;
-		}
-		z.next_out = b;
+            return 0;
+        z.next_out = b;
 		z.next_out_index = off;
 		z.avail_out = len;
 		int num;
 		do
 		{
-			if (z.avail_in == 0 && !nomoreinput)
+			if (z.avail_in == 0 && !nomoreinput && buf != null)
 			{
 				z.next_in_index = 0;
 				z.avail_in = SupportClass.ReadInput(in_Renamed, buf, 0, bufsize);
@@ -97,19 +93,13 @@ public class ZInputStream : BinaryReader
 			}
 			num = ((!compress) ? z.inflate(flush) : z.deflate(flush));
 			if (nomoreinput && num == -5)
-			{
-				return -1;
-			}
-			if (num != 0 && num != 1)
-			{
-				throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
-			}
-			if (nomoreinput && z.avail_out == len)
-			{
-				return -1;
-			}
-		}
-		while (z.avail_out == len && num == 0);
+                return -1;
+            if (num != 0 && num != 1)
+                throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
+            if (nomoreinput && z.avail_out == len)
+                return -1;
+        }
+        while (z.avail_out == len && num == 0);
 		return len - z.avail_out;
 	}
 
@@ -117,10 +107,8 @@ public class ZInputStream : BinaryReader
 	{
 		int num = 512;
 		if (n < num)
-		{
-			num = (int)n;
-		}
-		byte[] array = new byte[num];
+            num = (int)n;
+        byte[] array = new byte[num];
 		return SupportClass.ReadInput(BaseStream, array, 0, array.Length);
 	}
 

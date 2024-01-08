@@ -58,7 +58,7 @@ namespace BackendProject
             }
 
             // Add the new element to the last position
-            newArray[newArray.Length - 1] = newElement;
+            newArray[^1] = newElement;
 
             return newArray;
         }
@@ -92,14 +92,13 @@ namespace BackendProject
         public static string GetNanoseconds()
         {
             // C# DateTime only provides up to ticks (100 nanoseconds) resolution
-            long ticks = DateTime.Now.Ticks;
-
-            return (ticks % TimeSpan.TicksPerMillisecond * 100).ToString("00000000"); // Pad with zeros to 8 digits
+            return (DateTime.Now.Ticks % TimeSpan.TicksPerMillisecond * 100).ToString("00000000"); // Pad with zeros to 8 digits
         }
 
         public static string ByteArrayToHexString(byte[] byteArray)
         {
             StringBuilder hex = new(byteArray.Length * 2);
+
             foreach (byte b in byteArray)
             {
                 hex.AppendFormat("{0:X2}", b);
@@ -165,13 +164,12 @@ namespace BackendProject
             if (second == null || second.Length == 0)
                 return first;
 
-            int totalLength = first.Length + second.Sum(arr => arr.Length);
-            byte[] result = new byte[totalLength];
+            byte[] result = new byte[first.Length + second.Sum(arr => arr.Length)];
 
             Buffer.BlockCopy(first, 0, result, 0, first.Length);
 
             int offset = first.Length;
-            foreach (var array in second)
+            foreach (byte[] array in second)
             {
                 Buffer.BlockCopy(array, 0, result, offset, array.Length);
                 offset += array.Length;
@@ -223,11 +221,10 @@ namespace BackendProject
 
         public static byte[] ConcatenateArrays(byte[][] arrays)
         {
-            int totalLength = arrays.Sum(arr => arr.Length);
-            byte[] result = new byte[totalLength];
+            byte[] result = new byte[arrays.Sum(arr => arr.Length)];
             int offset = 0;
 
-            foreach (var array in arrays)
+            foreach (byte[] array in arrays)
             {
                 Buffer.BlockCopy(array, 0, result, offset, array.Length);
                 offset += array.Length;
@@ -555,6 +552,10 @@ namespace BackendProject
                 {
                     // Not Important.
                 }
+                catch (Exception)
+                {
+                    // Not Important.
+                }
             }
 
             return GetLocalIPAddress().ToString();
@@ -593,7 +594,7 @@ namespace BackendProject
             }
             catch (Exception)
             {
-
+                // Not Important.
             }
 
             // If no valid interface with the desired IP version is found.
@@ -680,14 +681,13 @@ namespace BackendProject
                     }
                 }
             }
-            catch (SocketException ex)
+            catch (SocketException)
             {
-                if (ex.ErrorCode != 11001)
-                    LoggerAccessor.LogError($"[MiscUtils] - GetFirstActiveIPAddress thrown a socket exception : {ex}");
+                // Not Important.
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                LoggerAccessor.LogError($"[MiscUtils] - GetFirstActiveIPAddress thrown an exception : {ex}");
+                // Not Important.
             }
 
             return fallback;
@@ -704,9 +704,11 @@ namespace BackendProject
                 }
                 catch (Exception)
                 {
-                    return false;
+
                 }
             }
+
+            return false;
         }
 
         public static bool IsUdpPortOpen(string host, int port)
@@ -720,9 +722,11 @@ namespace BackendProject
                 }
                 catch (Exception)
                 {
-                    return false;
+
                 }
             }
+
+            return false;
         }
 
         public static bool IsWindows()
@@ -762,9 +766,8 @@ namespace BackendProject
                     break;
             }
             Version? version = Assembly.GetExecutingAssembly().GetName().Version;
-            int bitness = IntPtr.Size * 8;
             return
-              $"{pstring}{bitness}/{os.Version.Major}.{os.Version.Minor} UPnP/1.0 DLNADOC/1.5 sdlna/{version?.Major}.{version?.Minor}";
+              $"{pstring}{IntPtr.Size * 8}/{os.Version.Major}.{os.Version.Minor} UPnP/1.0 DLNADOC/1.5 sdlna/{version?.Major}.{version?.Minor}";
         }
     }
 }

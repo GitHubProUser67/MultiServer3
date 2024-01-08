@@ -18,7 +18,7 @@ namespace Horizon.MUIS.Models
 
         public class GameClient
         {
-            public ClientObject Client;
+            public ClientObject? Client;
 
             public int DmeId;
             public bool InGame;
@@ -28,7 +28,7 @@ namespace Horizon.MUIS.Models
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
-        public List<GameClient> Clients = new List<GameClient>();
+        public List<GameClient> Clients = new();
         public string GameName;
         public string GamePassword;
         public string SpectatorPassword;
@@ -56,7 +56,7 @@ namespace Horizon.MUIS.Models
         public MediusWorldAttributesType Attributes;
         public DMEObject DMEServer;
         public Channel ChatChannel;
-        public ClientObject Host;
+        public ClientObject? Host;
 
         public string AccountIdsAtStart => accountIdsAtStart;
         public DateTime UtcTimeCreated => utcTimeCreated;
@@ -74,7 +74,7 @@ namespace Horizon.MUIS.Models
 
         public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
-        public int PlayerCount => Clients.Count(x => x != null && x.Client.IsConnected || x.InGame);
+        public int PlayerCount => Clients.Count(x => x != null && x.Client != null && x.Client.IsConnected || x.InGame);
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
@@ -265,7 +265,11 @@ namespace Horizon.MUIS.Models
 
         public string GetActivePlayerList()
         {
-            return string.Join(",", Clients?.Select(x => x.Client.AccountId.ToString()).Where(x => x != null));
+            var playlist = Clients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+            if (playlist != null)
+                return string.Join(",", playlist);
+
+            return string.Empty;
         }
 
         public virtual async Task Tick()
@@ -297,7 +301,7 @@ namespace Horizon.MUIS.Models
 
         public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification notification)
         {
-            var player = Clients.FirstOrDefault(x => x.Client.SessionKey == notification.PlayerSessionKey);
+            var player = Clients.FirstOrDefault(x => x.Client?.SessionKey == notification.PlayerSessionKey);
 
             //Logger.Warn($"CLIENTS LEN {Clients.Count()}");
             //Logger.Warn($"player: {player} \n CHECK!!!!");
@@ -322,7 +326,7 @@ namespace Horizon.MUIS.Models
 
         public virtual async Task OnMediusJoinGameResponse(string Sessionkey)
         {
-            GameClient player = Clients.FirstOrDefault(x => x.Client.SessionKey == Sessionkey);
+            GameClient? player = Clients.FirstOrDefault(x => x.Client?.SessionKey == Sessionkey);
 
             if (player == null)
                 return;
@@ -332,7 +336,7 @@ namespace Horizon.MUIS.Models
 
         public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest)
         {
-            GameClient player = Clients.FirstOrDefault(x => x != null && x.Client.IsConnected);
+            GameClient? player = Clients.FirstOrDefault(x => x != null && x.Client != null && x.Client.IsConnected);
             if (player == null)
                 return;
 
@@ -381,12 +385,15 @@ namespace Horizon.MUIS.Models
             // 
             player.InGame = false;
 
-            // Update player object
-            await player.Client.LeaveGame(this);
-            // player.Client.LeaveChannel(ChatChannel);
+            if (player.Client != null)
+            {
+                // Update player object
+                await player.Client.LeaveGame(this);
+                // player.Client.LeaveChannel(ChatChannel);
 
-            // Remove from collection
-            await RemovePlayer(player.Client);
+                // Remove from collection
+                await RemovePlayer(player.Client);
+            }
         }
 
         public virtual async Task RemovePlayer(ClientObject client)

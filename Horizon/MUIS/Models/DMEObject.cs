@@ -1,6 +1,7 @@
 using CustomLogger;
 using BackendProject.Horizon.RT.Models;
 using System.Net;
+using BackendProject;
 
 namespace Horizon.MUIS.Models
 {
@@ -12,7 +13,7 @@ namespace Horizon.MUIS.Models
         public int CurrentPlayers { get; protected set; } = 0;
 
         public int Port { get; protected set; } = 0;
-        public IPAddress IP { get; protected set; } = IPAddress.Any;
+        public new IPAddress IP { get; protected set; } = IPAddress.Any;
 
         public override bool Timedout => false; // (Utils.GetHighPrecisionUtcTime() - UtcLastEcho).TotalSeconds > MUISStarter.Settings.DmeTimeoutSeconds;
         public override bool IsConnected => _hasActiveSession && !Timedout;
@@ -66,8 +67,8 @@ namespace Horizon.MUIS.Models
 
         public DMEObject(MediusServerSetAttributesRequest request)
         {
-            Port = (int)request.ListenServerAddress.Port;
-            SetIp(request.ListenServerAddress.Address);
+            Port = request.ListenServerAddress.Port;
+            SetIp(request.ListenServerAddress.Address ?? MuisClass.SERVER_IP.ToString());
 
             // Generate new session key
             SessionKey = MuisClass.GenerateSessionKey();
@@ -117,11 +118,16 @@ namespace Horizon.MUIS.Models
         }
 
         #region SetIP
-        public void SetIp(string ip)
+        public new void SetIp(string ip)
         {
             switch (Uri.CheckHostName(ip))
             {
                 case UriHostNameType.IPv4:
+                    {
+                        IP = IPAddress.Parse(ip);
+                        break;
+                    }
+                case UriHostNameType.IPv6:
                     {
                         IP = IPAddress.Parse(ip);
                         break;

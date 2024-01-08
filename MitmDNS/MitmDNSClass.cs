@@ -151,13 +151,8 @@ namespace MitmDNS
 
                 // Check if the line has enough parts and the primary entry is not empty
                 if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
-                {
-                    // Extract the hostname from the primary entry
-                    string hostname = parts[1].Trim();
-
                     // Add the hostname to the list
-                    hostnames.Add(hostname);
-                }
+                    hostnames.Add(parts[1].Trim());
             });
 
             DnsSettings dns = new();

@@ -39,8 +39,7 @@ public class TheaterHostedService
 
                 CustomLogger.LoggerAccessor.LogInfo("[Theater] - Opening TCP connection from: {clientEndpoint}", clientEndpoint);
 
-                Task connection = Task.Run(async () => await HandleClient(tcpClient, clientEndpoint), _cts.Token);
-                _activeConnections.Add(connection);
+                _activeConnections.Add(Task.Run(async () => await HandleClient(tcpClient, clientEndpoint), _cts.Token));
             }
         }, _cts.Token);
 
@@ -49,9 +48,8 @@ public class TheaterHostedService
 
     private async Task HandleClient(TcpClient tcpClient, string clientEndpoint)
     {
-        NetworkStream? networkStream = tcpClient.GetStream();
         TheaterHandler handler = new(StaticCache._sharedCounters, StaticCache._sharedCache);
-        await handler.HandleClientConnection(networkStream, clientEndpoint);
+        await handler.HandleClientConnection(tcpClient.GetStream(), clientEndpoint);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

@@ -14,8 +14,8 @@ namespace Horizon.MEDIUS.Medius.Models
     {
         public static int IdCounter = 0;
 
-        public List<ClientObject> Clients = new List<ClientObject>();
-        public List<Channel> Channels = new List<Channel>();
+        public List<ClientObject> Clients = new();
+        public List<Channel> Channels = new();
 
         public int Id = 0;
         public int ApplicationId = 0;

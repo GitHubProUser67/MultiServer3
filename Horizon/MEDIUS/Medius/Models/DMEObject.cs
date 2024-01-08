@@ -14,8 +14,8 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public MGCL_ALERT_LEVEL MGCL_ALERT_LEVEL { get; protected set; } = MGCL_ALERT_LEVEL.MGCL_ALERT_NONE;
         public int Port { get; protected set; } = 0;
-        public int UdpPort { get; protected set; } = 50000;
-        public IPAddress IP { get; protected set; } = IPAddress.Any;
+        public new int UdpPort { get; protected set; } = 50000;
+        public new IPAddress IP { get; protected set; } = IPAddress.Any;
 
         public override bool Timedout => false; // (Utils.GetHighPrecisionUtcTime() - UtcLastEcho).TotalSeconds > Program.Settings.DmeTimeoutSeconds;
         public override bool IsConnected => _hasActiveSession && !Timedout;
@@ -70,8 +70,8 @@ namespace Horizon.MEDIUS.Medius.Models
         #endregion
         public DMEObject(MediusServerSetAttributesRequest request)
         {
-            Port = (int)request.ListenServerAddress.Port;
-            SetIp(request.ListenServerAddress.Address);
+            Port = request.ListenServerAddress.Port;
+            SetIp(request.ListenServerAddress.Address ?? MediusClass.SERVER_IP.ToString());
 
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();
@@ -135,11 +135,16 @@ namespace Horizon.MEDIUS.Medius.Models
         }
 
         #region SetIP
-        public void SetIp(string ip)
+        public new void SetIp(string ip)
         {
             switch (Uri.CheckHostName(ip))
             {
                 case UriHostNameType.IPv4:
+                    {
+                        IP = IPAddress.Parse(ip);
+                        break;
+                    }
+                case UriHostNameType.IPv6:
                     {
                         IP = IPAddress.Parse(ip);
                         break;

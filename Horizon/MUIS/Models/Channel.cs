@@ -14,14 +14,14 @@ namespace Horizon.MUIS.Models
     {
         public static int IdCounter = 0;
 
-        public List<ClientObject> Clients = new List<ClientObject>();
-        public List<Channel> Channels = new List<Channel>();
+        public List<ClientObject> Clients = new();
+        public List<Channel> Channels = new();
 
         public int Id = 0;
         public int ApplicationId = 0;
         public ChannelType Type = ChannelType.Lobby;
         public string Name = "Default";
-        public string Password = null;
+        public string? Password = null;
         public int MinPlayers = 1;
         public int MaxPlayers = 10;
         public int GameLevel = 0;

@@ -14,6 +14,7 @@ using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
 using BackendProject;
 using Horizon.HTTPSERVICE;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 
 namespace Horizon.MEDIUS
 {
@@ -26,7 +27,6 @@ namespace Horizon.MEDIUS
         public static ServerSettings Settings = new();
 
         public static IPAddress SERVER_IP = IPAddress.None;
-        public static string? IP_TYPE;
 
         public static MediusManager Manager = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
@@ -131,7 +131,7 @@ namespace Horizon.MEDIUS
                 // tick
                 await TickAsync();
 
-                await Task.Delay(1000 / 10);
+                await Task.Delay(100);
             }
 
             await AuthenticationServer.Stop();
@@ -505,11 +505,6 @@ namespace Horizon.MEDIUS
         /// </summary>
         private static void RefreshConfig()
         {
-            var serializerSettings = new JsonSerializerSettings()
-            {
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-            };
-
             #region Check Config.json
             // Create Defaults if File doesn't exist
             if (!File.Exists(CONFIG_FILE))
@@ -519,7 +514,10 @@ namespace Horizon.MEDIUS
             }
             else
                 // Populate existing object
-                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
+                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+                {
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                });
             #endregion
 
             // Determine server ip
@@ -548,27 +546,30 @@ namespace Horizon.MEDIUS
                     return;
 
                 // get settings
-                foreach (var appIdGroup in appIdGroups)
+                foreach (AppIdDTO appIdGroup in appIdGroups)
                 {
-                    foreach (var appId in appIdGroup.AppIds)
+                    if (appIdGroup.AppIds != null)
                     {
-                        var settings = await HorizonServerConfiguration.Database.GetServerSettings(appId);
-                        if (settings != null)
+                        foreach (int appId in appIdGroup.AppIds)
                         {
-                            if (_appSettings.TryGetValue(appId, out var appSettings))
-                                appSettings.SetSettings(settings);
-                            else
+                            var settings = await HorizonServerConfiguration.Database.GetServerSettings(appId);
+                            if (settings != null)
                             {
-                                appSettings = new AppSettings(appId);
-                                appSettings.SetSettings(settings);
-                                _appSettings.Add(appId, appSettings);
+                                if (_appSettings.TryGetValue(appId, out var appSettings))
+                                    appSettings.SetSettings(settings);
+                                else
+                                {
+                                    appSettings = new AppSettings(appId);
+                                    appSettings.SetSettings(settings);
+                                    _appSettings.Add(appId, appSettings);
 
-                                // we also want to send this back to the server since this is new locally
-                                // and there might be new setting fields that aren't yet on the db
-                                await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
+                                    // we also want to send this back to the server since this is new locally
+                                    // and there might be new setting fields that aren't yet on the db
+                                    await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
+                                }
+
+                                CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                             }
-
-                            CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                         }
                     }
                 }
@@ -578,23 +579,26 @@ namespace Horizon.MEDIUS
                 var channels = await HorizonServerConfiguration.Database.GetChannels();
 
                 // add new channels
-                foreach (var channel in channels)
+                if (channels != null)
                 {
-                    if (Manager.GetChannelByChannelId(channel.Id, channel.AppId) == null)
+                    foreach (ChannelDTO channel in channels)
                     {
-                        await Manager.AddChannel(new Channel()
+                        if (Manager.GetChannelByChannelId(channel.Id, channel.AppId) == null)
                         {
-                            Id = channel.Id,
-                            Name = channel.Name,
-                            ApplicationId = channel.AppId,
-                            MaxPlayers = channel.MaxPlayers,
-                            GenericField1 = channel.GenericField1,
-                            GenericField2 = channel.GenericField2,
-                            GenericField3 = channel.GenericField3,
-                            GenericField4 = channel.GenericField4,
-                            GenericFieldLevel = (MediusWorldGenericFieldLevelType)channel.GenericFieldFilter,
-                            Type = ChannelType.Lobby
-                        });
+                            await Manager.AddChannel(new Channel()
+                            {
+                                Id = channel.Id,
+                                Name = channel.Name ?? "MediusLobby",
+                                ApplicationId = channel.AppId,
+                                MaxPlayers = channel.MaxPlayers,
+                                GenericField1 = channel.GenericField1,
+                                GenericField2 = channel.GenericField2,
+                                GenericField3 = channel.GenericField3,
+                                GenericField4 = channel.GenericField4,
+                                GenericFieldLevel = (MediusWorldGenericFieldLevelType)channel.GenericFieldFilter,
+                                Type = ChannelType.Lobby
+                            });
+                        }
                     }
                 }
             }
@@ -608,22 +612,13 @@ namespace Horizon.MEDIUS
         {
             #region Determine Server IP
             if (!Settings.UsePublicIp)
-            {
                 SERVER_IP = IPAddress.Parse(Settings.MEDIUSIp);
-                IP_TYPE = "Local";
-            }
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                {
                     SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
-                    IP_TYPE = "Public";
-                }
                 else
-                {
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
-                    IP_TYPE = "Public (Override)";
-                }
             }
             #endregion
         }
@@ -644,7 +639,7 @@ namespace Horizon.MEDIUS
         private static string GetTextFilterRegexExpression(int appId, TextFilterContext context)
         {
             var appSettings = GetAppSettingsOrDefault(appId);
-            string regex = null;
+            string? regex = null;
 
             switch (context)
             {
@@ -674,12 +669,11 @@ namespace Horizon.MEDIUS
 
         public static string FilterTextFilter(int appId, TextFilterContext context, string text)
         {
-            var rExp = GetTextFilterRegexExpression(appId, context);
+            string rExp = GetTextFilterRegexExpression(appId, context);
             if (string.IsNullOrEmpty(rExp))
                 return text;
 
-            Regex r = new Regex(rExp, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-            return r.Replace(text, "");
+            return new Regex(rExp, RegexOptions.IgnoreCase | RegexOptions.Multiline).Replace(text, string.Empty);
         }
         #endregion
 
@@ -692,8 +686,8 @@ namespace Horizon.MEDIUS
             if (string.IsNullOrEmpty(filename))
                 return null;
 
-            var rootPath = Path.GetFullPath(Settings.MediusFileServerRootPath);
-            var path = Path.GetFullPath(Path.Combine(Settings.MediusFileServerRootPath, appId.ToString(), filename));
+            string rootPath = Path.GetFullPath(Settings.MediusFileServerRootPath);
+            string path = Path.GetFullPath(Path.Combine(Settings.MediusFileServerRootPath, appId.ToString(), filename));
 
             // prevent filename from moving up directories
             if (!path.StartsWith(rootPath))

@@ -31,7 +31,5 @@ namespace Horizon.MEDIUS.Medius.Models
         {
             LoggerAccessor.LogInfo($"handleLogDetectedAction: AID[%d] ");
         }
-
-
     }
 }

@@ -1,6 +1,5 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
-using BackendProject.Horizon.RT.Common;
 using BackendProject.Horizon.RT.Cryptography;
 using BackendProject.Horizon.RT.Models;
 using BackendProject.Horizon.RT.Models.ServerPlugins;
@@ -23,8 +22,9 @@ namespace Horizon.MEDIUS.Medius
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
-            scertClient.CipherService.EnableEncryption = enableEncryption;
+            bool enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
+            if (scertClient.CipherService != null)
+                scertClient.CipherService.EnableEncryption = enableEncryption;
 
             switch (message)
             {
@@ -36,11 +36,14 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
                     {
-                        // generate new client session key
-                        scertClient.CipherService.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
-                        scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
+                        if (clientCryptKeyPublic.PublicKey != null)
+                        {
+                            // generate new client session key
+                            scertClient.CipherService?.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
+                            scertClient.CipherService?.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
 
-                        Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
@@ -62,7 +65,7 @@ namespace Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
                         if (!scertClient.IsPS3Client)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,
@@ -96,7 +99,8 @@ namespace Horizon.MEDIUS.Medius
 
                 case RT_MSG_CLIENT_APP_TO_PLUGIN clientAppToPlugin:
                     {
-                        ProcessMediusPluginMessage(clientAppToPlugin.Message, clientChannel, data);
+                        if (clientAppToPlugin.Message != null)
+                            ProcessMediusPluginMessage(clientAppToPlugin.Message, clientChannel, data);
 
                         //NetMessageProtocolInfo
                         //Queue(new RT_MSG_SERVER_PLUGIN_TO_APP() { Contents = Utils.FromString("000053100000002000006bd00000000") }, clientChannel);
@@ -143,7 +147,7 @@ namespace Horizon.MEDIUS.Medius
 
                         // Create client object
                         data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.OnConnected();
 
                         data.ClientObject.Queue(new NetMAPSHelloMessage()
@@ -171,18 +175,18 @@ namespace Horizon.MEDIUS.Medius
                     {
                         //Time
                         DateTime time = DateTime.Now;
-                        var timeBS = time.Ticks >> 1;
+                        long timeBS = time.Ticks >> 1;
 
                         //bool finBs = true >> 1;
                         //Content string bitshift
                         string newsBs = ShiftString("Test News");
                         string eulaBs = ShiftString("Test Eula");
                         // News/Eula Type bitshifted
-                        var newsBS = 0;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.News) >> 1;
-                        var eulaBS = 1;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.Eula) >> 1;
+                        int newsBS = 0;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.News) >> 1;
+                        int eulaBS = 1;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.Eula) >> 1;
 
-                        var sequence = new byte[1];
-                        var type = new byte[1];
+                        byte[] sequence = new byte[1];
+                        byte[] type = new byte[1];
 
                         /*
                         data.ClientObject.Queue(new NetMessageNewsEulaRequest()
@@ -271,7 +275,7 @@ namespace Horizon.MEDIUS.Medius
             if (length <= 0 || length >= 8)
             {
                 LoggerAccessor.LogError("[MAPS] - Invalid shift length. The length must be between 1 and 7.");
-                return new byte[0];
+                return Array.Empty<byte>();
             }
 
             // Perform the bitwise shift operation
@@ -286,7 +290,7 @@ namespace Horizon.MEDIUS.Medius
 
         public ClientObject ReserveClient(NetMessageHello request)
         {
-            var client = new ClientObject();
+            ClientObject client = new();
             client.BeginSession();
             return client;
         }

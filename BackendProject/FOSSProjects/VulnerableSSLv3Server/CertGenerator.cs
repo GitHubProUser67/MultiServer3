@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls;
@@ -28,55 +29,68 @@ public class CertGenerator
     /// <summary>
     /// Generates a certificate for vulnerable ProtoSSL versions.
     /// </summary>
-    public (AsymmetricKeyParameter, Certificate) GenerateVulnerableCert(string issuer, string subject)
+    public (AsymmetricKeyParameter, Certificate) GenerateProtoSSLVulnerableCert(string issuer, string subject)
     {
         BcTlsCrypto crypto = new(new SecureRandom());
         RsaKeyPairGenerator rsaKeyPairGen = new();
         rsaKeyPairGen.Init(new KeyGenerationParameters(crypto.SecureRandom, 1024));
 
         AsymmetricCipherKeyPair caKeyPair = rsaKeyPairGen.GenerateKeyPair();
-        X509Certificate caCertificate = GenerateCertificate(issuer, caKeyPair, caKeyPair.Private);
-
         AsymmetricCipherKeyPair cKeyPair = rsaKeyPairGen.GenerateKeyPair();
-        X509Certificate cCertificate = GenerateCertificate(subject, cKeyPair, caKeyPair.Private, caCertificate);
-        X509Certificate patched_cCertificate = PatchCertificateSignaturePattern(cCertificate);
 
         Pkcs12Store store = new Pkcs12StoreBuilder().Build();
-        X509CertificateEntry certEntry = new(patched_cCertificate);
+        X509CertificateEntry certEntry = new(PatchCertificateSignaturePattern(GenerateCertificate(subject, cKeyPair, caKeyPair.Private, GenerateCertificate(issuer, caKeyPair, caKeyPair.Private))));
 
         string certDomain = subject.Split("CN=")[1].Split(",")[0];
 
-        CustomLogger.LoggerAccessor.LogDebug("[VulnerableSSLv3Server:CertGenerator] - Certificate generated for: {domain}", certDomain);
+        CustomLogger.LoggerAccessor.LogDebug("[VulnerableSSLv3Server:CertGenerator] - GenerateVulnerableCert - Certificate generated for: {domain}", certDomain);
 
         store.SetCertificateEntry(certDomain, certEntry);
         store.SetKeyEntry(certDomain, new AsymmetricKeyEntry(cKeyPair.Private), new[] { certEntry });
 
-        TlsCertificate[] chain = new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) };
-        Certificate finalCertificate = new(chain);
+        return (cKeyPair.Private, new Certificate(new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) }));
+    }
 
-        return (cKeyPair.Private, finalCertificate);
+    /// <summary>
+    /// Generates a certificate for old SSLv3 clients (with a valid cert signature too), you need a rsa private key for this one.
+    /// </summary>
+    public (AsymmetricKeyParameter, Certificate) GenerateVulnerableCert(string issuer, string subject, string rsaprivatekeycontent)
+    {
+        BcTlsCrypto crypto = new(new SecureRandom());
+        RsaKeyPairGenerator rsaKeyPairGen = new();
+        rsaKeyPairGen.Init(new KeyGenerationParameters(crypto.SecureRandom, 1024));
+
+        AsymmetricCipherKeyPair caKeyPair = ReadPrivateKeyFromString(rsaprivatekeycontent);
+        AsymmetricCipherKeyPair cKeyPair = rsaKeyPairGen.GenerateKeyPair();
+
+        Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+        X509CertificateEntry certEntry = new(GenerateCertificate(subject, cKeyPair, caKeyPair.Private, GenerateCertificate(issuer, caKeyPair, caKeyPair.Private)));
+
+        string certDomain = subject.Split("CN=")[1].Split(",")[0];
+
+        CustomLogger.LoggerAccessor.LogDebug("[VulnerableSSLv3Server:CertGenerator] - GenerateVulnerableCertWithoutHax - Certificate generated for: {domain}", certDomain);
+
+        store.SetCertificateEntry(certDomain, certEntry);
+        store.SetKeyEntry(certDomain, new AsymmetricKeyEntry(cKeyPair.Private), new[] { certEntry });
+
+        return (cKeyPair.Private, new Certificate(new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) }));
     }
 
     private static X509Certificate GenerateCertificate(string subjectName, AsymmetricCipherKeyPair subjectKeyPair, AsymmetricKeyParameter issuerPrivKey, X509Certificate? issuerCert = null)
     {
-        X509Name issuerDn = issuerCert == null ? new X509Name(subjectName) : issuerCert.SubjectDN;
-
         X509V3CertificateGenerator certGen = new();
-        BigInteger serialNumber = BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(long.MaxValue), new SecureRandom());
-        certGen.SetSerialNumber(serialNumber);
-        certGen.SetIssuerDN(issuerDn);
+        certGen.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(long.MaxValue), new SecureRandom()));
+        certGen.SetIssuerDN(issuerCert == null ? new X509Name(subjectName) : issuerCert.SubjectDN);
         certGen.SetNotBefore(DateTime.UtcNow.Date);
         certGen.SetNotAfter(DateTime.UtcNow.Date.AddYears(10));
         certGen.SetSubjectDN(new X509Name(subjectName));
         certGen.SetPublicKey(subjectKeyPair.Public);
-        Asn1SignatureFactory signatureFactory = new(CipherAlgorithm, issuerPrivKey);
-        return certGen.Generate(signatureFactory);
+        return certGen.Generate(new Asn1SignatureFactory(CipherAlgorithm, issuerPrivKey));
     }
 
     private static X509Certificate PatchCertificateSignaturePattern(X509Certificate cCertificate)
     {
-        var cert = DotNetUtilities.ToX509Certificate(cCertificate);
-        byte[] certDer = cert.GetRawCertData();
+        byte[] certDer = DotNetUtilities.ToX509Certificate(cCertificate).GetRawCertData();
 
         // Pattern to find the SHA-1 signature in the DER encoded certificate
         byte[] signaturePattern = new byte[] { 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x05 };
@@ -93,7 +107,16 @@ public class CertGenerator
         certDer[byteOffset] = 0x01;
 
         using MemoryStream derStream = new(certDer);
-        X509CertificateParser parser = new();
-        return parser.ReadCertificate(derStream);
+        return new X509CertificateParser().ReadCertificate(derStream);
+    }
+
+    private static AsymmetricCipherKeyPair ReadPrivateKeyFromString(string privateKeyData)
+    {
+        AsymmetricCipherKeyPair keyPair;
+
+        using (StringReader reader = new(privateKeyData))
+            keyPair = (AsymmetricCipherKeyPair)new PemReader(reader).ReadObject();
+
+        return keyPair;
     }
 }

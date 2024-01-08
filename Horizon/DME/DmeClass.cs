@@ -9,6 +9,7 @@ using System.Net;
 using Horizon.PluginManager;
 using BackendProject;
 using Horizon.HTTPSERVICE;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 
 namespace Horizon.DME
 {
@@ -25,7 +26,6 @@ namespace Horizon.DME
         private static AppSettings _defaultAppSettings = new(0);
 
         public static IPAddress SERVER_IP = IPAddress.None;
-        public static string? IP_TYPE;
 
         public static string DME_SERVER_VERSION = "3.05.0000";
 
@@ -112,7 +112,7 @@ namespace Horizon.DME
         private static async Task HandleInMessages()
         {
             // handle incoming
-            var InRequestsTasks = new List<Task>()
+            List<Task> InRequestsTasks = new()
                 {
                      TcpServer.HandleIncomingMessages()
                 };
@@ -133,7 +133,7 @@ namespace Horizon.DME
         private static async Task HandleOutMessages()
         {
             // handle outgoing
-            var OutRequestsTasks = new List<Task>()
+            List<Task> OutRequestsTasks = new()
                 {
                      TcpServer.HandleOutgoingMessages()
                 };
@@ -186,7 +186,7 @@ namespace Horizon.DME
                 #endregion
 
                 #region DME Server Info
-                LoggerAccessor.LogInfo($"Server IP = {SERVER_IP} [{IP_TYPE}]  TCP Port = {Settings.TCPPort}  UDP Port = {Settings.UDPPort}");
+                LoggerAccessor.LogInfo($"Server IP = {SERVER_IP} TCP Port = {Settings.TCPPort} UDP Port = {Settings.UDPPort}");
                 TcpServer.Start();
                 #endregion
 
@@ -225,17 +225,15 @@ namespace Horizon.DME
         /// </summary>
         private static void RefreshConfig()
         {
-            var serializerSettings = new JsonSerializerSettings()
-            {
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-            };
-
             RefreshServerIp();
 
             // Load settings
             if (File.Exists(CONFIG_FILE))
                 // Populate existing object
-                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
+                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+                {
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                });
             else
             {
                 // Save defaults
@@ -272,32 +270,35 @@ namespace Horizon.DME
                     return;
 
                 // get supported app ids
-                var appIdGroups = await HorizonServerConfiguration.Database.GetAppIds();
+                AppIdDTO[]? appIdGroups = await HorizonServerConfiguration.Database.GetAppIds();
                 if (appIdGroups == null)
                     return;
 
                 // get settings
-                foreach (var appIdGroup in appIdGroups)
+                foreach (AppIdDTO? appIdGroup in appIdGroups)
                 {
-                    foreach (var appId in appIdGroup.AppIds)
+                    if (appIdGroup.AppIds != null)
                     {
-                        var settings = await HorizonServerConfiguration.Database.GetServerSettings(appId);
-                        if (settings != null)
+                        foreach (int appId in appIdGroup.AppIds)
                         {
-                            if (_appSettings.TryGetValue(appId, out var appSettings))
-                                appSettings.SetSettings(settings);
-                            else
+                            var settings = await HorizonServerConfiguration.Database.GetServerSettings(appId);
+                            if (settings != null)
                             {
-                                appSettings = new AppSettings(appId);
-                                appSettings.SetSettings(settings);
-                                _appSettings.Add(appId, appSettings);
+                                if (_appSettings.TryGetValue(appId, out var appSettings))
+                                    appSettings.SetSettings(settings);
+                                else
+                                {
+                                    appSettings = new AppSettings(appId);
+                                    appSettings.SetSettings(settings);
+                                    _appSettings.Add(appId, appSettings);
 
-                                // we also want to send this back to the server since this is new locally
-                                // and there might be new setting fields that aren't yet on the db
-                                await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
+                                    // we also want to send this back to the server since this is new locally
+                                    // and there might be new setting fields that aren't yet on the db
+                                    await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
+                                }
+
+                                CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                             }
-
-                            CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                         }
                     }
                 }

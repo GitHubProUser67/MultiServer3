@@ -26,7 +26,7 @@ internal sealed class StaticTree
 
 	internal static StaticTree static_bl_desc;
 
-	internal short[] static_tree;
+	internal short[]? static_tree;
 
 	internal int[] extra_bits;
 
@@ -36,7 +36,7 @@ internal sealed class StaticTree
 
 	internal int max_length;
 
-	internal StaticTree(short[] static_tree, int[] extra_bits, int extra_base, int elems, int max_length)
+	internal StaticTree(short[]? static_tree, int[] extra_bits, int extra_base, int elems, int max_length)
 	{
 		this.static_tree = static_tree;
 		this.extra_bits = extra_bits;

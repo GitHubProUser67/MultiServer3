@@ -12,6 +12,7 @@ using Horizon.PluginManager;
 using System.Net;
 using BackendProject;
 using Microsoft.Extensions.Logging;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -40,7 +41,8 @@ namespace Horizon.MEDIUS.Medius
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
-            scertClient.CipherService.EnableEncryption = enableEncryption;
+            if (scertClient.CipherService != null)
+                scertClient.CipherService.EnableEncryption = enableEncryption;
 
             switch (message)
             {
@@ -52,11 +54,14 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
                     {
-                        // generate new client session key
-                        scertClient.CipherService.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
-                        scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
+                        if (clientCryptKeyPublic.PublicKey != null)
+                        {
+                            // generate new client session key
+                            scertClient.CipherService?.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
+                            scertClient.CipherService?.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
 
-                        Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
@@ -122,7 +127,7 @@ namespace Horizon.MEDIUS.Medius
                             }, clientChannel);
                         }
 
-                        if (scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
+                        if (scertClient.RsaAuthKey != null && scertClient.CipherService?.EnableEncryption == true)
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
 
                         if (pre108ServerComplete.Contains(data.ApplicationId))
@@ -134,7 +139,7 @@ namespace Horizon.MEDIUS.Medius
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
                         if (scertClient.RsaAuthKey != null)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
 
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
@@ -170,7 +175,8 @@ namespace Horizon.MEDIUS.Medius
 
                 case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
                     {
-                        await ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
+                        if (clientAppToServer.Message != null)
+                            await ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
                         break;
                     }
 
@@ -232,72 +238,75 @@ namespace Horizon.MEDIUS.Medius
 
                         //data.ClientObject = MediusStarter.ProxyServer.ReserveDMEObject(mgclSessionBeginRequest);
 
-                        data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
-                        data.ClientObject.OnConnected();
-
-                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
-
-                        //MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
-                        if (!data.ClientObject.IsConnected)
+                        if (data.ClientObject != null)
                         {
-                            data.ClientObject.Queue(new MediusServerSessionBeginResponse()
+                            data.ClientObject.ApplicationId = data.ApplicationId;
+                            data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
+                            data.ClientObject.OnConnected();
+
+                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+
+                            //MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
+                            if (!data.ClientObject.IsConnected)
                             {
-                                MessageID = mgclSessionBeginRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_UNSUCCESSFUL
-                            });
-                        }
-                        else
-                        {
-                            if (nonSecure.Contains(data.ClientObject.ApplicationId))
-                            {
-                                //TM:BO Reply unencrypted
                                 data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                 {
                                     MessageID = mgclSessionBeginRequest.MessageID,
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                    ConnectInfo = new NetConnectionInfo()
-                                    {
-                                        AccessKey = data.ClientObject.Token,
-                                        SessionKey = data.ClientObject.SessionKey,
-                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
-                                        ServerKey = new RSA_KEY(),
-                                        AddressList = new NetAddressList()
-                                        {
-                                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
-                                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
-                                                new NetAddress() { AddressType = NetAddressType.NetAddressNone },
-                                                }
-                                        },
-                                        Type = NetConnectionType.NetConnectionTypeClientServerUDP
-                                    }
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_UNSUCCESSFUL
                                 });
                             }
                             else
                             {
-                                // Default Reply
-                                data.ClientObject.Queue(new MediusServerSessionBeginResponse()
+                                if (nonSecure.Contains(data.ClientObject.ApplicationId))
                                 {
-                                    MessageID = mgclSessionBeginRequest.MessageID,
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                    ConnectInfo = new NetConnectionInfo()
+                                    //TM:BO Reply unencrypted
+                                    data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                     {
-                                        AccessKey = data.ClientObject.Token,
-                                        SessionKey = data.ClientObject.SessionKey,
-                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
-                                        ServerKey = MediusClass.GlobalAuthPublic,
-                                        AddressList = new NetAddressList()
+                                        MessageID = mgclSessionBeginRequest.MessageID,
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                        ConnectInfo = new NetConnectionInfo()
                                         {
-                                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
+                                            AccessKey = data.ClientObject.Token,
+                                            SessionKey = data.ClientObject.SessionKey,
+                                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                            ServerKey = new RSA_KEY(),
+                                            AddressList = new NetAddressList()
+                                            {
+                                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                                    {
                                                 new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
                                                 new NetAddress() { AddressType = NetAddressType.NetAddressNone },
-                                                }
-                                        },
-                                        Type = NetConnectionType.NetConnectionTypeClientServerUDP
-                                    }
-                                });
+                                                    }
+                                            },
+                                            Type = NetConnectionType.NetConnectionTypeClientServerUDP
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    // Default Reply
+                                    data.ClientObject.Queue(new MediusServerSessionBeginResponse()
+                                    {
+                                        MessageID = mgclSessionBeginRequest.MessageID,
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                        ConnectInfo = new NetConnectionInfo()
+                                        {
+                                            AccessKey = data.ClientObject.Token,
+                                            SessionKey = data.ClientObject.SessionKey,
+                                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                            ServerKey = MediusClass.GlobalAuthPublic,
+                                            AddressList = new NetAddressList()
+                                            {
+                                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                                    {
+                                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
+                                                new NetAddress() { AddressType = NetAddressType.NetAddressNone },
+                                                    }
+                                            },
+                                            Type = NetConnectionType.NetConnectionTypeClientServerUDP
+                                        }
+                                    });
+                                }
                             }
                         }
                         break;
@@ -308,141 +317,19 @@ namespace Horizon.MEDIUS.Medius
                         // Create DME object
                         //data.ClientObject = Program.ProxyServer.ReserveDMEObject(serverSessionBeginRequest1);
 
-                        data.ClientObject.ServerType = serverSessionBeginRequest1.ServerType;
-                        data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
-                        data.ClientObject.OnConnected();
-
-                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
-
-                        //Send NAT Service
-                        data.ClientObject.Queue(new MediusServerSessionBeginResponse()
+                        if (data.ClientObject != null)
                         {
-                            MessageID = serverSessionBeginRequest1.MessageID,
-                            Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
-                                ServerKey = MediusClass.GlobalAuthPublic,
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
-                                        new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
-                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone },
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerUDP
-                            }
-                        });
-                        break;
-                    }
-
-                case MediusServerSessionBeginRequest2 serverSessionBeginRequest2:
-                    {
-                        // Create DME object
-                        //data.ClientObject = Program.ProxyServer.ReserveDMEObject(serverSessionBeginRequest2);
-
-                        LoggerAccessor.LogWarn($"Client {data.ClientObject.AccountName}");
-
-                        data.ClientObject.ServerType = serverSessionBeginRequest2.ServerType;
-                        data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
-                        data.ClientObject.OnConnected();
-
-                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
-
-                        //Send NAT Service
-                        data.ClientObject.Queue(new MediusServerSessionBeginResponse()
-                        {
-                            MessageID = serverSessionBeginRequest2.MessageID,
-                            Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
-                                ServerKey = MediusClass.GlobalAuthPublic,
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
-                                        new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
-                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone },
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerUDP
-                            }
-                        });
-                        break;
-                    }
-
-                case MediusServerAuthenticationRequest mgclAuthRequest:
-                    {
-                        List<int> nonSecure = new List<int>() { 10010, 10031, 10190 };
-
-                        //var dmeObject = data.ClientObject as DMEObject;
-                        //data.ClientObject = dmeObject;
-
-                        data.ClientObject.NetConnectionType = NetConnectionType.NetConnectionTypeClientServerTCP;
-
-                        if (mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternal)
-                        {
-                            // NetAddressTypeBinaryExternal
-                            LoggerAccessor.LogInfo($"AddressConverted: {ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress)}");
-                            data.ClientObject.SetIp(ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress));
-                        }
-                        else if (mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
-                            || mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
-                        {
-                            string BinaryIp = mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitOne + "." +
-                                    mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitTwo + "." +
-                                    mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitThree + "." +
-                                    mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitFour;
-
-                            data.ClientObject.SetIp(BinaryIp);
-                        }
-                        else
-                            // NetAddressTypeExternal
-                            data.ClientObject.SetIp(mgclAuthRequest.AddressList.AddressList[0].Address);
-
-                        if (nonSecure.Contains(data.ClientObject.ApplicationId))
-                        {
-                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
-
-                            data.ClientObject.Queue(new MediusServerAuthenticationResponse()
-                            {
-                                MessageID = mgclAuthRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                ConnectInfo = new NetConnectionInfo()
-                                {
-                                    AccessKey = data.ClientObject.Token,
-                                    SessionKey = data.ClientObject.SessionKey,
-                                    WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
-                                    ServerKey = new RSA_KEY(),
-                                    AddressList = new NetAddressList()
-                                    {
-                                        AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                        {
-                                            new NetAddress() { Address = MediusClass.ProxyServer.IPAddress.ToString(), Port = MediusClass.ProxyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
-                                            new NetAddress() { AddressType = NetAddressType.NetAddressNone }
-                                        }
-                                    },
-                                    Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                                }
-                            });
-
-                            // Keep the client alive until the dme objects connects to MPS or times out
+                            data.ClientObject.ServerType = serverSessionBeginRequest1.ServerType;
+                            data.ClientObject.ApplicationId = data.ApplicationId;
+                            data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.OnConnected();
-                            data.ClientObject.KeepAliveUntilNextConnection();
-                        }
-                        else
-                        {
-                            data.ClientObject.Queue(new MediusServerAuthenticationResponse()
+
+                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+
+                            //Send NAT Service
+                            data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                             {
-                                MessageID = mgclAuthRequest.MessageID,
+                                MessageID = serverSessionBeginRequest1.MessageID,
                                 Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
                                 ConnectInfo = new NetConnectionInfo()
                                 {
@@ -454,46 +341,180 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                         {
-                                            new NetAddress() { Address = MediusClass.ProxyServer.IPAddress.ToString(), Port = MediusClass.ProxyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
-                                            new NetAddress() { AddressType = NetAddressType.NetAddressNone },
+                                        new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
+                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone },
                                         }
                                     },
-                                    Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                                    Type = NetConnectionType.NetConnectionTypeClientServerUDP
                                 }
                             });
-
-                            // Keep the client alive until the dme objects connects to MPS or times out
-                            data.ClientObject.OnConnected();
-                            data.ClientObject.KeepAliveUntilNextConnection();
                         }
 
-                        /*
-                        var appIdList = Program.Database.GetAppIds();
-                        if(appIdList.Result)
+                        break;
+                    }
+
+                case MediusServerSessionBeginRequest2 serverSessionBeginRequest2:
+                    {
+                        // Create DME object
+                        //data.ClientObject = Program.ProxyServer.ReserveDMEObject(serverSessionBeginRequest2);
+
+                        if (data.ClientObject != null)
                         {
-                        } else {
-                            dmeObject.Queue(new MediusServerAuthenticationResponse()
+                            LoggerAccessor.LogWarn($"Client {data.ClientObject.AccountName}");
+
+                            data.ClientObject.ServerType = serverSessionBeginRequest2.ServerType;
+                            data.ClientObject.ApplicationId = data.ApplicationId;
+                            data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
+                            data.ClientObject.OnConnected();
+
+                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+
+                            //Send NAT Service
+                            data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                             {
-                                MessageID = mgclAuthRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_AUTHENTICATION_FAILED,
+                                MessageID = serverSessionBeginRequest2.MessageID,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
                                 ConnectInfo = new NetConnectionInfo()
                                 {
-                                    Type = NetConnectionType.NetConnectionNone
+                                    AccessKey = data.ClientObject.Token,
+                                    SessionKey = data.ClientObject.SessionKey,
+                                    WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                    ServerKey = MediusClass.GlobalAuthPublic,
+                                    AddressList = new NetAddressList()
+                                    {
+                                        AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                        {
+                                        new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
+                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone },
+                                        }
+                                    },
+                                    Type = NetConnectionType.NetConnectionTypeClientServerUDP
                                 }
                             });
                         }
-                        */
+
+                        break;
+                    }
+
+                case MediusServerAuthenticationRequest mgclAuthRequest:
+                    {
+                        List<int> nonSecure = new() { 10010, 10031, 10190 };
+
+                        //var dmeObject = data.ClientObject as DMEObject;
+                        //data.ClientObject = dmeObject;
+
+                        if (data.ClientObject != null)
+                        {
+                            data.ClientObject.NetConnectionType = NetConnectionType.NetConnectionTypeClientServerTCP;
+
+                            if (mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternal)
+                            {
+                                // NetAddressTypeBinaryExternal
+                                LoggerAccessor.LogInfo($"AddressConverted: {ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress)}");
+                                data.ClientObject.SetIp(ConvertFromIntegerToIpAddress(mgclAuthRequest.AddressList.AddressList[0].BinaryAddress));
+                            }
+                            else if (mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                                || mgclAuthRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
+                            {
+                                string BinaryIp = mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitOne + "." +
+                                        mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitTwo + "." +
+                                        mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitThree + "." +
+                                        mgclAuthRequest.AddressList.AddressList[0].IPBinaryBitFour;
+
+                                data.ClientObject.SetIp(BinaryIp);
+                            }
+                            else
+                                // NetAddressTypeExternal
+                                data.ClientObject.SetIp(mgclAuthRequest.AddressList.AddressList[0].Address ?? "127.0.0.1");
+
+                            if (nonSecure.Contains(data.ClientObject.ApplicationId))
+                            {
+                                IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+
+                                data.ClientObject.Queue(new MediusServerAuthenticationResponse()
+                                {
+                                    MessageID = mgclAuthRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                    ConnectInfo = new NetConnectionInfo()
+                                    {
+                                        AccessKey = data.ClientObject.Token,
+                                        SessionKey = data.ClientObject.SessionKey,
+                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                        ServerKey = new RSA_KEY(),
+                                        AddressList = new NetAddressList()
+                                        {
+                                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                            {
+                                            new NetAddress() { Address = MediusClass.ProxyServer.IPAddress.ToString(), Port = MediusClass.ProxyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
+                                            new NetAddress() { AddressType = NetAddressType.NetAddressNone }
+                                            }
+                                        },
+                                        Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                                    }
+                                });
+
+                                // Keep the client alive until the dme objects connects to MPS or times out
+                                data.ClientObject.OnConnected();
+                                data.ClientObject.KeepAliveUntilNextConnection();
+                            }
+                            else
+                            {
+                                data.ClientObject.Queue(new MediusServerAuthenticationResponse()
+                                {
+                                    MessageID = mgclAuthRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                    ConnectInfo = new NetConnectionInfo()
+                                    {
+                                        AccessKey = data.ClientObject.Token,
+                                        SessionKey = data.ClientObject.SessionKey,
+                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                        ServerKey = MediusClass.GlobalAuthPublic,
+                                        AddressList = new NetAddressList()
+                                        {
+                                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                            {
+                                            new NetAddress() { Address = MediusClass.ProxyServer.IPAddress.ToString(), Port = MediusClass.ProxyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
+                                            new NetAddress() { AddressType = NetAddressType.NetAddressNone },
+                                            }
+                                        },
+                                        Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                                    }
+                                });
+
+                                // Keep the client alive until the dme objects connects to MPS or times out
+                                data.ClientObject.OnConnected();
+                                data.ClientObject.KeepAliveUntilNextConnection();
+                            }
+
+                            /*
+                            var appIdList = Program.Database.GetAppIds();
+                            if(appIdList.Result)
+                            {
+                            } else {
+                                dmeObject.Queue(new MediusServerAuthenticationResponse()
+                                {
+                                    MessageID = mgclAuthRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_AUTHENTICATION_FAILED,
+                                    ConnectInfo = new NetConnectionInfo()
+                                    {
+                                        Type = NetConnectionType.NetConnectionNone
+                                    }
+                                });
+                            }
+                            */
+                        }
+
                         break;
                     }
 
                 case MediusServerSetAttributesRequest mgclSetAttrRequest:
                     {
-                        var dmeObject = data.ClientObject as DMEObject;
+                        DMEObject? dmeObject = data.ClientObject as DMEObject;
                         if (dmeObject == null)
                             LoggerAccessor.LogError($"Non-DME Client sending MGCL messages.");
 
                         // Reply with success
-                        dmeObject.Queue(new MediusServerSetAttributesResponse()
+                        dmeObject?.Queue(new MediusServerSetAttributesResponse()
                         {
                             MessageID = mgclSetAttrRequest.MessageID,
                             Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
@@ -503,7 +524,7 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusServerSessionEndRequest sessionEndRequest:
                     {
-                        data?.ClientObject.Queue(new MediusServerSessionEndResponse()
+                        data?.ClientObject?.Queue(new MediusServerSessionEndResponse()
                         {
                             MessageID = sessionEndRequest.MessageID,
                             ErrorCode = MGCL_ERROR_CODE.MGCL_SUCCESS
@@ -514,8 +535,8 @@ namespace Horizon.MEDIUS.Medius
                 case MediusServerReport serverReport:
                     {
                         (data.ClientObject as DMEObject)?.OnServerReport(serverReport);
-                        data.ClientObject.OnConnected();
-                        LoggerAccessor.LogInfo($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject.DmeId} WorldID {data.ClientObject.WorldId}");
+                        data.ClientObject?.OnConnected();
+                        LoggerAccessor.LogInfo($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject?.DmeId} WorldID {data.ClientObject?.WorldId}");
                         break;
                     }
 
@@ -528,7 +549,7 @@ namespace Horizon.MEDIUS.Medius
                         // Create client object
                         data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest);
                         data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
                         data.ClientObject.OnConnected();
 
@@ -543,9 +564,7 @@ namespace Horizon.MEDIUS.Medius
                                      && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                      && (!r.Result.MaintenanceMode.ToDt.HasValue
                                          || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
-                                {
                                     QueueBanMessage(data, "Server in maintenance mode.");
-                                }
                                 else
                                 {
                                     // Reply
@@ -568,42 +587,46 @@ namespace Horizon.MEDIUS.Medius
                             // Create client object
                             data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest);
 
-                        data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
-                        data.ClientObject.MediusConnectionType = sessionBeginRequest.ConnectionClass;
-                        data.ClientObject.OnConnected();
-
-                        LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
-
-                        await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
+                        if (data.ClientObject != null)
                         {
-                            if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
-                            {
-                                #region Maintenance Mode?
-                                // Ensure that maintenance is active
-                                // Ensure that we're past the from date
-                                // Ensure that we're before the to date (if set)
-                                if (r.Result.MaintenanceMode.IsActive
-                                     && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
-                                     && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                         || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
-                                    QueueBanMessage(data, "Server in maintenance mode.");
-                                #endregion
+                            data.ClientObject.ApplicationId = data.ApplicationId;
+                            data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
+                            data.ClientObject.MediusConnectionType = sessionBeginRequest.ConnectionClass;
+                            data.ClientObject.OnConnected();
 
-                                #region Send Response
-                                else
+                            LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
+
+                            await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
+                            {
+                                if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
                                 {
-                                    // Reply
-                                    data.ClientObject.Queue(new MediusSessionBeginResponse()
+                                    #region Maintenance Mode?
+                                    // Ensure that maintenance is active
+                                    // Ensure that we're past the from date
+                                    // Ensure that we're before the to date (if set)
+                                    if (r.Result.MaintenanceMode.IsActive
+                                         && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                         && (!r.Result.MaintenanceMode.ToDt.HasValue
+                                             || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                        QueueBanMessage(data, "Server in maintenance mode.");
+                                    #endregion
+
+                                    #region Send Response
+                                    else
                                     {
-                                        MessageID = sessionBeginRequest.MessageID,
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        SessionKey = data.ClientObject.SessionKey
-                                    });
+                                        // Reply
+                                        data.ClientObject.Queue(new MediusSessionBeginResponse()
+                                        {
+                                            MessageID = sessionBeginRequest.MessageID,
+                                            StatusCode = MediusCallbackStatus.MediusSuccess,
+                                            SessionKey = data.ClientObject.SessionKey
+                                        });
+                                    }
+                                    #endregion
                                 }
-                                #endregion
-                            }
-                        });
+                            });
+                        }
+
                         break;
                     }
 
@@ -612,7 +635,7 @@ namespace Horizon.MEDIUS.Medius
                         // Create client object
                         data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1);
                         data.ClientObject.ApplicationId = data.ApplicationId;
-                        data.ClientObject.MediusVersion = (int)scertClient.MediusVersion;
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
                         data.ClientObject.OnConnected();
 
@@ -621,7 +644,7 @@ namespace Horizon.MEDIUS.Medius
                         #region SystemMessageSingleTest Disabled?
                         if (MediusClass.Settings.SystemMessageSingleTest != false)
                         {
-                            QueueBanMessage(data, "MAS.Notification Test:\nYou have been banned from this server.");
+                            await QueueBanMessage(data, "MAS.Notification Test:\nYou have been banned from this server.");
 
                             await data.ClientObject.Logout();
                         }
@@ -940,7 +963,7 @@ namespace Horizon.MEDIUS.Medius
                 #region Version Server
                 case MediusVersionServerRequest mediusVersionServerRequest:
                     {
-                        List<int> appIdBeforeSession = new List<int> { 10442, 10724 };
+                        List<int> appIdBeforeSession = new() { 10442, 10724 };
 
                         // ERROR - Need a session
                         if (data.ClientObject == null && !appIdBeforeSession.Contains(data.ApplicationId)) // KILLZONE PS2 GET VERSION SERVER INFO BEFORE SESSION
@@ -956,7 +979,7 @@ namespace Horizon.MEDIUS.Medius
                             // F1 2005 PAL SCES / F1 2005 PAL TCES
                             if (F12005AppIds.Contains(data.ApplicationId))
                             {
-                                data.ClientObject.Queue(new MediusVersionServerResponse()
+                                data.ClientObject?.Queue(new MediusVersionServerResponse()
                                 {
                                     MessageID = mediusVersionServerRequest.MessageID,
                                     VersionServer = "Medius Authentication Server Version 2.9.0009",
@@ -968,7 +991,7 @@ namespace Horizon.MEDIUS.Medius
                             #region Socom 1
                             else if (data.ApplicationId == 10274)
                             {
-                                data.ClientObject.Queue(new MediusVersionServerResponse()
+                                data.ClientObject?.Queue(new MediusVersionServerResponse()
                                 {
                                     MessageID = mediusVersionServerRequest.MessageID,
                                     VersionServer = "Medius Authentication Server Version 1.40.PRE8",
@@ -980,7 +1003,7 @@ namespace Horizon.MEDIUS.Medius
                             #region EyeToy Chat Beta
                             else if (data.ApplicationId == 10550)
                             {
-                                data.ClientObject.Queue(new MediusVersionServerResponse()
+                                data.ClientObject?.Queue(new MediusVersionServerResponse()
                                 {
                                     MessageID = mediusVersionServerRequest.MessageID,
                                     VersionServer = "Medius Authentication Server Version 1.43.0000",
@@ -1009,7 +1032,7 @@ namespace Horizon.MEDIUS.Medius
 
                             //Default
                             {
-                                data.ClientObject.Queue(new MediusVersionServerResponse()
+                                data.ClientObject?.Queue(new MediusVersionServerResponse()
                                 {
                                     MessageID = mediusVersionServerRequest.MessageID,
                                     VersionServer = "Medius Authentication Server Version 3.05.201109161400",
@@ -1036,7 +1059,7 @@ namespace Horizon.MEDIUS.Medius
                             }
                             else
                             {
-                                data.ClientObject.Queue(new MediusVersionServerResponse()
+                                data.ClientObject?.Queue(new MediusVersionServerResponse()
                                 {
                                     MessageID = mediusVersionServerRequest.MessageID,
                                     VersionServer = Settings.MASVersion,
@@ -1063,11 +1086,11 @@ namespace Horizon.MEDIUS.Medius
                         LoggerAccessor.LogInfo($"Get Locations Request Received Sessionkey: {getLocationsRequest.SessionKey}");
                         await HorizonServerConfiguration.Database.GetLocations(data.ClientObject.ApplicationId).ContinueWith(r =>
                         {
-                            var locations = r.Result;
+                            LocationDTO[]? locations = r.Result;
 
                             if (r.IsCompletedSuccessfully)
                             {
-                                if (locations.Length == 0)
+                                if (locations?.Length == 0)
                                 {
                                     LoggerAccessor.LogInfo("No Locations found.");
 
@@ -1080,7 +1103,7 @@ namespace Horizon.MEDIUS.Medius
                                 }
                                 else
                                 {
-                                    var responses = locations.Select(x => new MediusGetLocationsResponse()
+                                    var responses = locations?.Select(x => new MediusGetLocationsResponse()
                                     {
                                         MessageID = getLocationsRequest.MessageID,
                                         StatusCode = MediusCallbackStatus.MediusSuccess,
@@ -1088,11 +1111,14 @@ namespace Horizon.MEDIUS.Medius
                                         LocationName = x.Name
                                     }).ToList();
 
-                                    LoggerAccessor.LogInfo("GetLocationsRequest  success");
-                                    LoggerAccessor.LogInfo($"NumLocations returned[{responses.Count}]");
+                                    if (responses != null)
+                                    {
+                                        LoggerAccessor.LogInfo("GetLocationsRequest  success");
+                                        LoggerAccessor.LogInfo($"NumLocations returned[{responses.Count}]");
 
-                                    responses[responses.Count - 1].EndOfList = true;
-                                    data.ClientObject.Queue(responses);
+                                        responses[responses.Count - 1].EndOfList = true;
+                                        data.ClientObject.Queue(responses);
+                                    }
                                 }
                             }
                             else
@@ -1248,31 +1274,34 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        await HorizonServerConfiguration.Database.DeleteAccount(data.ClientObject.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                        if (!string.IsNullOrEmpty(data.ClientObject.AccountName))
                         {
-                            if (r.IsCompletedSuccessfully && r.Result)
+                            await HorizonServerConfiguration.Database.DeleteAccount(data.ClientObject.AccountName, data.ClientObject.ApplicationId).ContinueWith((r) =>
                             {
-                                LoggerAccessor.LogInfo($"Logging out {data?.ClientObject?.AccountName}'s account\nDeleting from Medius Server");
-
-                                data?.ClientObject?.Logout();
-
-                                data?.ClientObject?.Queue(new MediusAccountDeleteResponse()
+                                if (r.IsCompletedSuccessfully && r.Result)
                                 {
-                                    MessageID = accountDeleteRequest.MessageID,
-                                    StatusCode = MediusCallbackStatus.MediusSuccess
-                                });
-                            }
-                            else
-                            {
-                                LoggerAccessor.LogWarn($"Logout FAILED for {data?.ClientObject?.AccountName}'s account\nData still persistent on Medius Server");
+                                    LoggerAccessor.LogInfo($"Logging out {data?.ClientObject?.AccountName}'s account\nDeleting from Medius Server");
 
-                                data?.ClientObject?.Queue(new MediusAccountDeleteResponse()
+                                    data?.ClientObject?.Logout();
+
+                                    data?.ClientObject?.Queue(new MediusAccountDeleteResponse()
+                                    {
+                                        MessageID = accountDeleteRequest.MessageID,
+                                        StatusCode = MediusCallbackStatus.MediusSuccess
+                                    });
+                                }
+                                else
                                 {
-                                    MessageID = accountDeleteRequest.MessageID,
-                                    StatusCode = MediusCallbackStatus.MediusDBError
-                                });
-                            }
-                        });
+                                    LoggerAccessor.LogWarn($"Logout FAILED for {data?.ClientObject?.AccountName}'s account\nData still persistent on Medius Server");
+
+                                    data?.ClientObject?.Queue(new MediusAccountDeleteResponse()
+                                    {
+                                        MessageID = accountDeleteRequest.MessageID,
+                                        StatusCode = MediusCallbackStatus.MediusDBError
+                                    });
+                                }
+                            });
+                        }
                         break;
                     }
                 case MediusAnonymousLoginRequest anonymousLoginRequest:
@@ -1383,7 +1412,7 @@ namespace Horizon.MEDIUS.Medius
                                         if (appSettings.DisableAccountCreation)
                                         {
                                             // Reply error
-                                            data.ClientObject.Queue(new MediusAccountLoginResponse()
+                                            data?.ClientObject?.Queue(new MediusAccountLoginResponse()
                                             {
                                                 MessageID = accountLoginRequest.MessageID,
                                                 StatusCode = MediusCallbackStatus.MediusFail,
@@ -1392,9 +1421,9 @@ namespace Horizon.MEDIUS.Medius
                                         }
 
                                         // validate name
-                                        if (!MediusClass.PassTextFilter(data.ApplicationId, TextFilterContext.ACCOUNT_NAME, accountLoginRequest.Username))
+                                        if (data != null && !MediusClass.PassTextFilter(data.ApplicationId, TextFilterContext.ACCOUNT_NAME, accountLoginRequest.Username))
                                         {
-                                            data.ClientObject.Queue(new MediusAccountLoginResponse()
+                                            data.ClientObject?.Queue(new MediusAccountLoginResponse()
                                             {
                                                 MessageID = accountLoginRequest.MessageID,
                                                 StatusCode = MediusCallbackStatus.MediusVulgarityFound,
@@ -1404,43 +1433,46 @@ namespace Horizon.MEDIUS.Medius
 
                                         await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PRE_ACCOUNT_CREATE_ON_NOT_FOUND, new OnAccountLoginRequestArgs()
                                         {
-                                            Player = data.ClientObject,
+                                            Player = data?.ClientObject,
                                             Request = accountLoginRequest
                                         });
 
-                                        _ = HorizonServerConfiguration.Database.CreateAccount(new BackendProject.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
+                                        if (data != null && data.ClientObject != null)
                                         {
-                                            AccountName = accountLoginRequest.Username,
-                                            AccountPassword = MiscUtils.ComputeSHA256(accountLoginRequest.Password),
-                                            MachineId = data.MachineId,
-                                            MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
-                                            AppId = data.ClientObject.ApplicationId
-                                        }).ContinueWith(async (r) =>
-                                        {
-                                            if (r.IsCompletedSuccessfully && r.Result != null)
+                                            _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                                             {
-                                                await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_POST_ACCOUNT_CREATE_ON_NOT_FOUND, new OnAccountLoginRequestArgs()
-                                                {
-                                                    Player = data.ClientObject,
-                                                    Request = accountLoginRequest
-                                                });
-                                                await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
-                                            }
-                                            else
+                                                AccountName = accountLoginRequest.Username,
+                                                AccountPassword = MiscUtils.ComputeSHA256(accountLoginRequest.Password),
+                                                MachineId = data.MachineId,
+                                                MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
+                                                AppId = data.ClientObject.ApplicationId
+                                            }).ContinueWith(async (r) =>
                                             {
-                                                // Reply error
-                                                data.ClientObject.Queue(new MediusAccountLoginResponse()
+                                                if (r.IsCompletedSuccessfully && r.Result != null)
                                                 {
-                                                    MessageID = accountLoginRequest.MessageID,
-                                                    StatusCode = MediusCallbackStatus.MediusInvalidPassword
-                                                });
-                                            }
-                                        });
+                                                    await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_POST_ACCOUNT_CREATE_ON_NOT_FOUND, new OnAccountLoginRequestArgs()
+                                                    {
+                                                        Player = data.ClientObject,
+                                                        Request = accountLoginRequest
+                                                    });
+                                                    await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
+                                                }
+                                                else
+                                                {
+                                                    // Reply error
+                                                    data.ClientObject.Queue(new MediusAccountLoginResponse()
+                                                    {
+                                                        MessageID = accountLoginRequest.MessageID,
+                                                        StatusCode = MediusCallbackStatus.MediusInvalidPassword
+                                                    });
+                                                }
+                                            });
+                                        }
                                     }
                                     else
                                     {
                                         // Account not found
-                                        data.ClientObject.Queue(new MediusAccountLoginResponse()
+                                        data?.ClientObject?.Queue(new MediusAccountLoginResponse()
                                         {
                                             MessageID = accountLoginRequest.MessageID,
                                             StatusCode = MediusCallbackStatus.MediusAccountNotFound,
@@ -1585,7 +1617,7 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             //Check if their MacBanned
-                            await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId).ContinueWith(async (r) =>
+                            await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId ?? string.Empty).ContinueWith(async (r) =>
                             {
                                 if (r.IsCompletedSuccessfully && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                 {
@@ -1651,7 +1683,8 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     #endregion
 
-                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                    if (data != null)
+                                                        await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
                                                 }
 
                                             }
@@ -1662,10 +1695,10 @@ namespace Horizon.MEDIUS.Medius
                                                 // Check that account creation is enabled
                                                 if (appSettings.DisableAccountCreation)
                                                 {
-                                                    LoggerAccessor.LogError($"AppId {data.ClientObject.ApplicationId} has DisableAllowCreation enabled!");
+                                                    LoggerAccessor.LogError($"AppId {data?.ClientObject?.ApplicationId} has DisableAllowCreation enabled!");
 
                                                     // Reply error
-                                                    data.ClientObject.Queue(new MediusTicketLoginResponse()
+                                                    data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                                     {
                                                         MessageID = ticketLoginRequest.MessageID,
                                                         StatusCodeTicketLogin = MediusCallbackStatus.MediusFail,
@@ -1674,32 +1707,38 @@ namespace Horizon.MEDIUS.Medius
                                                 }
                                                 #endregion
 
-                                                LoggerAccessor.LogInfo($"Account not found for AppId from Client: {data.ClientObject.ApplicationId}");
-
-                                                _ = HorizonServerConfiguration.Database.CreateAccount(new BackendProject.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
+                                                if (data != null)
                                                 {
-                                                    AccountName = ticketLoginRequest.UserOnlineId,
-                                                    AccountPassword = "UNSET",
-                                                    MachineId = data.MachineId,
-                                                    MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
-                                                    AppId = data.ClientObject.ApplicationId
-                                                }).ContinueWith(async (r) =>
-                                                {
-                                                    LoggerAccessor.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
+                                                    LoggerAccessor.LogInfo($"Account not found for AppId from Client: {data.ClientObject?.ApplicationId}");
 
-                                                    if (r.IsCompletedSuccessfully && r.Result != null)
-                                                        await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
-                                                    else
+                                                    if (data.ClientObject != null)
                                                     {
-                                                        // Reply error
-                                                        data.ClientObject.Queue(new MediusTicketLoginResponse()
+                                                        _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                                                         {
-                                                            MessageID = ticketLoginRequest.MessageID,
-                                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
+                                                            AccountName = ticketLoginRequest.UserOnlineId,
+                                                            AccountPassword = "UNSET",
+                                                            MachineId = data.MachineId,
+                                                            MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
+                                                            AppId = data.ClientObject.ApplicationId
+                                                        }).ContinueWith(async (r) =>
+                                                        {
+                                                            LoggerAccessor.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
+
+                                                            if (r.IsCompletedSuccessfully && r.Result != null)
+                                                                await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                            else
+                                                            {
+                                                                // Reply error
+                                                                data.ClientObject.Queue(new MediusTicketLoginResponse()
+                                                                {
+                                                                    MessageID = ticketLoginRequest.MessageID,
+                                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
+                                                                });
+                                                            }
+
                                                         });
                                                     }
-
-                                                });
+                                                }
                                             }
                                         });
                                     }
@@ -1707,9 +1746,8 @@ namespace Horizon.MEDIUS.Medius
                                 }
                                 else
                                 {
-
                                     // Reply error
-                                    data.ClientObject.Queue(new MediusTicketLoginResponse()
+                                    data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                     {
                                         MessageID = ticketLoginRequest.MessageID,
                                         StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError,
@@ -1824,59 +1862,68 @@ namespace Horizon.MEDIUS.Medius
                         {
                             case MediusPolicyType.Privacy:
                                 {
-                                    await HorizonServerConfiguration.Database.GetPolicy((int)MediusPolicyType.Privacy, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                    if (data.ClientObject != null)
                                     {
-                                        if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
-                                            return;
+                                        await HorizonServerConfiguration.Database.GetPolicy((int)MediusPolicyType.Privacy, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                        {
+                                            if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
+                                                return;
 
-                                        if (r.IsCompletedSuccessfully && r.Result != null)
-                                        {
-                                            string? txt = r.Result.EulaBody;
-                                            if (!string.IsNullOrEmpty(r.Result.EulaTitle))
-                                                txt = r.Result.EulaTitle + "\n" + txt;
-                                            LoggerAccessor.LogInfo($"GetPolicy Succeeded:{getPolicyRequest.MessageID}");
-                                            data.ClientObject.Queue(MediusClass.GetPolicyFromText(getPolicyRequest.MessageID, txt));
-                                        }
-                                        else if (r.IsCompletedSuccessfully && r.Result == null)
-                                        {
-                                            LoggerAccessor.LogDebug($"Sending blank Policy since no chunks were found");
-                                            data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = string.Empty, EndOfText = true });
-                                        }
-                                        else
-                                        {
-                                            LoggerAccessor.LogError($"GetPolicy Failed = [{r.Exception}]");
-                                            data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = "NONE", EndOfText = true });
-                                        }
-                                    });
+                                            if (r.IsCompletedSuccessfully && r.Result != null)
+                                            {
+                                                string? txt = r.Result.EulaBody;
+                                                if (!string.IsNullOrEmpty(r.Result.EulaTitle))
+                                                    txt = r.Result.EulaTitle + "\n" + txt;
+                                                else
+                                                    txt = string.Empty;
+                                                LoggerAccessor.LogInfo($"GetPolicy Succeeded:{getPolicyRequest.MessageID}");
+                                                data.ClientObject.Queue(MediusClass.GetPolicyFromText(getPolicyRequest.MessageID, txt));
+                                            }
+                                            else if (r.IsCompletedSuccessfully && r.Result == null)
+                                            {
+                                                LoggerAccessor.LogDebug($"Sending blank Policy since no chunks were found");
+                                                data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = string.Empty, EndOfText = true });
+                                            }
+                                            else
+                                            {
+                                                LoggerAccessor.LogError($"GetPolicy Failed = [{r.Exception}]");
+                                                data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = "NONE", EndOfText = true });
+                                            }
+                                        });
+                                    }
                                     break;
                                 }
                             case MediusPolicyType.Usage:
                                 {
-                                    await HorizonServerConfiguration.Database.GetPolicy((int)MediusPolicyType.Usage, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                    if (data.ClientObject != null)
                                     {
-                                        if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
-                                            return;
+                                        await HorizonServerConfiguration.Database.GetPolicy((int)MediusPolicyType.Usage, data.ClientObject.ApplicationId).ContinueWith((r) =>
+                                        {
+                                            if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
+                                                return;
 
-                                        if (r.IsCompletedSuccessfully && r.Result != null)
-                                        {
-                                            string? txt = r.Result.EulaBody;
-                                            if (!string.IsNullOrEmpty(r.Result.EulaTitle))
-                                                txt = r.Result.EulaTitle + "\n" + txt;
-                                            LoggerAccessor.LogInfo($"GetPolicy Succeeded:{getPolicyRequest.MessageID}");
-                                            data.ClientObject.Queue(MediusClass.GetPolicyFromText(getPolicyRequest.MessageID, txt));
-                                        }
-                                        else if (r.IsCompletedSuccessfully && r.Result == null)
-                                        {
-                                            LoggerAccessor.LogDebug($"Sending blank Policy since no chunks were found");
-                                            data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = string.Empty, EndOfText = true });
-                                        }
-                                        else
-                                        {
-                                            LoggerAccessor.LogError($"GetPolicy Failed = [{r.Exception}]");
-                                            data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = "NONE", EndOfText = true });
-                                        }
-                                    });
-
+                                            if (r.IsCompletedSuccessfully && r.Result != null)
+                                            {
+                                                string? txt = r.Result.EulaBody;
+                                                if (!string.IsNullOrEmpty(r.Result.EulaTitle))
+                                                    txt = r.Result.EulaTitle + "\n" + txt;
+                                                else
+                                                    txt = string.Empty;
+                                                LoggerAccessor.LogInfo($"GetPolicy Succeeded:{getPolicyRequest.MessageID}");
+                                                data.ClientObject.Queue(MediusClass.GetPolicyFromText(getPolicyRequest.MessageID, txt));
+                                            }
+                                            else if (r.IsCompletedSuccessfully && r.Result == null)
+                                            {
+                                                LoggerAccessor.LogDebug($"Sending blank Policy since no chunks were found");
+                                                data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = string.Empty, EndOfText = true });
+                                            }
+                                            else
+                                            {
+                                                LoggerAccessor.LogError($"GetPolicy Failed = [{r.Exception}]");
+                                                data.ClientObject.Queue(new MediusGetPolicyResponse() { MessageID = getPolicyRequest.MessageID, StatusCode = MediusCallbackStatus.MediusSuccess, Policy = "NONE", EndOfText = true });
+                                            }
+                                        });
+                                    }
                                     break;
                                 }
                         }
@@ -1912,7 +1959,7 @@ namespace Horizon.MEDIUS.Medius
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
 
-                                        if (r.IsCompletedSuccessfully && r.Result != null)
+                                        if (r.IsCompletedSuccessfully && r.Result != null && r.Result.AccountStats != null)
                                         {
                                             data.ClientObject.Queue(new MediusGetLadderStatsResponse()
                                             {
@@ -1941,7 +1988,7 @@ namespace Horizon.MEDIUS.Medius
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
 
-                                        if (r.IsCompletedSuccessfully && r.Result != null)
+                                        if (r.IsCompletedSuccessfully && r.Result != null && r.Result.ClanStats != null)
                                         {
                                             data.ClientObject.Queue(new MediusGetLadderStatsResponse()
                                             {
@@ -1995,7 +2042,7 @@ namespace Horizon.MEDIUS.Medius
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
 
-                                        if (r.IsCompletedSuccessfully && r.Result != null)
+                                        if (r.IsCompletedSuccessfully && r.Result != null && r.Result.AccountWideStats != null)
                                         {
                                             data.ClientObject.Queue(new MediusGetLadderStatsWideResponse()
                                             {
@@ -2025,7 +2072,7 @@ namespace Horizon.MEDIUS.Medius
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
 
-                                        if (r.IsCompletedSuccessfully && r.Result != null)
+                                        if (r.IsCompletedSuccessfully && r.Result != null && r.Result.ClanWideStats != null)
                                         {
                                             data.ClientObject.Queue(new MediusGetLadderStatsWideResponse()
                                             {
@@ -2310,10 +2357,7 @@ namespace Horizon.MEDIUS.Medius
                                     StatusCode = MediusCallbackStatus.MediusSuccess
                                 });
                             }
-
-
                         }
-
 
                         break;
                     }
@@ -2346,8 +2390,11 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.LeftGameWorld:
                                 {
-                                    await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
-                                    MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
+                                    if (data.ClientObject.CurrentGame != null)
+                                    {
+                                        await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
+                                        MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
+                                    }
                                     break;
                                 }
                         }
@@ -2366,209 +2413,213 @@ namespace Horizon.MEDIUS.Medius
         }
 
         #region Login
-        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, BackendProject.Horizon.LIBRARY.Database.Models.AccountDTO accountDto, bool ticket)
+        private async Task Login(MessageId messageId, IChannel clientChannel, ChannelData data, AccountDTO accountDto, bool ticket)
         {
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
-            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
+            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
 
             List<int> pre108Secure = new List<int>() { 10010, 10031, 10190, 10124, 10680, 10683, 10684 };
             List<int> p2pSetIP = new List<int>() { 10010, 10031, 10164, 10190, 10330, 10694, 10782, 10884, 10974, 21834, 21924 };
 
-            if (p2pSetIP.Contains(data.ClientObject.ApplicationId))
+            if (data.ClientObject != null && p2pSetIP.Contains(data.ClientObject.ApplicationId))
             {
                 char[] charsToRemove = { ':', 'f', '{', '}' };
                 data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
             }
 
-            await data.ClientObject.Login(accountDto);
+            if (data.ClientObject != null)
+                await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID
-            await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, (clientChannel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString());
-            if (!string.IsNullOrEmpty(data.MachineId))
+            await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
+            if (data.ClientObject != null && !string.IsNullOrEmpty(data.MachineId))
                 await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
             #endregion
 
-            // Add to logged in clients
-            MediusClass.Manager.AddClient(data.ClientObject);
-
-            LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
-
-            // Tell client
-            if (ticket == true)
+            if (data.ClientObject != null)
             {
-                #region PS Home PS3
-                //If PS Home don't GetOrCreateDefaultLobbyChannel, Home creates their own channels
-                if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
-                {
-                    data.ClientObject.Queue(new MediusTicketLoginResponse()
-                    {
-                        //TicketLoginResponse
-                        MessageID = messageId,
-                        StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
-                        PasswordType = MediusPasswordType.MediusPasswordNotSet,
+                // Add to logged in clients
+                MediusClass.Manager.AddClient(data.ClientObject);
 
-                        //AccountLoginResponse Wrapped
-                        MessageID2 = messageId,
-                        StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
-                        AccountID = data.ClientObject.AccountId,
-                        AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = 1, // Reserved
-                        ConnectInfo = new NetConnectionInfo()
+                LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
+
+                // Tell client
+                if (ticket == true)
+                {
+                    #region PS Home PS3
+                    //If PS Home don't GetOrCreateDefaultLobbyChannel, Home creates their own channels
+                    if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                    {
+                        data.ClientObject.Queue(new MediusTicketLoginResponse()
                         {
-                            AccessKey = data.ClientObject.Token,
-                            SessionKey = data.ClientObject.SessionKey,
-                            WorldID = 1, // Reserved,
-                            ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
-                            AddressList = new NetAddressList()
+                            //TicketLoginResponse
+                            MessageID = messageId,
+                            StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
+                            PasswordType = MediusPasswordType.MediusPasswordNotSet,
+
+                            //AccountLoginResponse Wrapped
+                            MessageID2 = messageId,
+                            StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                            AccountID = data.ClientObject.AccountId,
+                            AccountType = MediusAccountType.MediusMasterAccount,
+                            MediusWorldID = 1, // Reserved
+                            ConnectInfo = new NetConnectionInfo()
                             {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                            {
+                                AccessKey = data.ClientObject.Token,
+                                SessionKey = data.ClientObject.SessionKey,
+                                WorldID = 1, // Reserved,
+                                ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                                AddressList = new NetAddressList()
+                                {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                {
                                 new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                 new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                            }
+                                }
+                                },
+                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
                             },
-                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                        },
-                    });
-                }
-                #endregion
+                        });
+                    }
+                    #endregion
 
-                //Default
+                    //Default
+                    else
+                    {
+                        // Put client in default channel
+                        await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+
+                        #region IF PS3 Client
+                        data.ClientObject.Queue(new MediusTicketLoginResponse()
+                        {
+                            //TicketLoginResponse
+                            MessageID = messageId,
+                            StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
+                            PasswordType = MediusPasswordType.MediusPasswordNotSet,
+
+                            //AccountLoginResponse Wrapped
+                            MessageID2 = messageId,
+                            StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                            AccountID = data.ClientObject.AccountId,
+                            AccountType = MediusAccountType.MediusMasterAccount,
+                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ConnectInfo = new NetConnectionInfo()
+                            {
+                                AccessKey = data.ClientObject.Token,
+                                SessionKey = data.ClientObject.SessionKey,
+                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                                AddressList = new NetAddressList()
+                                {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                    }
+                                },
+                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                            },
+                        });
+                        #endregion
+                    }
+
+                    // Prepare for transition to lobby server
+                    data.ClientObject.KeepAliveUntilNextConnection();
+                }
                 else
                 {
                     // Put client in default channel
-                    await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+                    //await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
 
-                    #region IF PS3 Client
-                    data.ClientObject.Queue(new MediusTicketLoginResponse()
+                    #region If PS2/PSP
+
+                    if (data.ClientObject.MediusVersion > 108)
                     {
-                        //TicketLoginResponse
-                        MessageID = messageId,
-                        StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
-                        PasswordType = MediusPasswordType.MediusPasswordNotSet,
-
-                        //AccountLoginResponse Wrapped
-                        MessageID2 = messageId,
-                        StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
-                        AccountID = data.ClientObject.AccountId,
-                        AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                        ConnectInfo = new NetConnectionInfo()
+                        data.ClientObject.Queue(new MediusAccountLoginResponse()
                         {
-                            AccessKey = data.ClientObject.Token,
-                            SessionKey = data.ClientObject.SessionKey,
-                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
-                            AddressList = new NetAddressList()
+                            MessageID = messageId,
+                            StatusCode = MediusCallbackStatus.MediusSuccess,
+                            AccountID = data.ClientObject.AccountId,
+                            AccountType = MediusAccountType.MediusMasterAccount,
+                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ConnectInfo = new NetConnectionInfo()
                             {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                AccessKey = data.ClientObject.Token,
+                                SessionKey = data.ClientObject.SessionKey,
+                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                ServerKey = MediusClass.GlobalAuthPublic,
+                                AddressList = new NetAddressList()
                                 {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
                                     new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                }
+                                    }
+                                },
+                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
                             },
-                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                        },
-                    });
+                        });
+                    }
+                    else if (pre108Secure.Contains(data.ClientObject.ApplicationId)) //10683 / 10684
+                    {
+                        data.ClientObject.Queue(new MediusAccountLoginResponse()
+                        {
+                            MessageID = messageId,
+                            StatusCode = MediusCallbackStatus.MediusSuccess,
+                            AccountID = data.ClientObject.AccountId,
+                            AccountType = MediusAccountType.MediusMasterAccount,
+                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ConnectInfo = new NetConnectionInfo()
+                            {
+                                AccessKey = data.ClientObject.Token,
+                                SessionKey = data.ClientObject.SessionKey,
+                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                ServerKey = new RSA_KEY(),
+                                AddressList = new NetAddressList()
+                                {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                    }
+                                },
+                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                            },
+                        });
+                    }
+                    else
+                    {
+                        data.ClientObject.Queue(new MediusAccountLoginResponse()
+                        {
+                            MessageID = messageId,
+                            StatusCode = MediusCallbackStatus.MediusSuccess,
+                            AccountID = data.ClientObject.AccountId,
+                            AccountType = MediusAccountType.MediusMasterAccount,
+                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ConnectInfo = new NetConnectionInfo()
+                            {
+                                AccessKey = data.ClientObject.Token,
+                                SessionKey = data.ClientObject.SessionKey,
+                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
+                                AddressList = new NetAddressList()
+                                {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                    }
+                                },
+                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                            },
+                        });
+                    }
+
+                    // Prepare for transition to lobby server
+                    data.ClientObject.KeepAliveUntilNextConnection();
                     #endregion
                 }
-
-                // Prepare for transition to lobby server
-                data.ClientObject.KeepAliveUntilNextConnection();
-            }
-            else
-            {
-                // Put client in default channel
-                //await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
-
-                #region If PS2/PSP
-
-                if (data.ClientObject.MediusVersion > 108)
-                {
-                    data.ClientObject.Queue(new MediusAccountLoginResponse()
-                    {
-                        MessageID = messageId,
-                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                        AccountID = data.ClientObject.AccountId,
-                        AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                        ConnectInfo = new NetConnectionInfo()
-                        {
-                            AccessKey = data.ClientObject.Token,
-                            SessionKey = data.ClientObject.SessionKey,
-                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = MediusClass.GlobalAuthPublic,
-                            AddressList = new NetAddressList()
-                            {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                }
-                            },
-                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                        },
-                    });
-                }
-                else if (pre108Secure.Contains(data.ClientObject.ApplicationId)) //10683 / 10684
-                {
-                    data.ClientObject.Queue(new MediusAccountLoginResponse()
-                    {
-                        MessageID = messageId,
-                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                        AccountID = data.ClientObject.AccountId,
-                        AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                        ConnectInfo = new NetConnectionInfo()
-                        {
-                            AccessKey = data.ClientObject.Token,
-                            SessionKey = data.ClientObject.SessionKey,
-                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = new RSA_KEY(),
-                            AddressList = new NetAddressList()
-                            {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                }
-                            },
-                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                        },
-                    });
-                }
-                else
-                {
-                    data.ClientObject.Queue(new MediusAccountLoginResponse()
-                    {
-                        MessageID = messageId,
-                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                        AccountID = data.ClientObject.AccountId,
-                        AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                        ConnectInfo = new NetConnectionInfo()
-                        {
-                            AccessKey = data.ClientObject.Token,
-                            SessionKey = data.ClientObject.SessionKey,
-                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
-                            AddressList = new NetAddressList()
-                            {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                }
-                            },
-                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                        },
-                    });
-                }
-
-                // Prepare for transition to lobby server
-                data.ClientObject.KeepAliveUntilNextConnection();
-                #endregion
             }
         }
         #endregion
@@ -2576,16 +2627,16 @@ namespace Horizon.MEDIUS.Medius
         #region AnonymousLogin
         private async Task LoginAnonymous(MediusAnonymousLoginRequest anonymousLoginRequest, IChannel clientChannel, ChannelData data)
         {
-            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
-            var fac = new PS2CipherFactory();
+            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+            PS2CipherFactory fac = new();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
-            List<int> p2pSetIP = new List<int>() { 10010 };
+            List<int> p2pSetIP = new() { 10010 };
 
             int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
             LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
-            if (p2pSetIP.Contains(data.ClientObject.ApplicationId))
+            if (data.ClientObject != null && p2pSetIP.Contains(data.ClientObject.ApplicationId))
             {
                 char[] charsToRemove = { ':', 'f', '{', '}' };
                 data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
@@ -2593,52 +2644,54 @@ namespace Horizon.MEDIUS.Medius
 
             //await data.ClientObject.Login(accountDto);
 
-            // Login
-            await data.ClientObject.LoginAnonymous(anonymousLoginRequest, iAccountID);
-
-            #region Update DB IP and CID
-
-            //We don't post to the database as anonymous... This ain't it chief
-
-            #endregion
-
-            // Add to logged in clients
-            MediusClass.Manager.AddClient(data.ClientObject);
-
-            // 
-            LoggerAccessor.LogInfo($"LOGGING IN ANONYMOUSLY AS {data.ClientObject.AccountDisplayName} with access token {data.ClientObject.Token}");
-
-            // Put client in default channel
-            //await data.ClientObject.JoinChannel(MediusStarter.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
-
-            // Tell client
-            data.ClientObject.Queue(new MediusAnonymousLoginResponse()
+            if (data.ClientObject != null)
             {
-                MessageID = anonymousLoginRequest.MessageID,
-                StatusCode = MediusCallbackStatus.MediusSuccess,
-                AccountID = iAccountID,
-                AccountType = MediusAccountType.MediusMasterAccount,
-                MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                ConnectInfo = new NetConnectionInfo()
+                // Login
+                await data.ClientObject.LoginAnonymous(anonymousLoginRequest, iAccountID);
+
+                #region Update DB IP and CID
+
+                //We don't post to the database as anonymous... This ain't it chief
+
+                #endregion
+
+                // Add to logged in clients
+                MediusClass.Manager.AddClient(data.ClientObject);
+
+                // 
+                LoggerAccessor.LogInfo($"LOGGING IN ANONYMOUSLY AS {data.ClientObject.AccountDisplayName} with access token {data.ClientObject.Token}");
+
+                // Put client in default channel
+                //await data.ClientObject.JoinChannel(MediusStarter.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+
+                // Tell client
+                data.ClientObject.Queue(new MediusAnonymousLoginResponse()
                 {
-                    AccessKey = data.ClientObject.Token,
-                    SessionKey = data.ClientObject.SessionKey,
-                    WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                    ServerKey = new RSA_KEY(), // Null for 108 clients
-                    AddressList = new NetAddressList()
+                    MessageID = anonymousLoginRequest.MessageID,
+                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                    AccountID = iAccountID,
+                    AccountType = MediusAccountType.MediusMasterAccount,
+                    MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                    ConnectInfo = new NetConnectionInfo()
                     {
-                        AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                        AccessKey = data.ClientObject.Token,
+                        SessionKey = data.ClientObject.SessionKey,
+                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        ServerKey = new RSA_KEY(), // Null for 108 clients
+                        AddressList = new NetAddressList()
                         {
+                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                            {
                                new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                        }
-                    },
-                    Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                }
-            });
+                            }
+                        },
+                        Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                    }
+                });
 
-            data.ClientObject.KeepAliveUntilNextConnection();
-
+                data.ClientObject.KeepAliveUntilNextConnection();
+            }
         }
         #endregion
 

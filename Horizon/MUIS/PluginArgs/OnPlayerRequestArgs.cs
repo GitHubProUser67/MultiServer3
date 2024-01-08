@@ -8,12 +8,12 @@ namespace Horizon.MUIS.PluginArgs
         /// <summary>
         /// Player making request.
         /// </summary>
-        public ClientObject Player { get; set; }
+        public ClientObject? Player { get; set; }
 
         /// <summary>
         /// Create request.
         /// </summary>
-        public IMediusRequest Request { get; set; }
+        public IMediusRequest? Request { get; set; }
 
         public override string ToString()
         {

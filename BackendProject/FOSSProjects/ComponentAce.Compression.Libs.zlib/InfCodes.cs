@@ -143,7 +143,7 @@ internal sealed class InfCodes
 				int num7;
 				for (num7 = need; num2 < num7; num2 += 8)
 				{
-					if (num4 != 0)
+					if (num4 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num4--;
@@ -159,33 +159,36 @@ internal sealed class InfCodes
 					return s.inflate_flush(z, r);
 				}
 				int num8 = (tree_index + (num & inflate_mask[num7])) * 3;
-				num = SupportClass.URShift(num, tree[num8 + 1]);
-				num2 -= tree[num8 + 1];
-				int num9 = tree[num8];
-				if (num9 == 0)
+				if (tree != null)
 				{
-					lit = tree[num8 + 2];
-					mode = 6;
-					break;
-				}
-				if (((uint)num9 & 0x10u) != 0)
-				{
-					get_Renamed = num9 & 0xF;
-					len = tree[num8 + 2];
-					mode = 2;
-					break;
-				}
-				if ((num9 & 0x40) == 0)
-				{
-					need = num9;
-					tree_index = num8 / 3 + tree[num8 + 2];
-					break;
-				}
-				if (((uint)num9 & 0x20u) != 0)
-				{
-					mode = 7;
-					break;
-				}
+                            num = SupportClass.URShift(num, tree[num8 + 1]);
+                            num2 -= tree[num8 + 1];
+                            int num9 = tree[num8];
+                            if (num9 == 0)
+                            {
+                                lit = tree[num8 + 2];
+                                mode = 6;
+                                break;
+                            }
+                            if (((uint)num9 & 0x10u) != 0)
+                            {
+                                get_Renamed = num9 & 0xF;
+                                len = tree[num8 + 2];
+                                mode = 2;
+                                break;
+                            }
+                            if ((num9 & 0x40) == 0)
+                            {
+                                need = num9;
+                                tree_index = num8 / 3 + tree[num8 + 2];
+                                break;
+                            }
+                            if (((uint)num9 & 0x20u) != 0)
+                            {
+                                mode = 7;
+                                break;
+                            }
+                }
 				mode = 9;
 				z.msg = "invalid literal/length code";
 				r = -3;
@@ -202,7 +205,7 @@ internal sealed class InfCodes
 				int num7;
 				for (num7 = get_Renamed; num2 < num7; num2 += 8)
 				{
-					if (num4 != 0)
+					if (num4 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num4--;
@@ -231,7 +234,7 @@ internal sealed class InfCodes
 				int num7;
 				for (num7 = need; num2 < num7; num2 += 8)
 				{
-					if (num4 != 0)
+					if (num4 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num4--;
@@ -247,22 +250,25 @@ internal sealed class InfCodes
 					return s.inflate_flush(z, r);
 				}
 				int num8 = (tree_index + (num & inflate_mask[num7])) * 3;
-				num >>= tree[num8 + 1];
-				num2 -= tree[num8 + 1];
-				int num9 = tree[num8];
-				if (((uint)num9 & 0x10u) != 0)
+				if (tree != null)
 				{
-					get_Renamed = num9 & 0xF;
-					dist = tree[num8 + 2];
-					mode = 4;
-					break;
-				}
-				if ((num9 & 0x40) == 0)
-				{
-					need = num9;
-					tree_index = num8 / 3 + tree[num8 + 2];
-					break;
-				}
+                            num >>= tree[num8 + 1];
+                            num2 -= tree[num8 + 1];
+                            int num9 = tree[num8];
+                            if (((uint)num9 & 0x10u) != 0)
+                            {
+                                get_Renamed = num9 & 0xF;
+                                dist = tree[num8 + 2];
+                                mode = 4;
+                                break;
+                            }
+                            if ((num9 & 0x40) == 0)
+                            {
+                                need = num9;
+                                tree_index = num8 / 3 + tree[num8 + 2];
+                                break;
+                            }
+                }
 				mode = 9;
 				z.msg = "invalid distance code";
 				r = -3;
@@ -279,7 +285,7 @@ internal sealed class InfCodes
 				int num7;
 				for (num7 = get_Renamed; num2 < num7; num2 += 8)
 				{
-					if (num4 != 0)
+					if (num4 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num4--;
@@ -338,7 +344,8 @@ internal sealed class InfCodes
 							}
 						}
 					}
-					s.window[num5++] = s.window[i++];
+					if (s.window != null)
+						s.window[num5++] = s.window[i++];
 					num6--;
 					if (i == s.end)
 					{
@@ -381,7 +388,8 @@ internal sealed class InfCodes
 					}
 				}
 				r = 0;
-				s.window[num5++] = (byte)lit;
+                if (s.window != null)
+                    s.window[num5++] = (byte)lit;
 				num6--;
 				mode = 0;
 				break;
@@ -456,7 +464,7 @@ internal sealed class InfCodes
 		int num11;
 		while (true)
 		{
-			if (num3 < 20)
+			if (num3 < 20 && z.next_in != null)
 			{
 				num--;
 				num2 |= (z.next_in[next_in_index++] & 0xFF) << num3;
@@ -471,7 +479,8 @@ internal sealed class InfCodes
 			{
 				num2 >>= array[(num9 + num8) * 3 + 1];
 				num3 -= array[(num9 + num8) * 3 + 1];
-				s.window[num4++] = (byte)array[(num9 + num8) * 3 + 2];
+                if (s.window != null)
+                    s.window[num4++] = (byte)array[(num9 + num8) * 3 + 2];
 				num5--;
 			}
 			else
@@ -480,7 +489,7 @@ internal sealed class InfCodes
 				{
 					num2 >>= array[(num9 + num8) * 3 + 1];
 					num3 -= array[(num9 + num8) * 3 + 1];
-					if (((uint)num10 & 0x10u) != 0)
+					if (((uint)num10 & 0x10u) != 0 && z.next_in != null)
 					{
 						num10 &= 0xF;
 						num11 = array[(num9 + num8) * 3 + 2] + (num2 & inflate_mask[num10]);
@@ -536,14 +545,14 @@ internal sealed class InfCodes
 						if (num4 >= num12)
 						{
 							num13 = num4 - num12;
-							if (num4 - num13 > 0 && 2 > num4 - num13)
+							if (num4 - num13 > 0 && 2 > num4 - num13 && s.window != null)
 							{
 								s.window[num4++] = s.window[num13++];
 								num11--;
 								s.window[num4++] = s.window[num13++];
 								num11--;
 							}
-							else
+							else if (s.window != null)
 							{
 								Array.Copy(s.window, num13, s.window, num4, 2);
 								num4 += 2;
@@ -563,7 +572,7 @@ internal sealed class InfCodes
 							if (num11 > num10)
 							{
 								num11 -= num10;
-								if (num4 - num13 > 0 && num10 > num4 - num13)
+								if (num4 - num13 > 0 && num10 > num4 - num13 && s.window != null)
 								{
 									do
 									{
@@ -571,7 +580,7 @@ internal sealed class InfCodes
 									}
 									while (--num10 != 0);
 								}
-								else
+								else if (s.window != null)
 								{
 									Array.Copy(s.window, num13, s.window, num4, num10);
 									num4 += num10;
@@ -581,7 +590,7 @@ internal sealed class InfCodes
 								num13 = 0;
 							}
 						}
-						if (num4 - num13 > 0 && num11 > num4 - num13)
+						if (num4 - num13 > 0 && num11 > num4 - num13 && s.window != null)
 						{
 							do
 							{
@@ -590,7 +599,8 @@ internal sealed class InfCodes
 							while (--num11 != 0);
 							break;
 						}
-						Array.Copy(s.window, num13, s.window, num4, num11);
+						if (s.window != null)
+							Array.Copy(s.window, num13, s.window, num4, num11);
 						num4 += num11;
 						num13 += num11;
 						num11 = 0;
@@ -600,7 +610,7 @@ internal sealed class InfCodes
 					{
 						num8 += array[(num9 + num8) * 3 + 2];
 						num8 += num2 & inflate_mask[num10];
-						if ((num10 = array[(num9 + num8) * 3]) == 0)
+						if ((num10 = array[(num9 + num8) * 3]) == 0 && s.window != null)
 						{
 							num2 >>= array[(num9 + num8) * 3 + 1];
 							num3 -= array[(num9 + num8) * 3 + 1];
@@ -641,11 +651,9 @@ internal sealed class InfCodes
 				}
 			}
 			if (num5 < 258 || num < 10)
-			{
-				break;
-			}
-		}
-		num11 = z.avail_in - num;
+                break;
+        }
+        num11 = z.avail_in - num;
 		num11 = ((num3 >> 3 < num11) ? (num3 >> 3) : num11);
 		num += num11;
 		next_in_index -= num11;

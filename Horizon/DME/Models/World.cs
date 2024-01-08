@@ -5,6 +5,7 @@ using Horizon.DME.PluginArgs;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
+using Horizon.MEDIUS;
 
 namespace Horizon.DME.Models
 {
@@ -145,7 +146,7 @@ namespace Horizon.DME.Models
                     if (client.Destroy || ForceDestruct || Destroyed)
                     {
                         await OnPlayerLeft(client);
-                        Manager.RemoveClient(client);
+                        Manager?.RemoveClient(client);
                         _ = client.Stop();
                         Clients.TryRemove(i, out _);
                     }
@@ -165,7 +166,7 @@ namespace Horizon.DME.Models
                     await Stop();
                 }
 
-                Manager.RemoveWorld(this);
+                Manager?.RemoveWorld(this);
             }
         }
 
@@ -173,7 +174,7 @@ namespace Horizon.DME.Models
 
         public void BroadcastTcp(ClientObject source, byte[] Payload)
         {
-            var msg = new RT_MSG_CLIENT_APP_SINGLE()
+            RT_MSG_CLIENT_APP_SINGLE msg = new()
             {
                 TargetOrSource = (short)source.DmeId,
                 Payload = Payload
@@ -190,7 +191,7 @@ namespace Horizon.DME.Models
 
         public void BroadcastUdp(ClientObject source, byte[] Payload)
         {
-            var msg = new RT_MSG_CLIENT_APP_SINGLE()
+            RT_MSG_CLIENT_APP_SINGLE msg = new()
             {
                 TargetOrSource = (short)source.DmeId,
                 Payload = Payload
@@ -208,9 +209,9 @@ namespace Horizon.DME.Models
 
         public void SendTcpAppList(ClientObject source, List<int> targetDmeIds, byte[] Payload)
         {
-            foreach (var targetId in targetDmeIds)
+            foreach (int targetId in targetDmeIds)
             {
-                if (Clients.TryGetValue(targetId, out var client))
+                if (Clients.TryGetValue(targetId, out ClientObject? client))
                 {
                     if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
                         continue;
@@ -226,9 +227,9 @@ namespace Horizon.DME.Models
 
         public void SendUdpAppList(ClientObject source, List<int> targetDmeIds, byte[] Payload)
         {
-            foreach (var targetId in targetDmeIds)
+            foreach (int targetId in targetDmeIds)
             {
-                if (Clients.TryGetValue(targetId, out var client))
+                if (Clients.TryGetValue(targetId, out ClientObject? client))
                 {
                     if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
                         continue;
@@ -244,7 +245,7 @@ namespace Horizon.DME.Models
 
         public void SendTcpAppSingle(ClientObject source, short targetDmeId, byte[] Payload)
         {
-            var target = Clients.FirstOrDefault(x => x.Value.DmeId == targetDmeId).Value;
+            ClientObject? target = Clients.FirstOrDefault(x => x.Value.DmeId == targetDmeId).Value;
 
             if (target != null && target.IsAuthenticated && target.IsConnected && target.HasRecvFlag(RT_RECV_FLAG.RECV_SINGLE))
             {
@@ -258,7 +259,7 @@ namespace Horizon.DME.Models
 
         public void SendUdpAppSingle(ClientObject source, short targetDmeId, byte[] Payload)
         {
-            var target = Clients.FirstOrDefault(x => x.Value.DmeId == targetDmeId).Value;
+            ClientObject? target = Clients.FirstOrDefault(x => x.Value.DmeId == targetDmeId).Value;
 
             if (target != null && target.IsAuthenticated && target.IsConnected && target.HasRecvFlag(RT_RECV_FLAG.RECV_SINGLE))
             {
@@ -301,15 +302,15 @@ namespace Horizon.DME.Models
                 {
                     PlayerIndex = (short)player.DmeId,
                     ScertId = (short)player.ScertId,
-                    IP = player.RemoteUdpEndpoint?.Address
+                    IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
                 });
             }
 
             // Tell server
-            Manager.Enqueue(new MediusServerConnectNotification()
+            Manager?.Enqueue(new MediusServerConnectNotification()
             {
                 MediusWorldUID = (uint)WorldId,
-                PlayerSessionKey = player.SessionKey,
+                PlayerSessionKey = player.SessionKey ?? string.Empty,
                 ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT
             });
         }
@@ -345,15 +346,15 @@ namespace Horizon.DME.Models
                 {
                     PlayerIndex = (short)player.DmeId,
                     ScertId = (short)player.ScertId,
-                    IP = player.RemoteUdpEndpoint?.Address
+                    IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
                 });
             }
 
             // Tell server
-            Manager.Enqueue(new MediusServerConnectNotification()
+            Manager?.Enqueue(new MediusServerConnectNotification()
             {
                 MediusWorldUID = (uint)WorldId,
-                PlayerSessionKey = player.SessionKey,
+                PlayerSessionKey = player.SessionKey ?? string.Empty,
                 ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_DISCONNECT
             });
         }

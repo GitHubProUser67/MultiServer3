@@ -59,7 +59,7 @@ namespace Horizon.BWPS
                     var buffer = channel.Allocator.Buffer(18);
 
                     byte MessageId = message.Content.GetByte(0);
-                    var data = new byte[] { };
+                    var data = Array.Empty<byte>();
 
                     if (message.Content.GetByte(9) == 0x05)
                         data = new byte[] { MessageId, 0xc8, 0x01, 0x00, 0xcf, 0x5e, 0x0c, 0x50, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x3 };
@@ -82,8 +82,7 @@ namespace Horizon.BWPS
 
                         LoggerAccessor.LogInfo($"[BWPS] - Sending 18 response");
 
-                        var data = message.Content;
-                        buffer.WriteBytes(data);
+                        buffer.WriteBytes(message.Content);
                         //buffer.WriteUnsignedShort((ushort)(message.Sender as IPEndPoint).Port);
 
                         await channel.WriteAndFlushAsync(new DatagramPacket(buffer, message.Sender));
@@ -97,8 +96,8 @@ namespace Horizon.BWPS
                     byte MessageId = message.Content.GetByte(0);
                     byte Unk1 = message.Content.GetByte(1);
 
-                    var padding = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-                    var data = new byte[] { MessageId, Unk1, 0x01, 0x00, 0x01, 0x00 };
+                    byte[] padding = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+                    byte[] data = new byte[] { MessageId, Unk1, 0x01, 0x00, 0x01, 0x00 };
 
                     LoggerAccessor.LogInfo($"[BWPS] - Sending 6 len response ");
 
@@ -109,7 +108,7 @@ namespace Horizon.BWPS
                 }
             };
 
-            var bootstrap = new Bootstrap();
+            Bootstrap bootstrap = new();
             bootstrap
                 .Group(_workerGroup)
                 .Channel<SocketDatagramChannel>()

@@ -110,11 +110,7 @@ class Program
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new HttpServer(80, route_config).Listen(),
-                    () => new HttpServer(3074, route_config).Listen(),
-                    () => new HttpServer(9090, route_config).Listen(),
-                    () => new HttpServer(10010, route_config).Listen(),
-                    () => new HttpServer(33000, route_config).Listen(),
+                    () => new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, route_config, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 

@@ -61,9 +61,7 @@ public class TheaterHandler
             }
 
             if (read == 0)
-            {
                 continue;
-            }
 
             Packet packet = new(readBuffer[..read]);
             string type = packet.Type;
@@ -89,18 +87,13 @@ public class TheaterHandler
 
         CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - CONN: {tid}", tid);
 
-        var response = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("CONN", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["TIME"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             ["TID"] = tid,
             ["activityTimeoutSecs"] = 0,
             ["PROT"] = request.DataDict["PROT"]
-        };
-
-        Packet packet = new("CONN", TheaterTransmissionType.OkResponse, 0, response);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 
     private async Task HandleUSER(Packet request)
@@ -110,38 +103,28 @@ public class TheaterHandler
 
         CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - USER: {name} {lkey}", username, lkey);
 
-        var response = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("USER", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["NAME"] = username,
             ["TID"] = request.DataDict["TID"]
-        };
-
-        Packet packet = new("USER", TheaterTransmissionType.OkResponse, 0, response);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 
     // CreateGame
     private async Task HandleCGAM(Packet request)
     {
-        var response = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("CGAM", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["TID"] = request.DataDict["TID"],
             ["MAX-PLAYERS"] = request.DataDict["MAX-PLAYERS"],
-            ["EKEY"] = "",
+            ["EKEY"] = string.Empty,
             ["UGID"] = Guid.NewGuid().ToString(),
             ["JOIN"] = request.DataDict["JOIN"],
-            ["SECRET"] = "",
+            ["SECRET"] = string.Empty,
             ["LID"] = 255,
             ["J"] = request.DataDict["JOIN"],
             ["GID"] = _sharedCounters.GetNextGameId()
-        };
-
-        Packet packet = new("CGAM", TheaterTransmissionType.OkResponse, 0, response);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 
     // LeaveGame
@@ -150,55 +133,40 @@ public class TheaterHandler
         // !TODO: set gid to a valid game id
         // !TODO: set lid to a valid lobby id
 
-        var response = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("ECNL", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["TID"] = request.DataDict["TID"],
             ["LID"] = request.DataDict["LID"],
             ["GID"] = request.DataDict["GID"],
-        };
-
-        Packet packet = new("ECNL", TheaterTransmissionType.OkResponse, 0, response);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 
     // EnterGameRequest
     private async Task HandleEGAM(Packet request)
     {
-        var response = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("EGAM", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["TID"] = request.DataDict["TID"],
             ["LID"] = request.DataDict["LID"],
             ["GID"] = request.DataDict["GID"]
-        };
-
-        Packet packet = new("EGAM", TheaterTransmissionType.OkResponse, 0, response);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
 
         await SendEGEG(request);
     }
 
     private async Task HandleEGRS(Packet request)
     {
-        var serverInfo = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("EGRS", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["TID"] = request.DataDict["TID"]
-        };
-
-        Packet packet = new("EGRS", TheaterTransmissionType.OkResponse, 0, serverInfo);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
 
         await SendEGEG(request);
     }
 
     private async Task HandleGDAT(Packet request)
     {
-        var serverInfo = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("GDAT", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["JP"] = 1,
             ["B-U-location"] = "nrt",
@@ -233,11 +201,7 @@ public class TheaterHandler
             ["TID"] = request.DataDict["TID"],
             ["B-U-coralsea"] = "YES",
             ["AP"] = 5
-        };
-
-        Packet packet = new("GDAT", TheaterTransmissionType.OkResponse, 0, serverInfo);
-        byte[] data = await packet.Serialize();
-        await _network.WriteAsync(data);
+        }).Serialize());
 
         await SendGDET(request);
     }
@@ -259,41 +223,29 @@ public class TheaterHandler
             serverInfo.Add($"D-pdat{i}", "|0|0|0|0");
         }
 
-        Packet packet = new("GDET", TheaterTransmissionType.OkResponse, 0, serverInfo);
-        byte[] data = await packet.Serialize();
-
         CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - Sending GDET to client at {endpoint}", _clientEndpoint);
-        await _network.WriteAsync(data);
+        await _network.WriteAsync(await new Packet("GDET", TheaterTransmissionType.OkResponse, 0, serverInfo).Serialize());
     }
 
     private async Task HandlePENT(Packet request)
     {
-        var serverInfo = new Dictionary<string, object>
+        await _network.WriteAsync(await new Packet("PENT", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["TID"] = request.DataDict["TID"],
             ["PID"] = request.DataDict["PID"],
-        };
-
-        Packet packet = new("PENT", TheaterTransmissionType.OkResponse, 0, serverInfo);
-        byte[] data = await packet.Serialize();
-
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 
     private async Task HandleUBRA(Packet request)
     {
         if (request["START"] != "1")
         {
-            var originalTid = (request.DataDict["TID"] as int?) - (_brackets / 2) ?? 0;
-            for (var i = 0; i < _brackets; i++)
+            for (int i = 0; i < _brackets; i++)
             {
-                var data = new Dictionary<string, object>
+                await _network.WriteAsync(await new Packet(request.Type, TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
                 {
-                    ["TID"] = originalTid + i
-                };
-
-                var packet = new Packet(request.Type, TheaterTransmissionType.OkResponse, 0, data);
-                await _network.WriteAsync(await packet.Serialize());
+                    ["TID"] = (request.DataDict["TID"] as int?) - (_brackets / 2) ?? 0 + i
+                }).Serialize());
                 Interlocked.Decrement(ref _brackets);
             }
         }
@@ -312,13 +264,14 @@ public class TheaterHandler
         string serverIp = SRVEmuServerConfiguration.GameServerBindAddress;
         int serverPort = SRVEmuServerConfiguration.GameServerPort;
 
-        var serverInfo = new Dictionary<string, object>
+        CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - Sending EGEG to client at {endpoint}", _clientEndpoint);
+        await _network.WriteAsync(await new Packet("EGEG", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["PL"] = "ps3",
             ["TICKET"] = _sharedCounters.GetNextTicket(),
             ["PID"] = _sharedCounters.GetNextPid(),
             ["HUID"] = "201104017",
-            ["EKEY"] = "",
+            ["EKEY"] = string.Empty,
             ["UGID"] = _sessionCache["UGID"],
 
             ["INT-IP"] = serverIp,
@@ -329,13 +282,7 @@ public class TheaterHandler
 
             ["LID"] = request.DataDict["LID"],
             ["GID"] = request.DataDict["GID"]
-        };
-
-        Packet packet = new("EGEG", TheaterTransmissionType.OkResponse, 0, serverInfo);
-        byte[] data = await packet.Serialize();
-
-        CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - Sending EGEG to client at {endpoint}", _clientEndpoint);
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 
     private async Task SendEGRQ()
@@ -343,7 +290,8 @@ public class TheaterHandler
         string serverIp = SRVEmuServerConfiguration.GameServerBindAddress;
         int serverPort = SRVEmuServerConfiguration.GameServerPort;
 
-        var serverInfo = new Dictionary<string, object>
+        CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - Sending EGRQ to client at {endpoint}", _clientEndpoint);
+        await _network.WriteAsync(await new Packet("EGRQ", TheaterTransmissionType.OkResponse, 0, new Dictionary<string, object>
         {
             ["R-INT-PORT"] = serverPort,
             ["R-INT-IP"] = serverIp,
@@ -357,12 +305,6 @@ public class TheaterHandler
             ["UID"] = 1000000000000,
             ["LID"] = 255,
             ["GID"] = 801000
-        };
-
-        Packet packet = new("EGRQ", TheaterTransmissionType.OkResponse, 0, serverInfo);
-        byte[] data = await packet.Serialize();
-
-        CustomLogger.LoggerAccessor.LogInfo("[TheatreHandler] - Sending EGRQ to client at {endpoint}", _clientEndpoint);
-        await _network.WriteAsync(data);
+        }).Serialize());
     }
 }

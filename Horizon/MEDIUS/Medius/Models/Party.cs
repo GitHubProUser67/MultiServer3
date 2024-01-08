@@ -24,13 +24,13 @@ namespace Horizon.MEDIUS.Medius.Models
         public int Id = 0;
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
-        public List<PartyClient> Clients = new List<PartyClient>();
-        public string PartyName;
-        public string PartyPassword;
+        public List<PartyClient> Clients = new();
+        public string? PartyName;
+        public string? PartyPassword;
         public MediusGameHostType PartyHostType;
         public int MinPlayers;
         public int MaxPlayers;
-        public string Metadata;
+        public string? Metadata;
         public int GenericField1;
         public int GenericField2;
         public int GenericField3;
@@ -41,17 +41,17 @@ namespace Horizon.MEDIUS.Medius.Models
         public int GenericField8;
         public MediusWorldAttributesType Attributes;
         public DMEObject DMEServer;
-        public Channel ChatChannel;
+        public Channel? ChatChannel;
         public ClientObject? Host;
 
-        public string AccountIdsAtStart => accountIdsAtStart;
+        public string? AccountIdsAtStart => accountIdsAtStart;
         public DateTime UtcTimeCreated => utcTimeCreated;
         public DateTime? UtcTimeStarted => utcTimeStarted;
         public DateTime? UtcTimeEnded => utcTimeEnded;
 
         protected MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
         protected bool hasHostJoined = false;
-        protected string accountIdsAtStart;
+        protected string? accountIdsAtStart;
         protected DateTime utcTimeCreated;
         protected DateTime? utcTimeStarted;
         protected DateTime? utcTimeEnded;
@@ -127,7 +127,11 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public string GetActivePlayerList()
         {
-            return string.Join(",", Clients?.Select(x => x.Client.AccountId.ToString()).Where(x => x != null));
+            var playlist = Clients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+            if (playlist != null)
+                return string.Join(",", playlist);
+
+            return string.Empty;
         }
 
         public virtual Task Tick()
@@ -206,12 +210,15 @@ namespace Horizon.MEDIUS.Medius.Models
 
             player.InGame = false;
 
-            // Update player object
-            await player.Client.LeaveParty(this);
-            // player.Client.LeaveChannel(ChatChannel);
+            if (player.Client != null)
+            {
+                // Update player object
+                await player.Client.LeaveParty(this);
+                // player.Client.LeaveChannel(ChatChannel);
 
-            // Remove from collection
-            RemovePlayer(player.Client);
+                // Remove from collection
+                RemovePlayer(player.Client);
+            }
         }
 
         public virtual void RemovePlayer(ClientObject client)

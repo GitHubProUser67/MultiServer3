@@ -12,7 +12,7 @@ namespace BackendProject.Horizon.RT.Models
         /// <summary>
         /// NetAddressList
         /// </summary>
-        public NetAddressList AddressList = new NetAddressList();
+        public NetAddressList AddressList = new();
         /// <summary>
         /// WorldID of the Connected client
         /// </summary>
@@ -20,7 +20,7 @@ namespace BackendProject.Horizon.RT.Models
         /// <summary>
         /// ServerKey
         /// </summary>
-        public RSA_KEY ServerKey = new RSA_KEY();
+        public RSA_KEY? ServerKey = new();
         /// <summary>
         /// Session Key
         /// </summary>

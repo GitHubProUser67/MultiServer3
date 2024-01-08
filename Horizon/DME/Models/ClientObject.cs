@@ -5,7 +5,6 @@ using BackendProject.Horizon.RT.Models;
 using BackendProject.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
-using Microsoft.Extensions.Logging;
 using CustomLogger;
 
 namespace Horizon.DME.Models
@@ -372,7 +371,7 @@ namespace Horizon.DME.Models
 
         public override string ToString()
         {
-            return $"(worldId: {DmeWorld.WorldId}, clientId: {DmeId})";
+            return $"(worldId: {DmeWorld?.WorldId}, clientId: {DmeId})";
         }
     }
 }

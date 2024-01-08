@@ -44,7 +44,8 @@ namespace HTTPServer
 
         public bool IsIPAllowed(string ipAddress)
         {
-            if ((HTTPServerConfiguration.AllowedIPs != null && HTTPServerConfiguration.AllowedIPs.Contains(ipAddress)) || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost")
+            if ((HTTPServerConfiguration.AllowedIPs != null && HTTPServerConfiguration.AllowedIPs.Contains(ipAddress))
+                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost" || ipAddress == MiscUtils.GetLocalIPAddress(true).ToString())
                 return true;
 
             return false;
@@ -64,13 +65,13 @@ namespace HTTPServer
         {
             try
             {
-                string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint).Address.ToString();
+                string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
 
-                string? clientport = ((IPEndPoint)tcpClient.Client.RemoteEndPoint).Port.ToString();
+                string? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port.ToString();
 
-                if (IsIPBanned(clientip))
+                if (string.IsNullOrEmpty(clientip) || string.IsNullOrEmpty(clientport) || IsIPBanned(clientip))
                 {
-                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the HTTP server while being banned!");
+                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the HTTP server while being banned or having sent invalid request!");
                     tcpClient.Close();
                     return;
                 }
@@ -256,7 +257,7 @@ namespace HTTPServer
                                                                         response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
                                                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                     {
-                                                                        var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                                                                        (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                                                                         string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                                                             response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
@@ -642,8 +643,6 @@ namespace HTTPServer
                 return null;
             // string protocolVersion = tokens[2]; // Unused.
 
-            byte[]? DataBytes = null;
-
             // Read Headers
             Dictionary<string, string> headers = new();
             while ((line = Readline(inputStream)) != null)
@@ -654,47 +653,46 @@ namespace HTTPServer
                 int separator = line.IndexOf(':');
                 if (separator == -1)
                     return null;
-                string name = line[..separator];
                 int pos = separator + 1;
                 while ((pos < line.Length) && (line[pos] == ' '))
                 {
                     pos++;
                 }
 
-                headers.Add(name, line[pos..]);
+                headers.Add(line[..separator], line[pos..]);
             }
 
-            using (MemoryStream contentStream = new())
-            {
-                if (headers.ContainsKey("Content-Length"))
-                {
-                    long totalBytes = Convert.ToInt32(headers["Content-Length"]);
-                    long bytesLeft = totalBytes;
-
-                    while (bytesLeft > 0)
-                    {
-                        Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
-                        int n = inputStream.Read(buffer);
-
-                        contentStream.Write(buffer);
-
-                        bytesLeft -= n;
-                    }
-
-                    contentStream.Position = 0;
-                    DataBytes = StreamToByteArray(contentStream);
-                }
-                contentStream.Flush();
-            }
-
-            return new HttpRequest()
+            HttpRequest req = new()
             {
                 Method = tokens[0].ToUpper(),
                 Url = HTTPUtils.DecodeUrl(tokens[1]),
                 Headers = headers,
-                Data = DataBytes,
                 IP = clientip
             };
+
+            MemoryStream contentStream = new();
+
+            if (headers.ContainsKey("Content-Length"))
+            {
+                long totalBytes = Convert.ToInt32(headers["Content-Length"]);
+                long bytesLeft = totalBytes;
+
+                while (bytesLeft > 0)
+                {
+                    Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+                    int n = inputStream.Read(buffer);
+
+                    contentStream.Write(buffer);
+
+                    bytesLeft -= n;
+                }
+
+                contentStream.Position = 0;
+
+                req.Data = contentStream;
+            }
+
+            return req;
         }
         #endregion
     }

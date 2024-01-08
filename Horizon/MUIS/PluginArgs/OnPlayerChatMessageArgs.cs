@@ -8,14 +8,14 @@ namespace Horizon.MUIS.PluginArgs
         /// <summary>
         /// Source player.
         /// </summary>
-        public ClientObject Player { get; set; }
+        public ClientObject? Player { get; set; }
 
-        public Channel Channel { get; set; }
+        public Channel? Channel { get; set; }
 
         /// <summary>
         /// Message.
         /// </summary>
-        public IMediusChatMessage Message { get; set; }
+        public IMediusChatMessage? Message { get; set; }
 
         public override string ToString()
         {

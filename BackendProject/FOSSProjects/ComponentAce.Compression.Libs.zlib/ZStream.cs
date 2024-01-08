@@ -78,19 +78,15 @@ public sealed class ZStream
 	public int inflate(int f)
 	{
 		if (istate == null)
-		{
-			return -2;
-		}
-		return istate.inflate(this, f);
+            return -2;
+        return istate.inflate(this, f);
 	}
 
 	public int inflateEnd()
 	{
 		if (istate == null)
-		{
-			return -2;
-		}
-		int result = istate.inflateEnd(this);
+            return -2;
+        int result = istate.inflateEnd(this);
 		istate = null;
 		return result;
 	}
@@ -98,19 +94,15 @@ public sealed class ZStream
 	public int inflateSync()
 	{
 		if (istate == null)
-		{
-			return -2;
-		}
-		return istate.inflateSync(this);
+            return -2;
+        return istate.inflateSync(this);
 	}
 
 	public int inflateSetDictionary(byte[] dictionary, int dictLength)
 	{
 		if (istate == null)
-		{
-			return -2;
-		}
-		return istate.inflateSetDictionary(this, dictionary, dictLength);
+            return -2;
+        return istate.inflateSetDictionary(this, dictionary, dictLength);
 	}
 
 	public int deflateInit(int level)
@@ -127,19 +119,15 @@ public sealed class ZStream
 	public int deflate(int flush)
 	{
 		if (dstate == null)
-		{
-			return -2;
-		}
-		return dstate.deflate(this, flush);
+            return -2;
+        return dstate.deflate(this, flush);
 	}
 
 	public int deflateEnd()
 	{
 		if (dstate == null)
-		{
-			return -2;
-		}
-		int result = dstate.deflateEnd();
+            return -2;
+        int result = dstate.deflateEnd();
 		dstate = null;
 		return result;
 	}
@@ -147,65 +135,55 @@ public sealed class ZStream
 	public int deflateParams(int level, int strategy)
 	{
 		if (dstate == null)
-		{
-			return -2;
-		}
-		return dstate.deflateParams(this, level, strategy);
+            return -2;
+        return dstate.deflateParams(this, level, strategy);
 	}
 
 	public int deflateSetDictionary(byte[] dictionary, int dictLength)
 	{
 		if (dstate == null)
-		{
-			return -2;
-		}
-		return dstate.deflateSetDictionary(this, dictionary, dictLength);
+            return -2;
+        return dstate.deflateSetDictionary(this, dictionary, dictLength);
 	}
 
 	internal void flush_pending()
 	{
-		int pending = dstate.pending;
-		if (pending > avail_out)
+		if (dstate != null && dstate.pending_buf != null)
 		{
-			pending = avail_out;
-		}
-		if (pending != 0)
-		{
-			if (dstate.pending_buf.Length > dstate.pending_out && next_out?.Length > next_out_index && dstate.pending_buf.Length >= dstate.pending_out + pending)
-			{
-				_ = next_out.Length;
-				_ = next_out_index + pending;
-			}
-			Array.Copy(dstate.pending_buf, dstate.pending_out, next_out, next_out_index, pending);
-			next_out_index += pending;
-			dstate.pending_out += pending;
-			total_out += pending;
-			avail_out -= pending;
-			dstate.pending -= pending;
-			if (dstate.pending == 0)
-			{
-				dstate.pending_out = 0;
-			}
-		}
-	}
+            int pending = dstate.pending;
+            if (pending > avail_out)
+                pending = avail_out;
+            if (pending != 0)
+            {
+                if (dstate.pending_buf.Length > dstate.pending_out && next_out?.Length > next_out_index && dstate.pending_buf.Length >= dstate.pending_out + pending)
+                {
+                    _ = next_out.Length;
+                    _ = next_out_index + pending;
+                }
+                Array.Copy(dstate.pending_buf, dstate.pending_out, next_out ?? Array.Empty<byte>(), next_out_index, pending);
+                next_out_index += pending;
+                dstate.pending_out += pending;
+                total_out += pending;
+                avail_out -= pending;
+                dstate.pending -= pending;
+                if (dstate.pending == 0)
+                    dstate.pending_out = 0;
+            }
+        }
+    }
 
 	internal int read_buf(byte[] buf, int start, int size)
 	{
 		int num = avail_in;
 		if (num > size)
-		{
-			num = size;
-		}
-		if (num == 0)
-		{
-			return 0;
-		}
-		avail_in -= num;
-		if (dstate?.noheader == 0)
-		{
-			adler = _adler.adler32(adler, next_in, next_in_index, num);
-		}
-		Array.Copy(next_in, next_in_index, buf, start, num);
+            num = size;
+        if (num == 0)
+            return 0;
+        avail_in -= num;
+		if (dstate?.noheader == 0 && _adler != null)
+            adler = _adler.adler32(adler, next_in, next_in_index, num);
+		if (next_in != null)
+			Array.Copy(next_in, next_in_index, buf, start, num);
 		next_in_index += num;
 		total_in += num;
 		return num;

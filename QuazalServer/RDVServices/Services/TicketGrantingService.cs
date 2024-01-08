@@ -7,7 +7,6 @@ using QuazalServer.QNetZ.Connection;
 using QuazalServer.RDVServices.Entities;
 using System.Net;
 using System.Security.Cryptography;
-using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace QuazalServer.RDVServices.Services
@@ -23,6 +22,10 @@ namespace QuazalServer.RDVServices.Services
 		{
 			if (Context != null)
 			{
+                string prudplink = string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress;
+                if (QuazalServerConfiguration.UsePublicIP)
+                    prudplink = string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerPublicBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerPublicBindAddress;
+
                 Match iswii = new Regex(@"\(([^()]*)\)").Match(userName); // Check for the WII friend code.
 
                 // create tracking client info
@@ -72,7 +75,7 @@ namespace QuazalServer.RDVServices.Services
                                 {
                                     m_urlRegularProtocols = new(
                                     "prudps",
-                                    string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                    prudplink,
                                     new Dictionary<string, int>() {
                                             { "port", Context.Handler.BackendPort },
                                             { "CID", 1 },
@@ -93,7 +96,7 @@ namespace QuazalServer.RDVServices.Services
                                 {
                                     m_urlRegularProtocols = new(
                                     "prudps",
-                                    string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                    prudplink,
                                     new Dictionary<string, int>() {
                                             { "port", Context.Handler.BackendPort },
                                             { "CID", 1 },
@@ -115,7 +118,7 @@ namespace QuazalServer.RDVServices.Services
                             {
                                 m_urlRegularProtocols = new(
                                 "prudps",
-                                string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                prudplink,
                                 new Dictionary<string, int>() {
                                         { "port", Context.Handler.BackendPort },
                                         { "CID", 1 },
@@ -152,7 +155,7 @@ namespace QuazalServer.RDVServices.Services
                             {
                                 m_urlRegularProtocols = new(
                                             "prudps",
-                                            string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                            prudplink,
                                             new Dictionary<string, int>() {
                                             { "port", Context.Handler.BackendPort },
                                             { "CID", 1 },
@@ -179,7 +182,7 @@ namespace QuazalServer.RDVServices.Services
                             {
                                 m_urlRegularProtocols = new(
                                             "prudps",
-                                            string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                            prudplink,
                                             new Dictionary<string, int>() {
                                             { "port", Context.Handler.BackendPort },
                                             { "CID", 1 },
@@ -210,6 +213,10 @@ namespace QuazalServer.RDVServices.Services
 		{
 			if (Context != null)
 			{
+                string prudplink = string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress;
+                if (QuazalServerConfiguration.UsePublicIP)
+                    prudplink = string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerPublicBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerPublicBindAddress;
+
                 if (oExtraData.data != null)
                 {
                     ErrorCode loginCode = ErrorCode.Core_NoError;
@@ -292,7 +299,7 @@ namespace QuazalServer.RDVServices.Services
                             {
                                 m_urlRegularProtocols = new(
                                     "prudps",
-                                    string.IsNullOrWhiteSpace(QuazalServerConfiguration.ServerBindAddress) ? Dns.GetHostName() : QuazalServerConfiguration.ServerBindAddress,
+                                    prudplink,
                                     new Dictionary<string, int>() {
                                     { "port", Context.Handler.BackendPort },
                                     { "CID", 1 },

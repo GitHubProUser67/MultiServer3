@@ -9,10 +9,8 @@ internal sealed class Adler32
 	internal long adler32(long adler, byte[]? buf, int index, int len)
 	{
 		if (buf == null)
-		{
-			return 1L;
-		}
-		long num = adler & 0xFFFF;
+            return 1L;
+        long num = adler & 0xFFFF;
 		long num2 = (adler >> 16) & 0xFFFF;
 		while (len > 0)
 		{

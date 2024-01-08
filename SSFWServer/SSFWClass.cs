@@ -35,7 +35,7 @@ namespace SSFWServer
             {
                 CollectHeader[i] = request.Header(i);
 #if DEBUG
-                LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Headers : HeaderIndex -> {CollectHeader[i].HeaderIndex} | HeaderItem -> {CollectHeader[i].HeaderItem}");
+                LoggerAccessor.LogInfo($"[SSFW] - CollectHeaders - Debug Headers : HeaderIndex -> {CollectHeader[i].HeaderIndex} | HeaderItem -> {CollectHeader[i].HeaderItem}");
 #endif
             }
 
@@ -46,13 +46,13 @@ namespace SSFWServer
         {
             string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
 
-            foreach ((string HeaderIndex, string HeaderItem) header in headers)
+            foreach ((string HeaderIndex, string HeaderItem) in headers)
             {
-                Match match = Regex.Match(header.HeaderItem, pattern);
+                Match match = Regex.Match(HeaderItem, pattern);
 
-                if (header.HeaderIndex == requestedHeaderIndex)
-                    return header.HeaderItem;
-                else if (header.HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                if (HeaderIndex == requestedHeaderIndex)
+                    return HeaderItem;
+                else if (HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
                     return match.Groups[2].Value;
             }
             return string.Empty; // Return empty string if the header index is not found, why not null, because in this case it prevents us
@@ -413,7 +413,7 @@ namespace SSFWServer
             return Response;
         }
 
-        private bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

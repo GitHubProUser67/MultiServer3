@@ -771,8 +771,9 @@ namespace Horizon.MUIS
             // get supported app ids
             var appids = await HorizonServerConfiguration.Database.GetAppIds();
 
-            // build dictionary of app ids from response
-            _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
+            if (appids != null)
+                // build dictionary of app ids from response
+                _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds != null ? x.AppIds.ToArray() : Array.Empty<int>());
         }
 
         public bool IsAppIdSupported(int appId)

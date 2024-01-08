@@ -304,7 +304,8 @@ namespace Horizon.DME
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
-            scertClient.CipherService.EnableEncryption = enableEncryption;
+            if (scertClient.CipherService != null)
+                scertClient.CipherService.EnableEncryption = enableEncryption;
 
             switch (message)
             {
@@ -316,11 +317,14 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
                     {
-                        // generate new client session key
-                        scertClient.CipherService.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
-                        scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
+                        if (clientCryptKeyPublic.PublicKey != null)
+                        {
+                            // generate new client session key
+                            scertClient.CipherService?.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
+                            scertClient.CipherService?.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
 
-                        Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP_AUX_UDP clientConnectTcpAuxUdp:
@@ -338,12 +342,12 @@ namespace Horizon.DME
                         */
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
-                        data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
+                        data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken ?? string.Empty);
 
                         if (data.ClientObject == null)
                         {
                             LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
-                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
+                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcpAuxUdp.SessionKey ?? string.Empty);
                             if (data.ClientObject != null)
                             {
                                 LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
@@ -366,7 +370,7 @@ namespace Horizon.DME
                                 LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
                                 //var clients = Program.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
                                 //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                                ClientObject clientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey);
+                                ClientObject clientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey ?? string.Empty);
                                 clientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
                                 data.ClientObject = clientObject;
                             }
@@ -393,7 +397,7 @@ namespace Horizon.DME
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         else if (scertClient.MediusVersion > 108)
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
-                        else
+                        else if (data.ClientObject.DmeWorld != null)
                         {
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
@@ -414,12 +418,12 @@ namespace Horizon.DME
                     {
                         data.ApplicationId = clientConnectTcp.AppId;
 
-                        data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcp.AccessToken);
+                        data.ClientObject = DmeClass.GetClientByAccessToken(clientConnectTcp.AccessToken ?? string.Empty);
 
                         if (data.ClientObject == null)
                         {
                             LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
-                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcp.SessionKey);
+                            data.ClientObject = DmeClass.GetClientBySessionKey(clientConnectTcp.SessionKey ?? string.Empty);
                             if (data.ClientObject != null)
                                 LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
                             else
@@ -427,13 +431,13 @@ namespace Horizon.DME
                                 LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
                                 //var clients = DmeClass.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
                                 //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                                ClientObject clientObject = new(clientConnectTcp.SessionKey);
+                                ClientObject clientObject = new(clientConnectTcp.SessionKey ?? string.Empty);
                                 clientObject.ApplicationId = clientConnectTcp.AppId;
                                 data.ClientObject = clientObject;
                             }
                         }
 
-                        if (enableEncryption == true && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null)
+                        if (enableEncryption == true && scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null)
                         {
                             //Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         }
@@ -447,62 +451,66 @@ namespace Horizon.DME
                             break;
                         }
 
-                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                        {
-                            PlayerId = (ushort)data.ClientObject.DmeId,
-                            ScertId = data.ClientObject.ScertId,
-                            PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
-                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                        }, clientChannel);
+                        if (data.ClientObject.DmeWorld != null)
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                            {
+                                PlayerId = (ushort)data.ClientObject.DmeId,
+                                ScertId = data.ClientObject.ScertId,
+                                PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                            }, clientChannel);
 
                         //pre108Complete
 
-                        if (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684)
-                        {
+                        if (data.ClientObject.DmeWorld != null && (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684))
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
                             {
                                 ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
                             }, clientChannel);
-                        }
 
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                        {
-                            PlayerId = (ushort)data.ClientObject.DmeId,
-                            ScertId = data.ClientObject.ScertId,
-                            PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
-                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                        }, clientChannel);
+                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                            {
+                                PlayerId = (ushort)data.ClientObject.DmeId,
+                                ScertId = data.ClientObject.ScertId,
+                                PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                            }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        // Update recv flag
-                        data.ClientObject.RecvFlag = clientConnectReadyTcp.RecvFlag;
+                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                        {
+                            // Update recv flag
+                            data.ClientObject.RecvFlag = clientConnectReadyTcp.RecvFlag;
 
-                        Queue(new RT_MSG_SERVER_STARTUP_INFO_NOTIFY()
-                        {
-                            GameHostType = (byte)MGCL_GAME_HOST_TYPE.MGCLGameHostClientServerAuxUDP,
-                            Timebase = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
-                        }, clientChannel);
-                        Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
-                        {
-                            Ip = DmeClass.SERVER_IP,
-                            Port = (ushort)data.ClientObject.UdpPort
-                        }, clientChannel);
+                            Queue(new RT_MSG_SERVER_STARTUP_INFO_NOTIFY()
+                            {
+                                GameHostType = (byte)MGCL_GAME_HOST_TYPE.MGCLGameHostClientServerAuxUDP,
+                                Timebase = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                            }, clientChannel);
+                            Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
+                            {
+                                Ip = DmeClass.SERVER_IP,
+                                Port = (ushort)data.ClientObject.UdpPort
+                            }, clientChannel);
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_AUX_UDP connectReadyAuxUdp:
                     {
                         data.ClientObject?.OnConnectionCompleted();
 
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
-                        {
-                            ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
-                        }, clientChannel);
+                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                            {
+                                ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
+                            }, clientChannel);
 
                         //MSPR doesn't need this packet sent
                         if (scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 24180))
@@ -516,7 +524,7 @@ namespace Horizon.DME
                             }, clientChannel);
                         }
 
-                        data.ClientObject?.DmeWorld.OnPlayerJoined(data.ClientObject);
+                        data.ClientObject?.DmeWorld?.OnPlayerJoined(data.ClientObject);
                         break;
                     }
                 case RT_MSG_SERVER_ECHO serverEchoReply:
@@ -531,7 +539,8 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_SET_RECV_FLAG setRecvFlag:
                     {
-                        data.ClientObject.RecvFlag = setRecvFlag.Flag;
+                        if (data.ClientObject != null)
+                            data.ClientObject.RecvFlag = setRecvFlag.Flag;
                         break;
                     }
                 case RT_MSG_CLIENT_SET_AGG_TIME setAggTime:
@@ -539,7 +548,7 @@ namespace Horizon.DME
                         LoggerAccessor.LogInfo($"rt_msg_server_process_client_set_agg_time_msg: new agg time = {setAggTime.AggTime}");
                         List<int> preClientObject = new List<int> { 10952, 10954, 10130 };
 
-                        if (preClientObject.Contains(scertClient.ApplicationID))
+                        if (data.ClientObject != null && preClientObject.Contains(scertClient.ApplicationID))
                             data.ClientObject.AggTimeMs = setAggTime.AggTime; //Else we don't set AggTime here YET, the client object isn't created! for Pre-108 clients
                         break;
                     }
@@ -551,32 +560,35 @@ namespace Horizon.DME
 
                 case RT_MSG_CLIENT_TIMEBASE_QUERY timebaseQuery:
                     {
-                        var timebaseQueryNotifyMessage = new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
+                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
                         {
-                            ClientTime = timebaseQuery.Timestamp,
-                            ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
-                        };
+                            RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY timebaseQueryNotifyMessage = new()
+                            {
+                                ClientTime = timebaseQuery.Timestamp,
+                                ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                            };
 
-                        //if (data.ClientObject?.Udp != null && data.ClientObject.RemoteUdpEndpoint != null)
-                        //{
-                        //    await data.ClientObject.Udp.SendImmediate(timebaseQueryNotifyMessage);
-                        //}
-                        //else
-                        //{
-                        //    await clientChannel.WriteAndFlushAsync(timebaseQueryNotifyMessage);
-                        //}
+                            //if (data.ClientObject?.Udp != null && data.ClientObject.RemoteUdpEndpoint != null)
+                            //{
+                            //    await data.ClientObject.Udp.SendImmediate(timebaseQueryNotifyMessage);
+                            //}
+                            //else
+                            //{
+                            //    await clientChannel.WriteAndFlushAsync(timebaseQueryNotifyMessage);
+                            //}
 
-                        await clientChannel.WriteAndFlushAsync(timebaseQueryNotifyMessage);
-                        //await clientChannel.WriteAndFlushAsync(new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
-                        //{
-                        //    ClientTime = timebaseQuery.Timestamp,
-                        //    ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
-                        //});
-                        //Queue(new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
-                        //{
-                        //    ClientTime = timebaseQuery.Timestamp,
-                        //    ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
-                        //}, clientChannel);
+                            await clientChannel.WriteAndFlushAsync(timebaseQueryNotifyMessage);
+                            //await clientChannel.WriteAndFlushAsync(new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
+                            //{
+                            //    ClientTime = timebaseQuery.Timestamp,
+                            //    ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                            //});
+                            //Queue(new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
+                            //{
+                            //    ClientTime = timebaseQuery.Timestamp,
+                            //    ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                            //}, clientChannel);
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_TOKEN_MESSAGE tokenMessage:
@@ -591,17 +603,18 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_APP_LIST clientAppList:
                     {
-                        data.ClientObject?.DmeWorld?.SendTcpAppList(data.ClientObject, clientAppList.Targets, clientAppList.Payload);
+                        data.ClientObject?.DmeWorld?.SendTcpAppList(data.ClientObject, clientAppList.Targets, clientAppList.Payload ?? Array.Empty<byte>());
                         break;
                     }
                 case RT_MSG_CLIENT_APP_SINGLE clientAppSingle:
                     {
-                        data.ClientObject.DmeWorld?.SendTcpAppSingle(data.ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload);
+                        data.ClientObject?.DmeWorld?.SendTcpAppSingle(data.ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
                         break;
                     }
                 case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
                     {
-                        await ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
+                        if (clientAppToServer.Message != null)
+                            await ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
                         break;
                     }
 
@@ -654,7 +667,7 @@ namespace Horizon.DME
                         });
                         */
 
-                        data.ClientObject.EnqueueTcp(new RT_MSG_SERVER_APP() { 
+                        data.ClientObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()
                             {
                                 TimeOfSend = Utils.GetUnixTime(),
@@ -672,7 +685,7 @@ namespace Horizon.DME
 
         protected virtual Task ProcessRTTHostTokenMessage(RT_MSG_CLIENT_TOKEN_MESSAGE clientTokenMsg, IChannel clientChannel, ChannelData data)
         {
-            LoggerAccessor.LogInfo($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.ClientObject.ScertId}, target token = {clientTokenMsg.targetToken}");
+            LoggerAccessor.LogInfo($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.ClientObject?.ScertId}, target token = {clientTokenMsg.targetToken}");
 
             bool isTokenValid = rt_token_is_valid(clientTokenMsg.targetToken);
 
@@ -795,25 +808,27 @@ namespace Horizon.DME
             // Send medius message to plugins
             if (message is RT_MSG_CLIENT_APP_TOSERVER clientApp)
             {
-                var onMediusMsg = new OnMediusMessageArgs(isIncoming)
+                OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
                     Player = data.ClientObject,
                     Channel = clientChannel,
                     Message = clientApp.Message
                 };
-                await DmeClass.Plugins.OnMediusMessageEvent(clientApp.Message.PacketClass, clientApp.Message.PacketType, onMediusMsg);
+                if (clientApp.Message != null)
+                    await DmeClass.Plugins.OnMediusMessageEvent(clientApp.Message.PacketClass, clientApp.Message.PacketType, onMediusMsg);
                 if (onMediusMsg.Ignore)
                     return true;
             }
             else if (message is RT_MSG_SERVER_APP serverApp)
             {
-                var onMediusMsg = new OnMediusMessageArgs(isIncoming)
+                OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
                     Player = data.ClientObject,
                     Channel = clientChannel,
                     Message = serverApp.Message
                 };
-                await DmeClass.Plugins.OnMediusMessageEvent(serverApp.Message.PacketClass, serverApp.Message.PacketType, onMediusMsg);
+                if (serverApp.Message != null)
+                    await DmeClass.Plugins.OnMediusMessageEvent(serverApp.Message.PacketClass, serverApp.Message.PacketType, onMediusMsg);
                 if (onMediusMsg.Ignore)
                     return true;
             }

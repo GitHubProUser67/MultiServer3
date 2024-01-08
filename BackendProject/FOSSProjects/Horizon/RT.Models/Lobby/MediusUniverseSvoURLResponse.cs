@@ -10,9 +10,9 @@ namespace BackendProject.Horizon.RT.Models
 
         public bool IsSuccess => true;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
-        public string URL { get; set; }
+        public string? URL { get; set; }
 
         public override void Deserialize(MessageReader reader)
         {

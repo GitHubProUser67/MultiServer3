@@ -136,11 +136,11 @@ public sealed class Deflate
 
 	private static readonly int HEAP_SIZE;
 
-	internal ZStream strm;
+	internal ZStream? strm;
 
 	internal int status;
 
-	internal byte[] pending_buf;
+	internal byte[]? pending_buf;
 
 	internal int pending_buf_size;
 
@@ -162,13 +162,13 @@ public sealed class Deflate
 
 	internal int w_mask;
 
-	internal byte[] window;
+	internal byte[]? window;
 
 	internal int window_size;
 
-	internal short[] prev;
+	internal short[]? prev;
 
-	internal short[] head;
+	internal short[]? head;
 
 	internal int ins_h;
 
@@ -259,12 +259,15 @@ public sealed class Deflate
 
 	internal void lm_init()
 	{
-		window_size = 2 * w_size;
-		head[hash_size - 1] = 0;
-		for (int i = 0; i < hash_size - 1; i++)
-		{
-			head[i] = 0;
-		}
+        window_size = 2 * w_size;
+        if (head != null)
+        {
+            head[hash_size - 1] = 0;
+            for (int i = 0; i < hash_size - 1; i++)
+            {
+                head[i] = 0;
+            }
+        }
 		max_lazy_match = config_table[level].max_lazy;
 		good_match = config_table[level].good_length;
 		nice_match = config_table[level].nice_length;
@@ -500,16 +503,18 @@ public sealed class Deflate
 
 	internal void put_byte(byte[] p, int start, int len)
 	{
-		Array.Copy(p, start, pending_buf, pending, len);
-		pending += len;
+		if (pending_buf != null)
+            Array.Copy(p, start, pending_buf, pending, len);
+        pending += len;
 	}
 
 	internal void put_byte(byte c)
 	{
-		pending_buf[pending++] = c;
-	}
+		if (pending_buf != null)
+            pending_buf[pending++] = c;
+    }
 
-	internal void put_short(int w)
+    internal void put_short(int w)
 	{
 		put_byte((byte)w);
 		put_byte((byte)SupportClass.URShift(w, 8));
@@ -558,16 +563,17 @@ public sealed class Deflate
 
 	internal bool _tr_tally(int dist, int lc)
 	{
-		pending_buf[d_buf + last_lit * 2] = (byte)SupportClass.URShift(dist, 8);
-		pending_buf[d_buf + last_lit * 2 + 1] = (byte)dist;
-		pending_buf[l_buf + last_lit] = (byte)lc;
+		if (pending_buf != null)
+		{
+            pending_buf[d_buf + last_lit * 2] = (byte)SupportClass.URShift(dist, 8);
+            pending_buf[d_buf + last_lit * 2 + 1] = (byte)dist;
+            pending_buf[l_buf + last_lit] = (byte)lc;
+        }
 		last_lit++;
 		if (dist == 0)
-		{
-			dyn_ltree[lc * 2]++;
-		}
-		else
-		{
+            dyn_ltree[lc * 2]++;
+        else
+        {
 			matches++;
 			dist--;
 			dyn_ltree[(Tree._length_code[lc] + 256 + 1) * 2]++;
@@ -583,17 +589,15 @@ public sealed class Deflate
 			}
 			num = SupportClass.URShift(num, 3);
 			if (matches < last_lit / 2 && num < num2 / 2)
-			{
-				return true;
-			}
-		}
-		return last_lit == lit_bufsize - 1;
+                return true;
+        }
+        return last_lit == lit_bufsize - 1;
 	}
 
 	internal void compress_block(short[] ltree, short[] dtree)
 	{
 		int num = 0;
-		if (last_lit != 0)
+		if (last_lit != 0 && pending_buf != null)
 		{
 			do
 			{
@@ -688,38 +692,33 @@ public sealed class Deflate
 			put_short((short)len);
 			put_short((short)(~len));
 		}
-		put_byte(window, buf, len);
-	}
+		if (window != null)
+            put_byte(window, buf, len);
+    }
 
-	internal void flush_block_only(bool eof)
+    internal void flush_block_only(bool eof)
 	{
 		_tr_flush_block((block_start >= 0) ? block_start : (-1), strstart - block_start, eof);
 		block_start = strstart;
-		strm.flush_pending();
+		strm?.flush_pending();
 	}
 
 	internal int deflate_stored(int flush)
 	{
 		int num = 65535;
 		if (num > pending_buf_size - 5)
-		{
-			num = pending_buf_size - 5;
-		}
-		while (true)
+            num = pending_buf_size - 5;
+        while (true)
 		{
 			if (lookahead <= 1)
 			{
 				fill_window();
 				if (lookahead == 0 && flush == 0)
-				{
-					return 0;
-				}
-				if (lookahead == 0)
-				{
-					break;
-				}
-			}
-			strstart += lookahead;
+                    return 0;
+                if (lookahead == 0)
+                    break;
+            }
+            strstart += lookahead;
 			lookahead = 0;
 			int num2 = block_start + num;
 			if (strstart == 0 || strstart >= num2)
@@ -727,34 +726,26 @@ public sealed class Deflate
 				lookahead = strstart - num2;
 				strstart = num2;
 				flush_block_only(eof: false);
-				if (strm.avail_out == 0)
-				{
-					return 0;
-				}
-			}
-			if (strstart - block_start >= w_size - MIN_LOOKAHEAD)
+				if (strm?.avail_out == 0)
+                    return 0;
+            }
+            if (strstart - block_start >= w_size - MIN_LOOKAHEAD)
 			{
 				flush_block_only(eof: false);
-				if (strm.avail_out == 0)
-				{
-					return 0;
-				}
-			}
-		}
+				if (strm?.avail_out == 0)
+                    return 0;
+            }
+        }
 		flush_block_only(flush == 4);
-		if (strm.avail_out == 0)
+		if (strm?.avail_out == 0)
 		{
 			if (flush != 4)
-			{
-				return 0;
-			}
-			return 2;
+                return 0;
+            return 2;
 		}
 		if (flush != 4)
-		{
-			return 1;
-		}
-		return 3;
+            return 1;
+        return 3;
 	}
 
 	internal void _tr_stored_block(int buf, int stored_len, bool eof)
@@ -812,302 +803,275 @@ public sealed class Deflate
 
 	internal void fill_window()
 	{
-		do
+		if (window != null && head != null && prev != null)
 		{
-			int num = window_size - lookahead - strstart;
-			int num2;
-			if (num == 0 && strstart == 0 && lookahead == 0)
-			{
-				num = w_size;
-			}
-			else if (num == -1)
-			{
-				num--;
-			}
-			else if (strstart >= w_size + w_size - MIN_LOOKAHEAD)
-			{
-				Array.Copy(window, w_size, window, 0, w_size);
-				match_start -= w_size;
-				strstart -= w_size;
-				block_start -= w_size;
-				num2 = hash_size;
-				int num3 = num2;
-				do
+            do
+            {
+                int num = window_size - lookahead - strstart;
+                int num2;
+                if (num == 0 && strstart == 0 && lookahead == 0)
+                    num = w_size;
+                else if (num == -1)
+                    num--;
+                else if (strstart >= w_size + w_size - MIN_LOOKAHEAD)
+                {
+                    Array.Copy(window, w_size, window, 0, w_size);
+                    match_start -= w_size;
+                    strstart -= w_size;
+                    block_start -= w_size;
+                    num2 = hash_size;
+                    int num3 = num2;
+                    do
+                    {
+                        int num4 = head[--num3] & 0xFFFF;
+                        head[num3] = (short)((num4 >= w_size) ? (num4 - w_size) : 0);
+                    }
+                    while (--num2 != 0);
+                    num2 = w_size;
+                    num3 = num2;
+                    do
+                    {
+                        int num4 = prev[--num3] & 0xFFFF;
+                        prev[num3] = (short)((num4 >= w_size) ? (num4 - w_size) : 0);
+                    }
+                    while (--num2 != 0);
+                    num += w_size;
+                }
+                if (strm?.avail_in == 0)
+                    break;
+				if (strm != null)
 				{
-					int num4 = head[--num3] & 0xFFFF;
-					head[num3] = (short)((num4 >= w_size) ? (num4 - w_size) : 0);
-				}
-				while (--num2 != 0);
-				num2 = w_size;
-				num3 = num2;
-				do
-				{
-					int num4 = prev[--num3] & 0xFFFF;
-					prev[num3] = (short)((num4 >= w_size) ? (num4 - w_size) : 0);
-				}
-				while (--num2 != 0);
-				num += w_size;
-			}
-			if (strm.avail_in == 0)
-			{
-				break;
-			}
-			num2 = strm.read_buf(window, strstart + lookahead, num);
-			lookahead += num2;
-			if (lookahead >= 3)
-			{
-				ins_h = window[strstart] & 0xFF;
-				ins_h = ((ins_h << hash_shift) ^ (window[strstart + 1] & 0xFF)) & hash_mask;
-			}
-		}
-		while (lookahead < MIN_LOOKAHEAD && strm.avail_in != 0);
+                    num2 = strm.read_buf(window, strstart + lookahead, num);
+                    lookahead += num2;
+                    if (lookahead >= 3)
+                    {
+                        ins_h = window[strstart] & 0xFF;
+                        ins_h = ((ins_h << hash_shift) ^ (window[strstart + 1] & 0xFF)) & hash_mask;
+                    }
+                }
+            }
+            while (lookahead < MIN_LOOKAHEAD && strm?.avail_in != 0);
+        }
 	}
 
 	internal int deflate_fast(int flush)
 	{
 		int num = 0;
-		while (true)
+		if (window != null && head != null && prev != null)
 		{
-			if (lookahead < MIN_LOOKAHEAD)
-			{
-				fill_window();
-				if (lookahead < MIN_LOOKAHEAD && flush == 0)
-				{
-					return 0;
-				}
-				if (lookahead == 0)
-				{
-					break;
-				}
-			}
-			if (lookahead >= 3)
-			{
-				ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
-				num = head[ins_h] & 0xFFFF;
-				prev[strstart & w_mask] = head[ins_h];
-				head[ins_h] = (short)strstart;
-			}
-			if ((long)num != 0 && ((strstart - num) & 0xFFFF) <= w_size - MIN_LOOKAHEAD && strategy != 2)
-			{
-				match_length = longest_match(num);
-			}
-			bool flag;
-			if (match_length >= 3)
-			{
-				flag = _tr_tally(strstart - match_start, match_length - 3);
-				lookahead -= match_length;
-				if (match_length <= max_lazy_match && lookahead >= 3)
-				{
-					match_length--;
-					do
-					{
-						strstart++;
-						ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
-						num = head[ins_h] & 0xFFFF;
-						prev[strstart & w_mask] = head[ins_h];
-						head[ins_h] = (short)strstart;
-					}
-					while (--match_length != 0);
-					strstart++;
-				}
-				else
-				{
-					strstart += match_length;
-					match_length = 0;
-					ins_h = window[strstart] & 0xFF;
-					ins_h = ((ins_h << hash_shift) ^ (window[strstart + 1] & 0xFF)) & hash_mask;
-				}
-			}
-			else
-			{
-				flag = _tr_tally(0, window[strstart] & 0xFF);
-				lookahead--;
-				strstart++;
-			}
-			if (flag)
-			{
-				flush_block_only(eof: false);
-				if (strm.avail_out == 0)
-				{
-					return 0;
-				}
-			}
-		}
-		flush_block_only(flush == 4);
-		if (strm.avail_out == 0)
-		{
-			if (flush == 4)
-			{
-				return 2;
-			}
-			return 0;
-		}
-		if (flush != 4)
-		{
-			return 1;
-		}
-		return 3;
+            while (true)
+            {
+                if (lookahead < MIN_LOOKAHEAD)
+                {
+                    fill_window();
+                    if (lookahead < MIN_LOOKAHEAD && flush == 0)
+                        return 0;
+                    if (lookahead == 0)
+                        break;
+                }
+                if (lookahead >= 3)
+                {
+                    ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
+                    num = head[ins_h] & 0xFFFF;
+                    prev[strstart & w_mask] = head[ins_h];
+                    head[ins_h] = (short)strstart;
+                }
+                if ((long)num != 0 && ((strstart - num) & 0xFFFF) <= w_size - MIN_LOOKAHEAD && strategy != 2)
+                    match_length = longest_match(num);
+                bool flag;
+                if (match_length >= 3)
+                {
+                    flag = _tr_tally(strstart - match_start, match_length - 3);
+                    lookahead -= match_length;
+                    if (match_length <= max_lazy_match && lookahead >= 3)
+                    {
+                        match_length--;
+                        do
+                        {
+                            strstart++;
+                            ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
+                            num = head[ins_h] & 0xFFFF;
+                            prev[strstart & w_mask] = head[ins_h];
+                            head[ins_h] = (short)strstart;
+                        }
+                        while (--match_length != 0);
+                        strstart++;
+                    }
+                    else
+                    {
+                        strstart += match_length;
+                        match_length = 0;
+                        ins_h = window[strstart] & 0xFF;
+                        ins_h = ((ins_h << hash_shift) ^ (window[strstart + 1] & 0xFF)) & hash_mask;
+                    }
+                }
+                else
+                {
+                    flag = _tr_tally(0, window[strstart] & 0xFF);
+                    lookahead--;
+                    strstart++;
+                }
+                if (flag)
+                {
+                    flush_block_only(eof: false);
+                    if (strm?.avail_out == 0)
+                        return 0;
+                }
+            }
+            flush_block_only(flush == 4);
+            if (strm?.avail_out == 0)
+            {
+                if (flush == 4)
+                    return 2;
+                return 0;
+            }
+            if (flush != 4)
+                return 1;
+        }
+
+        return 3;
 	}
 
 	internal int deflate_slow(int flush)
 	{
 		int num = 0;
-		while (true)
+		if (window != null && head != null && prev != null)
 		{
-			if (lookahead < MIN_LOOKAHEAD)
-			{
-				fill_window();
-				if (lookahead < MIN_LOOKAHEAD && flush == 0)
-				{
-					return 0;
-				}
-				if (lookahead == 0)
-				{
-					break;
-				}
-			}
-			if (lookahead >= 3)
-			{
-				ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
-				num = head[ins_h] & 0xFFFF;
-				prev[strstart & w_mask] = head[ins_h];
-				head[ins_h] = (short)strstart;
-			}
-			prev_length = match_length;
-			prev_match = match_start;
-			match_length = 2;
-			if (num != 0 && prev_length < max_lazy_match && ((strstart - num) & 0xFFFF) <= w_size - MIN_LOOKAHEAD)
-			{
-				if (strategy != 2)
-				{
-					match_length = longest_match(num);
-				}
-				if (match_length <= 5 && (strategy == 1 || (match_length == 3 && strstart - match_start > 4096)))
-				{
-					match_length = 2;
-				}
-			}
-			if (prev_length >= 3 && match_length <= prev_length)
-			{
-				int num2 = strstart + lookahead - 3;
-				bool flag = _tr_tally(strstart - 1 - prev_match, prev_length - 3);
-				lookahead -= prev_length - 1;
-				prev_length -= 2;
-				do
-				{
-					if (++strstart <= num2)
-					{
-						ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
-						num = head[ins_h] & 0xFFFF;
-						prev[strstart & w_mask] = head[ins_h];
-						head[ins_h] = (short)strstart;
-					}
-				}
-				while (--prev_length != 0);
-				match_available = 0;
-				match_length = 2;
-				strstart++;
-				if (flag)
-				{
-					flush_block_only(eof: false);
-					if (strm.avail_out == 0)
-					{
-						return 0;
-					}
-				}
-			}
-			else if (match_available != 0)
-			{
-				if (_tr_tally(0, window[strstart - 1] & 0xFF))
-				{
-					flush_block_only(eof: false);
-				}
-				strstart++;
-				lookahead--;
-				if (strm.avail_out == 0)
-				{
-					return 0;
-				}
-			}
-			else
-			{
-				match_available = 1;
-				strstart++;
-				lookahead--;
-			}
-		}
-		if (match_available != 0)
-		{
-			bool flag = _tr_tally(0, window[strstart - 1] & 0xFF);
-			match_available = 0;
-		}
-		flush_block_only(flush == 4);
-		if (strm.avail_out == 0)
-		{
-			if (flush == 4)
-			{
-				return 2;
-			}
-			return 0;
-		}
-		if (flush != 4)
-		{
-			return 1;
-		}
-		return 3;
+            while (true)
+            {
+                if (lookahead < MIN_LOOKAHEAD)
+                {
+                    fill_window();
+                    if (lookahead < MIN_LOOKAHEAD && flush == 0)
+                        return 0;
+                    if (lookahead == 0)
+                        break;
+                }
+                if (lookahead >= 3)
+                {
+                    ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
+                    num = head[ins_h] & 0xFFFF;
+                    prev[strstart & w_mask] = head[ins_h];
+                    head[ins_h] = (short)strstart;
+                }
+                prev_length = match_length;
+                prev_match = match_start;
+                match_length = 2;
+                if (num != 0 && prev_length < max_lazy_match && ((strstart - num) & 0xFFFF) <= w_size - MIN_LOOKAHEAD)
+                {
+                    if (strategy != 2)
+                        match_length = longest_match(num);
+                    if (match_length <= 5 && (strategy == 1 || (match_length == 3 && strstart - match_start > 4096)))
+                        match_length = 2;
+                }
+                if (prev_length >= 3 && match_length <= prev_length)
+                {
+                    int num2 = strstart + lookahead - 3;
+                    bool flag = _tr_tally(strstart - 1 - prev_match, prev_length - 3);
+                    lookahead -= prev_length - 1;
+                    prev_length -= 2;
+                    do
+                    {
+                        if (++strstart <= num2)
+                        {
+                            ins_h = ((ins_h << hash_shift) ^ (window[strstart + 2] & 0xFF)) & hash_mask;
+                            num = head[ins_h] & 0xFFFF;
+                            prev[strstart & w_mask] = head[ins_h];
+                            head[ins_h] = (short)strstart;
+                        }
+                    }
+                    while (--prev_length != 0);
+                    match_available = 0;
+                    match_length = 2;
+                    strstart++;
+                    if (flag)
+                    {
+                        flush_block_only(eof: false);
+                        if (strm?.avail_out == 0)
+                            return 0;
+                    }
+                }
+                else if (match_available != 0)
+                {
+                    if (_tr_tally(0, window[strstart - 1] & 0xFF))
+                        flush_block_only(eof: false);
+                    strstart++;
+                    lookahead--;
+                    if (strm?.avail_out == 0)
+                        return 0;
+                }
+                else
+                {
+                    match_available = 1;
+                    strstart++;
+                    lookahead--;
+                }
+            }
+            if (match_available != 0)
+            {
+                bool flag = _tr_tally(0, window[strstart - 1] & 0xFF);
+                match_available = 0;
+            }
+            flush_block_only(flush == 4);
+            if (strm?.avail_out == 0)
+            {
+                if (flush == 4)
+                    return 2;
+                return 0;
+            }
+            if (flush != 4)
+                return 1;
+        }
+
+        return 3;
 	}
 
 	internal int longest_match(int cur_match)
 	{
-		int num = max_chain_length;
-		int num2 = strstart;
-		int num3 = prev_length;
-		int num4 = ((strstart > w_size - MIN_LOOKAHEAD) ? (strstart - (w_size - MIN_LOOKAHEAD)) : 0);
-		int num5 = nice_match;
-		int num6 = w_mask;
-		int num7 = strstart + 258;
-		byte b = window[num2 + num3 - 1];
-		byte b2 = window[num2 + num3];
-		if (prev_length >= good_match)
+		if (window != null && prev != null)
 		{
-			num >>= 2;
-		}
-		if (num5 > lookahead)
-		{
-			num5 = lookahead;
-		}
-		do
-		{
-			int num8 = cur_match;
-			if (window[num8 + num3] != b2 || window[num8 + num3 - 1] != b || window[num8] != window[num2] || window[++num8] != window[num2 + 1])
-			{
-				continue;
-			}
-			num2 += 2;
-			num8++;
-			while (window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && num2 < num7)
-			{
-			}
-			int num9 = 258 - (num7 - num2);
-			num2 = num7 - 258;
-			if (num9 > num3)
-			{
-				match_start = cur_match;
-				num3 = num9;
-				if (num9 >= num5)
-				{
-					break;
-				}
-				b = window[num2 + num3 - 1];
-				b2 = window[num2 + num3];
-			}
-		}
-		while ((cur_match = prev[cur_match & num6] & 0xFFFF) > num4 && --num != 0);
-		if (num3 <= lookahead)
-		{
-			return num3;
-		}
-		return lookahead;
+            int num = max_chain_length;
+            int num2 = strstart;
+            int num3 = prev_length;
+            int num4 = ((strstart > w_size - MIN_LOOKAHEAD) ? (strstart - (w_size - MIN_LOOKAHEAD)) : 0);
+            int num5 = nice_match;
+            int num6 = w_mask;
+            int num7 = strstart + 258;
+            byte b = window[num2 + num3 - 1];
+            byte b2 = window[num2 + num3];
+            if (prev_length >= good_match)
+                num >>= 2;
+            if (num5 > lookahead)
+                num5 = lookahead;
+            do
+            {
+                int num8 = cur_match;
+                if (window[num8 + num3] != b2 || window[num8 + num3 - 1] != b || window[num8] != window[num2] || window[++num8] != window[num2 + 1])
+                    continue;
+                num2 += 2;
+                num8++;
+                while (window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && window[++num2] == window[++num8] && num2 < num7)
+                {
+
+                }
+                int num9 = 258 - (num7 - num2);
+                num2 = num7 - 258;
+                if (num9 > num3)
+                {
+                    match_start = cur_match;
+                    num3 = num9;
+                    if (num9 >= num5)
+                        break;
+                    b = window[num2 + num3 - 1];
+                    b2 = window[num2 + num3];
+                }
+            }
+            while ((cur_match = prev[cur_match & num6] & 0xFFFF) > num4 && --num != 0);
+            if (num3 <= lookahead)
+                return num3;
+        }
+
+        return lookahead;
 	}
 
 	internal int deflateInit(ZStream strm, int level, int bits)
@@ -1168,12 +1132,11 @@ public sealed class Deflate
 		pending = 0;
 		pending_out = 0;
 		if (noheader < 0)
-		{
-			noheader = 0;
-		}
-		status = ((noheader != 0) ? 113 : 42);
-		strm.adler = strm._adler.adler32(0L, null, 0, 0);
-		last_flush = 0;
+            noheader = 0;
+        status = ((noheader != 0) ? 113 : 42);
+		if (strm._adler != null)
+            strm.adler = strm._adler.adler32(0L, null, 0, 0);
+        last_flush = 0;
 		tr_init();
 		lm_init();
 		return 0;
@@ -1182,36 +1145,26 @@ public sealed class Deflate
 	internal int deflateEnd()
 	{
 		if (status != 42 && status != 113 && status != 666)
-		{
-			return -2;
-		}
-		pending_buf = null;
+            return -2;
+        pending_buf = null;
 		head = null;
 		prev = null;
 		window = null;
 		if (status != 113)
-		{
-			return 0;
-		}
-		return -3;
+            return 0;
+        return -3;
 	}
 
 	internal int deflateParams(ZStream strm, int _level, int _strategy)
 	{
 		int result = 0;
 		if (_level == -1)
-		{
-			_level = 6;
-		}
-		if (_level < 0 || _level > 9 || _strategy < 0 || _strategy > 2)
-		{
-			return -2;
-		}
-		if (config_table[level].func != config_table[_level].func && strm.total_in != 0)
-		{
-			result = strm.deflate(1);
-		}
-		if (level != _level)
+            _level = 6;
+        if (_level < 0 || _level > 9 || _strategy < 0 || _strategy > 2)
+            return -2;
+        if (config_table[level].func != config_table[_level].func && strm.total_in != 0)
+            result = strm.deflate(1);
+        if (level != _level)
 		{
 			level = _level;
 			max_lazy_match = config_table[level].max_lazy;
@@ -1225,43 +1178,41 @@ public sealed class Deflate
 
 	internal int deflateSetDictionary(ZStream strm, byte[] dictionary, int dictLength)
 	{
-		int num = dictLength;
-		int sourceIndex = 0;
-		if (dictionary == null || status != 42)
+		if (window != null && head != null && prev != null)
 		{
-			return -2;
-		}
-		strm.adler = strm._adler.adler32(strm.adler, dictionary, 0, dictLength);
-		if (num < 3)
-		{
-			return 0;
-		}
-		if (num > w_size - MIN_LOOKAHEAD)
-		{
-			num = w_size - MIN_LOOKAHEAD;
-			sourceIndex = dictLength - num;
-		}
-		Array.Copy(dictionary, sourceIndex, window, 0, num);
-		strstart = num;
-		block_start = num;
-		ins_h = window[0] & 0xFF;
-		ins_h = ((ins_h << hash_shift) ^ (window[1] & 0xFF)) & hash_mask;
-		for (int i = 0; i <= num - 3; i++)
-		{
-			ins_h = ((ins_h << hash_shift) ^ (window[i + 2] & 0xFF)) & hash_mask;
-			prev[i & w_mask] = head[ins_h];
-			head[ins_h] = (short)i;
-		}
+            int num = dictLength;
+            int sourceIndex = 0;
+            if (dictionary == null || status != 42)
+                return -2;
+            if (strm._adler != null)
+                strm.adler = strm._adler.adler32(strm.adler, dictionary, 0, dictLength);
+            if (num < 3)
+                return 0;
+            if (num > w_size - MIN_LOOKAHEAD)
+            {
+                num = w_size - MIN_LOOKAHEAD;
+                sourceIndex = dictLength - num;
+            }
+            Array.Copy(dictionary, sourceIndex, window, 0, num);
+            strstart = num;
+            block_start = num;
+            ins_h = window[0] & 0xFF;
+            ins_h = ((ins_h << hash_shift) ^ (window[1] & 0xFF)) & hash_mask;
+            for (int i = 0; i <= num - 3; i++)
+            {
+                ins_h = ((ins_h << hash_shift) ^ (window[i + 2] & 0xFF)) & hash_mask;
+                prev[i & w_mask] = head[ins_h];
+                head[ins_h] = (short)i;
+            }
+        }
 		return 0;
 	}
 
 	internal int deflate(ZStream strm, int flush)
 	{
 		if (flush > 4 || flush < 0)
-		{
-			return -2;
-		}
-		if (strm.next_out == null || (strm.next_in == null && strm.avail_in != 0) || (status == 666 && flush != 4))
+            return -2;
+        if (strm.next_out == null || (strm.next_in == null && strm.avail_in != 0) || (status == 666 && flush != 4))
 		{
 			strm.msg = z_errmsg[4];
 			return -2;
@@ -1279,15 +1230,11 @@ public sealed class Deflate
 			int num2 = 8 + (w_bits - 8 << 4) << 8;
 			int num3 = ((level - 1) & 0xFF) >> 1;
 			if (num3 > 3)
-			{
-				num3 = 3;
-			}
-			num2 |= num3 << 6;
+                num3 = 3;
+            num2 |= num3 << 6;
 			if (strstart != 0)
-			{
-				num2 |= 0x20;
-			}
-			num2 += 31 - num2 % 31;
+                num2 |= 0x20;
+            num2 += 31 - num2 % 31;
 			status = 113;
 			putShortMSB(num2);
 			if (strstart != 0)
@@ -1295,9 +1242,10 @@ public sealed class Deflate
 				putShortMSB((int)SupportClass.URShift(strm.adler, 16));
 				putShortMSB((int)(strm.adler & 0xFFFF));
 			}
-			strm.adler = strm._adler.adler32(0L, null, 0, 0);
-		}
-		if (pending != 0)
+			if (strm._adler != null)
+                strm.adler = strm._adler.adler32(0L, null, 0, 0);
+        }
+        if (pending != 0)
 		{
 			strm.flush_pending();
 			if (strm.avail_out == 0)
@@ -1332,27 +1280,21 @@ public sealed class Deflate
 				break;
 			}
 			if (num4 == 2 || num4 == 3)
-			{
-				status = 666;
-			}
-			switch (num4)
+                status = 666;
+            switch (num4)
 			{
 			case 0:
 			case 2:
 				if (strm.avail_out == 0)
-				{
-					last_flush = -1;
-				}
-				return 0;
+                        last_flush = -1;
+                return 0;
 			case 1:
 				if (flush == 1)
-				{
-					_tr_align();
-				}
-				else
-				{
+                        _tr_align();
+                else
+                {
 					_tr_stored_block(0, 0, eof: false);
-					if (flush == 3)
+					if (flush == 3 && head != null)
 					{
 						for (int i = 0; i < hash_size; i++)
 						{
@@ -1370,22 +1312,16 @@ public sealed class Deflate
 			}
 		}
 		if (flush != 4)
-		{
-			return 0;
-		}
-		if (noheader != 0)
-		{
-			return 1;
-		}
-		putShortMSB((int)SupportClass.URShift(strm.adler, 16));
+            return 0;
+        if (noheader != 0)
+            return 1;
+        putShortMSB((int)SupportClass.URShift(strm.adler, 16));
 		putShortMSB((int)(strm.adler & 0xFFFF));
 		strm.flush_pending();
 		noheader = -1;
 		if (pending == 0)
-		{
-			return 1;
-		}
-		return 0;
+            return 1;
+        return 0;
 	}
 
 	static Deflate()

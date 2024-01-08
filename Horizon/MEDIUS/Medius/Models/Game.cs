@@ -26,15 +26,15 @@ namespace Horizon.MEDIUS.Medius.Models
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
-        public List<GameClient> Clients = new List<GameClient>();
+        public List<GameClient> Clients = new();
         public string? GameName;
         public string? GamePassword;
         public string? SpectatorPassword;
         public byte[] GameStats = new byte[Constants.GAMESTATS_MAXLEN];
         public MediusGameHostType GameHostType;
         public MGCL_GAME_HOST_TYPE GAME_HOST_TYPE;
-        public NetAddressList netAddressList;
-        public RSA_KEY pubKey = new RSA_KEY();
+        public NetAddressList? netAddressList;
+        public RSA_KEY pubKey = new();
         public int WorldID;
         public int AccountID;
         public int MinPlayers;
@@ -60,7 +60,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
         public DMEObject DMEServer;
-        public Channel ChatChannel;
+        public Channel? ChatChannel;
         public ClientObject? Host;
 
         public string? AccountIdsAtStart => accountIdsAtStart;
@@ -306,7 +306,11 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public string GetActivePlayerList()
         {
-            return string.Join(",", Clients?.Select(x => x.Client.AccountId.ToString()).Where(x => x != null));
+            var playlist = Clients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+            if (playlist != null)
+                return string.Join(",", playlist);
+
+            return string.Empty;
         }
 
         public virtual async Task Tick()
@@ -389,7 +393,7 @@ namespace Horizon.MEDIUS.Medius.Models
             else
                 LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
-            if (!string.IsNullOrEmpty(player.Client.CurrentGame.GameName) && !player.Client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(player.Client.WorldId.ToString()) && !string.IsNullOrEmpty(player.Client.AccountName) && logevent)
+            if (!string.IsNullOrEmpty(player.Client?.CurrentGame?.GameName) && !player.Client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(player.Client.WorldId.ToString()) && !string.IsNullOrEmpty(player.Client.AccountName) && logevent)
             {
                 if (ishost)
                     _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {player.Client.WorldId} as the Host.");
@@ -399,7 +403,8 @@ namespace Horizon.MEDIUS.Medius.Models
 
             try
             {
-                CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame.GameName, player.Client.WorldId.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), ishost);
+                if (player.Client != null)
+                    CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, player.Client.WorldId.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), ishost);
             }
             catch (Exception)
             {
@@ -434,29 +439,35 @@ namespace Horizon.MEDIUS.Medius.Models
 
             player.InGame = false;
 
-            // Update player object
-            await player.Client.LeaveGame(this);
-            await player.Client.LeaveChannel(ChatChannel);
+            if (player.Client != null)
+            {
+                // Update player object
+                await player.Client.LeaveGame(this);
+                if (ChatChannel != null)
+                    await player.Client.LeaveChannel(ChatChannel);
 
-            // Remove from collection
-            if (player.Client.CurrentGame != null)
-                await RemovePlayer(player.Client, player.Client.ApplicationId);
+                // Remove from collection
+                if (player.Client.CurrentGame != null)
+                    await RemovePlayer(player.Client, player.Client.ApplicationId);
 
-            // Update player object
-            await player.Client.LeaveGame(this);
-            await player.Client.LeaveChannel(ChatChannel);
+                // Update player object
+                await player.Client.LeaveGame(this);
+                if (ChatChannel != null)
+                    await player.Client.LeaveChannel(ChatChannel);
+            }
         }
 
         public virtual async Task RemovePlayer(ClientObject client, int appid)
         {
             LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} removed.");
 
-            if (!string.IsNullOrEmpty(client.CurrentGame.GameName) && !client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(client.WorldId.ToString()) && !string.IsNullOrEmpty(client.AccountName))
+            if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(client.WorldId.ToString()) && !string.IsNullOrEmpty(client.AccountName))
                 _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {client.AccountName} Left: {client.CurrentGame.GameName} in world: {client.WorldId}");
 
             try
             {
-                CrudRoomManager.RemoveUser(client.ApplicationId.ToString(), client.CurrentGame.GameName, client.WorldId.ToString(), client.AccountName);
+                if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !string.IsNullOrEmpty(client.AccountName))
+                    CrudRoomManager.RemoveUser(client.ApplicationId.ToString(), client.CurrentGame.GameName, client.WorldId.ToString(), client.AccountName);
 
                 if (PlayerCount <= 1)
                     CrudRoomManager.RemoveGame(client.ApplicationId.ToString(), client.WorldId.ToString(), GameName);
@@ -637,13 +648,14 @@ namespace Horizon.MEDIUS.Medius.Models
             // Remove players from game world
             while (Clients.Count > 0)
             {
-                var client = Clients[0].Client;
+                ClientObject? client = Clients[0].Client;
                 if (client == null)
                     Clients.RemoveAt(0);
                 else
                 {
                     await client.LeaveGame(this);
-                    await client.LeaveChannel(ChatChannel);
+                    if (ChatChannel != null)
+                        await client.LeaveChannel(ChatChannel);
                 }
             }
 

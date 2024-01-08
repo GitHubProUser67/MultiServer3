@@ -7,6 +7,7 @@ using Horizon.PluginManager;
 using BackendProject;
 using System.Net;
 using Horizon.HTTPSERVICE;
+using BackendProject.Horizon.LIBRARY.Database.Models;
 
 namespace Horizon.MUIS
 {
@@ -17,7 +18,6 @@ namespace Horizon.MUIS
         public static ServerSettings Settings = new();
 
         public static IPAddress SERVER_IP = IPAddress.None;
-        public static string? IP_TYPE;
 
         public static MediusManager Manager = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
@@ -69,7 +69,8 @@ namespace Horizon.MUIS
                     }
                 }
 
-                await Task.WhenAll(UniverseInfoServers.Select(x => x.Tick()));
+                if (UniverseInfoServers != null)
+                    await Task.WhenAll(UniverseInfoServers.Select(x => x.Tick()));
 
                 // Reload config
                 if ((Utils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
@@ -95,7 +96,8 @@ namespace Horizon.MUIS
                 await Task.Delay(100); // this value is the one used in Horizon by default.
             }
 
-            await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));
+            if (UniverseInfoServers != null)
+                await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));
         }
 
         private static Task StartServerAsync()
@@ -180,18 +182,16 @@ namespace Horizon.MUIS
         /// </summary>
         private static void RefreshConfig()
         {
-            var serializerSettings = new JsonSerializerSettings()
-            {
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-            };
-
             // Determine server ip
             RefreshServerIp();
 
             // Load settings
             if (File.Exists(CONFIG_FILE))
                 // Populate existing object
-                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
+                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+                {
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                });
             else
             {
                 // Add the appids to the ApplicationIds list
@@ -973,22 +973,13 @@ namespace Horizon.MUIS
         {
             #region Determine Server IP
             if (!Settings.UsePublicIp)
-            {
                 SERVER_IP = IPAddress.Parse(Settings.MUISIp);
-                IP_TYPE = "Local";
-            }
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                {
                     SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
-                    IP_TYPE = "Public";
-                }
                 else
-                {
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
-                    IP_TYPE = "Public (Override)";
-                }
             }
             #endregion
         }
@@ -998,8 +989,9 @@ namespace Horizon.MUIS
             // get supported app ids
             var appids = await HorizonServerConfiguration.Database.GetAppIds();
 
-            // build dictionary of app ids from response
-            _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
+            if (appids != null)
+                // build dictionary of app ids from response
+                _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds != null ? x.AppIds.ToArray() : Array.Empty<int>());
         }
 
         private static async Task RefreshAppSettings()
@@ -1015,27 +1007,30 @@ namespace Horizon.MUIS
                     return;
 
                 // get settings
-                foreach (var appIdGroup in appIdGroups)
+                foreach (AppIdDTO appIdGroup in appIdGroups)
                 {
-                    foreach (var appId in appIdGroup.AppIds)
+                    if (appIdGroup.AppIds != null)
                     {
-                        var settings = await HorizonServerConfiguration.Database.GetServerSettings(appId);
-                        if (settings != null)
+                        foreach (int appId in appIdGroup.AppIds)
                         {
-                            if (_appSettings.TryGetValue(appId, out var appSettings))
-                                appSettings.SetSettings(settings);
-                            else
+                            var settings = await HorizonServerConfiguration.Database.GetServerSettings(appId);
+                            if (settings != null)
                             {
-                                appSettings = new AppSettings(appId);
-                                appSettings.SetSettings(settings);
-                                _appSettings.Add(appId, appSettings);
+                                if (_appSettings.TryGetValue(appId, out var appSettings))
+                                    appSettings.SetSettings(settings);
+                                else
+                                {
+                                    appSettings = new AppSettings(appId);
+                                    appSettings.SetSettings(settings);
+                                    _appSettings.Add(appId, appSettings);
 
-                                // we also want to send this back to the server since this is new locally
-                                // and there might be new setting fields that aren't yet on the db
-                                await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
+                                    // we also want to send this back to the server since this is new locally
+                                    // and there might be new setting fields that aren't yet on the db
+                                    await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
+                                }
+
+                                CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                             }
-
-                            CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
                         }
                     }
                 }

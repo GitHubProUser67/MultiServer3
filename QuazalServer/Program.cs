@@ -6,8 +6,10 @@ using System.Runtime;
 public static class QuazalServerConfiguration
 {
     public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
-    public static string EdNetBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+    public static string ServerPublicBindAddress { get; set; } = MiscUtils.GetPublicIPAddress();
+    public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
+    public static bool UsePublicIP { get; set; } = true;
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;
@@ -36,8 +38,10 @@ public static class QuazalServerConfiguration
             dynamic config = JObject.Parse(json);
 
             ServerBindAddress = config.server_bind_address;
-            EdNetBindAddress = config.ednet_bind_address;
+            ServerPublicBindAddress = config.server_public_bind_address;
+            EdNetBindAddressOverride = config.ednet_bind_address_override;
             QuazalStaticFolder = config.server_static_folder;
+            UsePublicIP = config.server_public_ip;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
             EnableDiscordPlugin = config.discord_plugin.enabled;

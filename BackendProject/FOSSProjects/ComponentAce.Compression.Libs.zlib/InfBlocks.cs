@@ -76,9 +76,9 @@ internal sealed class InfBlocks
 
 	internal int bitb;
 
-	internal int[] hufts;
+	internal int[]? hufts;
 
-	internal byte[] window;
+	internal byte[]? window;
 
 	internal int end;
 
@@ -86,11 +86,11 @@ internal sealed class InfBlocks
 
 	internal int write;
 
-	internal object checkfn;
+	internal object? checkfn;
 
 	internal long check;
 
-	internal InfBlocks(ZStream z, object checkfn, int w)
+	internal InfBlocks(ZStream z, object? checkfn, int w)
 	{
 		hufts = new int[4320];
 		window = new byte[w];
@@ -103,28 +103,20 @@ internal sealed class InfBlocks
 	internal void reset(ZStream z, long[]? c)
 	{
 		if (c != null)
-		{
-			c[0] = check;
-		}
-		if (mode == 4 || mode == 5)
-		{
-			blens = null;
-		}
-		if (mode == 6)
-		{
-			codes.free(z);
-		}
-		mode = 0;
+            c[0] = check;
+        if (mode == 4 || mode == 5)
+            blens = null;
+        if (mode == 6)
+            codes?.free(z);
+        mode = 0;
 		bitk = 0;
 		bitb = 0;
 		read = (write = 0);
-		if (checkfn != null)
-		{
-			z.adler = (check = z._adler.adler32(0L, null, 0, 0));
-		}
-	}
+		if (checkfn != null && z._adler != null)
+            z.adler = (check = z._adler.adler32(0L, null, 0, 0));
+    }
 
-	internal int proc(ZStream z, int r)
+    internal int proc(ZStream z, int r)
 	{
 		int num = z.next_in_index;
 		int num2 = z.avail_in;
@@ -140,7 +132,7 @@ internal sealed class InfBlocks
 			{
 				for (; i < 3; i += 8)
 				{
-					if (num2 != 0)
+					if (num2 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num2--;
@@ -204,7 +196,7 @@ internal sealed class InfBlocks
 			case 1:
 				for (; i < 32; i += 8)
 				{
-					if (num2 != 0)
+					if (num2 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num2--;
@@ -281,29 +273,24 @@ internal sealed class InfBlocks
 				r = 0;
 				int num6 = left;
 				if (num6 > num2)
-				{
-					num6 = num2;
-				}
-				if (num6 > num5)
-				{
-					num6 = num5;
-				}
-				Array.Copy(z.next_in, num, window, num4, num6);
-				num += num6;
+                    num6 = num2;
+                if (num6 > num5)
+                    num6 = num5;
+				if (z.next_in != null && window != null)
+                    Array.Copy(z.next_in, num, window, num4, num6);
+                num += num6;
 				num2 -= num6;
 				num4 += num6;
 				num5 -= num6;
 				if ((left -= num6) == 0)
-				{
-					mode = ((last != 0) ? 7 : 0);
-				}
-				break;
+                    mode = ((last != 0) ? 7 : 0);
+                break;
 			}
 			case 3:
 			{
 				for (; i < 14; i += 8)
 				{
-					if (num2 != 0)
+					if (num2 != 0 && z.next_in != null)
 					{
 						r = 0;
 						num2--;
@@ -342,35 +329,38 @@ internal sealed class InfBlocks
 			}
 			case 4:
 			{
-				while (index < 4 + SupportClass.URShift(table, 10))
+				if (blens != null)
 				{
-					for (; i < 3; i += 8)
-					{
-						if (num2 != 0)
-						{
-							r = 0;
-							num2--;
-							num3 |= (z.next_in[num++] & 0xFF) << i;
-							continue;
-						}
-						bitb = num3;
-						bitk = i;
-						z.avail_in = num2;
-						z.total_in += num - z.next_in_index;
-						z.next_in_index = num;
-						write = num4;
-						return inflate_flush(z, r);
-					}
-					blens[border[index++]] = num3 & 7;
-					num3 = SupportClass.URShift(num3, 3);
-					i -= 3;
-				}
-				while (index < 19)
-				{
-					blens[border[index++]] = 0;
-				}
+                      while (index < 4 + SupportClass.URShift(table, 10))
+                      {
+                           for (; i < 3; i += 8)
+                           {
+                                if (num2 != 0 && z.next_in != null)
+                                {
+                                    r = 0;
+                                    num2--;
+                                    num3 |= (z.next_in[num++] & 0xFF) << i;
+                                    continue;
+                                }
+                                bitb = num3;
+                                bitk = i;
+                                z.avail_in = num2;
+                                z.total_in += num - z.next_in_index;
+                                z.next_in_index = num;
+                                write = num4;
+                                return inflate_flush(z, r);
+                           }
+                           blens[border[index++]] = num3 & 7;
+                           num3 = SupportClass.URShift(num3, 3);
+                           i -= 3;
+                      }
+                      while (index < 19)
+                      {
+                           blens[border[index++]] = 0;
+                      }
+                }
 				bb[0] = 7;
-				int num6 = InfTree.inflate_trees_bits(blens, bb, tb, hufts, z);
+				int num6 = InfTree.inflate_trees_bits(blens, bb, tb, hufts ?? Array.Empty<int>(), z);
 				if (num6 != 0)
 				{
 					r = num6;
@@ -398,12 +388,10 @@ internal sealed class InfBlocks
 				{
 					num6 = table;
 					if (index >= 258 + (num6 & 0x1F) + ((num6 >> 5) & 0x1F))
+                        break;
+                    for (num6 = bb[0]; i < num6; i += 8)
 					{
-						break;
-					}
-					for (num6 = bb[0]; i < num6; i += 8)
-					{
-						if (num2 != 0)
+						if (num2 != 0 && z.next_in != null)
 						{
 							r = 0;
 							num2--;
@@ -420,62 +408,69 @@ internal sealed class InfBlocks
 					}
 					_ = tb[0];
 					_ = -1;
-					num6 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 1];
-					int num7 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 2];
-					if (num7 < 16)
+					if (hufts != null)
 					{
-						num3 = SupportClass.URShift(num3, num6);
-						i -= num6;
-						blens[index++] = num7;
-						continue;
-					}
-					int num8 = ((num7 == 18) ? 7 : (num7 - 14));
-					int num9 = ((num7 == 18) ? 11 : 3);
-					for (; i < num6 + num8; i += 8)
-					{
-						if (num2 != 0)
-						{
-							r = 0;
-							num2--;
-							num3 |= (z.next_in[num++] & 0xFF) << i;
-							continue;
-						}
-						bitb = num3;
-						bitk = i;
-						z.avail_in = num2;
-						z.total_in += num - z.next_in_index;
-						z.next_in_index = num;
-						write = num4;
-						return inflate_flush(z, r);
-					}
-					num3 = SupportClass.URShift(num3, num6);
-					i -= num6;
-					num9 += num3 & inflate_mask[num8];
-					num3 = SupportClass.URShift(num3, num8);
-					i -= num8;
-					num8 = index;
-					num6 = table;
-					if (num8 + num9 > 258 + (num6 & 0x1F) + ((num6 >> 5) & 0x1F) || (num7 == 16 && num8 < 1))
-					{
-						blens = null;
-						mode = 9;
-						z.msg = "invalid bit length repeat";
-						r = -3;
-						bitb = num3;
-						bitk = i;
-						z.avail_in = num2;
-						z.total_in += num - z.next_in_index;
-						z.next_in_index = num;
-						write = num4;
-						return inflate_flush(z, r);
-					}
-					num7 = ((num7 == 16) ? blens[num8 - 1] : 0);
-					do
-					{
-						blens[num8++] = num7;
-					}
-					while (--num9 != 0);
-					index = num8;
+                                num6 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 1];
+                                int num7 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 2];
+                                if (num7 < 16 && blens != null)
+                                {
+                                    num3 = SupportClass.URShift(num3, num6);
+                                    i -= num6;
+                                    blens[index++] = num7;
+                                    continue;
+                                }
+                                int num8 = ((num7 == 18) ? 7 : (num7 - 14));
+                                int num9 = ((num7 == 18) ? 11 : 3);
+                                for (; i < num6 + num8; i += 8)
+                                {
+                                    if (num2 != 0 && z.next_in != null)
+                                    {
+                                        r = 0;
+                                        num2--;
+                                        num3 |= (z.next_in[num++] & 0xFF) << i;
+                                        continue;
+                                    }
+                                    bitb = num3;
+                                    bitk = i;
+                                    z.avail_in = num2;
+                                    z.total_in += num - z.next_in_index;
+                                    z.next_in_index = num;
+                                    write = num4;
+                                    return inflate_flush(z, r);
+                                }
+                                num3 = SupportClass.URShift(num3, num6);
+                                i -= num6;
+                                num9 += num3 & inflate_mask[num8];
+                                num3 = SupportClass.URShift(num3, num8);
+                                i -= num8;
+                                num8 = index;
+                                num6 = table;
+                                if (num8 + num9 > 258 + (num6 & 0x1F) + ((num6 >> 5) & 0x1F) || (num7 == 16 && num8 < 1))
+                                {
+                                    blens = null;
+                                    mode = 9;
+                                    z.msg = "invalid bit length repeat";
+                                    r = -3;
+                                    bitb = num3;
+                                    bitk = i;
+                                    z.avail_in = num2;
+                                    z.total_in += num - z.next_in_index;
+                                    z.next_in_index = num;
+                                    write = num4;
+                                    return inflate_flush(z, r);
+                                }
+                                if (blens != null)
+                                {
+                                    num7 = ((num7 == 16) ? blens[num8 - 1] : 0);
+                                    do
+                                    {
+                                        blens[num8++] = num7;
+                                    }
+                                    while (--num9 != 0);
+                                }
+
+                                index = num8;
+                    }
 				}
 				tb[0] = -1;
 				int[] array = new int[1];
@@ -485,7 +480,8 @@ internal sealed class InfBlocks
 				array[0] = 9;
 				array2[0] = 6;
 				num6 = table;
-				num6 = InfTree.inflate_trees_dynamic(257 + (num6 & 0x1F), 1 + ((num6 >> 5) & 0x1F), blens, array, array2, array3, array4, hufts, z);
+				if (blens != null && hufts != null)
+					num6 = InfTree.inflate_trees_dynamic(257 + (num6 & 0x1F), 1 + ((num6 >> 5) & 0x1F), blens, array, array2, array3, array4, hufts, z);
 				if (num6 != 0)
 				{
 					if (num6 == -3)
@@ -502,8 +498,9 @@ internal sealed class InfBlocks
 					write = num4;
 					return inflate_flush(z, r);
 				}
-				codes = new InfCodes(array[0], array2[0], hufts, array3[0], hufts, array4[0], z);
-				blens = null;
+				if (hufts != null)
+                    codes = new InfCodes(array[0], array2[0], hufts, array3[0], hufts, array4[0], z);
+                blens = null;
 				mode = 6;
 				goto case 6;
 			}
@@ -514,12 +511,12 @@ internal sealed class InfBlocks
 				z.total_in += num - z.next_in_index;
 				z.next_in_index = num;
 				write = num4;
-				if ((r = codes.proc(this, z, r)) != 1)
+				if (codes != null && (r = codes.proc(this, z, r)) != 1)
 				{
 					return inflate_flush(z, r);
 				}
 				r = 0;
-				codes.free(z);
+				codes?.free(z);
 				num = z.next_in_index;
 				num2 = z.avail_in;
 				num3 = bitb;
@@ -590,17 +587,17 @@ internal sealed class InfBlocks
 
 	internal void set_dictionary(byte[] d, int start, int n)
 	{
-		Array.Copy(d, start, window, 0, n);
-		read = (write = n);
+		if (window != null)
+            Array.Copy(d, start, window, 0, n);
+        read = (write = n);
 	}
 
 	internal int sync_point()
 	{
 		if (mode != 1)
-		{
-			return 0;
-		}
-		return 1;
+            return 0;
+
+        return 1;
 	}
 
 	internal int inflate_flush(ZStream z, int r)
@@ -609,45 +606,33 @@ internal sealed class InfBlocks
 		int num = read;
 		int num2 = ((num <= write) ? write : end) - num;
 		if (num2 > z.avail_out)
-		{
-			num2 = z.avail_out;
-		}
-		if (num2 != 0 && r == -5)
-		{
-			r = 0;
-		}
-		z.avail_out -= num2;
+            num2 = z.avail_out;
+        if (num2 != 0 && r == -5)
+            r = 0;
+        z.avail_out -= num2;
 		z.total_out += num2;
-		if (checkfn != null)
-		{
-			z.adler = (check = z._adler.adler32(check, window, num, num2));
-		}
-		Array.Copy(window, num, z.next_out, next_out_index, num2);
-		next_out_index += num2;
+		if (checkfn != null && z._adler != null)
+            z.adler = (check = z._adler.adler32(check, window, num, num2));
+		if (window != null && z.next_out != null)
+            Array.Copy(window, num, z.next_out, next_out_index, num2);
+        next_out_index += num2;
 		num += num2;
 		if (num == end)
 		{
 			num = 0;
 			if (write == end)
-			{
-				write = 0;
-			}
-			num2 = write - num;
+                write = 0;
+            num2 = write - num;
 			if (num2 > z.avail_out)
-			{
-				num2 = z.avail_out;
-			}
-			if (num2 != 0 && r == -5)
-			{
-				r = 0;
-			}
-			z.avail_out -= num2;
+                num2 = z.avail_out;
+            if (num2 != 0 && r == -5)
+                r = 0;
+            z.avail_out -= num2;
 			z.total_out += num2;
-			if (checkfn != null)
-			{
-				z.adler = (check = z._adler.adler32(check, window, num, num2));
-			}
-			Array.Copy(window, num, z.next_out, next_out_index, num2);
+			if (checkfn != null && z._adler != null)
+                z.adler = (check = z._adler.adler32(check, window, num, num2));
+            if (window != null && z.next_out != null)
+                Array.Copy(window, num, z.next_out, next_out_index, num2);
 			next_out_index += num2;
 			num += num2;
 		}

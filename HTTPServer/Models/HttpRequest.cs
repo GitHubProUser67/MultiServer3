@@ -15,7 +15,7 @@ namespace HTTPServer.Models
         public string Method { get; set; } = string.Empty;
         public string? Url { get; set; }
         public string IP { get; set; } = string.Empty;
-        public byte[]? Data { get; set; }
+        public Stream? Data { get; set; }
         public Route? Route { get; set; }
         public Dictionary<string, string> Headers { get; set; }
 
@@ -57,7 +57,7 @@ namespace HTTPServer.Models
         {
             if (Route != null && Route.UrlRegex != null && Url != null)
             {
-                var match = Regex.Match(Url, Route.UrlRegex);
+                Match match = Regex.Match(Url, Route.UrlRegex);
                 if (match.Groups.Count > 1)
                     return match.Groups[1].Value;
             }
@@ -71,12 +71,9 @@ namespace HTTPServer.Models
             {
                 if (Url != null)
                 {
-                    string queryString = Url[(Url.IndexOf("?") + 1)..];
-                    string[] parameters = queryString.Split('&');
+                    Dictionary<string, string> parameterDictionary = new();
 
-                    var parameterDictionary = new Dictionary<string, string>();
-
-                    foreach (var parameter in parameters)
+                    foreach (string parameter in Url[(Url.IndexOf("?") + 1)..].Split('&'))
                     {
                         string[] keyValue = parameter.Split('=');
 
@@ -98,7 +95,7 @@ namespace HTTPServer.Models
             get
             {
                 if (Data != null)
-                    return new MemoryStream(Data);
+                    return Data;
                 else
                     return null;
             }

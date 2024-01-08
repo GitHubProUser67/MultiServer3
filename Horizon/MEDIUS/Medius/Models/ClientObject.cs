@@ -18,7 +18,7 @@ namespace Horizon.MEDIUS.Medius.Models
         protected static Random RNG = new();
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
-        public List<GameClient> Clients = new List<GameClient>();
+        public List<GameClient> Clients = new();
 
         /// <summary>
         /// 
@@ -163,7 +163,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public string requestData { get; set; }
+        public string? requestData { get; set; }
 
         /// <summary>
         /// 
@@ -173,7 +173,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public string appData { get; set; }
+        public string? appData { get; set; }
 
         #region Lobby World Filters
 
@@ -258,12 +258,12 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public List<string> FriendsListPS3 { get; set; }
+        public List<string>? FriendsListPS3 { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public Dictionary<int, string?> FriendsList { get; set; }
+        public Dictionary<int, string?>? FriendsList { get; set; }
 
         /// <summary>
         /// 
@@ -283,12 +283,12 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public UploadState Upload { get; set; }
+        public UploadState? Upload { get; set; }
 
         /// <summary>
         /// File being Uploaded
         /// </summary>
-        public MediusFile mediusFileToUpload;
+        public MediusFile? mediusFileToUpload;
 
         /// <summary>
         /// 
@@ -307,7 +307,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public virtual bool IsAggTime => !LastAggTime.HasValue || (Utils.GetMillisecondsSinceStartup() - LastAggTime.Value) >= AggTimeMs;
         public bool KeepAlive => _keepAliveTime.HasValue && (Utils.GetHighPrecisionUtcTime() - _keepAliveTime).Value.TotalSeconds < MediusClass.GetAppSettingsOrDefault(ApplicationId).KeepAliveGracePeriodSeconds;
 
-        public Action<ClientObject> OnDestroyed;
+        public Action<ClientObject>? OnDestroyed;
 
         /// <summary>
         /// 
@@ -348,8 +348,6 @@ namespace Horizon.MEDIUS.Medius.Models
         /// 
         /// </summary>
         private DateTime _lastServerEchoValue = DateTime.UnixEpoch;
-
-
 
         public ClientObject()
         {
@@ -582,7 +580,7 @@ namespace Horizon.MEDIUS.Medius.Models
             var accountDto = await HorizonServerConfiguration.Database.GetAccountById(AccountId);
             if (accountDto != null)
             {
-                FriendsList = accountDto.Friends.ToDictionary(x => x.AccountId, x => x.AccountName);
+                FriendsList = accountDto.Friends?.ToDictionary(x => x.AccountId, x => x.AccountName);
                 ClanId = accountDto.ClanId;
             }
         }
@@ -615,7 +613,7 @@ namespace Horizon.MEDIUS.Medius.Models
             }
         }
 
-        private async Task LeaveCurrentParty()
+        private Task LeaveCurrentParty()
         {
             if (CurrentParty != null)
             {
@@ -623,6 +621,8 @@ namespace Horizon.MEDIUS.Medius.Models
                 CurrentParty = null;
             }
             PartyIndex = null;
+
+            return Task.CompletedTask;
         }
 
         #endregion

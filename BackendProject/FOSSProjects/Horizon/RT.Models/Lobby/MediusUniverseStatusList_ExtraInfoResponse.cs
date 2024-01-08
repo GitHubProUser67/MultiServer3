@@ -10,20 +10,20 @@ namespace BackendProject.Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public string UniverseName;
-        public string DNS;
+        public string? UniverseName;
+        public string? DNS;
         public int Port;
-        public string UniverseDescription;
+        public string? UniverseDescription;
         public int Status;
         public int UserCount;
         public int MaxUsers;
-        public string UniverseBilling;
-        public string BillingSystemName;
+        public string? UniverseBilling;
+        public string? BillingSystemName;
         public bool EndOfList;
-        public string ExtendedInfo;
+        public string? ExtendedInfo;
 
         public override void Deserialize(MessageReader reader)
         {

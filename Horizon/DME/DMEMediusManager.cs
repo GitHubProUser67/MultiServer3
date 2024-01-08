@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
 using BackendProject;
+using Horizon.MEDIUS;
 
 namespace Horizon.DME
 {
@@ -85,12 +86,10 @@ namespace Horizon.DME
             if (client.Destroy)
                 throw new InvalidOperationException($"Attempting to add {client} to MediusManager but client is ready to be destroyed.");
 
-            if (_accessTokenToClient.TryAdd(client.Token, client))
+            if (_accessTokenToClient.TryAdd(client.Token ?? string.Empty, client))
             {
-                if (!_sessionKeyToClient.TryAdd(client.SessionKey, client))
-                {
-                    _accessTokenToClient.TryRemove(client.Token, out _);
-                }
+                if (!_sessionKeyToClient.TryAdd(client.SessionKey ?? string.Empty, client))
+                    _accessTokenToClient.TryRemove(client.Token ?? string.Empty, out _);
             }
         }
 
@@ -99,8 +98,8 @@ namespace Horizon.DME
             if (client == null)
                 return;
 
-            _sessionKeyToClient.TryRemove(client.SessionKey, out _);
-            _accessTokenToClient.TryRemove(client.Token, out _);
+            _sessionKeyToClient.TryRemove(client.SessionKey ?? string.Empty, out _);
+            _accessTokenToClient.TryRemove(client.Token ?? string.Empty, out _);
         }
 
         #endregion
@@ -256,7 +255,7 @@ namespace Horizon.DME
             try
             {
                 if (_bootstrap != null)
-                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(MiscUtils.GetIp(DmeClass.Settings.MPS.Ip), DmeClass.Settings.MPS.Port));
+                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(MiscUtils.GetIp(DmeClass.Settings.MPS.Ip) ?? MediusClass.SERVER_IP, DmeClass.Settings.MPS.Port));
             }
             catch (Exception)
             {
@@ -272,11 +271,14 @@ namespace Horizon.DME
 
             if (_mpsChannel != null && !_mpsChannel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
                 _mpsChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = _mpsChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
-            scertClient.CipherService.GenerateCipher(scertClient.RsaAuthKey);
+            var scertClient = _mpsChannel?.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (scertClient != null)
+            {
+                scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
+                scertClient.CipherService?.GenerateCipher(scertClient.RsaAuthKey);
+            }
 
-            var clientHello = new RT_MSG_CLIENT_HELLO()
+            RT_MSG_CLIENT_HELLO clientHello = new()
             {
                 Parameters = new ushort[]
                 {
@@ -289,7 +291,8 @@ namespace Horizon.DME
             };
 
             // Send hello
-            await _mpsChannel.WriteAndFlushAsync(clientHello);
+            if (_mpsChannel != null)
+                await _mpsChannel.WriteAndFlushAsync(clientHello);
 
             _mpsState = MPSConnectionState.HELLO;
         }
@@ -322,7 +325,7 @@ namespace Horizon.DME
                             throw new Exception($"Unexpected RT_MSG_SERVER_CRYPTKEY_PEER from server. {serverCryptKeyPeer}");
 
                         // generate new client session key
-                        scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION, serverCryptKeyPeer.SessionKey);
+                        scertClient.CipherService?.GenerateCipher(CipherContext.RC_CLIENT_SESSION, serverCryptKeyPeer.SessionKey ?? Array.Empty<byte>());
 
                         if (_mpsChannel != null)
                             await _mpsChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_TCP()
@@ -371,7 +374,8 @@ namespace Horizon.DME
                     }
                 case RT_MSG_SERVER_APP serverApp:
                     {
-                        await ProcessMediusMessage(serverApp.Message, serverChannel);
+                        if (serverApp.Message != null)
+                            await ProcessMediusMessage(serverApp.Message, serverChannel);
                         break;
                     }
 
@@ -416,15 +420,18 @@ namespace Horizon.DME
                     {
                         try
                         {
-                            World world = new World(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients);
-                            _worlds.Add(world);
-
-                            Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                            if (createGameWithAttributesRequest.MessageID != null)
                             {
-                                MessageID = createGameWithAttributesRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                WorldID = world.WorldId
-                            });
+                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients);
+                                _worlds.Add(world);
+
+                                Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                {
+                                    MessageID = createGameWithAttributesRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                    WorldID = world.WorldId
+                                });
+                            }
                         }
                         catch (Exception e)
                         {
@@ -435,7 +442,7 @@ namespace Horizon.DME
                     }
                 case MediusServerJoinGameRequest joinGameRequest:
                     {
-                        var world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
+                        World? world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
                         if (world == null)
                         {
                             if (ApplicationId == 20371 || ApplicationId == 20374)
@@ -447,7 +454,7 @@ namespace Horizon.DME
                             }
                             else if (ApplicationId == 22920)
                             {
-                                World worldParty = new World(this, ApplicationId, 64);
+                                World worldParty = new(this, ApplicationId, 64);
                                 _worlds.Add(worldParty);
 
                                 Enqueue(await worldParty.OnJoinGameRequest(joinGameRequest));

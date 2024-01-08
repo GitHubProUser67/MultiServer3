@@ -244,7 +244,8 @@ internal sealed class Inflate
 				z.istate.marker = 0;
 				return -2;
 			case 7:
-				num = z.istate.blocks.proc(z, num);
+				if (z.istate.blocks != null)
+					num = z.istate.blocks.proc(z, num);
 				switch (num)
 				{
 				case -3:
@@ -338,20 +339,16 @@ internal sealed class Inflate
 		int start = 0;
 		int num = dictLength;
 		if (z == null || z.istate == null || z.istate.mode != 6)
-		{
-			return -2;
-		}
-		if (z._adler.adler32(1L, dictionary, 0, dictLength) != z.adler)
-		{
-			return -3;
-		}
-		z.adler = z._adler.adler32(0L, null, 0, 0);
+            return -2;
+        if (z._adler?.adler32(1L, dictionary, 0, dictLength) != z.adler)
+            return -3;
+        z.adler = z._adler.adler32(0L, null, 0, 0);
 		if (num >= 1 << z.istate.wbits)
 		{
 			num = (1 << z.istate.wbits) - 1;
 			start = dictLength - num;
 		}
-		z.istate.blocks.set_dictionary(dictionary, start, num);
+		z.istate.blocks?.set_dictionary(dictionary, start, num);
 		z.istate.mode = 7;
 		return 0;
 	}
@@ -359,36 +356,33 @@ internal sealed class Inflate
 	internal int inflateSync(ZStream z)
 	{
 		if (z == null || z.istate == null)
-		{
-			return -2;
-		}
-		if (z.istate.mode != 13)
+            return -2;
+        if (z.istate.mode != 13)
 		{
 			z.istate.mode = 13;
 			z.istate.marker = 0;
 		}
 		int num;
 		if ((num = z.avail_in) == 0)
-		{
-			return -5;
-		}
-		int num2 = z.next_in_index;
+            return -5;
+        int num2 = z.next_in_index;
 		int num3 = z.istate.marker;
-		while (num != 0 && num3 < 4)
+		if (z.next_in != null)
 		{
-			num3 = ((z.next_in[num2] != mark[num3]) ? ((z.next_in[num2] == 0) ? (4 - num3) : 0) : (num3 + 1));
-			num2++;
-			num--;
+			while (num != 0 && num3 < 4)
+			{
+				num3 = ((z.next_in[num2] != mark[num3]) ? ((z.next_in[num2] == 0) ? (4 - num3) : 0) : (num3 + 1));
+				num2++;
+				num--;
+			}
 		}
 		z.total_in += num2 - z.next_in_index;
 		z.next_in_index = num2;
 		z.avail_in = num;
 		z.istate.marker = num3;
 		if (num3 != 4)
-		{
-			return -3;
-		}
-		long total_in = z.total_in;
+            return -3;
+        long total_in = z.total_in;
 		long total_out = z.total_out;
 		inflateReset(z);
 		z.total_in = total_in;
@@ -400,9 +394,7 @@ internal sealed class Inflate
 	internal int inflateSyncPoint(ZStream z)
 	{
 		if (z == null || z.istate == null || z.istate.blocks == null)
-		{
-			return -2;
-		}
-		return z.istate.blocks.sync_point();
+            return -2;
+        return z.istate.blocks.sync_point();
 	}
 }
