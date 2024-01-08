@@ -23,9 +23,7 @@ namespace BackendProject.FileHelper
                         return FileHelperCryptoClass.DecryptData(dst, FileHelperCryptoClass.GetEncryptionKey(key));
                     }
                     else
-                    {
                         return DecompressedData;
-                    }
                 }
                 else
                 {

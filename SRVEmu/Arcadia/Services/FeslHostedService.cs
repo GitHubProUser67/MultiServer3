@@ -47,7 +47,7 @@ public class FeslHostedService
         string IssuerDN = "CN=OTG3 Certificate Authority, C=US, ST=California, L=Redwood City, O=\"Electronic Arts, Inc.\", OU=Online Technology Group, emailAddress=dirtysock-contact@ea.com";
         string SubjectDN = "C=US, ST=California, O=\"Electronic Arts, Inc.\", OU=Online Technology Group, CN=fesl.ea.com, emailAddress=fesl@ea.com";
 
-        (_feslCertKey, _feslPubCert) = _certGenerator.GenerateVulnerableCert(IssuerDN, SubjectDN);
+        (_feslCertKey, _feslPubCert) = _certGenerator.GenerateProtoSSLVulnerableCert(IssuerDN, SubjectDN);
     }
 
     private void CreateFeslPortListener(int listenerPort)
@@ -66,8 +66,7 @@ public class FeslHostedService
 
                 CustomLogger.LoggerAccessor.LogInfo("[fesl] - Opening connection from: {clientEndpoint}", clientEndpoint);
 
-                Task connection = Task.Run(async () => await HandleClient(tcpClient, clientEndpoint), _cts.Token);
-                _activeConnections.Add(connection);
+                _activeConnections.Add(Task.Run(async () => await HandleClient(tcpClient, clientEndpoint), _cts.Token));
             }
         }, _cts.Token);
         _servers.Add(serverFesl);
@@ -75,10 +74,8 @@ public class FeslHostedService
 
     private async Task HandleClient(TcpClient tcpClient, string clientEndpoint)
     {
-        NetworkStream? networkStream = tcpClient.GetStream();
-
         Ssl3TlsServer connTls = new(new Rc4TlsCrypto(), _feslPubCert, _feslCertKey);
-        TlsServerProtocol serverProtocol = new(networkStream);
+        TlsServerProtocol serverProtocol = new(tcpClient.GetStream());
 
         try
         {

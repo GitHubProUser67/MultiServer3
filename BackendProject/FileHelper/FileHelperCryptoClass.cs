@@ -17,29 +17,30 @@ namespace BackendProject.FileHelper
         public static string GetEncryptionKey(string secretKey)
         {
             // MD5 is the hash algorithm expected by rave to generate encryption key
-            var md5 = MD5.Create();
+            using (MD5 md5 = MD5.Create())
+            {
+                // MD5 works with bytes so a conversion of plain secretKey to it bytes equivalent is required.
+                byte[] secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
 
-            // MD5 works with bytes so a conversion of plain secretKey to it bytes equivalent is required.
-            byte[] secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
+                byte[] hashedSecret = md5.ComputeHash(secretKeyBytes, 0, secretKeyBytes.Length);
+                byte[] hashedSecretLast12Bytes = new byte[12];
 
-            byte[] hashedSecret = md5.ComputeHash(secretKeyBytes, 0, secretKeyBytes.Length);
-            byte[] hashedSecretLast12Bytes = new byte[12];
+                Array.Copy(hashedSecret, hashedSecret.Length - 12, hashedSecretLast12Bytes, 0, 12);
+                string hashedSecretLast12HexString = BitConverter.ToString(hashedSecretLast12Bytes);
 
-            Array.Copy(hashedSecret, hashedSecret.Length - 12, hashedSecretLast12Bytes, 0, 12);
-            string hashedSecretLast12HexString = BitConverter.ToString(hashedSecretLast12Bytes);
+                hashedSecretLast12HexString = hashedSecretLast12HexString.ToLower().Replace("-", "");
 
-            hashedSecretLast12HexString = hashedSecretLast12HexString.ToLower().Replace("-", "");
+                byte[] hashedSecretLast12HexBytes = Encoding.UTF8.GetBytes(hashedSecretLast12HexString);
+                byte[] secretFirst12Bytes = Encoding.UTF8.GetBytes(secretKey.Replace("FLWSECK-", "")[..12]);
+                byte[] combineKey = new byte[24];
 
-            string secretKeyFirst12 = secretKey.Replace("FLWSECK-", "").Substring(0, 12);
+                Array.Copy(secretFirst12Bytes, 0, combineKey, 0, secretFirst12Bytes.Length);
+                Array.Copy(hashedSecretLast12HexBytes, hashedSecretLast12HexBytes.Length - 12, combineKey, 12, 12);
 
-            byte[] hashedSecretLast12HexBytes = Encoding.UTF8.GetBytes(hashedSecretLast12HexString);
-            byte[] secretFirst12Bytes = Encoding.UTF8.GetBytes(secretKeyFirst12);
-            byte[] combineKey = new byte[24];
+                md5.Clear();
 
-            Array.Copy(secretFirst12Bytes, 0, combineKey, 0, secretFirst12Bytes.Length);
-            Array.Copy(hashedSecretLast12HexBytes, hashedSecretLast12HexBytes.Length - 12, combineKey, 12, 12);
-
-            return Encoding.UTF8.GetString(combineKey);
+                return Encoding.UTF8.GetString(combineKey);
+            }
         }
 
         public static byte[] DecryptData(byte[] encryptedData, string encryptionKey)
@@ -64,13 +65,11 @@ namespace BackendProject.FileHelper
                 {
                     byte[] xteakey = new byte[16];
 
-                    byte[] cipheredkey = new byte[xteakey.Length];
-
                     Array.Copy(des.Key, 0, xteakey, 0, xteakey.Length);
 
                     // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    cipheredkey = InitiateCustomXTEACipheredKey(xteakey, ReverseByteArray(xteakey));
+                    byte[] cipheredkey = InitiateCustomXTEACipheredKey(xteakey, ReverseByteArray(xteakey));
 
                     if (cipheredkey != null)
                     {
@@ -104,7 +103,7 @@ namespace BackendProject.FileHelper
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogInfo($"[FileHelperCryptoClass] : has throw an exception in DecryptData - {ex}");
+                LoggerAccessor.LogError($"[FileHelperCryptoClass] : Thrown an exception in DecryptData - {ex}");
             }
 
             xtea = null;
@@ -132,11 +131,10 @@ namespace BackendProject.FileHelper
         private static byte[] ReverseByteArray(byte[] input)
         {
             byte[] reversedArray = new byte[input.Length];
-            int lastIndex = input.Length - 1;
 
             for (int i = 0; i < input.Length; i++)
             {
-                reversedArray[i] = input[lastIndex - i];
+                reversedArray[i] = input[input.Length - 1 - i];
             }
 
             return reversedArray;

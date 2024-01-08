@@ -18,7 +18,7 @@ namespace Horizon.MUIS.Models
         protected static Random RNG = new Random();
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
-        public List<GameClient> Clients = new List<GameClient>();
+        public List<GameClient> Clients = new();
 
         /// <summary>
         /// 
@@ -28,12 +28,12 @@ namespace Horizon.MUIS.Models
         /// <summary>
         /// 
         /// </summary>
-        public IChannel Tcp { get; protected set; } = null;
+        public IChannel? Tcp { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public IPEndPoint RemoteUdpEndpoint { get; set; } = null;
+        public IPEndPoint? RemoteUdpEndpoint { get; set; } = null;
 
         /// <summary>
         /// 
@@ -98,32 +98,32 @@ namespace Horizon.MUIS.Models
         /// <summary>
         /// 
         /// </summary>
-        public string AccountName { get; protected set; } = null;
+        public string? AccountName { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public byte[] AccountStats { get; protected set; } = null;
+        public byte[]? AccountStats { get; protected set; } = null;
 
         /// <summary>
         /// Anonymous Login Name for the duration of that session
         /// </summary>
-        public string AccountDisplayName { get; set; } = null;
+        public string? AccountDisplayName { get; set; } = null;
 
         /// <summary>
         /// Current access token required to access the account.
         /// </summary>
-        public string Token { get; protected set; } = null;
+        public string? Token { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string SessionKey { get; protected set; } = null;
+        public string? SessionKey { get; protected set; } = null;
 
         /// <summary>
         /// MGCL Session Key
         /// </summary>
-        public string MGCLSessionKey { get; protected set; } = null;
+        public string? MGCLSessionKey { get; protected set; } = null;
 
         /// <summary>
         /// Unique MGCL hardcoded game identifer per Medius title
@@ -169,12 +169,12 @@ namespace Horizon.MUIS.Models
         /// <summary>
         /// 
         /// </summary>
-        public Channel CurrentChannel { get; protected set; } = null;
+        public Channel? CurrentChannel { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public Game CurrentGame { get; protected set; } = null;
+        public Game? CurrentGame { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -214,7 +214,7 @@ namespace Horizon.MUIS.Models
         /// <summary>
         /// 
         /// </summary>
-        public string Metadata { get; set; } = null;
+        public string? Metadata { get; set; } = null;
 
         /// <summary>
         /// RTT (ms)
@@ -224,12 +224,12 @@ namespace Horizon.MUIS.Models
         /// <summary>
         /// 
         /// </summary>
-        public List<string> FriendsListPS3 { get; set; }
+        public List<string>? FriendsListPS3 { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public Dictionary<int, string> FriendsList { get; set; }
+        public Dictionary<int, string?>? FriendsList { get; set; }
 
         /// <summary>
         /// 
@@ -249,12 +249,12 @@ namespace Horizon.MUIS.Models
         /// <summary>
         /// 
         /// </summary>
-        public UploadState Upload { get; set; }
+        public UploadState? Upload { get; set; }
 
         /// <summary>
         /// File being Uploaded
         /// </summary>
-        public MediusFile mediusFileToUpload;
+        public MediusFile? mediusFileToUpload;
 
         /// <summary>
         /// 
@@ -273,7 +273,7 @@ namespace Horizon.MUIS.Models
         public virtual bool IsAggTime => !LastAggTime.HasValue || (Utils.GetMillisecondsSinceStartup() - LastAggTime.Value) >= AggTimeMs;
         public bool KeepAlive => _keepAliveTime.HasValue && (Utils.GetHighPrecisionUtcTime() - _keepAliveTime).Value.TotalSeconds < MuisClass.GetAppSettingsOrDefault(ApplicationId).KeepAliveGracePeriodSeconds;
 
-        public Action<ClientObject> OnDestroyed;
+        public Action<ClientObject>? OnDestroyed;
 
         /// <summary>
         /// 
@@ -469,7 +469,7 @@ namespace Horizon.MUIS.Models
             await LeaveCurrentGame();
 
             // Leave channel
-            LeaveCurrentChannel();
+            await LeaveCurrentChannel();
 
             // Logout
             _logoutTime = Utils.GetHighPrecisionUtcTime();
@@ -483,7 +483,7 @@ namespace Horizon.MUIS.Models
         public async Task RefreshAccount()
         {
             var accountDto = await HorizonServerConfiguration.Database.GetAccountById(AccountId);
-            if (accountDto != null)
+            if (accountDto != null && accountDto.Friends != null)
             {
                 FriendsList = accountDto.Friends.ToDictionary(x => x.AccountId, x => x.AccountName);
                 ClanId = accountDto.ClanId;
@@ -673,7 +673,7 @@ namespace Horizon.MUIS.Models
 
     public class UploadState
     {
-        public FileStream Stream { get; set; }
+        public FileStream? Stream { get; set; }
         public int FileId { get; set; }
         public int PacketNumber { get; set; }
         public int TotalSize { get; set; }

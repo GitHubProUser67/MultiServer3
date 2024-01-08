@@ -37,12 +37,13 @@ namespace Horizon.NAT
             _scertHandler.OnChannelMessage += (channel, message) =>
             {
                 // Send ip and port back if the last byte isn't 0xD4
-                if (message.Content.ReadableBytes == 4 && message.Content.GetByte(message.Content.ReaderIndex + 3) != 0xD4)
+                if (message.Content.ReadableBytes == 4 && message.Content.GetByte(message.Content.ReaderIndex + 3) != 0xD4 && (ushort?)(message.Sender as IPEndPoint)?.Port != null)
                 {
-                    LoggerAccessor.LogInfo($"Recieved External IP {(message.Sender as IPEndPoint).Address.MapToIPv4()} & Port {(ushort)(message.Sender as IPEndPoint).Port} request, sending their IP & Port as response!");
+                    ushort DestPort = (ushort?)(message.Sender as IPEndPoint)?.Port ?? 0; // Should never ever take 0, as we check earlier.
+                    LoggerAccessor.LogInfo($"Recieved External IP {(message.Sender as IPEndPoint)?.Address.MapToIPv4()} & Port {DestPort} request, sending their IP & Port as response!");
                     var buffer = channel.Allocator.Buffer(6);
-                    buffer.WriteBytes((message.Sender as IPEndPoint).Address.MapToIPv4().GetAddressBytes());
-                    buffer.WriteUnsignedShort((ushort)(message.Sender as IPEndPoint).Port);
+                    buffer.WriteBytes((message.Sender as IPEndPoint)?.Address.MapToIPv4().GetAddressBytes());
+                    buffer.WriteUnsignedShort(DestPort);
                     channel.WriteAndFlushAsync(new DatagramPacket(buffer, message.Sender));
                 }
             };

@@ -1,5 +1,4 @@
 ﻿//Dr Gadgit from the Code project http://www.codeproject.com/Articles/893791/DLNA-made-easy-and-Play-To-for-any-device
-using Newtonsoft.Json;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -7,7 +6,7 @@ using System.Text;
 namespace BackendProject.SSDP_DLNA
 {
     // This class is used to broadcast a SSDP message using UDP on port 1900 and to then wait for any replies send back on the LAN
-    public static class SSDP
+    public class SSDP
     {
         private static Socket? UdpSocket = null;
         public static string Servers = string.Empty;
@@ -38,7 +37,7 @@ namespace BackendProject.SSDP_DLNA
                 if (UdpSocket != null)
                     UdpSocket.Close();
                 if (THSend != null)
-                    THSend.Abort();
+                    THSend.Interrupt();
             }
             catch { ;}
             if (NewServer.Length > 0) Servers = NewServer.Trim(); // Bank in our new servers
@@ -52,20 +51,19 @@ namespace BackendProject.SSDP_DLNA
 
         private static void SendRequestNow()
         {
+            int ReceivedBytes = 0;
+            int Count = 0;
+            byte[] ReceiveBuffer = new byte[4000];
             // Uses UDP Multicast on 239.255.255.250 with port 1900 to send out invitations that are slow to be answered
-            IPEndPoint LocalEndPoint = new(IPAddress.Any, 6000);
             IPEndPoint MulticastEndPoint = new(IPAddress.Parse("239.255.255.250"), 1900); // SSDP port
             Socket? UdpSocket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             UdpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            UdpSocket.Bind(LocalEndPoint);
+            UdpSocket.Bind(new IPEndPoint(IPAddress.Any, 6000));
             UdpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(MulticastEndPoint.Address, IPAddress.Any));
             UdpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 2);
             UdpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastLoopback, true);
-            string SearchString = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nST:ssdp:all\r\nMX:3\r\n\r\n";
-            UdpSocket.SendTo(Encoding.UTF8.GetBytes(SearchString), SocketFlags.None, MulticastEndPoint);
-            byte[] ReceiveBuffer = new byte[4000];
-            int ReceivedBytes = 0;
-            int Count = 0;
+            UdpSocket.SendTo(Encoding.UTF8.GetBytes("M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nST:ssdp:all\r\nMX:3\r\n\r\n"),
+                SocketFlags.None, MulticastEndPoint);
             while (Running && Count < 100)
             {
                 // Keep loopping until we timeout or stop is called but do wait for at least ten seconds 
@@ -93,12 +91,6 @@ namespace BackendProject.SSDP_DLNA
             THSend = null;
             UdpSocket = null;
         }
-    }
-
-    public class LinkObject
-    {
-        [JsonProperty("link")]
-        public string? Link { get; set; }
     }
 }
 

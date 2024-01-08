@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BackendProject\BackendProject.csproj" />
-    <ProjectReference Include="..\NetCoreServer-Custom\source\NetCoreServer\NetCoreServer.csproj" />
   </ItemGroup>
 
 </Project>

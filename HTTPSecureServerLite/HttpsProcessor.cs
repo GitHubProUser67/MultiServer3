@@ -47,7 +47,8 @@ namespace HTTPSecureServerLite
 
         private static bool IsIPAllowed(string ipAddress)
         {
-            if ((HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress)) || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost")
+            if ((HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress))
+                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost" || ipAddress == MiscUtils.GetLocalIPAddress(true).ToString())
                 return true;
 
             return false;
@@ -1037,23 +1038,18 @@ namespace HTTPSecureServerLite
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                     {
-                                        var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx.Request);
+                                        (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx.Request);
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             if (CollectPHP.Item2 != null)
                                             {
-                                                foreach (var innerArray in CollectPHP.Item2)
+                                                foreach (string[] innerArray in CollectPHP.Item2)
                                                 {
                                                     // Ensure the inner array has at least two elements
                                                     if (innerArray.Length >= 2)
-                                                    {
-                                                        // Extract two values from the inner array
-                                                        string value1 = innerArray[0];
-                                                        string value2 = innerArray[1];
-                                                        ctx.Response.Headers.Add(value1, value2);
-                                                    }
+                                                        ctx.Response.Headers.Add(innerArray[0], innerArray[1]);
                                                 }
                                             }
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1069,16 +1065,12 @@ namespace HTTPSecureServerLite
                                             statusCode = HttpStatusCode.OK;
                                             if (CollectPHP.Item2 != null)
                                             {
-                                                foreach (var innerArray in CollectPHP.Item2)
+                                                foreach (string[] innerArray in CollectPHP.Item2)
                                                 {
                                                     // Ensure the inner array has at least two elements
                                                     if (innerArray.Length >= 2)
-                                                    {
                                                         // Extract two values from the inner array
-                                                        string value1 = innerArray[0];
-                                                        string value2 = innerArray[1];
-                                                        ctx.Response.Headers.Add(value1, value2);
-                                                    }
+                                                        ctx.Response.Headers.Add(innerArray[0], innerArray[1]);
                                                 }
                                             }
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1314,13 +1306,8 @@ namespace HTTPSecureServerLite
 
                 // Check if the line has enough parts and the primary entry is not empty
                 if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
-                {
-                    // Extract the hostname from the primary entry
-                    string hostname = parts[1].Trim();
-
                     // Add the hostname to the list
-                    hostnames.Add(hostname);
-                }
+                    hostnames.Add(parts[1].Trim());
             });
 
             DnsSettings dns = new();

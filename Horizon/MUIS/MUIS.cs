@@ -188,44 +188,64 @@ namespace Horizon.MUIS
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;
-
-            switch (message)
+            if (scertClient.CipherService != null)
             {
-                case RT_MSG_CLIENT_HELLO clientHello:
-                    {
-                        // send hello
-                        Queue(new RT_MSG_SERVER_HELLO() { RsaPublicKey = MuisClass.Settings.EncryptMessages ? MuisClass.Settings.DefaultKey.N : Org.BouncyCastle.Math.BigInteger.Zero }, clientChannel);
-                        break;
-                    }
-                case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
-                    {
-                        // generate new client session key
-                        scertClient.CipherService.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
-                        scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
+                scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;
 
-                        Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        break;
-                    }
-                case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
-                    {
-                        data.ApplicationId = clientConnectTcp.AppId;
-                        scertClient.ApplicationID = clientConnectTcp.AppId;
-
-                        List<int> pre108ServerComplete = new List<int>() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
-
-                        if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-
-                        // If this is a PS3 client
-                        if (scertClient.IsPS3Client || scertClient.MediusVersion >= 109)
+                switch (message)
+                {
+                    case RT_MSG_CLIENT_HELLO clientHello:
                         {
-                            //Send a Server_Connect_Require with no Password needed
-                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
+                            // send hello
+                            Queue(new RT_MSG_SERVER_HELLO() { RsaPublicKey = MuisClass.Settings.EncryptMessages ? MuisClass.Settings.DefaultKey.N : Org.BouncyCastle.Math.BigInteger.Zero }, clientChannel);
+                            break;
                         }
-                        else
+                    case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
                         {
-                            //Do NOT send hereCryptKey Game
+                            if (clientCryptKeyPublic.PublicKey != null)
+                            {
+                                // generate new client session key
+                                scertClient.CipherService.GenerateCipher(CipherContext.RSA_AUTH, clientCryptKeyPublic.PublicKey.Reverse().ToArray());
+                                scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
+
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_PEER() { SessionKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            }
+                            break;
+                        }
+                    case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
+                        {
+                            data.ApplicationId = clientConnectTcp.AppId;
+                            scertClient.ApplicationID = clientConnectTcp.AppId;
+
+                            List<int> pre108ServerComplete = new List<int>() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
+
+                            if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+
+                            // If this is a PS3 client
+                            if (scertClient.IsPS3Client || scertClient.MediusVersion >= 109)
+                                //Send a Server_Connect_Require with no Password needed
+                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
+                            else
+                            {
+                                //Do NOT send hereCryptKey Game
+                                Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                                {
+                                    PlayerId = 0,
+                                    ScertId = GenerateNewScertClientId(),
+                                    PlayerCount = 0x0001,
+                                    IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                                }, clientChannel);
+                            }
+
+                            if (pre108ServerComplete.Contains(data.ApplicationId))
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+                            break;
+                        }
+                    case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
+                        {
+                            if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.MediusVersion >= 109 && scertClient.CipherService.EnableEncryption == true)
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
                                 PlayerId = 0,
@@ -233,64 +253,47 @@ namespace Horizon.MUIS
                                 PlayerCount = 0x0001,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
+                            break;
                         }
-
-                    if (pre108ServerComplete.Contains(data.ApplicationId))
-                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                        break;
-                    }
-                case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
-                    {
-                        if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.MediusVersion >= 109 && scertClient.CipherService.EnableEncryption == true)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                    case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                         {
-                            PlayerId = 0,
-                            ScertId = GenerateNewScertClientId(),
-                            PlayerCount = 0x0001,
-                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                        }, clientChannel);
-                        break;
-                    }
-                case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
-                    {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                        break;
-                    }
-                case RT_MSG_SERVER_ECHO serverEchoReply:
-                    {
+                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+                            break;
+                        }
+                    case RT_MSG_SERVER_ECHO serverEchoReply:
+                        {
 
-                        break;
-                    }
-                case RT_MSG_CLIENT_ECHO clientEcho:
-                    {
-                        Queue(new RT_MSG_CLIENT_ECHO() { Value = clientEcho.Value }, clientChannel);
-                        break;
-                    }
-                case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
-                    {
-                        ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
-                        break;
-                    }
-                case RT_MSG_CLIENT_APP_LIST clientAppList:
-                    {
+                            break;
+                        }
+                    case RT_MSG_CLIENT_ECHO clientEcho:
+                        {
+                            Queue(new RT_MSG_CLIENT_ECHO() { Value = clientEcho.Value }, clientChannel);
+                            break;
+                        }
+                    case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
+                        {
+                            if (clientAppToServer.Message != null)
+                                ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
+                            break;
+                        }
+                    case RT_MSG_CLIENT_APP_LIST clientAppList:
+                        {
 
-                        break;
-                    }
-                case RT_MSG_CLIENT_DISCONNECT _:
-                case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
-                    {
-                        _ = clientChannel.CloseAsync();
-                        break;
-                    }
-                default:
-                    {
-                        LoggerAccessor.LogWarn($"UNHANDLED RT MESSAGE: {message}");
-                        break;
-                    }
+                            break;
+                        }
+                    case RT_MSG_CLIENT_DISCONNECT _:
+                    case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
+                        {
+                            _ = clientChannel.CloseAsync();
+                            break;
+                        }
+                    default:
+                        {
+                            LoggerAccessor.LogWarn($"UNHANDLED RT MESSAGE: {message}");
+                            break;
+                        }
+                }
             }
-
-            return;
         }
 
         protected virtual void ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)

@@ -238,13 +238,16 @@ internal sealed class InfTree
 		int[] array4 = new int[16];
 		int num = 0;
 		int num2 = n;
-		do
+		if (b != null)
 		{
-			array[b[bindex + num]]++;
-			num++;
-			num2--;
-		}
-		while (num2 != 0);
+            do
+            {
+                array[b[bindex + num]]++;
+                num++;
+                num2--;
+            }
+            while (num2 != 0);
+        }
 		if (array[0] == n)
 		{
 			t[0] = -1;
@@ -298,15 +301,18 @@ internal sealed class InfTree
 		}
 		num2 = 0;
 		num = 0;
-		do
+		if (b != null)
 		{
-			if ((i = b[bindex + num]) != 0)
-			{
-				v[array4[i]++] = num2;
-			}
-			num++;
-		}
-		while (++num2 < n);
+            do
+            {
+                if ((i = b[bindex + num]) != 0)
+                {
+                    v[array4[i]++] = num2;
+                }
+                num++;
+            }
+            while (++num2 < n);
+        }
 		n = array4[num4];
 		num2 = (array4[0] = 0);
 		num = 0;
@@ -341,10 +347,8 @@ internal sealed class InfTree
 					}
 					num10 = 1 << i;
 					if (hn[0] + num10 > 1440)
-					{
-						return -3;
-					}
-					num9 = (array3[num7] = hn[0]);
+                        return -3;
+                    num9 = (array3[num7] = hn[0]);
 					hn[0] += num10;
 					if (num7 != 0)
 					{
@@ -356,21 +360,17 @@ internal sealed class InfTree
 						Array.Copy(array2, 0, hp, (array3[num7 - 1] + i) * 3, 3);
 					}
 					else
-					{
-						t[0] = num9;
-					}
-				}
-				array2[1] = (byte)(j - num8);
+                        t[0] = num9;
+                }
+                array2[1] = (byte)(j - num8);
 				if (num >= n)
-				{
-					array2[0] = 192;
-				}
-				else if (v[num] < s)
+                    array2[0] = 192;
+                else if (v[num] < s)
 				{
 					array2[0] = (byte)((v[num] >= 256) ? 96 : 0);
 					array2[2] = v[num++];
 				}
-				else
+				else if (e != null && d != null)
 				{
 					array2[0] = (byte)(e[v[num] - s] + 16 + 64);
 					array2[2] = d[v[num++] - s];

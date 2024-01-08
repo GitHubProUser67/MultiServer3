@@ -4,7 +4,7 @@ namespace Horizon.BWPS.PluginArgs
 {
     public class OnUdpMsg
     {
-        public ScertDatagramPacket Packet { get; set; }
+        public ScertDatagramPacket? Packet { get; set; }
 
         public bool Ignore { get; set; }
     }

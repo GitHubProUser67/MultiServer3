@@ -6,11 +6,11 @@ namespace Horizon.MUIS.PluginArgs
 {
     public class OnMediusMessageArgs
     {
-        public ClientObject Player { get; set; } = null;
+        public ClientObject? Player { get; set; } = null;
 
-        public IChannel Channel { get; set; } = null;
+        public IChannel? Channel { get; set; } = null;
 
-        public BaseMediusMessage Message { get; set; } = null;
+        public BaseMediusMessage? Message { get; set; } = null;
 
         public bool IsIncoming { get; }
 

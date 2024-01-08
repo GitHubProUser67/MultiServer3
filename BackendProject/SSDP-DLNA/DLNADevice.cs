@@ -8,10 +8,10 @@ namespace BackendProject.SSDP_DLNA
     #region HelperDNL
     public static class HelperDLNA
     {
-        public static string MakeRequest(string Methord, string Url, int ContentLength, string SOAPAction, string IP, int Port)
+        public static string MakeRequest(string Method, string Url, int ContentLength, string SOAPAction, string IP, int Port)
         {
             // Make a request that is sent out to the DLNA server on the LAN using TCP
-            string R = Methord.ToUpper() + " /" + Url + " HTTP/1.1" + Environment.NewLine;
+            string R = Method.ToUpper() + " /" + Url + " HTTP/1.1" + Environment.NewLine;
             R += "Cache-Control: no-cache" + Environment.NewLine;
             R += "Connection: Close" + Environment.NewLine;
             R += "Pragma: no-cache" + Environment.NewLine;
@@ -32,8 +32,10 @@ namespace BackendProject.SSDP_DLNA
         {
             // Just returns a TCP socket ready to use
             IPEndPoint IPWeb = new(IPAddress.Parse(ip), port);
-            Socket SocWeb = new(IPWeb.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            SocWeb.ReceiveTimeout = 6000;
+            Socket SocWeb = new(IPWeb.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+            {
+                ReceiveTimeout = 6000
+            };
             SocWeb.Connect(IPWeb);
             return SocWeb;
         }
@@ -42,12 +44,12 @@ namespace BackendProject.SSDP_DLNA
         {
             // We have some data to read on the socket 
             ReturnCode = 0;
+            int Count = 0;
             int ContentLength = 0;
             int HeadLength = 0;
-            Thread.Sleep(300);
-            MemoryStream MS = new();
             byte[] buffer = new byte[8000];
-            int Count = 0;
+            MemoryStream ms = new();
+            Thread.Sleep(300);
             while (Count < 8)
             {
                 Count++;
@@ -62,19 +64,19 @@ namespace BackendProject.SSDP_DLNA
                         string StrCL = Head.ChopOffBefore("content-length:").ChopOffAfter(Environment.NewLine);
                         _ = int.TryParse(StrCL, out ContentLength);
                     }
-                    MS.Write(buffer, 0, Size);
-                    if (ContentLength > 0 && MS.Length >= HeadLength + ContentLength)
+                    ms.Write(buffer, 0, Size);
+                    if (ContentLength > 0 && ms.Length >= HeadLength + ContentLength)
                     {
                         if (CloseOnExit) Soc.Close();
-                        return Encoding.UTF8.GetString(MS.ToArray());
+                        return Encoding.UTF8.GetString(ms.ToArray());
                     }
                 }
                 Thread.Sleep(200);
             }
             if (CloseOnExit) Soc.Close();
-            string HTML = Encoding.UTF8.GetString(MS.ToArray());
+            string HTML = Encoding.UTF8.GetString(ms.ToArray());
             string Code = HTML.ChopOffBefore("HTTP/1.1").Trim().ChopOffAfter(" ");
-            int.TryParse(Code, out ReturnCode);
+            _ = int.TryParse(Code, out ReturnCode);
             return HTML;
         }
     }
@@ -114,7 +116,7 @@ namespace BackendProject.SSDP_DLNA
             {
                 if (Line.Length > 20)
                 {
-                    DLNAService S = new DLNAService(Line);
+                    DLNAService S = new(Line);
                     Dic.Add(S.ServiceID, S);
                 }
             }
@@ -125,6 +127,7 @@ namespace BackendProject.SSDP_DLNA
 
     public class DLNADevice
     {
+        private int NoPlayCount = 0;
         private int PlayListPointer = 0;
         private Dictionary<int, string> PlayListQueue = new();
         public string ControlURL = string.Empty;
@@ -140,6 +143,9 @@ namespace BackendProject.SSDP_DLNA
         public string HTML = string.Empty;
         public string FriendlyName = string.Empty;
         public Dictionary<string, DLNAService>? Services = null;
+
+        private readonly string XMLHead = "<?xml version=\"1.0\"?>" + Environment.NewLine + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + Environment.NewLine + "<SOAP-ENV:Body>" + Environment.NewLine;
+        private readonly string XMLFoot = "</SOAP-ENV:Body>" + Environment.NewLine + "</SOAP-ENV:Envelope>" + Environment.NewLine;
 
         public bool IsConnected()
         {
@@ -190,12 +196,9 @@ namespace BackendProject.SSDP_DLNA
                 }
                 return "#ERROR# Could not find avtransport:1";
             }
-            catch (Exception Ex) { return "#ERROR# " + Ex.Message;}
+            catch (Exception ex) { return "#ERROR# " + ex.Message;}
             
         }
-
-        private string XMLHead = "<?xml version=\"1.0\"?>" + Environment.NewLine + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + Environment.NewLine + "<SOAP-ENV:Body>" + Environment.NewLine;
-        private string XMLFoot = "</SOAP-ENV:Body>" + Environment.NewLine + "</SOAP-ENV:Envelope>" + Environment.NewLine;
 
         public string GetPosition()
         {
@@ -208,10 +211,8 @@ namespace BackendProject.SSDP_DLNA
             // Returns the current position for the track that is playing on the DLNA server
             string XML = XMLHead + "<m:GetPositionInfo xmlns:m=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">0</InstanceID></m:GetPositionInfo>" + XMLFoot + Environment.NewLine;
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
-            string Request = HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo", IP, Port) + XML;
-            SocWeb.Send(Encoding.UTF8.GetBytes(Request), SocketFlags.None);
-            string GG = HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
-            return GG;
+            SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo", IP, Port) + XML), SocketFlags.None);
+            return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
         }
 
         public string Desc()
@@ -268,8 +269,7 @@ namespace BackendProject.SSDP_DLNA
             XML += "<u:Stop xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>" + Instance + "</InstanceID></u:Stop>" + Environment.NewLine;
             XML += XMLFoot + Environment.NewLine;
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
-            string Request = HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Stop", IP, Port) + XML;
-            SocWeb.Send(Encoding.UTF8.GetBytes(Request), SocketFlags.None);
+            SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Stop", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
         }
 
@@ -285,8 +285,6 @@ namespace BackendProject.SSDP_DLNA
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
         }
 
-        
-
         public int PlayPreviousQueue()
         {
             // Play the previous track in our queue, we don't care if the current track has not completed or not, just do it
@@ -299,8 +297,6 @@ namespace BackendProject.SSDP_DLNA
             TryToPlayFile(Url);
             return 310;
         }
-
-        private int NoPlayCount = 0;
 
         public int PlayNextQueue(bool Force)
         {
@@ -322,10 +318,8 @@ namespace BackendProject.SSDP_DLNA
             {
                 string HTMLPosition = GetPosition();
                 if (HTMLPosition.Length < 50) return 0;
-                string TrackDuration = HTMLPosition.ChopOffBefore("<TrackDuration>").ChopOffAfter("</TrackDuration>").Substring(2);
-                string RelTime = HTMLPosition.ChopOffBefore("<RelTime>").ChopOffAfter("</RelTime>").Substring(2);
-                int RTime = TotalSeconds(RelTime);
-                int TTime = TotalSeconds(TrackDuration);
+                int RTime = TotalSeconds(HTMLPosition.ChopOffBefore("<RelTime>").ChopOffAfter("</RelTime>")[2..]);
+                int TTime = TotalSeconds(HTMLPosition.ChopOffBefore("<TrackDuration>").ChopOffAfter("</TrackDuration>")[2..]);
                 if (RTime < 3 || TTime < 2)
                 {
                     NoPlayCount++;
@@ -356,9 +350,7 @@ namespace BackendProject.SSDP_DLNA
             try
             {
                 Value = Value.ChopOffAfter(".");
-                int Mins = int.Parse(Value.Split(':')[0]);
-                int Secs = int.Parse(Value.Split(':')[1]);
-                return Mins * 60 + Secs;
+                return int.Parse(Value.Split(':')[0]) * 60 + int.Parse(Value.Split(':')[1]);
             }
             catch {;}
             return 0;
@@ -406,8 +398,7 @@ namespace BackendProject.SSDP_DLNA
             // Constructor like "http://192.168.0.41:7676/smp_14_"
             IP = url.ChopOffBefore("http://").ChopOffAfter(":");
             SMP = url.ChopOffBefore(IP).ChopOffBefore("/");
-            string StrPort = url.ChopOffBefore(IP).ChopOffBefore(":").ChopOffAfter("/");
-            _ = int.TryParse(StrPort, out Port);
+            _ = int.TryParse(url.ChopOffBefore(IP).ChopOffBefore(":").ChopOffAfter("/"), out Port);
         }
 
         public DLNADevice(string ip, int port, string smp)

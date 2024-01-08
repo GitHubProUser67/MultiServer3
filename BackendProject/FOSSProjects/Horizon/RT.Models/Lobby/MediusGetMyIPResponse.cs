@@ -16,11 +16,11 @@ namespace BackendProject.Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
         /// <summary>
         /// Retrieves local IP Address (as seen by the Medius Servers, not behind a NAT).
         /// </summary>
-        public IPAddress IP = IPAddress.Any;
+        public IPAddress? IP = IPAddress.Any;
         /// <summary>
         /// 
         /// </summary>
@@ -28,13 +28,10 @@ namespace BackendProject.Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             IP = IPAddress.Parse(reader.ReadString(Constants.IP_MAXLEN));
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
@@ -42,13 +39,10 @@ namespace BackendProject.Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(IP?.MapToIPv4()?.ToString(), Constants.IP_MAXLEN);
             writer.Write(new byte[3]);
             writer.Write(StatusCode);

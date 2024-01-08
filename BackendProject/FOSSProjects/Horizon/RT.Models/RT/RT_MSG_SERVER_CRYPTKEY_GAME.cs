@@ -8,7 +8,7 @@ namespace BackendProject.Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_CRYPTKEY_GAME;
 
-        public byte[] GameKey = null;
+        public byte[]? GameKey = null;
         public override void Deserialize(MessageReader reader)
         {
             GameKey = reader.ReadBytes(0x40);

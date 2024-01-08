@@ -14,7 +14,7 @@ namespace Horizon.BWPS
         public static ServerSettings Settings = new();
         public static BWPS BWPS = new();
 
-        public static MediusPluginsManager? Plugins = null;
+        public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
         public static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
 
@@ -130,15 +130,8 @@ namespace Horizon.BWPS
 
         public static void BWPSMain()
         {
-            Initialize();
-            // Initialize plugins
-            Plugins = new MediusPluginsManager(HorizonServerConfiguration.PluginsFolder);
-            _ = StartServerAsync();
-        }
-
-        private static void Initialize()
-        {
             RefreshConfig();
+            _ = StartServerAsync();
         }
 
         /// <summary>
@@ -146,15 +139,13 @@ namespace Horizon.BWPS
         /// </summary>
         private static void RefreshConfig()
         {
-            var serializerSettings = new JsonSerializerSettings()
-            {
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-            };
-
             // Load settings
             if (File.Exists(CONFIG_FILE))
                 // Populate existing object
-                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, serializerSettings);
+                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+                {
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                });
             else
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE) ?? Directory.GetCurrentDirectory() + "/static");

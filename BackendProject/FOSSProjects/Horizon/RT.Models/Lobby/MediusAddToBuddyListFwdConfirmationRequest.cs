@@ -9,10 +9,10 @@ namespace BackendProject.Horizon.RT.Models
 
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.AddToBuddyListFwdConfirmation;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         public int OriginatorAccountID;
-        public string OriginatorAccountName;
+        public string? OriginatorAccountName;
         public MediusBuddyAddType AddType;
 
         public override void Deserialize(MessageReader reader)

@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
 using CustomLogger;
 using HTTPServer.Models;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
@@ -10,36 +11,39 @@ namespace HTTPServer
     {
         #region Fields
 
-        private int Port;
-        private TcpListener? Listener;
+        private readonly ConcurrentBag<TcpListener> _listeners = new();
+        private CancellationTokenSource _cts = null!;
         private HttpProcessor Processor;
-        private bool IsActive = true;
 
         #endregion
 
         #region Public Methods
-        public HttpServer(int port, List<Route> routes)
+        public HttpServer(int[] ports, List<Route> routes, CancellationToken cancellationToken)
         {
-            Port = port;
             Processor = new HttpProcessor();
 
-            foreach (var route in routes)
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            foreach (Route route in routes)
             {
                 Processor.AddRoute(route);
             }
+
+            Parallel.ForEach(ports, port => { CreateHTTPPortListener(port); }) ;
         }
 
-        public void Listen()
+        private void CreateHTTPPortListener(int listenerPort)
         {
-            Listener = new TcpListener(IPAddress.Any, Port);
-            Listener.Start();
-            LoggerAccessor.LogInfo($"HTTP Server initiated on port: {Port}...");
-            while (IsActive)
+            Task serverSTOMP = Task.Run(async () =>
             {
-                try
-                {
-                    TcpClient tcpClient = Listener.AcceptTcpClient();
+                TcpListener listener = new(IPAddress.Any, listenerPort);
+                listener.Start();
+                LoggerAccessor.LogInfo($"HTTP Server initiated on port: {listenerPort}...");
+                _listeners.Add(listener);
 
+                while (!_cts.Token.IsCancellationRequested)
+                {
+                    TcpClient tcpClient = await listener.AcceptTcpClientAsync(_cts.Token);
                     Thread thread = new(() =>
                     {
                         Processor.HandleClient(tcpClient);
@@ -47,11 +51,14 @@ namespace HTTPServer
                     thread.Start();
                     Thread.Sleep(1);
                 }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[HTTP] - Listen thrown an exception : {ex}");
-                }
-            }
+            }, _cts.Token);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _cts.Cancel();
+            _listeners.ToList().ForEach(x => x.Stop());
+            return Task.CompletedTask;
         }
         #endregion
     }
