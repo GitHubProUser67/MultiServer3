@@ -636,9 +636,7 @@ namespace HTTPServer
             string line = string.Empty;
 
             // Read Request Line
-            string request = Readline(inputStream);
-
-            string[] tokens = request.Split(' ');
+            string[] tokens = Readline(inputStream).Split(' ');
             if (tokens.Length != 3)
                 return null;
             // string protocolVersion = tokens[2]; // Unused.

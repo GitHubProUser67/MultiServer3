@@ -46,8 +46,8 @@ namespace Horizon.MEDIUS.Medius
             public int ApplicationId { get; set; } = 0;
             public ClientObject? ClientObject { get; set; } = null;
             public string? MachineId { get; set; } = null;
-            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
-            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
+            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
 
             public ClientState State { get; set; } = ClientState.DISCONNECTED;
 
@@ -66,8 +66,8 @@ namespace Horizon.MEDIUS.Medius
             public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
-        protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new ConcurrentQueue<IChannel>();
-        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new ConcurrentDictionary<string, ChannelData>();
+        protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new();
+        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new();
 
         protected PS2_RC4? _sessionCipher = null;
 
@@ -408,7 +408,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected async Task<bool> PassMessageToPlugins(IChannel clientChannel, ChannelData data, BaseScertMessage message, bool isIncoming)
         {
-            var onMsg = new OnMessageArgs(isIncoming)
+            OnMessageArgs onMsg = new(isIncoming)
             {
                 Player = data.ClientObject,
                 Channel = clientChannel,
@@ -423,25 +423,27 @@ namespace Horizon.MEDIUS.Medius
             // Send medius message to plugins
             if (message is RT_MSG_CLIENT_APP_TOSERVER clientApp)
             {
-                var onMediusMsg = new OnMediusMessageArgs(isIncoming)
+                OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
                     Player = data.ClientObject,
                     Channel = clientChannel,
                     Message = clientApp.Message
                 };
-                await MediusClass.Plugins.OnMediusMessageEvent(clientApp.Message.PacketClass, clientApp.Message.PacketType, onMediusMsg);
+                if (clientApp.Message != null)
+                    await MediusClass.Plugins.OnMediusMessageEvent(clientApp.Message.PacketClass, clientApp.Message.PacketType, onMediusMsg);
                 if (onMediusMsg.Ignore)
                     return true;
             }
             else if (message is RT_MSG_SERVER_APP serverApp)
             {
-                var onMediusMsg = new OnMediusMessageArgs(isIncoming)
+                OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
                     Player = data.ClientObject,
                     Channel = clientChannel,
                     Message = serverApp.Message
                 };
-                await MediusClass.Plugins.OnMediusMessageEvent(serverApp.Message.PacketClass, serverApp.Message.PacketType, onMediusMsg);
+                if (serverApp.Message != null)
+                    await MediusClass.Plugins.OnMediusMessageEvent(serverApp.Message.PacketClass, serverApp.Message.PacketType, onMediusMsg);
                 if (onMediusMsg.Ignore)
                     return true;
             }

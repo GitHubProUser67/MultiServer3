@@ -19,18 +19,18 @@ namespace QuazalServer.RDVServices.Services
             if (Context != null && Context.Client.Info != null)
 			{
                 // change address
-                StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString());
-                rdvConnectionUrl.Address = Context.Client.Endpoint.Address.ToString();
+                StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
+                {
+                    Address = Context.Client.Endpoint.Address.ToString()
+                };
                 rdvConnectionUrl["type"] = 3;
 
-                RegisterResult result = new()
+                return Result(new RegisterResult()
                 {
                     pidConnectionID = Context.Client.Info.RVCID,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
-                };
-
-                return Result(result);
+                });
             }
 
 			return null;
@@ -54,18 +54,18 @@ namespace QuazalServer.RDVServices.Services
 			if (hCustomData.data != null && Context != null && Context.Client.Info != null)
 			{
                 // change address
-                StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString());
-				rdvConnectionUrl.Address = Context.Client.Endpoint.Address.ToString();
-				rdvConnectionUrl["type"] = 3;
+                StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
+                {
+                    Address = Context.Client.Endpoint.Address.ToString()
+                };
+                rdvConnectionUrl["type"] = 3;
 
-                RegisterResult result = new()
-				{
-					pidConnectionID = Context.Client.Info.RVCID,
-					retval = (int)ErrorCode.Core_NoError,
-					urlPublic = rdvConnectionUrl
-				};
-
-				return Result(result);
+				return Result(new RegisterResult()
+                {
+                    pidConnectionID = Context.Client.Info.RVCID,
+                    retval = (int)ErrorCode.Core_NoError,
+                    urlPublic = rdvConnectionUrl
+                });
 			}
 			else
                 CustomLogger.LoggerAccessor.LogInfo($"[RMC Secure] Error: Unknown Custom Data class {hCustomData.className}");

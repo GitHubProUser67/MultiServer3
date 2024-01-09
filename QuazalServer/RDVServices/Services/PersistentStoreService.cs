@@ -34,7 +34,7 @@ namespace QuazalServer.RDVServices.Services
 		{
             StorageFile reply = new();
 
-			string path = Path.Combine(QuazalServerConfiguration.QuazalStaticFolder, strTag);
+			string path = Path.Combine(QuazalServerConfiguration.QuazalStaticFolder + "/StaticFiles", strTag);
 
 			if (File.Exists(path))
 			{
