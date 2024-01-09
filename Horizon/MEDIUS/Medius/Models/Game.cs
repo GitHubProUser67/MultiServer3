@@ -59,7 +59,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
-        public DMEObject DMEServer;
+        public DMEObject? DMEServer;
         public Channel? ChatChannel;
         public ClientObject? Host;
 
@@ -83,7 +83,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
-        public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject dmeServer)
+        public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject? dmeServer)
         {
             if (createGame is MediusCreateGameRequest r)
                 FromCreateGameRequest(r);

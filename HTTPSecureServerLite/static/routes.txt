@@ -128,6 +128,8 @@ pdc-lb-rdv-prod02.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod03.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod04.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod05.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod06.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod07.ubisoft.com,Redirect,IP
 wsuplay.ubi.com,Redirect,IP
 static8.cdn.ubi.com,Redirect,IP
 master10.doublefusion.com,Redirect,IP

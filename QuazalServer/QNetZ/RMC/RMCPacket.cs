@@ -45,11 +45,12 @@ namespace QuazalServer.QNetZ
                         proto = (RMCProtocolId)(b);
                     }
 
-					switch (AccessKey) // Legacy servers.
+					switch (AccessKey) // Special servers.
 					{
                         case "OLjNg84Gh":
                         case "cYoqGd4f":
                         case "QusaPha9":
+						case "q1UFc45UwoyI":
                             if (proto == RMCProtocolId.SecureConnectionService)
                                 proto = RMCProtocolId.UBISOFTPS3SecureConnectionService;
                             break;
