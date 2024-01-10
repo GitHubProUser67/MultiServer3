@@ -38,7 +38,7 @@ namespace MitmDNS
 
             udp.OnStop(ex =>
             {
-                LoggerAccessor.LogError($"[DNS] - DotNetty was stopped!");
+                LoggerAccessor.LogWarn($"[DNS] - DotNetty was stopped!");
             });
 
             _ = udp.StartAsync();
@@ -55,28 +55,66 @@ namespace MitmDNS
             string url = string.Empty;
             bool treated = false;
 
-            if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.ContainsKey(fullname))
-            {
-                if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Redirect) url = MitmDNSClass.DicRules[fullname].Address ?? "127.0.0.1";
-                else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
-                treated = true;
-            }
+            IPAddress? arparuleaddr = null;
 
-            if (!treated && MitmDNSClass.StarRules != null)
+            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr))
             {
-                foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
+                if (arparuleaddr != null)
                 {
-                    Regex regex = new(rule.Key);
-                    if (!regex.IsMatch(fullname))
-                        continue;
+                    if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        // Split the IP address into octets
+                        string[] octets = arparuleaddr.ToString().Split('.');
 
-                    if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                    treated = true;
-                    break;
+                        // Reverse the order of octets
+                        Array.Reverse(octets);
+
+                        // Join the octets back together
+                        url = string.Join(".", octets);
+
+                        treated = true;
+                    }
+                    else if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                    {
+                        // Split the IP address into octets
+                        string[] octets = arparuleaddr.ToString().Split(':');
+
+                        // Reverse the order of octets
+                        Array.Reverse(octets);
+
+                        // Join the octets back together
+                        url = string.Join(":", octets);
+
+                        treated = true;
+                    }
                 }
+            }
+            else
+            {
+                if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.ContainsKey(fullname))
+                {
+                    if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
+                    else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Redirect) url = MitmDNSClass.DicRules[fullname].Address ?? "127.0.0.1";
+                    else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
+                    treated = true;
+                }
+
+                if (!treated && MitmDNSClass.StarRules != null)
+                {
+                    foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
+                    {
+                        Regex regex = new(rule.Key);
+                        if (!regex.IsMatch(fullname))
+                            continue;
+
+                        if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                        else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                        else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                        treated = true;
+                        break;
+                    }
+                }
+
             }
 
             if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)

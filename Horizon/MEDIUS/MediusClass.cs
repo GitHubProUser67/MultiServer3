@@ -340,8 +340,8 @@ namespace Horizon.MEDIUS
 
                 #region NAT
                 //Get NATIp
-                if (Settings.NATIp == null)
-                    LoggerAccessor.LogError("[MEDIUS] - No NAT ip found! Errors can happen.");
+                if (string.IsNullOrEmpty(Settings.NATIp))
+                    LoggerAccessor.LogError("[MEDIUS] - No NAT ip found! Fallback to Sony's one.");
                 #endregion
 
                 //* Diagnostic Profiling Enabled: %d Counts
@@ -524,7 +524,7 @@ namespace Horizon.MEDIUS
             RefreshServerIp();
 
             if (string.IsNullOrEmpty(Settings.NATIp)) // Update NAT Ip with server ip if null
-                Settings.NATIp = SERVER_IP.ToString();
+                Settings.NATIp = "natservice.pdonline.scea.com";
 
             // Update default rsa key
             BackendProject.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;

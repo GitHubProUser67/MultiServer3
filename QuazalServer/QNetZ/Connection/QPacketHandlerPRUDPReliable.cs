@@ -3,7 +3,7 @@ using System.Net;
 
 namespace QuazalServer.QNetZ
 {
-	class QPacketState
+	public class QPacketState
 	{
 		public QPacketState(QPacket p)
 		{
@@ -14,7 +14,7 @@ namespace QuazalServer.QNetZ
 		public int ReSendCount;
 	}
 
-	class QReliableResponse
+	public class QReliableResponse
 	{
 		public QReliableResponse(QPacket srcPacket, IPEndPoint endpoint)
 		{
@@ -35,12 +35,14 @@ namespace QuazalServer.QNetZ
 
 	public partial class QPacketHandlerPRUDP
 	{
-		bool Defrag(QClient client, QPacket packet)
+        private List<QReliableResponse> reliableResend = new();
+
+        private bool Defrag(QClient client, QPacket packet)
 		{
 			if (packet.flags != null && packet.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
 				return true;
 
-			if (!packet.flags.Contains(QPacket.PACKETFLAG.FLAG_RELIABLE))
+			if (packet.flags != null &&!packet.flags.Contains(QPacket.PACKETFLAG.FLAG_RELIABLE))
 				return true;
 
 			if (!AccumulatedPackets.Any(x =>
@@ -51,11 +53,9 @@ namespace QuazalServer.QNetZ
 				 x.m_bySessionID == packet.m_bySessionID &&
 				 x.m_uiSignature == packet.m_uiSignature
 				))
-			{
-				AccumulatedPackets.Add(packet);
-			}
+                AccumulatedPackets.Add(packet);
 
-			if (packet.m_byPartNumber != 0)
+            if (packet.m_byPartNumber != 0)
                 // add and don't process
                 return false;
 
@@ -107,7 +107,7 @@ namespace QuazalServer.QNetZ
 				}
 
 				// acks are required for each packet
-				foreach (var fragPacket in fragments)
+				foreach (QPacket? fragPacket in fragments)
 				{
 					if (fragPacket.flags != null && fragPacket.flags.Contains(QPacket.PACKETFLAG.FLAG_NEED_ACK))
 						SendACK(fragPacket, client);
@@ -115,10 +115,13 @@ namespace QuazalServer.QNetZ
 
                 MemoryStream fullPacketData = new();
 				foreach (QPacket? fragPacket in fragments)
-					fullPacketData.Write(fragPacket.payload, 0, fragPacket.payload.Length);
+				{
+					if (fragPacket.payload != null)
+                        fullPacketData.Write(fragPacket.payload.AsSpan());
+                }
 
-				// replace packet payload with defragmented data
-				packet.payload = fullPacketData.ToArray();
+                // replace packet payload with defragmented data
+                packet.payload = fullPacketData.ToArray();
 				packet.payloadSize = (ushort)fullPacketData.Length;
 
 				LoggerAccessor.LogInfo($"[PRUDP Reliable Handler] - Defragmented sequence of {numPackets} packets !\n");
@@ -128,7 +131,7 @@ namespace QuazalServer.QNetZ
 		}
 
 		// acknowledges packet
-		void OnGotAck(QPacket ackPacket)
+		private void OnGotAck(QPacket ackPacket)
 		{
 			lock (CachedResponses)
 			{
@@ -144,7 +147,7 @@ namespace QuazalServer.QNetZ
 		}
 
 		// returns response cache list by request packet
-		QReliableResponse? GetCachedResponseByRequestPacket(QPacket packet)
+		private QReliableResponse? GetCachedResponseByRequestPacket(QPacket packet)
 		{
 			if (packet == null)
 				return null;
@@ -179,17 +182,17 @@ namespace QuazalServer.QNetZ
 		}
 
 		// Caches the response which is going to be sent
-		bool CacheResponse(QPacket requestPacket, QPacket responsePacket, IPEndPoint ep)
+		private bool CacheResponse(QPacket requestPacket, QPacket responsePacket, IPEndPoint ep)
 		{
 			// only DATA can be reliable
 			if (responsePacket.type != QPacket.PACKETTYPE.DATA)
 				return false;
 
 			// don't cache non-reliable packets
-			if (!responsePacket.flags.Contains(QPacket.PACKETFLAG.FLAG_RELIABLE))
+			if (responsePacket.flags != null && !responsePacket.flags.Contains(QPacket.PACKETFLAG.FLAG_RELIABLE))
 				return false;
 
-			if (responsePacket.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
+			if (responsePacket.flags != null && responsePacket.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
 				return false;
 
 			QReliableResponse? cache = GetCachedResponseByRequestPacket(requestPacket);
@@ -212,27 +215,32 @@ namespace QuazalServer.QNetZ
 			int minResendTimes = 0;
 			lock (cache.ResponseList)
 			{
-				foreach (var crp in cache.ResponseList)
+				Parallel.ForEach(cache.ResponseList, crp =>
 				{
-                    var data = crp.Packet.toBuffer(AccessKey);
-                    UDP.Send(data, data.Length, cache.Endpoint);
+                    _ = UDP.SendAsync(cache.Endpoint, crp.Packet.toBuffer(AccessKey));
 
                     crp.ReSendCount++;
                     minResendTimes = Math.Min(minResendTimes, crp.ReSendCount);
-                }
+                });
 			}
 			cache.ResendTime = DateTime.UtcNow.AddMilliseconds(Constants.PacketResendTimeSeconds * 1000 + minResendTimes * 250);
 		}
 
-		private void CheckResendPackets()
+		private Task CheckResendPackets()
 		{
-			var reliableResend = new List<QReliableResponse>();
-			CachedResponses.RemoveAll(x => x.SrcPacket == null);
-			reliableResend.AddRange(CachedResponses.Where(x => DateTime.UtcNow >= x.ResendTime));
-			CachedResponses.RemoveAll(x => DateTime.UtcNow >= x.DropTime);
+			if (CachedResponses.Count > 0)
+			{
+                CachedResponses.RemoveAll(x => x.SrcPacket == null);
+                reliableResend.AddRange(CachedResponses.Where(x => DateTime.UtcNow >= x.ResendTime));
+                CachedResponses.RemoveAll(x => DateTime.UtcNow >= x.DropTime);
 
-			foreach (var crp in reliableResend)
-				RetrySend(crp);
-		}
+                if (reliableResend.Count > 0)
+                    Parallel.ForEach(reliableResend, crp => { RetrySend(crp); });
+
+                reliableResend.Clear();
+            }
+
+			return Task.CompletedTask;
+        }
 	}
 }

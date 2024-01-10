@@ -244,7 +244,7 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.OnConnected();
 
-                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
                             //MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
                             if (!data.ClientObject.IsConnected)
@@ -324,7 +324,7 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.OnConnected();
 
-                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
                             //Send NAT Service
                             data.ClientObject.Queue(new MediusServerSessionBeginResponse()
@@ -367,7 +367,7 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.OnConnected();
 
-                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+                            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
                             //Send NAT Service
                             data.ClientObject.Queue(new MediusServerSessionBeginResponse()
@@ -429,7 +429,7 @@ namespace Horizon.MEDIUS.Medius
 
                             if (nonSecure.Contains(data.ClientObject.ApplicationId))
                             {
-                                IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+                                IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
                                 data.ClientObject.Queue(new MediusServerAuthenticationResponse()
                                 {
@@ -2417,7 +2417,7 @@ namespace Horizon.MEDIUS.Medius
         {
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
-            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
             List<int> pre108Secure = new List<int>() { 10010, 10031, 10190, 10124, 10680, 10683, 10684 };
             List<int> p2pSetIP = new List<int>() { 10010, 10031, 10164, 10190, 10330, 10694, 10782, 10884, 10974, 21834, 21924 };
@@ -2627,7 +2627,7 @@ namespace Horizon.MEDIUS.Medius
         #region AnonymousLogin
         private async Task LoginAnonymous(MediusAnonymousLoginRequest anonymousLoginRequest, IChannel clientChannel, ChannelData data)
         {
-            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? MediusClass.SERVER_IP.ToString());
+            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
             PS2CipherFactory fac = new();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 

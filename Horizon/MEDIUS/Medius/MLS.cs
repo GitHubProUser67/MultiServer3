@@ -7073,7 +7073,7 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         List<int> notSecure = new List<int>() { 10010, 10190 };
-                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
+                        IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
                         var channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId);
                         if (channel == null)
@@ -10086,7 +10086,7 @@ namespace Horizon.MEDIUS.Medius
         public void AssignGameToJoin(ClientObject clientObject, MediusMatchFindGameRequest matchFindGameRequest)
         {
             //We Sleep for a bit so we return another packet for the matchmaked game we may have found!
-            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp);
+            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
             uint gameCount = MediusClass.Manager.GetGameCount(clientObject.ApplicationId);
             if (gameCount == 0)

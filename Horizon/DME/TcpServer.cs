@@ -92,7 +92,7 @@ namespace Horizon.DME
                     if (!data.Ignore && (data.ClientObject == null || !data.ClientObject.IsDestroyed))
                     {
 
-                        var pluginArgs = new OnTcpMsg()
+                        OnTcpMsg pluginArgs = new()
                         {
                             Player = data.ClientObject,
                             Packet = message
@@ -222,7 +222,6 @@ namespace Horizon.DME
                         catch (Exception e)
                         {
                             LoggerAccessor.LogError(e);
-                            _ = ForceDisconnectClient(clientChannel);
                         }
                     }
                 }

@@ -6,12 +6,12 @@ namespace BackendProject.HomeTools.UnBAR
 {
     public class RunUnBAR
     {
-        public async Task Run(string inputfile, string outputpath, bool edat)
+        public async Task Run(string filePath, string outputpath, bool edat)
         {
             if (edat)
-                await RunDecrypt(inputfile, outputpath);
+                await RunDecrypt(filePath, outputpath);
             else
-                await new RunUnBAR().RunExtract(inputfile, outputpath);
+                await new RunUnBAR().RunExtract(filePath, outputpath);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();

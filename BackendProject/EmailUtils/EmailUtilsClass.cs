@@ -1,34 +1,33 @@
 ﻿using System.Net;
 using System.Net.Mail;
 using System.Text;
-using System.Diagnostics;
 using EAGetMail;
 
-namespace BackendProject
+namespace BackendProject.EmailUtils
 {
-    public class EmailUtils
+    public class EmailUtilsClass
     {
+        public bool IsListenStarted = false;
         public bool enableSSL = true;
         public int Flag = 1;
         public int wait = 5;
         public int SendPortNumber = 587;
         public string strConcat = string.Empty;
-        public string body = string.Empty;
         public string smtpAddress = "smtp.gmail.com";
         public string imapAddress = "imap.gmail.com";
         public string emailFromAddress = "Operator@gmail.com";
         public string password = "password";
-        public string emailToAddress = "receiver@gmail.com";
-        public string subject = "Data from Client:";
+        public string emailToAddress = "Receiver@gmail.com";
+        public JsonStorage storage = new();
 
-        public EmailUtils(string mailoperator, string mailreceiver, string mailoperatorpassword)
+        public EmailUtilsClass(string mailoperator, string mailreceiver, string mailoperatorpassword)
         {
             emailFromAddress = mailoperator;
             emailToAddress = mailreceiver;
             password = mailoperatorpassword;
         }
 
-        public void SendEmail(string text)
+        public void SendEmail(string text, string subject)
         {
             using (MailMessage mail = new())
             {
@@ -48,8 +47,10 @@ namespace BackendProject
         }
 
         // Read last Email from a list of all Emails in the Inbox
-        public string[] ReadLastEmail(MailClient oClient, MailServer oServer, List<string> list_emails)
+        public List<(string, string, string, DateTime)> ReadLastEmail(MailClient oClient, MailServer oServer)
         {
+            List<(string, string, string, DateTime)> MailsList = new();
+
             oClient.Connect(oServer);
 
             // retrieve unread/new email only
@@ -65,51 +66,34 @@ namespace BackendProject
 
                 Mail oMail = oClient.GetMail(info);
 
-                if (oMail.TextBody.ToString()[..3].Equals("in:"))
+                if (!string.IsNullOrEmpty(oMail.TextBody.ToString()))
                 {
-                    list_emails.Add(oMail.TextBody);
-                    list_emails.Add("\nSubject of Mail Sent by Operator: " + oMail.Subject);
+                    MailsList.Add((oMail.From.Name, oMail.Subject, oMail.TextBody, oMail.SentDate));
 
-                    //Console.WriteLine("[*] Text Body: {0}", oMail.TextBody);
-
-                    // mark unread email as read, next time this email won't be retrieved again
+                    // Mark unread email as read, next time this email won't be retrieved again
                     if (!info.Read)
                         oClient.MarkAsRead(info, true);
-                    //New Mail Exists
+
+                    // New Mail Exists
                     Flag = 0;
                 }
-                else
-                    // Just sending string: "None" to get away from causing "System.ArgumentOutOfRangeException" when string.Substring is used to parse string.
-                    list_emails.Add("None");
             }
-            return list_emails.ToArray();
+            return MailsList;
         }
 
-        public string[] ReadEmail()
+        public List<(string, string, string, DateTime)> ReadEmail(ServerProtocol prot)
         {
-            return ReadLastEmail(new MailClient("TryIt"), new MailServer(imapAddress, emailToAddress, password, ServerProtocol.Imap4)
+            return ReadLastEmail(new MailClient("TryIt"), new MailServer(imapAddress, emailToAddress, password, prot)
             {
                 // Enabling SSL Connection
                 SSLConnection = true,
                 Port = 993
-            }, new List<string>());
+            });
         }
 
         public void GmailC2Prompt(string command)
         {
-            CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] - [GmailC2] Command Sent: {0}", command);
-        }
-
-        public void CmdOutputDataHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        {
-            StringBuilder strOutput = new();
-
-            if (!string.IsNullOrEmpty(outLine.Data))
-            {
-                strOutput.Append(outLine.Data);
-
-                strConcat += strOutput.ToString() + "<br />";
-            }
+            CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] - [GmailC2] IN->Email: {0}", command);
         }
 
         public void WaitForCommand(int sec)
@@ -120,6 +104,41 @@ namespace BackendProject
                 Thread.Sleep(sec * 1000);
                 sec--;
             }
+        }
+
+        public Task MailListening()
+        {
+            StringBuilder strInput = new();
+
+            IsListenStarted = true;
+
+            while (IsListenStarted)
+            {
+                try
+                {
+                    CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] Reading MAil Inbox...");
+
+                    List<(string, string, string, DateTime)> MailsList = ReadEmail(ServerProtocol.Imap4);
+
+                    // Flag= 0 => New Mail Arrived
+                    if (Flag == 0)
+                    {
+                        if (MailsList.Count > 0)
+                            storage.RegisterMessages(MailsList);
+                    }
+                    else if (Flag == 1)
+                    {
+                        // Will sleep for "wait" secs...
+                        WaitForCommand(wait);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    CustomLogger.LoggerAccessor.LogError($"[EmailUtils] - MailListening thrown an assertion: {ex}");
+                }
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

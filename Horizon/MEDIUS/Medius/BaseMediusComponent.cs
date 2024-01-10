@@ -46,8 +46,8 @@ namespace Horizon.MEDIUS.Medius
             public int ApplicationId { get; set; } = 0;
             public ClientObject? ClientObject { get; set; } = null;
             public string? MachineId { get; set; } = null;
-            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
-            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
+            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
 
             public ClientState State { get; set; } = ClientState.DISCONNECTED;
 
@@ -66,8 +66,8 @@ namespace Horizon.MEDIUS.Medius
             public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
-        protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new();
-        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new();
+        protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new ConcurrentQueue<IChannel>();
+        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new ConcurrentDictionary<string, ChannelData>();
 
         protected PS2_RC4? _sessionCipher = null;
 
@@ -375,17 +375,20 @@ namespace Horizon.MEDIUS.Medius
 
         #region Queue
 
-        public void Queue(BaseScertMessage message, params IChannel[] clientChannels)
+        public void Queue(BaseScertMessage message, params IChannel[]? clientChannels)
         {
-            Queue(message, (IEnumerable<IChannel>)clientChannels);
+            Queue(message, (IEnumerable<IChannel>?)clientChannels);
         }
 
-        public void Queue(BaseScertMessage message, IEnumerable<IChannel> clientChannels)
+        public void Queue(BaseScertMessage message, IEnumerable<IChannel>? clientChannels)
         {
-            foreach (var clientChannel in clientChannels)
-                if (clientChannel != null)
-                    if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out var data))
-                        data.SendQueue.Enqueue(message);
+            if (clientChannels != null)
+            {
+                foreach (IChannel clientChannel in clientChannels)
+                    if (clientChannel != null)
+                        if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out var data))
+                            data.SendQueue.Enqueue(message);
+            }
         }
 
         public void Queue(IEnumerable<BaseScertMessage> messages, params IChannel[] clientChannels)
@@ -395,7 +398,7 @@ namespace Horizon.MEDIUS.Medius
 
         public void Queue(IEnumerable<BaseScertMessage> messages, IEnumerable<IChannel> clientChannels)
         {
-            foreach (var clientChannel in clientChannels)
+            foreach (IChannel clientChannel in clientChannels)
                 if (clientChannel != null)
                     if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out var data))
                         foreach (var message in messages)

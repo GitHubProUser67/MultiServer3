@@ -55,6 +55,14 @@ public static class QuazalServerConfiguration
 
 class Program
 {
+    static void GCCollectTask(object? state)
+    {
+        // Perform a periodic GC Collect Task.
+        LoggerAccessor.LogInfo("GC Collect at - " + DateTime.Now);
+
+        GC.Collect();
+    }
+
     static Task RefreshConfig()
     {
         while (true)
@@ -83,25 +91,38 @@ class Program
         if (QuazalServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(QuazalServerConfiguration.DiscordChannelID, QuazalServerConfiguration.DiscordBotToken);
 
+        QuazalServer.ServerProcessors.BackendServicesServer backend = new();
+
+        QuazalServer.ServerProcessors.RDVServer rendezvous = new();
+
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(30201, 2, "yh64s"), // TDU
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(30200, 30201, 2, "yh64s"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(60106, 2, "w6kAtr3T"), // DFSPC
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(60105, 60106, 2, "w6kAtr3T"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(61111, 2, "QusaPha9"), // DFSPS3
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(61110, 61111, 2, "QusaPha9"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(60116, 2, "OLjNg84Gh"), // HAWX2PS3
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(60115, 60116, 2, "OLjNg84Gh"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(61121, 2, "q1UFc45UwoyI"), // GRFSPS3
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(61120, 61121, 2, "q1UFc45UwoyI"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(61126, 2, "cYoqGd4f"), // AC3PS3
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(61125, 61126, 2, "cYoqGd4f"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(61128, 2, "cYoqGd4f"), // AC3MULTPS3
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(61127, 61128, 2, "cYoqGd4f"),
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(60001, 2, "ridfebb9"), // RB3
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(21032, 2, "8dtRv2oj"), // GRO
+                    () => backend.Start(new List<Tuple<int, string>>
+                    {
+                        Tuple.Create(30201, "yh64s"), // TDU
+                        Tuple.Create(60106, "w6kAtr3T"), // DFSPC
+                        Tuple.Create(61111, "QusaPha9"), // DFSPS3
+                        Tuple.Create(60116, "OLjNg84Gh"), // HAWX2PS3
+                        Tuple.Create(61121, "q1UFc45UwoyI"), // GRFSPS3
+                        Tuple.Create(61126, "cYoqGd4f"), // AC3PS3
+                        Tuple.Create(61128, "cYoqGd4f"), // AC3MULTPS3
+                        Tuple.Create(60001, "cYoqGd4f"), // RB3
+                        Tuple.Create(21032, "cYoqGd4f") // GRO
+                    }, 2, new CancellationTokenSource().Token),
+                    () => rendezvous.Start(new List<Tuple<int, int, string>>
+                    {
+                        Tuple.Create(30200, 30201, "yh64s"), // TDU
+                        Tuple.Create(60105, 60106, "w6kAtr3T"), // DFSPC
+                        Tuple.Create(61110, 61111, "QusaPha9"), // DFSPS3
+                        Tuple.Create(60115, 60116, "OLjNg84Gh"), // HAWX2PS3
+                        Tuple.Create(61120, 61121, "q1UFc45UwoyI"), // GRFSPS3
+                        Tuple.Create(61125, 61126, "cYoqGd4f"), // AC3PS3
+                        Tuple.Create(61127, 61128, "cYoqGd4f") // AC3MULTPS3
+                    }, 2, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
+
+        // Set up a timer that triggers every 10 seconds (In case it still happens).
+        // Timer timer = new(GCCollectTask, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
         if (MiscUtils.IsWindows())
         {
@@ -116,6 +137,8 @@ class Program
 
                 if (input == 'y')
                 {
+                    backend.StopAsync();
+                    rendezvous.StopAsync();
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);
                 }

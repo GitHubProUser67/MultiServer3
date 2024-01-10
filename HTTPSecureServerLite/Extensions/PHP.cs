@@ -137,7 +137,7 @@ namespace HTTPSecureServerLite.Extensions
                     {
                         // Read PHP output to memory stream
                         byte[] buffer = new byte[4096];
-                        int bytesRead;
+                        int bytesRead = 0;
                         while ((bytesRead = reader.BaseStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
                             memoryStream.Write(buffer, 0, bytesRead);
@@ -146,17 +146,13 @@ namespace HTTPSecureServerLite.Extensions
                         // If no output, read error stream
                         if (memoryStream.Length == 0)
                         {
-                            using (StreamReader errorReader = proc.StandardError)
-                            {
-                                string errorOutput = errorReader.ReadToEnd();
-                                byte[] errorOutputBytes = HTTPUtils.RemoveUnwantedHeaders(Encoding.UTF8.GetBytes(errorOutput));
-                                memoryStream.Write(errorOutputBytes, 0, errorOutputBytes.Length);
-                            }
+                            using StreamReader errorReader = proc.StandardError;
+                            memoryStream.Write(HTTPUtils.RemoveUnwantedHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
                         }
 
                         // Process Set-Cookie headers
                         List<string> setCookieHeaders = new();
-                        foreach (var header in proc.StandardOutput.ReadToEnd().Split('\n'))
+                        foreach (string header in proc.StandardOutput.ReadToEnd().Split('\n'))
                         {
                             if (header.Trim().StartsWith("Set-Cookie:", StringComparison.OrdinalIgnoreCase))
                                 setCookieHeaders.Add(header.Trim());
@@ -165,20 +161,17 @@ namespace HTTPSecureServerLite.Extensions
                         int i = 0;
 
                         // Add cookies to the HttpListenerResponse
-                        foreach (var setCookieHeader in setCookieHeaders)
+                        foreach (string setCookieHeader in setCookieHeaders)
                         {
                             int colonIndex = setCookieHeader.IndexOf(':');
                             if (colonIndex != -1)
                             {
-                                string cookieHeaderValue = setCookieHeader[(colonIndex + 1)..].Trim();
-                                string[] cookieParts = cookieHeaderValue.Split(';');
-
-                                foreach (var cookiePart in cookieParts)
+                                foreach (string cookiePart in setCookieHeader[(colonIndex + 1)..].Trim().Split(';'))
                                 {
                                     int equalIndex = cookiePart.IndexOf('=');
                                     if (equalIndex != -1)
                                     {
-                                        HeadersLocal[i] = new string[] { "Set-Cookie", $"{cookiePart[..equalIndex].Trim()}={cookiePart.Substring(equalIndex + 1).Trim()}; Path=/" };
+                                        HeadersLocal[i] = new string[] { "Set-Cookie", $"{cookiePart[..equalIndex].Trim()}={cookiePart[(equalIndex + 1)..].Trim()}; Path=/" };
                                         i++;
                                     }
                                 }

@@ -11,7 +11,6 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
 
 namespace HTTPSecureServerLite
 {
@@ -679,33 +678,69 @@ namespace HTTPSecureServerLite
                                             string url = string.Empty;
                                             bool treated = false;
 
-                                            if (DicRules != null && DicRules.ContainsKey(fullname))
-                                            {
-                                                if (DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                                                else if (DicRules[fullname].Mode == HandleMode.Redirect) url = DicRules[fullname].Address ?? "127.0.0.1";
-                                                else if (DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                treated = true;
-                                            }
+                                            IPAddress? arparuleaddr = null;
 
-                                            if (!treated && StarRules != null)
+                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr))
                                             {
-                                                foreach (KeyValuePair<string, DnsSettings> rule in StarRules)
+                                                if (arparuleaddr != null)
                                                 {
-                                                    Regex regex = new(rule.Key);
-                                                    if (!regex.IsMatch(fullname))
-                                                        continue;
+                                                    if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                                    {
+                                                        // Split the IP address into octets
+                                                        string[] octets = arparuleaddr.ToString().Split('.');
 
-                                                    if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                        // Reverse the order of octets
+                                                        Array.Reverse(octets);
+
+                                                        // Join the octets back together
+                                                        url = string.Join(".", octets);
+
+                                                        treated = true;
+                                                    }
+                                                    else if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                                                    {
+                                                        // Split the IP address into octets
+                                                        string[] octets = arparuleaddr.ToString().Split(':');
+
+                                                        // Reverse the order of octets
+                                                        Array.Reverse(octets);
+
+                                                        // Join the octets back together
+                                                        url = string.Join(":", octets);
+
+                                                        treated = true;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (DicRules != null && DicRules.ContainsKey(fullname))
+                                                {
+                                                    if (DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
+                                                    else if (DicRules[fullname].Mode == HandleMode.Redirect) url = DicRules[fullname].Address ?? "127.0.0.1";
+                                                    else if (DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
                                                     treated = true;
-                                                    break;
+                                                }
+
+                                                if (!treated && StarRules != null)
+                                                {
+                                                    foreach (KeyValuePair<string, DnsSettings> rule in StarRules)
+                                                    {
+                                                        Regex regex = new(rule.Key);
+                                                        if (!regex.IsMatch(fullname))
+                                                            continue;
+
+                                                        if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                        else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                        else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                        treated = true;
+                                                        break;
+                                                    }
                                                 }
                                             }
 
                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
                                                 url = MiscUtils.GetFirstActiveIPAddress(fullname, MiscUtils.GetPublicIPAddress(true));
-
 
                                             IPAddress ip = IPAddress.None;
                                             if (url != string.Empty && url != "NXDOMAIN")
