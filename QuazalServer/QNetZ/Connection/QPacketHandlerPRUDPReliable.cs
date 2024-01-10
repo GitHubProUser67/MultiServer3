@@ -217,7 +217,8 @@ namespace QuazalServer.QNetZ
 			{
 				Parallel.ForEach(cache.ResponseList, crp =>
 				{
-                    _ = UDP.SendAsync(cache.Endpoint, crp.Packet.toBuffer(AccessKey));
+					byte[] payload = crp.Packet.toBuffer(AccessKey);
+                    _ = UDP.SendAsync(payload, payload.Length, cache.Endpoint);
 
                     crp.ReSendCount++;
                     minResendTimes = Math.Min(minResendTimes, crp.ReSendCount);
