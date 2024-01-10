@@ -96,7 +96,7 @@ public class FeslHostedService
         await handler.HandleClientConnection(serverProtocol, clientEndpoint);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync()
     {
         _cts.Cancel();
         _listeners.ToList().ForEach(x => x.Stop());

@@ -21,7 +21,7 @@ namespace Horizon.DME
 
         public static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
 
-        public static ServerSettings Settings = new ServerSettings();
+        public static ServerSettings Settings = new();
         private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
 
@@ -161,7 +161,7 @@ namespace Horizon.DME
                 // tick
                 await TickAsync();
 
-                await Task.Delay(5); // this value is the one used in Horizon by default.
+                await Task.Delay(5); // DME needs a super tight refresh timing, it handles P2P stuff so it's necessary.
             }
 
             await TcpServer.Stop();

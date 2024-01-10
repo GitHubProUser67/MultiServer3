@@ -32,11 +32,14 @@ namespace BackendProject.HomeTools.UnBAR
                 || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
                 || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown"));
                 List<MappedList> mappedListList = new();
+                int i = 0;
                 foreach (string sourceFile in strings)
                 {
+                    LoggerAccessor.drawTextProgressBar($"[Mapper] - Scanning: {sourceFile}", i, strings.Count() - 1);
                     mappedListList.AddRange(ScanForString(sourceFile));
+                    i++;
                 }
-                uuidloop:
+            uuidloop:
                 foreach (MappedList mappedList in mappedListList)
                 {
                     if (!string.IsNullOrEmpty(mappedList.file))

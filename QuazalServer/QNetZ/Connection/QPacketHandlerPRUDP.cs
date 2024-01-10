@@ -1,14 +1,14 @@
+using DotNetty.Extensions;
 using BackendProject;
 using CustomLogger;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
 
 namespace QuazalServer.QNetZ
 {
 	public partial class QPacketHandlerPRUDP
 	{
-		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
+		public QPacketHandlerPRUDP(UdpSocket udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
 		{
 			UDP = udp;
 			SourceName = sourceName;
@@ -18,7 +18,8 @@ namespace QuazalServer.QNetZ
 			this.BackendPort = BackendPort;
         }
 
-        private readonly UdpClient UDP;
+        private readonly UdpSocket UDP;
+
 		public string SourceName;
 		public string AccessKey;
 		public readonly uint PID;
@@ -146,30 +147,29 @@ namespace QuazalServer.QNetZ
 
 			// bufferize in queue then send, that's how Quazal does it
 			if (!CacheResponse(reqPacket, sendPacket, ep))
-				UDP.Send(data, data.Length, ep);
+				_ = UDP.SendAsync(ep, data);
 
 			LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {MiscUtils.ByteArrayToHexString(data)}");
 		}
 
 		public QPacket MakeACK(QPacket p, QClient client)
 		{
-			QPacket np = new(AccessKey, p.toBuffer(AccessKey));
-			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_ACK, QPacket.PACKETFLAG.FLAG_HAS_SIZE };
+            QPacket np = new(AccessKey, p.toBuffer(AccessKey))
+            {
+                flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_ACK, QPacket.PACKETFLAG.FLAG_HAS_SIZE },
 
-			np.m_oSourceVPort = p.m_oDestinationVPort;
-			np.m_oDestinationVPort = p.m_oSourceVPort;
-			np.m_uiSignature = client.IDsend;
-			np.payload = Array.Empty<byte>();
-			np.payloadSize = 0;
-			return np;
+                m_oSourceVPort = p.m_oDestinationVPort,
+                m_oDestinationVPort = p.m_oSourceVPort,
+                m_uiSignature = client.IDsend,
+                payload = Array.Empty<byte>(),
+                payloadSize = 0
+            };
+            return np;
 		}
 
 		public void SendACK(QPacket p, QClient client)
 		{
-			var np = MakeACK(p, client);
-			var data = np.toBuffer(AccessKey);
-
-			UDP.Send(data, data.Length, client.Endpoint);
+            _ = UDP.SendAsync(client.Endpoint, MakeACK(p, client).toBuffer(AccessKey));
 		}
 
 		public void MakeAndSend(QClient client, QPacket reqPacket, QPacket newPacket, byte[] data)
@@ -210,13 +210,16 @@ namespace QuazalServer.QNetZ
 			LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] sent {numFragments} packets");
 		}
 
-		public void Update()
+		public async void Update(object? state)
 		{
-			CheckResendPackets();
-			DropClients();
+			await CheckResendPackets();
+			await DropClients();
 
-			foreach (var upd in Updates)
-				upd();
+			if (Updates.Count > 0)
+			{
+                foreach (Action? upd in Updates)
+                    upd();
+            }
 		}
 
 		public void ProcessPacket(byte[] data, IPEndPoint from)
@@ -225,21 +228,24 @@ namespace QuazalServer.QNetZ
 			{
                 QPacket packetIn = new(AccessKey, data);
 				{
-                    MemoryStream m = new(data);
+					using (MemoryStream m = new(data))
+					{
+                        byte[] buff = new byte[(int)packetIn.realSize];
+                        m.Read(buff, 0, buff.Length);
 
-					byte[] buff = new byte[(int)packetIn.realSize];
-					m.Read(buff, 0, buff.Length);
+                        StringBuilder sb = new();
 
-                    StringBuilder sb = new();
+                        foreach (byte b in data)
+                            sb.Append(b.ToString("X2") + " ");
 
-					foreach (byte b in data)
-						sb.Append(b.ToString("X2") + " ");
+                        LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{MiscUtils.ByteArrayToHexString(buff)}");
 
-                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{MiscUtils.ByteArrayToHexString(buff)}");
+                        LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
+                        LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
+                        LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringDetailed()}");
 
-					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
-					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
-					LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringDetailed()}");
+                        m.Flush();
+                    }
 				}
 
 				QPacket? reply = null;
@@ -317,7 +323,7 @@ namespace QuazalServer.QNetZ
                             else
                             {
                                 reply = packetIn;
-                                var m = new MemoryStream();
+                                MemoryStream m = new();
                                 byte b = (byte)(reply.payload[0] == 1 ? 0 : 1);
 
                                 m.WriteByte(b);
@@ -353,35 +359,43 @@ namespace QuazalServer.QNetZ
 				// more packets in data stream?
 				if (packetIn.realSize != data.Length)
 				{
-                    MemoryStream m = new(data);
+					using (MemoryStream m = new(data))
+					{
+                        int left = (int)(data.Length - packetIn.realSize);
+                        byte[] newData = new byte[left];
 
-					int left = (int)(data.Length - packetIn.realSize);
-					byte[] newData = new byte[left];
+                        m.Seek(packetIn.realSize, 0);
+                        m.Read(newData, 0, left);
 
-					m.Seek(packetIn.realSize, 0);
-					m.Read(newData, 0, left);
+                        data = newData;
 
-					data = newData;
+						m.Flush();
+                    }
 				}
 				else
 					break;
 			}
 		}
 
-		private void DropClients()
+		private Task DropClients()
 		{
-			Clients.RemoveAll(client => client == null);
-			for (var i = 0; i < Clients.Count; i++)
+			if (Clients.Count > 0)
 			{
-				var client = Clients[i];
-				if (client.State == QClient.StateType.Dropped ||
-					(DateTime.UtcNow - client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
-				{
-					LoggerAccessor.LogWarn($"[PRUDP Handler] - [{SourceName}] dropping client: 0x{client.IDsend:X8}");
-					client.State = QClient.StateType.Dropped;
-				}
-			}
-			Clients.RemoveAll(client => client.State == QClient.StateType.Dropped);
+                Clients.RemoveAll(client => client == null);
+                for (int i = 0; i < Clients.Count; i++)
+                {
+                    QClient? client = Clients[i];
+                    if (client.State == QClient.StateType.Dropped ||
+                        (DateTime.UtcNow - client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
+                    {
+                        LoggerAccessor.LogWarn($"[PRUDP Handler] - [{SourceName}] dropping client: 0x{client.IDsend:X8}");
+                        client.State = QClient.StateType.Dropped;
+                    }
+                }
+                Clients.RemoveAll(client => client.State == QClient.StateType.Dropped);
+            }
+
+			return Task.CompletedTask;
 		}
 
 		public QClient? GetQClientByIDrecv(uint id)

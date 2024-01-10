@@ -66,25 +66,26 @@ namespace Horizon.DME
         public virtual async Task Start()
         {
             _workerGroup = new MultithreadEventLoopGroup();
-            _scertHandler = new ScertDatagramHandler();
-
-            _scertHandler.OnChannelActive = channel =>
+            _scertHandler = new ScertDatagramHandler
             {
-                // get scert client
-                if (!channel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                    channel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-                var scertClient = channel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+                OnChannelActive = channel =>
+                {
+                    // get scert client
+                    if (!channel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                        channel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+                    var scertClient = channel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
-                //scertClient.CipherService.GetCipher(CipherContext.RC_CLIENT_SESSION);
+                    //scertClient.CipherService.GetCipher(CipherContext.RC_CLIENT_SESSION);
 
-                // pass medius version
-                scertClient.MediusVersion = ClientObject?.MediusVersion;
+                    // pass medius version
+                    scertClient.MediusVersion = ClientObject?.MediusVersion;
+                }
             };
 
             // Queue all incoming messages
             _scertHandler.OnChannelMessage += async (channel, message) =>
             {
-                var pluginArgs = new OnUdpMsg()
+                OnUdpMsg pluginArgs = new()
                 {
                     Player = ClientObject,
                     Packet = message
@@ -338,8 +339,7 @@ namespace Horizon.DME
             if (_boundChannel == null || !_boundChannel.Active)
                 return;
 
-            //
-            List<ScertDatagramPacket> responses = new List<ScertDatagramPacket>();
+            List<ScertDatagramPacket> responses = new();
 
             try
             {
@@ -367,7 +367,7 @@ namespace Horizon.DME
 
         protected async Task<bool> PassMessageToPlugins(IChannel clientChannel, ClientObject clientObject, BaseScertMessage message, bool isIncoming)
         {
-            var onMsg = new OnMessageArgs(isIncoming)
+            OnMessageArgs onMsg = new(isIncoming)
             {
                 Player = clientObject,
                 Channel = clientChannel,
@@ -382,7 +382,7 @@ namespace Horizon.DME
             // Send medius message to plugins
             if (message is RT_MSG_CLIENT_APP_TOSERVER clientApp)
             {
-                var onMediusMsg = new OnMediusMessageArgs(isIncoming)
+                OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
                     Player = clientObject,
                     Channel = clientChannel,
@@ -395,7 +395,7 @@ namespace Horizon.DME
             }
             else if (message is RT_MSG_SERVER_APP serverApp)
             {
-                var onMediusMsg = new OnMediusMessageArgs(isIncoming)
+                OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
                     Player = clientObject,
                     Channel = clientChannel,

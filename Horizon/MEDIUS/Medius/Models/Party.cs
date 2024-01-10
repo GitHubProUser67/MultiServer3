@@ -62,7 +62,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public int PlayerCount => Clients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
 
-        public Party(ClientObject client, IMediusRequest partyCreate, Channel chatChannel, DMEObject dmeServer)
+        public Party(ClientObject client, IMediusRequest partyCreate, Channel? chatChannel, DMEObject dmeServer)
         {
             if (partyCreate is MediusPartyCreateRequest r)
                 FromPartyCreateRequest(r);

@@ -1,84 +1,74 @@
-﻿using System.Net.Sockets;
-using CustomLogger;
+﻿using CustomLogger;
+using DotNetty.Extensions;
 using QuazalServer.QNetZ;
+using System.Collections.Concurrent;
+using System.Net;
 
 namespace QuazalServer.ServerProcessors
 {
 	public class RDVServer
 	{
-		public readonly object _sync = new();
-		public uint BackendPID = 2;
-		public bool _exit = false;
-		private UdpClient? listener;
-		public ushort _skipNextNAT = 0xFFFF;
-		QPacketHandlerPRUDP? packetHandler;
-		Task<UdpReceiveResult>? CurrentRecvTask = null;
+        private readonly ConcurrentBag<UdpSocket> _listeners = new();
+        private readonly ConcurrentBag<Timer> _timers = new();
+        private CancellationTokenSource _cts = null!;
 
-		public void Start(int listenPort, int BackendPort, uint BackendPID, string AccessKey)
+		public void Start(List<Tuple<int, int, string>> PrudpInstance, uint BackendPID, CancellationToken cancellationToken)
 		{
-			this.BackendPID = BackendPID;
-            _exit = false;
-            new Thread(() => HandleClient(listenPort, BackendPort, AccessKey, null)).Start();
-		}
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-		public void Stop()
-		{
-			lock (_sync)
-			{
-				_exit = true;
-			}
-		}
+            Parallel.ForEach(PrudpInstance, tuple => { new Thread(() => HandleNettyClient(tuple.Item1, BackendPID, tuple.Item2, tuple.Item3, null)).Start(); });
+        }
 
-		public void HandleClient(int listenPort, int BackendPort, string AccessKey, object? obj)
-		{
-			listener = new UdpClient(listenPort);
-			packetHandler = new QPacketHandlerPRUDP(listener, BackendPID, listenPort, BackendPort, AccessKey, "RendezVous");
+        public void StopAsync()
+        {
+            _cts.Cancel();
+            _listeners.ToList().ForEach(async x => await x.StopAsync());
+            _timers.ToList().ForEach(async x => await x.DisposeAsync());
+        }
 
-            LoggerAccessor.LogInfo($"Rendez-vous Server initiated on port: {listenPort}...");
-
-            while (true)
-			{
-				lock (_sync)
-				{
-					if (_exit)
-						break;
-				}
-
-				try
-				{
-					packetHandler.Update();
-
-					// use non-blocking recieve
-					if (CurrentRecvTask != null)
-					{
-						if (CurrentRecvTask.IsCompleted)
-						{
-                            UdpReceiveResult result = CurrentRecvTask.Result;
-							CurrentRecvTask = null;
-							packetHandler.ProcessPacket(result.Buffer, result.RemoteEndPoint);
-						}
-						else if (CurrentRecvTask.IsCanceled || CurrentRecvTask.IsFaulted)
-                            CurrentRecvTask = null;
-                    }
-
-                    if (CurrentRecvTask == null)
-						CurrentRecvTask = listener.ReceiveAsync();
-				}
-                catch (Exception ex)
+        public void HandleNettyClient(int listenPort, uint BackendPID, int BackendPort, string AccessKey, object? obj)
+        {
+            Task serverPRUDP = Task.Run(async () =>
+            {
+                UdpSocket listener = new(listenPort);
+                _listeners.Add(listener);
+                while (!_cts.Token.IsCancellationRequested)
                 {
-                    if (ex.InnerException is SocketException socketException &&
-                        socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
-                        LoggerAccessor.LogError($"[Rendez-vous] - HandleClient thrown an exception : {ex}");
-                    CurrentRecvTask = null;
+                    QPacketHandlerPRUDP? packetHandler = new(listener, BackendPID, listenPort, BackendPort, AccessKey, "RendezVous");
+
+                    Timer timer = new(packetHandler.Update, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(5)); // Needs to be very tight.
+                    _timers.Add(timer);
+
+                    listener.OnStart(() =>
+                    {
+                        LoggerAccessor.LogInfo($"[Rendez-vous Service] - Server started on port {listenPort}");
+                    });
+
+                    listener.OnRecieve((endPoint, bytes) =>
+                    {
+                        if (endPoint is IPEndPoint EndPointIp)
+                        {
+                            LoggerAccessor.LogInfo($"[Rendez-vous Service] - Received request from {endPoint}");
+                            Task.Run(() => packetHandler.ProcessPacket(bytes, EndPointIp));
+                        }
+                    });
+
+                    listener.OnException(ex =>
+                    {
+                        LoggerAccessor.LogError($"[Rendez-vous Service] - DotNetty Thrown an exception : {ex}");
+                    });
+
+                    listener.OnStop(ex =>
+                    {
+                        LoggerAccessor.LogWarn("[Rendez-vous Service] - DotNetty was stopped!");
+                        packetHandler = null;
+                    });
+
+                    _ = listener.StartAsync();
+
+                    await Task.Delay(Timeout.Infinite);
                 }
-
-                Thread.Sleep(1);
-            }
-
-            LoggerAccessor.LogWarn($"Rendez-vous Server stopped.");
-
-            CurrentRecvTask = null;
-			listener.Close();
-		}
+            }, _cts.Token);
+        }
 	}
 }

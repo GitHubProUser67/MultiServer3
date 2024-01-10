@@ -51,25 +51,15 @@ namespace HTTPServer
             return false;
         }
 
-        public byte[] StreamToByteArray(Stream stream)
-        {
-            using (MemoryStream copystream = new())
-            {
-                stream.CopyTo(copystream);
-                copystream.Position = 0;
-                return copystream.ToArray();
-            }
-        }
-
         public void HandleClient(TcpClient tcpClient)
         {
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
 
-                string? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port.ToString();
+                int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
 
-                if (string.IsNullOrEmpty(clientip) || string.IsNullOrEmpty(clientport) || IsIPBanned(clientip))
+                if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip))
                 {
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the HTTP server while being banned or having sent invalid request!");
                     tcpClient.Close();
@@ -257,7 +247,7 @@ namespace HTTPServer
                                                                         response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
                                                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                     {
-                                                                        (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                                                                        (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                         string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                                                             response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
@@ -388,7 +378,7 @@ namespace HTTPServer
                                                                         response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
                                                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                     {
-                                                                        var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                                                                        var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                         string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                                                             response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));

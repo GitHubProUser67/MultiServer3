@@ -52,7 +52,7 @@ public class TheaterHostedService
         await handler.HandleClientConnection(tcpClient.GetStream(), clientEndpoint);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync()
     {
         _cts.Cancel();
         _tcpListener.Stop();

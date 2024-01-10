@@ -6,6 +6,8 @@ namespace CustomLogger
 {
     public class LoggerAccessor
     {
+        public static bool initiated = false;
+
         public static void SetupLogger(string project)
         {
             try
@@ -17,26 +19,25 @@ namespace CustomLogger
 
                 Console.Clear();
             }
-            catch (Exception)
+            catch (Exception) // If a background or windows service, will assert.
             {
 
             }
 
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 
-            var loggingOptions = new FileLoggerOptions()
-            {
-                Append = false,
-                FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
-                MaxRollingFiles = 100
-            };
-
             using ILoggerFactory loggerFactory =
                 LoggerFactory.Create(builder =>
                 {
                     builder.AddSimpleConsole(options => { options.SingleLine = true; });
 
-                    builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/{project}.log", loggingOptions));
+                    builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/{project}.log", new FileLoggerOptions()
+                    {
+                        Append = false,
+                        FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
+                        MaxRollingFiles = 100
+                    }));
+
                     _fileLogger.MinLevel = LogLevel.Information;
                 });
 
@@ -46,6 +47,68 @@ namespace CustomLogger
                 || Environment.OSVersion.Platform == PlatformID.Win32S 
                 || Environment.OSVersion.Platform == PlatformID.Win32Windows)
                 Task.Run(RessourcesLogger.StartPerfWatcher);
+
+            initiated = true;
+        }
+
+        public static void drawTextProgressBar(string? text, int progress, int total)
+        {
+            if (initiated)
+            {
+                if (text == null)
+                    text = string.Empty;
+
+                try
+                {
+                    LogInfo($"\n{text}\n");
+                    //draw empty progress bar
+                    Console.CursorLeft = 0;
+                    Console.Write("["); //start
+                    Console.CursorLeft = 32;
+                    Console.Write("]"); //end
+                    Console.CursorLeft = 1;
+                    float onechunk = 30.0f / total;
+
+                    int position = 1;
+                    if (total == progress)
+                    {
+                        //draw filled part
+                        for (int i = 0; i < 31 && position <= 31; i++)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Green;
+                            Console.CursorLeft = position++;
+                            Console.Write(" ");
+                        }
+                    }
+                    else
+                    {
+                        //draw filled part
+                        for (int i = 0; i < onechunk * progress; i++)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Green;
+                            Console.CursorLeft = position++;
+                            Console.Write(" ");
+                        }
+
+                        //draw unfilled part
+                        for (int i = position; i <= 31; i++)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Black;
+                            Console.CursorLeft = position++;
+                            Console.Write(" ");
+                        }
+                    }
+
+                    //draw totals
+                    Console.CursorLeft = 35;
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.Write(progress.ToString() + " of " + total.ToString() + "    \n"); //blanks and a newline at the end remove any excess
+                }
+                catch (Exception)
+                {
+                    // Not Important.
+                }
+            }
         }
 
 #pragma warning disable
