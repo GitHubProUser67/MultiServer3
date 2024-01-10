@@ -1,24 +1,24 @@
-using DotNetty.Extensions;
 using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Text;
+using System.Net.Sockets;
 
 namespace QuazalServer.QNetZ
 {
 	public partial class QPacketHandlerPRUDP
 	{
-		public QPacketHandlerPRUDP(UdpSocket udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
+		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
 		{
-			UDP = udp;
-			SourceName = sourceName;
+            UDP = udp;
+            SourceName = sourceName;
 			this.AccessKey = AccessKey;
             PID = pid;
 			Port = port;
 			this.BackendPort = BackendPort;
         }
 
-        private readonly UdpSocket UDP;
+        private readonly UdpClient UDP;
 
 		public string SourceName;
 		public string AccessKey;
@@ -147,7 +147,7 @@ namespace QuazalServer.QNetZ
 
 			// bufferize in queue then send, that's how Quazal does it
 			if (!CacheResponse(reqPacket, sendPacket, ep))
-				_ = UDP.SendAsync(ep, data);
+				_ = UDP.SendAsync(data, data.Length, ep);
 
 			LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {MiscUtils.ByteArrayToHexString(data)}");
 		}
@@ -169,7 +169,8 @@ namespace QuazalServer.QNetZ
 
 		public void SendACK(QPacket p, QClient client)
 		{
-            _ = UDP.SendAsync(client.Endpoint, MakeACK(p, client).toBuffer(AccessKey));
+			byte[] payload = MakeACK(p, client).toBuffer(AccessKey);
+            _ = UDP.SendAsync(payload, payload.Length, client.Endpoint);
 		}
 
 		public void MakeAndSend(QClient client, QPacket reqPacket, QPacket newPacket, byte[] data)
@@ -210,7 +211,7 @@ namespace QuazalServer.QNetZ
 			LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] sent {numFragments} packets");
 		}
 
-		public async void Update(object? state)
+		public async void Update()
 		{
 			await CheckResendPackets();
 			await DropClients();
