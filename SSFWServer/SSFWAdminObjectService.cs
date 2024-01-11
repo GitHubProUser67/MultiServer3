@@ -1,6 +1,7 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json;
 using BackendProject.FileHelper;
+using BackendProject;
 
 namespace SSFWServer
 {
@@ -18,22 +19,27 @@ namespace SSFWServer
 
         public bool HandleAdminObjectService(string UserAgent)
         {
-            if (!string.IsNullOrEmpty(sessionid) && File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json"))
-            {
-                string? tempcontent = FileHelper.ReadAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json", key);
+            string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid ?? string.Empty);
 
-                if (tempcontent != null)
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(sessionid) && File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json"))
+            {
+                string? userprofiledata = FileHelper.ReadAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", key);
+
+                if (!string.IsNullOrEmpty(userprofiledata))
                 {
+                    if (!userprofiledata.Contains("Username") && !userprofiledata.Contains("IGA") && !userprofiledata.Contains("LogonCount")) // XORed Data.
+                        userprofiledata = MiscUtils.XorString(userprofiledata, SSFWServerConfiguration.SSFWAPIKey);
+
                     // Parsing JSON data to SSFWUserData object
-                    SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(tempcontent);
+                    SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
 
                     if (userData != null)
                     {
-                        LoggerAccessor.LogInfo($"[SSFW] - IGA Request from : {UserAgent}/{sessionid} - IGA status : {userData.IGA}");
+                        LoggerAccessor.LogInfo($"[SSFW] - IGA Request from : {UserAgent}/{username} - IGA status : {userData.IGA}");
 
                         if (userData.IGA == 1)
                         {
-                            LoggerAccessor.LogInfo($"[SSFW] - Admin role confirmed for : {UserAgent}/{sessionid}");
+                            LoggerAccessor.LogInfo($"[SSFW] - Admin role confirmed for : {UserAgent}/{username}");
 
                             return true;
                         }

@@ -57,7 +57,7 @@ namespace MitmDNS
 
             IPAddress? arparuleaddr = null;
 
-            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr))
+            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr)) // IPV4 Only.
             {
                 if (arparuleaddr != null)
                 {
@@ -71,19 +71,6 @@ namespace MitmDNS
 
                         // Join the octets back together
                         url = string.Join(".", octets);
-
-                        treated = true;
-                    }
-                    else if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                    {
-                        // Split the IP address into octets
-                        string[] octets = arparuleaddr.ToString().Split(':');
-
-                        // Reverse the order of octets
-                        Array.Reverse(octets);
-
-                        // Join the octets back together
-                        url = string.Join(":", octets);
 
                         treated = true;
                     }

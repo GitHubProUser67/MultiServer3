@@ -10,13 +10,13 @@ using System.Net.Security;
 
 namespace SVO
 {
-    public class SVOHTTPSServer
+    public class OTGHTTPSServer
     {
         public static bool IsStarted = false;
         private string certpath;
         private string certpass;
 
-        public SVOHTTPSServer(string certpath, string certpass)
+        public OTGHTTPSServer(string certpath, string certpass)
         {
             this.certpath = certpath;
             this.certpass = certpass;
@@ -57,7 +57,7 @@ namespace SVO
                                  // from doing extensive checks everytime we want to display the User-Agent in particular.
         }
 
-        public Task StartSVO()
+        public Task StartSecureOTG()
         {
 #pragma warning disable
             // Create and prepare a new SSL server context
@@ -65,18 +65,18 @@ namespace SVO
 #pragma warning restore
 
             // Create a new HTTP server
-            SVOSecureServer server = new(context, IPAddress.Any, 10062);
+            OTGSecureServer server = new(context, IPAddress.Any, 10062);
 
             // Start the server
             server.Start();
 
             IsStarted = true;
-            LoggerAccessor.LogInfo("[SVO_HTTPS] - Server started...");
+            LoggerAccessor.LogInfo("[OTG_HTTPS] - Server started...");
 
             return Task.CompletedTask;
         }
 
-        private static HttpResponse SVOSecureRequestProcess(HttpRequest request, HttpResponse Response)
+        private static HttpResponse OTGSecureRequestProcess(HttpRequest request, HttpResponse Response)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace SVO
 
                 if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident") || UserAgent.ToLower().Contains("bytespider"))) // Get Away TikTok.
                 {
-                    LoggerAccessor.LogInfo($"[SVO_HTTPS] - Client - {Host} Requested the SVO_HTTPS Server while not being allowed!");
+                    LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {Host} Requested the OTG_HTTPS Server while not being allowed!");
                     Response.Clear();
                     Response.SetBegin(403);
                     Response.SetBody();
@@ -97,11 +97,11 @@ namespace SVO
                 {
                     if (!string.IsNullOrEmpty(request.Url) && !SVOServer.IsIPBanned(Host))
                     {
-                        LoggerAccessor.LogInfo($"[SVO_HTTPS] - Client Requested the SVO_HTTPS Server with URL : {request.Url}");
+                        LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client Requested the OTG_HTTPS Server with URL : {request.Url}");
 
                         string absolutepath = request.Url;
 
-                        LoggerAccessor.LogInfo($"[SVO_HTTPS] - Client Requested : {absolutepath}");
+                        LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client Requested : {absolutepath}");
 
                         switch (request.Method)
                         {
@@ -138,7 +138,7 @@ namespace SVO
                                             if (files.Length >= 20)
                                             {
                                                 FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
-                                                LoggerAccessor.LogInfo("[SVO_HTTPS] - Replacing Home Debug log file: " + oldestFile.Name);
+                                                LoggerAccessor.LogInfo("[OTG_HTTPS] - Replacing Home Debug log file: " + oldestFile.Name);
                                                 if (File.Exists(oldestFile.FullName))
                                                     File.Delete(oldestFile.FullName);
                                             }
@@ -180,7 +180,7 @@ namespace SVO
                     }
                     else
                     {
-                        LoggerAccessor.LogInfo($"[SVO_HTTPS] - Client Requested the SVO_HTTPS Server with invalid parameters!");
+                        LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client Requested the OTG_HTTPS Server with invalid parameters!");
                         Response.Clear();
                         Response.SetBegin(403);
                         Response.SetBody();
@@ -190,7 +190,7 @@ namespace SVO
             catch (Exception e)
             {
                 Response.MakeErrorResponse();
-                LoggerAccessor.LogError($"[SVO_HTTPS] - Request thrown an error : {e}");
+                LoggerAccessor.LogError($"[OTG_HTTPS] - Request thrown an error : {e}");
             }
 
             return Response;
@@ -201,35 +201,35 @@ namespace SVO
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }
 
-        private class SVOSecureSession : HttpsSession
+        private class OTGSecureSession : HttpsSession
         {
-            public SVOSecureSession(HttpsServer server) : base(server) { }
+            public OTGSecureSession(HttpsServer server) : base(server) { }
 
             protected override void OnReceivedRequest(HttpRequest request)
             {
-                SendResponseAsync(SVOSecureRequestProcess(request, Response));
+                SendResponseAsync(OTGSecureRequestProcess(request, Response));
             }
 
             protected override void OnReceivedRequestError(HttpRequest request, string error)
             {
-                LoggerAccessor.LogError($"[SVO_HTTPS] - Request error: {error}");
+                LoggerAccessor.LogError($"[OTG_HTTPS] - Request error: {error}");
             }
 
             protected override void OnError(SocketError error)
             {
-                LoggerAccessor.LogError($"[SVO_HTTPS] - Session caught an error: {error}");
+                LoggerAccessor.LogError($"[OTG_HTTPS] - Session caught an error: {error}");
             }
         }
 
-        private class SVOSecureServer : HttpsServer
+        private class OTGSecureServer : HttpsServer
         {
-            public SVOSecureServer(SslContext context, IPAddress address, int port) : base(context, address, port) { }
+            public OTGSecureServer(SslContext context, IPAddress address, int port) : base(context, address, port) { }
 
-            protected override SslSession CreateSession() { return new SVOSecureSession(this); }
+            protected override SslSession CreateSession() { return new OTGSecureSession(this); }
 
             protected override void OnError(SocketError error)
             {
-                LoggerAccessor.LogError($"[SVO_HTTPS] - Server caught an error: {error}");
+                LoggerAccessor.LogError($"[OTG_HTTPS] - Server caught an error: {error}");
             }
         }
     }

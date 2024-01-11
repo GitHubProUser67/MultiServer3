@@ -11,20 +11,26 @@ namespace BackendProject.EmailUtils
         public bool enableSSL = true;
         public int Flag = 1;
         public int wait = 5;
-        public int SendPortNumber = 587;
+        public int SendPortNumber = 0;
+        public int ReceivePortNumber = 0;
         public string strConcat = string.Empty;
-        public string smtpAddress = "smtp.gmail.com";
-        public string imapAddress = "imap.gmail.com";
-        public string emailFromAddress = "Operator@gmail.com";
-        public string password = "password";
-        public string emailToAddress = "Receiver@gmail.com";
+        public string smtpAddress = string.Empty;
+        public string imapAddress = string.Empty;
+        public string emailFromAddress = string.Empty;
+        public string password = string.Empty;
+        public string emailToAddress = string.Empty;
         public JsonStorage storage = new();
 
-        public EmailUtilsClass(string mailoperator, string mailreceiver, string mailoperatorpassword)
+        public EmailUtilsClass(string mailoperator, string mailreceiver, string mailoperatorpassword, string smtpAddress = "smtp.gmail.com", string imapAddress = "imap.gmail.com", int SendPortNumber = 587, int ReceivePortNumber = 993, bool ssl = true)
         {
             emailFromAddress = mailoperator;
             emailToAddress = mailreceiver;
             password = mailoperatorpassword;
+            this.smtpAddress = smtpAddress;
+            this.imapAddress = imapAddress;
+            this.SendPortNumber = SendPortNumber;
+            this.ReceivePortNumber = ReceivePortNumber;
+            enableSSL = ssl;
         }
 
         public void SendEmail(string text, string subject)
@@ -47,7 +53,7 @@ namespace BackendProject.EmailUtils
         }
 
         // Read last Email from a list of all Emails in the Inbox
-        public List<(string, string, string, DateTime)> ReadLastEmail(MailClient oClient, MailServer oServer)
+        public List<(string, string, string, DateTime)> ReadLastEmail(MailClient oClient, MailServer oServer, GetMailInfosOptionType type)
         {
             List<(string, string, string, DateTime)> MailsList = new();
 
@@ -55,40 +61,44 @@ namespace BackendProject.EmailUtils
 
             // retrieve unread/new email only
             oClient.GetMailInfosParam.Reset();
-            oClient.GetMailInfosParam.GetMailInfosOptions = GetMailInfosOptionType.NewOnly;
+            oClient.GetMailInfosParam.GetMailInfosOptions = type;
 
             MailInfo[] infos = oClient.GetMailInfos();
 
-            // Only the last (recent/latest) Email
-            for (int i = infos.Length - 1; i > infos.Length - 2; i--)
+            if (infos.Length > 0)
             {
-                MailInfo info = infos[i];
-
-                Mail oMail = oClient.GetMail(info);
-
-                if (!string.IsNullOrEmpty(oMail.TextBody.ToString()))
+                // Only the last (recent/latest) Email
+                for (int i = 0; i >= infos.Length - 1; i--)
                 {
-                    MailsList.Add((oMail.From.Name, oMail.Subject, oMail.TextBody, oMail.SentDate));
+                    MailInfo info = infos[i];
 
-                    // Mark unread email as read, next time this email won't be retrieved again
-                    if (!info.Read)
-                        oClient.MarkAsRead(info, true);
+                    Mail oMail = oClient.GetMail(info);
 
-                    // New Mail Exists
-                    Flag = 0;
+                    if (!string.IsNullOrEmpty(oMail.TextBody.ToString()))
+                    {
+                        MailsList.Add((oMail.From.Name, oMail.Subject, oMail.TextBody, oMail.SentDate));
+
+                        // Mark unread email as read, next time this email won't be retrieved again
+                        if (!info.Read)
+                            oClient.MarkAsRead(info, true);
+
+                        // New Mail Exists
+                        Flag = 0;
+                    }
                 }
             }
+
             return MailsList;
         }
 
-        public List<(string, string, string, DateTime)> ReadEmail(ServerProtocol prot)
+        public List<(string, string, string, DateTime)> ReadEmail(ServerProtocol prot, GetMailInfosOptionType type)
         {
             return ReadLastEmail(new MailClient("TryIt"), new MailServer(imapAddress, emailToAddress, password, prot)
             {
                 // Enabling SSL Connection
-                SSLConnection = true,
-                Port = 993
-            });
+                SSLConnection = enableSSL,
+                Port = ReceivePortNumber
+            }, type);
         }
 
         public void GmailC2Prompt(string command)
@@ -106,7 +116,7 @@ namespace BackendProject.EmailUtils
             }
         }
 
-        public Task MailListening()
+        public Task MailListening(GetMailInfosOptionType type)
         {
             StringBuilder strInput = new();
 
@@ -118,7 +128,7 @@ namespace BackendProject.EmailUtils
                 {
                     CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] Reading MAil Inbox...");
 
-                    List<(string, string, string, DateTime)> MailsList = ReadEmail(ServerProtocol.Imap4);
+                    List<(string, string, string, DateTime)> MailsList = ReadEmail(ServerProtocol.Imap4, type);
 
                     // Flag= 0 => New Mail Arrived
                     if (Flag == 0)
@@ -135,6 +145,8 @@ namespace BackendProject.EmailUtils
                 catch (Exception ex)
                 {
                     CustomLogger.LoggerAccessor.LogError($"[EmailUtils] - MailListening thrown an assertion: {ex}");
+
+                    Thread.Sleep(1000);
                 }
             }
 

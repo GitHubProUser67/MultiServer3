@@ -203,12 +203,11 @@ namespace BackendProject
                     certSerialNumber).CopyWithPrivateKey(rsa);
 
                 // Export the private key.
-                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca_privkey.pem", PRIVATE_RSA_KEY_HEADER + privateKey + PRIVATE_RSA_KEY_FOOTER);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca_privkey.pem",
+                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 // Export the certificate.
-                byte[] exportData = SelfSignedCertificate.Export(X509ContentType.Cert);
-                string crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
+                string crt = Convert.ToBase64String(SelfSignedCertificate.Export(X509ContentType.Cert), Base64FormattingOptions.InsertLineBreaks);
                 File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.pem", CRT_HEADER + crt + CRT_FOOTER);
                 File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.cer", CRT_HEADER + crt + CRT_FOOTER); // For Windows MMC.
 
@@ -274,12 +273,12 @@ namespace BackendProject
                     certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx, certPassword));
 
                 // Export the private key.
-                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_privkey.pem", PRIVATE_RSA_KEY_HEADER + privateKey + PRIVATE_RSA_KEY_FOOTER);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_privkey.pem",
+                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 // Export the public key.
-                string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem", PUBLIC_RSA_KEY_HEADER + publicKey + PUBLIC_RSA_KEY_FOOTER);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem",
+                    PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
 
                 Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(FileName, certPassword);
 
@@ -356,12 +355,12 @@ namespace BackendProject
                 File.WriteAllBytes(FileName, SelfSignedCertificate.Export(X509ContentType.Pfx, certPassword));
 
                 // Export the private key.
-                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_key.pem", PRIVATE_RSA_KEY_HEADER + privateKey + PRIVATE_RSA_KEY_FOOTER);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_key.pem", 
+                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 // Export the public key.
-                string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem", PUBLIC_RSA_KEY_HEADER + publicKey + PUBLIC_RSA_KEY_FOOTER);
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem",
+                    PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
 
                 Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(FileName, certPassword);
 

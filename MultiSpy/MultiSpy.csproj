@@ -6,8 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<DockerfileRunArguments>-p 53:53 -p 65531:65531</DockerfileRunArguments>
 	<ApplicationIcon>MultiSpy.ico</ApplicationIcon>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

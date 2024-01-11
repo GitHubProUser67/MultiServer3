@@ -91,12 +91,8 @@ class Program
         if (QuazalServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(QuazalServerConfiguration.DiscordChannelID, QuazalServerConfiguration.DiscordBotToken);
 
-        QuazalServer.ServerProcessors.BackendServicesServer backend = new();
-
-        QuazalServer.ServerProcessors.RDVServer rendezvous = new();
-
         _ = Task.Run(() => Parallel.Invoke(
-                    () => backend.Start(new List<Tuple<int, string>>
+                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(new List<Tuple<int, string>>
                     {
                         Tuple.Create(30201, "yh64s"), // TDU
                         Tuple.Create(60106, "w6kAtr3T"), // DFSPC
@@ -108,7 +104,7 @@ class Program
                         Tuple.Create(60001, "cYoqGd4f"), // RB3
                         Tuple.Create(21032, "cYoqGd4f") // GRO
                     }, 2, new CancellationTokenSource().Token),
-                    () => rendezvous.Start(new List<Tuple<int, int, string>>
+                    () => new QuazalServer.ServerProcessors.RDVServer().Start(new List<Tuple<int, int, string>>
                     {
                         Tuple.Create(30200, 30201, "yh64s"), // TDU
                         Tuple.Create(60105, 60106, "w6kAtr3T"), // DFSPC
@@ -118,6 +114,7 @@ class Program
                         Tuple.Create(61125, 61126, "cYoqGd4f"), // AC3PS3
                         Tuple.Create(61127, 61128, "cYoqGd4f") // AC3MULTPS3
                     }, 2, new CancellationTokenSource().Token),
+                    () => RemoteLogger.StartRemoteServer(65530),
                     () => RefreshConfig()
                 ));
 
@@ -137,8 +134,6 @@ class Program
 
                 if (input == 'y')
                 {
-                    backend.StopAsync();
-                    rendezvous.StopAsync();
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);
                 }

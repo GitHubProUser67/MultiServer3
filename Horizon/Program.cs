@@ -140,6 +140,7 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => HorizonStarter(),
+                    () => RemoteLogger.StartRemoteServer(65535),
                     () => RefreshConfig()
                 ));
 

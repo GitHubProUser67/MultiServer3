@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 53:53</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 53:53 -p 65532:65532</DockerfileRunArguments>
 	<ApplicationIcon>DNS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>

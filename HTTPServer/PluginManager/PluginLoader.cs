@@ -4,9 +4,9 @@ namespace HTTPServer.PluginManager
 {
     public class PluginLoader
     {
-        public static List<IPlugin> LoadPluginsFromFolder(string folderPath)
+        public static List<HTTPPlugin> LoadPluginsFromFolder(string folderPath)
         {
-            List<IPlugin> plugins = new List<IPlugin>();
+            List<HTTPPlugin> plugins = new List<HTTPPlugin>();
 
             if (Directory.Exists(folderPath))
             {
@@ -14,7 +14,7 @@ namespace HTTPServer.PluginManager
 
                 foreach (string dllFile in dllFiles)
                 {
-                    IPlugin? plugin = LoadPlugin(dllFile);
+                    HTTPPlugin? plugin = LoadPlugin(dllFile);
                     if (plugin != null)
                         plugins.Add(plugin);
                 }
@@ -25,7 +25,7 @@ namespace HTTPServer.PluginManager
             return plugins;
         }
 
-        public static IPlugin? LoadPlugin(string pluginPath)
+        public static HTTPPlugin? LoadPlugin(string pluginPath)
         {
             try
             {
@@ -33,9 +33,9 @@ namespace HTTPServer.PluginManager
 
                 foreach (Type type in assembly.GetTypes())
                 {
-                    if (typeof(IPlugin).IsAssignableFrom(type))
+                    if (typeof(HTTPPlugin).IsAssignableFrom(type))
                     {
-                        var plugin = Activator.CreateInstance(type) as IPlugin;
+                        var plugin = Activator.CreateInstance(type) as HTTPPlugin;
                         return plugin;
                     }
                 }

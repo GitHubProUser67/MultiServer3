@@ -1,6 +1,6 @@
 ﻿namespace HTTPServer.PluginManager
 {
-    public interface IPlugin
+    public interface HTTPPlugin
     {
         Task HTTPStartPlugin(string param, int port);
     }

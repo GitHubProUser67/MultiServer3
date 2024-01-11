@@ -7,10 +7,10 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string filepath, string UserAgentLowercase)
+        public static HttpResponse Handle(HttpRequest request, string filepath, string UserAgentLowercase, string httpdirectoryrequest)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
-                return Handle_LocalDir(request, filepath);
+                return Handle_LocalDir(request, filepath, httpdirectoryrequest);
             else if (File.Exists(filepath) && request.Headers.Keys.Count(x => x == "Range") == 1
                 && !UserAgentLowercase.Contains("vlc") && !UserAgentLowercase.Contains("lavf")) // Range can only be sent once, put here UserAgent of clients not liking our Range system.
                 return Handle_LocalFile_Stream(request, filepath);                              // Most apps are fine with the idea of a Range bellow what requested (which should work), VLC and MPC-HC don't...
@@ -383,15 +383,15 @@ namespace HTTPServer.RouteHandlers
             };
         }
 
-        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path)
+        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest)
         {
             string? encoding = request.GetHeaderValue("Accept-Encoding");
 
             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                 return HttpResponse.Send(HTTPUtils.Compress(
-                        Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1]))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                        Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
             else
-                return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1]), "application/json");
+                return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest), "application/json");
         }
     }
 
