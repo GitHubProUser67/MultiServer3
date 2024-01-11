@@ -23,7 +23,7 @@ public static class HTTPServerConfiguration
     public static List<string>? BannedIPs { get; set; }
     public static List<string>? AllowedIPs { get; set; }
 
-    public static List<HTTPServer.PluginManager.IPlugin> plugins = HTTPServer.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static List<HTTPServer.PluginManager.HTTPPlugin> plugins = HTTPServer.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -111,6 +111,7 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, route_config, new CancellationTokenSource().Token),
+                    () => RemoteLogger.StartRemoteServer(65533),
                     () => RefreshConfig()
                 ));
 

@@ -59,30 +59,15 @@ namespace SSFWServer
                                  // from doing extensive checks everytime we want to display the User-Agent in particular.
         }
 
-        public static bool IsIPBanned(string ipAddress)
-        {
-            if (SSFWServerConfiguration.BannedIPs != null && SSFWServerConfiguration.BannedIPs.Contains(ipAddress))
-                return true;
-
-            return false;
-        }
-
         public Task StartSSFW()
         {
-            // Create and prepare a new SSL server context
-            SslContext context = new(SslProtocols.Tls12, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback);
-            // Create a new HTTP server
-            SSFWServer server = new(context, IPAddress.Any, 10443);
-            // Create and prepare a new HTTP server
-            HttpSSFWServer httpserver = new(IPAddress.Any, 8080);
-
-            // Start the server
-            server.Start();
-            // Start the server
-            httpserver.Start();
+            // Create and prepare a new SSL server context and start the server
+            new SSFWServer(new SslContext(SslProtocols.Tls12, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback), IPAddress.Any, 10443).Start();
+            // Create and start the server
+            new HttpSSFWServer(IPAddress.Any, 8080).Start();
 
             IsStarted = true;
-            LoggerAccessor.LogInfo("[SSFW] - Server started...");
+            LoggerAccessor.LogInfo("[SSFW] - Server started on ports 8080 and 10443...");
 
             return Task.CompletedTask;
         }
@@ -95,7 +80,7 @@ namespace SSFWServer
 
                 string UserAgent = GetHeaderValue(Headers, "User-Agent");
 
-                if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS") && !IsIPBanned(GetHeaderValue(Headers, "Host"))) // Host ban is not perfect, but netcoreserver only has that to offer...
+                if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Url}");
 
@@ -112,7 +97,7 @@ namespace SSFWServer
                     string directoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                     // Process the request based on the HTTP method
-                    string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath.Substring(1));
+                    string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath[1..]);
 
                     switch (request.Method)
                     {
@@ -217,7 +202,7 @@ namespace SSFWServer
 
                                 if (!string.IsNullOrEmpty(XHomeClientVersion) && !string.IsNullOrEmpty(generalsecret))
                                 {
-                                    SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", ""), GetHeaderValue(Headers, "x-signature"), legacykey);
+                                    SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
                                     string? result = login.HandleLogin(request.BodyBytes, "cprod"); // Todo, make env maybe more dynamic?
                                     if (result != null)
                                     {

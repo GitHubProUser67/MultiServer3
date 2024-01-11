@@ -7,6 +7,7 @@ public static class SSFWServerConfiguration
 {
     public static bool SSFWCrossSave { get; set; } = true;
     public static string SSFWMinibase { get; set; } = "[]";
+    public static string SSFWAPIKey { get; set; } = "Sghig12!s52dfca97cb:0cx1550";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
@@ -42,6 +43,7 @@ public static class SSFWServerConfiguration
             SSFWLegacyKey = config.legacyKey;
             SSFWCrossSave = config.cross_save;
             SSFWStaticFolder = config.static_folder;
+            SSFWAPIKey = config.apikey;
             HTTPSCertificateFile = config.certificate_file;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
@@ -92,6 +94,7 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => server.StartSSFW(),
+                    () => RemoteLogger.StartRemoteServer(65528),
                     () => RefreshConfig()
                 ));
 

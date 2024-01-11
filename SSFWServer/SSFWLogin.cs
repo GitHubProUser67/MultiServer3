@@ -8,6 +8,41 @@ using BackendProject;
 
 namespace SSFWServer
 {
+    public static class SSFWUserSessionManager
+    {
+        private static List<UserSession>? userSessions;
+
+        public static void RegisterUser(string username, string sessionid)
+        {
+            if (userSessions != null)
+            {
+                if (userSessions.Any(u => u.SessionId == sessionid))
+                {
+                    // Do nothing.
+                }
+                else
+                {
+                    userSessions.Add(new UserSession { Username = username, SessionId = sessionid });
+                    LoggerAccessor.LogInfo($"[UserSessionManager] - User '{username}' successfully registered with SessionId '{sessionid}'.");
+                }
+            }
+        }
+
+        public static string? GetUsernameBySessionId(string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+                return null;
+
+            return userSessions?.FirstOrDefault(u => u.SessionId == sessionId)?.Username;
+        }
+    }
+
+    public class UserSession
+    {
+        public string? Username { get; set; }
+        public string? SessionId { get; set; }
+    }
+
     public class SSFWLogin : IDisposable
     {
         private string? XHomeClientVersion;
@@ -30,10 +65,13 @@ namespace SSFWServer
         {
             if (bufferwrite != null)
             {
+                bool rpcn = false;
                 int logoncount = 1;
                 string sessionid = string.Empty;
                 string salt = string.Empty;
-                string resultString = "Default";
+                string username = string.Empty;
+                string resultString = string.Empty;
+                string xorpass = SSFWServerConfiguration.SSFWAPIKey;
                 // Create a byte array
 
                 // Extract the desired portion of the binary data
@@ -49,12 +87,18 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                if (MiscUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) && !SSFWServerConfiguration.SSFWCrossSave)
+                if (MiscUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
+                    rpcn = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                }
+                else
+                    LoggerAccessor.LogInfo($"[SSFW] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
+                if (rpcn && !SSFWServerConfiguration.SSFWCrossSave)
+                {
                     // Convert the modified data to a string
-                    resultString = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
+                    username = resultString = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
 
                     // Calculate the MD5 hash of the result
                     using (MD5 md5 = MD5.Create())
@@ -68,22 +112,22 @@ namespace SSFWServer
                         string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
                         // Trim the hash to a specific length
-                        hash = hash.Substring(0, 10);
+                        hash = hash[..10];
 
                         // Append the trimmed hash to the result
                         resultString += hash;
 
                         sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
+
+                        SSFWUserSessionManager.RegisterUser(Encoding.ASCII.GetString(extractedData) + homeClientVersion, sessionid);
 
                         md5.Clear();
                     }
                 }
                 else
                 {
-                    LoggerAccessor.LogInfo($"[SSFW] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
-
                     // Convert the modified data to a string
-                    resultString = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
+                    username = resultString = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
 
                     // Calculate the MD5 hash of the result
                     using (MD5 md5 = MD5.Create())
@@ -97,32 +141,56 @@ namespace SSFWServer
                         string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
                         // Trim the hash to a specific length
-                        hash = hash.Substring(0, 14);
+                        hash = hash[..14];
 
                         // Append the trimmed hash to the result
                         resultString += hash;
 
                         sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
+                        SSFWUserSessionManager.RegisterUser(Encoding.ASCII.GetString(extractedData) + homeClientVersion, sessionid);
+
                         md5.Dispose();
                     }
                 }
 
-                string userprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json";
+                string userprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json";
+
+                string olduserprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json";
+
+                if (File.Exists(olduserprofilefile))
+                    File.Move(olduserprofilefile, userprofilefile);
 
                 if (File.Exists(userprofilefile))
                 {
                     string? userprofiledata = FileHelper.ReadAllText(userprofilefile, key);
-                    if (userprofiledata != null)
+                    if (!string.IsNullOrEmpty(userprofiledata))
                     {
-                        // Parsing JSON data to SSFWUserData object
-                        SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
-                        if (userData != null)
+                        if (userprofiledata.Contains("Username") && userprofiledata.Contains("IGA") && userprofiledata.Contains("LogonCount")) // PlainText
                         {
-                            // Modifying the object if needed
-                            userData.LogonCount += 1;
-                            logoncount = userData.LogonCount;
-                            File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json", JsonConvert.SerializeObject(userData));
+                            // Parsing JSON data to SSFWUserData object
+                            SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
+                            if (userData != null)
+                            {
+                                // Modifying the object if needed
+                                userData.LogonCount += 1;
+                                logoncount = userData.LogonCount;
+                                File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", MiscUtils.XorString(JsonConvert.SerializeObject(userData), xorpass));
+                            }
+                        }
+                        else
+                        {
+                            userprofiledata = MiscUtils.XorString(userprofiledata, xorpass);
+
+                            // Parsing JSON data to SSFWUserData object
+                            SSFWUserData ? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
+                            if (userData != null)
+                            {
+                                // Modifying the object if needed
+                                userData.LogonCount += 1;
+                                logoncount = userData.LogonCount;
+                                File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", MiscUtils.XorString(JsonConvert.SerializeObject(userData), xorpass));
+                            }
                         }
                     }
                     else
@@ -131,7 +199,7 @@ namespace SSFWServer
                 else
                 {
                     Directory.CreateDirectory($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts");
-                    string tempcontent = $"{{\"Username\":\"{sessionid}\",\"LogonCount\":{logoncount},\"IGA\":0}}";
+                    string tempcontent =$"{{\"Username\":\"{sessionid}\",\"LogonCount\":{logoncount},\"IGA\":0}}";
                     // Parsing JSON data to SSFWUserData object
                     SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(tempcontent);
                     if (userData != null)
@@ -140,7 +208,7 @@ namespace SSFWServer
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
 
-                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json", JsonConvert.SerializeObject(userData));
+                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", MiscUtils.XorString(JsonConvert.SerializeObject(userData), xorpass));
                     }
                 }
 
@@ -159,7 +227,7 @@ namespace SSFWServer
                 if (!File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{resultString}/list.json"))
                     File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{resultString}/list.json", "[]");
 
-                return $"{{\"session\":[{{\"@id\":\"{sessionid}\",\"person\":{{\"@id\":\"{resultString}\",\"logonCount\":{logoncount}}}}}]}}";
+                return $"{{\"session\":[{{\"@id\":\"{sessionid}\",\"person\":{{\"@id\":\"{resultString}\",\"logonCount\":\"{logoncount}\"}}}}]}}";
             }
 
             return null;

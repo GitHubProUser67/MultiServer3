@@ -45,7 +45,7 @@ namespace HTTPServer
         public bool IsIPAllowed(string ipAddress)
         {
             if ((HTTPServerConfiguration.AllowedIPs != null && HTTPServerConfiguration.AllowedIPs.Contains(ipAddress))
-                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost" || ipAddress == MiscUtils.GetLocalIPAddress(true).ToString())
+                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost")
                 return true;
 
             return false;
@@ -255,7 +255,7 @@ namespace HTTPServer
                                                                             response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, filePath, request.GetHeaderValue("User-Agent").ToLower());
+                                                                        response = FileSystemRouteHandler.Handle(request, filePath, request.GetHeaderValue("User-Agent").ToLower(), $"http://{MiscUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}");
                                                                     break;
                                                             }
                                                             break;

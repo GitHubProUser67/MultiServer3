@@ -468,6 +468,25 @@ namespace BackendProject
             return res;
         }
 
+        public static string XorString(string? input, string password)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
+            // Convert strings to byte arrays
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+
+            // Perform XOR operation
+            for (int i = 0; i < inputBytes.Length; i++)
+            {
+                inputBytes[i] ^= passwordBytes[i % passwordBytes.Length];
+            }
+
+            // Convert back to string
+            return Encoding.UTF8.GetString(inputBytes);
+        }
+
         public static string ComputeMD5(string input)
         {
             // Create a SHA256   
@@ -538,7 +557,7 @@ namespace BackendProject
             return IPAddress.Loopback;
         }
 
-        public static string GetPublicIPAddress(bool allowipv6 = false)
+        public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
             using (HttpClient client = new())
             {
@@ -546,7 +565,11 @@ namespace BackendProject
                 {
                     HttpResponseMessage response = client.GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;
                     response.EnsureSuccessStatusCode();
-                    return response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                    string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                    if (ipv6urlformat && allowipv6 && result.Length > 15)
+                        return $"[{result}]";
+                    else
+                        return result;
                 }
                 catch (HttpRequestException)
                 {

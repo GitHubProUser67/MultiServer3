@@ -67,6 +67,8 @@ class Program
 
         _ = Task.Run(RefreshConfig);
 
+        _ = Task.Run(() => RemoteLogger.StartRemoteServer(65531));
+
         if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)

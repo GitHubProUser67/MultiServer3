@@ -115,23 +115,23 @@ namespace CustomLogger
         public static ILogger Logger { get; set; }
 
         public static FileLoggerProvider _fileLogger = null;
-        public static void LogInfo(string? message) { Logger.LogInformation(message, null); }
-        public static void LogInfo(string? message, params object[]? args) { Logger.LogInformation(message, args); }
-        public static void LogInfo(int? message, params object[]? args) { Logger.LogInformation(message.ToString(), args); }
-        public static void LogInfo(float? message, params object[]? args) { Logger.LogInformation(message.ToString(), args); }
-        public static void LogWarn(string? message) { Logger.LogWarning(message, null); }
-        public static void LogWarn(string? message, params object[]? args) { Logger.LogWarning(message, args); }
-        public static void LogWarn(int? message, params object[]? args) { Logger.LogWarning(message.ToString(), args); }
-        public static void LogWarn(float? message, params object[]? args) { Logger.LogWarning(message.ToString(), args); }
-        public static void LogError(string? message) { Logger.LogError(message); }
-        public static void LogError(string? message, params object[]? args) { Logger.LogError(message, args); }
-        public static void LogError(int? message, params object[]? args) { Logger.LogError(message.ToString(), args); }
-        public static void LogError(float? message, params object[]? args) { Logger.LogError(message.ToString(), args); }
-        public static void LogError(Exception exception) { Logger.LogError(exception.ToString()); }
-        public static void LogDebug(string? message) { Logger.LogDebug(message, null); }
-        public static void LogDebug(string? message, params object[]? args) { Logger.LogDebug(message, args); }
-        public static void LogDebug(int? message, params object[]? args) { Logger.LogDebug(message.ToString(), args); }
-        public static void LogDebug(float? message, params object[]? args) { Logger.LogDebug(message.ToString(), args); }
+        public static void LogInfo(string? message) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Info: " + message); Logger.LogInformation(message, null); }
+        public static void LogInfo(string? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Info: " + message); Logger.LogInformation(message, args); }
+        public static void LogInfo(int? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Info: " + message); Logger.LogInformation(message.ToString(), args); }
+        public static void LogInfo(float? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Info: " + message); Logger.LogInformation(message.ToString(), args); }
+        public static void LogWarn(string? message) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Warn: " + message); Logger.LogWarning(message, null); }
+        public static void LogWarn(string? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Warn: " + message); Logger.LogWarning(message, args); }
+        public static void LogWarn(int? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Warn: " + message); Logger.LogWarning(message.ToString(), args); }
+        public static void LogWarn(float? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Warn: " + message); Logger.LogWarning(message.ToString(), args); }
+        public static void LogError(string? message) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Error: " + message); Logger.LogError(message); }
+        public static void LogError(string? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Error: " + message); Logger.LogError(message, args); }
+        public static void LogError(int? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Error: " + message); Logger.LogError(message.ToString(), args); }
+        public static void LogError(float? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Error: " + message); Logger.LogError(message.ToString(), args); }
+        public static void LogError(Exception exception) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Error: " + exception.ToString()); Logger.LogError(exception.ToString()); }
+        public static void LogDebug(string? message) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Debug: " + message); Logger.LogDebug(message, null); }
+        public static void LogDebug(string? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Debug: " + message); Logger.LogDebug(message, args); }
+        public static void LogDebug(int? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Debug: " + message); Logger.LogDebug(message.ToString(), args); }
+        public static void LogDebug(float? message, params object[]? args) { if (RemoteLogger.IsStarted) RemoteLogger.IncrementAndRotate("Debug: " + message); Logger.LogDebug(message.ToString(), args); }
 #pragma warning restore
     }
 }

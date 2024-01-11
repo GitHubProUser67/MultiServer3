@@ -114,6 +114,7 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443).StartServer(),
+                    () => RemoteLogger.StartRemoteServer(65534),
                     () => RefreshConfig()
                 ));
 

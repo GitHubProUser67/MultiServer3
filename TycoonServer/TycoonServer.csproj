@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 61900:61900</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 61900:61900 -p 65525:65525</DockerfileRunArguments>
 	<ApplicationIcon>Home Tycoon.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>

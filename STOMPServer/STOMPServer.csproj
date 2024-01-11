@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 10086:10086</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 10086:10086 -p 65527:65527</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<ApplicationIcon>STOMP.ico</ApplicationIcon>
   </PropertyGroup>

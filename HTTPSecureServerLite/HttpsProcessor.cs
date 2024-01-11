@@ -47,7 +47,7 @@ namespace HTTPSecureServerLite
         private static bool IsIPAllowed(string ipAddress)
         {
             if ((HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress))
-                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost" || ipAddress == MiscUtils.GetLocalIPAddress(true).ToString())
+                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost")
                 return true;
 
             return false;
@@ -363,27 +363,51 @@ namespace HTTPSecureServerLite
                                                 string url = string.Empty;
                                                 bool treated = false;
 
-                                                if (DicRules != null && DicRules.ContainsKey(fullname))
-                                                {
-                                                    if (DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                                                    else if (DicRules[fullname].Mode == HandleMode.Redirect) url = DicRules[fullname].Address ?? "127.0.0.1";
-                                                    else if (DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                    treated = true;
-                                                }
+                                                IPAddress? arparuleaddr = null;
 
-                                                if (!treated && StarRules != null)
+                                                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr)) // IPV4 Only.
                                                 {
-                                                    foreach (KeyValuePair<string, DnsSettings> rule in StarRules)
+                                                    if (arparuleaddr != null)
                                                     {
-                                                        Regex regex = new(rule.Key);
-                                                        if (!regex.IsMatch(fullname))
-                                                            continue;
+                                                        if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                                        {
+                                                            // Split the IP address into octets
+                                                            string[] octets = arparuleaddr.ToString().Split('.');
 
-                                                        if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                                        else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                        else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                            // Reverse the order of octets
+                                                            Array.Reverse(octets);
+
+                                                            // Join the octets back together
+                                                            url = string.Join(".", octets);
+
+                                                            treated = true;
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (DicRules != null && DicRules.ContainsKey(fullname))
+                                                    {
+                                                        if (DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
+                                                        else if (DicRules[fullname].Mode == HandleMode.Redirect) url = DicRules[fullname].Address ?? "127.0.0.1";
+                                                        else if (DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
                                                         treated = true;
-                                                        break;
+                                                    }
+
+                                                    if (!treated && StarRules != null)
+                                                    {
+                                                        foreach (KeyValuePair<string, DnsSettings> rule in StarRules)
+                                                        {
+                                                            Regex regex = new(rule.Key);
+                                                            if (!regex.IsMatch(fullname))
+                                                                continue;
+
+                                                            if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                            else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                            else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                            treated = true;
+                                                            break;
+                                                        }
                                                     }
                                                 }
 
@@ -526,7 +550,7 @@ namespace HTTPSecureServerLite
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                         {
-                                            byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1])));
+                                            byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://{MiscUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}")));
 
                                             if (buffer != null)
                                             {
@@ -555,7 +579,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "application/json";
-                                            await ctx.Response.SendAsync(FileStructureToJson.GetFileStructureAsJson(filePath[..^1]));
+                                            await ctx.Response.SendAsync(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{MiscUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
                                         }
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
@@ -680,7 +704,7 @@ namespace HTTPSecureServerLite
 
                                             IPAddress? arparuleaddr = null;
 
-                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr))
+                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr)) // IPV4 Only.
                                             {
                                                 if (arparuleaddr != null)
                                                 {
@@ -694,19 +718,6 @@ namespace HTTPSecureServerLite
 
                                                         // Join the octets back together
                                                         url = string.Join(".", octets);
-
-                                                        treated = true;
-                                                    }
-                                                    else if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                                                    {
-                                                        // Split the IP address into octets
-                                                        string[] octets = arparuleaddr.ToString().Split(':');
-
-                                                        // Reverse the order of octets
-                                                        Array.Reverse(octets);
-
-                                                        // Join the octets back together
-                                                        url = string.Join(":", octets);
 
                                                         treated = true;
                                                     }

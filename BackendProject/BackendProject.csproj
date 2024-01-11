@@ -22,8 +22,4 @@
     <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="FOSSProjects\VulnerableSSLv3Server\" />
-  </ItemGroup>
-
 </Project>

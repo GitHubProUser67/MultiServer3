@@ -112,21 +112,15 @@ class Program
 
         BackendProject.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
 
-        SVOServer httpserver = new("*");
-
-        SVOHTTPSServer httpsserver = new(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty");
-
-        SVOFakeSSLServer fakehttpsserver = new(10061);
-
         if (HttpListener.IsSupported)
-            _ = Task.Run(httpserver.Start);
+            _ = Task.Run(new SVOServer("*").Start);
         else
-            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so HTTP Server not started.");
+            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => httpsserver.StartSVO(),
-                    () => fakehttpsserver.Listen(),
+                    () => new OTGHTTPSServer(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty").StartSecureOTG(),
                     async () => await SVOManager.StartTickPooling(),
+                    () => RemoteLogger.StartRemoteServer(65526),
                     () => RefreshConfig()
                 ));
 
