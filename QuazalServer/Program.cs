@@ -102,8 +102,8 @@ class Program
                         Tuple.Create(61121, "q1UFc45UwoyI"), // GRFSPS3
                         Tuple.Create(61126, "cYoqGd4f"), // AC3PS3
                         Tuple.Create(61128, "cYoqGd4f"), // AC3MULTPS3
-                        Tuple.Create(60001, "cYoqGd4f"), // RB3
-                        Tuple.Create(21032, "cYoqGd4f") // GRO
+                        Tuple.Create(60001, "ridfebb9"), // RB3
+                        Tuple.Create(21032, "8dtRv2oj") // GRO
                     }, 2, new CancellationTokenSource().Token),
                     () => new QuazalServer.ServerProcessors.RDVServer().Start(new List<Tuple<int, int, string>>
                     {
