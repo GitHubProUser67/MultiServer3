@@ -36,20 +36,34 @@ namespace HTTPServer
         {
             Task serverSTOMP = Task.Run(async () =>
             {
-                TcpListener listener = new(IPAddress.Any, listenerPort);
-                listener.Start();
-                LoggerAccessor.LogInfo($"HTTP Server initiated on port: {listenerPort}...");
-                _listeners.Add(listener);
-
-                while (!_cts.Token.IsCancellationRequested)
+                try
                 {
-                    TcpClient tcpClient = await listener.AcceptTcpClientAsync(_cts.Token);
-                    Thread thread = new(() =>
+                    TcpListener listener = new(IPAddress.Any, listenerPort);
+                    listener.Start();
+                    LoggerAccessor.LogInfo($"HTTP Server initiated on port: {listenerPort}...");
+                    _listeners.Add(listener);
+
+                    while (!_cts.Token.IsCancellationRequested)
                     {
-                        Processor.HandleClient(tcpClient);
-                    });
-                    thread.Start();
-                    Thread.Sleep(1);
+                        try
+                        {
+                            TcpClient tcpClient = await listener.AcceptTcpClientAsync(_cts.Token);
+                            Thread thread = new(() =>
+                            {
+                                Processor.HandleClient(tcpClient);
+                            });
+                            thread.Start();
+                            Thread.Sleep(1);
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown an assertion: {ex}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[HTTPServer] - Listener failed to start with assertion: {ex}");
                 }
             }, _cts.Token);
         }
