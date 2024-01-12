@@ -60,7 +60,7 @@ namespace QuazalServer.QNetZ
 		public static void DropPlayers()
 		{
 			Players.RemoveAll(plInfo => { 
-				if(plInfo.Client?.State == QClient.StateType.Dropped &&
+				if (plInfo.Client?.State == QClient.StateType.Dropped &&
 					(DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
 				{
 					plInfo.OnDropped();

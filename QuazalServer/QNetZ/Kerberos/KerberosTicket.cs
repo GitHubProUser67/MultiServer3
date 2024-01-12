@@ -35,6 +35,7 @@ namespace QuazalServer.QNetZ
 				switch (AccessKey)
 				{
 					case "yh64s":
+                    case "hg7j1":
                         key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
 						break;
                     case "OLjNg84Gh":

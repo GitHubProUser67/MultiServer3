@@ -222,13 +222,12 @@ namespace QuazalServer.QNetZ
 
         public static byte[] Decompress(string AccessKey, byte[] InData)
         {
-            MemoryStream baseInputStream = new(InData);
-            MemoryStream memoryStream = new();
-
 			switch (AccessKey)
 			{
-				case "yh64s":
-                    using (LzoStream lzo = new(baseInputStream, System.IO.Compression.CompressionMode.Decompress))
+                case "hg7j1":
+                case "yh64s":
+                    MemoryStream memoryStream = new();
+                    using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
                     {
                         lzo.CopyTo(memoryStream);
                         memoryStream.Position = 0;
@@ -242,18 +241,12 @@ namespace QuazalServer.QNetZ
             }
         }
 
-        public static byte[] Compress(string AccessKey, byte[] InData)
+        public static byte[] Compress(byte[] InData)
         {
-			switch (AccessKey)
-			{
-				case "yh64s":
-                    return InData; // When using LZO, it seems compression is trivial.
-                default:
-                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
-                    MemoryStream result = new();
-                    s.CopyTo(result);
-                    return result.ToArray();
-            }
+            ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
+            MemoryStream result = new();
+            s.CopyTo(result);
+            return result.ToArray();
         }
 
         public static byte[] Encrypt(string key, byte[] data)
