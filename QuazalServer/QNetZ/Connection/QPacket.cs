@@ -137,7 +137,7 @@ namespace QuazalServer.QNetZ
 
 			if (payload != null && payload.Length > 0 && type != PACKETTYPE.SYN && m_oSourceVPort.type != STREAMTYPE.NAT)
 			{
-				if (m_oSourceVPort.type == STREAMTYPE.RVSecure)
+                if (m_oSourceVPort.type == STREAMTYPE.RVSecure && AccessKey != "hg7j1") // TDU PS2 Beta has no encryption at all!
 					payload = Helper.Decrypt(Constants.KeyDATA, payload);
 
 				usesCompression = payload[0] != 0;
@@ -167,10 +167,10 @@ namespace QuazalServer.QNetZ
 
 			if (tmpPayload != null && tmpPayload.Length > 0 && type != PACKETTYPE.SYN && m_oSourceVPort?.type != STREAMTYPE.NAT)
 			{
-				if (usesCompression)
+				if (usesCompression && AccessKey != "hg7j1" && AccessKey != "yh64s") // Old LZO based clients not need compressed response.
 				{
 					uint sizeBefore = (uint)tmpPayload.Length;
-					byte[] buff = Helper.Compress(AccessKey, tmpPayload);
+					byte[] buff = Helper.Compress(tmpPayload);
 					byte count = (byte)(sizeBefore / buff.Length);
 
 					if ((sizeBefore % buff.Length) != 0)
@@ -189,8 +189,8 @@ namespace QuazalServer.QNetZ
 					tmpPayload = m2.ToArray();
 				}
 
-				if (m_oSourceVPort?.type == STREAMTYPE.RVSecure)
-					tmpPayload = Helper.Encrypt(Constants.KeyDATA, tmpPayload);
+				if (m_oSourceVPort?.type == STREAMTYPE.RVSecure && AccessKey != "hg7j1") // TDU PS2 Beta has no encryption at all!
+                    tmpPayload = Helper.Encrypt(Constants.KeyDATA, tmpPayload);
 			}
 
 			return tmpPayload;

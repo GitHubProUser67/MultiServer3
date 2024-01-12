@@ -94,7 +94,8 @@ class Program
         _ = Task.Run(() => Parallel.Invoke(
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(new List<Tuple<int, string>>
                     {
-                        Tuple.Create(30201, "yh64s"), // TDU
+                        Tuple.Create(30201, "yh64s"), // TDUPS2
+                        Tuple.Create(30216, "hg7j1"), // TDUPS2BETA
                         Tuple.Create(60106, "w6kAtr3T"), // DFSPC
                         Tuple.Create(61111, "QusaPha9"), // DFSPS3
                         Tuple.Create(60116, "OLjNg84Gh"), // HAWX2PS3
@@ -106,7 +107,8 @@ class Program
                     }, 2, new CancellationTokenSource().Token),
                     () => new QuazalServer.ServerProcessors.RDVServer().Start(new List<Tuple<int, int, string>>
                     {
-                        Tuple.Create(30200, 30201, "yh64s"), // TDU
+                        Tuple.Create(30200, 30201, "yh64s"), // TDUPS2
+                        Tuple.Create(30215, 30216, "hg7j1"), // TDUPS2BETA
                         Tuple.Create(60105, 60106, "w6kAtr3T"), // DFSPC
                         Tuple.Create(61110, 61111, "QusaPha9"), // DFSPS3
                         Tuple.Create(60115, 60116, "OLjNg84Gh"), // HAWX2PS3

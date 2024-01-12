@@ -55,6 +55,7 @@ namespace QuazalServer.QNetZ
                                 proto = RMCProtocolId.UBISOFTPS3SecureConnectionService;
                             break;
                         case "yh64s":
+                        case "hg7j1":
                             if (proto == RMCProtocolId.FriendsService)
                                 proto = RMCProtocolId.LegacyFriendsService;
                             break;
