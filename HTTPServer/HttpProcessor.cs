@@ -5,6 +5,7 @@ using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
 using HTTPServer.API.JUGGERNAUT;
+using HTTPServer.API.NDREAMS;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using HTTPServer.RouteHandlers;
@@ -163,6 +164,37 @@ namespace HTTPServer
                                                         postdata.Flush();
                                                     }
                                                     agency.Dispose();
+                                                    if (string.IsNullOrEmpty(res))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                        response = HttpResponse.Send(res, "text/xml");
+                                                }
+                                                else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
+                                                {
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a NDREAMS method : {absolutepath}");
+
+                                                    string? res = null;
+                                                    NDREAMSClass ndreams = new(request.Method, absolutepath);
+                                                    if (request.getDataStream != null)
+                                                    {
+                                                        using (MemoryStream postdata = new())
+                                                        {
+                                                            request.getDataStream.CopyTo(postdata);
+
+                                                            postdata.Position = 0;
+                                                            // Find the number of bytes in the stream
+                                                            int contentLength = (int)postdata.Length;
+                                                            // Create a byte array
+                                                            byte[] buffer = new byte[contentLength];
+                                                            // Read the contents of the memory stream into the byte array
+                                                            postdata.Read(buffer, 0, contentLength);
+                                                            res = ndreams.ProcessRequest(request.QueryParameters, buffer, request.GetContentType());
+                                                            postdata.Flush();
+                                                        }
+                                                    }
+                                                    else
+                                                        res = ndreams.ProcessRequest(request.QueryParameters);
+                                                    ndreams.Dispose();
                                                     if (string.IsNullOrEmpty(res))
                                                         response = HttpBuilder.InternalServerError();
                                                     else

@@ -1,15 +1,13 @@
-﻿namespace BackendProject.WebAPIs.PREMIUMAGENCY
+﻿namespace HTTPSecureServerLite.API.NDREAMS
 {
-    public class PREMIUMAGENCYClass : IDisposable
+    public class NDREAMSClass : IDisposable
     {
-        private string workpath;
         private string absolutepath;
         private string method;
         private bool disposedValue;
 
-        public PREMIUMAGENCYClass(string method, string absolutepath, string workpath)
+        public NDREAMSClass(string method, string absolutepath)
         {
-            this.workpath = workpath;
             this.absolutepath = absolutepath;
             this.method = method;
         }
@@ -24,22 +22,6 @@
                 case "POST":
                     switch (absolutepath)
                     {
-                        case "/eventController/checkEvent.do":
-                            return Event.checkEventRequestPOST(PostData, ContentType);
-                        case "/eventController/entryEvent.do":
-                            return Event.entryEventRequestPOST(PostData, ContentType);
-                        case "/eventController/getUserEventCustom.do":
-                            return Event.getUserEventCustomRequestPOST(PostData, ContentType, workpath);
-                        case "/eventController/clearEvent.do":
-                            return Event.clearEventRequestPOST(PostData, ContentType);
-                        case "/eventController/getEventTrigger.do":
-                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath);
-                        case "/eventController/confirmEventTrigger.do":
-                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath);
-                        case "/eventController/getResource.do":
-                            return Resource.getResourcePOST(PostData, ContentType, workpath);
-                        case "/eventController/setUserEventCustom.do":
-                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath);
                         default:
                             break;
                     }
@@ -57,7 +39,6 @@
             {
                 if (disposing)
                 {
-                    workpath = string.Empty;
                     absolutepath = string.Empty;
                     method = string.Empty;
                 }
@@ -69,7 +50,7 @@
         }
 
         // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~PREMIUMAGENCYClass()
+        // ~NDREAMSClass()
         // {
         //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
         //     Dispose(disposing: false);

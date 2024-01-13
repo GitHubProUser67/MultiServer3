@@ -2,8 +2,8 @@
 {
     public class VEEMEEClass : IDisposable
     {
-        string absolutepath;
-        string method;
+        private string absolutepath;
+        private string method;
         private bool disposedValue;
 
         public VEEMEEClass(string method, string absolutepath)

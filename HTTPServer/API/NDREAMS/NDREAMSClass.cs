@@ -1,18 +1,20 @@
-﻿namespace HTTPSecureServerLite.API.HELLFIRE
+﻿using HTTPServer.API.NDREAMS.Aurora;
+
+namespace HTTPServer.API.NDREAMS
 {
-    public class HELLFIREClass : IDisposable
+    public class NDREAMSClass : IDisposable
     {
+        private bool disposedValue;
         private string absolutepath;
         private string method;
-        private bool disposedValue;
 
-        public HELLFIREClass(string method, string absolutepath)
+        public NDREAMSClass(string method, string absolutepath)
         {
             this.absolutepath = absolutepath;
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType)
+        public string? ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -22,14 +24,8 @@
                 case "POST":
                     switch (absolutepath)
                     {
-                        case "/HomeTycoon/Main_SCEE.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
-                        case "/HomeTycoon/Main_SCEJ.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
-                        case "/HomeTycoon/Main_SCEAsia.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
-                        case "/HomeTycoon/Main.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
+                        case "/aurora/visit.php":
+                            return visitClass.ProcessVisit(PostData, ContentType);
                         default:
                             break;
                     }
@@ -58,7 +54,7 @@
         }
 
         // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~HELLFIREClass()
+        // ~NDREAMSClass()
         // {
         //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
         //     Dispose(disposing: false);
