@@ -106,19 +106,25 @@ namespace SVO
             {
                 try
                 {
-                    var context = listener.GetContextAsync().Result;
+                    HttpListenerContext context = listener.GetContextAsync().Result;
                     if (!threadActive) break;
                     Task.Run(() => ProcessContext(context));
                 }
                 catch (HttpListenerException e)
                 {
                     if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
-                    threadActive = false;
+                    listener.Stop();
+
+                    if (!listener.IsListening) // Check if server is closed, then, start it again.
+                        listener.Start();
                 }
                 catch (Exception e)
                 {
                     LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
-                    threadActive = false;
+                    listener.Stop();
+
+                    if (!listener.IsListening) // Check if server is closed, then, start it again.
+                        listener.Start();
                 }
             }
         }
@@ -156,7 +162,7 @@ namespace SVO
             }
             catch (Exception)
             {
-
+                // Not Important.
             }
 
             if (isok)

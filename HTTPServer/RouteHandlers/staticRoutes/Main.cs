@@ -53,6 +53,19 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                      }
                 },
                 new() {
+                    Name = "Self Testing",
+                    UrlRegex = "/testconn/",
+                    Method = "GET",
+                    Host = string.Empty,
+                    Callable = (HttpRequest request) => {
+                        return new HttpResponse(false)
+                                {
+                                    HttpStatusCode = HttpStatusCode.Ok,
+                                    ContentAsUTF8 = "Youhavereachedyourdestination"
+                                };
+                     }
+                },
+                new() {
                     Name = "Ubisoft MasterAdServerInitXml",
                     UrlRegex = "/MasterAdServerWS/MasterAdServerWS.asmx/InitXml",
                     Method = "POST",
