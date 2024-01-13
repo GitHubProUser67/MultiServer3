@@ -158,6 +158,34 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                      }
                 },
                 new() {
+                    Name = "aurora_stats",
+                    UrlRegex = "/scenes/aurora_stats.xml",
+                    Method = "GET",
+                    Host = "ndreams.stats.s3.amazonaws.com",
+                    Callable = (HttpRequest request) => {
+                        return HttpResponse.Send("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                            "<STATS>\n\t" +
+                            "<TRACKING active=\"false\"/>\n\t" +
+                            "<PURCHASE active=\"false\"/>\n\n\t" +
+                            "<VISIT active=\"true\">\n\t\t" +
+                            "<URL>http://pshome.ndreams.net/aurora/visit.php</URL>\n\t" +
+                            "</VISIT>\n" +
+                            "</STATS>", "text/xml");
+                     }
+                },
+                new() {
+                    Name = "aurora_mystery",
+                    UrlRegex = "/scenes/mystery.xml",
+                    Method = "GET",
+                    Host = "ndreams.stats.s3.amazonaws.com",
+                    Callable = (HttpRequest request) => {
+                        return HttpResponse.Send("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                            "<mystery>\r\n\t" +
+                            "<https url=\"http://pshome.ndreams.net/aurora/MysteryItems/mystery3.php\"/>\r\n" +
+                            "</mystery>", "text/xml");
+                     }
+                },
+                new() {
                     Name = "xi2_stats_config",
                     UrlRegex = "/xi2/xi2_stats_config.xml",
                     Method = "GET",

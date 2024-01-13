@@ -235,6 +235,28 @@ namespace HTTPSecureServerLite
                         ctx.Response.ContentType = "text/plain";
                     await ctx.Response.SendAsync(res.Item1);
                 }
+                else if (Host == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
+                {
+                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a NDREAMS method : {absolutepath}");
+
+                    API.NDREAMS.NDREAMSClass ndreams = new(ctx.Request.Method.ToString(), absolutepath);
+                    string? res = ndreams.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    ndreams.Dispose();
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        ctx.Response.ContentType = "text/plain";
+                        statusCode = HttpStatusCode.InternalServerError;
+                    }
+                    else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                        ctx.Response.ContentType = "text/xml";
+                        statusCode = HttpStatusCode.OK;
+                    }
+                    ctx.Response.StatusCode = (int)statusCode;
+                    await ctx.Response.SendAsync(res);
+                }
                 else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a HELLFIRE method : {absolutepath}");

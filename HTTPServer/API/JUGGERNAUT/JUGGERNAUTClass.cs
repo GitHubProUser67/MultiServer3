@@ -7,8 +7,8 @@ namespace HTTPServer.API.JUGGERNAUT
 {
     public class JUGGERNAUTClass : IDisposable
     {
-        string absolutepath;
-        string method;
+        private string absolutepath;
+        private string method;
         private bool disposedValue;
 
         public JUGGERNAUTClass(string method, string absolutepath)
