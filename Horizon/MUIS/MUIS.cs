@@ -431,7 +431,7 @@ namespace Horizon.MUIS
 
                                 foreach (var info in infos)
                                 {
-                                    var isLast = infos.LastOrDefault() == info;
+                                    bool isLast = infos.LastOrDefault() == info;
 
                                     #region SVOUrl
                                     if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
