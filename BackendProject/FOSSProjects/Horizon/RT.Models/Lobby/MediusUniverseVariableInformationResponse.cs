@@ -129,7 +129,7 @@ namespace BackendProject.Horizon.RT.Models
                         double homebetaver = 0;
                         string? betafirstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
-                            betafirstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
+                            betafirstFiveElements = ExtendedInfo[..Math.Min(5, ExtendedInfo.Length)];
 
                         if (!string.IsNullOrEmpty(betafirstFiveElements))
                         {
@@ -156,7 +156,7 @@ namespace BackendProject.Horizon.RT.Models
                         double homeretailver = 0;
                         string? firstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
-                            firstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
+                            firstFiveElements = ExtendedInfo[..Math.Min(5, ExtendedInfo.Length)];
 
                         if (!string.IsNullOrEmpty(firstFiveElements))
                         {
