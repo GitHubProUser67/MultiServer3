@@ -431,13 +431,7 @@ namespace HTTPServer
                                     }
 
                                     request.Dispose();
-
-                                    if (response.Headers.TryGetValue("Connection", out keepalive) && !string.IsNullOrEmpty(keepalive) && keepalive == "Keep-Alive")
-                                    {
-
-                                    }
-                                    else
-                                        response.Dispose();
+                                    response.Dispose();
                                 }
                             }
                         }
@@ -476,7 +470,7 @@ namespace HTTPServer
 
         private string Readline(Stream stream)
         {
-            int next_char;
+            int next_char = 0;
             string data = string.Empty;
             while (true)
             {
@@ -655,29 +649,32 @@ namespace HTTPServer
                 Method = tokens[0].ToUpper(),
                 Url = HTTPUtils.DecodeUrl(tokens[1]),
                 Headers = headers,
+                Data = null,
                 IP = clientip
             };
 
-            MemoryStream contentStream = new();
-
             if (headers.ContainsKey("Content-Length"))
             {
-                long totalBytes = Convert.ToInt32(headers["Content-Length"]);
-                long bytesLeft = totalBytes;
+                long bytesLeft = Convert.ToInt32(headers["Content-Length"]);
 
-                while (bytesLeft > 0)
+                using (MemoryStream contentStream = new())
                 {
-                    Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
-                    int n = inputStream.Read(buffer);
+                    while (bytesLeft > 0)
+                    {
+                        Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+                        int n = inputStream.Read(buffer);
 
-                    contentStream.Write(buffer);
+                        contentStream.Write(buffer);
 
-                    bytesLeft -= n;
+                        bytesLeft -= n;
+                    }
+
+                    contentStream.Position = 0;
+
+                    req.Data = contentStream.ToArray();
+
+                    contentStream.Flush();
                 }
-
-                contentStream.Position = 0;
-
-                req.Data = contentStream;
             }
 
             return req;

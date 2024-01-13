@@ -6,16 +6,13 @@ namespace HTTPServer.Models
     public class HttpRequest : IDisposable
     {
         private bool disposedValue;
-        #region Fields
-
-        #endregion
 
         #region Properties
 
         public string Method { get; set; } = string.Empty;
         public string? Url { get; set; }
         public string IP { get; set; } = string.Empty;
-        public Stream? Data { get; set; }
+        public byte[]? Data { get; set; }
         public Route? Route { get; set; }
         public Dictionary<string, string> Headers { get; set; }
 
@@ -95,7 +92,7 @@ namespace HTTPServer.Models
             get
             {
                 if (Data != null)
-                    return Data;
+                    return new MemoryStream(Data);
                 else
                     return null;
             }
