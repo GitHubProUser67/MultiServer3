@@ -91,8 +91,9 @@ namespace SVO
             try
             {
                 listener = new HttpListener();
+				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
+				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
                 listener.Start();
             }
             catch (Exception e)
@@ -116,7 +117,7 @@ namespace SVO
                     if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10058)) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10058) && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
                         listener.Start();
                     else
                         threadActive = false;
@@ -126,7 +127,7 @@ namespace SVO
                     LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10058)) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10058) && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
                         listener.Start();
                     else
                         threadActive = false;
