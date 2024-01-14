@@ -5,7 +5,7 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
 {
     public static class JsonData
     {
-        private static Dictionary<string, string> DriverSanFransiscoPCResponse = new()
+        private readonly static Dictionary<string, string> DriverSanFransiscoPCResponse = new()
         {
             { "SandboxUrl",                     @"prudp:/address=pdc-lb-rdv-prod01.ubisoft.com;port=60105;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv01.ubisoft.com:60105"},
@@ -18,7 +18,7 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private static Dictionary<string, string> Hawx2PS3Response = new()
+        private readonly static Dictionary<string, string> Hawx2PS3Response = new()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=60115;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv02.ubisoft.com:60115"},
@@ -31,20 +31,27 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private static Dictionary<string, string> DriverSanFransiscoPS3Response = new()
+        private readonly static Dictionary<string, string> DriverSanFransiscoPS3Response = new()
         {
-            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod03.ubisoft.com;port=61110;serviceid=UPxxxx-MYGAME"},
+            { "GatorAuthServiceActivity",       @"DRIVER5PS3"},
+            { "GatorAuthServiceURI",            @"http://gatorservice.ubi.com/AuthenticationServiceSSL.svc"},
+            { "GatorConfigServiceURI",          @"http://gatorservice.ubi.com/ConfigService.svc"},
+            { "GatorContentServiceURI",         @"http://gatorservice.ubi.com/ContentService.svc"},
+            { "GatorServiceHost",               @"gatorservice.ubi.com"},
+            { "GatorServicePort",               @"80"},
+            { "GatorTransferServiceURI",        @"/TransferService.svc"},
+            { "GatorUserServiceURI",            @"http://gatorservice.ubi.com/GatorUserService.svc"},
+            { "NetworkPlatformServiceId",       @"EP0001-BLES00891_00"},
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod03.ubisoft.com;port=61110;serviceid=UP0001-BLUS30536_00"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv03.ubisoft.com:61110"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
-            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
-            { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
-            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.3-RC-Share/test7/"},
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private static Dictionary<string, string> GhostReconFutureSoliderPS3Response = new()
+        private readonly static Dictionary<string, string> GhostReconFutureSoliderPS3Response = new()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod04.ubisoft.com;port=61120;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv04.ubisoft.com:61120"},
@@ -58,7 +65,7 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
         };
 
 
-        private static Dictionary<string, string> AC3PS3Response = new()
+        private readonly static Dictionary<string, string> AC3PS3Response = new()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod05.ubisoft.com;port=61125;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv05.ubisoft.com:61125"},
@@ -71,7 +78,7 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private static Dictionary<string, string> AC3MULTPS3Response = new()
+        private readonly static Dictionary<string, string> AC3MULTPS3Response = new()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod06.ubisoft.com;port=61127;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv06.ubisoft.com:61127"},
@@ -86,7 +93,7 @@ namespace HTTPServer.API.UBISOFT.OnlineConfigService
 
         public static string GetOnlineConfigPSN(string? onlineConfigID)
         {
-            var list = new List<OnlineConfigEntry>();
+            List<OnlineConfigEntry> list = new();
 
             switch (onlineConfigID)
             {

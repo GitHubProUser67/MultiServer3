@@ -80,7 +80,41 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = "gconnect.ubi.com",
                     Callable = (HttpRequest request) => {
-                        return HttpResponse.Send("<xml></xml>", "text/xml");
+
+                        if (request.QueryParameters != null)
+                        {
+                             string? action = request.QueryParameters["action"];
+                             string? gid = request.QueryParameters["gid"];
+                             string? locale = request.QueryParameters["locale"];
+                             string? format = request.QueryParameters["format"];
+
+                            if (!string.IsNullOrEmpty(action) && !string.IsNullOrEmpty(gid) && !string.IsNullOrEmpty(locale) && !string.IsNullOrEmpty(format))
+                            {
+                                switch (action)
+                                {
+                                    case "g_mmc":
+                                        switch (gid)
+                                        {
+                                            case "20a6ed08781847c48e4cbc4dde73fd33": // DFSPS3
+                                                switch (locale)
+                                                {
+                                                    case "en":
+                                                        if (format == "xml")
+                                                            return HttpResponse.Send(API.UBISOFT.MatchMakingConfig.XMLData.DFSPS3NTSCENXMLPayload, "text/html; charset=utf-8"); // Not an error, packet shows this content type...
+                                                        break;
+                                                }
+                                                break;
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+
+                        return new HttpResponse(false)
+                                {
+                                    HttpStatusCode = HttpStatusCode.NotFound,
+                                    ContentAsUTF8 = string.Empty
+                                };
                      }
                 },
                 new() {

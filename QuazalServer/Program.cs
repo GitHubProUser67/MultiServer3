@@ -98,6 +98,7 @@ class Program
                         Tuple.Create(30216, "hg7j1"), // TDUPS2BETA
                         Tuple.Create(60106, "w6kAtr3T"), // DFSPC
                         Tuple.Create(61111, "QusaPha9"), // DFSPS3
+                        Tuple.Create(62111, "QusaPha9"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60116, "OLjNg84Gh"), // HAWX2PS3
                         Tuple.Create(61121, "q1UFc45UwoyI"), // GRFSPS3
                         Tuple.Create(61126, "cYoqGd4f"), // AC3PS3
@@ -111,6 +112,7 @@ class Program
                         Tuple.Create(30215, 30216, "hg7j1"), // TDUPS2BETA
                         Tuple.Create(60105, 60106, "w6kAtr3T"), // DFSPC
                         Tuple.Create(61110, 61111, "QusaPha9"), // DFSPS3
+                        Tuple.Create(62110, 62111, "QusaPha9"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60115, 60116, "OLjNg84Gh"), // HAWX2PS3
                         Tuple.Create(61120, 61121, "q1UFc45UwoyI"), // GRFSPS3
                         Tuple.Create(61125, 61126, "cYoqGd4f"), // AC3PS3
