@@ -1,4 +1,5 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
+using BackendProject;
 using CustomLogger;
 using HTTPServer.Models;
 using System.Collections.Concurrent;
@@ -32,45 +33,6 @@ namespace HTTPServer
             Parallel.ForEach(ports, port => { new Thread(() => CreateHTTPPortListener(port)).Start(); }) ;
         }
 
-        private async Task TestHttpConnectionAsync(int listenerPort) // TCP Listener user space is tricky, sometimes the port silently fails to bind, causing issues. So we test.
-        {
-            Thread.Sleep(1000); // We give the server a bit of time to initialize.
-
-            for (int retryCount = 0; retryCount < 3; retryCount++)
-            {
-                try
-                {
-                    HttpClient client = new();
-                    // Set a timeout of 5 seconds (adjust as needed)
-                    client.Timeout = TimeSpan.FromSeconds(5);
-                    HttpResponseMessage response = await client.GetAsync($"http://localhost:{listenerPort}/testconn/");
-                    response.EnsureSuccessStatusCode(); // Ensure the request was successful
-                    if (await response.Content.ReadAsStringAsync() == "Youhavereachedyourdestination")
-                        return;
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"Failed to send test HTTP test request: {ex}");
-                }
-            }
-
-            if (_listeners.TryRemove(listenerPort, out TcpListener? listener))
-            {
-                try
-                {
-                    listener.Stop();
-                    LoggerAccessor.LogError($"HTTP Server on port {listenerPort} failed the test, so removed and stopped. Server will restart on it's own.");
-                    new Thread(() => CreateHTTPPortListener(listenerPort)).Start();
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"Error while stopping and removing HTTP Server, thread will permently abort woth exception: {ex}");
-                }
-            }
-            else
-                LoggerAccessor.LogWarn($"No listener found for port {listenerPort}.");
-        }
-
         private void CreateHTTPPortListener(int listenerPort)
         {
             Task serverSTOMP = Task.Run(async () =>
@@ -82,8 +44,6 @@ namespace HTTPServer
                     LoggerAccessor.LogInfo($"HTTP Server initiated on port: {listenerPort}...");
                     _listeners.TryAdd(listenerPort, listener);
 
-                    _ = TestHttpConnectionAsync(listenerPort);
-
                     while (!_cts.Token.IsCancellationRequested)
                     {
                         try
@@ -92,13 +52,39 @@ namespace HTTPServer
                             _ = Task.Run(() => Processor.HandleClient(tcpClient));
                             Thread.Sleep(1);
                         }
+                        catch (IOException ex)
+                        {
+                            if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
+                                socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
+                                && socketException.SocketErrorCode != SocketError.ConnectionRefused)
+                                LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown an IOException: {ex}");
+                            listener.Stop();
+
+                            if (!listener.Server.IsBound && MiscUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                                listener.Start();
+                            else
+                                break;
+                        }
+                        catch (SocketException ex)
+                        {
+                            if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
+                                LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown a SocketException: {ex}");
+                            listener.Stop();
+
+                            if (!listener.Server.IsBound && MiscUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                                listener.Start();
+                            else
+                                break;
+                        }
                         catch (Exception ex)
                         {
                             if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown an assertion: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && MiscUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
+                            else
+                                break;
                         }
                     }
                 }

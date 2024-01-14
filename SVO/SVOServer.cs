@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿using BackendProject;
+using CustomLogger;
 using HttpMultipartParser;
 using SVO.Games;
 using System.Net;
@@ -115,16 +116,20 @@ namespace SVO
                     if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10058)) // Check if server is closed, then, start it again.
                         listener.Start();
+                    else
+                        threadActive = false;
                 }
                 catch (Exception e)
                 {
                     LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10058)) // Check if server is closed, then, start it again.
                         listener.Start();
+                    else
+                        threadActive = false;
                 }
             }
         }

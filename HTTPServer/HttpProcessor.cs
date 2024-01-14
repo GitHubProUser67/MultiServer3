@@ -64,6 +64,7 @@ namespace HTTPServer
                 {
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the HTTP server while being banned or having sent invalid request!");
                     tcpClient.Close();
+                    tcpClient.Dispose();
                     return;
                 }
 
@@ -79,8 +80,6 @@ namespace HTTPServer
 
                                 if (request != null && !string.IsNullOrEmpty(request.Url) && !request.GetHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                                 {
-                                    string? keepalive = null;
-
                                     string Host = request.GetHeaderValue("Host");
 
                                     LoggerAccessor.LogInfo(string.Format("{0} -> {1} -> {2} has connected", clientip, Host, request.Method));
@@ -474,13 +473,14 @@ namespace HTTPServer
             }
             catch (IOException ex)
             {
-                if (ex.InnerException is SocketException socketException &&
-                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
+                if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
+                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
+                    && socketException.SocketErrorCode != SocketError.ConnectionRefused)
                     LoggerAccessor.LogError($"[HTTP] - HandleClient - IO-Socket thrown an exception : {ex}");
             }
             catch (SocketException ex)
             {
-                if (ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted)
+                if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
                     LoggerAccessor.LogError($"[HTTP] - HandleClient - Socket thrown an exception : {ex}");
             }
             catch (Exception ex)
@@ -489,6 +489,7 @@ namespace HTTPServer
             }
 
             tcpClient.Close();
+            tcpClient.Dispose();
         }
 
         public void AddRoute(Route route)
