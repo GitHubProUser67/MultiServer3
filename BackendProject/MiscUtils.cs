@@ -716,40 +716,21 @@ namespace BackendProject
             return fallback;
         }
 
-        public static bool IsTcpPortOpen(string host, int port)
+        public static bool IsTCPPortAvailable(int port)
         {
-            using (TcpClient tcpClient = new())
+            try
             {
-                try
+                using (TcpClient client = new())
                 {
-                    tcpClient.Connect(host, port);
-                    return true;
-                }
-                catch (Exception)
-                {
-
+                    client.Connect(IPAddress.Loopback, port);
+                    return false;
                 }
             }
-
-            return false;
-        }
-
-        public static bool IsUdpPortOpen(string host, int port)
-        {
-            using (UdpClient udpClient = new())
+            catch (SocketException)
             {
-                try
-                {
-                    udpClient.Connect(host, port);
-                    return true;
-                }
-                catch (Exception)
-                {
-
-                }
+                // The port is available
+                return true;
             }
-
-            return false;
         }
 
         public static bool IsWindows()
@@ -788,9 +769,8 @@ namespace BackendProject
                     pstring = "OTHER";
                     break;
             }
-            Version? version = Assembly.GetExecutingAssembly().GetName().Version;
             return
-              $"{pstring}{IntPtr.Size * 8}/{os.Version.Major}.{os.Version.Minor} UPnP/1.0 DLNADOC/1.5 sdlna/{version?.Major}.{version?.Minor}";
+              $"{pstring}{IntPtr.Size * 8}/{os.Version.Major}.{os.Version.Minor} UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
         }
     }
 }
