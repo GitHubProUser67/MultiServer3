@@ -10,7 +10,7 @@ namespace SSFWServer
 {
     public static class SSFWUserSessionManager
     {
-        private static List<UserSession>? userSessions;
+        private static List<UserSession>? userSessions = new();
 
         public static void RegisterUser(string username, string sessionid)
         {
@@ -71,7 +71,6 @@ namespace SSFWServer
                 string salt = string.Empty;
                 string username = string.Empty;
                 string resultString = string.Empty;
-                string xorpass = SSFWServerConfiguration.SSFWAPIKey;
                 // Create a byte array
 
                 // Extract the desired portion of the binary data
@@ -119,7 +118,7 @@ namespace SSFWServer
 
                         sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
-                        SSFWUserSessionManager.RegisterUser(Encoding.ASCII.GetString(extractedData) + homeClientVersion, sessionid);
+                        SSFWUserSessionManager.RegisterUser(username, sessionid);
 
                         md5.Clear();
                     }
@@ -148,7 +147,7 @@ namespace SSFWServer
 
                         sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
-                        SSFWUserSessionManager.RegisterUser(Encoding.ASCII.GetString(extractedData) + homeClientVersion, sessionid);
+                        SSFWUserSessionManager.RegisterUser(username, sessionid);
 
                         md5.Dispose();
                     }
@@ -166,31 +165,14 @@ namespace SSFWServer
                     string? userprofiledata = FileHelper.ReadAllText(userprofilefile, key);
                     if (!string.IsNullOrEmpty(userprofiledata))
                     {
-                        if (userprofiledata.Contains("Username") && userprofiledata.Contains("IGA") && userprofiledata.Contains("LogonCount")) // PlainText
+                        // Parsing JSON data to SSFWUserData object
+                        SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
+                        if (userData != null)
                         {
-                            // Parsing JSON data to SSFWUserData object
-                            SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
-                            if (userData != null)
-                            {
-                                // Modifying the object if needed
-                                userData.LogonCount += 1;
-                                logoncount = userData.LogonCount;
-                                File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", MiscUtils.XorString(JsonConvert.SerializeObject(userData), xorpass));
-                            }
-                        }
-                        else
-                        {
-                            userprofiledata = MiscUtils.XorString(userprofiledata, xorpass);
-
-                            // Parsing JSON data to SSFWUserData object
-                            SSFWUserData ? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
-                            if (userData != null)
-                            {
-                                // Modifying the object if needed
-                                userData.LogonCount += 1;
-                                logoncount = userData.LogonCount;
-                                File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", MiscUtils.XorString(JsonConvert.SerializeObject(userData), xorpass));
-                            }
+                            // Modifying the object if needed
+                            userData.LogonCount += 1;
+                            logoncount = userData.LogonCount;
+                            File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json",JsonConvert.SerializeObject(userData));
                         }
                     }
                     else
@@ -199,16 +181,16 @@ namespace SSFWServer
                 else
                 {
                     Directory.CreateDirectory($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts");
-                    string tempcontent =$"{{\"Username\":\"{sessionid}\",\"LogonCount\":{logoncount},\"IGA\":0}}";
+
                     // Parsing JSON data to SSFWUserData object
-                    SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(tempcontent);
+                    SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>($"{{\"Username\":\"{sessionid}\",\"LogonCount\":{logoncount},\"IGA\":0}}");
                     if (userData != null)
                     {
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
 
-                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", MiscUtils.XorString(JsonConvert.SerializeObject(userData), xorpass));
+                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", JsonConvert.SerializeObject(userData));
                     }
                 }
 

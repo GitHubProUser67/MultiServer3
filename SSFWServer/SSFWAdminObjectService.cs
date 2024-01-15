@@ -1,7 +1,6 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json;
 using BackendProject.FileHelper;
-using BackendProject;
 
 namespace SSFWServer
 {
@@ -21,15 +20,12 @@ namespace SSFWServer
         {
             string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid ?? string.Empty);
 
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(sessionid) && File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json"))
+            if (!string.IsNullOrEmpty(username) && File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json"))
             {
                 string? userprofiledata = FileHelper.ReadAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", key);
 
                 if (!string.IsNullOrEmpty(userprofiledata))
                 {
-                    if (!userprofiledata.Contains("Username") && !userprofiledata.Contains("IGA") && !userprofiledata.Contains("LogonCount")) // XORed Data.
-                        userprofiledata = MiscUtils.XorString(userprofiledata, SSFWServerConfiguration.SSFWAPIKey);
-
                     // Parsing JSON data to SSFWUserData object
                     SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
 
