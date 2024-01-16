@@ -158,7 +158,12 @@ namespace SSFWServer
                 string olduserprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json";
 
                 if (File.Exists(olduserprofilefile))
+                {
+                    if (File.Exists(userprofilefile)) // We prioritize legacy accounts.
+                        File.Delete(userprofilefile);
+
                     File.Move(olduserprofilefile, userprofilefile);
+                }
 
                 if (File.Exists(userprofilefile))
                 {
