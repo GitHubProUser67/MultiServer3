@@ -118,7 +118,6 @@ class Program
                         Tuple.Create(61125, 61126, "cYoqGd4f"), // AC3PS3
                         Tuple.Create(61127, 61128, "cYoqGd4f") // AC3MULTPS3
                     }, 2, new CancellationTokenSource().Token),
-                    () => RemoteLogger.StartRemoteServer(65530),
                     () => RefreshConfig()
                 ));
 

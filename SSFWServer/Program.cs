@@ -92,7 +92,6 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => server.StartSSFW(),
-                    () => RemoteLogger.StartRemoteServer(65528),
                     () => RefreshConfig()
                 ));
 
