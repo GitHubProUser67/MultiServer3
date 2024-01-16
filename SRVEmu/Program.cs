@@ -90,7 +90,6 @@ class Program
                     () => new DirtySocksServer().Run(),
                     () => new SRVEmu.Arcadia.Services.FeslHostedService().StartAsync(new CancellationTokenSource().Token),
                     () => new SRVEmu.Arcadia.Services.TheaterHostedService().StartAsync(new CancellationTokenSource().Token),
-                    () => RemoteLogger.StartRemoteServer(65529),
                     () => RefreshConfig()
                 ));
 

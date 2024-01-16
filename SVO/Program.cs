@@ -120,7 +120,6 @@ class Program
         _ = Task.Run(() => Parallel.Invoke(
                     () => new OTGHTTPSServer(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty").StartSecureOTG(),
                     async () => await SVOManager.StartTickPooling(),
-                    () => RemoteLogger.StartRemoteServer(65526),
                     () => RefreshConfig()
                 ));
 

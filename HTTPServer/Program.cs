@@ -111,7 +111,6 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, route_config, new CancellationTokenSource().Token),
-                    () => RemoteLogger.StartRemoteServer(65533),
                     () => RefreshConfig()
                 ));
 

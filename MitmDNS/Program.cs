@@ -71,7 +71,6 @@ class Program
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => dns.MitmDNSMain(),
-                    () => RemoteLogger.StartRemoteServer(65532),
                     () => RefreshConfig()
                 ));
 

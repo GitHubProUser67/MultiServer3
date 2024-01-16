@@ -13,8 +13,6 @@ class Program
 
         _ = Task.Run(() => new STOMPProcessor().StartSTOMP(new CancellationTokenSource().Token));
 
-        _ = Task.Run(() => RemoteLogger.StartRemoteServer(65527));
-
         if (BackendProject.MiscUtils.IsWindows())
         {
             while (true)
