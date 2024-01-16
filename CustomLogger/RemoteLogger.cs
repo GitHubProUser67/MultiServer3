@@ -209,10 +209,6 @@ namespace CustomLogger
 
         public static void IncrementAndRotate(string command)
         {
-            // Remove the oldest string if the list is at its maximum size
-            if (LogsList.Count == LogsList.Capacity)
-                LogsList.RemoveAt(0);
-
             // Add the new string to the end of the list
             LogsList.Add(command);
         }
