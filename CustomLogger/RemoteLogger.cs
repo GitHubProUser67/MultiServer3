@@ -8,7 +8,7 @@ namespace CustomLogger
 {
     public static class RemoteLogger
     {
-        private static List<string> LogsList = new(350);
+        private static List<string> LogsList = new(100);
 
         private static string UrlLink = CalculateLinkHMAC512Hash();
 
