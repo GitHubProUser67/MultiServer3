@@ -118,8 +118,7 @@ namespace HTTPSecureServerLite
 
                         LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {fullurl}");
 
-                        // get filename path
-                        absolutepath = HTTPUtils.RemoveQueryString(fullurl);
+                        absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
                         statusCode = HttpStatusCode.Continue;
                     }
                     else
@@ -303,7 +302,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
 
-                    PREMIUMAGENCYClass agency = new(ctx.Request.Method.ToString(), absolutepath, HTTPSServerConfiguration.HTTPSStaticFolder);
+                    PREMIUMAGENCYClass agency = new(ctx.Request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder);
                     string? res = agency.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     agency.Dispose();
                     if (string.IsNullOrEmpty(res))
@@ -436,7 +435,7 @@ namespace HTTPSecureServerLite
                                                 if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
                                                     url = MiscUtils.GetFirstActiveIPAddress(fullname, MiscUtils.GetPublicIPAddress(true));
 
-                                                IPAddress ip = IPAddress.None;
+                                                IPAddress ip = IPAddress.None; // NXDOMAIN
                                                 if (url != string.Empty && url != "NXDOMAIN")
                                                 {
                                                     try
@@ -775,7 +774,7 @@ namespace HTTPSecureServerLite
                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
                                                 url = MiscUtils.GetFirstActiveIPAddress(fullname, MiscUtils.GetPublicIPAddress(true));
 
-                                            IPAddress ip = IPAddress.None;
+                                            IPAddress ip = IPAddress.None; // NXDOMAIN
                                             if (url != string.Empty && url != "NXDOMAIN")
                                             {
                                                 try
@@ -1332,7 +1331,7 @@ namespace HTTPSecureServerLite
                         {
                             processedDomains.Add(domain);
 
-                            if (domain.Contains("*"))
+                            if (domain.Contains('*'))
                             {
                                 // Escape all possible URI characters conflicting with Regex
                                 domain = domain.Replace(".", "\\.");

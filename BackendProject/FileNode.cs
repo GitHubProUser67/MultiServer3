@@ -30,10 +30,8 @@ namespace BackendProject
                 if (!Directory.Exists(rootDirectory))
                     return "[]";
 
-                FileNode? rootFileNode = CreateFileNode(rootDirectory, httpdirectoryrequest);
-                FileStructure fileStructure = new() { root = rootFileNode };
-
-                return JsonConvert.SerializeObject(fileStructure, Formatting.Indented, new JsonSerializerSettings()
+                return JsonConvert.SerializeObject(new FileStructure() { root = CreateFileNode(rootDirectory, httpdirectoryrequest) },
+                    Formatting.Indented, new JsonSerializerSettings()
                 {
                     NullValueHandling = NullValueHandling.Ignore
                 });

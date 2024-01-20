@@ -11,8 +11,8 @@
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(layout))
                 {
-                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}/{layout}.xml"))
-                        return File.ReadAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}/{layout}.xml");
+                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}/{layout}.xml"))
+                        return File.ReadAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}/{layout}.xml");
 
                     return string.Empty;
                 }

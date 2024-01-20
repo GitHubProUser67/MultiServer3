@@ -31,13 +31,13 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
                 if (global)
                 {
-                    directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie/User_Data";
-                    filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie/User_Data/{psnid}.xml";
+                    directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie/User_Data";
+                    filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie/User_Data/{psnid}.xml";
                 }
                 else
                 {
-                    directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt/User_Data";
-                    filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt/User_Data/{psnid}.xml";
+                    directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt/User_Data";
+                    filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt/User_Data/{psnid}.xml";
                 }
 
                 Directory.CreateDirectory(directoryPath);
@@ -113,13 +113,13 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
                 if (global)
                 {
-                    directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie/User_Data";
-                    filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie/User_Data/{psnid}.xml";
+                    directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie/User_Data";
+                    filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie/User_Data/{psnid}.xml";
                 }
                 else
                 {
-                    directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt/User_Data";
-                    filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt/User_Data/{psnid}.xml";
+                    directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt/User_Data";
+                    filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt/User_Data/{psnid}.xml";
                 }
 
                 if (File.Exists(filePath))

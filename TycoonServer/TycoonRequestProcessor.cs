@@ -10,13 +10,12 @@ namespace TycoonServer
             if (PostData == null || string.IsNullOrEmpty(ContentType))
                 return null;
 
-            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
-
             string Command = string.Empty;
             string UserID = string.Empty;
             string DisplayName = string.Empty;
             string InstanceID = string.Empty;
             string Region = string.Empty;
+            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null)
             {

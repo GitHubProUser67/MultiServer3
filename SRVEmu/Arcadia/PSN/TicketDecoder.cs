@@ -6,14 +6,13 @@ public static class TicketDecoder
 {
     public static TicketData[] DecodeFromASCIIString(string asciiString)
     {
-        byte[] bytes = Convert.FromHexString(asciiString[1..]);
-        return DecodeFromBuffer(bytes).Where(x => x.Type != TicketDataType.Empty).ToArray();
+        return DecodeFromBuffer(Convert.FromHexString(asciiString[1..])).Where(x => x.Type != TicketDataType.Empty).ToArray();
     }
 
     private static IEnumerable<TicketData> DecodeFromBuffer(byte[] payload)
     {
-        using var stream = new MemoryStream(payload);
-        using var reader = new BinaryReader(stream);
+        using MemoryStream stream = new(payload);
+        using BinaryReader reader = new(stream);
 
         while(reader.BaseStream.Position < reader.BaseStream.Length)
         {
@@ -26,9 +25,11 @@ public static class TicketDecoder
     {
         ushort id = BitConverter.ToUInt16(BitConverter.GetBytes(reader.ReadUInt16()).Reverse().ToArray(), 0);
         ushort len = BitConverter.ToUInt16(BitConverter.GetBytes(reader.ReadUInt16()).Reverse().ToArray(), 0);
-        TicketDataType type = (TicketDataType)(id & 0x0FFF);
+        TicketDataType ticketType = (TicketDataType)(id & 0x0FFF);
 
-        switch (type)
+        CustomLogger.LoggerAccessor.LogDebug("[Arcadia] - TicketDecoder-ReadTicketData() id:0x{id:X}, len:{len}, type:{type}", id, len, ticketType);
+
+        switch (ticketType)
         {
             case TicketDataType.Empty:
                 return new EmptyData() { Id = id, Length = len };
@@ -52,11 +53,10 @@ public static class TicketDecoder
                 return new BinaryData { Value = reader.ReadBytes(len), Id = id, Length = len };
 
             case TicketDataType.BString:
-                string str = Encoding.UTF8.GetString(reader.ReadBytes(len));
-                return new BStringData { Value = str, Id = id, Length = len };
+                return new BStringData { Value = Encoding.UTF8.GetString(reader.ReadBytes(len)), Id = id, Length = len };
 
             case TicketDataType.Blob:
-                var blobData = new BlobData
+                BlobData blobData = new()
                 {
                     Tag = reader.ReadByte(),
                     Children = new List<TicketData>(),
@@ -68,15 +68,24 @@ public static class TicketDecoder
 
                 while (remainingLength > 0)
                 {
+                    CustomLogger.LoggerAccessor.LogDebug("[Arcadia] - TicketDecoder-ReadTicketData() Calling ReadTicketData() recursively!");
                     TicketData? child = ReadTicketData(reader);
-                    blobData.Children.Add(child);
-                    remainingLength -= (ushort)(4 + child.Length); // 4 bytes for id and len
+                    CustomLogger.LoggerAccessor.LogDebug("[Arcadia] - TicketDecoder-ReadTicketData() Recursive ReadTicketData() exited!");
+
+                    if (child is not null)
+                    {
+                        blobData.Children.Add(child);
+                        remainingLength -= (ushort)(4 + child.Length); // 4 bytes for id and len
+                        CustomLogger.LoggerAccessor.LogWarn("[Arcadia] - TicketDecoder-ReadTicketData() Failed to parse blob contents!");
+                    }
+                    else
+                        return null;
                 }
 
                 return blobData;
 
             default:
-                CustomLogger.LoggerAccessor.LogWarn($"[PSN Ticket] - Unknown or unhandled type: {id}");
+                CustomLogger.LoggerAccessor.LogWarn("[Arcadia] - TicketDecoder-ReadTicketData() Unknown or unhandled type! id: 0x{id:X}, type:{type}", id, ticketType);
                 reader.BaseStream.Seek(len, SeekOrigin.Current);  // Skip the unknown type
                 return null;
         }

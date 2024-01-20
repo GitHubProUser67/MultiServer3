@@ -66,13 +66,13 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
             if (global)
             {
-                directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie";
-                filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie/leaderboard_alltime.xml";
+                directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie";
+                filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie/leaderboard_alltime.xml";
             }
             else
             {
-                directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt";
-                filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt/leaderboard_alltime.xml";
+                directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt";
+                filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt/leaderboard_alltime.xml";
             }
 
             Directory.CreateDirectory(directoryPath);
@@ -87,13 +87,13 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
             if (global)
             {
-                directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie";
-                filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie/leaderboard_{date}.xml";
+                directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie";
+                filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie/leaderboard_{date}.xml";
             }
             else
             {
-                directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt";
-                filePath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt/leaderboard_{date}.xml";
+                directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt";
+                filePath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt/leaderboard_{date}.xml";
             }
 
             Directory.CreateDirectory(directoryPath);
@@ -128,8 +128,8 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
         public static void ScheduledUpdate(object? state)
         {
-            SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie", DateTime.Now.AddDays(-1));
-            SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt", DateTime.Now.AddDays(-1));
+            SanityCheckLeaderboards($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie", DateTime.Now.AddDays(-1));
+            SanityCheckLeaderboards($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt", DateTime.Now.AddDays(-1));
         }
     }
 }

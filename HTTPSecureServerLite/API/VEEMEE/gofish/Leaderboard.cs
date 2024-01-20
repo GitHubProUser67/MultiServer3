@@ -23,16 +23,16 @@
                 switch (mode)
                 {
                     case 0:
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_{refdate:yyyy_MM_dd}.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_{refdate:yyyy_MM_dd}.xml");
+                        if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_{refdate:yyyy_MM_dd}.xml"))
+                            return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_{refdate:yyyy_MM_dd}.xml");
                         break;
                     case 1:
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_{refdate.AddDays(-1):yyyy_MM_dd}.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_{refdate.AddDays(-1):yyyy_MM_dd}.xml");
+                        if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_{refdate.AddDays(-1):yyyy_MM_dd}.xml"))
+                            return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_{refdate.AddDays(-1):yyyy_MM_dd}.xml");
                         break;
                     case 2:
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_alltime.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_alltime.xml");
+                        if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_alltime.xml"))
+                            return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_alltime.xml");
                         break;
                 }
             }

@@ -167,7 +167,7 @@ namespace HTTPServer.Extensions
                         if (memoryStream.Length == 0)
                         {
                             using StreamReader errorReader = proc.StandardError;
-                            memoryStream.Write(HTTPUtils.RemoveUnwantedHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
+                            memoryStream.Write(HTTPUtils.RemoveUnwantedPHPHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
                         }
 
                         // Process Set-Cookie headers
@@ -199,7 +199,7 @@ namespace HTTPServer.Extensions
                         }
 
                         // Get the final byte array
-                        returndata = HTTPUtils.RemoveUnwantedHeaders(memoryStream.ToArray());
+                        returndata = HTTPUtils.RemoveUnwantedPHPHeaders(memoryStream.ToArray());
 
                         reader.Close();
                     }

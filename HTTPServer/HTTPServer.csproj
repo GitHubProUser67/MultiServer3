@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 80:80 -p 3074:3074 -p 9090:9090 -p 10010:10010 -p 33000:33000 -p 65533:65533</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 80:80 -p 3074:3074 -p 9090:9090 -p 10010:10010 -p 33000:33000</DockerfileRunArguments>
 	<ApplicationIcon>HTTP.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>

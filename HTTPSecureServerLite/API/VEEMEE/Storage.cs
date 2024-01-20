@@ -28,7 +28,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
 
                 if (!string.IsNullOrEmpty(config) && !string.IsNullOrEmpty(product))
                 {
-                    string jsonFilePath = Path.Combine($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/config.json");
+                    string jsonFilePath = Path.Combine($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/config.json");
 
                     if (File.Exists(jsonFilePath))
                     {
@@ -122,17 +122,17 @@ namespace HTTPSecureServerLite.API.VEEMEE
             if (string.IsNullOrEmpty(hex) || string.IsNullOrEmpty(salt))
                 return null;
 
-            if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"))
-                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"));
+            if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"))
+                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"));
             else
-                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/default_profile.json"));
+                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/default_profile.json"));
         }
 
         public static void WriteProfile(string psnid, string profile)
         {
-            Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles");
+            Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles");
 
-            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json", profile);
+            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json", profile);
         }
     }
 }

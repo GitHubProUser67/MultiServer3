@@ -12,7 +12,6 @@ namespace GraphicalUserInterface
         private static string multispyguid = string.Empty;
         private static string srvemuguid = string.Empty;
         private static string quazalguid = string.Empty;
-        private static string stompguid = string.Empty;
 
         public MainForm()
         {
@@ -67,9 +66,6 @@ namespace GraphicalUserInterface
                     if (!string.IsNullOrEmpty(quazalguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(quazalguid);
-                    if (!string.IsNullOrEmpty(stompguid))
-                        // Stop the program
-                        await ProcessManager.ShutdownProcess(stompguid);
                 }
                 catch (Exception ex)
                 {
@@ -189,17 +185,6 @@ namespace GraphicalUserInterface
             _ = ProcessManager.StartupProgram("QuazalServer.exe", quazalguid);
         }
 
-        private async void buttonStartSTOMP_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(stompguid))
-                // Stop the program
-                await ProcessManager.ShutdownProcess(stompguid);
-
-            stompguid = Guid.NewGuid().ToString();
-            // Start the program
-            _ = ProcessManager.StartupProgram("STOMPServer.exe", stompguid);
-        }
-
         private async void buttonStopHTTPS_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(httpsguid))
@@ -315,18 +300,6 @@ namespace GraphicalUserInterface
                 // Stop the program
                 await ProcessManager.ShutdownProcess(quazalguid);
                 quazalguid = string.Empty;
-            }
-            else
-                Console.WriteLine("No Process started for this server");
-        }
-
-        private async void buttonStopSTOMP_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(stompguid))
-            {
-                // Stop the program
-                await ProcessManager.ShutdownProcess(stompguid);
-                stompguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");

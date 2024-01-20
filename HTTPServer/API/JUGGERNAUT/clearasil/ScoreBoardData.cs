@@ -66,8 +66,8 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
 
         public static void UpdateScoreboardXml()
         {
-            Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil");
-            File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/scoreboard.xml", ConvertScoreboardToXml());
+            Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil");
+            File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/scoreboard.xml", ConvertScoreboardToXml());
         }
     }
 }

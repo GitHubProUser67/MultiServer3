@@ -47,7 +47,9 @@ public class Ssl3TlsClient : DefaultTlsClient
     public override void NotifySecureRenegotiation(bool secureRenegotiation)
     {
         if (!secureRenegotiation)
+        {
             secureRenegotiation = true;
+        }
 
         base.NotifySecureRenegotiation(secureRenegotiation);
     }

@@ -7,7 +7,6 @@ namespace TycoonServer
     {
         public static string? CreateBuilding(byte[]? PostData, string boundary, string UserID)
         {
-            string xmlprofile = string.Empty;
             string Orientation = string.Empty;
             string Type = string.Empty;
             string TownID = string.Empty;
@@ -28,14 +27,10 @@ namespace TycoonServer
                 DateTime CurrentTime = DateTime.Now;
 
                 if (File.Exists($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml"))
-                {
-                    xmlprofile = File.ReadAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml");
-
-                    string pattern = $"<{Index:F6}>(<TimeBuilt>).*?(</TimeBuilt>)(<Orientation>).*?(</Orientation>)(<Index>){Index:F6}(</Index>)(<Type>).*?(</Type>)</{Index:F6}>";
-                    string replacement = $"<{Index:F6}><TimeBuilt>{CurrentTime}</TimeBuilt><Orientation>{Orientation}</Orientation><Index>{Index}</Index><Type>{Type}</Type></{Index:F6}>";
-
-                    File.WriteAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml", Regex.Replace(xmlprofile, pattern, replacement));
-                }
+                    File.WriteAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml",
+                    Regex.Replace(File.ReadAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml"),
+                    $"<{Index:F6}>(<TimeBuilt>).*?(</TimeBuilt>)(<Orientation>).*?(</Orientation>)(<Index>){Index:F6}(</Index>)(<Type>).*?(</Type>)</{Index:F6}>",
+                    $"<{Index:F6}><TimeBuilt>{CurrentTime}</TimeBuilt><Orientation>{Orientation}</Orientation><Index>{Index}</Index><Type>{Type}</Type></{Index:F6}>"));
 
                 return $"<Response><TimeBuilt>{CurrentTime}</TimeBuilt><Orientation>{Orientation}</Orientation><Index>{Index}</Index><Type>{Type}</Type></Response>";
             }
@@ -60,14 +55,10 @@ namespace TycoonServer
                 }
 
                 if (File.Exists($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml"))
-                {
-                    xmlprofile = File.ReadAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml");
-
-                    string pattern = $"<{BuildingIndex:F6}>(<TimeBuilt>).*?(</TimeBuilt>)(<Orientation>).*?(</Orientation>)(<Index>){BuildingIndex:F6}(</Index>)(<Type>).*?(</Type>)</{BuildingIndex:F6}>";
-                    string replacement = $"<{BuildingIndex:F6}><TimeBuilt></TimeBuilt><Orientation></Orientation><Index>{BuildingIndex}</Index><Type></Type></{BuildingIndex:F6}>";
-
-                    File.WriteAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml", Regex.Replace(xmlprofile, pattern, replacement));
-                }
+                    File.WriteAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml",
+                    Regex.Replace(File.ReadAllText($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}_{TownID}.xml"),
+                    $"<{BuildingIndex:F6}>(<TimeBuilt>).*?(</TimeBuilt>)(<Orientation>).*?(</Orientation>)(<Index>){BuildingIndex:F6}(</Index>)(<Type>).*?(</Type>)</{BuildingIndex:F6}>",
+                    $"<{BuildingIndex:F6}><TimeBuilt></TimeBuilt><Orientation></Orientation><Index>{BuildingIndex}</Index><Type></Type></{BuildingIndex:F6}>"));
             }
 
             return "<Response></Response>";

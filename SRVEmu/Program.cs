@@ -1,17 +1,15 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-using SRVEmu;
 using BackendProject;
 
 public static class SRVEmuServerConfiguration
 {
-    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
-    public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
-    public static string TheaterBindAddress { get; set; } = "theater.ps3.arcadia";
-    public static string GameServerBindAddress { get; set; } = "gameserver1.ps3.arcadia";
+    public static string DirtySocksDatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ea.dirtysocks.db.json";
+    public static string ListenAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+    public static string GameServerAddress { get; set; } = "gameserver1.ps3.arcadia";
     public static int GameServerPort { get; set; } = 1003;
-    public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ea.db.json";
+    public static string TheaterAddress { get; set; } = "theater.ps3.arcadia";
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;
@@ -39,12 +37,11 @@ public static class SRVEmuServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(json);
 
-            HTTPSCertificateFile = config.certificate_file;
-            ServerBindAddress = config.server_bind_address;
-            TheaterBindAddress = config.theater_bind_address;
-            GameServerBindAddress = config.game_server_bind_address;
+            DirtySocksDatabaseConfig = config.database;
+            ListenAddress = config.listen_address;
+            GameServerAddress = config.game_server_address;
             GameServerPort = config.game_server_port;
-            DatabaseConfig = config.database;
+            TheaterAddress = config.theater_address;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
             EnableDiscordPlugin = config.discord_plugin.enabled;
@@ -81,15 +78,16 @@ class Program
 
         SRVEmuServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/srvemu.json");
 
-        SSLUtils.InitCerts(SRVEmuServerConfiguration.HTTPSCertificateFile);
-
         if (SRVEmuServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(SRVEmuServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(SRVEmuServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(SRVEmuServerConfiguration.DiscordChannelID, SRVEmuServerConfiguration.DiscordBotToken);
 
+        SRVEmu.Arcadia.Storage.SharedCounters counters = new();
+        SRVEmu.Arcadia.Storage.SharedCache caches = new();
+
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new DirtySocksServer().Run(),
-                    () => new SRVEmu.Arcadia.Services.FeslHostedService().StartAsync(new CancellationTokenSource().Token),
-                    () => new SRVEmu.Arcadia.Services.TheaterHostedService().StartAsync(new CancellationTokenSource().Token),
+                    () => new SRVEmu.DirtySocks.DirtySocksServer().Run(),
+                    () => new SRVEmu.Arcadia.Hosting.FeslHostedService(counters, caches).StartAsync(new CancellationTokenSource().Token),
+                    () => new SRVEmu.Arcadia.Hosting.TheaterHostedService(counters, caches).StartAsync(new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 

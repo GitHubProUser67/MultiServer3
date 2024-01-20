@@ -13,13 +13,13 @@ namespace HTTPServer.API.JUGGERNAUT.farm
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(weather))
                 {
-                    Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data");
+                    Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data");
 
-                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml"))
+                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
                         XmlDocument xmlDoc = new();
-                        xmlDoc.Load($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml");
+                        xmlDoc.Load($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <weather> element
                         XmlElement? weatherElement = xmlDoc.SelectSingleNode("/xml/resources/weather") as XmlElement;
@@ -28,7 +28,7 @@ namespace HTTPServer.API.JUGGERNAUT.farm
                         {
                             // Replace the value of <weather> with a new value
                             weatherElement.InnerText = weather;
-                            File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml", xmlDoc.OuterXml);
+                            File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml", xmlDoc.OuterXml);
                         }
                     }
 

@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using System.Text;
 using EAGetMail;
 
 namespace BackendProject.EmailUtils
@@ -9,7 +8,7 @@ namespace BackendProject.EmailUtils
     {
         public bool IsListenStarted = false;
         public bool enableSSL = true;
-        public int Flag = 1;
+        public ushort Flag = 1;
         public int wait = 5;
         public int SendPortNumber = 0;
         public int ReceivePortNumber = 0;
@@ -53,30 +52,26 @@ namespace BackendProject.EmailUtils
         }
 
         // Read last Email from a list of all Emails in the Inbox
-        public List<(string, string, string, DateTime)> ReadLastEmail(MailClient oClient, MailServer oServer, GetMailInfosOptionType type)
+        public List<(string, string, string, DateTime)> ReadLastEmail(MailClient? oClient, MailServer oServer, GetMailInfosOptionType type)
         {
             List<(string, string, string, DateTime)> MailsList = new();
 
-            oClient.Connect(oServer);
-
-            // retrieve unread/new email only
-            oClient.GetMailInfosParam.Reset();
-            oClient.GetMailInfosParam.GetMailInfosOptions = type;
-
-            MailInfo[] infos = oClient.GetMailInfos();
-
-            if (infos.Length > 0)
+            if (oClient != null)
             {
-                // Only the last (recent/latest) Email
-                for (int i = 0; i >= infos.Length - 1; i--)
-                {
-                    MailInfo info = infos[i];
+                oClient.Connect(oServer);
 
+                // retrieve unread/new email only
+                oClient.GetMailInfosParam.Reset();
+                oClient.GetMailInfosParam.GetMailInfosOptions = type;
+
+                // Only the last (recent/latest) Email
+                foreach (MailInfo info in oClient.GetMailInfos()) // Impossible to use parallel tasks, as the mail is thread sensitive.
+                {
                     Mail oMail = oClient.GetMail(info);
 
                     if (!string.IsNullOrEmpty(oMail.TextBody.ToString()))
                     {
-                        MailsList.Add((oMail.From.Name, oMail.Subject, oMail.TextBody, oMail.SentDate));
+                        MailsList.Add((oMail.From.Name, oMail.Subject.Replace(" (Trial Version)", string.Empty), oMail.TextBody, oMail.SentDate));
 
                         // Mark unread email as read, next time this email won't be retrieved again
                         if (!info.Read)
@@ -86,6 +81,9 @@ namespace BackendProject.EmailUtils
                         Flag = 0;
                     }
                 }
+
+                oClient.Close();
+                oClient = null;
             }
 
             return MailsList;
@@ -101,16 +99,11 @@ namespace BackendProject.EmailUtils
             }, type);
         }
 
-        public void GmailC2Prompt(string command)
-        {
-            CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] - [GmailC2] IN->Email: {0}", command);
-        }
-
         public void WaitForCommand(int sec)
         {
             while (sec >= 0)
             {
-                CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] - Waiting for {0} seconds for the Operator to send Command", sec);
+                CustomLogger.LoggerAccessor.LogDebug("[EmailUtils] - Waiting for {0} seconds for the Operator to send Command", sec);
                 Thread.Sleep(sec * 1000);
                 sec--;
             }
@@ -118,28 +111,27 @@ namespace BackendProject.EmailUtils
 
         public Task MailListening(GetMailInfosOptionType type)
         {
-            StringBuilder strInput = new();
-
             IsListenStarted = true;
+
+            CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] Reading mail inbox...");
 
             while (IsListenStarted)
             {
                 try
                 {
-                    CustomLogger.LoggerAccessor.LogInfo("[EmailUtils] Reading MAil Inbox...");
-
                     List<(string, string, string, DateTime)> MailsList = ReadEmail(ServerProtocol.Imap4, type);
 
-                    // Flag= 0 => New Mail Arrived
-                    if (Flag == 0)
+                    switch (Flag)
                     {
-                        if (MailsList.Count > 0)
-                            storage.RegisterMessages(MailsList);
-                    }
-                    else if (Flag == 1)
-                    {
-                        // Will sleep for "wait" secs...
-                        WaitForCommand(wait);
+                        // Flag= 0 => New Mail Arrived
+                        case 0:
+                            if (MailsList.Count > 0)
+                                storage.RegisterMessages(MailsList);
+                            break;
+                        case 1:
+                            // Will sleep for "wait" secs...
+                            WaitForCommand(wait);
+                            break;
                     }
                 }
                 catch (Exception ex)
@@ -148,6 +140,8 @@ namespace BackendProject.EmailUtils
 
                     Thread.Sleep(1000);
                 }
+
+                Thread.Sleep(1);
             }
 
             return Task.CompletedTask;

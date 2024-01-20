@@ -83,15 +83,15 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
 
         public static void UpdateAllTimeScoreboardXml()
         {
-            Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish");
-            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_alltime.xml", ConvertScoreboardToXml());
+            Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish");
+            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_alltime.xml", ConvertScoreboardToXml());
             CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard alltime XML updated.");
         }
 
         public static void UpdateTodayScoreboardXml(string date)
         {
-            Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish");
-            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/leaderboard_{date}.xml", ConvertScoreboardToXml());
+            Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish");
+            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/leaderboard_{date}.xml", ConvertScoreboardToXml());
             CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard {date} XML updated.");
         }
 
@@ -122,7 +122,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
 
         public static void ScheduledUpdate(object? state)
         {
-            SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish", DateTime.Now.AddDays(-1));
+            SanityCheckLeaderboards($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish", DateTime.Now.AddDays(-1));
         }
     }
 }

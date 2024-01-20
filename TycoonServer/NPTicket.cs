@@ -65,12 +65,12 @@ namespace TycoonServer
 
                 if (MiscUtils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
-                    LoggerAccessor.LogInfo($"[Tycoon] : User {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on RPCN");
+                    LoggerAccessor.LogInfo($"[Tycoon] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData) + "RPCN";
 
-                    userid = resultString.Replace(" ", "");
+                    userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
                     using (MD5 md5 = MD5.Create())
@@ -79,7 +79,7 @@ namespace TycoonServer
                         string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
                         // Trim the hash to a specific length
-                        hash = hash.Substring(0, 10);
+                        hash = hash[..10];
 
                         // Append the trimmed hash to the result
                         resultString += hash;
@@ -91,12 +91,12 @@ namespace TycoonServer
                 }
                 else
                 {
-                    LoggerAccessor.LogInfo($"[Tycoon] : {Encoding.ASCII.GetString(extractedData).Replace("H", "")} logged in and is on PSN");
+                    LoggerAccessor.LogInfo($"[Tycoon] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData);
 
-                    userid = resultString.Replace(" ", "");
+                    userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
                     using (MD5 md5 = MD5.Create())
@@ -105,7 +105,7 @@ namespace TycoonServer
                         string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
 
                         // Trim the hash to a specific length
-                        hash = hash.Substring(0, 14);
+                        hash = hash[..14];
 
                         // Append the trimmed hash to the result
                         resultString += hash;

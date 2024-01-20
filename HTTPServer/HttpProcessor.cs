@@ -84,7 +84,7 @@ namespace HTTPServer
 
                                     LoggerAccessor.LogInfo(string.Format("{0} -> {1} -> {2} has connected", clientip, Host, request.Method));
 
-                                    string absolutepath = HTTPUtils.RemoveQueryString(request.Url);
+                                    string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.GetHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
 
                                     // Split the URL into segments
                                     string[] segments = absolutepath.Trim('/').Split('/');
@@ -141,32 +141,6 @@ namespace HTTPServer
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                         response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
-                                                }
-                                                else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
-                                                    using (MemoryStream postdata = new())
-                                                    {
-                                                        request.getDataStream.CopyTo(postdata);
-
-                                                        postdata.Position = 0;
-                                                        // Find the number of bytes in the stream
-                                                        int contentLength = (int)postdata.Length;
-                                                        // Create a byte array
-                                                        byte[] buffer = new byte[contentLength];
-                                                        // Read the contents of the memory stream into the byte array
-                                                        postdata.Read(buffer, 0, contentLength);
-                                                        res = agency.ProcessRequest(buffer, request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    agency.Dispose();
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
                                                 }
                                                 else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                                 {
@@ -237,7 +211,7 @@ namespace HTTPServer
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
 
                                                     string? res = null;
-                                                    PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
+                                                    PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder);
                                                     if (request.getDataStream != null)
                                                     {
                                                         using (MemoryStream postdata = new())

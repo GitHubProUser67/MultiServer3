@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 10058:10058 -p 10060:10060 -p 10061:10061 -p 10062:10062 -p 65526:65526</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 10058:10058 -p 10060:10060 -p 10061:10061 -p 10062:10062</DockerfileRunArguments>
 	<ApplicationIcon>SVO.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>

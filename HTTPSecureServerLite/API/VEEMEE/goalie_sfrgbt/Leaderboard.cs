@@ -23,9 +23,9 @@
                 string directoryPath = string.Empty;
 
                 if (global)
-                    directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/goalie";
+                    directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/goalie";
                 else
-                    directoryPath = $"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/sfrgbt";
+                    directoryPath = $"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/sfrgbt";
 
                 DateTime refdate = DateTime.Now; // We avoid race conditions by calculating it one time.
 

@@ -116,7 +116,7 @@ namespace CustomLogger
 
         public static FileLoggerProvider _fileLogger = null;
         public static void LogInfo(string? message) { Logger.LogInformation(message, null); }
-        public static void LogInfo(string? message, params object[]? args) {Logger.LogInformation(message, args); }
+        public static void LogInfo(string? message, params object[]? args) { Logger.LogInformation(message, args); }
         public static void LogInfo(int? message, params object[]? args) { Logger.LogInformation(message.ToString(), args); }
         public static void LogInfo(float? message, params object[]? args) { Logger.LogInformation(message.ToString(), args); }
         public static void LogWarn(string? message) { Logger.LogWarning(message, null); }

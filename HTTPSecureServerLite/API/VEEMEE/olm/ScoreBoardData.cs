@@ -76,16 +76,16 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
         public static void UpdateAllTimeScoreboardXml()
         {
-            Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm");
-            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/leaderboard_alltime.xml", ConvertScoreboardToXml());
+            Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm");
+            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/leaderboard_alltime.xml", ConvertScoreboardToXml());
             CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - scoreboard alltime XML updated.");
         }
 
         public static void UpdateWeeklyScoreboardXml(string date)
         {
-            Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm");
+            Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm");
             // Get all XML files in the scoreboard folder
-            foreach (string file in Directory.GetFiles($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm", "leaderboard_*.xml"))
+            foreach (string file in Directory.GetFiles($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm", "leaderboard_*.xml"))
             {
                 // Extract date from the filename
                 Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
@@ -107,7 +107,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                     }
                 }
             }
-            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/leaderboard_{date}.xml", ConvertScoreboardToXml());
+            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/leaderboard_{date}.xml", ConvertScoreboardToXml());
             CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - scoreboard {date} XML updated.");
         }
 
@@ -138,7 +138,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
         public static void ScheduledUpdate(object? state)
         {
-            SanityCheckLeaderboards($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm", DateTime.Now.AddDays(-7));
+            SanityCheckLeaderboards($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm", DateTime.Now.AddDays(-7));
         }
     }
 }

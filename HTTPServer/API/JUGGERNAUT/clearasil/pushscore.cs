@@ -22,13 +22,13 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
                         // Not Important
                     }
 
-                    Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access");
+                    Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/space_access");
 
-                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access/{user}.xml"))
+                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/space_access/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
                         XmlDocument xmlDoc = new();
-                        xmlDoc.Load($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access/{user}.xml");
+                        xmlDoc.Load($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/space_access/{user}.xml");
 
                         // Find the <score> element
                         XmlElement? scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
@@ -47,7 +47,7 @@ namespace HTTPServer.API.JUGGERNAUT.clearasil
                                 scoreElement.InnerText = score;
                             }
 
-                            File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/space_access/{user}.xml", xmlDoc.OuterXml);
+                            File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/space_access/{user}.xml", xmlDoc.OuterXml);
                         }
                     }
 

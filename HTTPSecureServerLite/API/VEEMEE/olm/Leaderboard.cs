@@ -25,12 +25,12 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                 switch (mode)
                 {
                     case 0:
-                        if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/leaderboard_{refdate:yyyy_MM_dd}.xml"))
-                            return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/leaderboard_{refdate:yyyy_MM_dd}.xml");
+                        if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/leaderboard_{refdate:yyyy_MM_dd}.xml"))
+                            return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/leaderboard_{refdate:yyyy_MM_dd}.xml");
                         break;
                     case 1:
                         // Get all XML files in the scoreboard folder
-                        foreach (string file in Directory.GetFiles($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm", "leaderboard_*.xml"))
+                        foreach (string file in Directory.GetFiles($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm", "leaderboard_*.xml"))
                         {
                             // Extract date from the filename
                             Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
@@ -44,7 +44,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                                     // Check if the file is newer than 7 days
                                     double diff = (refdate - fileDateTime).TotalDays;
                                     if (diff <= 7)
-                                        return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/leaderboard_{refdate.AddDays(-diff):yyyy_MM_dd}.xml");
+                                        return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/leaderboard_{refdate.AddDays(-diff):yyyy_MM_dd}.xml");
                                 }
                             }
                         }

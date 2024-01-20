@@ -24,7 +24,7 @@ namespace HTTPServer.RouteHandlers
         {
             if (File.Exists(local_path))
             {
-                var response = new HttpResponse(false)
+                HttpResponse response = new(false)
                 {
                     HttpStatusCode = HttpStatusCode.Ok
                 };
@@ -58,7 +58,7 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalFile(string local_path)
         {
-            var response = new HttpResponse(false)
+            HttpResponse response = new(false)
             {
                 HttpStatusCode = HttpStatusCode.Ok
             };
@@ -89,9 +89,9 @@ namespace HTTPServer.RouteHandlers
 
         public static HttpResponse Handle_LocalFile_Download(string local_path)
         {
-            var response = new HttpResponse(false)
+            HttpResponse response = new(false)
             {
-                HttpStatusCode = HttpStatusCode.Ok
+                HttpStatusCode = HttpStatusCode.Ok,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
             response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -101,7 +101,7 @@ namespace HTTPServer.RouteHandlers
 
         public static HttpResponse Handle_ByteSubmit_Download(byte[]? Data, string FileName)
         {
-            var response = new HttpResponse(false);
+            HttpResponse response = new(false);
             if (Data != null)
             {
                 response.HttpStatusCode = HttpStatusCode.Ok;
@@ -149,8 +149,7 @@ namespace HTTPServer.RouteHandlers
                             }
                             byte[] MimeType = Encoding.UTF8.GetBytes($"Content-Type: {ContentType}");
                             // Split the ranges based on the comma (',') separator
-                            string[] rangeValues = HeaderString.Split(',');
-                            foreach (string RangeSelect in rangeValues)
+                            foreach (string RangeSelect in HeaderString.Split(','))
                             {
                                 ms.Write(Separator, 0, Separator.Length);
                                 ms.Write(MultiPart, 0, MultiPart.Length);
@@ -178,7 +177,7 @@ namespace HTTPServer.RouteHandlers
                                     fs.Close();
                                     ms.Flush();
                                     ms.Close();
-                                    var invalidresponse = new HttpResponse(false)
+                                    HttpResponse invalidresponse = new(false)
                                     {
                                         HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
                                     };
@@ -204,7 +203,7 @@ namespace HTTPServer.RouteHandlers
                                     fs.Close();
                                     ms.Flush();
                                     ms.Close();
-                                    var okresponse = new HttpResponse(false)
+                                    HttpResponse okresponse = new(false)
                                     {
                                         HttpStatusCode = HttpStatusCode.Ok
                                     };
@@ -237,7 +236,7 @@ namespace HTTPServer.RouteHandlers
                             ms.Write(Separator, 0, Separator.Length);
                             fs.Flush();
                             fs.Close();
-                            var response = new HttpResponse(true)
+                            HttpResponse response = new(true)
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
@@ -269,7 +268,7 @@ namespace HTTPServer.RouteHandlers
                     {
                         fs.Flush();
                         fs.Close();
-                        var invalidresponse = new HttpResponse(false)
+                        HttpResponse invalidresponse = new(false)
                         {
                             HttpStatusCode = HttpStatusCode.RangeNotSatisfiable
                         };
@@ -293,7 +292,7 @@ namespace HTTPServer.RouteHandlers
                     {
                         fs.Flush();
                         fs.Close();
-                        var okresponse = new HttpResponse(false)
+                        HttpResponse okresponse = new(false)
                         {
                             HttpStatusCode = HttpStatusCode.Ok
                         };
@@ -323,7 +322,7 @@ namespace HTTPServer.RouteHandlers
                     }
                     else
                     {
-                        var response = new HttpResponse(true)
+                        HttpResponse response = new(true)
                         {
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
@@ -371,6 +370,7 @@ namespace HTTPServer.RouteHandlers
                 try
                 {
                     fs.Flush();
+                    fs.Close();
                 }
                 catch (ObjectDisposedException)
                 {

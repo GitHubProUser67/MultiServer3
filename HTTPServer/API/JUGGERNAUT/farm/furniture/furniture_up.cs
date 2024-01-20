@@ -36,9 +36,9 @@ namespace HTTPServer.API.JUGGERNAUT.farm.furniture
                                 // Extract the matched value
                                 string userContent = match.Groups[1].Value;
 
-                                Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{userContent}");
+                                Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{userContent}");
 
-                                File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{userContent}/{slotIDInt}.xml", file);
+                                File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{userContent}/{slotIDInt}.xml", file);
 
                                 return string.Empty;
                             }

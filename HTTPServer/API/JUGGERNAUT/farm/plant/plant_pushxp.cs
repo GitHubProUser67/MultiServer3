@@ -14,13 +14,13 @@ namespace HTTPServer.API.JUGGERNAUT.farm.plant
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(level) && !string.IsNullOrEmpty(xp))
                 {
-                    Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data");
+                    Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data");
 
-                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml"))
+                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
                         XmlDocument xmlDoc = new();
-                        xmlDoc.Load($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml");
+                        xmlDoc.Load($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <level> element
                         XmlElement? levelElement = xmlDoc.SelectSingleNode("/xml/resources/level") as XmlElement;
@@ -52,7 +52,7 @@ namespace HTTPServer.API.JUGGERNAUT.farm.plant
                                     // Not Important
                                 }
 
-                                File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml", xmlDoc.OuterXml);
+                                File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml", xmlDoc.OuterXml);
                             }
                         }
                     }
