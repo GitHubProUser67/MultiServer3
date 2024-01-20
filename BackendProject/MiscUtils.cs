@@ -94,6 +94,11 @@ namespace BackendProject
             return (DateTime.Now.Ticks % TimeSpan.TicksPerMillisecond * 100).ToString("00000000"); // Pad with zeros to 8 digits
         }
 
+        public static uint GetUnixTimeStamp()
+        {
+            return (uint)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        }
+
         public static string ByteArrayToHexString(byte[] byteArray)
         {
             StringBuilder hex = new(byteArray.Length * 2);
