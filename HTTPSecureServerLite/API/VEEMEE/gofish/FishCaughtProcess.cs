@@ -24,13 +24,13 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                 fish_mask_upper = data["fish_mask_upper"];
                 fish_mask_lower = data["fish_mask_lower"];
 
-                Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data");
+                Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data");
 
-                if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml"))
+                if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml"))
                 {
                     // Load the XML string into an XmlDocument
                     XmlDocument xmlDoc = new();
-                    xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml")}</xml>");
+                    xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <fish_mask_upper> element
                     XmlElement? fish_mask_upperElement = xmlDoc.SelectSingleNode("/xml/fish_mask_upper") as XmlElement;
@@ -49,7 +49,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                             fish_mask_lowerElement.InnerText = fish_mask_lower;
 
                             string XmlResult = xmlDoc.OuterXml.Replace("<xml>", string.Empty).Replace("</xml>", string.Empty);
-                            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml", XmlResult);
+                            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml", XmlResult);
                             return XmlResult;
                         }
                     }
@@ -57,7 +57,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                 else
                 {
                     string XmlData = $"<fish_mask_upper>{fish_mask_upper}</fish_mask_upper><fish_mask_lower>{fish_mask_lower}</fish_mask_lower>";
-                    File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml", XmlData);
+                    File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml", XmlData);
                     return XmlData;
                 }
             }
@@ -81,8 +81,8 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                 }
                 psnid = data["psnid"];
 
-                if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml"))
-                    return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml");
+                if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml"))
+                    return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml");
             }
 
             return null;

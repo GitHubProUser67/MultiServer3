@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace BackendProject
@@ -623,7 +624,7 @@ namespace BackendProject
             }
         }
 
-        public static byte[] RemoveUnwantedHeaders(byte[] phpOutputBytes)
+        public static byte[] RemoveUnwantedPHPHeaders(byte[] phpOutputBytes)
         {
             // Find the index where headers end and content starts (indicated by an empty line)
             int emptyLineIndex = -1;
@@ -702,6 +703,19 @@ namespace BackendProject
             }
 
             return null;
+        }
+
+        public static string ExtractDirtyProxyPath(string referer)
+        {
+            // Match the input string with the pattern
+            Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
+
+            // Check if the pattern is matched
+            if (match.Success)
+                // Extract the absolute path from the later URL
+                return match.Groups[3].Value;
+
+            return string.Empty;
         }
 
         public static Dictionary<string, string> ExtractAndSortUrlEncodedPOSTData(byte[] urlEncodedDataByte)

@@ -14,17 +14,18 @@ public record PSNTicket
     public string Domain { get; init; }
     public string ServiceId { get; init; }
 
-
     public PSNTicket(TicketData[] ticketData)
     {
+        #pragma warning disable CS8604, CS8602
         TicketId = ulong.Parse(Encoding.UTF8.GetString((ticketData[0] as BinaryData).Value).TrimEnd('\0'));
         IssuerId = (ticketData[1] as U32Data).Value;
-        IssuedDate = DateTimeOffset.FromUnixTimeMilliseconds((long)((ticketData[2] as TimeData).Value)).UtcDateTime;
-        ExpireDate = DateTimeOffset.FromUnixTimeMilliseconds((long)((ticketData[3] as TimeData).Value)).UtcDateTime;
+        IssuedDate = DateTimeOffset.FromUnixTimeMilliseconds((long)(ticketData[2] as TimeData).Value).UtcDateTime;
+        ExpireDate = DateTimeOffset.FromUnixTimeMilliseconds((long)(ticketData[3] as TimeData).Value).UtcDateTime;
         UserId = (ticketData[4] as U64Data).Value;
         OnlineId = (ticketData[5] as BStringData).Value.TrimEnd('\0');
         Region = Encoding.UTF8.GetString((ticketData[6] as BinaryData).Value).TrimEnd('\0');
         Domain = (ticketData[7] as BStringData).Value.TrimEnd('\0');
         ServiceId = Encoding.UTF8.GetString((ticketData[8] as BinaryData).Value).TrimEnd('\0');
+        #pragma warning restore CS8604, CS8602
     }
 }

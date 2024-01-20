@@ -13,13 +13,13 @@ namespace HTTPServer.API.JUGGERNAUT.farm.furniture
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(slot))
                 {
-                    Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data");
+                    Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data");
 
-                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml"))
+                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
                         XmlDocument xmlDoc = new();
-                        xmlDoc.Load($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml");
+                        xmlDoc.Load($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <lastLayout> element
                         XmlElement? lastLayoutElement = xmlDoc.SelectSingleNode("/xml/resources/lastLayout") as XmlElement;
@@ -29,7 +29,7 @@ namespace HTTPServer.API.JUGGERNAUT.farm.furniture
                             // Replace the value of <lastLayout> with a new value
                             lastLayoutElement.InnerText = slot;
 
-                            File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/User_Data/{user}.xml", xmlDoc.OuterXml);
+                            File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/User_Data/{user}.xml", xmlDoc.OuterXml);
                         }
                     }
 

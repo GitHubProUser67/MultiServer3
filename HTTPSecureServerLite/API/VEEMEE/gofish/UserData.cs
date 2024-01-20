@@ -28,9 +28,9 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                 biggestfishweight = data["biggestfishweight"];
                 totalfishweight = data["totalfishweight"];
 
-                Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data");
+                Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data");
 
-                if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml"))
+                if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml"))
                 {
                     try
                     {
@@ -45,7 +45,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
 
                     // Load the XML string into an XmlDocument
                     XmlDocument xmlDoc = new();
-                    xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml")}</xml>");
+                    xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <score> element
                     XmlElement? scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
@@ -80,7 +80,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                                     totalfishweightElement.InnerText = totalfishweight;
 
                                     string XmlResult = xmlDoc.OuterXml.Replace("<xml>", string.Empty).Replace("</xml>", string.Empty);
-                                    File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml", XmlResult);
+                                    File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml", XmlResult);
                                     return XmlResult;
                                 }
                             }
@@ -90,7 +90,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                 else
                 {
                     string XmlData = $"<psnid>{psnid}</psnid><score>{score}</score><fishcount>{fishcount}</fishcount><psnid>{psnid}</psnid><biggestfishweight>{biggestfishweight}</biggestfishweight><totalfishweight>{totalfishweight}</totalfishweight>";
-                    File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml", XmlData);
+                    File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml", XmlData);
                     return XmlData;
                 }
             }
@@ -114,8 +114,8 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
                 }
                 psnid = data["psnid"];
 
-                if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml"))
-                    return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml");
+                if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml"))
+                    return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/gofish/User_Data/{psnid}.xml");
             }
 
             return null;

@@ -8,7 +8,6 @@ using System.Net;
 using System.Security.Principal;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace BackendProject
@@ -139,6 +138,16 @@ namespace BackendProject
                              .ToArray();
         }
 
+        // Alternative but with a cleanup.
+        public static byte[] HexStringToByteArrayWithCleanup(string invalue)
+        {
+            string cleanedRequest = invalue.Replace(" ", string.Empty).Replace("\n", string.Empty);
+            return Enumerable.Range(0, cleanedRequest.Length)
+                                 .Where(x => x % 2 == 0)
+                                 .Select(x => Convert.ToByte(cleanedRequest.Substring(x, 2), 16))
+                                 .ToArray();
+        }
+
         public static byte[][] SplitAt(byte[] source, int index)
         {
             byte[] first = new byte[index];
@@ -242,16 +251,10 @@ namespace BackendProject
         {
             if (Avx2.IsSupported)
             {
-                // Compare the first element
-                Vector256<byte> compareResult = new();
-
                 for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
                 {
-                    // Compare the first element
-                    compareResult = Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, byteArray[i]), Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]));
-
                     // Extract the result to check if the first element matches
-                    if (Avx2.MoveMask(compareResult) != 0)
+                    if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, byteArray[i]), Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]))) != 0)
                     {
                         // Check the remaining elements
                         bool found = true;
@@ -271,16 +274,10 @@ namespace BackendProject
             }
             else if (Sse2.IsSupported)
             {
-                // Compare the first element
-                Vector128<byte> compareResult = new();
-
                 for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
                 {
-                    // Compare the first element
-                    compareResult = Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, byteArray[i]), Vector128<byte>.Zero.WithElement(0, sequenceToFind[0]));
-
                     // Extract the result to check if the first element matches
-                    if (Sse2.MoveMask(compareResult) != 0)
+                    if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, byteArray[i]), Vector128<byte>.Zero.WithElement(0, sequenceToFind[0]))) != 0)
                     {
                         // Check the remaining elements
                         bool found = true;
@@ -336,14 +333,8 @@ namespace BackendProject
                 {
                     if (Avx2.IsSupported)
                     {
-                        // Compare the first element
-                        Vector256<byte> compareResult = new();
-
-                        // Compare the first element
-                        compareResult = Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]));
-
                         // Extract the result to check if the first element matches
-                        if (Avx2.MoveMask(compareResult) != 0)
+                        if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]))) != 0)
                         {
                             if (buffer.Length > 1)
                             {
@@ -371,14 +362,8 @@ namespace BackendProject
                     }
                     else if (Sse2.IsSupported)
                     {
-                        // Compare the first element
-                        Vector128<byte> compareResult = new();
-
-                        // Compare the first element
-                        compareResult = Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]));
-
                         // Extract the result to check if the first element matches
-                        if (Sse2.MoveMask(compareResult) != 0)
+                        if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]))) != 0)
                         {
                             if (buffer.Length > 1)
                             {
@@ -434,6 +419,36 @@ namespace BackendProject
             return found;
         }
 
+        /// <summary>
+        /// Returns index of provided byte pattern in a buffer,
+        /// returns -1 if not found
+        /// </summary>
+        public static int FindBytePattern(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchPattern, int offset = 0)
+        {
+            if (searchPattern.IsEmpty || buffer.Length < searchPattern.Length || offset > buffer.Length - searchPattern.Length)
+                return -1;
+
+            for (int i = offset; i < buffer.Length - searchPattern.Length + 1; i++)
+            {
+                if (Avx2.IsSupported)
+                {
+                    // Extract the result to check if the first element matches
+                    if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]))) != 0 && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
+                        return i;
+                }
+                else if (Sse2.IsSupported)
+                {
+                    // Extract the result to check if the first element matches
+                    if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]))) != 0 && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
+                        return i;
+                }
+                else if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
+                    return i;
+            }
+
+            return -1;
+        }
+
         public static string StringToHexString(string input)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(input);
@@ -468,28 +483,9 @@ namespace BackendProject
             return res;
         }
 
-        public static string XorString(string? input, string password)
-        {
-            if (string.IsNullOrEmpty(input))
-                return string.Empty;
-
-            // Convert strings to byte arrays
-            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-
-            // Perform XOR operation
-            for (int i = 0; i < inputBytes.Length; i++)
-            {
-                inputBytes[i] ^= passwordBytes[i % passwordBytes.Length];
-            }
-
-            // Convert back to string
-            return Encoding.UTF8.GetString(inputBytes);
-        }
-
         public static string ComputeMD5(string input)
         {
-            // Create a SHA256   
+            // Create a MD5   
             using (MD5 md5Hash = MD5.Create())
             {
                 // ComputeHash - returns byte array  

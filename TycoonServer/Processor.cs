@@ -8,12 +8,10 @@ namespace TycoonServer
     {
         public static bool IsStarted = false;
         private static Webserver? _Server;
-        private string ip;
         private int port;
 
-        public Processor(string ip, int port)
+        public Processor(int port)
         {
-            this.ip = ip;
             this.port = port;
         }
 
@@ -31,8 +29,8 @@ namespace TycoonServer
                 LoggerAccessor.LogWarn("Tycoon Server already initiated");
             else
             {
-                _Server = new Webserver(ip, port, false, null, null, DefaultRoute);
-                _Server.Settings.Headers.Host = "http://" + ip + ":" + port;
+                _Server = new Webserver("*", port, false, null, null, DefaultRoute);
+                _Server.Settings.Headers.Host = "http://*:" + port;
                 _Server.Callbacks.AuthorizeConnection = AuthorizeConnection;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
@@ -61,8 +59,8 @@ namespace TycoonServer
             else
             {
                 // Parse the query string from the URL
-                var queryString = HttpUtility.ParseQueryString(ctx.Request.Url.Full);
-                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, queryString["PHPSESSID"]);
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
             }
             if (string.IsNullOrEmpty(res))
             {
@@ -86,8 +84,8 @@ namespace TycoonServer
             else
             {
                 // Parse the query string from the URL
-                var queryString = HttpUtility.ParseQueryString(ctx.Request.Url.Full);
-                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, queryString["PHPSESSID"]);
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
             }
             if (string.IsNullOrEmpty(res))
             {
@@ -111,8 +109,8 @@ namespace TycoonServer
             else
             {
                 // Parse the query string from the URL
-                var queryString = HttpUtility.ParseQueryString(ctx.Request.Url.Full);
-                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, queryString["PHPSESSID"]);
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
             }
             if (string.IsNullOrEmpty(res))
             {
@@ -136,8 +134,8 @@ namespace TycoonServer
             else
             {
                 // Parse the query string from the URL
-                var queryString = HttpUtility.ParseQueryString(ctx.Request.Url.Full);
-                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, queryString["PHPSESSID"]);
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
             }
             if (string.IsNullOrEmpty(res))
             {

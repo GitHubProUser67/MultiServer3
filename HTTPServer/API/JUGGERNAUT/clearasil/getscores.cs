@@ -10,10 +10,10 @@
 
                 if (!string.IsNullOrEmpty(phase))
                 {
-                    Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil");
+                    Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil");
 
-                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/scoreboard.xml"))
-                        return File.ReadAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/clearasil/scoreboard.xml");
+                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/scoreboard.xml"))
+                        return File.ReadAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/clearasil/scoreboard.xml");
                     else
                         return "<xml></xml>";
                 }

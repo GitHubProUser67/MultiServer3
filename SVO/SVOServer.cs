@@ -93,7 +93,7 @@ namespace SVO
                 listener = new HttpListener();
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
+				listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, 10061));
                 listener.Start();
             }
             catch (Exception e)

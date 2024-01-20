@@ -8,6 +8,7 @@ public static class HTTPSServerConfiguration
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
     public static bool DNSAllowUnsafeRequests { get; set; } = false;
+    public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
@@ -47,6 +48,7 @@ public static class HTTPSServerConfiguration
             DNSOnlineConfig = config.online_routes_config;
             DNSConfig = config.routes_config;
             DNSAllowUnsafeRequests = config.allow_unsafe_requests;
+            APIStaticFolder = config.api_static_folder;
             PHPRedirectUrl = config.php.redirct_url;
             PHPVersion = config.php.version;
             PHPStaticFolder = config.php.static_folder;

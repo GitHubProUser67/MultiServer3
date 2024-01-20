@@ -27,8 +27,8 @@ namespace HTTPSecureServerLite.API.VEEMEE
                 LoggerAccessor.LogInfo($"[VEEMEE] - Getconfig values : id|{id}");
             }
 
-            if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"))
-                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"));
+            if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"))
+                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"));
             else
                 return null;
         }
@@ -96,8 +96,8 @@ namespace HTTPSecureServerLite.API.VEEMEE
                     $" numplayers|{numplayers} - numpeople|{numpeople} - objectid|{objectid} - objectname|{objectname}");
             }
 
-            if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"))
-                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"));
+            if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"))
+                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"));
             else
                 return null;
         }

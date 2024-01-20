@@ -24,9 +24,9 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                 score = data["score"];
                 throws = data["throws"];
 
-                Directory.CreateDirectory($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data");
+                Directory.CreateDirectory($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data");
 
-                if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml"))
+                if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml"))
                 {
                     try
                     {
@@ -41,7 +41,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
                     // Load the XML string into an XmlDocument
                     XmlDocument xmlDoc = new();
-                    xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml")}</xml>");
+                    xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <score> element
                     XmlElement? scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
@@ -60,7 +60,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                             throwsElement.InnerText = throws;
 
                             string XmlResult = xmlDoc.OuterXml.Replace("<xml>", string.Empty).Replace("</xml>", string.Empty);
-                            File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml", XmlResult);
+                            File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml", XmlResult);
                             return XmlResult;
                         }
                     }
@@ -68,7 +68,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                 else
                 {
                     string XmlData = $"<psnid>{psnid}</psnid><score>{score}</score><throws>{throws}</throws>";
-                    File.WriteAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml", XmlData);
+                    File.WriteAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml", XmlData);
                     return XmlData;
                 }
             }
@@ -92,8 +92,8 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
                 }
                 psnid = data["psnid"];
 
-                if (File.Exists($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml"))
-                    return File.ReadAllText($"{HTTPSServerConfiguration.HTTPSStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml");
+                if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml"))
+                    return File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/olm/User_Data/{psnid}.xml");
             }
 
             return null;

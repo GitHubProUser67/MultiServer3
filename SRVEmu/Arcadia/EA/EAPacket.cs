@@ -5,7 +5,15 @@ namespace SRVEmu.Arcadia.EA;
 
 public readonly struct Packet
 {
-    public string TXN => DataDict["TXN"] as string ?? string.Empty;
+    public string Type { get; }
+    public uint Id { get; }
+    public uint TransmissionType { get; }
+    public uint Length { get; }
+    public Dictionary<string, object> DataDict { get; }
+    public byte[]? Data { get; }
+    public byte[]? Checksum { get; }
+
+    public string TXN => DataDict.GetValueOrDefault(nameof(TXN)) as string ?? string.Empty;
 
     public string this[string key]
     {
@@ -32,13 +40,13 @@ public readonly struct Packet
 
     public Packet(string type, uint transmissionType, uint packetId, Dictionary<string, object>? dataDict = null)
     {
+        Length = 0;
+        Data = null;
+        Checksum = null;
         Type = type.Trim();
         TransmissionType = transmissionType;
         Id = packetId;
         // TODO Packet length needs to be set here
-        Length = 0;
-        Data = null;
-        Checksum = null;
         DataDict = dataDict ?? new Dictionary<string, object>();
     }
 
@@ -62,12 +70,4 @@ public readonly struct Packet
 
         return response.ToArray();
     }
-
-    public string Type { get; }
-    public uint Id { get; }
-    public uint TransmissionType { get;  }
-    public uint Length { get; }
-    public Dictionary<string, object> DataDict { get; }
-    public byte[]? Data { get; }
-    public byte[]? Checksum { get; }
 }

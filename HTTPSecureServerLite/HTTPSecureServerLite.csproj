@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-443:443 -p 65534:65534</DockerfileRunArguments>
+	<DockerfileRunArguments>-443:443</DockerfileRunArguments>
     <ApplicationIcon>HTTPS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>

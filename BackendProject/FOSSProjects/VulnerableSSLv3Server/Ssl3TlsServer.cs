@@ -6,16 +6,6 @@ namespace BackendProject.FOSSProjects.VulnerableSSLv3Server;
 
 public class Ssl3TlsServer : DefaultTlsServer
 {
-    private static readonly int[] _cipherSuites =
-    {
-        CipherSuite.TLS_RSA_WITH_RC4_128_SHA
-    };
-
-    private static readonly ProtocolVersion[] _supportedVersions =
-    {
-        ProtocolVersion.SSLv3
-    };
-
     private readonly Certificate _serverCertificate;
     private readonly AsymmetricKeyParameter _serverPrivateKey;
     private readonly BcTlsCrypto _crypto;
@@ -26,6 +16,16 @@ public class Ssl3TlsServer : DefaultTlsServer
         _serverCertificate = serverCertificate;
         _serverPrivateKey = serverPrivateKey;
     }
+
+    private static readonly int[] _cipherSuites =
+    {
+        CipherSuite.TLS_RSA_WITH_RC4_128_SHA
+    };
+
+    private static readonly ProtocolVersion[] _supportedVersions =
+    {
+        ProtocolVersion.SSLv3
+    };
 
     public override ProtocolVersion GetServerVersion()
     {
@@ -50,7 +50,9 @@ public class Ssl3TlsServer : DefaultTlsServer
     public override void NotifySecureRenegotiation(bool secureRenegotiation)
     {
         if (!secureRenegotiation)
+        {
             secureRenegotiation = true;
+        }
 
         base.NotifySecureRenegotiation(secureRenegotiation);
     }

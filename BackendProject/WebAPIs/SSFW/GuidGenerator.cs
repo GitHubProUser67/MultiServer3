@@ -7,8 +7,8 @@ namespace BackendProject.WebAPIs.SSFW
     {
         public static string SSFWGenerateGuid(string input1, string input2)
         {
-            string md5hash = "";
-            string sha512hash = "";
+            string md5hash = string.Empty;
+            string sha512hash = string.Empty;
 
             using (MD5 md5 = MD5.Create())
             {

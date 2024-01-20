@@ -81,7 +81,7 @@ namespace HTTPServer.API
 
                         if (id == psnname)
                         {
-                            Directory.CreateDirectory($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/");
+                            Directory.CreateDirectory($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/");
 
                             string ufcdata = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                                         "<UFC>1</UFC><tokens>100000</tokens><books><book value=\"1\" /><set01 value=\"1\"><card001 value=\"1\" /><fb01 value=\"Card one picked up!\" /></set01><set02 " +
@@ -90,19 +90,19 @@ namespace HTTPServer.API
                             switch (func)
                             {
                                 case "read":
-                                    if (!File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/data.xml"))
-                                        File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/data.xml", ufcdata);
-                                    else if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/data.xml"))
-                                        ufcdata = File.ReadAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/data.xml");
+                                    if (!File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/data.xml"))
+                                        File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/data.xml", ufcdata);
+                                    else if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/data.xml"))
+                                        ufcdata = File.ReadAllText($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/data.xml");
                                     break;
                                 case "write":
-                                    if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/data.xml") && func == "write" && val2 != null)
+                                    if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/data.xml") && func == "write" && val2 != null)
                                     {
                                         ufcdata = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                                                 $"<UFC>1</UFC><tokens>{val2}</tokens><books><book value=\"1\" /><set01 value=\"1\"><card001 value=\"1\" /><fb01 value=\"Card one picked up!\" /></set01><set02 " +
                                                 $"value=\"1\"><card001 value=\"2\" /><fb01 value=\"Card two picked up!\" /></set02></books>";
 
-                                        File.WriteAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/HOME_THQ/{id}/data.xml", ufcdata);
+                                        File.WriteAllText($"{HTTPServerConfiguration.APIStaticFolder}/HOME_THQ/{id}/data.xml", ufcdata);
                                     }
                                     break;
                                 default:

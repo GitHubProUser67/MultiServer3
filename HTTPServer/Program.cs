@@ -12,9 +12,10 @@ public static class HTTPServerConfiguration
     public static bool PHPDebugErrors { get; set; } = false;
     public static int HTTPPort { get; set; } = 80;
     public static int DefaultPluginsPort { get; set; } = 61850;
-    public static int BufferSize = 4096;
-    public static string HttpVersion = "1.1";
+    public static int BufferSize { get; set; } = 4096;
+    public static string HttpVersion { get; set; } = "1.0";
     public static string PluginParams { get; set; } = string.Empty;
+    public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool EnableDiscordPlugin { get; set; } = true;
@@ -53,6 +54,7 @@ public static class HTTPServerConfiguration
             PHPStaticFolder = config.php.static_folder;
             PHPDebugErrors = config.php.debug_errors;
             HTTPPort = config.http_port;
+            APIStaticFolder = config.api_static_folder;
             HTTPStaticFolder = config.http_static_folder;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DefaultPluginsPort = config.default_plugins_port;
@@ -104,19 +106,17 @@ class Program
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
-        var route_config = HTTPServer.RouteHandlers.staticRoutes.Main.index;
-
         if (HTTPServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, route_config, new CancellationTokenSource().Token),
+                    () => new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
-            foreach (var plugin in HTTPServerConfiguration.plugins)
+            foreach (HTTPServer.PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
             {
                 _ = plugin.HTTPStartPlugin("MultiServer", HTTPServerConfiguration.DefaultPluginsPort);
             }

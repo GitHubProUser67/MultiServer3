@@ -37,29 +37,25 @@ namespace HTTPServer
 
         public static HttpResponse MovedPermanently(string url)
         {
-            Dictionary<string, string> headers = new()
-            {
-                { HttpHeader.Location.ToString(), url }
-            };
-
             return new HttpResponse(false)
             {
                 HttpStatusCode = HttpStatusCode.MovedPermanently,
-                Headers = headers
+                Headers = new Dictionary<string, string>()
+                {
+                    { HttpHeader.Location.ToString(), url }
+                }
             };
         }
 
         public static HttpResponse PermanantRedirect(string url)
         {
-            Dictionary<string, string> headers = new()
-            {
-                { HttpHeader.Location.ToString(), url }
-            };
-
             return new HttpResponse(false)
             {
                 HttpStatusCode = HttpStatusCode.PermanentRedirect,
-                Headers = headers
+                Headers = new Dictionary<string, string>()
+                {
+                    { HttpHeader.Location.ToString(), url }
+                }
             };
         }
 

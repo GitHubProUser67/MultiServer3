@@ -4,8 +4,8 @@
     {
         public static string? ProcessGetStats()
         {
-            if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/crafting_stats.xml"))
-                return File.ReadAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/farm/crafting_stats.xml");
+            if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/crafting_stats.xml"))
+                return File.ReadAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/farm/crafting_stats.xml");
 
             return null;
         }

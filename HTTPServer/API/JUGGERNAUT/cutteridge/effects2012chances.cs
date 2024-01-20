@@ -4,8 +4,8 @@
     {
         public static string? ProcessChances()
         {
-            if (File.Exists($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/cutteridge/effects2012chances.xml"))
-                return File.ReadAllText($"{HTTPServerConfiguration.HTTPStaticFolder}/juggernaut/cutteridge/effects2012chances.xml");
+            if (File.Exists($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/cutteridge/effects2012chances.xml"))
+                return File.ReadAllText($"{HTTPServerConfiguration.APIStaticFolder}/juggernaut/cutteridge/effects2012chances.xml");
 
             return null;
         }

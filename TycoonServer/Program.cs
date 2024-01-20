@@ -69,10 +69,8 @@ class Program
 
         TycoonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/tycoon.json");
 
-        Processor server = new("*", 61900);
-
         _ = Task.Run(() => Parallel.Invoke(
-                    () => server.StartServer(),
+                    () => new Processor(61900).StartServer(),
                     () => RefreshConfig()
                 ));
 

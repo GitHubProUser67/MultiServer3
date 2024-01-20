@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 21032:21032 -p 30200:30200 -p 30201:30201 -p 60001:60001 -p 60105:60105 -p 60106:60106 -p 60115:60115 -p 60116:60116 -p 61110:61110 -p 61111:61111 -p 61120:61120 -p 61121:61121 -p 61125:61125 -p 61126:61126 -p 61127:61127 -p 61128:61128 -p 62110:62110 -p 62111:62111 -p 65530:65530</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 21032:21032 -p 30200:30200 -p 30201:30201 -p 60001:60001 -p 60105:60105 -p 60106:60106 -p 60115:60115 -p 60116:60116 -p 61110:61110 -p 61111:61111 -p 61120:61120 -p 61121:61121 -p 61125:61125 -p 61126:61126 -p 61127:61127 -p 61128:61128 -p 62110:62110 -p 62111:62111</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<ApplicationIcon>QuazalServer.ico</ApplicationIcon>
   </PropertyGroup>

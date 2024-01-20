@@ -30,7 +30,6 @@
         {
             richTextBoxLog = new RichTextBox();
             groupBoxWebServerManagement = new GroupBox();
-            buttonStartSTOMP = new Button();
             buttonStopTycoon = new Button();
             buttonStartTycoon = new Button();
             labelAdministratorRequired = new Label();
@@ -55,7 +54,6 @@
             buttonStartHorizon = new Button();
             pictureBoxPSMSImage = new PictureBox();
             tableLayoutPanelMain = new TableLayoutPanel();
-            buttonStopSTOMP = new Button();
             groupBoxWebServerManagement.SuspendLayout();
             groupBoxAuxiliaryServerManagement.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPSMSImage).BeginInit();
@@ -75,8 +73,6 @@
             // groupBoxWebServerManagement
             // 
             groupBoxWebServerManagement.Anchor = AnchorStyles.Top;
-            groupBoxWebServerManagement.Controls.Add(buttonStopSTOMP);
-            groupBoxWebServerManagement.Controls.Add(buttonStartSTOMP);
             groupBoxWebServerManagement.Controls.Add(buttonStopTycoon);
             groupBoxWebServerManagement.Controls.Add(buttonStartTycoon);
             groupBoxWebServerManagement.Controls.Add(labelAdministratorRequired);
@@ -96,17 +92,6 @@
             groupBoxWebServerManagement.TabIndex = 1;
             groupBoxWebServerManagement.TabStop = false;
             groupBoxWebServerManagement.Text = "Web Server Management";
-            // 
-            // buttonStartSTOMP
-            // 
-            buttonStartSTOMP.Location = new Point(29, 162);
-            buttonStartSTOMP.Margin = new Padding(3, 2, 3, 2);
-            buttonStartSTOMP.Name = "buttonStartSTOMP";
-            buttonStartSTOMP.Size = new Size(100, 22);
-            buttonStartSTOMP.TabIndex = 10;
-            buttonStartSTOMP.Text = "Start STOMP";
-            buttonStartSTOMP.UseVisualStyleBackColor = true;
-            buttonStartSTOMP.Click += buttonStartSTOMP_Click;
             // 
             // buttonStopTycoon
             // 
@@ -388,17 +373,6 @@
             tableLayoutPanelMain.Size = new Size(881, 196);
             tableLayoutPanelMain.TabIndex = 4;
             // 
-            // buttonStopSTOMP
-            // 
-            buttonStopSTOMP.Location = new Point(145, 162);
-            buttonStopSTOMP.Margin = new Padding(3, 2, 3, 2);
-            buttonStopSTOMP.Name = "buttonStopSTOMP";
-            buttonStopSTOMP.Size = new Size(93, 22);
-            buttonStopSTOMP.TabIndex = 11;
-            buttonStopSTOMP.Text = "Stop STOMP";
-            buttonStopSTOMP.UseVisualStyleBackColor = true;
-            buttonStopSTOMP.Click += buttonStopSTOMP_Click;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -450,7 +424,5 @@
         private Button buttonStartSRVEmu;
         private Button buttonStopQuazal;
         private Button buttonStartQuazal;
-        private Button buttonStartSTOMP;
-        private Button buttonStopSTOMP;
     }
 }
