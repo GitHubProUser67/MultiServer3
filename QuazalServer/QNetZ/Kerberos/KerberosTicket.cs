@@ -39,6 +39,7 @@ namespace QuazalServer.QNetZ
 					case "cYoqGd4f":
                     case "QusaPha9":
 					case "q1UFc45UwoyI":
+                    case "h0rszqTw":
                         key = Helper.DeriveKey(userPID, input ?? "PS3NPDummyPwd");
                         break;
                     default:

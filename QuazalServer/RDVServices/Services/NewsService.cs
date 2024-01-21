@@ -33,7 +33,7 @@ namespace QuazalServer.RDVServices.Services
 				m_ID = (uint)idx + 1,
 				m_publisherName = "SoapyMan",
 				m_title = x,
-				m_link = "",
+				m_link = string.Empty,
 				m_displayTime = DateTime.UtcNow,
 				m_expirationTime = DateTime.UtcNow.AddDays(10),
 				m_publicationTime = new DateTime(2000, 10, 12, 13, 0, 0),
@@ -48,10 +48,17 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(9)]
 		public RMCResult GetNewsMessages(IEnumerable<uint> messageIds)
 		{
-			var messages = new List<string>();
-			messages.Add("This text apparently doesn't work.");
-
-			return Result(messages);
+			return Result(new List<string>
+            {
+                "This text apparently doesn't work."
+            });
 		}
-	}
+
+        [RMCMethod(10)]
+        public RMCResult UNK10()
+        {
+            UNIMPLEMENTED();
+            return Error(0);
+        }
+    }
 }

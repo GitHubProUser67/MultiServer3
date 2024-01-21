@@ -52,6 +52,7 @@ namespace QuazalServer.QNetZ
                         case "cYoqGd4f":
                         case "QusaPha9":
 						case "q1UFc45UwoyI":
+                        case "h0rszqTw":
                             if (proto == RMCProtocolId.SecureConnectionService)
                                 proto = RMCProtocolId.PS3SecureConnectionService;
                             break;
@@ -127,7 +128,7 @@ namespace QuazalServer.QNetZ
             MemoryStream packetData = new();
 
 			if (proto == RMCProtocolId.PS3SecureConnectionService) // We need this workaround, Ubisoft client code expect the correct ID for the service.
-																		  // Else, it denies the request... great...
+																   // Else, it denies the request... great...
 				proto = RMCProtocolId.SecureConnectionService;
 
             if ((ushort)proto < 0x7F)
