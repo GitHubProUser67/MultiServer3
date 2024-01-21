@@ -11,11 +11,11 @@ namespace QuazalServer.RDVServices.Services
         public RMCResult RegisterGame()
         {
             UNIMPLEMENTED();
-            return Error(0);
+            return Result(new { retVal = true });
         }
 
         [RMCMethod(9)]
-        public RMCResult UKN9()
+        public RMCResult Stats()
         {
             UNIMPLEMENTED();
             return Error(0);
@@ -23,6 +23,20 @@ namespace QuazalServer.RDVServices.Services
 
         [RMCMethod(10)]
         public RMCResult GetFriends() // Error(0) when no friends.
+        {
+            UNIMPLEMENTED();
+            return Error(0);
+        }
+
+        [RMCMethod(16)]
+        public RMCResult LeaveGame()
+        {
+            UNIMPLEMENTED();
+            return Result(new { retVal = true });
+        }
+
+        [RMCMethod(17)]
+        public RMCResult Leaderboard()
         {
             UNIMPLEMENTED();
             return Error(0);
