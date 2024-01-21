@@ -366,7 +366,7 @@ namespace QuazalServer.RDVServices.Services
                 else if (sourcePID == 50 && !string.IsNullOrEmpty(Context.Client.WIIFriendCode)) // WII Quazal account.
                     ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, Context.Client.WIIFriendCode);
                 else if (sourcePID == 100) // Quazal guest account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
                 {
                     User? user = DBHelper.GetUserByPID(sourcePID, Context.Handler.AccessKey);
