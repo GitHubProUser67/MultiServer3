@@ -1,7 +1,10 @@
 ﻿using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Connection;
+using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
+using QuazalServer.RDVServices.DDL.Models;
+using System.Text;
 
 namespace QuazalServer.RDVServices.Services
 {
@@ -67,10 +70,19 @@ namespace QuazalServer.RDVServices.Services
         }
 
         [RMCMethod(9)]
-        public RMCResult GetPublicData()
+        public RMCResult GetPublicData(uint PID) // Return a bool result, and oData if true.
         {
-            UNIMPLEMENTED();
-            return Error(0);
+            if (Context != null)
+            {
+                switch (Context.Handler.AccessKey)
+                {
+                    case "os4R9pEiy":
+                        AnyData<GhostbustersPS3Data> ghostbuster = new(); // Seems optional.
+                        return Result(new { retVal = true, oData = ghostbuster });
+                }
+            }
+
+            return Result(new { retVal = false });
         }
 
         [RMCMethod(10)]

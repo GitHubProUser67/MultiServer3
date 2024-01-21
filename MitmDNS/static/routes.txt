@@ -135,3 +135,6 @@ static8.cdn.ubi.com,Redirect,IP
 master10.doublefusion.com,Redirect,IP
 onlineconfigservice.ubi.com,Redirect,IP
 gconnect.ubi.com,Redirect,IP
+ndreams.stats.s3.amazonaws.com,Redirect,IP
+gsconnect.ubisoft.com,Redirect,IP
+ghostps3live.quazal.net,Redirect,IP

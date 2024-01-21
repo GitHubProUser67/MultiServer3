@@ -20,6 +20,7 @@ namespace QuazalServer.QNetZ
         LocalizationService 			= 39,
 		GameSessionService				= 42,
         MatchMakingProtocolExtClient 	= 50,
+        GhostbustersPS3CustService      = 60,
         _71Service                      = 71,
         LSPService                      = 81,
         _83Service                      = 83,
@@ -44,7 +45,7 @@ namespace QuazalServer.QNetZ
         UplayPassService             	= 123,
         OverlordCoreProtocolService     = 5003,
         OverlordFriendsService          = 5005,
-        UBISOFTPS3SecureConnectionService = int.MaxValue -1, // Custom built for PS3 Ubisoft Rendez-vous clients.
+        PS3SecureConnectionService = int.MaxValue -1, // Custom built for PS3 Ubisoft Rendez-vous clients.
         LegacyFriendsService = int.MaxValue // Custom built for older Rendez-vous clients.
     }
 }

@@ -88,6 +88,27 @@ namespace QuazalServer.RDVServices.Services
                                 strReturnMsg = string.Empty,
                                 pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "JaDe!")
                             };
+                        else if (userName == "guest")
+                            reply = new(plInfo.PID)
+                            {
+                                retVal = (int)ErrorCode.Core_NoError,
+                                pConnectionData = new RVConnectionData()
+                                {
+                                    m_urlRegularProtocols = new(
+                                    "prudps",
+                                    prudplink,
+                                    new Dictionary<string, int>() {
+                                            { "port", Context.Handler.BackendPort },
+                                            { "CID", 1 },
+                                            { "PID", (int)Context.Client.sPID },
+                                            { "sid", 1 },
+                                            { "stream", 3 },
+                                            { "type", 2 }
+                                    })
+                                },
+                                strReturnMsg = string.Empty,
+                                pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf")
+                            };
                         else
                             reply = new(plInfo.PID)
                             {
@@ -137,7 +158,8 @@ namespace QuazalServer.RDVServices.Services
                     return Result(reply);
                 }
                 else if (Context.Handler.AccessKey == "QusaPha9" || Context.Handler.AccessKey == "cYoqGd4f" 
-                    || Context.Handler.AccessKey == "OLjNg84Gh" || Context.Handler.AccessKey == "ridfebb9" || Context.Handler.AccessKey == "q1UFc45UwoyI") // Console login not uses Quazal storage, they use a given account to log-in.
+                    || Context.Handler.AccessKey == "OLjNg84Gh" || Context.Handler.AccessKey == "ridfebb9" 
+                    || Context.Handler.AccessKey == "q1UFc45UwoyI" || Context.Handler.AccessKey == "os4R9pEiy") // Console login not uses Quazal storage, they use a given account to log-in.
                 {
                     if (iswii.Success) // WII uses a master account.
                     {
