@@ -89,27 +89,13 @@ namespace QuazalServer.QNetZ
 					{
                         RMCResult rmcResult = (RMCResult)returnValue;
 
-						switch (handler.AccessKey) // Legacy LZO clients not compress.
-						{
-							case "yh64s":
-                                SendResponseWithACK(
-                                handler,
-                                rmcContext.Packet,
-                                rmcContext.RMC,
-                                rmcContext.Client,
-                                rmcResult.Response,
-                                false, rmcResult.Error);
-                                break;
-							default:
-                                SendResponseWithACK(
+						SendResponseWithACK(
                                 handler,
                                 rmcContext.Packet,
                                 rmcContext.RMC,
                                 rmcContext.Client,
                                 rmcResult.Response,
                                 rmcResult.Compression, rmcResult.Error);
-                                break;
-						}
                     }
 					else
 					{
