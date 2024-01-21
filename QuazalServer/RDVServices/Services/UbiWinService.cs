@@ -46,7 +46,7 @@ namespace QuazalServer.RDVServices.Services
 		{
 			var rewards = new List<UPlayReward>()
 			{
-				new UPlayReward() // uselsess but we still adding it
+				new UPlayReward() // useless but we still adding it
                 {
 					m_code = "DRV5REWARD01PC",
 					m_name = "Exclusive Wallpaper",
