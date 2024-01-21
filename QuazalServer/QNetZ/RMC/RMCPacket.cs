@@ -47,12 +47,13 @@ namespace QuazalServer.QNetZ
 
 					switch (AccessKey) // Special servers.
 					{
+                        case "os4R9pEiy":
                         case "OLjNg84Gh":
                         case "cYoqGd4f":
                         case "QusaPha9":
 						case "q1UFc45UwoyI":
                             if (proto == RMCProtocolId.SecureConnectionService)
-                                proto = RMCProtocolId.UBISOFTPS3SecureConnectionService;
+                                proto = RMCProtocolId.PS3SecureConnectionService;
                             break;
                         case "yh64s":
                         case "hg7j1":
@@ -125,7 +126,7 @@ namespace QuazalServer.QNetZ
 		{
             MemoryStream packetData = new();
 
-			if (proto == RMCProtocolId.UBISOFTPS3SecureConnectionService) // We need this workaround, Ubisoft client code expect the correct ID for the service.
+			if (proto == RMCProtocolId.PS3SecureConnectionService) // We need this workaround, Ubisoft client code expect the correct ID for the service.
 																		  // Else, it denies the request... great...
 				proto = RMCProtocolId.SecureConnectionService;
 

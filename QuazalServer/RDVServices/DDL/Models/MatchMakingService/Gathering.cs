@@ -23,5 +23,4 @@ namespace QuazalServer.RDVServices.DDL.Models
 		public string? m_name { get; set; }
 		public string? m_buffurizedOwnerId { get; set; }
 	}
-
 }

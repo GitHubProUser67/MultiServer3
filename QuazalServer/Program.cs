@@ -104,7 +104,8 @@ class Program
                         Tuple.Create(61126, "cYoqGd4f"), // AC3PS3
                         Tuple.Create(61128, "cYoqGd4f"), // AC3MULTPS3
                         Tuple.Create(60001, "ridfebb9"), // RB3
-                        Tuple.Create(21032, "8dtRv2oj") // GRO
+                        Tuple.Create(21032, "8dtRv2oj"), // GRO
+                        Tuple.Create(30561, "os4R9pEiy") // GHOSTBUSTERSPS3
                     }, 2, new CancellationTokenSource().Token),
                     () => new QuazalServer.ServerProcessors.RDVServer().Start(new List<Tuple<int, int, string>>
                     {
@@ -116,7 +117,8 @@ class Program
                         Tuple.Create(60115, 60116, "OLjNg84Gh"), // HAWX2PS3
                         Tuple.Create(61120, 61121, "q1UFc45UwoyI"), // GRFSPS3
                         Tuple.Create(61125, 61126, "cYoqGd4f"), // AC3PS3
-                        Tuple.Create(61127, 61128, "cYoqGd4f") // AC3MULTPS3
+                        Tuple.Create(61127, 61128, "cYoqGd4f"), // AC3MULTPS3
+                        Tuple.Create(30560, 30561, "os4R9pEiy") // GHOSTBUSTERSPS3
                     }, 2, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));

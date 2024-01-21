@@ -13,8 +13,8 @@ namespace QuazalServer.RDVServices.Services
     /// <summary>
 	/// Secure connection service protocol
 	/// </summary>
-	[RMCService(RMCProtocolId.UBISOFTPS3SecureConnectionService)]
-    public class UBISOFTPS3SecureConnectionService : RMCServiceBase
+	[RMCService(RMCProtocolId.PS3SecureConnectionService)]
+    public class PS3SecureConnectionService : RMCServiceBase
     {
         [RMCMethod(1)]
         public RMCResult? Register(List<string> vecMyURLs)
@@ -70,9 +70,9 @@ namespace QuazalServer.RDVServices.Services
                 }
 
                 if (MiscUtils.FindbyteSequence(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
-                    LoggerAccessor.LogInfo($"[UBISOFTPS3] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                    LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                 else
-                    LoggerAccessor.LogInfo($"[UBISOFTPS3] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                    LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
                 // change address
                 StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
