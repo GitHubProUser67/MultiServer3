@@ -707,6 +707,9 @@ namespace BackendProject
 
         public static string ExtractDirtyProxyPath(string referer)
         {
+            if (string.IsNullOrEmpty(referer))
+                return string.Empty;
+
             // Match the input string with the pattern
             Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 

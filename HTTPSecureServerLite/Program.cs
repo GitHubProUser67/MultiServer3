@@ -103,19 +103,15 @@ class Program
         BackendProject.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
         // Timer for scheduled updates every 24 hours
-        Timer timer = new(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-
-        // Timer for scheduled updates every 24 hours
-        Timer timer1 = new(HTTPSecureServerLite.API.VEEMEE.gofish.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-
-        // Timer for scheduled updates every 24 hours
-        Timer timer2 = new(HTTPSecureServerLite.API.VEEMEE.olm.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        _ = new Timer(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        _ = new Timer(HTTPSecureServerLite.API.VEEMEE.gofish.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        _ = new Timer(HTTPSecureServerLite.API.VEEMEE.olm.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         if (HTTPSServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPSServerConfiguration.DiscordChannelID, HTTPSServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "*", 443).StartServer(),
+                    () => new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "0.0.0.0", 443).StartServer(), // 0.0.0.0 as the certificate binds to this ip.
                     () => RefreshConfig()
                 ));
 
@@ -128,9 +124,8 @@ class Program
                 Console.ReadLine();
 
                 LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
-                char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                if (input == 'y')
+                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
                 {
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);

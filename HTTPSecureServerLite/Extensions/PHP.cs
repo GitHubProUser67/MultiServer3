@@ -1,20 +1,20 @@
 ﻿using BackendProject;
-using HttpServerLite;
 using System.Diagnostics;
 using System.Text;
+using WatsonWebserver.Core;
 
 namespace HTTPSecureServerLite.Extensions
 {
     public class PHP
     {
-        public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, string ip, string port, HttpRequest request)
+        public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, string ip, string port, HttpContextBase ctx)
         {
-            if (request.Url != null)
+            if (ctx.Request.Url != null)
             {
                 string[][] HeadersLocal = Array.Empty<string[]>();
                 byte[]? returndata = null;
-                int index = request.Url.Full.IndexOf("?");
-                string? queryString = index == -1 ? string.Empty : request.Url.Full[(index + 1)..];
+                int index = ctx.Request.Url.RawWithQuery.IndexOf("?");
+                string? queryString = index == -1 ? string.Empty : ctx.Request.Url.RawWithQuery[(index + 1)..];
                 // Get paths for PHP
                 string? documentRootPath = Path.GetDirectoryName(FilePath);
                 string? scriptFilePath = Path.GetFullPath(FilePath);
@@ -23,8 +23,8 @@ namespace HTTPSecureServerLite.Extensions
 
                 // Extract POST data (if available)
                 string? postData = null;
-                if (request.Method.ToString() == "POST" && request.DataAsBytes != null)
-                    postData = Encoding.UTF8.GetString(request.DataAsBytes);
+                if (ctx.Request.Method.ToString() == "POST" && ctx.Request.DataAsBytes != null)
+                    postData = Encoding.UTF8.GetString(ctx.Request.DataAsBytes);
 
                 Process proc = new();
 
@@ -110,19 +110,18 @@ namespace HTTPSecureServerLite.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("SCRIPT_NAME", scriptFileName);
                 proc.StartInfo.EnvironmentVariables.Add("SCRIPT_FILENAME", scriptFilePath);
                 proc.StartInfo.EnvironmentVariables.Add("QUERY_STRING", queryString);
-                proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", request.ContentType);
-                proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", request.Method.ToString());
-                proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", request.Useragent);
+                proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", ctx.Request.ContentType);
+                proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", ctx.Request.Method.ToString());
+                proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", ctx.Request.Useragent);
                 proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", MiscUtils.GetPublicIPAddress());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
-                proc.StartInfo.EnvironmentVariables.Add("REFERER", HTTPUtils.RemoveQueryString(request.Url.Full));
-                proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{request.Url}");
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", request.RetrieveHeaderValue("Cookie"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", request.RetrieveHeaderValue("Accept"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", request.RetrieveHeaderValue("Accept-Charset"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_ENCODING", request.RetrieveHeaderValue("Accept-Encoding"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_LANGUAGE", request.RetrieveHeaderValue("Accept-Language"));
+                proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ip}:{port}{ctx.Request.Url.RawWithQuery}");
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", ctx.Request.RetrieveHeaderValue("Cookie"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", ctx.Request.RetrieveHeaderValue("Accept"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", ctx.Request.RetrieveHeaderValue("Accept-Charset"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_ENCODING", ctx.Request.RetrieveHeaderValue("Accept-Encoding"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_LANGUAGE", ctx.Request.RetrieveHeaderValue("Accept-Language"));
                 proc.StartInfo.EnvironmentVariables.Add("TMPDIR", tempPath);
                 proc.StartInfo.EnvironmentVariables.Add("TEMP", tempPath);
 

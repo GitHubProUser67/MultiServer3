@@ -76,10 +76,10 @@ namespace SRVEmu.Blaze.GameManager
                     }
                     else
                     {
-                        Attribut a = new Attribut();
+                        Attribut a = new();
                         a.Name = names[i];
                         a.Value = values[i];
-                        Attributes.Add(a);
+                        Attributes?.Add(a);
                     }
                 }
                 Update = true;
@@ -87,7 +87,7 @@ namespace SRVEmu.Blaze.GameManager
 
             public int FindOrCreate(string name)
             {
-                for (int i = 0; i < Attributes.Count; i++)
+                for (int i = 0; i < Attributes?.Count; i++)
                     if (Attributes[i].Name == name)
                         return i;
                 return -1;
@@ -95,7 +95,7 @@ namespace SRVEmu.Blaze.GameManager
 
             public string GetAttrValue(string name)
             {
-                for (int i = 0; i < Attributes.Count; i++)
+                for (int i = 0; i < Attributes?.Count; i++)
                     if (Attributes[i].Name == name)
                         return Attributes[i].Value;
                 return string.Empty;
@@ -125,7 +125,7 @@ namespace SRVEmu.Blaze.GameManager
         public static GameInfo? FindFirstActive()
         {
             foreach (GameInfo g in AllGames)
-                if (g.isActive && g.OtherPlayers.Count < 3)
+                if (g.isActive && g.OtherPlayers?.Count < 3)
                     return g;
             return null;
         }

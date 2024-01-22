@@ -30,12 +30,15 @@ namespace HTTPServer
                 Processor.AddRoute(route);
             }
 
-            Parallel.ForEach(ports, port => { new Thread(() => CreateHTTPPortListener(port)).Start(); }) ;
+            foreach (int port in ports)
+            {
+                new Thread(() => CreateHTTPPortListener(port)).Start();
+            }
         }
 
         private void CreateHTTPPortListener(int listenerPort)
         {
-            Task serverSTOMP = Task.Run(async () =>
+            Task serverHTTP = Task.Run(async () =>
             {
                 try
                 {

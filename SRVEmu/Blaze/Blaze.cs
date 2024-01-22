@@ -581,22 +581,22 @@ namespace SRVEmu.Blaze.Blaze
                         {
                             List<long>? listi = (List<long>?)tl.List;
                             res += start + "_ ";
-                            for (int i = 0; i < listi.Count - 1; i++)
+                            for (int i = 0; i < listi?.Count - 1; i++)
                                 res += listi[i] + " (0x" + listi[i].ToString("X8") + "), ";
-                            res += listi[listi.Count - 1] + " (0x" + listi[listi.Count - 1].ToString("X8") + ")" +  nl;
+                            res += listi[listi.Count - 1] + " (0x" + listi[^1].ToString("X8") + ")" +  nl;
                         }
                         else if (tl.SubType == 1)
                         {
                             List<string>? lists = (List<string>?)tl.List;
                             res += start + "_ ";
-                            for (int i = 0; i < lists.Count; i++)
+                            for (int i = 0; i < lists?.Count; i++)
                                 res += lists[i] + " ";
                             res += nl;
                         }
                         else if (tl.SubType == 3)
                         {
                             List<TdfStruct>? listst = (List<TdfStruct>?)tl.List;
-                            for (int i = 0; i < listst.Count; i++)
+                            for (int i = 0; i < listst?.Count; i++)
                             {
                                 res += start + "_ Entry #" + i + nl;
                                 res += ListToText("_ _ ", listst[i].Values);
@@ -660,11 +660,13 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfUnion ReadTdfUnion(Tdf head, Stream s)
         {
-            TdfUnion res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.UnionType = (byte)s.ReadByte();
+            TdfUnion res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                UnionType = (byte)s.ReadByte()
+            };
             if (res.UnionType != 0x7F)
                 res.UnionContent = ReadTdf(s);
             return res;
@@ -672,11 +674,13 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfBlob ReadTdfBlob(Tdf head, Stream s)
         {
-            TdfBlob res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.Data = new byte[DecompressInteger(s)];
+            TdfBlob res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                Data = new byte[DecompressInteger(s)]
+            };
             for (int i = 0; i < res.Data.Length; i++)
                 res.Data[i] = (byte)s.ReadByte();
             return res;
@@ -684,10 +688,12 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfFloat ReadTdfFloat(Tdf head, Stream s)
         {
-            TdfFloat res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
+            TdfFloat res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type
+            };
             byte[] buff = new byte[4];
             s.Read(buff, 0, 4);
             res.Value = BitConverter.ToSingle(buff, 0);
@@ -696,30 +702,36 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfInteger ReadTdfInteger(Tdf head, Stream s)
         {
-            TdfInteger res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.Value = DecompressInteger(s);
+            TdfInteger res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                Value = DecompressInteger(s)
+            };
             return res;
         }
 
         public static TdfString ReadTdfString(Tdf head, Stream s)
         {
-            TdfString res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.Value = ReadString(s);
+            TdfString res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                Value = ReadString(s)
+            };
             return res;
         }
 
         public static TdfStruct ReadTdfStruct(Tdf head, Stream s)
         {
-            TdfStruct res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
+            TdfStruct res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type
+            };
             bool has2 = false;
             res.Values = ReadStruct(s, out has2);
             res.startswith2 = has2;
@@ -728,11 +740,13 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfTrippleVal ReadTdfTrippleVal(Tdf head, Stream s)
         {
-            TdfTrippleVal res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.Value = ReadTrippleVal(s);
+            TdfTrippleVal res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                Value = ReadTrippleVal(s)
+            };
             return res;
         }
 
@@ -748,12 +762,14 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfList ReadTdfList(Tdf head, Stream s)
         {
-            TdfList res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.SubType = (byte)s.ReadByte();
-            res.Count = (int)DecompressInteger(s);
+            TdfList res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                SubType = (byte)s.ReadByte(),
+                Count = (int)DecompressInteger(s)
+            };
             for (int i = 0; i < res.Count; i++)
             {
                 switch (res.SubType)
@@ -798,11 +814,13 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfIntegerList ReadTdfIntegerList(Tdf head, Stream s)
         {
-            TdfIntegerList res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.Count = (int)DecompressInteger(s);
+            TdfIntegerList res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                Count = (int)DecompressInteger(s)
+            };
             for (int i = 0; i < res.Count; i++)
             {
                 if (res.List == null)
@@ -816,13 +834,15 @@ namespace SRVEmu.Blaze.Blaze
 
         public static TdfDoubleList ReadTdfDoubleList(Tdf head, Stream s)
         {
-            TdfDoubleList res = new();
-            res.Label = head.Label;
-            res.Tag = head.Tag;
-            res.Type = head.Type;
-            res.SubType1 = (byte)s.ReadByte();
-            res.SubType2 = (byte)s.ReadByte();
-            res.Count = (int)DecompressInteger(s);
+            TdfDoubleList res = new()
+            {
+                Label = head.Label,
+                Tag = head.Tag,
+                Type = head.Type,
+                SubType1 = (byte)s.ReadByte(),
+                SubType2 = (byte)s.ReadByte(),
+                Count = (int)DecompressInteger(s)
+            };
             for (int i = 0; i < res.Count; i++)
             {
                 switch (res.SubType1)
@@ -937,18 +957,22 @@ namespace SRVEmu.Blaze.Blaze
 
         public static DoubleVal ReadDoubleVal(Stream s)
         {
-            DoubleVal res = new();
-            res.v1 = DecompressInteger(s);
-            res.v2 = DecompressInteger(s);
+            DoubleVal res = new()
+            {
+                v1 = DecompressInteger(s),
+                v2 = DecompressInteger(s)
+            };
             return res;
         }
 
         public static TrippleVal ReadTrippleVal(Stream s)
         {
-            TrippleVal res = new();
-            res.v1 = DecompressInteger(s);
-            res.v2 = DecompressInteger(s);
-            res.v3 = DecompressInteger(s);
+            TrippleVal res = new()
+            {
+                v1 = DecompressInteger(s),
+                v2 = DecompressInteger(s),
+                v3 = DecompressInteger(s)
+            };
             return res;
         }
         #endregion
