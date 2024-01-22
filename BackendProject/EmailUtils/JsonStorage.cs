@@ -10,6 +10,9 @@ namespace BackendProject.EmailUtils
         public JsonStorage()
         {
             messages = new List<Message>();
+
+            // Timer for scheduled updates every 24 hours
+            _ = new Timer(ScheduledCleanup, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
         }
 
         public void RegisterMessage(string sender, string subject, string recipient, DateTime date)
@@ -50,6 +53,11 @@ namespace BackendProject.EmailUtils
         public string GetAllMessagesAsJson()
         {
             return JsonConvert.SerializeObject(messages, Formatting.Indented);
+        }
+
+        public void ScheduledCleanup(object? state)
+        {
+            messages.Clear();
         }
     }
 

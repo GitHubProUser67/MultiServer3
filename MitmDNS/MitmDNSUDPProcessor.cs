@@ -58,7 +58,7 @@ namespace MitmDNS
 
             IPAddress? arparuleaddr = null;
 
-            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr)) // IPV4 Only.
+            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out arparuleaddr)) // IPV4 Only.
             {
                 if (arparuleaddr != null)
                 {
