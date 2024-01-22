@@ -136,6 +136,7 @@ namespace HTTPServer.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", MiscUtils.GetPublicIPAddress());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
+                proc.StartInfo.EnvironmentVariables.Add("REFERER", HTTPUtils.RemoveQueryString(request.Url));
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{request.Url}");
                 proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", request.GetHeaderValue("Cookie"));
                 proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", request.GetHeaderValue("Accept"));

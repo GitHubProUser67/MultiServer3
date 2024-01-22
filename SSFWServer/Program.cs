@@ -88,8 +88,10 @@ class Program
         if (SSFWServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(SSFWServerConfiguration.DiscordChannelID, SSFWServerConfiguration.DiscordBotToken);
 
+        SSFWClass server = new(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey);
+
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey).StartSSFW(),
+                    () => server.StartSSFW(),
                     () => RefreshConfig()
                 ));
 
@@ -102,8 +104,9 @@ class Program
                 Console.ReadLine();
 
                 LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (input == 'y')
                 {
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);

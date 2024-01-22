@@ -103,10 +103,13 @@ class Program
         {
             Horizon.MEDIUS.MediusClass.MediusMain();
 
-            _ = Task.Run(() => Parallel.Invoke(
-                   () => new Horizon.HTTPSERVICE.CrudServerHandler("*", 61920).StartServer(),
-                   () => new Horizon.HTTPSERVICE.CrudServerHandler("*", 8443).StartServer(HorizonServerConfiguration.HTTPSCertificateFile)
-               ));
+            Horizon.HTTPSERVICE.CrudServerHandler httpserver = new("*", 61920);
+
+            Horizon.HTTPSERVICE.CrudServerHandler httpsecureserver = new("*", 8443);
+
+            httpserver.StartServer();
+
+            httpsecureserver.StartServer(HorizonServerConfiguration.HTTPSCertificateFile);
         }
 
         if (HorizonServerConfiguration.EnableNAT)
@@ -149,8 +152,9 @@ class Program
                 Console.ReadLine();
 
                 LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (input == 'y')
                 {
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);

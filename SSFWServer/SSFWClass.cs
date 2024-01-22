@@ -14,8 +14,6 @@ namespace SSFWServer
     {
         public static bool IsStarted = false;
         public static string? legacykey;
-        public static SSFWServer? _Server;
-        public static HttpSSFWServer? _HttpServer;
         private string certpath;
         private string certpass;
 
@@ -64,14 +62,9 @@ namespace SSFWServer
         public Task StartSSFW()
         {
             // Create and prepare a new SSL server context and start the server
-            _Server = new SSFWServer(new SslContext(SslProtocols.Tls12, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback), IPAddress.Any, 10443);
+            new SSFWServer(new SslContext(SslProtocols.Tls12, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback), IPAddress.Any, 10443).Start();
             // Create and start the server
-            _HttpServer = new HttpSSFWServer(IPAddress.Any, 8080);
-
-            _ = Task.Run(() => Parallel.Invoke(
-                    () => _Server.Start(),
-                    () => _HttpServer.Start()
-                ));
+            new HttpSSFWServer(IPAddress.Any, 8080).Start();
 
             IsStarted = true;
             LoggerAccessor.LogInfo("[SSFW] - Server started on ports 8080 and 10443...");
@@ -94,6 +87,8 @@ namespace SSFWServer
                     string sessionid = GetHeaderValue(Headers, "X-Home-Session-Id");
 
                     string absolutepath = request.Url;
+
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested : {absolutepath}");
 
                     // Split the URL into segments
                     string[] segments = absolutepath.Trim('/').Split('/');
@@ -448,7 +443,7 @@ namespace SSFWServer
             }
         }
 
-        public class SSFWServer : HttpsServer
+        private class SSFWServer : HttpsServer
         {
             public SSFWServer(SslContext context, IPAddress address, int port) : base(context, address, port) { }
 
@@ -460,7 +455,7 @@ namespace SSFWServer
             }
         }
 
-        public class HttpSSFWServer : HttpServer
+        private class HttpSSFWServer : HttpServer
         {
             public HttpSSFWServer(IPAddress address, int port) : base(address, port) { }
 
