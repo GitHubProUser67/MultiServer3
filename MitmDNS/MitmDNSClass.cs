@@ -12,40 +12,39 @@ namespace MitmDNS
         public static Dictionary<string, DnsSettings>? DicRules = null;
         public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
 
-        public void MitmDNSMain(bool tcpmode)
+        public void MitmDNSMain()
         {
-            if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
-            {
-                LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                if (MiscUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                string content = string.Empty;
-                try
+            _ = Task.Run(() => {
+                if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
-                    HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
-                    response.EnsureSuccessStatusCode();
-                    ParseRules(response.Content.ReadAsStringAsync().Result, false);
+                    LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
+                    if (MiscUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                    string content = string.Empty;
+                    try
+                    {
+                        HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
+                        response.EnsureSuccessStatusCode();
+                        ParseRules(response.Content.ReadAsStringAsync().Result, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
+                        return;
+                    }
                 }
-                catch (Exception ex)
+                else if (DicRules == null)
                 {
-                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                    return;
+                    if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+                        ParseRules(MitmDNSServerConfiguration.DNSConfig);
+                    else
+                    {
+                        LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
+                        Environment.Exit(0);
+                    }
                 }
-            }
-            else if (DicRules == null)
-            {
-                if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
-                    ParseRules(MitmDNSServerConfiguration.DNSConfig);
-                else
-                {
-                    LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
-                    Environment.Exit(0);
-                }
-            }
+            });
 
-            if (tcpmode)
-                _ = new MitmDNSTCPProcessor().RunDns();
-            else
-                _ = new MitmDNSUDPProcessor().RunDns();
+            _ = new MitmDNSUDPProcessor().RunDns();
         }
 
         private void ParseRules(string Filename, bool IsFilename = true)
