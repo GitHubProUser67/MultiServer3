@@ -6,6 +6,7 @@ public static class MitmDNSServerConfiguration
 {
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
+    public static bool TCPMode { get; set; } = false;
     public static bool DNSAllowUnsafeRequests { get; set; } = false;
 
     /// <summary>
@@ -33,6 +34,7 @@ public static class MitmDNSServerConfiguration
 
             DNSOnlineConfig = config.online_routes_config;
             DNSConfig = config.routes_config;
+            TCPMode = config.tcp_mode;
             DNSAllowUnsafeRequests = config.allow_unsafe_requests;
         }
         catch (Exception)
@@ -70,7 +72,7 @@ class Program
         MitmDNS.MitmDNSClass? dns = new();
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => dns.MitmDNSMain(),
+                    () => dns.MitmDNSMain(MitmDNSServerConfiguration.TCPMode),
                     () => RefreshConfig()
                 ));
 
@@ -83,8 +85,9 @@ class Program
                 Console.ReadLine();
 
                 LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (input == 'y')
                 {
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);

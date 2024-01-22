@@ -859,6 +859,24 @@ namespace BackendProject.WebAPIs
                         int i = 0;
                         string filename = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
+                        string charset = string.Empty;
+                        string classicmethod = string.Empty;
+                        try
+                        {
+                            charset = data.GetParameterValue("charset");
+                        }
+                        catch (Exception)
+                        {
+                            // Not Important
+                        }
+                        try
+                        {
+                            classicmethod = data.GetParameterValue("classicmethod");
+                        }
+                        catch (Exception)
+                        {
+                            // Not Important
+                        }
                         foreach (var multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
@@ -878,12 +896,17 @@ namespace BackendProject.WebAPIs
 
                                 BruteforceProcess? proc = new(buffer);
 
-                                if (filename.ToLower().Contains(".hcdb"))
-                                    TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, 1), $"{filename}_Bruteforced.hcdb"));
-                                else if (filename.ToLower().Contains(".bar"))
-                                    TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, 2), $"{filename}_Bruteforced.bar"));
+                                if (classicmethod == "on")
+                                    TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, false).Result, $"{filename}_Bruteforced.bin"));
                                 else
-                                    TasksResult.Add((proc.StartBruteForce(HelperStaticFolder), $"{filename}_Bruteforced.xml"));
+                                {
+                                    if (filename.ToLower().Contains(".hcdb"))
+                                        TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, true, true, 1).Result, $"{filename}_Bruteforced.hcdb"));
+                                    else if (filename.ToLower().Contains(".bar"))
+                                        TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, true, true, 2).Result, $"{filename}_Bruteforced.bar"));
+                                    else
+                                        TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, charset, true).Result, $"{filename}_Bruteforced.xml"));
+                                }
 
                                 proc = null;
 

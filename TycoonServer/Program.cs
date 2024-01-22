@@ -83,8 +83,9 @@ class Program
                 Console.ReadLine();
 
                 LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (input == 'y')
                 {
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);

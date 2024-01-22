@@ -1,6 +1,5 @@
 ﻿using CustomLogger;
-using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
+using HttpServerLite;
 using System.Web;
 
 namespace TycoonServer
@@ -8,7 +7,7 @@ namespace TycoonServer
     public class Processor
     {
         public static bool IsStarted = false;
-        private static WebserverLite? _Server;
+        private static Webserver? _Server;
         private int port;
 
         public Processor(int port)
@@ -16,14 +15,12 @@ namespace TycoonServer
             this.port = port;
         }
 
-        private static async Task AuthorizeConnection(HttpContextBase ctx)
+        private static bool AuthorizeConnection(string arg1, int arg2)
         {
-            if (TycoonServerConfiguration.BannedIPs != null && TycoonServerConfiguration.BannedIPs.Contains(ctx.Request.Source.IpAddress))
-            {
-                LoggerAccessor.LogError($"[SECURITY] - Client - {ctx.Request.Source.IpAddress} Requested the Tycoon server while being banned!");
-                ctx.Response.StatusCode = 403;
-                await ctx.Response.Send();
-            }
+            if (TycoonServerConfiguration.BannedIPs != null && TycoonServerConfiguration.BannedIPs.Contains(arg1))
+                return false;
+
+            return true;
         }
 
         public void StartServer()
@@ -32,131 +29,142 @@ namespace TycoonServer
                 LoggerAccessor.LogWarn("Tycoon Server already initiated");
             else
             {
-                _Server = new WebserverLite(new WebserverSettings()
-                {
-                    Hostname = "*",
-                    Port = port,
-                }, DefaultRoute);
-                _Server.Routes.AuthenticateRequest = AuthorizeConnection;
+                _Server = new Webserver("*", port, false, null, null, DefaultRoute);
+                _Server.Settings.Headers.Host = "http://*:" + port;
+                _Server.Callbacks.AuthorizeConnection = AuthorizeConnection;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
-
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.POST, "/HomeTycoon/Main_SCEE.php", async (HttpContextBase ctx) =>
-                {
-                    string? res = null;
-                    if (ctx.Request.Url.RawWithQuery.ToLower().EndsWith(".php"))
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
-                    else
-                        // Parse the query string from the URL
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
-                            HttpUtility.ParseQueryString(ctx.Request.Url.RawWithQuery)["PHPSESSID"]);
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        ctx.Response.ContentType = "text/plain";
-                        ctx.Response.StatusCode = 500;
-                    }
-                    else
-                    {
-                        ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                        ctx.Response.StatusCode = 200;
-                    }
-                    await ctx.Response.Send(res);
-                });
-
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.POST, "/HomeTycoon/Main_SCEJ.php", async (HttpContextBase ctx) =>
-                {
-                    string? res = null;
-                    if (ctx.Request.Url.RawWithQuery.ToLower().EndsWith(".php"))
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
-                    else
-                        // Parse the query string from the URL
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
-                            HttpUtility.ParseQueryString(ctx.Request.Url.RawWithQuery)["PHPSESSID"]);
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        ctx.Response.ContentType = "text/plain";
-                        ctx.Response.StatusCode = 500;
-                    }
-                    else
-                    {
-                        ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                        ctx.Response.StatusCode = 200;
-                    }
-                    await ctx.Response.Send(res);
-                });
-
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.POST, "/HomeTycoon/Main_SCEAsia.php", async (HttpContextBase ctx) =>
-                {
-                    string? res = null;
-                    if (ctx.Request.Url.RawWithQuery.ToLower().EndsWith(".php"))
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
-                    else
-                        // Parse the query string from the URL
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
-                            HttpUtility.ParseQueryString(ctx.Request.Url.RawWithQuery)["PHPSESSID"]);
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        ctx.Response.ContentType = "text/plain";
-                        ctx.Response.StatusCode = 500;
-                    }
-                    else
-                    {
-                        ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                        ctx.Response.StatusCode = 200;
-                    }
-                    await ctx.Response.Send(res);
-                });
-
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.POST, "/HomeTycoon/Main.php", async (HttpContextBase ctx) =>
-                {
-                    string? res = null;
-                    if (ctx.Request.Url.RawWithQuery.ToLower().EndsWith(".php"))
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
-                    else
-                        // Parse the query string from the URL
-                        res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
-                            HttpUtility.ParseQueryString(ctx.Request.Url.RawWithQuery)["PHPSESSID"]);
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        ctx.Response.ContentType = "text/plain";
-                        ctx.Response.StatusCode = 500;
-                    }
-                    else
-                    {
-                        ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                        ctx.Response.StatusCode = 200;
-                    }
-                    await ctx.Response.Send(res);
-                });
-
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.POST, "/Postcards/", async (HttpContextBase ctx) =>
-                {
-                    string? res = TycoonRequestProcessor.ProcessPostCards(ctx.Request.DataAsBytes, ctx.Request.ContentType);
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        ctx.Response.ContentType = "text/plain";
-                        ctx.Response.StatusCode = 500;
-                    }
-                    else
-                    {
-                        ctx.Response.ContentType = "application/xml;charset=UTF-8";
-                        ctx.Response.StatusCode = 200;
-                    }
-                    await ctx.Response.Send(res);
-                });
-
                 _Server.Start();
                 IsStarted = true;
                 LoggerAccessor.LogInfo("Tycoon Server initiated...");
             }
         }
 
-        private static async Task DefaultRoute(HttpContextBase ctx)
+        private static Task DefaultRoute(HttpContext ctx)
         {
             ctx.Response.StatusCode = 403;
             ctx.Response.ContentType = "text/plain";
-            await ctx.Response.Send();
+            ctx.Response.Send(true);
+
+            return Task.CompletedTask;
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.POST, "/HomeTycoon/Main_SCEE.php")]
+        public static async Task SCEERoute(HttpContext ctx)
+        {
+            string? res = null;
+            if (ctx.Request.Url.Full.ToLower().EndsWith(".php"))
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
+            else
+            {
+                // Parse the query string from the URL
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
+            }
+            if (string.IsNullOrEmpty(res))
+            {
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.StatusCode = 500;
+            }
+            else
+            {
+                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                ctx.Response.StatusCode = 200;
+            }
+            await ctx.Response.SendAsync(res);
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.POST, "/HomeTycoon/Main_SCEJ.php")]
+        public static async Task SCEJRoute(HttpContext ctx)
+        {
+            string? res = null;
+            if (ctx.Request.Url.Full.ToLower().EndsWith(".php"))
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
+            else
+            {
+                // Parse the query string from the URL
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
+            }
+            if (string.IsNullOrEmpty(res))
+            {
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.StatusCode = 500;
+            }
+            else
+            {
+                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                ctx.Response.StatusCode = 200;
+            }
+            await ctx.Response.SendAsync(res);
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.POST, "/HomeTycoon/Main_SCEAsia.php")]
+        public static async Task SCEAsiaRoute(HttpContext ctx)
+        {
+            string? res = null;
+            if (ctx.Request.Url.Full.ToLower().EndsWith(".php"))
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
+            else
+            {
+                // Parse the query string from the URL
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
+            }
+            if (string.IsNullOrEmpty(res))
+            {
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.StatusCode = 500;
+            }
+            else
+            {
+                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                ctx.Response.StatusCode = 200;
+            }
+            await ctx.Response.SendAsync(res);
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.POST, "/HomeTycoon/Main.php")]
+        public static async Task HomelessRoute(HttpContext ctx)
+        {
+            string? res = null;
+            if (ctx.Request.Url.Full.ToLower().EndsWith(".php"))
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType, null);
+            else
+            {
+                // Parse the query string from the URL
+                res = TycoonRequestProcessor.ProcessMainPHP(ctx.Request.DataAsBytes, ctx.Request.ContentType,
+                    HttpUtility.ParseQueryString(ctx.Request.Url.Full)["PHPSESSID"]);
+            }
+            if (string.IsNullOrEmpty(res))
+            {
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.StatusCode = 500;
+            }
+            else
+            {
+                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                ctx.Response.StatusCode = 200;
+            }
+            await ctx.Response.SendAsync(res);
+        }
+
+        [StaticRoute(HttpServerLite.HttpMethod.POST, "/Postcards/")]
+        public static async Task Postcards(HttpContext ctx)
+        {
+            string? res = TycoonRequestProcessor.ProcessPostCards(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+            if (string.IsNullOrEmpty(res))
+            {
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.StatusCode = 500;
+            }
+            else
+            {
+                ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                ctx.Response.StatusCode = 200;
+            }
+            await ctx.Response.SendAsync(res);
         }
     }
 }

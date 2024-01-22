@@ -125,8 +125,8 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        // Set up a timer that triggers every 10 seconds, the API being in beta state, GC collection is still necessary.
-        Timer timer = new(GCCollectTask, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        // Set up a timer that triggers every 10 seconds (In case it still happens).
+        // Timer timer = new(GCCollectTask, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
         if (MiscUtils.IsWindows())
         {
@@ -137,8 +137,9 @@ class Program
                 Console.ReadLine();
 
                 LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                char input = char.ToLower(Console.ReadKey().KeyChar);
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (input == 'y')
                 {
                     LoggerAccessor.LogInfo("Shutting down. Goodbye!");
                     Environment.Exit(0);

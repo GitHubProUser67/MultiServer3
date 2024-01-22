@@ -4,14 +4,13 @@ using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
+using HttpServerLite;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
-using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
 
 namespace HTTPSecureServerLite
 {
@@ -20,7 +19,7 @@ namespace HTTPSecureServerLite
         private static Dictionary<string, DnsSettings>? DicRules = null;
         private static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
         public static bool IsStarted = false;
-        private static WebserverLite? _Server;
+        private static Webserver? _Server;
         private string ip;
         private string certpath;
         private string certpass;
@@ -34,14 +33,15 @@ namespace HTTPSecureServerLite
             this.port = port;
         }
 
-        private static async Task AuthorizeConnection(HttpContextBase ctx)
+        private static bool AuthorizeConnection(string arg1, int arg2)
         {
-            if (HTTPSServerConfiguration.BannedIPs != null && HTTPSServerConfiguration.BannedIPs.Contains(ctx.Request.Source.IpAddress))
+            if (HTTPSServerConfiguration.BannedIPs != null && HTTPSServerConfiguration.BannedIPs.Contains(arg1))
             {
-                LoggerAccessor.LogError($"[SECURITY] - Client - {ctx.Request.Source.IpAddress} Requested the HTTPS server while being banned!");
-                ctx.Response.StatusCode = 403;
-                await ctx.Response.Send();
+                LoggerAccessor.LogError($"[SECURITY] - Client - {arg1} Requested the HTTPS server while being banned!");
+                return false;
             }
+
+            return true;
         }
 
         private static bool IsIPAllowed(string ipAddress)
@@ -59,75 +59,45 @@ namespace HTTPSecureServerLite
                 LoggerAccessor.LogWarn("HTTPS Server already initiated");
             else
             {
-                _ = Task.Run(() => {
-                    if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
-                    {
-                        LoggerAccessor.LogInfo("[HTTPS_DNS] - Downloading Configuration File...");
-                        if (MiscUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                        string content = string.Empty;
-                        try
-                        {
-                            HttpClient client = new();
-                            HttpResponseMessage response = client.GetAsync(HTTPSServerConfiguration.DNSOnlineConfig).Result;
-                            response.EnsureSuccessStatusCode();
-                            content = response.Content.ReadAsStringAsync().Result;
-                            ParseRules(content, false);
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerAccessor.LogError($"[HTTPS_DNS] - Online Config failed to initialize! - {ex}");
-                        }
-                    }
-                    else if (DicRules == null)
-                    {
-                        if (File.Exists(HTTPSServerConfiguration.DNSConfig))
-                            ParseRules(HTTPSServerConfiguration.DNSConfig);
-                        else
-                            LoggerAccessor.LogError("[HTTPS_DNS] - No config text file, so HTTPS_DNS server configuration is aborted!");
-                    }
-                });
-
-                WebserverSettings settings = new()
+                if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
                 {
-                    Hostname = ip,
-                    Port = port,
-                };
+                    LoggerAccessor.LogInfo("[HTTPS_DNS] - Downloading Configuration File...");
+                    if (MiscUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                    string content = string.Empty;
+                    try
+                    {
+                        HttpClient client = new();
+                        HttpResponseMessage response = client.GetAsync(HTTPSServerConfiguration.DNSOnlineConfig).Result;
+                        response.EnsureSuccessStatusCode();
+                        content = response.Content.ReadAsStringAsync().Result;
+                        ParseRules(content, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[HTTPS_DNS] - Online Config failed to initialize! - {ex}");
+                    }
+                }
+                else if (DicRules == null)
+                {
+                    if (File.Exists(HTTPSServerConfiguration.DNSConfig))
+                        ParseRules(HTTPSServerConfiguration.DNSConfig);
+                    else
+                        LoggerAccessor.LogError("[HTTPS_DNS] - No config text file, so HTTPS_DNS server configuration is aborted!");
+                }
 
-                settings.Ssl.PfxCertificateFile = certpath;
-                settings.Ssl.PfxCertificatePassword = certpass;
-                settings.Ssl.Enable = true;
-
-                _Server = new WebserverLite(settings, DefaultRoute);
-                _Server.Routes.AuthenticateRequest = AuthorizeConnection;
+                _Server = new Webserver(ip, port, true, certpath, certpass, DefaultRoute);
+                _Server.Settings.Headers.Host = "https://" + ip + ":" + port;
+                _Server.Callbacks.AuthorizeConnection = AuthorizeConnection;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
-
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/objects/D2CDD8B2-DE444593-A64C68CB-0B5EDE23/{id}.xml", async (HttpContextBase ctx) =>
-                {
-                    string? QuizID = ctx.Request.Url.Parameters["id"];
-
-                    if (!string.IsNullOrEmpty(QuizID))
-                    {
-                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                        ctx.Response.ContentType = "text/xml";
-                        await ctx.Response.Send("<Root></Root>"); // TODO - Figure out this complicated LUAC in object : D2CDD8B2-DE444593-A64C68CB-0B5EDE23
-                    }
-                    else
-                    {
-                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                        ctx.Response.ContentType = "text/plain";
-                        await ctx.Response.Send();
-                    }
-                });
-
                 _Server.Start();
                 IsStarted = true;
                 LoggerAccessor.LogInfo("HTTPS Server initiated...");
             }
         }
 
-        private static async Task DefaultRoute(HttpContextBase ctx)
+        static async Task DefaultRoute(HttpContext ctx)
         {
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             string fullurl = string.Empty;
@@ -138,17 +108,22 @@ namespace HTTPSecureServerLite
 
             try
             {
-                if (ctx.Request.Url != null && !ctx.Request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
-                {
-                    fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.RawWithQuery);
-
-                    LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {fullurl}");
-
-                    absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
-                    statusCode = HttpStatusCode.Continue;
-                }
-                else
+                if (string.IsNullOrEmpty(Host)) // DNS HTTPS do not expose a UserAgent.
                     LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with invalid parameters!");
+                else
+                {
+                    if (ctx.Request.Url != null && !ctx.Request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
+                    {
+                        fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.Full);
+
+                        LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with URL : {fullurl}");
+
+                        absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
+                        statusCode = HttpStatusCode.Continue;
+                    }
+                    else
+                        LoggerAccessor.LogInfo($"[HTTPS] - Client - {clientip} Requested the HTTPS Server with invalid parameters!");
+                }
             }
             catch (Exception)
             {
@@ -202,7 +177,7 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                        await ctx.Response.Send(HTTPUtils.Compress(buffer));
+                                        await ctx.Response.SendAsync(HTTPUtils.Compress(buffer));
                                     }
                                     else
                                     {
@@ -212,7 +187,7 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                        await ctx.Response.Send(buffer);
+                                        await ctx.Response.SendAsync(buffer);
                                     }
                                 }
                                 else
@@ -220,7 +195,7 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.InternalServerError;
                                     ctx.Response.StatusCode = (int)statusCode;
                                     ctx.Response.ContentType = "text/plain";
-                                    await ctx.Response.Send();
+                                    ctx.Response.Send(true);
                                 }
 
                                 stream.Flush();
@@ -234,7 +209,7 @@ namespace HTTPSecureServerLite
                         statusCode = HttpStatusCode.NotFound;
                         ctx.Response.StatusCode = (int)statusCode;
                         ctx.Response.ContentType = "text/plain";
-                        await ctx.Response.Send();
+                        ctx.Response.Send(true);
                     }
                 }
                 else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
@@ -257,7 +232,7 @@ namespace HTTPSecureServerLite
                         ctx.Response.ContentType = res.Item2;
                     else
                         ctx.Response.ContentType = "text/plain";
-                    await ctx.Response.Send(res.Item1);
+                    await ctx.Response.SendAsync(res.Item1);
                 }
                 else if (Host == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
                 {
@@ -279,7 +254,7 @@ namespace HTTPSecureServerLite
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
-                    await ctx.Response.Send(res);
+                    await ctx.Response.SendAsync(res);
                 }
                 else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                 {
@@ -298,7 +273,7 @@ namespace HTTPSecureServerLite
                     }
                     ctx.Response.StatusCode = (int)statusCode;
                     ctx.Response.ContentType = "text/plain";
-                    await ctx.Response.Send(res);
+                    await ctx.Response.SendAsync(res);
                 }
                 else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                 {
@@ -321,7 +296,7 @@ namespace HTTPSecureServerLite
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
-                    await ctx.Response.Send(res);
+                    await ctx.Response.SendAsync(res);
                 }
                 else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp" || Host == "scej-home.playstation.net" || Host == "homeec.scej-nbs.jp") && ctx.Request.ContentType.StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
                 {
@@ -343,7 +318,7 @@ namespace HTTPSecureServerLite
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
-                    await ctx.Response.Send(res);
+                    await ctx.Response.SendAsync(res);
                 }
                 else
                 {
@@ -375,7 +350,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.BadRequest;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send("Bad Request");
+                                        await ctx.Response.SendAsync("Bad Request");
                                     }
                                     else
                                     {
@@ -385,7 +360,7 @@ namespace HTTPSecureServerLite
                                             statusCode = HttpStatusCode.BadRequest;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send("Bad Request");
+                                            await ctx.Response.SendAsync("Bad Request");
                                         }
                                         else
                                         {
@@ -411,7 +386,7 @@ namespace HTTPSecureServerLite
 
                                                 IPAddress? arparuleaddr = null;
 
-                                                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out arparuleaddr)) // IPV4 Only.
+                                                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr)) // IPV4 Only.
                                                 {
                                                     if (arparuleaddr != null)
                                                     {
@@ -493,14 +468,14 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.OK;
                                                     ctx.Response.StatusCode = (int)statusCode;
                                                     ctx.Response.ContentType = "application/dns-message";
-                                                    await ctx.Response.Send(DnsReq);
+                                                    await ctx.Response.SendAsync(DnsReq);
                                                 }
                                                 else
                                                 {
                                                     statusCode = HttpStatusCode.InternalServerError;
                                                     ctx.Response.StatusCode = (int)statusCode;
                                                     ctx.Response.ContentType = "text/plain";
-                                                    await ctx.Response.Send();
+                                                    ctx.Response.Send(true);
                                                 }
                                             }
                                             catch (Exception)
@@ -508,7 +483,7 @@ namespace HTTPSecureServerLite
                                                 statusCode = HttpStatusCode.InternalServerError;
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "text/plain";
-                                                await ctx.Response.Send();
+                                                ctx.Response.Send(true);
                                             }
                                         }
                                     }
@@ -517,7 +492,7 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                     ctx.Response.StatusCode = (int)statusCode;
                                     ctx.Response.ContentType = "text/plain";
-                                    await ctx.Response.Send("User-agent: *\nDisallow: / ");
+                                    await ctx.Response.SendAsync("User-agent: *\nDisallow: / ");
                                     break;
                                 case "/!DLNADiscovery/":
                                     if (IsIPAllowed(clientip))
@@ -542,17 +517,17 @@ namespace HTTPSecureServerLite
                                         if (!string.IsNullOrEmpty(encoding0) && encoding0.Contains("gzip"))
                                         {
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
+                                            await ctx.Response.SendAsync(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
                                         }
                                         else
-                                            await ctx.Response.Send(JsonConvert.SerializeObject(devices, Formatting.Indented));
+                                            await ctx.Response.SendAsync(JsonConvert.SerializeObject(devices, Formatting.Indented));
                                     }
                                     else
                                     {
                                         statusCode = HttpStatusCode.Forbidden;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!DLNAPlay/":
@@ -570,16 +545,16 @@ namespace HTTPSecureServerLite
                                             ctx.Response.StatusCode = (int)statusCode;
                                             DLNADevice Device = new(src);
                                             if (Device.IsConnected())
-                                                await ctx.Response.Send($"DLNA Player returned {Device.TryToPlayFile(dst)}");
+                                                await ctx.Response.SendAsync($"DLNA Player returned {Device.TryToPlayFile(dst)}");
                                             else
-                                                await ctx.Response.Send("Failed to send to TV");
+                                                await ctx.Response.SendAsync("Failed to send to TV");
                                         }
                                         else
                                         {
                                             statusCode = HttpStatusCode.Forbidden;
                                             ctx.Response.StatusCode = (int)statusCode;
 											ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else
@@ -587,7 +562,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.Forbidden;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 default:
@@ -607,14 +582,14 @@ namespace HTTPSecureServerLite
                                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/json";
-                                                await ctx.Response.Send(buffer);
+                                                await ctx.Response.SendAsync(buffer);
                                             }
                                             else
                                             {
                                                 statusCode = HttpStatusCode.InternalServerError;
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "text/plain";
-                                                await ctx.Response.Send();
+                                                ctx.Response.Send(true);
                                             }
                                         }
                                         else
@@ -625,7 +600,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "application/json";
-                                            await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{MiscUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
+                                            await ctx.Response.SendAsync(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{MiscUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
                                         }
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
@@ -634,11 +609,11 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{ctx.Request.Url}");
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/html";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                     {
-                                        var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                        var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx.Request);
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
@@ -663,7 +638,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/html";
-                                            await ctx.Response.Send(HTTPUtils.Compress(CollectPHP.Item1));
+                                            await ctx.Response.SendAsync(HTTPUtils.Compress(CollectPHP.Item1));
                                         }
                                         else
                                         {
@@ -687,7 +662,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/html";
-                                            await ctx.Response.Send(CollectPHP.Item1);
+                                            await ctx.Response.SendAsync(CollectPHP.Item1);
                                         }
                                     }
                                     else
@@ -718,7 +693,7 @@ namespace HTTPSecureServerLite
                                             statusCode = HttpStatusCode.NotFound;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     break;
@@ -733,7 +708,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.UnsupportedMediaType;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send("Unsupported Media Type");
+                                        await ctx.Response.SendAsync("Unsupported Media Type");
                                     }
                                     else
                                     {
@@ -750,7 +725,7 @@ namespace HTTPSecureServerLite
 
                                             IPAddress? arparuleaddr = null;
 
-                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out arparuleaddr)) // IPV4 Only.
+                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^12], out arparuleaddr)) // IPV4 Only.
                                             {
                                                 if (arparuleaddr != null)
                                                 {
@@ -832,14 +807,14 @@ namespace HTTPSecureServerLite
                                                 statusCode = HttpStatusCode.OK;
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/dns-message";
-                                                await ctx.Response.Send(DnsReq);
+                                                await ctx.Response.SendAsync(DnsReq);
                                             }
                                             else
                                             {
                                                 statusCode = HttpStatusCode.InternalServerError;
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "text/plain";
-                                                await ctx.Response.Send();
+                                                ctx.Response.Send(true);
                                             }
                                         }
                                         catch (Exception)
@@ -847,7 +822,7 @@ namespace HTTPSecureServerLite
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     break;
@@ -863,14 +838,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={makeres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(makeres.Value.Item1);
+                                            await ctx.Response.SendAsync(makeres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -878,7 +853,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/UnBar/":
@@ -893,14 +868,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={unbarres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(unbarres.Value.Item1);
+                                            await ctx.Response.SendAsync(unbarres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -908,7 +883,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/CDS/":
@@ -923,14 +898,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(cdsres.Value.Item1);
+                                            await ctx.Response.SendAsync(cdsres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -938,7 +913,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/CDSBruteforce/":
@@ -953,14 +928,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(cdsres.Value.Item1);
+                                            await ctx.Response.SendAsync(cdsres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -968,7 +943,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/HCDBUnpack/":
@@ -983,14 +958,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(cdsres.Value.Item1);
+                                            await ctx.Response.SendAsync(cdsres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -998,7 +973,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/TicketList/":
@@ -1013,14 +988,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={ticketlistres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(ticketlistres.Value.Item1);
+                                            await ctx.Response.SendAsync(ticketlistres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -1028,7 +1003,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/INF/":
@@ -1043,14 +1018,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={infres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            await ctx.Response.Send(infres.Value.Item1);
+                                            await ctx.Response.SendAsync(infres.Value.Item1);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -1058,7 +1033,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/ChannelID/":
@@ -1072,14 +1047,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send(channelres);
+                                            await ctx.Response.SendAsync(channelres);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -1087,7 +1062,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 case "/!HomeTools/SceneID/":
@@ -1101,14 +1076,14 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send(sceneres);
+                                            await ctx.Response.SendAsync(sceneres);
                                         }
                                         else // We are vague on the status code.
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
-                                            await ctx.Response.Send();
+                                            ctx.Response.Send(true);
                                         }
                                     }
                                     else // We are vague on the status code.
@@ -1116,7 +1091,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.InternalServerError;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                                 default:
@@ -1126,11 +1101,11 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{ctx.Request.Url}");
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/html";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                     {
-                                        (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                        (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx.Request);
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
@@ -1150,7 +1125,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/html";
-                                            await ctx.Response.Send(HTTPUtils.Compress(CollectPHP.Item1));
+                                            await ctx.Response.SendAsync(HTTPUtils.Compress(CollectPHP.Item1));
                                         }
                                         else
                                         {
@@ -1170,7 +1145,7 @@ namespace HTTPSecureServerLite
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/html";
-                                            await ctx.Response.Send(CollectPHP.Item1);
+                                            await ctx.Response.SendAsync(CollectPHP.Item1);
                                         }
                                     }
                                     else
@@ -1178,7 +1153,7 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.Forbidden;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
-                                        await ctx.Response.Send();
+                                        ctx.Response.Send(true);
                                     }
                                     break;
                             }
@@ -1187,13 +1162,13 @@ namespace HTTPSecureServerLite
                             statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
-                            await ctx.Response.Send();
+                            ctx.Response.Send(true);
                             break;
                         case "DELETE":
                             statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
-                            await ctx.Response.Send();
+                            ctx.Response.Send(true);
                             break;
                         case "HEAD":
                             FileInfo? fileInfo = new(filePath);
@@ -1232,26 +1207,26 @@ namespace HTTPSecureServerLite
                             fileInfo = null;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
-                            await ctx.Response.Send();
+                            ctx.Response.Send(true);
                             break;
                         case "OPTIONS":
                             statusCode = HttpStatusCode.OK;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
                             ctx.Response.Headers.Set("Allow", "OPTIONS, GET, HEAD, POST");
-                            await ctx.Response.Send();
+                            ctx.Response.Send(true);
                             break;
                         case "PROPFIND":
                             statusCode = HttpStatusCode.NotImplemented;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
-                            await ctx.Response.Send();
+                            ctx.Response.Send(true);
                             break;
                         default:
                             statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
-                            await ctx.Response.Send();
+                            ctx.Response.Send(true);
                             break;
                     }
                 }
@@ -1260,11 +1235,30 @@ namespace HTTPSecureServerLite
             {
                 ctx.Response.StatusCode = (int)statusCode; // Send the other status.
                 ctx.Response.ContentType = "text/plain";
-                await ctx.Response.Send();
+                ctx.Response.Send(true);
             }
         }
 
-        private static void SendFile(HttpContextBase ctx, string filePath, string contentType)
+        [ParameterRoute(HttpServerLite.HttpMethod.GET, "/objects/D2CDD8B2-DE444593-A64C68CB-0B5EDE23/{id}.xml")]
+        public static async Task SportWalkQuizRoute(HttpContext ctx)
+        {
+            string? QuizID = ctx.Request.Url.Parameters["id"];
+
+            if (!string.IsNullOrEmpty(QuizID))
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.SendAsync("<Root></Root>"); // TODO - Figure out this complicated LUAC in object : D2CDD8B2-DE444593-A64C68CB-0B5EDE23
+            }
+            else
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.Send(true);
+            }
+        }
+
+        private static void SendFile(HttpContext ctx, string filePath, string contentType)
         {
             long contentLen = new FileInfo(filePath).Length;
 

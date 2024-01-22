@@ -1,57 +1,39 @@
-using DotNetty.Extensions;
+﻿using System.Net;
 using BackendProject;
-using CustomLogger;
-using System.Net;
 using System.Text.RegularExpressions;
+using CustomLogger;
+using DotNetty.Buffers;
+using DotNetty.Transport.Channels;
 
 namespace MitmDNS
 {
-    public class MitmDNSUDPProcessor
+    public class MitmDNSTCPBuffer : ChannelHandlerAdapter
     {
-        public static bool DnsStarted = false;
-
-        public Task RunDns()
+        public override void ChannelRead(IChannelHandlerContext context, object message)
         {
-            UdpSocket udp = new(53);
-
-            udp.OnStart(() =>
+            IByteBuffer? buffer = message as IByteBuffer;
+            if (buffer != null)
             {
-                LoggerAccessor.LogInfo("[DNS_UDP] - Server started on port 53");
-            });
+                LoggerAccessor.LogInfo($"[DNS_TCP] - Received request from client");
+                Span<byte> Buffer = ProcRequest(TrimArray(buffer.Array));
+                if (Buffer != null)
+                    context.WriteAsync(Buffer.ToArray());
+            }
+        }
 
-            udp.OnRecieve((endPoint, bytes) =>
-            {
-                if (endPoint is IPEndPoint EndPointIp)
-                {
-                    LoggerAccessor.LogInfo($"[DNS_UDP] - Received request from {endPoint}");
-                    Span<byte> Buffer = ProcRequest(TrimArray(bytes));
-                    if (Buffer != null)
-                        _ = udp.SendAsync(EndPointIp, Buffer.ToArray());
-                }
-            });
+        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
 
-            udp.OnException(ex =>
-            {
-                LoggerAccessor.LogError($"[DNS_UDP] - DotNetty Thrown an exception : {ex}");
-            });
-
-            udp.OnStop(ex =>
-            {
-                LoggerAccessor.LogWarn($"[DNS_UDP] - DotNetty was stopped!");
-            });
-
-            _ = udp.StartAsync();
-
-            DnsStarted = true;
-
-            return Task.CompletedTask;
+        public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
+        {
+            LoggerAccessor.LogError($"[DNS_TCP] - DotNetty Thrown an exception : {exception}");
+            context.CloseAsync();
         }
 
         private Span<byte> ProcRequest(byte[] data)
         {
             string fullname = string.Join(".", HTTPUtils.GetDnsName(data).ToArray());
 
-            LoggerAccessor.LogInfo($"[DNS_UDP] - Host: {fullname} was Requested.");
+            LoggerAccessor.LogInfo($"[DNS_TCP] - Host: {fullname} was Requested.");
 
             string url = string.Empty;
             bool treated = false;
@@ -123,7 +105,7 @@ namespace MitmDNS
                     ip = IPAddress.None;
                 }
 
-                LoggerAccessor.LogInfo($"[DNS_UDP] - Resolved: {fullname} to: {ip}");
+                LoggerAccessor.LogInfo($"[DNS_TCP] - Resolved: {fullname} to: {ip}");
 
                 return HTTPUtils.MakeDnsResponsePacket(data, ip);
             }

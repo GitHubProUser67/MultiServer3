@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using System.Text.RegularExpressions;
 using EAGetMail;
 
 namespace BackendProject.EmailUtils
@@ -72,19 +71,7 @@ namespace BackendProject.EmailUtils
 
                     if (!string.IsNullOrEmpty(oMail.TextBody.ToString()))
                     {
-                        string subject = oMail.Subject.Replace(" (Trial Version)", string.Empty);
-
-                        if (string.IsNullOrEmpty(oMail.From.Name))
-                        {
-                            Match match = new Regex(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").Match(subject);
-
-                            if (match.Success)
-                                MailsList.Add((match.Value, subject, oMail.TextBody, oMail.SentDate));
-                            else
-                                MailsList.Add(("No Sender Found", subject, oMail.TextBody, oMail.SentDate));
-                        }
-                        else
-                            MailsList.Add((oMail.From.Name, subject, oMail.TextBody, oMail.SentDate));
+                        MailsList.Add((oMail.From.Name, oMail.Subject.Replace(" (Trial Version)", string.Empty), oMail.TextBody, oMail.SentDate));
 
                         // Mark unread email as read, next time this email won't be retrieved again
                         if (!info.Read)
