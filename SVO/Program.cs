@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using BackendProject.Horizon.LIBRARY.Database;
 using System.Runtime;
 using System.Net;
+using BackendProject.MiscUtils;
 
 public static class SVOServerConfiguration
 {
@@ -95,22 +96,22 @@ class Program
 
     static void Main()
     {
-        if (BackendProject.MiscUtils.IsWindows())
-            if (!BackendProject.MiscUtils.IsAdministrator())
+        if (VariousUtils.IsWindows())
+            if (!VariousUtils.IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
                     Environment.Exit(0);
             }
 
-        if (!BackendProject.MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SVO");
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 
-        BackendProject.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
+        SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
 
         if (HttpListener.IsSupported)
             _ = Task.Run(new SVOServer("*").Start);
@@ -123,7 +124,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

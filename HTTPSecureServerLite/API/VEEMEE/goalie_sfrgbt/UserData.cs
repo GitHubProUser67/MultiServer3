@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using BackendProject.MiscUtils;
 
 namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 {
@@ -14,7 +15,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "d2us7A2EcU2PuBuz")
                 {
@@ -99,7 +100,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "d2us7A2EcU2PuBuz")
                 {

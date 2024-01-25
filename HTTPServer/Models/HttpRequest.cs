@@ -12,7 +12,7 @@ namespace HTTPServer.Models
         public string Method { get; set; } = string.Empty;
         public string? Url { get; set; }
         public string IP { get; set; } = string.Empty;
-        public byte[]? Data { get; set; }
+        public Stream? Data { get; set; }
         public Route? Route { get; set; }
         public Dictionary<string, string> Headers { get; set; }
 
@@ -91,10 +91,7 @@ namespace HTTPServer.Models
         {
             get
             {
-                if (Data != null)
-                    return new MemoryStream(Data);
-                else
-                    return null;
+                return Data;
             }
         }
 
@@ -106,7 +103,15 @@ namespace HTTPServer.Models
                 {
                     Url = null;
                     Route = null;
-                    Data = null;
+                    try
+                    {
+                        Data?.Close();
+                        Data?.Dispose();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Always check for disposed object according to the C# documentation.
+                    }
                 }
 
                 // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur

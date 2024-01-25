@@ -214,11 +214,11 @@ public sealed class Deflate
 
 	internal short[] bl_tree;
 
-	internal Tree l_desc = new Tree();
+	internal Tree l_desc = new();
 
-	internal Tree d_desc = new Tree();
+	internal Tree d_desc = new();
 
-	internal Tree bl_desc = new Tree();
+	internal Tree bl_desc = new();
 
 	internal short[] bl_count = new short[16];
 
@@ -309,8 +309,8 @@ public sealed class Deflate
 			bl_tree[k * 2] = 0;
 		}
 		dyn_ltree[512] = 1;
-		opt_len = (static_len = 0);
-		last_lit = (matches = 0);
+		opt_len = static_len = 0;
+		last_lit = matches = 0;
 	}
 
 	internal void pqdownheap(short[] tree, int k)
@@ -319,14 +319,10 @@ public sealed class Deflate
 		for (int num2 = k << 1; num2 <= heap_len; num2 <<= 1)
 		{
 			if (num2 < heap_len && smaller(tree, heap[num2 + 1], heap[num2], depth))
-			{
-				num2++;
-			}
-			if (smaller(tree, num, heap[num2], depth))
-			{
-				break;
-			}
-			heap[k] = heap[num2];
+                num2++;
+            if (smaller(tree, num, heap[num2], depth))
+                break;
+            heap[k] = heap[num2];
 			k = num2;
 		}
 		heap[k] = num;
@@ -337,10 +333,8 @@ public sealed class Deflate
 		if (tree[n * 2] >= tree[m * 2])
 		{
 			if (tree[n * 2] == tree[m * 2])
-			{
-				return depth[n] <= depth[m];
-			}
-			return false;
+                return depth[n] <= depth[m];
+            return false;
 		}
 		return true;
 	}
@@ -363,30 +357,20 @@ public sealed class Deflate
 			int num6 = num2;
 			num2 = tree[(i + 1) * 2 + 1];
 			if (++num3 < num4 && num6 == num2)
-			{
-				continue;
-			}
-			if (num3 < num5)
-			{
-				bl_tree[num6 * 2] = (short)(bl_tree[num6 * 2] + num3);
-			}
-			else if (num6 != 0)
+                continue;
+            if (num3 < num5)
+                bl_tree[num6 * 2] = (short)(bl_tree[num6 * 2] + num3);
+            else if (num6 != 0)
 			{
 				if (num6 != num)
-				{
-					bl_tree[num6 * 2]++;
-				}
-				bl_tree[32]++;
+                    bl_tree[num6 * 2]++;
+                bl_tree[32]++;
 			}
 			else if (num3 <= 10)
-			{
-				bl_tree[34]++;
-			}
-			else
-			{
-				bl_tree[36]++;
-			}
-			num3 = 0;
+                bl_tree[34]++;
+            else
+                bl_tree[36]++;
+            num3 = 0;
 			num = num6;
 			if (num2 == 0)
 			{
@@ -450,10 +434,8 @@ public sealed class Deflate
 			int num6 = num2;
 			num2 = tree[(i + 1) * 2 + 1];
 			if (++num3 < num4 && num6 == num2)
-			{
-				continue;
-			}
-			if (num3 < num5)
+                continue;
+            if (num3 < num5)
 			{
 				do
 				{
@@ -672,14 +654,10 @@ public sealed class Deflate
 	internal void bi_windup()
 	{
 		if (bi_valid > 8)
-		{
-			put_short(bi_buf);
-		}
-		else if (bi_valid > 0)
-		{
-			put_byte((byte)bi_buf);
-		}
-		bi_buf = 0;
+            put_short(bi_buf);
+        else if (bi_valid > 0)
+            put_byte((byte)bi_buf);
+        bi_buf = 0;
 		bi_valid = 0;
 	}
 
@@ -762,28 +740,20 @@ public sealed class Deflate
 		if (level > 0)
 		{
 			if (data_type == 2)
-			{
-				set_data_type();
-			}
-			l_desc.build_tree(this);
+                set_data_type();
+            l_desc.build_tree(this);
 			d_desc.build_tree(this);
 			num = build_bl_tree();
 			num2 = SupportClass.URShift(opt_len + 3 + 7, 3);
 			num3 = SupportClass.URShift(static_len + 3 + 7, 3);
 			if (num3 <= num2)
-			{
-				num2 = num3;
-			}
-		}
-		else
-		{
-			num2 = (num3 = stored_len + 5);
-		}
-		if (stored_len + 4 <= num2 && buf != -1)
-		{
-			_tr_stored_block(buf, stored_len, eof);
-		}
-		else if (num3 == num2)
+                num2 = num3;
+        }
+        else
+            num2 = num3 = stored_len + 5;
+        if (stored_len + 4 <= num2 && buf != -1)
+            _tr_stored_block(buf, stored_len, eof);
+        else if (num3 == num2)
 		{
 			send_bits(2 + (eof ? 1 : 0), 3);
 			compress_block(StaticTree.static_ltree, StaticTree.static_dtree);
@@ -796,12 +766,10 @@ public sealed class Deflate
 		}
 		init_block();
 		if (eof)
-		{
-			bi_windup();
-		}
-	}
+            bi_windup();
+    }
 
-	internal void fill_window()
+    internal void fill_window()
 	{
 		if (window != null && head != null && prev != null)
 		{
@@ -1089,19 +1057,15 @@ public sealed class Deflate
 		int num = 0;
 		strm.msg = null;
 		if (level == -1)
-		{
-			level = 6;
-		}
-		if (windowBits < 0)
+            level = 6;
+        if (windowBits < 0)
 		{
 			num = 1;
 			windowBits = -windowBits;
 		}
 		if (memLevel < 1 || memLevel > 9 || method != 8 || windowBits < 9 || windowBits > 15 || level < 0 || level > 9 || strategy < 0 || strategy > 2)
-		{
-			return -2;
-		}
-		strm.dstate = this;
+            return -2;
+        strm.dstate = this;
 		noheader = num;
 		w_bits = windowBits;
 		w_size = 1 << w_bits;

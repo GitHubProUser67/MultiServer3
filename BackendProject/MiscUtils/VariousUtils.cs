@@ -1,5 +1,4 @@
-﻿using CustomLogger;
-using System.Text;
+﻿using System.Text;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 using System.Net.NetworkInformation;
@@ -10,9 +9,9 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
 
-namespace BackendProject
+namespace BackendProject.MiscUtils
 {
-    public static class StaticMiscUtils
+    public static class StaticVariousUtils
     {
         public static string ChopOffBefore(this string s, string Before)
         {
@@ -43,7 +42,7 @@ namespace BackendProject
         }
     }
 
-    public class MiscUtils
+    public class VariousUtils
     {
         public static T[][] AddElementToLastPosition<T>(T[][] jaggedArray, T[] newElement)
         {
@@ -192,10 +191,10 @@ namespace BackendProject
             return result;
         }
 
-        public static byte[] CopyBytes(byte[] source, int offset, int length)
+        public static byte[]? CopyBytes(byte[] source, int offset, int length)
         {
             if (source == null || offset < 0 || length < 0 || offset >= source.Length)
-                return Array.Empty<byte>();
+                return null;
 
             if (source.Length > length)
             {
@@ -332,7 +331,7 @@ namespace BackendProject
         public static int FindBytePattern(byte[] buffer, byte[] searchPattern, int offset = 0)
         {
             int found = -1;
-            if (buffer.Length > 0 && searchPattern.Length > 0 && offset <= (buffer.Length - searchPattern.Length) && buffer.Length >= searchPattern.Length)
+            if (buffer.Length > 0 && searchPattern.Length > 0 && offset <= buffer.Length - searchPattern.Length && buffer.Length >= searchPattern.Length)
             {
                 for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
                 {
@@ -526,61 +525,40 @@ namespace BackendProject
             }
         }
 
-        public static IPAddress? GetIp(string hostname)
-        {
-            try
-            {
-                if (hostname.ToLower() == "localhost" || hostname == "127.0.0.1")
-                    return IPAddress.Loopback;
-
-                switch (Uri.CheckHostName(hostname))
-                {
-                    case UriHostNameType.IPv4:
-                        return IPAddress.Parse(hostname);
-                    case UriHostNameType.IPv6:
-                        return IPAddress.Parse(hostname);
-                    case UriHostNameType.Dns:
-                        IPAddress[] addresses = Dns.GetHostAddresses(hostname);
-                        foreach (IPAddress address in addresses)
-                        {
-                            if (address.AddressFamily == AddressFamily.InterNetworkV6 || address.AddressFamily == AddressFamily.InterNetwork)
-                                return address;
-                        }
-                        // Fallback
-                        return addresses.FirstOrDefault()?.MapToIPv4() ?? IPAddress.Any;
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[GetIp] - An Error Occurred - {ex}");
-            }
-
-            return IPAddress.Loopback;
-        }
-
         public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
-            using (HttpClient client = new())
+#if NET7_0
+            try
             {
-                try
-                {
-                    HttpResponseMessage response = client.GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;
-                    response.EnsureSuccessStatusCode();
-                    string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
-                    if (ipv6urlformat && allowipv6 && result.Length > 15)
-                        return $"[{result}]";
-                    else
-                        return result;
-                }
-                catch (HttpRequestException)
-                {
-                    // Not Important.
-                }
-                catch (Exception)
-                {
-                    // Not Important.
-                }
+                HttpResponseMessage response = new HttpClient().GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;
+                response.EnsureSuccessStatusCode();
+                string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                if (ipv6urlformat && allowipv6 && result.Length > 15)
+                    return $"[{result}]";
+                else
+                    return result;
             }
+            catch (Exception)
+            {
+                // Not Important.
+            }
+#else
+            try
+            {
+#pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
+                string result = new WebClient().DownloadStringTaskAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result
+#pragma warning restore
+                    .Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                if (ipv6urlformat && allowipv6 && result.Length > 15)
+                    return $"[{result}]";
+                else
+                    return result;
+            }
+            catch (Exception)
+            {
+                // Not Important.
+            }
+#endif
 
             return GetLocalIPAddress().ToString();
         }
@@ -642,7 +620,7 @@ namespace BackendProject
                                 IPAddress[] addresses = Dns.GetHostAddresses(hostName);
                                 foreach (IPAddress address in addresses)
                                 {
-                                    using (var hostPing = new Ping())
+                                    using (Ping hostPing = new())
                                     {
                                         try
                                         {
@@ -705,10 +683,6 @@ namespace BackendProject
                     }
                 }
             }
-            catch (SocketException)
-            {
-                // Not Important.
-            }
             catch (Exception)
             {
                 // Not Important.
@@ -721,17 +695,35 @@ namespace BackendProject
         {
             try
             {
-                using (TcpClient client = new())
-                {
-                    client.Connect(IPAddress.Loopback, port);
-                    return false;
-                }
+                new TcpClient().Connect(IPAddress.Loopback, port);
             }
-            catch (SocketException)
+            catch (Exception)
             {
-                // The port is available
+                // The port is available as connection failed.
                 return true;
             }
+
+            // The port is in use as we could connect to it.
+            return false;
+        }
+
+        public static bool IsUDPPortAvailable(int port)
+        {
+            try
+            {
+                using (UdpClient udpClient = new(port))
+                {
+                    udpClient.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // If an exception occurs, the port is already in use.
+                return false;
+            }
+
+            // If everything goes fine, means the port is free.
+            return true;
         }
 
         public static bool IsWindows()
@@ -757,21 +749,19 @@ namespace BackendProject
 
         public static string GenerateServerSignature()
         {
-            OperatingSystem os = Environment.OSVersion;
-            string pstring = os.Platform.ToString();
-            switch (os.Platform)
+            string pstring = string.Empty;
+            switch (Environment.OSVersion.Platform)
             {
                 case PlatformID.Win32NT:
                 case PlatformID.Win32S:
                 case PlatformID.Win32Windows:
-                    pstring = "WIN";
+                    pstring = "WIN32";
                     break;
                 default:
                     pstring = "OTHER";
                     break;
             }
-            return
-              $"{pstring}{IntPtr.Size * 8}/{os.Version.Major}.{os.Version.Minor} UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
+            return $"{pstring}/1.0 UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
         }
     }
 }

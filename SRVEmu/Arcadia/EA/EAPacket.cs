@@ -1,4 +1,4 @@
-using BackendProject;
+using BackendProject.MiscUtils;
 using System.Text;
 
 namespace SRVEmu.Arcadia.EA;
@@ -25,7 +25,7 @@ public readonly struct Packet
     {
         Type = Encoding.ASCII.GetString(packet, 0, 4);
 
-        byte[][] firstSplit = MiscUtils.SplitAt(packet, 12);
+        byte[][] firstSplit = VariousUtils.SplitAt(packet, 12);
         Checksum = firstSplit[0][4..];
 
         var bigEndianChecksum = (BitConverter.IsLittleEndian ? Checksum.Reverse().ToArray() : Checksum).AsSpan();

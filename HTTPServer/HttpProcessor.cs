@@ -1,5 +1,5 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
-using BackendProject;
+using BackendProject.MiscUtils;
 using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
@@ -35,10 +35,13 @@ namespace HTTPServer
 
         #region Public Methods
 
-        public bool IsIPBanned(string ipAddress)
+        public bool IsIPBanned(string ipAddress, int? clientport)
         {
             if (HTTPServerConfiguration.BannedIPs != null && HTTPServerConfiguration.BannedIPs.Contains(ipAddress))
+            {
+                LoggerAccessor.LogError($"[SECURITY] - {ipAddress}:{clientport} Requested the HTTP server while being banned!");
                 return true;
+            }
 
             return false;
         }
@@ -60,9 +63,8 @@ namespace HTTPServer
 
                 int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
 
-                if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip))
+                if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
                 {
-                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the HTTP server while being banned or having sent invalid request!");
                     tcpClient.Close();
                     tcpClient.Dispose();
                     return;
@@ -82,7 +84,7 @@ namespace HTTPServer
                                 {
                                     string Host = request.GetHeaderValue("Host");
 
-                                    LoggerAccessor.LogInfo(string.Format("{0} -> {1} -> {2} has connected", clientip, Host, request.Method));
+                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested the HTTP Server with URL : {request.Url}");
 
                                     string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.GetHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
 
@@ -105,7 +107,7 @@ namespace HTTPServer
                                                 // A little bit out of the scope of Routes.
                                                 if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                                                 {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OHS method : {absolutepath}");
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
                                                     string? res = null;
                                                     int version = 0;
@@ -144,7 +146,7 @@ namespace HTTPServer
                                                 }
                                                 else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                                 {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a NDREAMS method : {absolutepath}");
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
                                                     string? res = null;
                                                     NDREAMSClass ndreams = new(request.Method, absolutepath);
@@ -175,7 +177,7 @@ namespace HTTPServer
                                                 }
                                                 else if (Host == "juggernaut-games.com" && request.Method != null && absolutepath.EndsWith(".php"))
                                                 {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a JUGGERNAUT method : {absolutepath}");
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");
 
                                                     string? res = null;
                                                     JUGGERNAUTClass juggernaut = new(request.Method, absolutepath);
@@ -208,7 +210,7 @@ namespace HTTPServer
                                                 }
                                                 else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp" || Host == "scej-home.playstation.net" || Host == "homeec.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
                                                 {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a PREMIUMAGENCY method : {absolutepath}");
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
                                                     string? res = null;
                                                     PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder);
@@ -255,12 +257,17 @@ namespace HTTPServer
                                                                         (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                         string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                            response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                            response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                         else
                                                                             response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, filePath, request.GetHeaderValue("User-Agent").ToLower(), $"http://{MiscUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}");
+                                                                    {
+                                                                        if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
+                                                                            Handle_LocalFile_Stream(outputStream, request, filePath);
+                                                                        else
+                                                                            response = FileSystemRouteHandler.Handle(request, filePath, $"http://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}");
+                                                                    }
                                                                     break;
                                                             }
                                                             break;
@@ -386,7 +393,7 @@ namespace HTTPServer
                                                                         var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                         string? encoding = request.GetHeaderValue("Accept-Encoding");
                                                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                            response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", MiscUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                            response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                         else
                                                                             response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
@@ -420,23 +427,10 @@ namespace HTTPServer
                                         }
                                     }
 
-                                    WriteResponse(outputStream, request, response, filePath);
-
-                                    if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent 
-                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
-                                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                                    else
-                                    {
-                                        if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
-                                            LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", filePath, response.HttpStatusCode));
-                                        else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
-                                            LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                                        else
-                                            LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                                    }
+                                    if (response != null)
+                                        WriteResponse(outputStream, request, response, filePath);
 
                                     request.Dispose();
-                                    response.Dispose();
                                 }
                             }
                         }
@@ -510,7 +504,7 @@ namespace HTTPServer
 
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
 
-                        response.Headers.Add("Server", MiscUtils.GenerateServerSignature());
+                        response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
 
                         if (!response.Headers.ContainsKey("Content-Type"))
                             response.Headers.Add("Content-Type", "text/plain");
@@ -548,6 +542,20 @@ namespace HTTPServer
                         }
 
                         stream.Flush();
+
+                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
+                                || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
+                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        else
+                        {
+                            if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
+                                LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", filePath, response.HttpStatusCode));
+                            else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                                LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            else
+                                LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        }
+
                     }
                     else
                         response = null; // If null, simply not respond to client.
@@ -566,19 +574,439 @@ namespace HTTPServer
 
             try
             {
-                if (response != null && response.ContentStream != null)
-                    response.ContentStream.Close();
+                if (response != null)
+                    response.ContentStream?.Close();
             }
             catch (ObjectDisposedException)
             {
                 // ContentStream has been disposed already.
             }
+
+            response?.Dispose();
+        }
+
+        private void Handle_LocalFile_Stream(Stream stream, HttpRequest request, string local_path)
+        {
+            // This method directly communicate with the wire to handle, normally, imposible transfers.
+            // If a part of the code sounds weird to you, it's normal... So does curl tests...
+            const int rangebuffersize = 32768;
+
+            HttpResponse? response = null;
+
+            using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                long startByte = -1;
+                long endByte = -1;
+                try
+                {
+                    long filesize = fs.Length;
+                    string HeaderString = request.GetHeaderValue("Range").Replace("bytes=", string.Empty);
+                    if (HeaderString.Contains(','))
+                    {
+                        using (MemoryStream ms = new())
+                        {
+                            int buffersize = HTTPServerConfiguration.BufferSize;
+                            Span<byte> Separator = new byte[] { 0x0D, 0x0A };
+                            string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                            if (ContentType == "application/octet-stream")
+                            {
+                                foreach (var entry in HTTPUtils.PathernDictionary)
+                                {
+                                    if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
+                                    {
+                                        ContentType = entry.Key;
+                                        break;
+                                    }
+                                }
+                            }
+                            // Split the ranges based on the comma (',') separator
+                            foreach (string RangeSelect in HeaderString.Split(','))
+                            {
+                                ms.Write(Separator);
+                                ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator").AsSpan());
+                                ms.Write(Separator);
+                                ms.Write(Encoding.UTF8.GetBytes($"Content-Type: {ContentType}").AsSpan());
+                                ms.Write(Separator);
+                                fs.Position = 0;
+                                startByte = -1;
+                                endByte = -1;
+                                string[] range = RangeSelect.Split('-');
+                                if (range[0].Trim().Length > 0) _ = long.TryParse(range[0], out startByte);
+                                if (range[1].Trim().Length > 0) _ = long.TryParse(range[1], out endByte);
+                                if (endByte == -1) endByte = filesize;
+                                else if (endByte != filesize) endByte++;
+                                if (startByte == -1)
+                                {
+                                    startByte = filesize - endByte;
+                                    endByte = filesize;
+                                }
+                                if (endByte > filesize) // Curl test showed this behaviour.
+                                    endByte = filesize;
+                                if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
+                                {
+                                    ms.Flush();
+                                    ms.Close();
+                                    response = new(false)
+                                    {
+                                        HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                                    };
+                                    response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                                    response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                                    response.ContentAsUTF8 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                                        "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                                        "        <head>\r\n" +
+                                        "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                                        "        </head>\r\n" +
+                                        "        <body>\r\n" +
+                                        "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                                        "        </body>\r\n" +
+                                        "</html>";
+                                    goto shortcut; // Do we really have the choice?
+                                }
+                                else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
+                                {
+                                    ms.Flush();
+                                    ms.Close();
+                                    response = new(false)
+                                    {
+                                        HttpStatusCode = Models.HttpStatusCode.Ok
+                                    };
+                                    response.Headers.Add("Accept-Ranges", "bytes");
+                                    response.Headers.Add("Content-Type", ContentType);
+                                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                    goto shortcut; // Do we really have the choice?
+                                }
+                                else
+                                {
+                                    int bytesRead = 0;
+                                    long TotalBytes = endByte - startByte - 1;
+                                    long totalBytesCopied = 0;
+                                    byte[] buffer = new byte[rangebuffersize];
+                                    fs.Position = startByte;
+                                    ms.Write(Encoding.UTF8.GetBytes("Content-Range: " + string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize)).AsSpan());
+                                    ms.Write(Separator);
+                                    ms.Write(Separator);
+                                    while (totalBytesCopied < TotalBytes && (bytesRead = fs.Read(buffer, 0, rangebuffersize)) > 0)
+                                    {
+                                        int bytesToWrite = (int)Math.Min(TotalBytes - totalBytesCopied, bytesRead);
+                                        ms.Write(buffer, 0, bytesToWrite);
+                                        totalBytesCopied += bytesToWrite;
+                                    }
+                                }
+                            }
+                            ms.Write(Separator);
+                            ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
+                            ms.Write(Separator);
+                            ms.Position = 0;
+                            response = new(true)
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.PartialContent
+                            };
+                            response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
+                            response.Headers.Add("Accept-Ranges", "bytes");
+                            response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                            response.Headers.Add("Content-Length", ms.Length.ToString());
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+
+                            long totalBytes = ms.Length;
+                            long bytesLeft = totalBytes;
+
+                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                                buffersize = 500000;
+
+                            while (bytesLeft > 0)
+                            {
+                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                int n = ms.Read(buffer);
+
+                                stream.Write(buffer);
+
+                                bytesLeft -= n;
+                            }
+
+                            stream.Flush();
+
+                            ms.Flush();
+                            ms.Close();
+
+                            if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
+                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
+                                LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            else
+                            {
+                                if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
+                                    LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
+                                else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                                    LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                                else
+                                    LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            }
+
+                            try
+                            {
+                                if (response != null)
+                                    response.ContentStream?.Close();
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                // ContentStream has been disposed already.
+                            }
+
+                            response?.Dispose();
+
+                            fs.Flush();
+                            fs.Close();
+
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        string[] range = HeaderString.Split('-');
+                        if (range[0].Trim().Length > 0) _ = long.TryParse(range[0], out startByte);
+                        if (range[1].Trim().Length > 0) _ = long.TryParse(range[1], out endByte);
+                        if (endByte == -1) endByte = filesize;
+                        else if (endByte != filesize) endByte++;
+                        if (startByte == -1)
+                        {
+                            startByte = filesize - endByte;
+                            endByte = filesize;
+                        }
+                    }
+                    if (endByte > filesize) // Curl test showed this behaviour.
+                        endByte = filesize;
+                    if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
+                    {
+                        response = new(false)
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                        };
+                        response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                        response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                        response.ContentAsUTF8 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                            "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                            "        <head>\r\n" +
+                            "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                            "        </head>\r\n" +
+                            "        <body>\r\n" +
+                            "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                            "        </body>\r\n" +
+                            "</html>";
+                    }
+                    else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
+                    {
+                        response = new(false)
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.Ok
+                        };
+                        response.Headers.Add("Accept-Ranges", "bytes");
+                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                        if (ContentType == "application/octet-stream")
+                        {
+                            bool matched = false;
+                            byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
+                            foreach (var entry in HTTPUtils.PathernDictionary)
+                            {
+                                if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                {
+                                    matched = true;
+                                    response.Headers["Content-Type"] = entry.Key;
+                                    break;
+                                }
+                            }
+                            if (!matched)
+                                response.Headers["Content-Type"] = ContentType;
+                        }
+                        else
+                            response.Headers["Content-Type"] = ContentType;
+                        response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    }
+                    else
+                    {
+                        response = new(true)
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.PartialContent
+                        };
+                        long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
+                        fs.Position = startByte;
+                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                        if (ContentType == "application/octet-stream")
+                        {
+                            bool matched = false;
+                            foreach (var entry in HTTPUtils.PathernDictionary)
+                            {
+                                if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
+                                {
+                                    matched = true;
+                                    response.Headers["Content-Type"] = entry.Key;
+                                    break;
+                                }
+                            }
+                            if (!matched)
+                                response.Headers["Content-Type"] = ContentType;
+                        }
+                        else
+                            response.Headers["Content-Type"] = ContentType;
+                        response.Headers.Add("Accept-Ranges", "bytes");
+                        response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
+                        response.Headers.Add("Access-Control-Allow-Origin", "*");
+                        response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                        response.Headers.Add("Content-Length", TotalBytes.ToString());
+                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                        response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                        WriteLineToStream(stream, response.ToHeader());
+
+                        stream.Flush();
+
+                        int buffersize = HTTPServerConfiguration.BufferSize;
+                        long bytesLeft = TotalBytes;
+
+                        if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                            buffersize = 500000;
+
+                        while (bytesLeft > 0)
+                        {
+                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                            int n = fs.Read(buffer);
+
+                            stream.Write(buffer);
+
+                            bytesLeft -= n;
+                        }
+
+                        stream.Flush();
+
+                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
+                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
+                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        else
+                        {
+                            if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
+                                LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
+                            else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                                LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            else
+                                LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        }
+
+                        try
+                        {
+                            if (response != null)
+                                response.ContentStream?.Close();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // ContentStream has been disposed already.
+                        }
+
+                        response?.Dispose();
+
+                        fs.Flush();
+                        fs.Close();
+
+                        return;
+                    }
+
+                    shortcut: // Necessary evil.
+
+                    if (response != null && request != null)
+                    {
+                        if (response.ContentStream == null)
+                            response.ContentAsUTF8 = string.Empty;
+
+                        if (response.ContentStream != null) // Safety.
+                        {
+                            response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                            response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+
+                            int buffersize = HTTPServerConfiguration.BufferSize;
+                            long totalBytes = response.ContentStream.Length;
+                            long bytesLeft = totalBytes;
+
+                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                                buffersize = 500000;
+
+                            while (bytesLeft > 0)
+                            {
+                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                int n = response.ContentStream.Read(buffer);
+
+                                stream.Write(buffer);
+
+                                bytesLeft -= n;
+                            }
+
+                            stream.Flush();
+
+                            if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
+                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
+                                LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            else
+                            {
+                                if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
+                                    LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
+                                else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                                    LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                                else
+                                    LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            }
+                        }
+                        else
+                            response = null; // If null, simply not respond to client.
+                    }
+                }
+                catch (IOException ex)
+                {
+                    if (ex.InnerException is SocketException socketException &&
+                        socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
+                        LoggerAccessor.LogError($"[HTTP] - WriteResponse - IO-Socket thrown an exception : {ex}");
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[HTTP] - WriteResponse thrown an assertion : {ex}");
+                }
+
+                try
+                {
+                    if (response != null)
+                        response.ContentStream?.Close();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // ContentStream has been disposed already.
+                }
+
+                response?.Dispose();
+
+                fs.Flush();
+                fs.Close();
+            }
         }
 
         private void WriteLineToStream(Stream stream, string text)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(text);
-            stream.Write(bytes, 0, bytes.Length);
+            stream.Write(Encoding.UTF8.GetBytes(text).AsSpan());
         }
 
         protected virtual Stream GetOutputStream(TcpClient tcpClient)
@@ -678,7 +1106,12 @@ namespace HTTPServer
 
                     contentStream.Position = 0;
 
-                    req.Data = contentStream.ToArray();
+                    if (req.Data == null)
+                    {
+                        req.Data = new MemoryStream();
+                        contentStream.CopyTo(req.Data);
+                        req.Data.Position = 0;
+                    }
 
                     contentStream.Flush();
                 }

@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿using BackendProject.MiscUtils;
+using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 using TycoonServer;
@@ -62,7 +63,7 @@ class Program
 
     static void Main()
     {
-        if (!BackendProject.MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("TycoonServer");
@@ -74,7 +75,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

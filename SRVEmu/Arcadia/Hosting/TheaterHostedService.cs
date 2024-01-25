@@ -31,6 +31,7 @@ public class TheaterHostedService
             (int)TheaterGamePort.BeachPS3,
             (int)TheaterGamePort.BadCompanyPS3,
             (int)TheaterGamePort.RomePS3,
+            (int)TheaterGamePort.RomePC,
             (int)TheaterServerPort.RomePC
         };
 
@@ -69,6 +70,7 @@ public class TheaterHostedService
 
         switch (connectionPort)
         {
+            case (int)TheaterGamePort.RomePC:
             case (int)TheaterGamePort.BeachPS3:
             case (int)TheaterGamePort.RomePS3:
             case (int)TheaterGamePort.BadCompanyPS3:

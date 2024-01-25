@@ -7,6 +7,7 @@ using CustomLogger;
 using System.Text.RegularExpressions;
 using HttpMultipartParser;
 using System.Net.Security;
+using BackendProject.MiscUtils;
 
 namespace SVO
 {
@@ -123,7 +124,7 @@ namespace SVO
                                             Response.SetHeader("Content-Language", string.Empty);
                                             Response.SetHeader("Transfer-Encoding", "chunked");
 
-                                            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
+                                            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
                                             var data = MultipartFormDataParser.Parse(new MemoryStream(request.BodyBytes), boundary);
 

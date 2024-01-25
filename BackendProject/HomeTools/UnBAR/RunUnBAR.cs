@@ -1,6 +1,7 @@
 using CustomLogger;
 using BackendProject.HomeTools.BARFramework;
 using BackendProject.HomeTools.Crypto;
+using BackendProject.MiscUtils;
 
 namespace BackendProject.HomeTools.UnBAR
 {
@@ -57,9 +58,9 @@ namespace BackendProject.HomeTools.UnBAR
                 {
                     RawBarData = File.ReadAllBytes(filePath);
 
-                    if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
+                    if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
                         isSharc = true;
-                    else if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
+                    else if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
                     {
                         isSharc = true;
                         isLittleEndian = true;
@@ -87,7 +88,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                 if (SharcHeader == Array.Empty<byte>())
                                     return; // Sharc Header failed to decrypt.
-                                else if (!MiscUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                else if (!VariousUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
                                     options = ToolsImpl.base64CDNKey1;
 
@@ -98,7 +99,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                     if (SharcHeader == Array.Empty<byte>())
                                         return; // Sharc Header failed to decrypt.
-                                    else if (!MiscUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                    else if (!VariousUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
                                         options = ToolsImpl.base64CDNKey2;
 
@@ -109,7 +110,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                         if (SharcHeader == Array.Empty<byte>())
                                             return; // Sharc Header failed to decrypt.
-                                        else if (!MiscUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                        else if (!VariousUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                             return; // All keys failed to decrypt.
                                     }
                                 }
@@ -145,7 +146,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                         if (isLittleEndian)
                                         {
-                                            FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
+                                            FileBytes = VariousUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -155,7 +156,7 @@ namespace BackendProject.HomeTools.UnBAR
                                         }
                                         else
                                         {
-                                            FileBytes = MiscUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                            FileBytes = VariousUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -183,11 +184,11 @@ namespace BackendProject.HomeTools.UnBAR
                     }
                     else
                     {
-                        if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
+                        if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
                         {
 
                         }
-                        else if (MiscUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
+                        else if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
                             isLittleEndian = true;
                         else
                             return; // File not a BAR.
@@ -325,7 +326,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                             if (DecryptedHeaderSHA1 != null)
                             {
-                                string verificationsha1 = MiscUtils.ByteArrayToHexString(DecryptedHeaderSHA1);
+                                string verificationsha1 = VariousUtils.ByteArrayToHexString(DecryptedHeaderSHA1);
 #if DEBUG
                                 LoggerAccessor.LogInfo($"SignatureHeader - {verificationsha1}");
 #endif
@@ -415,8 +416,8 @@ namespace BackendProject.HomeTools.UnBAR
             {
 #if DEBUG
                 LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                LoggerAccessor.LogInfo($"Key - {MiscUtils.ByteArrayToHexString(Key)}");
-                LoggerAccessor.LogInfo($"IV - {MiscUtils.ByteArrayToHexString(tableOfContent.IV)}");
+                LoggerAccessor.LogInfo($"Key - {VariousUtils.ByteArrayToHexString(Key)}");
+                LoggerAccessor.LogInfo($"IV - {VariousUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
                 // Why we not use the ICSharp version, it turns out, there is 2 variant of edgezlib. ICSharp mostly handle the older type.
                 // While packing sharc, original script used the zlib1.dll, which we have in c# equivalent, so we use it.

@@ -7,7 +7,7 @@ using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.X509;
 
-namespace BackendProject
+namespace BackendProject.MiscUtils
 {
     public class SSLUtils
     {
@@ -228,7 +228,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
                 // Set additional properties of the certificate
                 request.CertificateExtensions.Add(
@@ -302,7 +302,7 @@ namespace BackendProject
                 rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
                 // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=*.net [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
+                CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
                 // Set additional properties of the certificate
                 request.CertificateExtensions.Add(
@@ -355,7 +355,7 @@ namespace BackendProject
                 File.WriteAllBytes(FileName, SelfSignedCertificate.Export(X509ContentType.Pfx, certPassword));
 
                 // Export the private key.
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_key.pem", 
+                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_key.pem",
                     PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 // Export the public key.
@@ -499,15 +499,15 @@ namespace BackendProject
             const string SHA512id = "300D06092A864886F70D01010D0500";
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
-                return MiscUtils.HexStringToByteArray(MD5id);
+                return VariousUtils.HexStringToByteArray(MD5id);
             if (hashAlgorithm == HashAlgorithmName.SHA1)
-                return MiscUtils.HexStringToByteArray(SHA1id);
+                return VariousUtils.HexStringToByteArray(SHA1id);
             if (hashAlgorithm == HashAlgorithmName.SHA256)
-                return MiscUtils.HexStringToByteArray(SHA256id);
+                return VariousUtils.HexStringToByteArray(SHA256id);
             if (hashAlgorithm == HashAlgorithmName.SHA384)
-                return MiscUtils.HexStringToByteArray(SHA384id);
+                return VariousUtils.HexStringToByteArray(SHA384id);
             if (hashAlgorithm == HashAlgorithmName.SHA512)
-                return MiscUtils.HexStringToByteArray(SHA512id);
+                return VariousUtils.HexStringToByteArray(SHA512id);
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 

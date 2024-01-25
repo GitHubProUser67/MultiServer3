@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using static BackendProject.WebAPIs.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
+using BackendProject.MiscUtils;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -39,11 +40,11 @@ namespace BackendProject.WebAPIs.OHS
                 {
                     JToken Token = JToken.Parse(dataforohs);
 
-                    object? value = MiscUtils.GetValueFromJToken(Token, "value");
+                    object? value = VariousUtils.GetValueFromJToken(Token, "value");
 
-                    object? key = MiscUtils.GetValueFromJToken(Token, "key");
+                    object? key = VariousUtils.GetValueFromJToken(Token, "key");
 
-                    object? user = MiscUtils.GetValueFromJToken(Token, "user");
+                    object? user = VariousUtils.GetValueFromJToken(Token, "user");
 
                     if (!global)
                     {

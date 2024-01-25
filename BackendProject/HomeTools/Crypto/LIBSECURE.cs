@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text;
+using BackendProject.MiscUtils;
 
 namespace BackendProject.HomeTools.Crypto
 {
@@ -62,7 +63,7 @@ namespace BackendProject.HomeTools.Crypto
                     block = block[4..];
                     try
                     {
-                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(
+                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
                             ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                     }
                     catch (Exception ex)
@@ -81,7 +82,7 @@ namespace BackendProject.HomeTools.Crypto
                     block = block[8..];
                     try
                     {
-                        CryptoBytes.Append(MiscUtils.ByteArrayToHexString(MiscUtils.HexStringToByteArray(
+                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
                             (Convert.ToUInt32(BlockIV, 16) ^ Convert.ToUInt32(CipherBlock, 16)).ToString("X8"))));
                     }
                     catch (Exception ex)

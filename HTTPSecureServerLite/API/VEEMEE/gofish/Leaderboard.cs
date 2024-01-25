@@ -1,4 +1,6 @@
-﻿namespace HTTPSecureServerLite.API.VEEMEE.gofish
+﻿using BackendProject.MiscUtils;
+
+namespace HTTPSecureServerLite.API.VEEMEE.gofish
 {
     public class Leaderboard
     {
@@ -9,7 +11,7 @@
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "tHeHuYUmuDa54qur")
                 {

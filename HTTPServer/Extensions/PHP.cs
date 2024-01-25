@@ -1,4 +1,4 @@
-﻿using BackendProject;
+﻿using BackendProject.MiscUtils;
 using HTTPServer.Models;
 using System.Diagnostics;
 using System.Text;
@@ -50,7 +50,7 @@ namespace HTTPServer.Extensions
 
                 proc.StartInfo.FileName = $"{phppath}/{phpver}/php-cgi";
 
-                if (MiscUtils.IsWindows())
+                if (VariousUtils.IsWindows())
                 {
                     if (postData == null)
                     {
@@ -133,7 +133,7 @@ namespace HTTPServer.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", request.GetContentType());
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", request.Method);
                 proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", request.GetHeaderValue("User-Agent"));
-                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", MiscUtils.GetPublicIPAddress());
+                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", VariousUtils.GetPublicIPAddress());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{request.Url}");

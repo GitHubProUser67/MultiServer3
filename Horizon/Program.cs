@@ -2,6 +2,7 @@ using CustomLogger;
 using BackendProject.Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
+using BackendProject.MiscUtils;
 
 public static class HorizonServerConfiguration
 {
@@ -130,7 +131,7 @@ class Program
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
 
-        BackendProject.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
+        SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
 
         if (HorizonServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HorizonServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HorizonServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HorizonServerConfiguration.DiscordChannelID, HorizonServerConfiguration.DiscordBotToken);
@@ -140,7 +141,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

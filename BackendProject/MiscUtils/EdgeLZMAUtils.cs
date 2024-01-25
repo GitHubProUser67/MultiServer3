@@ -1,9 +1,9 @@
 using CustomLogger;
 using SevenZip.Compression.LZMA;
 
-namespace BackendProject
+namespace BackendProject.MiscUtils
 {
-    public class EDGELZMA
+    public class EdgeLZMAUtils
     {
         public byte[]? Decompress(byte[] data, bool SegsMode, bool safemode = true)
         {
@@ -102,7 +102,7 @@ namespace BackendProject
         {
             MemoryStream result = new();
             int outSize = BitConverter.ToInt32(inbuffer, 12);
-            int streamCount = (outSize + 0xffff) >> 16;
+            int streamCount = outSize + 0xffff >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
             Decoder decoder = new();
@@ -192,7 +192,7 @@ namespace BackendProject
                         }
 
                         // Concatenate the byte arrays into a single byte array
-                        byte[] FileData = MiscUtils.ConcatenateArrays(arrayOfArrays);
+                        byte[] FileData = VariousUtils.ConcatenateArrays(arrayOfArrays);
 
                         if (FileData.Length == OriginalSize)
                             return FileData;
@@ -227,7 +227,7 @@ namespace BackendProject
             for (int i = 0; i < 8; i++)
             {
                 int v = inStream.ReadByte();
-                outSize |= ((long)(byte)v) << (8 * i);
+                outSize |= (long)(byte)v << 8 * i;
             }
             long compressedSize = inStream.Length - inStream.Position;
             decoder.Code(inStream, outStream, compressedSize, outSize, null);

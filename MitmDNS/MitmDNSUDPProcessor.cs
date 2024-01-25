@@ -1,8 +1,8 @@
 using DotNetty.Extensions;
-using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Text.RegularExpressions;
+using BackendProject.MiscUtils;
 
 namespace MitmDNS
 {
@@ -106,7 +106,7 @@ namespace MitmDNS
             }
 
             if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                url = MiscUtils.GetFirstActiveIPAddress(fullname, MiscUtils.GetPublicIPAddress(true));
+                url = VariousUtils.GetFirstActiveIPAddress(fullname, VariousUtils.GetPublicIPAddress(true));
 
             IPAddress ip = IPAddress.None; // NXDOMAIN
             if (url != string.Empty && url != "NXDOMAIN")

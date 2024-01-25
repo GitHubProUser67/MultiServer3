@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using BackendProject.FileHelper;
 using BackendProject.WebAPIs.SSFW;
-using BackendProject;
+using BackendProject.MiscUtils;
 
 namespace SSFWServer
 {
@@ -86,7 +86,7 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                if (MiscUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                if (VariousUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
                     rpcn = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");

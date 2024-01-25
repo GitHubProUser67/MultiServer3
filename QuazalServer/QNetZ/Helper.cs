@@ -1,13 +1,13 @@
 using System.Text;
 using System.Security.Cryptography;
 using lzo.net;
-using BackendProject;
 using Ionic.Zlib;
 using System.Text.RegularExpressions;
+using BackendProject.MiscUtils;
 
 namespace QuazalServer.QNetZ
 {
-	public static class Helper
+    public static class Helper
 	{
 		public static Random rnd = new();
 
@@ -312,7 +312,7 @@ namespace QuazalServer.QNetZ
             if (input.Length == 32 && Regex.IsMatch(input, @"\b[a-fA-F0-9]{32}\b")) // Might maybe conflict if user type in a md5 like pass, which is a very bad idea ^^.
 			{
                 count = pid % 1024;
-                buff = MiscUtils.HexStringToByteArray(input);
+                buff = VariousUtils.HexStringToByteArray(input);
             }
             else
             {

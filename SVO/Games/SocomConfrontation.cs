@@ -1,4 +1,4 @@
-﻿using BackendProject;
+﻿using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Net;
 using System.Text;
@@ -67,7 +67,7 @@ namespace SVO.Games
 
                                         if (SVOServerConfiguration.SVOHTTPSBypass)
                                             index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n    " +
-                                                $"<SET name=\"IP\" IPAddress=\"{MiscUtils.GetPublicIPAddress()}\" />     \r\n    " +
+                                                $"<SET name=\"IP\" IPAddress=\"{VariousUtils.GetPublicIPAddress()}\" />     \r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"entryURI\" value=\"http://killzoneps3.svo.online.scee.com:10060/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"homeURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/home.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"menuURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n\t" +
@@ -124,7 +124,7 @@ namespace SVO.Games
                                                 "<BROWSER_INIT name=\"init\" />\r\n</SVML>");
                                         else
                                             index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n    " +
-                                                $"<SET name=\"IP\" IPAddress=\"{MiscUtils.GetPublicIPAddress()}\" />     \r\n    " +
+                                                $"<SET name=\"IP\" IPAddress=\"{VariousUtils.GetPublicIPAddress()}\" />     \r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"entryURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"homeURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/home.jsp\" />\r\n\t" +
                                                 "<DATA dataType=\"URI\" name=\"menuURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/menu.jsp\" />\r\n\t" +
@@ -274,7 +274,7 @@ namespace SVO.Games
                                             // Convert the modified data to a string
                                             psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
-                                            if (MiscUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                            if (VariousUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                                                 LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
                                             else
                                                 LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on PSN");

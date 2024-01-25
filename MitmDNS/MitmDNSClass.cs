@@ -1,4 +1,4 @@
-using BackendProject;
+using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Net;
 using System.Net.Security;
@@ -18,13 +18,18 @@ namespace MitmDNS
                 if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                    if (MiscUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                    string content = string.Empty;
+                    if (VariousUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                     try
                     {
+#if NET7_0
                         HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
                         response.EnsureSuccessStatusCode();
                         ParseRules(response.Content.ReadAsStringAsync().Result, false);
+#else
+#pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
+                        ParseRules(new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result, false);
+#pragma warning restore
+#endif
                     }
                     catch (Exception ex)
                     {
@@ -90,7 +95,7 @@ namespace MitmDNS
                                                                 + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
                                     dns.Address = IpFromConfig;
                                 else
-                                    dns.Address = MiscUtils.GetLocalIPAddress().ToString();
+                                    dns.Address = VariousUtils.GetLocalIPAddress().ToString();
                                 break;
                             default:
                                 LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
@@ -183,7 +188,7 @@ namespace MitmDNS
                                                                 + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
                                     dns.Address = IpFromConfig;
                                 else
-                                    dns.Address = MiscUtils.GetLocalIPAddress().ToString();
+                                    dns.Address = VariousUtils.GetLocalIPAddress().ToString();
                                 DicRules.Add(hostname, dns);
                                 DicRules.Add("www." + hostname, dns);
                                 break;

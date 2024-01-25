@@ -73,14 +73,14 @@ namespace BackendProject.Horizon.LIBRARY.Database
         private string? _dbAccessToken = null;
         private string? _dbAccountName = null;
 
-        private List<AccountDTO> _simulatedAccounts = new List<AccountDTO>();
-        private List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new List<AccountRelationInviteDTO>();
-        private List<NpIdDTO> _simulatedNpIdAccounts = new List<NpIdDTO>();
-        private List<ClanDTO> _simulatedClans = new List<ClanDTO>();
-        private List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new List<MatchmakingSupersetDTO>();
-        private List<FileDTO> _simulatedMediusFiles = new List<FileDTO>();
-        private List<FileMetaDataDTO> _simulatedFileMetaData = new List<FileMetaDataDTO>();
-        private List<FileAttributesDTO> _simulatedFileAttributes = new List<FileAttributesDTO>();
+        private List<AccountDTO> _simulatedAccounts = new();
+        private List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new();
+        private List<NpIdDTO> _simulatedNpIdAccounts = new();
+        private List<ClanDTO> _simulatedClans = new();
+        private List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new();
+        private List<FileDTO> _simulatedMediusFiles = new();
+        private List<FileMetaDataDTO> _simulatedFileMetaData = new();
+        private List<FileAttributesDTO> _simulatedFileAttributes = new();
 
         public DbController(string configFile)
         {

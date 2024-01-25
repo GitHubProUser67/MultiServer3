@@ -62,14 +62,10 @@ public class ZOutputStream : Stream
 		InitBlock();
 		this.out_Renamed = out_Renamed;
 		if (NoHeader)
-		{
-			z.inflateInit(-15);
-		}
-		else
-		{
-			z.inflateInit();
-		}
-		compress = false;
+            z.inflateInit(-15);
+        else
+            z.inflateInit();
+        compress = false;
 	}
 
 	public ZOutputStream(Stream out_Renamed, int level, bool NoHeader)
@@ -77,14 +73,10 @@ public class ZOutputStream : Stream
 		InitBlock();
 		this.out_Renamed = out_Renamed;
 		if (NoHeader)
-		{
-			z.deflateInit(level, -15);
-		}
-		else
-		{
-			z.deflateInit(level);
-		}
-		compress = true;
+            z.deflateInit(level, -15);
+        else
+            z.deflateInit(level);
+        compress = true;
 	}
 
 	public void WriteByte(int b)
