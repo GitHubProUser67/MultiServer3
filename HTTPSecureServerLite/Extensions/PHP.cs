@@ -1,4 +1,4 @@
-﻿using BackendProject;
+﻿using BackendProject.MiscUtils;
 using System.Diagnostics;
 using System.Text;
 using WatsonWebserver.Core;
@@ -30,7 +30,7 @@ namespace HTTPSecureServerLite.Extensions
 
                 proc.StartInfo.FileName = $"{phppath}/{phpver}/php-cgi";
 
-                if (MiscUtils.IsWindows())
+                if (VariousUtils.IsWindows())
                 {
                     if (postData == null)
                     {
@@ -113,7 +113,7 @@ namespace HTTPSecureServerLite.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", ctx.Request.ContentType);
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", ctx.Request.Method.ToString());
                 proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", ctx.Request.Useragent);
-                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", MiscUtils.GetPublicIPAddress());
+                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", VariousUtils.GetPublicIPAddress());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ip}:{port}{ctx.Request.Url.RawWithQuery}");

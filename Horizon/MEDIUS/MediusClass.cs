@@ -12,9 +12,9 @@ using System.Text.RegularExpressions;
 using BackendProject.Horizon.LIBRARY.libAntiCheat;
 using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
-using BackendProject;
 using Horizon.HTTPSERVICE;
 using BackendProject.Horizon.LIBRARY.Database.Models;
+using BackendProject.MiscUtils;
 
 namespace Horizon.MEDIUS
 {
@@ -616,7 +616,7 @@ namespace Horizon.MEDIUS
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(VariousUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

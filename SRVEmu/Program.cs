@@ -1,12 +1,12 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-using BackendProject;
+using BackendProject.MiscUtils;
 
 public static class SRVEmuServerConfiguration
 {
     public static string DirtySocksDatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ea.dirtysocks.db.json";
-    public static string ListenAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+    public static string ListenAddress { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
     public static string GameServerAddress { get; set; } = "gameserver1.ps3.arcadia";
     public static int GameServerPort { get; set; } = 1003;
     public static string TheaterAddress { get; set; } = "theater.ps3.arcadia";
@@ -71,7 +71,7 @@ class Program
 
     static void Main()
     {
-        if (!MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SRVEmu");
@@ -91,7 +91,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

@@ -508,10 +508,8 @@ internal sealed class InfCodes
 							num2 >>= array[(num9 + num8) * 3 + 1];
 							num3 -= array[(num9 + num8) * 3 + 1];
 							if (((uint)num10 & 0x10u) != 0)
-							{
-								break;
-							}
-							if ((num10 & 0x40) == 0)
+                                break;
+                            if ((num10 & 0x40) == 0)
 							{
 								num8 += array[(num9 + num8) * 3 + 2];
 								num8 += num2 & inflate_mask[num10];

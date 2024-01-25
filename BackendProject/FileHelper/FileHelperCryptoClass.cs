@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 using System.Security.Cryptography;
 using System.Text;
 using CustomLogger;
+using BackendProject.MiscUtils;
 
 namespace BackendProject.FileHelper
 {
@@ -61,7 +62,7 @@ namespace BackendProject.FileHelper
 
                 Array.Copy(encryptedData, 0, firstSixBytes, 0, firstSixBytes.Length);
 
-                if (MiscUtils.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
+                if (VariousUtils.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
                 {
                     byte[] xteakey = new byte[16];
 

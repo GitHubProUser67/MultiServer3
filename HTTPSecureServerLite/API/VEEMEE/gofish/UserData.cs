@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using BackendProject.MiscUtils;
 
 namespace HTTPSecureServerLite.API.VEEMEE.gofish
 {
@@ -15,7 +16,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "tHeHuYUmuDa54qur")
                 {
@@ -105,7 +106,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.gofish
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "tHeHuYUmuDa54qur")
                 {

@@ -1,12 +1,12 @@
-using BackendProject;
 using CustomLogger;
 using System.Net;
 using System.Text;
 using System.Net.Sockets;
+using BackendProject.MiscUtils;
 
 namespace QuazalServer.QNetZ
 {
-	public partial class QPacketHandlerPRUDP
+    public partial class QPacketHandlerPRUDP
 	{
 		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
 		{
@@ -149,7 +149,7 @@ namespace QuazalServer.QNetZ
 			if (!CacheResponse(reqPacket, sendPacket, ep))
 				_ = UDP.SendAsync(data, data.Length, ep);
 
-			LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {MiscUtils.ByteArrayToHexString(data)}");
+			LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {VariousUtils.ByteArrayToHexString(data)}");
 		}
 
 		public QPacket MakeACK(QPacket p, QClient client)
@@ -239,7 +239,7 @@ namespace QuazalServer.QNetZ
                         foreach (byte b in data)
                             sb.Append(b.ToString("X2") + " ");
 
-                        LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{MiscUtils.ByteArrayToHexString(buff)}");
+                        LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{VariousUtils.ByteArrayToHexString(buff)}");
 
                         LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
                         LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");

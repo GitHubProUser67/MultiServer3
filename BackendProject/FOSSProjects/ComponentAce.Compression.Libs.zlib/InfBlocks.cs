@@ -225,7 +225,7 @@ internal sealed class InfBlocks
 					return inflate_flush(z, r);
 				}
 				left = num3 & 0xFFFF;
-				num3 = (i = 0);
+				num3 = i = 0;
 				mode = ((left != 0) ? 2 : ((last != 0) ? 7 : 0));
 				break;
 			case 2:
@@ -305,7 +305,7 @@ internal sealed class InfBlocks
 					write = num4;
 					return inflate_flush(z, r);
 				}
-				int num6 = (table = num3 & 0x3FFF);
+				int num6 = table = num3 & 0x3FFF;
 				if ((num6 & 0x1F) > 29 || ((num6 >> 5) & 0x1F) > 29)
 				{
 					mode = 9;
@@ -589,7 +589,7 @@ internal sealed class InfBlocks
 	{
 		if (window != null)
             Array.Copy(d, start, window, 0, n);
-        read = (write = n);
+        read = write = n;
 	}
 
 	internal int sync_point()

@@ -9,45 +9,11 @@ namespace BackendProject.WebAPIs.CDS
         {
             byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
-            {
-                byte[] tranformedSHA1 = BitConverter.GetBytes(new ToolsImpl().Sha1toNonce(digest));
-
-                if (BitConverter.IsLittleEndian)
-                    Array.Reverse(tranformedSHA1);
-
-                Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
-
-                BlowfishCTREncryptDecrypt? blowfish = new();
-                byte[]? FileBytes = blowfish.InitiateCTRBuffer(buffer, tranformedSHA1);
-                blowfish = null;
-
-                return FileBytes;
-            }
+                return new BlowfishCTREncryptDecrypt().InitiateCTRBuffer(buffer,
+                    BitConverter.GetBytes(new ToolsImpl().Sha1toNonce(digest))); // Always big endian, so GetBytes() is fine as is.
 
             return null;
         }
-
-        public static byte[]? CDSByteEncrypt_Decrypt(byte[] buffer, byte[] sha1)
-        {
-            if (sha1 != null)
-            {
-                byte[] tranformedSHA1 = BitConverter.GetBytes(new ToolsImpl().Sha1toNonce(sha1));
-
-                if (BitConverter.IsLittleEndian)
-                    Array.Reverse(tranformedSHA1);
-
-                Array.Reverse(tranformedSHA1); // Reverse the byte array for big-endian
-
-                BlowfishCTREncryptDecrypt? blowfish = new();
-                byte[]? FileBytes = blowfish.InitiateCTRBuffer(buffer, tranformedSHA1);
-                blowfish = null;
-
-                return FileBytes;
-            }
-
-            return null;
-        }
-
 
         private static byte[]? ConvertSha1StringToByteArray(string sha1String)
         {

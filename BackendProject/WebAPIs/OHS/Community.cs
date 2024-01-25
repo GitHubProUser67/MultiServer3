@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using HttpMultipartParser;
 using Newtonsoft.Json;
+using BackendProject.MiscUtils;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -38,7 +39,7 @@ namespace BackendProject.WebAPIs.OHS
 
                     if (Token != null)
                     {
-                        object? key = MiscUtils.GetValueFromJToken(Token, "key");
+                        object? key = VariousUtils.GetValueFromJToken(Token, "key");
 
                         if (key != null)
                         {
@@ -106,9 +107,9 @@ namespace BackendProject.WebAPIs.OHS
 
                     if (Token != null)
                     {
-                        object? key = MiscUtils.GetValueFromJToken(Token, "key");
+                        object? key = VariousUtils.GetValueFromJToken(Token, "key");
 
-                        int inc = Convert.ToInt32(MiscUtils.GetValueFromJToken(Token, "inc"));
+                        int inc = Convert.ToInt32(VariousUtils.GetValueFromJToken(Token, "inc"));
 
                         if (File.Exists(directorypath + $"/Community_Profiles/{key}.json") && key != null)
                         {

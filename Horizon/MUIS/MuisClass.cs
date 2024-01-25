@@ -4,10 +4,10 @@ using BackendProject.Horizon.RT.Models;
 using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.MUIS.Config;
 using Horizon.PluginManager;
-using BackendProject;
 using System.Net;
 using Horizon.HTTPSERVICE;
 using BackendProject.Horizon.LIBRARY.Database.Models;
+using BackendProject.MiscUtils;
 
 namespace Horizon.MUIS
 {
@@ -977,7 +977,7 @@ namespace Horizon.MUIS
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(MiscUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(VariousUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

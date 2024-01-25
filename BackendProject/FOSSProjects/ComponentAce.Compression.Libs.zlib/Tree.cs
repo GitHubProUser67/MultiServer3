@@ -165,10 +165,8 @@ internal sealed class Tree
 	internal static int d_code(int dist)
 	{
 		if (dist >= 256)
-		{
-			return _dist_code[256 + SupportClass.URShift(dist, 7)];
-		}
-		return _dist_code[dist];
+            return _dist_code[256 + SupportClass.URShift(dist, 7)];
+        return _dist_code[dist];
 	}
 
 	internal void gen_bitlen(Deflate s)
@@ -204,21 +202,15 @@ internal sealed class Tree
                         s.bl_count[i]++;
                         int num3 = 0;
                         if (num2 >= extra_base)
-                        {
                             num3 = extra_bits[num2 - extra_base];
-                        }
                         short num4 = array[num2 * 2];
                         s.opt_len += num4 * (i + num3);
                         if (static_tree != null)
-                        {
                             s.static_len += num4 * (static_tree[num2 * 2 + 1] + num3);
-                        }
                     }
                 }
                 if (num == 0)
-                {
                     return;
-                }
                 do
                 {
                     int i = max_length - 1;
@@ -269,7 +261,7 @@ internal sealed class Tree
                 {
                     if (array[i * 2] != 0)
                     {
-                        num = (s.heap[++s.heap_len] = i);
+                        num = s.heap[++s.heap_len] = i;
                         s.depth[i] = 0;
                     }
                     else
@@ -283,9 +275,7 @@ internal sealed class Tree
                     s.depth[num2] = 0;
                     s.opt_len--;
                     if (static_tree != null)
-                    {
                         s.static_len -= static_tree[num2 * 2 + 1];
-                    }
                 }
                 max_code = num;
                 for (int i = s.heap_len / 2; i >= 1; i--)

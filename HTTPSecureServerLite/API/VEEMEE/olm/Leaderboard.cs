@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using BackendProject.MiscUtils;
 
 namespace HTTPSecureServerLite.API.VEEMEE.olm
 {
@@ -11,7 +12,7 @@ namespace HTTPSecureServerLite.API.VEEMEE.olm
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
-                var data = BackendProject.HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
+                var data = HTTPUtils.ExtractAndSortUrlEncodedPOSTData(PostData);
                 key = data["key"];
                 if (key != "KEqZKh3At4Ev")
                 {

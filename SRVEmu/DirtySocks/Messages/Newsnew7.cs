@@ -1,4 +1,4 @@
-﻿using BackendProject;
+﻿using BackendProject.MiscUtils;
 
 namespace SRVEmu.DirtySocks.Messages
 {
@@ -7,7 +7,7 @@ namespace SRVEmu.DirtySocks.Messages
         public override string _Name { get => "newsnew7"; }
         public string? PEERTIMEOUT { get; set; } = "10000";
         public string? BUDDY_URL { get; set; } = "\"http://gos.ea.com/\"";
-        public string? BUDDY_SERVER { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
+        public string? BUDDY_SERVER { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
         public string? BUDDY_PORT { get; set; } = "13505";
         public string? GPS_REGIONS { get; set; } = "159.153.202.54,159.153.105.104,159.153.161.178,159.153.174.133";
         public string? EACONNECT_WEBOFFER_URL { get; set; } = "\"http://gos.ea.com/easo/editorial/common/2008/eaconnect/connect.jsp?site=easo&lkey=$LKEY$&lang=%s&country=%s\"";

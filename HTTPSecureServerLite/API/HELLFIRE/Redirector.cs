@@ -1,4 +1,5 @@
-﻿using HttpMultipartParser;
+﻿using BackendProject.MiscUtils;
+using HttpMultipartParser;
 
 namespace HTTPSecureServerLite.API.HELLFIRE
 {
@@ -6,7 +7,7 @@ namespace HTTPSecureServerLite.API.HELLFIRE
     {
         public static string? ProcessMainRedirector(byte[] PostData, string ContentType)
         {
-            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null)
             {

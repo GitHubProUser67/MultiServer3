@@ -10,9 +10,9 @@ using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.PluginManager;
 using System.Net;
-using BackendProject;
 using Microsoft.Extensions.Logging;
 using BackendProject.Horizon.LIBRARY.Database.Models;
+using BackendProject.MiscUtils;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -1196,7 +1196,7 @@ namespace Horizon.MEDIUS.Medius
                         await HorizonServerConfiguration.Database.CreateAccount(new BackendProject.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
-                            AccountPassword = MiscUtils.ComputeSHA256(accountRegRequest.Password),
+                            AccountPassword = VariousUtils.ComputeSHA256(accountRegRequest.Password),
                             MachineId = data.MachineId,
                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                             AppId = data.ClientObject.ApplicationId
@@ -1391,7 +1391,7 @@ namespace Horizon.MEDIUS.Medius
                                             });
                                         }
 
-                                        else if (MiscUtils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
+                                        else if (VariousUtils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
                                         {
                                             await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
                                         }
@@ -1442,7 +1442,7 @@ namespace Horizon.MEDIUS.Medius
                                             _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                                             {
                                                 AccountName = accountLoginRequest.Username,
-                                                AccountPassword = MiscUtils.ComputeSHA256(accountLoginRequest.Password),
+                                                AccountPassword = VariousUtils.ComputeSHA256(accountLoginRequest.Password),
                                                 MachineId = data.MachineId,
                                                 MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                                 AppId = data.ClientObject.ApplicationId

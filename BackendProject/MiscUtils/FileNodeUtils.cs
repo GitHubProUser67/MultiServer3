@@ -1,9 +1,9 @@
 ﻿using CustomLogger;
 using Newtonsoft.Json;
 
-namespace BackendProject
+namespace BackendProject.MiscUtils
 {
-    public class FileNode
+    public class FileNodeUtils
     {
         public string? Name { get; set; }
         public string? Link { get; set; }
@@ -13,12 +13,12 @@ namespace BackendProject
         public string? Type { get; set; }
         public long? Size { get; set; }
         public DateTime CreationDate { get; set; }
-        public List<FileNode>? Childrens { get; set; }
+        public List<FileNodeUtils>? Childrens { get; set; }
     }
 
     public class FileStructure
     {
-        public FileNode? root { get; set; }
+        public FileNodeUtils? root { get; set; }
     }
 
     public class FileStructureToJson
@@ -32,9 +32,9 @@ namespace BackendProject
 
                 return JsonConvert.SerializeObject(new FileStructure() { root = CreateFileNode(rootDirectory, httpdirectoryrequest) },
                     Formatting.Indented, new JsonSerializerSettings()
-                {
-                    NullValueHandling = NullValueHandling.Ignore
-                });
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    });
             }
             catch (Exception ex)
             {
@@ -49,24 +49,24 @@ namespace BackendProject
             return (fileSystemInfo.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
         }
 
-        private static FileNode? CreateFileNode(string directoryPath, string httpdirectoryrequest)
+        private static FileNodeUtils? CreateFileNode(string directoryPath, string httpdirectoryrequest)
         {
             try
             {
                 DirectoryInfo directoryInfo = new(directoryPath);
-                FileNode fileNode = new()
+                FileNodeUtils fileNode = new()
                 {
                     Name = directoryInfo.Name,
                     Type = "Directory",
                     CreationDate = directoryInfo.CreationTimeUtc,
-                    Childrens = new List<FileNode>()
+                    Childrens = new List<FileNodeUtils>()
                 };
 
                 foreach (FileInfo file in directoryInfo.GetFiles())
                 {
                     if (!IsHidden(file))
                     {
-                        string mimetype = HTTPUtils.GetMimeType(Path.GetExtension(file.FullName));
+                        string mimetype = MiscUtils.HTTPUtils.GetMimeType(Path.GetExtension(file.FullName));
 
                         switch (mimetype)
                         {
@@ -84,7 +84,7 @@ namespace BackendProject
                                 if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt"))
                                     DescriptorText = File.ReadAllText(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt");
 
-                                fileNode.Childrens.Add(new FileNode
+                                fileNode.Childrens.Add(new FileNodeUtils
                                 {
                                     Link = httpdirectoryrequest + $"/{file.Name}",
                                     Image = ImgLink,
@@ -99,7 +99,7 @@ namespace BackendProject
                             case "text/xml":
                             case "application/xml":
                             case "application/json":
-                                fileNode.Childrens.Add(new FileNode
+                                fileNode.Childrens.Add(new FileNodeUtils
                                 {
                                     Link = httpdirectoryrequest + $"/{file.Name}",
                                     Content = File.ReadAllText(file.FullName),
@@ -110,7 +110,7 @@ namespace BackendProject
                                 });
                                 break;
                             default:
-                                fileNode.Childrens.Add(new FileNode
+                                fileNode.Childrens.Add(new FileNodeUtils
                                 {
                                     Link = httpdirectoryrequest + $"/{file.Name}",
                                     Name = file.Name,
@@ -126,7 +126,7 @@ namespace BackendProject
                 foreach (DirectoryInfo subdirectory in directoryInfo.GetDirectories())
                 {
                     if (!IsHidden(subdirectory))
-                        fileNode.Childrens.Add(new FileNode
+                        fileNode.Childrens.Add(new FileNodeUtils
                         {
                             Link = httpdirectoryrequest + $"/{subdirectory.Name}/",
                             Name = subdirectory.Name,

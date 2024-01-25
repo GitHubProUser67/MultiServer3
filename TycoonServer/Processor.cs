@@ -20,7 +20,7 @@ namespace TycoonServer
         {
             if (TycoonServerConfiguration.BannedIPs != null && TycoonServerConfiguration.BannedIPs.Contains(ctx.Request.Source.IpAddress))
             {
-                LoggerAccessor.LogError($"[SECURITY] - Client - {ctx.Request.Source.IpAddress} Requested the Tycoon server while being banned!");
+                LoggerAccessor.LogError($"[SECURITY] - {ctx.Request.Source.IpAddress}:{ctx.Request.Source.Port} Requested the Tycoon server while being banned!");
                 ctx.Response.StatusCode = 403;
                 await ctx.Response.Send();
             }

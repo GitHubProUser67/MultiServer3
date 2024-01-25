@@ -261,35 +261,27 @@ internal sealed class InfTree
 		}
 		int j = i;
 		if (num3 < i)
-		{
-			num3 = i;
-		}
-		num2 = 15;
+            num3 = i;
+        num2 = 15;
 		while (num2 != 0 && array[num2] == 0)
 		{
 			num2--;
 		}
 		int num4 = num2;
 		if (num3 > num2)
-		{
-			num3 = num2;
-		}
-		m[0] = num3;
+            num3 = num2;
+        m[0] = num3;
 		int num5 = 1 << i;
 		while (i < num2)
 		{
 			if ((num5 -= array[i]) < 0)
-			{
-				return -3;
-			}
-			i++;
+                return -3;
+            i++;
 			num5 <<= 1;
 		}
 		if ((num5 -= array[num2]) < 0)
-		{
-			return -3;
-		}
-		array[num2] += num5;
+            return -3;
+        array[num2] += num5;
 		i = (array4[1] = 0);
 		num = 1;
 		int num6 = 2;
@@ -306,9 +298,7 @@ internal sealed class InfTree
             do
             {
                 if ((i = b[bindex + num]) != 0)
-                {
                     v[array4[i]++] = num2;
-                }
                 num++;
             }
             while (++num2 < n);
@@ -348,7 +338,7 @@ internal sealed class InfTree
 					num10 = 1 << i;
 					if (hn[0] + num10 > 1440)
                         return -3;
-                    num9 = (array3[num7] = hn[0]);
+                    num9 = array3[num7] = hn[0];
 					hn[0] += num10;
 					if (num7 != 0)
 					{
@@ -397,10 +387,8 @@ internal sealed class InfTree
 			}
 		}
 		if (num5 == 0 || num4 == 1)
-		{
-			return 0;
-		}
-		return -5;
+            return 0;
+        return -5;
 	}
 
 	internal static int inflate_trees_bits(int[]? c, int[] bb, int[] tb, int[] hp, ZStream z)
@@ -409,10 +397,8 @@ internal sealed class InfTree
 		int[] v = new int[19];
 		int num = huft_build(c, 0, 19, 19, null, null, tb, bb, hp, hn, v);
 		if (num == -3)
-		{
-			z.msg = "oversubscribed dynamic bit lengths tree";
-		}
-		else if (num == -5 || bb[0] == 0)
+            z.msg = "oversubscribed dynamic bit lengths tree";
+        else if (num == -5 || bb[0] == 0)
 		{
 			z.msg = "incomplete dynamic bit lengths tree";
 			num = -3;

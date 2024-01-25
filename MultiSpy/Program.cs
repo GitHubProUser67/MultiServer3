@@ -1,18 +1,19 @@
-﻿using CustomLogger;
+﻿using BackendProject.MiscUtils;
+using CustomLogger;
 using System.Runtime;
 
 class Program
 {
     static void Main()
     {
-        if (!BackendProject.MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("MultiSpy");
 
         // Right now server is non-existant.
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

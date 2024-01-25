@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿using BackendProject.MiscUtils;
+using CustomLogger;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
 using System.Runtime;
@@ -76,14 +77,14 @@ class Program
 
     static void Main()
     {
-        if (!BackendProject.MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SSFWServer");
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        BackendProject.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
+        SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
 
         if (SSFWServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(SSFWServerConfiguration.DiscordChannelID, SSFWServerConfiguration.DiscordBotToken);
@@ -93,7 +94,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

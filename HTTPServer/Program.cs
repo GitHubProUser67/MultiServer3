@@ -2,6 +2,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
+using BackendProject.MiscUtils;
 
 public static class HTTPServerConfiguration
 {
@@ -99,7 +100,7 @@ class Program
 
     static void Main()
     {
-        if (!BackendProject.MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("HTTPServer");
@@ -122,7 +123,7 @@ class Program
             }
         }
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

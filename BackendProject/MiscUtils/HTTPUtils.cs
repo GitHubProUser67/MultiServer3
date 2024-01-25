@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace BackendProject
+namespace BackendProject.MiscUtils
 {
     public class HTTPUtils
     {
@@ -799,7 +799,7 @@ namespace BackendProject
         public static List<string> GetDnsName(byte[] Req)
         {
             List<string> addr = new();
-            int type = (Req[2] >> 3) & 0xF;
+            int type = Req[2] >> 3 & 0xF;
             if (type == 0)
             {
                 int lenght = Req[12];
@@ -808,7 +808,7 @@ namespace BackendProject
                 {
                     byte[] tmp = new byte[i + lenght];
                     Buffer.BlockCopy(Req, i + 1, tmp, 0, lenght);
-                    string partialaddr = MiscUtils.TrimString(tmp);
+                    string partialaddr = VariousUtils.TrimString(tmp);
                     if (partialaddr != null) addr.Add(partialaddr);
                     i += lenght + 1;
                     lenght = Req[i];

@@ -2,6 +2,7 @@
 using BackendProject.HomeTools.ChannelID;
 using BackendProject.HomeTools.Crypto;
 using BackendProject.HomeTools.UnBAR;
+using BackendProject.MiscUtils;
 using BackendProject.WebAPIs.CDS;
 using CustomLogger;
 using HttpMultipartParser;
@@ -20,11 +21,8 @@ namespace BackendProject.WebAPIs
 
         public static async Task<(byte[]?, string)?> UnBarAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
-            // Set the timeout duration
-            TimeSpan timeoutDuration = TimeSpan.FromHours(8);
-
             // Create a cancellation token source with the timeout
-            using (CancellationTokenSource cancellationTokenSource = new(timeoutDuration))
+            using (CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromHours(4)))
             {
                 // Run the function in a separate task
                 try
@@ -47,11 +45,8 @@ namespace BackendProject.WebAPIs
 
         public static async Task<(byte[]?, string)?> CDSBruteforceAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
-            // Set the timeout duration
-            TimeSpan timeoutDuration = TimeSpan.FromDays(14);
-
             // Create a cancellation token source with the timeout
-            using (CancellationTokenSource cancellationTokenSource = new(timeoutDuration))
+            using (CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromHours(4)))
             {
                 // Run the function in a separate task
                 try
@@ -82,7 +77,7 @@ namespace BackendProject.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{GenerateDynamicCacheGuid(VariousUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -145,7 +140,7 @@ namespace BackendProject.WebAPIs
                                 options = ToolsImpl.base64DefaultSharcKey;
                                 break;
                         }
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -484,7 +479,7 @@ namespace BackendProject.WebAPIs
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{GenerateDynamicCacheGuid(MiscUtils.GetCurrentDateTime())}";
+                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{GenerateDynamicCacheGuid(VariousUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -516,7 +511,7 @@ namespace BackendProject.WebAPIs
                         {
                             // Not Important
                         }
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -723,7 +718,7 @@ namespace BackendProject.WebAPIs
                         {
                             // Not Important
                         }
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -858,8 +853,7 @@ namespace BackendProject.WebAPIs
                         ms.Position = 0;
                         int i = 0;
                         string filename = string.Empty;
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in MultipartFormDataParser.Parse(ms, boundary).Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -942,8 +936,7 @@ namespace BackendProject.WebAPIs
                         ms.Position = 0;
                         int i = 0;
                         string filename = string.Empty;
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in MultipartFormDataParser.Parse(ms, boundary).Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -960,7 +953,7 @@ namespace BackendProject.WebAPIs
 
                                 filename = multipartfile.FileName;
 
-                                byte[]? DecompressedData = new EDGELZMA().Decompress(buffer, true);
+                                byte[]? DecompressedData = new EdgeLZMAUtils().Decompress(buffer, true);
 
                                 if (DecompressedData != null && DecompressedData[0] != 0x73 && DecompressedData[1] != 0x65 && DecompressedData[2] != 0x67 && DecompressedData[3] != 0x73)
                                     TasksResult.Add((DecompressedData, $"{filename}_Unpacked.sql"));
@@ -1028,7 +1021,7 @@ namespace BackendProject.WebAPIs
                         {
                             // Not Important
                         }
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -1057,7 +1050,7 @@ namespace BackendProject.WebAPIs
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else if (version1 == "on")
-                                    TasksResult.Add((MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer))
+                                    TasksResult.Add((VariousUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer))
                                             , $"{filename}_Encrypted.lst"));
                                 else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                                     && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
@@ -1069,7 +1062,7 @@ namespace BackendProject.WebAPIs
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else
-                                    TasksResult.Add((MiscUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer))
+                                    TasksResult.Add((VariousUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer))
                                             , $"{filename}_Encrypted.lst"));
 
                                 i++;
@@ -1128,8 +1121,7 @@ namespace BackendProject.WebAPIs
                         ms.Position = 0;
                         int i = 0;
                         string filename = string.Empty;
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
-                        foreach (var multipartfile in data.Files)
+                        foreach (FilePart? multipartfile in MultipartFormDataParser.Parse(ms, boundary).Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -1362,7 +1354,7 @@ namespace BackendProject.WebAPIs
 
             using (MD5 md5 = MD5.Create())
             {
-                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(MiscUtils.GetCurrentDateTime() + input));
+                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(VariousUtils.GetCurrentDateTime() + input));
                 md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
                 md5.Clear();
             }

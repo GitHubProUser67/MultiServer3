@@ -133,7 +133,7 @@ public class FeslClientHandler
             { "sessionState", "COMPLETE" },
             { "props.{}", 3 },
             { "props.{resultType}", "JOIN" },
-            { "props.{avgFit}", "0.8182313914386985" },
+            { "props.{avgFit}", "1.0" },
             { "props.{games}.[]", 1 },
             { "props.{games}.0.gid", serverData["GID"] },
             { "props.{games}.0.lid", serverData["LID"] }
@@ -268,6 +268,8 @@ public class FeslClientHandler
     {
         switch (_servicePort)
         {
+            case FeslGamePort.RomePC:
+                return TheaterGamePort.RomePC;
             case FeslGamePort.RomePS3:
                 return TheaterGamePort.RomePS3;
             case FeslGamePort.BeachPS3:

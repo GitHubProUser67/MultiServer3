@@ -38,6 +38,7 @@ public class FeslHostedService
             (int)FeslGamePort.BeachPS3,
             (int)FeslGamePort.BadCompanyPS3,
             (int)FeslGamePort.RomePS3,
+            (int)FeslGamePort.RomePC,
             (int)FeslServerPort.RomePC
         };
 
@@ -79,6 +80,7 @@ public class FeslHostedService
         {
             case (int)FeslGamePort.BeachPS3:
             case (int)FeslGamePort.RomePS3:
+            case (int)FeslGamePort.RomePC:
             case (int)FeslGamePort.BadCompanyPS3:
                 await new FeslClientHandler(new EAConnection(), _sharedCounters, _sharedCache).HandleClientConnection(serverProtocol,
                     clientEndpoint, (FeslGamePort)connectionPort);

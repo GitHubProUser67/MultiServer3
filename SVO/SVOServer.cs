@@ -1,4 +1,4 @@
-﻿using BackendProject;
+﻿using BackendProject.MiscUtils;
 using CustomLogger;
 using HttpMultipartParser;
 using SVO.Games;
@@ -117,7 +117,7 @@ namespace SVO
                     if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10058) && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening && VariousUtils.IsTCPPortAvailable(10058) && VariousUtils.IsTCPPortAvailable(10060) && VariousUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
                         listener.Start();
                     else
                         threadActive = false;
@@ -127,7 +127,7 @@ namespace SVO
                     LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening && MiscUtils.IsTCPPortAvailable(10058) && MiscUtils.IsTCPPortAvailable(10060) && MiscUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening && VariousUtils.IsTCPPortAvailable(10058) && VariousUtils.IsTCPPortAvailable(10060) && VariousUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
                         listener.Start();
                     else
                         threadActive = false;
@@ -184,7 +184,7 @@ namespace SVO
                                 {
                                     ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                     ctx.Response.Headers.Set("Content-Language", string.Empty);
-                                    string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
+                                    string? boundary = HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
 
                                     var data = MultipartFormDataParser.Parse(ctx.Request.InputStream, boundary);
 

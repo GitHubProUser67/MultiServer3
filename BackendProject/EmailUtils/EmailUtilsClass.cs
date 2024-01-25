@@ -72,19 +72,19 @@ namespace BackendProject.EmailUtils
 
                     if (!string.IsNullOrEmpty(oMail.TextBody.ToString()))
                     {
-                        string subject = oMail.Subject.Replace(" (Trial Version)", string.Empty);
+                        string textbody = oMail.TextBody;
 
                         if (string.IsNullOrEmpty(oMail.From.Name))
                         {
-                            Match match = new Regex(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").Match(subject);
+                            Match match = new Regex(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").Match(textbody);
 
                             if (match.Success)
-                                MailsList.Add((match.Value, subject, oMail.TextBody, oMail.SentDate));
+                                MailsList.Add((match.Value, oMail.Subject.Replace(" (Trial Version)", string.Empty), textbody, oMail.SentDate));
                             else
-                                MailsList.Add(("No Sender Found", subject, oMail.TextBody, oMail.SentDate));
+                                MailsList.Add(("No Sender Found", oMail.Subject.Replace(" (Trial Version)", string.Empty), textbody, oMail.SentDate));
                         }
                         else
-                            MailsList.Add((oMail.From.Name, subject, oMail.TextBody, oMail.SentDate));
+                            MailsList.Add((oMail.From.Name, oMail.Subject.Replace(" (Trial Version)", string.Empty), textbody, oMail.SentDate));
 
                         // Mark unread email as read, next time this email won't be retrieved again
                         if (!info.Read)

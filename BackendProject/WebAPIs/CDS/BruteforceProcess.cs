@@ -1,12 +1,11 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using BackendProject.MiscUtils;
+using System.Security.Cryptography;
 using System.Xml;
 
 namespace BackendProject.WebAPIs.CDS
 {
     public class BruteforceProcess
     {
-        private string ResultIV = string.Empty;
         private byte[]? DecryptedFileBytes = null;
         private byte[]? EncryptedFileBytes = null;
 
@@ -25,9 +24,9 @@ namespace BackendProject.WebAPIs.CDS
                 DateTime timeStarted = DateTime.Now;
                 CustomLogger.LoggerAccessor.LogWarn("[CDS] - BruteforceProcess - BruteForce started at: - {0}", timeStarted.ToString());
 
-                byte[] TempBuffer = MiscUtils.CopyBytes(EncryptedFileBytes, 0, 8);
+                byte[]? TempBuffer = VariousUtils.CopyBytes(EncryptedFileBytes, 0, 8);
 
-                if (TempBuffer != Array.Empty<byte>())
+                if (TempBuffer != null)
                 {
                     if (File.Exists(helperfolder + "/CDSBruteforceRecord.xml"))
                     {

@@ -1,4 +1,4 @@
-using BackendProject;
+using BackendProject.MiscUtils;
 using SRVEmu.DirtySocks.Messages;
 using System.Net;
 using System.Net.Sockets;
@@ -87,7 +87,7 @@ namespace SRVEmu.DirtySocks
 
                 if (lowlevel) // Can be used a SSL workaround for testing.
                 {
-                    string hexdata = MiscUtils.ByteArrayToHexString(data);
+                    string hexdata = VariousUtils.ByteArrayToHexString(data);
 
                     CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", "")}}}");
 

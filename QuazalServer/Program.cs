@@ -1,12 +1,12 @@
-﻿using BackendProject;
+﻿using BackendProject.MiscUtils;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = MiscUtils.GetLocalIPAddress().ToString();
-    public static string ServerPublicBindAddress { get; set; } = MiscUtils.GetPublicIPAddress();
+    public static string ServerBindAddress { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
+    public static string ServerPublicBindAddress { get; set; } = VariousUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static bool UsePublicIP { get; set; } = true;
@@ -79,7 +79,7 @@ class Program
 
     static void Main()
     {
-        if (!MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("QuazalServer");
@@ -128,7 +128,7 @@ class Program
         // Set up a timer that triggers every 10 seconds, the API being in beta state, GC collection is still necessary.
         Timer timer = new(GCCollectTask, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
-        if (MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {

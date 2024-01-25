@@ -33,6 +33,9 @@ namespace QuazalServer.RDVServices.Services
 				{
                     List<FriendData>? list = JsonConvert.DeserializeObject<List<FriendData>>(File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{plInfo.Name}_{plInfo.PID}_legacy_friends-list.json"));
 
+                    if (bReversed)
+                        list?.Reverse();
+
                     if (list != null)
                         return Result(list);
                 }
@@ -57,7 +60,11 @@ namespace QuazalServer.RDVServices.Services
 
                         File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{plInfo.Name}_{plInfo.PID}_legacy_friends-list.json", JsonConvert.SerializeObject(result, Formatting.Indented));
 
-                        return Result(result);
+                        if (bReversed)
+                            result?.Reverse();
+
+                        if (result != null)
+                            return Result(result);
                     }
                 }
             }

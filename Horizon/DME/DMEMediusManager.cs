@@ -11,7 +11,6 @@ using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
-using BackendProject;
 using Horizon.MEDIUS;
 
 namespace Horizon.DME
@@ -255,7 +254,7 @@ namespace Horizon.DME
             try
             {
                 if (_bootstrap != null)
-                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(MiscUtils.GetIp(DmeClass.Settings.MPS.Ip) ?? MediusClass.SERVER_IP, DmeClass.Settings.MPS.Port));
+                    _mpsChannel = await _bootstrap.ConnectAsync(new IPEndPoint(IPAddress.Parse(DmeClass.Settings.MPS.Ip) ?? MediusClass.SERVER_IP, DmeClass.Settings.MPS.Port));
             }
             catch (Exception)
             {

@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using BackendProject;
+using BackendProject.MiscUtils;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -83,8 +83,8 @@ public class ProtoSSL
         byte[] certDer = DotNetUtilities.ToX509Certificate(cCertificate).GetRawCertData();
 
         // There must be two signatures in the DER encoded certificate
-        int signature1Offset = MiscUtils.FindBytePattern(certDer, Sha1CipherSignature.Span);
-        int signature2Offset = MiscUtils.FindBytePattern(certDer, Sha1CipherSignature.Span, signature1Offset + Sha1CipherSignature.Length);
+        int signature1Offset = VariousUtils.FindBytePattern(certDer, Sha1CipherSignature.Span);
+        int signature2Offset = VariousUtils.FindBytePattern(certDer, Sha1CipherSignature.Span, signature1Offset + Sha1CipherSignature.Length);
 
         if (signature1Offset == -1 || signature2Offset == -1)
             throw new Exception("Failed to find valid signature for patching!");

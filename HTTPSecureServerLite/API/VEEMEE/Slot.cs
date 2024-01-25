@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿using BackendProject.MiscUtils;
+using CustomLogger;
 using HttpMultipartParser;
 
 namespace HTTPSecureServerLite.API.VEEMEE
@@ -17,7 +18,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
             string instance_id = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {
@@ -73,7 +74,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
             string instance_id = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {
@@ -120,7 +121,7 @@ namespace HTTPSecureServerLite.API.VEEMEE
             string instance_id = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = BackendProject.HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
             if (boundary != null && PostData != null)
             {

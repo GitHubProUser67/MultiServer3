@@ -91,10 +91,8 @@ internal sealed class Inflate
 	internal int inflateReset(ZStream z)
 	{
 		if (z == null || z.istate == null)
-		{
-			return -2;
-		}
-		z.total_in = (z.total_out = 0L);
+            return -2;
+        z.total_in = (z.total_out = 0L);
 		z.msg = null;
 		z.istate.mode = ((z.istate.nowrap != 0) ? 7 : 0);
 		z.istate.blocks?.reset(z, null);
@@ -104,10 +102,8 @@ internal sealed class Inflate
 	internal int inflateEnd(ZStream z)
 	{
 		if (blocks != null)
-		{
-			blocks.free(z);
-		}
-		blocks = null;
+            blocks.free(z);
+        blocks = null;
 		return 0;
 	}
 
@@ -135,10 +131,8 @@ internal sealed class Inflate
 	internal int inflate(ZStream z, int f)
 	{
 		if (z == null || z.istate == null || z.next_in == null)
-		{
-			return -2;
-		}
-		f = ((f == 4) ? (-5) : 0);
+            return -2;
+        f = ((f == 4) ? (-5) : 0);
 		int num = -5;
 		while (true)
 		{
@@ -146,10 +140,8 @@ internal sealed class Inflate
 			{
 			case 0:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				if (((z.istate.method = z.next_in[z.next_in_index++]) & 0xF) != 8)
@@ -171,10 +163,8 @@ internal sealed class Inflate
 			case 1:
 			{
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				int num2 = z.next_in[z.next_in_index++] & 0xFF;
@@ -195,10 +185,8 @@ internal sealed class Inflate
 			}
 			case 2:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need = ((z.next_in[z.next_in_index++] & 0xFF) << 24) & -16777216;
@@ -206,10 +194,8 @@ internal sealed class Inflate
 				goto case 3;
 			case 3:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need += (long)((ulong)((z.next_in[z.next_in_index++] & 0xFF) << 16) & 0xFF0000uL);
@@ -217,10 +203,8 @@ internal sealed class Inflate
 				goto case 4;
 			case 4:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need += (long)((ulong)((z.next_in[z.next_in_index++] & 0xFF) << 8) & 0xFF00uL);
@@ -228,10 +212,8 @@ internal sealed class Inflate
 				goto case 5;
 			case 5:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need += (long)((ulong)z.next_in[z.next_in_index++] & 0xFFuL);
@@ -257,11 +239,9 @@ internal sealed class Inflate
 					break;
 				}
 				if (num != 1)
-				{
-					return num;
-				}
-				num = f;
-				z.istate.blocks.reset(z, z.istate.was);
+                    return num;
+                num = f;
+				z.istate.blocks?.reset(z, z.istate.was);
 				if (z.istate.nowrap != 0)
 				{
 					z.istate.mode = 12;
@@ -271,10 +251,8 @@ internal sealed class Inflate
 				goto case 8;
 			case 8:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                    return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need = ((z.next_in[z.next_in_index++] & 0xFF) << 24) & -16777216;
@@ -282,10 +260,8 @@ internal sealed class Inflate
 				goto case 9;
 			case 9:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                   return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need += (long)((ulong)((z.next_in[z.next_in_index++] & 0xFF) << 16) & 0xFF0000uL);
@@ -293,10 +269,8 @@ internal sealed class Inflate
 				goto case 10;
 			case 10:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                   return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need += (long)((ulong)((z.next_in[z.next_in_index++] & 0xFF) << 8) & 0xFF00uL);
@@ -304,10 +278,8 @@ internal sealed class Inflate
 				goto case 11;
 			case 11:
 				if (z.avail_in == 0)
-				{
-					return num;
-				}
-				num = f;
+                   return num;
+                num = f;
 				z.avail_in--;
 				z.total_in++;
 				z.istate.need += (long)((ulong)z.next_in[z.next_in_index++] & 0xFFuL);

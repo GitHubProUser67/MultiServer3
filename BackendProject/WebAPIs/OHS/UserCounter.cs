@@ -2,8 +2,7 @@
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.Text.Json.Nodes;
-using System.Linq;
+using BackendProject.MiscUtils;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -38,11 +37,11 @@ namespace BackendProject.WebAPIs.OHS
             {
                 JToken Token = JToken.Parse(dataforohs);
 
-                key = MiscUtils.GetValueFromJToken(Token, "key");
+                key = VariousUtils.GetValueFromJToken(Token, "key");
 
-                object? value = MiscUtils.GetValueFromJToken(Token, "value");
+                object? value = VariousUtils.GetValueFromJToken(Token, "value");
 
-                object? user = MiscUtils.GetValueFromJToken(Token, "user");
+                object? user = VariousUtils.GetValueFromJToken(Token, "user");
 
                 try
                 {

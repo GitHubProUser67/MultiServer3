@@ -1,4 +1,4 @@
-using BackendProject;
+using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Net;
 using System.Text;
@@ -113,7 +113,7 @@ namespace SVO
                                         // Convert the modified data to a string
                                         psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
-                                        if (MiscUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                        if (VariousUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                                             LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
                                         else
                                             LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on PSN");

@@ -64,12 +64,12 @@ namespace HTTPServer.Models
 
         public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
         {
-            var response = new HttpResponse(false);
+            HttpResponse response = new(false);
             response.HttpStatusCode = statuscode;
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
-                foreach (var innerArray in HeaderInput)
+                foreach (string[] innerArray in HeaderInput)
                 {
                     // Ensure the inner array has at least two elements
                     if (innerArray.Length >= 2)
@@ -91,7 +91,7 @@ namespace HTTPServer.Models
 
         public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
         {
-            var response = new HttpResponse(false);
+            HttpResponse response = new(false);
             response.HttpStatusCode = statuscode;
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
@@ -118,7 +118,7 @@ namespace HTTPServer.Models
 
         public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
         {
-            var response = new HttpResponse(false);
+            HttpResponse response = new(false);
             response.HttpStatusCode = statuscode;
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
@@ -179,7 +179,15 @@ namespace HTTPServer.Models
             {
                 if (disposing)
                 {
-                    ContentStream = null;
+                    try
+                    {
+                        ContentStream?.Close();
+                        ContentStream?.Dispose();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Always check for disposed object according to the C# documentation.
+                    }
                 }
 
                 // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur

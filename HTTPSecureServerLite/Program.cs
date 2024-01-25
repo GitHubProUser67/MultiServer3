@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
+using BackendProject.MiscUtils;
 
 public static class HTTPSServerConfiguration
 {
@@ -93,14 +94,14 @@ class Program
 
     static void Main()
     {
-        if (!BackendProject.MiscUtils.IsWindows())
+        if (!VariousUtils.IsWindows())
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("HTTPSecureServer");
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
-        BackendProject.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
+        SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
         // Timer for scheduled updates every 24 hours
         _ = new Timer(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
@@ -115,7 +116,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (BackendProject.MiscUtils.IsWindows())
+        if (VariousUtils.IsWindows())
         {
             while (true)
             {
