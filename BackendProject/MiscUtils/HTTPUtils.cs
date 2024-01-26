@@ -808,7 +808,7 @@ namespace BackendProject.MiscUtils
                 {
                     byte[] tmp = new byte[i + lenght];
                     Buffer.BlockCopy(Req, i + 1, tmp, 0, lenght);
-                    string partialaddr = VariousUtils.TrimString(tmp);
+                    string partialaddr = VariousUtils.TrimByteArraytoString(tmp);
                     if (partialaddr != null) addr.Add(partialaddr);
                     i += lenght + 1;
                     lenght = Req[i];

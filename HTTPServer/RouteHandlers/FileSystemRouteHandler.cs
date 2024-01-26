@@ -1,5 +1,6 @@
 ﻿// Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
 using BackendProject.MiscUtils;
+using HTTPServer.Extensions;
 using HTTPServer.Models;
 using System.Text;
 
@@ -7,10 +8,10 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string filepath, string httpdirectoryrequest)
+        public static HttpResponse Handle(HttpRequest request, string filepath, string httpdirectoryrequest, string clientip, string? clientport)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
-                return Handle_LocalDir(request, filepath, httpdirectoryrequest);
+                return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
                 return Handle_LocalFile(filepath);
             else
@@ -111,15 +112,67 @@ namespace HTTPServer.RouteHandlers
             return response;
         }
 
-        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest)
+        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest, string clientip, string? clientport)
         {
             string? encoding = request.GetHeaderValue("Accept-Encoding");
 
-            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                return HttpResponse.Send(HTTPUtils.Compress(
-                        Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+            string? queryparam = null;
+
+            if (request.QueryParameters != null && request.QueryParameters.TryGetValue("directory", out queryparam) && queryparam == "on")
+            {
+                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                    return HttpResponse.Send(HTTPUtils.Compress(
+                            Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                else
+                    return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest), "application/json");
+            }
             else
-                return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest), "application/json");
+            {
+                foreach (string indexFile in HTTPUtils.DefaultDocuments)
+                {
+                    if (File.Exists(local_path + indexFile))
+                    {
+                        if (indexFile.Contains(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
+                        {
+                            (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(local_path + indexFile, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                return HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                            else
+                                return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                            {
+                                using (FileStream stream = new(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                {
+                                    byte[]? buffer = null;
+
+                                    using (MemoryStream ms = new())
+                                    {
+                                        stream.CopyTo(ms);
+                                        buffer = ms.ToArray();
+                                        ms.Flush();
+                                    }
+
+                                    stream.Flush();
+
+                                    return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                }
+                            }
+                            else
+                                return HttpResponse.Send(new FileStream(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                        }
+                    }
+                }
+
+                return new HttpResponse(false)
+                {
+                    HttpStatusCode = HttpStatusCode.NotFound,
+                    ContentAsUTF8 = string.Empty
+                };
+
+            }
         }
     }
 }

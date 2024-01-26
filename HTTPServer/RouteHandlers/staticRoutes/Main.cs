@@ -1,9 +1,11 @@
 ﻿using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using HTTPServer.API;
+using HTTPServer.Extensions;
 using HTTPServer.Models;
 using Newtonsoft.Json;
 using System.Text;
+using HttpStatusCode = HTTPServer.Models.HttpStatusCode;
 
 namespace HTTPServer.RouteHandlers.staticRoutes
 {
@@ -22,7 +24,17 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                             {
                                 string? encoding = request.GetHeaderValue("Accept-Encoding");
 
-                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                if (indexFile.Contains(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
+                                {
+                                    (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(HTTPServerConfiguration.HTTPStaticFolder + indexFile, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request.IP, request.PORT, request);
+                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                        return HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                    else
+                                        return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                }
+                                else
+                                {
+                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                 {
                                     using (FileStream stream = new(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                     {
@@ -42,6 +54,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                 }
                                 else
                                     return HttpResponse.Send(new FileStream(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                }
                             }
                         }
 

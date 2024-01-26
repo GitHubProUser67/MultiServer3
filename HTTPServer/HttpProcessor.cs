@@ -78,7 +78,7 @@ namespace HTTPServer
                         {
                             if (tcpClient.Available > 0 && outputStream.CanWrite)
                             {
-                                HttpRequest? request = GetRequest(inputStream, clientip);
+                                HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString());
 
                                 if (request != null && !string.IsNullOrEmpty(request.Url) && !request.GetHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                                 {
@@ -105,7 +105,19 @@ namespace HTTPServer
                                         {
                                             default:
                                                 // A little bit out of the scope of Routes.
-                                                if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
+                                                if (absolutepath.Contains("/!plugin/") && HTTPServerConfiguration.plugins.Count > 0)
+                                                {
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a Plugin method : {absolutepath}");
+                                                    int i = 0;
+                                                    foreach (PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+                                                    {
+                                                        response = plugin.ProcessPluginMessage(request);
+                                                        if (response != null)
+                                                            break;
+                                                        i++;
+                                                    }
+                                                }
+                                                else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.getDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
@@ -266,7 +278,7 @@ namespace HTTPServer
                                                                         if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                             Handle_LocalFile_Stream(outputStream, request, filePath);
                                                                         else
-                                                                            response = FileSystemRouteHandler.Handle(request, filePath, $"http://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}");
+                                                                            response = FileSystemRouteHandler.Handle(request, filePath, $"http://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}", clientip, clientport.ToString());
                                                                     }
                                                                     break;
                                                             }
@@ -398,7 +410,7 @@ namespace HTTPServer
                                                                             response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
                                                                     else
-                                                                        response = HttpBuilder.NotAllowed();
+                                                                        response = HttpBuilder.NotFound();
                                                                     break;
                                                             }
                                                             break;
@@ -1050,7 +1062,7 @@ namespace HTTPServer
             return null;
         }
 
-        private HttpRequest? GetRequest(Stream inputStream, string clientip)
+        private HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport)
         {
             string line = string.Empty;
 
@@ -1085,7 +1097,8 @@ namespace HTTPServer
                 Url = HTTPUtils.DecodeUrl(tokens[1]),
                 Headers = headers,
                 Data = null,
-                IP = clientip
+                IP = clientip,
+                PORT = clientport
             };
 
             if (headers.ContainsKey("Content-Length"))

@@ -117,9 +117,11 @@ class Program
 
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
+            int i = 0;
             foreach (HTTPServer.PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
             {
-                _ = plugin.HTTPStartPlugin("MultiServer", HTTPServerConfiguration.DefaultPluginsPort);
+                _ = plugin.HTTPStartPlugin("MultiServer", HTTPServerConfiguration.DefaultPluginsPort + i);
+                i++;
             }
         }
 
