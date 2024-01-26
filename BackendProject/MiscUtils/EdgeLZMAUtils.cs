@@ -5,6 +5,14 @@ namespace BackendProject.MiscUtils
 {
     public class EdgeLZMAUtils
     {
+        /// <summary>
+        /// Decompress a EdgeLZMA byte array data.
+        /// <para>Decompresser un tableau de byte en format EdgeLZMA.</para>
+        /// </summary>
+        /// <param name="data">The byte array to decompress.</param>
+        /// <param name="SegsMode">Enables an alternative decompression mode.</param>
+        /// <param name="safemode">Uses a proper error checking flag.</param>
+        /// <returns>A byte array.</returns>
         public byte[]? Decompress(byte[] data, bool SegsMode, bool safemode = true)
         {
             if (SegsMode)
@@ -13,6 +21,12 @@ namespace BackendProject.MiscUtils
                 return Decompress(data);
         }
 
+        /// <summary>
+        /// Compress a given buffer compressed with EdgeLZMA.
+        /// <para>Compresse un tableau de bytes avec le codec EdgeLZMA.</para>
+        /// </summary>
+        /// <param name="buffer">The byte array to compress.</param>
+        /// <returns>A byte array.</returns>
         public byte[] Compress(byte[] buffer)
         {
             int numFastBytes = 64;
@@ -98,23 +112,29 @@ namespace BackendProject.MiscUtils
             return temp;
         }
 
-        public byte[] Decompress(byte[] inbuffer)
+        /// <summary>
+        /// Decompress a given buffer to EdgeLZMA.
+        /// <para>décompresse un tableau de bytes avec le codec EdgeLZMA.</para>
+        /// </summary>
+        /// <param name="buffer">The byte array to decompress.</param>
+        /// <returns>A byte array.</returns>
+        public byte[] Decompress(byte[] buffer)
         {
             MemoryStream result = new();
-            int outSize = BitConverter.ToInt32(inbuffer, 12);
+            int outSize = BitConverter.ToInt32(buffer, 12);
             int streamCount = outSize + 0xffff >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
             Decoder decoder = new();
-            decoder.SetDecoderProperties(new MemoryStream(inbuffer, 0x18, 5).ToArray());
+            decoder.SetDecoderProperties(new MemoryStream(buffer, 0x18, 5).ToArray());
 
             for (int i = 0; i < streamCount; i++)
             {
-                int streamSize = inbuffer[5 + 0x18 + i * 2] + (inbuffer[6 + 0x18 + i * 2] << 8);
+                int streamSize = buffer[5 + 0x18 + i * 2] + (buffer[6 + 0x18 + i * 2] << 8);
                 if (streamSize != 0)
-                    decoder.Code(new MemoryStream(inbuffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
+                    decoder.Code(new MemoryStream(buffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
                 else
-                    result.Write(inbuffer, offset, streamSize = Math.Min(outSize, 0x10000));
+                    result.Write(buffer, offset, streamSize = Math.Min(outSize, 0x10000));
                 outSize -= 0x10000;
                 offset += streamSize;
             }
@@ -122,6 +142,13 @@ namespace BackendProject.MiscUtils
             return result.ToArray();
         }
 
+        /// <summary>
+        /// Compress a given buffer compressed with EdgeLZMA segmented mode.
+        /// <para>Compresse un tableau de bytes avec le codec EdgeLZMA en mode ségmenté.</para>
+        /// </summary>
+        /// <param name="inbuffer">The byte array to decompress.</param>
+        /// <param name="safemode">Uses a proper error checking flag.</param>
+        /// <returns>A byte array.</returns>
         public byte[]? SegmentsDecompress(byte[] inbuffer, bool safemode) // Todo, make it multithreaded like original sdk.
         {
             try
@@ -217,6 +244,13 @@ namespace BackendProject.MiscUtils
             return null;
         }
 
+        /// <summary>
+        /// Decompress a block of the segmented EdgeLZMA data.
+        /// <para>Décompresse un block provenant d'une matrice de donnée encodée avec le codec EdgeLZMA.</para>
+        /// </summary>
+        /// <param name="inStream">The input Edge stream.</param>
+        /// <param name="outStream">The output Edge stream.</param>
+        /// <returns>Nothing.</returns>
         private static void SegmentDecompress(Stream inStream, Stream outStream)
         {
             byte[] properties = new byte[5];

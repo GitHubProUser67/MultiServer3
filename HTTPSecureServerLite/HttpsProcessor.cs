@@ -184,50 +184,106 @@ namespace HTTPSecureServerLite
 
                             string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
 
-                            using (FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            if (indexFile.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder))
                             {
-                                byte[]? buffer = null;
-
-                                using (MemoryStream ms = new())
+                                var CollectPHP = Extensions.PHP.ProcessPHPPage(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                 {
-                                    stream.CopyTo(ms);
-                                    buffer = ms.ToArray();
-                                    ms.Flush();
-                                }
-
-                                if (buffer != null)
-                                {
-                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                    statusCode = HttpStatusCode.OK;
+                                    if (CollectPHP.Item2 != null)
                                     {
-                                        statusCode = HttpStatusCode.OK;
-                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                        ctx.Response.StatusCode = (int)statusCode;
-                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                        sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
+                                        foreach (var innerArray in CollectPHP.Item2)
+                                        {
+                                            // Ensure the inner array has at least two elements
+                                            if (innerArray.Length >= 2)
+                                            {
+                                                // Extract two values from the inner array
+                                                string value1 = innerArray[0];
+                                                string value2 = innerArray[1];
+                                                ctx.Response.Headers.Add(value1, value2);
+                                            }
+                                        }
                                     }
-                                    else
-                                    {
-                                        statusCode = HttpStatusCode.OK;
-                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                        ctx.Response.StatusCode = (int)statusCode;
-                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                        sent = await ctx.Response.Send(buffer);
-                                    }
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "text/html";
+                                    sent = await ctx.Response.Send(HTTPUtils.Compress(CollectPHP.Item1));
                                 }
                                 else
                                 {
-                                    statusCode = HttpStatusCode.InternalServerError;
+                                    statusCode = HttpStatusCode.OK;
+                                    if (CollectPHP.Item2 != null)
+                                    {
+                                        foreach (var innerArray in CollectPHP.Item2)
+                                        {
+                                            // Ensure the inner array has at least two elements
+                                            if (innerArray.Length >= 2)
+                                            {
+                                                // Extract two values from the inner array
+                                                string value1 = innerArray[0];
+                                                string value2 = innerArray[1];
+                                                ctx.Response.Headers.Add(value1, value2);
+                                            }
+                                        }
+                                    }
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                     ctx.Response.StatusCode = (int)statusCode;
-                                    ctx.Response.ContentType = "text/plain";
-                                    sent = await ctx.Response.Send();
+                                    ctx.Response.ContentType = "text/html";
+                                    sent = await ctx.Response.Send(CollectPHP.Item1);
                                 }
+                            }
+                            else
+                            {
+                                using (FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                {
+                                    byte[]? buffer = null;
 
-                                stream.Flush();
+                                    using (MemoryStream ms = new())
+                                    {
+                                        stream.CopyTo(ms);
+                                        buffer = ms.ToArray();
+                                        ms.Flush();
+                                    }
+
+                                    if (buffer != null)
+                                    {
+                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                        {
+                                            statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
+                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
+                                            sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
+                                        }
+                                        else
+                                        {
+                                            statusCode = HttpStatusCode.OK;
+                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
+                                            ctx.Response.StatusCode = (int)statusCode;
+                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
+                                            sent = await ctx.Response.Send(buffer);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = "text/plain";
+                                        sent = await ctx.Response.Send();
+                                    }
+
+                                    stream.Flush();
+                                }
                             }
                             break;
                         }
@@ -598,38 +654,164 @@ namespace HTTPSecureServerLite
                                     if (Directory.Exists(filePath) && filePath.EndsWith("/"))
                                     {
                                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
-                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                        if (ctx.Request.RetrieveQueryValue("directory") == "on")
                                         {
-                                            byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}")));
+                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                            {
+                                                byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}")));
 
-                                            if (buffer != null)
+                                                if (buffer != null)
+                                                {
+                                                    statusCode = HttpStatusCode.OK;
+                                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                    ctx.Response.StatusCode = (int)statusCode;
+                                                    ctx.Response.ContentType = "application/json";
+                                                    sent = await ctx.Response.Send(buffer);
+                                                }
+                                                else
+                                                {
+                                                    statusCode = HttpStatusCode.InternalServerError;
+                                                    ctx.Response.StatusCode = (int)statusCode;
+                                                    ctx.Response.ContentType = "text/plain";
+                                                    sent = await ctx.Response.Send();
+                                                }
+                                            }
+                                            else
                                             {
                                                 statusCode = HttpStatusCode.OK;
                                                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                 ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/json";
-                                                sent = await ctx.Response.Send(buffer);
-                                            }
-                                            else
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                ctx.Response.StatusCode = (int)statusCode;
-                                                ctx.Response.ContentType = "text/plain";
-                                                sent = await ctx.Response.Send();
+                                                sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
                                             }
                                         }
                                         else
                                         {
-                                            statusCode = HttpStatusCode.OK;
-                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                            ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = "application/json";
-                                            sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
+                                            bool handled = false;
+
+                                            foreach (string indexFile in HTTPUtils.DefaultDocuments)
+                                            {
+                                                if (File.Exists(filePath + indexFile))
+                                                {
+                                                    handled = true;
+
+                                                    if (indexFile.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder))
+                                                    {
+                                                        var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath + indexFile, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                                        {
+                                                            statusCode = HttpStatusCode.OK;
+                                                            if (CollectPHP.Item2 != null)
+                                                            {
+                                                                foreach (var innerArray in CollectPHP.Item2)
+                                                                {
+                                                                    // Ensure the inner array has at least two elements
+                                                                    if (innerArray.Length >= 2)
+                                                                    {
+                                                                        // Extract two values from the inner array
+                                                                        string value1 = innerArray[0];
+                                                                        string value2 = innerArray[1];
+                                                                        ctx.Response.Headers.Add(value1, value2);
+                                                                    }
+                                                                }
+                                                            }
+                                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                            ctx.Response.StatusCode = (int)statusCode;
+                                                            ctx.Response.ContentType = "text/html";
+                                                            sent = await ctx.Response.Send(HTTPUtils.Compress(CollectPHP.Item1));
+                                                        }
+                                                        else
+                                                        {
+                                                            statusCode = HttpStatusCode.OK;
+                                                            if (CollectPHP.Item2 != null)
+                                                            {
+                                                                foreach (var innerArray in CollectPHP.Item2)
+                                                                {
+                                                                    // Ensure the inner array has at least two elements
+                                                                    if (innerArray.Length >= 2)
+                                                                    {
+                                                                        // Extract two values from the inner array
+                                                                        string value1 = innerArray[0];
+                                                                        string value2 = innerArray[1];
+                                                                        ctx.Response.Headers.Add(value1, value2);
+                                                                    }
+                                                                }
+                                                            }
+                                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                                            ctx.Response.StatusCode = (int)statusCode;
+                                                            ctx.Response.ContentType = "text/html";
+                                                            sent = await ctx.Response.Send(CollectPHP.Item1);
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        using (FileStream stream = new(filePath + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                                        {
+                                                            byte[]? buffer = null;
+
+                                                            using (MemoryStream ms = new())
+                                                            {
+                                                                stream.CopyTo(ms);
+                                                                buffer = ms.ToArray();
+                                                                ms.Flush();
+                                                            }
+
+                                                            if (buffer != null)
+                                                            {
+                                                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                                                {
+                                                                    statusCode = HttpStatusCode.OK;
+                                                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
+                                                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                                    ctx.Response.StatusCode = (int)statusCode;
+                                                                    ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
+                                                                    sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
+                                                                }
+                                                                else
+                                                                {
+                                                                    statusCode = HttpStatusCode.OK;
+                                                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                                                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
+                                                                    ctx.Response.StatusCode = (int)statusCode;
+                                                                    ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
+                                                                    sent = await ctx.Response.Send(buffer);
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                statusCode = HttpStatusCode.InternalServerError;
+                                                                ctx.Response.StatusCode = (int)statusCode;
+                                                                ctx.Response.ContentType = "text/plain";
+                                                                sent = await ctx.Response.Send();
+                                                            }
+
+                                                            stream.Flush();
+                                                        }
+                                                    }
+                                                    break;
+                                                }
+                                            }
+
+                                            if (!handled)
+                                            {
+                                                statusCode = HttpStatusCode.NotFound;
+                                                ctx.Response.StatusCode = (int)statusCode;
+                                                ctx.Response.ContentType = "text/plain";
+                                                sent = await ctx.Response.Send();
+                                            }
                                         }
                                     }
                                     else if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
@@ -696,33 +878,38 @@ namespace HTTPSecureServerLite
                                     }
                                     else
                                     {
-                                        // send file
-                                        if (File.Exists(filePath))
-                                        {
-                                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
-
-                                            string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                            if (ContentType == "application/octet-stream")
-                                            {
-                                                byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
-                                                foreach (var entry in HTTPUtils.PathernDictionary)
-                                                {
-                                                    if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                                                    {
-                                                        ContentType = entry.Key;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            sent = SendFile(ctx, filePath, ContentType);
-                                        }
+                                        if (File.Exists(filePath) && !string.IsNullOrEmpty(ctx.Request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
+                                            sent = new LocalFileStreamHelper().Handle_LocalFile_Stream(ctx, filePath);
                                         else
                                         {
-                                            LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
-                                            statusCode = HttpStatusCode.NotFound;
-                                            ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = "text/plain";
-                                            sent = await ctx.Response.Send();
+                                            // send file
+                                            if (File.Exists(filePath))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
+
+                                                string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                if (ContentType == "application/octet-stream")
+                                                {
+                                                    byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
+                                                    foreach (var entry in HTTPUtils.PathernDictionary)
+                                                    {
+                                                        if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                        {
+                                                            ContentType = entry.Key;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                sent = SendFile(ctx, filePath, ContentType);
+                                            }
+                                            else
+                                            {
+                                                LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
+                                                statusCode = HttpStatusCode.NotFound;
+                                                ctx.Response.StatusCode = (int)statusCode;
+                                                ctx.Response.ContentType = "text/plain";
+                                                sent = await ctx.Response.Send();
+                                            }
                                         }
                                     }
                                     break;
@@ -1179,7 +1366,7 @@ namespace HTTPSecureServerLite
                                     }
                                     else
                                     {
-                                        statusCode = HttpStatusCode.Forbidden;
+                                        statusCode = HttpStatusCode.NotFound;
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/plain";
                                         sent = await ctx.Response.Send();

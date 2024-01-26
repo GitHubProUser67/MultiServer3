@@ -13,6 +13,13 @@ namespace BackendProject.MiscUtils
 {
     public static class StaticVariousUtils
     {
+        /// <summary>
+        /// Chop a string before a given text.
+        /// <para>Coupe un string avant un caractère spécial.</para>
+        /// </summary>
+        /// <param name="s">A classic string.</param>
+        /// <param name="Before">the delimiting string.</param>
+        /// <returns>A string.</returns>
         public static string ChopOffBefore(this string s, string Before)
         {
             //Usefull function for chopping up strings
@@ -22,6 +29,13 @@ namespace BackendProject.MiscUtils
             return s;
         }
 
+        /// <summary>
+        /// Chop a string after a given text.
+        /// <para>Coupe un string après un caractère spécial.</para>
+        /// </summary>
+        /// <param name="s">A classic string.</param>
+        /// <param name="After">the delimiting string.</param>
+        /// <returns>A string.</returns>
         public static string ChopOffAfter(this string s, string After)
         {
             //Usefull function for chopping up strings
@@ -31,6 +45,14 @@ namespace BackendProject.MiscUtils
             return s;
         }
 
+        /// <summary>
+        /// Apply regex to a string.
+        /// <para>Applique une formule regex sur un string.</para>
+        /// </summary>
+        /// <param name="Source">A classic string.</param>
+        /// <param name="Pattern">the pathern.</param>
+        /// <param name="Replacement">the replacement string.</param>
+        /// <returns>A string.</returns>
         public static string ReplaceIgnoreCase(this string Source, string Pattern, string Replacement)
         {
             // using \\$ in the pattern will screw this regex up
@@ -44,6 +66,13 @@ namespace BackendProject.MiscUtils
 
     public class VariousUtils
     {
+        /// <summary>
+        /// Add a dynamic array to a existing array structure.
+        /// <para>Ajoute un objet dynamique sur une structure existante.</para>
+        /// </summary>
+        /// <param name="jaggedArray">A complex array.</param>
+        /// <param name="newElement">the complex element to add.</param>
+        /// <returns>A complex jagguedArray.</returns>
         public static T[][] AddElementToLastPosition<T>(T[][] jaggedArray, T[] newElement)
         {
             // Create a new jagged array with increased size
@@ -61,6 +90,13 @@ namespace BackendProject.MiscUtils
             return newArray;
         }
 
+        /// <summary>
+        /// Parse a newtonsoft json JToken.
+        /// <para>Parcours un Jtoken issue de la librairie newtonsoft json.</para>
+        /// </summary>
+        /// <param name="jToken">A newtonsoft json jtoken.</param>
+        /// <param name="propertyName">the property to parse in the jtoken.</param>
+        /// <returns>A complex object.</returns>
         public static object? GetValueFromJToken(JToken jToken, string propertyName)
         {
             JToken? valueToken = jToken[propertyName];
@@ -82,22 +118,43 @@ namespace BackendProject.MiscUtils
             return null;
         }
 
+        /// <summary>
+        /// Get the current date-time.
+        /// <para>Obtenir la date actuelle.</para>
+        /// </summary>
+        /// <returns>A string.</returns>
         public static string GetCurrentDateTime()
         {
             return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
         }
 
+        /// <summary>
+        /// Get Nanoseconds of the current date-time.
+        /// <para>Obtenir la date actuelle avec une évaluation en nano-secondes.</para>
+        /// </summary>
+        /// <returns>A string.</returns>
         public static string GetNanoseconds()
         {
             // C# DateTime only provides up to ticks (100 nanoseconds) resolution
             return (DateTime.Now.Ticks % TimeSpan.TicksPerMillisecond * 100).ToString("00000000"); // Pad with zeros to 8 digits
         }
 
+        /// <summary>
+        /// Get the current date-time in unix format.
+        /// <para>Obtenir la date actuelle en format unix.</para>
+        /// </summary>
+        /// <returns>A string.</returns>
         public static uint GetUnixTimeStamp()
         {
             return (uint)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         }
 
+        /// <summary>
+        /// Transform a byte array to it's hexadecimal representation.
+        /// <para>Obtenir un tableau de bytes dans sa représentation hexadecimale.</para>
+        /// <param name="byteArray">The byte array to transform.</param>
+        /// </summary>
+        /// <returns>A string.</returns>
         public static string ByteArrayToHexString(byte[] byteArray)
         {
             StringBuilder hex = new(byteArray.Length * 2);
@@ -110,6 +167,13 @@ namespace BackendProject.MiscUtils
             return hex.ToString();
         }
 
+        /// <summary>
+        /// Check if 2 byte arrays are strictly identical.
+        /// <para>Savoir si 2 tableaux de bytes sont strictement identiques.</para>
+        /// <param name="arr1">The left array.</param>
+        /// <param name="arr2">The right array.</param>
+        /// </summary>
+        /// <returns>A boolean.</returns>
         public static bool AreArraysIdentical(byte[] arr1, byte[] arr2)
         {
             // Check if the length of both arrays is the same
@@ -129,6 +193,7 @@ namespace BackendProject.MiscUtils
 
         /// <summary>
         /// Convert a hex-formatted string to byte array.
+        /// <para>Convertir une représentation hexadécimal en tableau de bytes.</para>
         /// </summary>
         /// <param name="hex">A string looking like "300D06092A864886F70D0101050500".</param>
         /// <returns>A byte array.</returns>
@@ -142,16 +207,28 @@ namespace BackendProject.MiscUtils
                              .ToArray();
         }
 
-        // Alternative but with a cleanup.
-        public static byte[] HexStringToByteArrayWithCleanup(string invalue)
+        /// <summary>
+        /// Convert a hex-formatted string to byte array with an extra cleanup.
+        /// <para>Convertir une représentation hexadécimal en tableau de bytes avec un netoyage supplémentaire.</para>
+        /// </summary>
+        /// <param name="hex">A string looking like "300D06092A864886F70D0101050500".</param>
+        /// <returns>A byte array.</returns>
+        public static byte[] HexStringToByteArrayWithCleanup(string hex)
         {
-            string cleanedRequest = invalue.Replace(" ", string.Empty).Replace("\n", string.Empty);
+            string cleanedRequest = hex.Replace(" ", string.Empty).Replace("\n", string.Empty);
             return Enumerable.Range(0, cleanedRequest.Length)
                                  .Where(x => x % 2 == 0)
                                  .Select(x => Convert.ToByte(cleanedRequest.Substring(x, 2), 16))
                                  .ToArray();
         }
 
+        /// <summary>
+        /// Split a byte array at a given index.
+        /// <para>Diviser un tableau de bytes sur un index donné.</para>
+        /// </summary>
+        /// <param name="source">The byte array to divide in 2 parts.</param>
+        /// <param name="index">The uint index at which we must separate.</param>
+        /// <returns>An array of byte array.</returns>
         public static byte[][] SplitAt(byte[] source, int index)
         {
             byte[] first = new byte[index];
@@ -161,6 +238,13 @@ namespace BackendProject.MiscUtils
             return new[] { first, second };
         }
 
+        /// <summary>
+        /// Combines 2 bytes array in one unique byte array.
+        /// <para>Combiner 2 tableaux de bytes en un seul tableau de bytes.</para>
+        /// </summary>
+        /// <param name="first">The first byte array, which represents the left.</param>
+        /// <param name="second">The second byte array, which represents the right.</param>
+        /// <returns>A byte array.</returns>
         public static byte[] CombineByteArray(byte[] first, byte[]? second)
         {
             if (second == null)
@@ -172,6 +256,13 @@ namespace BackendProject.MiscUtils
             return bytes;
         }
 
+        /// <summary>
+        /// Combines a byte array with an array of byte array to a unique byte array.
+        /// <para>Combiner un tableau de bytes avec un tableau de tableaux de bytes en un seul tableau de bytes.</para>
+        /// </summary>
+        /// <param name="first">The first byte array, which represents the left.</param>
+        /// <param name="second">The array of byte array, which represents the right.</param>
+        /// <returns>A byte array.</returns>
         public static byte[] CombineByteArrays(byte[] first, byte[][]? second)
         {
             if (second == null || second.Length == 0)
@@ -191,6 +282,14 @@ namespace BackendProject.MiscUtils
             return result;
         }
 
+        /// <summary>
+        /// Copies a given amount of bytes within a byte array with a given offset and length.
+        /// <para>Copier un montant déterminé de bytes contenus dans un tableau de bytes avec comme indicateur, la position ainsi que la taille souhaité.</para>
+        /// </summary>
+        /// <param name="source">The first byte array at which we want to copy stuff from.</param>
+        /// <param name="offset">The offset at which we must start to copy process.</param>
+        /// <param name="offset">The length we want to copy.</param>
+        /// <returns>A byte array.</returns>
         public static byte[]? CopyBytes(byte[] source, int offset, int length)
         {
             if (source == null || offset < 0 || length < 0 || offset >= source.Length)
@@ -210,6 +309,13 @@ namespace BackendProject.MiscUtils
             }
         }
 
+        /// <summary>
+        /// Reads a fragment of a file with a given indicator.
+        /// <para>Lire un fragment de fichier avec un indicateur explicite.</para>
+        /// </summary>
+        /// <param name="filePath">The path of the desired file.</param>
+        /// <param name="bytesToRead">The amount of desired fragment data.</param>
+        /// <returns>A byte array.</returns>
         public static byte[] ReadSmallFileChunck(string filePath, int bytesToRead)
         {
             byte[] result = new byte[bytesToRead];
@@ -232,6 +338,12 @@ namespace BackendProject.MiscUtils
             return result;
         }
 
+        /// <summary>
+        /// Assemble an array of byte array to a single byte array.
+        /// <para>Assemble un tableau de tableaux de bytes en un unique tableau de bytes.</para>
+        /// </summary>
+        /// <param name="arrays">The input array of byte array.</param>
+        /// <returns>A byte array.</returns>
         public static byte[] ConcatenateArrays(byte[][] arrays)
         {
             byte[] result = new byte[arrays.Sum(arr => arr.Length)];
@@ -246,11 +358,25 @@ namespace BackendProject.MiscUtils
             return result;
         }
 
+        /// <summary>
+        /// Apply a XOR mathematical calculation between 2 byte arrays.
+        /// <para>Applique un calcul mathématique de type OU exclusif entre 2 tableaux de bytes.</para>
+        /// </summary>
+        /// <param name="array1">The left array.</param>
+        /// <param name="array2">The right array.</param>
+        /// <returns>A byte array.</returns>
         public static byte[] XORBytes(byte[] array1, byte[] array2)
         {
             return array1.Zip(array2, (x, y) => (byte)(x ^ y)).ToArray();
         }
 
+        /// <summary>
+        /// Finds a sequence of bytes within a byte array.
+        /// <para>Trouve une séquence de bytes dans un tableau de bytes.</para>
+        /// </summary>
+        /// <param name="byteArray">The array in which we search for the sequence.</param>
+        /// <param name="sequenceToFind">The byte array sequence to find.</param>
+        /// <returns>A boolean.</returns>
         public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
         {
             if (Avx2.IsSupported)
@@ -325,9 +451,13 @@ namespace BackendProject.MiscUtils
         }
 
         /// <summary>
-        /// Returns index of provided byte pattern in a buffer,
-        /// returns -1 if not found
+        /// Finds a sequence of bytes within a byte array.
+        /// <para>Trouve une séquence de bytes dans un tableau de bytes.</para>
         /// </summary>
+        /// <param name="buffer">The array in which we search for the sequence.</param>
+        /// <param name="searchPattern">The byte array sequence to find.</param>
+        /// <param name="offset">The offset from where we start our research.</param>
+        /// <returns>A int (-1 if not found).</returns>
         public static int FindBytePattern(byte[] buffer, byte[] searchPattern, int offset = 0)
         {
             int found = -1;
@@ -424,9 +554,13 @@ namespace BackendProject.MiscUtils
         }
 
         /// <summary>
-        /// Returns index of provided byte pattern in a buffer,
-        /// returns -1 if not found
+        /// Finds a sequence of bytes within a byte array.
+        /// <para>Trouve une séquence de bytes dans un tableau de bytes.</para>
         /// </summary>
+        /// <param name="buffer">The Span byte in which we search for the sequence.</param>
+        /// <param name="searchPattern">The Span byte sequence to find.</param>
+        /// <param name="offset">The offset from where we start our research.</param>
+        /// <returns>A int (-1 if not found).</returns>
         public static int FindBytePattern(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchPattern, int offset = 0)
         {
             if (searchPattern.IsEmpty || buffer.Length < searchPattern.Length || offset > buffer.Length - searchPattern.Length)
@@ -453,6 +587,12 @@ namespace BackendProject.MiscUtils
             return -1;
         }
 
+        /// <summary>
+        /// Converts a string to it's hexadecimal respresentation.
+        /// <para>Transforme un string en sa représatation en hexadécimal.</para>
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <returns>A string.</returns>
         public static string StringToHexString(string input)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(input);
@@ -466,6 +606,12 @@ namespace BackendProject.MiscUtils
             return hexStringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Reverse the characters of a string.
+        /// <para>Renverse les caractère d'un string.</para>
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <returns>A string.</returns>
         public static string ReverseString(string input)
         {
             char[] charArray = input.ToCharArray();
@@ -473,7 +619,13 @@ namespace BackendProject.MiscUtils
             return new string(charArray);
         }
 
-        public static string TrimString(byte[] str)
+        /// <summary>
+        /// Trim a byte array to a string result.
+        /// <para>Coupe un tableau de bytes et convertis le résultat en string.</para>
+        /// </summary>
+        /// <param name="str">The input byte array to trim.</param>
+        /// <returns>A string.</returns>
+        public static string TrimByteArraytoString(byte[] str)
         {
             int i = str.Length - 1;
             while (str[i] == 0)
@@ -487,6 +639,28 @@ namespace BackendProject.MiscUtils
             return res;
         }
 
+        /// <summary>
+        /// Extract a portion of a string winthin boundaries.
+        /// <para>Extrait une portion d'un string entre des limites.</para>
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <param name="startToRemove">The amount of characters to remove from the left to the right.</param>
+        /// <param name="endToRemove">The amount of characters to remove from the right to the left.</param>
+        /// <returns>A string.</returns>
+        public static string? ExtractPortion(string input, int startToRemove, int endToRemove)
+        {
+            if (input.Length < startToRemove + endToRemove)
+                return null;
+
+            return input[startToRemove..][..^endToRemove];
+        }
+
+        /// <summary>
+        /// Compute the MD5 checksum of a string.
+        /// <para>Calcul la somme des contrôles en MD5 d'un string.</para>
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <returns>A string.</returns>
         public static string ComputeMD5(string input)
         {
             // Create a MD5   
@@ -506,6 +680,12 @@ namespace BackendProject.MiscUtils
             }
         }
 
+        /// <summary>
+        /// Compute the SHA256 checksum of a string.
+        /// <para>Calcul la somme des contrôles en SHA256 d'un string.</para>
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <returns>A string.</returns>
         public static string ComputeSHA256(string input)
         {
             // Create a SHA256   
@@ -525,6 +705,13 @@ namespace BackendProject.MiscUtils
             }
         }
 
+        /// <summary>
+        /// Get the public IP of the server.
+        /// <para>Obtiens l'IP publique du server.</para>
+        /// </summary>
+        /// <param name="allowipv6">Allow IPV6 format.</param>
+        /// <param name="ipv6urlformat">Format the IPV6 result in a url compatible format ([addr]).</param>
+        /// <returns>A string.</returns>
         public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
 #if NET7_0
@@ -563,7 +750,13 @@ namespace BackendProject.MiscUtils
             return GetLocalIPAddress().ToString();
         }
 
-        public static IPAddress GetLocalIPAddress(bool allowIPv6 = false)
+        /// <summary>
+        /// Get the local IP of the server.
+        /// <para>Obtiens l'IP locale du server.</para>
+        /// </summary>
+        /// <param name="allowipv6">Allow IPV6 format.</param>
+        /// <returns>A IPAddress.</returns>
+        public static IPAddress GetLocalIPAddress(bool allowipv6 = false)
         {
             try
             {
@@ -583,7 +776,7 @@ namespace BackendProject.MiscUtils
                     IPInterfaceProperties? properties = networkInterface.GetIPProperties();
 
                     // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
-                    var addresses = allowIPv6
+                    var addresses = allowipv6
                         ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
                         : properties.UnicastAddresses
                             .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
@@ -603,6 +796,13 @@ namespace BackendProject.MiscUtils
             return IPAddress.Loopback;
         }
 
+        /// <summary>
+        /// Get the first active IP of a given domain.
+        /// <para>Obtiens la première IP active disponible d'un domaine.</para>
+        /// </summary>
+        /// <param name="hostName">The domain on which we search.</param>
+        /// <param name="fallback">The fallback IP if we fail to find any results</param>
+        /// <returns>A string.</returns>
         public static string GetFirstActiveIPAddress(string hostName, string fallback)
         {
             try
@@ -691,6 +891,12 @@ namespace BackendProject.MiscUtils
             return fallback;
         }
 
+        /// <summary>
+        /// Know if the given TCP port is available.
+        /// <para>Savoir si le port TCP en question est disponible.</para>
+        /// </summary>
+        /// <param name="port">The port on which we scan.</param>
+        /// <returns>A boolean.</returns>
         public static bool IsTCPPortAvailable(int port)
         {
             try
@@ -707,6 +913,12 @@ namespace BackendProject.MiscUtils
             return false;
         }
 
+        /// <summary>
+        /// Know if the given UDP port is available.
+        /// <para>Savoir si le port UDP en question est disponible.</para>
+        /// </summary>
+        /// <param name="port">The port on which we scan.</param>
+        /// <returns>A boolean.</returns>
         public static bool IsUDPPortAvailable(int port)
         {
             try
@@ -726,15 +938,34 @@ namespace BackendProject.MiscUtils
             return true;
         }
 
+        /// <summary>
+        /// Know if we are on the Windows operating system.
+        /// <para>Savoir si on se situe sur un système d'exploitation Windows.</para>
+        /// </summary>
+        /// <returns>A boolean.</returns>
         public static bool IsWindows()
         {
             return Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
         }
+
+        /// <summary>
+        /// Know if we are the true administrator of the Windows system.
+        /// <para>Savoir si est réellement l'administrateur Windows.</para>
+        /// </summary>
+        /// <returns>A boolean.</returns>
 #pragma warning disable
         public static bool IsAdministrator()
         {
             return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
         }
+
+        /// <summary>
+        /// Know if the file is outdated with a given maximum age.
+        /// <para>Savoir si le fichier visé est obsolète grâce à un paramètre d'obsolescence.</para>
+        /// </summary>
+        /// <param name="filePath">The path of the file to check for.</param>
+        /// <param name="maxAge">The maximum age of the file to determine it's status</param>
+        /// <returns>A boolean.</returns>
 #pragma warning restore
         public static bool IsFileOutdated(string filePath, TimeSpan maxAge)
         {
@@ -747,6 +978,11 @@ namespace BackendProject.MiscUtils
             return false; // The file is up to date
         }
 
+        /// <summary>
+        /// Generate a server signature for HTTP backends purposes.
+        /// <para>Générer une signature à usage des sous-systèmes HTTP.</para>
+        /// </summary>
+        /// <returns>A string.</returns>
         public static string GenerateServerSignature()
         {
             string pstring = string.Empty;

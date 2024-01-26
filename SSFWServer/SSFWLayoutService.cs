@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Text;
 using BackendProject.FileHelper;
+using BackendProject.MiscUtils;
 
 namespace SSFWServer
 {
@@ -19,15 +20,55 @@ namespace SSFWServer
         {
             Directory.CreateDirectory(directorypath);
 
-            string inputurlfortrim = absolutepath;
-            string[] words = inputurlfortrim.Split('/');
+            string sceneid = absolutepath;
+            string[] words = sceneid.Split('/');
 
             if (words.Length > 0)
-                inputurlfortrim = words[words.Length - 1];
+                sceneid = words[^1];
 
-            if (inputurlfortrim != absolutepath) // If ends with UUID Ok.
+            if (sceneid != absolutepath) // If ends with UUID Ok.
             {
-                SSFWFurnitureLayoutProcess(directorypath + "/mylayout.json", buffer, inputurlfortrim);
+                if (File.Exists(SSFWServerConfiguration.ScenelistFile))
+                {
+                    bool handled = false;
+
+                    Dictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
+
+                    if (File.Exists(directorypath + "/mylayout.json")) // Migrate data.
+                    {
+                        // Parsing each value in the dictionary
+                        foreach (var kvp in SSFWGetLegacyFurnitureLayouts(directorypath + "/mylayout.json"))
+                        {
+                            string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(kvp.Key, 13, 18)).Key;
+                            if (!string.IsNullOrEmpty(scenename))
+                            {
+                                File.WriteAllText(directorypath + $"/{scenename}.json", kvp.Value);
+                                handled = true;
+                            }
+
+                            if (!handled)
+                                File.WriteAllText(directorypath + $"/{kvp.Key}.json", kvp.Value);
+
+                        }
+
+                        File.Delete(directorypath + "/mylayout.json");
+                    }
+                    else
+                    {
+                        string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
+                        if (!string.IsNullOrEmpty(scenename))
+                        {
+                            File.WriteAllText(directorypath + $"/{scenename}.json", Encoding.UTF8.GetString(buffer));
+                            handled = true;
+                        }
+
+                        if (!handled)
+                            File.WriteAllText(directorypath + $"/{sceneid}.json", Encoding.UTF8.GetString(buffer));
+                    }
+                }
+                else
+                    SSFWLegacyFurnitureLayoutProcess(directorypath + "/mylayout.json", buffer, sceneid);
+
                 return true;
             }
             
@@ -36,19 +77,28 @@ namespace SSFWServer
 
         public string? HandleLayoutServiceGET(string directorypath, string absolutepath)
         {
-            string inputurlfortrim = absolutepath;
-            string[] words = inputurlfortrim.Split('/');
+            string sceneid = absolutepath;
+            string[] words = sceneid.Split('/');
 
             if (words.Length > 0)
-                inputurlfortrim = words[words.Length - 1];
+                sceneid = words[^1];
 
-            if (inputurlfortrim != absolutepath) // If ends with UUID Ok.
+            if (sceneid != absolutepath) // If ends with UUID Ok.
             {
+                if (File.Exists(SSFWServerConfiguration.ScenelistFile))
+                {
+                    string filepath = directorypath + $"/{ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key}.json";
+                    if (File.Exists(filepath))
+                        return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(filepath, key)}}}]";
 
-                string? stringlayout = SSFWGetFurnitureLayoutProcess(directorypath + "/mylayout.json", inputurlfortrim);
+                    if (File.Exists(directorypath + $"/{sceneid}.json"))
+                        return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(directorypath + $"/{sceneid}.json", key)}}}]";
+                }
+
+                string? stringlayout = SSFWGetLegacyFurnitureLayoutProcess(directorypath + "/mylayout.json", sceneid);
 
                 if (stringlayout != null)
-                    return $"[{{\"{inputurlfortrim}\":{stringlayout}}}]";
+                    return $"[{{\"{sceneid}\":{stringlayout}}}]";
                 else
                     return string.Empty;
             }
@@ -56,7 +106,7 @@ namespace SSFWServer
             return null;
         }
 
-        public void SSFWFurnitureLayoutProcess(string filePath, byte[] postData, string objectId)
+        public void SSFWLegacyFurnitureLayoutProcess(string filePath, byte[] postData, string sceneid)
         {
             try
             {
@@ -77,7 +127,7 @@ namespace SSFWServer
                 for (int i = 0; i < jsonArray.Count; i++)
                 {
                     JObject? obj = jsonArray[i] as JObject;
-                    if (obj != null && obj.Properties().Any(p => p.Name == objectId))
+                    if (obj != null && obj.Properties().Any(p => p.Name == sceneid))
                     {
                         existingIndex = i;
                         break;
@@ -90,14 +140,14 @@ namespace SSFWServer
                     JObject? existingObject = jsonArray[existingIndex] as JObject;
 
                     if (existingObject != null)
-                        existingObject[objectId] = JObject.Parse(Encoding.UTF8.GetString(postData));
+                        existingObject[sceneid] = JObject.Parse(Encoding.UTF8.GetString(postData));
                 }
                 else
                 {
                     // Create a new object with the objectId and POST data
-                    JObject newObject = new JObject
+                    JObject newObject = new()
                     {
-                        { objectId, JObject.Parse(Encoding.UTF8.GetString(postData)) }
+                        { sceneid, JObject.Parse(Encoding.UTF8.GetString(postData)) }
                     };
 
                     // Add the new object to the JSON array
@@ -108,11 +158,11 @@ namespace SSFWServer
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[SSFW] - SSFWFurnitureLayout errored out with this exception - {ex}");
+                LoggerAccessor.LogError($"[SSFW] - SSFWLegacyFurnitureLayoutProcess errored out with this exception - {ex}");
             }
         }
 
-        public string? SSFWGetFurnitureLayoutProcess(string filePath, string objectId)
+        public string? SSFWGetLegacyFurnitureLayoutProcess(string filePath, string sceneid)
         {
             try
             {
@@ -124,19 +174,47 @@ namespace SSFWServer
                         JArray jsonArray = JArray.Parse(json);
                         JObject? existingObject = jsonArray
                             .OfType<JObject>()
-                            .FirstOrDefault(obj => obj[objectId] != null);
+                            .FirstOrDefault(obj => obj[sceneid] != null);
 
-                        if (existingObject != null && existingObject.TryGetValue(objectId, out JToken? value))
+                        if (existingObject != null && existingObject.TryGetValue(sceneid, out JToken? value))
                             return value.ToString();
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[SSFW] - SSFWGetFurnitureLayout errored out with this exception - {ex}");
+                LoggerAccessor.LogError($"[SSFW] - SSFWGetLegacyFurnitureLayoutProcess errored out with this exception - {ex}");
             }
 
             return null;
+        }
+
+        public Dictionary<string, string> SSFWGetLegacyFurnitureLayouts(string filePath)
+        {
+            Dictionary<string, string> outputDictionary = new();
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    string? json = FileHelper.ReadAllText(filePath, key);
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        foreach (JObject obj in JArray.Parse(json).OfType<JObject>())
+                        {
+                            foreach (JProperty? property in obj.Properties())
+                            {
+                                outputDictionary.Add(property.Name, property.Value.ToString());
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[SSFW] - SSFWGetLegacyFurnitureLayouts errored out with this exception - {ex}");
+            }
+
+            return outputDictionary;
         }
 
         protected virtual void Dispose(bool disposing)

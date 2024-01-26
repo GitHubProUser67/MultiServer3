@@ -11,6 +11,7 @@ public static class SSFWServerConfiguration
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string ScenelistFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot/SceneList.xml";
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;
@@ -44,6 +45,7 @@ public static class SSFWServerConfiguration
             SSFWCrossSave = config.cross_save;
             SSFWStaticFolder = config.static_folder;
             HTTPSCertificateFile = config.certificate_file;
+            ScenelistFile = config.scenelist_file;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
             EnableDiscordPlugin = config.discord_plugin.enabled;
@@ -88,6 +90,8 @@ class Program
 
         if (SSFWServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(SSFWServerConfiguration.DiscordChannelID, SSFWServerConfiguration.DiscordBotToken);
+
+        _ = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey).StartSSFW(),
