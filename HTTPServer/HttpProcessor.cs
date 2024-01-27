@@ -97,6 +97,8 @@ namespace HTTPServer
                                     // Process the request based on the HTTP method
                                     string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
 
+                                    string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
+
                                     HttpResponse? response = RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
                                     if (response == null)
@@ -147,7 +149,7 @@ namespace HTTPServer
                                                         byte[] buffer = new byte[contentLength];
                                                         // Read the contents of the memory stream into the byte array
                                                         postdata.Read(buffer, 0, contentLength);
-                                                        res = ohs.ProcessRequest(buffer, request.GetContentType(), filePath);
+                                                        res = ohs.ProcessRequest(buffer, request.GetContentType(), apiPath);
                                                         postdata.Flush();
                                                     }
                                                     ohs.Dispose();

@@ -172,6 +172,8 @@ namespace HTTPSecureServerLite
                 // Process the request based on the HTTP method
                 string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath[1..]);
 
+                string apiPath = Path.Combine(HTTPSServerConfiguration.APIStaticFolder, absolutepath[1..]);
+
                 if ((absolutepath == "/" || absolutepath == "\\") && ctx.Request.Method.ToString() == "GET")
                 {
                     bool handled = false;
@@ -365,7 +367,7 @@ namespace HTTPSecureServerLite
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
                     OHSClass ohs = new(ctx.Request.Method.ToString(), absolutepath, 0);
-                    string? res = ohs.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, filePath);
+                    string? res = ohs.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, apiPath);
                     ohs.Dispose();
                     if (string.IsNullOrEmpty(res))
                     {
