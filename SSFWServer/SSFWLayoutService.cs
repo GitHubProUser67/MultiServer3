@@ -49,6 +49,9 @@ namespace SSFWServer
                                 string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(kvp.Key, 13, 18)).Key;
                                 if (!string.IsNullOrEmpty(scenename))
                                 {
+                                    if (File.Exists(directorypath + $"/{kvp.Key}.json")) // SceneID now mapped, so SceneID based file has become obsolete.
+                                        File.Delete(directorypath + $"/{kvp.Key}.json");
+
                                     File.WriteAllText(directorypath + $"/{scenename}.json", kvp.Value);
                                     handled = true;
                                 }
@@ -74,6 +77,9 @@ namespace SSFWServer
                             string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
                             if (!string.IsNullOrEmpty(scenename))
                             {
+                                if (File.Exists(directorypath + $"/{sceneid}.json")) // SceneID now mapped, so SceneID based file has become obsolete.
+                                    File.Delete(directorypath + $"/{sceneid}.json");
+
                                 File.WriteAllText(directorypath + $"/{scenename}.json", Encoding.UTF8.GetString(buffer));
                                 handled = true;
                             }
@@ -111,9 +117,13 @@ namespace SSFWServer
                     }
                     else
                     {
-                        string filepath = directorypath + $"/{ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key}.json";
-                        if (File.Exists(filepath))
-                            return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(filepath, key)}}}]";
+                        string scenename = ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
+                        if (!string.IsNullOrEmpty(scenename))
+                        {
+                            string filepath = directorypath + $"/{scenename}.json";
+                            if (File.Exists(filepath))
+                                return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(filepath, key)}}}]";
+                        }
                     }
 
                     if (File.Exists(directorypath + $"/{sceneid}.json"))
