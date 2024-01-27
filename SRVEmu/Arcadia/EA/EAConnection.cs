@@ -54,20 +54,18 @@ public class EAConnection : IEAConnection
             }
             catch (Exception)
             {
-                LoggerAccessor.LogError("[Arcadia] EAConnection-StartConnection Failed to read client stream, endpoint: {endpoint}", ClientEndpoint);
+                LoggerAccessor.LogError("[Arcadia] - EAConnection-StartConnection Failed to read client stream, endpoint: {endpoint}", ClientEndpoint);
                 break;
             }
 
             if (read == 0)
-            {
                 continue;
-            }
 
-            var packet = new Packet(readBuffer[..read]);
-            LoggerAccessor.LogInfo("[Arcadia] EAConnection-StartConnection Incoming '{type}' data:{data}", packet.Type, Encoding.ASCII.GetString(readBuffer[..read]));
+            Packet packet = new(readBuffer[..read]);
+            LoggerAccessor.LogInfo("[Arcadia] - EAConnection-StartConnection Incoming '{type}' data:{data}", packet.Type, Encoding.ASCII.GetString(readBuffer[..read]));
             yield return packet;
         }
-        LoggerAccessor.LogDebug("[Arcadia] EAConnection-StartConnection Connection has been closed: {endpoint}", ClientEndpoint);
+        LoggerAccessor.LogDebug("[Arcadia] - EAConnection-StartConnection Connection has been closed: {endpoint}", ClientEndpoint);
     }
 
     public async Task<bool> SendPacket(Packet packet)
@@ -83,19 +81,19 @@ public class EAConnection : IEAConnection
     {
         if (NetworkStream is null || !NetworkStream.CanWrite)
         {
-            LoggerAccessor.LogDebug("[Arcadia] EAConnection-SendBinary Tried writing to disconnected endpoint: {endpoint}!", ClientEndpoint);
+            LoggerAccessor.LogDebug("[Arcadia] - EAConnection-SendBinary Tried writing to disconnected endpoint: {endpoint}!", ClientEndpoint);
             return false;
         }
 
         try
         {
             await NetworkStream.WriteAsync(buffer);
-            LoggerAccessor.LogDebug("[Arcadia] EAConnection-SendBinary data sent:{data}", Encoding.ASCII.GetString(buffer));
+            LoggerAccessor.LogDebug("[Arcadia] - EAConnection-SendBinary data sent:{data}", Encoding.ASCII.GetString(buffer));
             return true;
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            LoggerAccessor.LogError("[Arcadia] EAConnection-SendBinary Failed writing to endpoint: {endpoint}!", ClientEndpoint);
+            LoggerAccessor.LogWarn("[Arcadia] - EAConnection-SendBinary Failed writing to endpoint or client connection closed: {endpoint}!", ClientEndpoint);
             return false;
         }
     }

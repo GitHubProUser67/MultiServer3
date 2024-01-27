@@ -37,7 +37,9 @@ public class FeslHostedService
         int[] listeningPorts = new int[] {
             (int)FeslGamePort.BeachPS3,
             (int)FeslGamePort.BadCompanyPS3,
+            (int)FeslGamePort.BadCompany2PS3,
             (int)FeslGamePort.RomePS3,
+            //(int)FeslGamePort.MirrorsEdgePS3,
             (int)FeslGamePort.RomePC,
             (int)FeslServerPort.RomePC
         };
@@ -52,7 +54,7 @@ public class FeslHostedService
 
     private void CreateFeslPortListener(int listenerPort)
     {
-        Task serverFesl = Task.Run(() =>
+        Task serverFesl = Task.Run(async () =>
         {
             TcpListener listener = new(IPAddress.Parse(SRVEmuServerConfiguration.ListenAddress), listenerPort);
             listener.Start();
@@ -61,7 +63,8 @@ public class FeslHostedService
 
             while (!_cts.Token.IsCancellationRequested)
             {
-                _activeConnections.Add(Task.Run(async () => await HandleConnection(await listener.AcceptTcpClientAsync(_cts.Token), listenerPort), _cts.Token));
+                TcpClient client = await listener.AcceptTcpClientAsync(_cts.Token);
+                _activeConnections.Add(Task.Run(async () => await HandleConnection(client, listenerPort), _cts.Token));
             }
         }, _cts.Token);
 
@@ -82,6 +85,8 @@ public class FeslHostedService
             case (int)FeslGamePort.RomePS3:
             case (int)FeslGamePort.RomePC:
             case (int)FeslGamePort.BadCompanyPS3:
+            case (int)FeslGamePort.BadCompany2PS3:
+            //case (int)FeslGamePort.MirrorsEdgePS3:
                 await new FeslClientHandler(new EAConnection(), _sharedCounters, _sharedCache).HandleClientConnection(serverProtocol,
                     clientEndpoint, (FeslGamePort)connectionPort);
                 break;
