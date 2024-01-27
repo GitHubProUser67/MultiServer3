@@ -39,27 +39,44 @@ namespace SSFWServer
                         // Parsing each value in the dictionary
                         foreach (var kvp in SSFWGetLegacyFurnitureLayouts(directorypath + "/mylayout.json"))
                         {
-                            string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(kvp.Key, 13, 18)).Key;
-                            if (!string.IsNullOrEmpty(scenename))
+                            if (kvp.Key == "00000000-00000000-00000000-00000004")
                             {
-                                File.WriteAllText(directorypath + $"/{scenename}.json", kvp.Value);
+                                File.WriteAllText(directorypath + "/HarborStudio.json", kvp.Value);
                                 handled = true;
+                            }
+                            else
+                            {
+                                string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(kvp.Key, 13, 18)).Key;
+                                if (!string.IsNullOrEmpty(scenename))
+                                {
+                                    File.WriteAllText(directorypath + $"/{scenename}.json", kvp.Value);
+                                    handled = true;
+                                }
                             }
 
                             if (!handled)
                                 File.WriteAllText(directorypath + $"/{kvp.Key}.json", kvp.Value);
 
+                            handled = false;
                         }
 
                         File.Delete(directorypath + "/mylayout.json");
                     }
                     else
                     {
-                        string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
-                        if (!string.IsNullOrEmpty(scenename))
+                        if (sceneid == "00000000-00000000-00000000-00000004")
                         {
-                            File.WriteAllText(directorypath + $"/{scenename}.json", Encoding.UTF8.GetString(buffer));
+                            File.WriteAllText(directorypath + "/HarborStudio.json", Encoding.UTF8.GetString(buffer));
                             handled = true;
+                        }
+                        else
+                        {
+                            string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
+                            if (!string.IsNullOrEmpty(scenename))
+                            {
+                                File.WriteAllText(directorypath + $"/{scenename}.json", Encoding.UTF8.GetString(buffer));
+                                handled = true;
+                            }
                         }
 
                         if (!handled)
@@ -87,9 +104,17 @@ namespace SSFWServer
             {
                 if (File.Exists(SSFWServerConfiguration.ScenelistFile))
                 {
-                    string filepath = directorypath + $"/{ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key}.json";
-                    if (File.Exists(filepath))
-                        return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(filepath, key)}}}]";
+                    if (sceneid == "00000000-00000000-00000000-00000004")
+                    {
+                        if (File.Exists(directorypath + "/HarborStudio.json"))
+                            return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(directorypath + "/HarborStudio.json", key)}}}]";
+                    }
+                    else
+                    {
+                        string filepath = directorypath + $"/{ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key}.json";
+                        if (File.Exists(filepath))
+                            return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(filepath, key)}}}]";
+                    }
 
                     if (File.Exists(directorypath + $"/{sceneid}.json"))
                         return $"[{{\"{sceneid}\":{FileHelper.ReadAllText(directorypath + $"/{sceneid}.json", key)}}}]";

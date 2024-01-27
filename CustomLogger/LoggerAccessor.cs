@@ -51,7 +51,7 @@ namespace CustomLogger
             initiated = true;
         }
 
-        public static void drawTextProgressBar(string? text, int progress, int total)
+        public static void drawTextProgressBar(string? text, int progress, int total, bool warn = false)
         {
             if (initiated)
             {
@@ -60,7 +60,10 @@ namespace CustomLogger
 
                 try
                 {
-                    LogInfo($"\n{text}\n");
+                    if (warn)
+                        LogWarn($"\n{text}\n");
+                    else
+                        LogInfo($"\n{text}\n");
                     //draw empty progress bar
                     Console.CursorLeft = 0;
                     Console.Write("["); //start
