@@ -15,8 +15,6 @@ namespace SSFWServer
 
                 sceneDictionary.Clear();
 
-                sceneDictionary.Add("HarborStudio", "0000"); // Harbor studio is always mapped to sceneID 0 for some reasons...
-
                 XmlDocument xmlDoc = new();
                 xmlDoc.Load(SSFWServerConfiguration.ScenelistFile);
 
