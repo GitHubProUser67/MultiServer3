@@ -3,9 +3,11 @@ namespace SRVEmu.Arcadia.EA.Ports;
 public enum FeslGamePort : int
 {
     BadCompanyPS3 = 18800,
+    BadCompany2PS3 = 18171,
     RomePS3 = 18121,
     BeachPS3 = 18231,
-    RomePC = 18390
+    RomePC = 18390,
+    //MirrorsEdgePS3 = 18700
 }
 
 public enum TheaterGamePort : int

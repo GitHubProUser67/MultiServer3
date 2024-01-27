@@ -45,7 +45,7 @@ public class TheaterHostedService
 
     private void CreateTheaterPortListener(int listenerPort)
     {
-        Task server = Task.Run(() =>
+        Task server = Task.Run(async () =>
         {
             TcpListener listener = new(IPAddress.Parse(SRVEmuServerConfiguration.ListenAddress), listenerPort);
             listener.Start();
@@ -54,7 +54,8 @@ public class TheaterHostedService
 
             while (!_cts.Token.IsCancellationRequested)
             {
-                _activeConnections.Add(Task.Run(async () => await HandleConnection(await listener.AcceptTcpClientAsync(_cts.Token), listenerPort), _cts.Token));
+                TcpClient client = await listener.AcceptTcpClientAsync(_cts.Token);
+                _activeConnections.Add(Task.Run(async () => await HandleConnection(client, listenerPort), _cts.Token));
             }
         });
 
