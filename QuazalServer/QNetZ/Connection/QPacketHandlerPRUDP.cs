@@ -37,7 +37,7 @@ namespace QuazalServer.QNetZ
 		private QPacket ProcessSYN(QPacket p, IPEndPoint from)
 		{
 			// create protocol client
-			QClient? qclient = GetQClientByEndPoint(from);
+			QClient? qclient = GetQClientByEndPointAndSignature(from, p.m_uiSignature);
 			if (qclient == null)
                 qclient = NewQClient(from);
 
@@ -421,7 +421,18 @@ namespace QuazalServer.QNetZ
 			return qclient;
 		}
 
-		public QClient? GetQClientByEndPoint(IPEndPoint ep)
+        public QClient? GetQClientByEndPointAndSignature(IPEndPoint ep, uint id)
+        {
+            foreach (QClient c in Clients)
+            {
+                if (c.Endpoint.Address.ToString() == ep.Address.ToString() && c.Endpoint.Port == ep.Port && c.IDrecv == id)
+                    return c;
+            }
+
+            return null;
+        }
+
+        public QClient? GetQClientByEndPoint(IPEndPoint ep)
 		{
 			foreach (QClient c in Clients)
 			{
