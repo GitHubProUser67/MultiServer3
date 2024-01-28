@@ -17,8 +17,22 @@ namespace BackendProject.WebAPIs.OHS
                 using (MemoryStream ms = new(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
-                    LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
-                    dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
+                    try
+                    {
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                    }
+                    catch (Exception)
+                    {
+                        // Not Important.
+                    }
+                    try
+                    {
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogWarn($"[OHS] : Client issued Statistics with an unknown body format, report this to GITHUB: {ex}");
+                    }
                     ms.Flush();
                 }
             }
