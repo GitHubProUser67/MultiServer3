@@ -21,7 +21,7 @@ namespace QuazalServer.QNetZ
 		GameSessionService				= 42,
         MatchMakingProtocolExtClient 	= 50,
         GhostbustersPS3CustService      = 60,
-        _71Service                      = 71,
+        OfflineGameNotificationsService                      = 71,
         LSPService                      = 81,
         _83Service                      = 83,
         ChallengeStoreProtocol          = 102,

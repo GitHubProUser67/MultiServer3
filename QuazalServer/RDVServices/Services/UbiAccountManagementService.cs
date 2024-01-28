@@ -12,10 +12,18 @@ namespace QuazalServer.RDVServices.Services
 	public class UbiAccountManagementService : RMCServiceBase
 	{
 		[RMCMethod(1)]
-		public void CreateAccount()
+		public RMCResult CreateAccount()
 		{
-			UNIMPLEMENTED();
-		}
+            if (Context != null && Context.Client.Info != null)
+			{
+				UbiAccount? account = UbisoftDatabase.AccountDatabase.CreateAccount(Context.Client.Info);
+
+				if (account != null)
+                    return Result(new { ubi_account = account, failed_reasons = new List<ValidationFailureReason>() });
+            }
+
+			return Error(0);
+        }
 
 		[RMCMethod(2)]
 		public void UpdateAccount()
@@ -29,86 +37,85 @@ namespace QuazalServer.RDVServices.Services
 			if (Context != null && Context.Client.Info != null)
 			{
                 PlayerInfo? playerInfo = Context.Client.Info;
-                var account = new UbiAccount()
-                {
-                    m_ubiAccountId = playerInfo.AccountId,
-                    m_username = playerInfo.Name,
-                    m_password = string.Empty,
-                    m_firstName = string.Empty,
-                    m_lastName = string.Empty,
-                    m_countryCode = "KZ",
-                    m_email = "whatever@dontcare.com",
-                    m_preferredLanguage = "en",
-                    m_gender = 0,
-                    m_optIn = true,
-                    m_thirdPartyOptIn = true,
-                    m_status = new UbiAccountStatus()
-                    {
-                        m_basicStatus = 2,
-                        m_missingRequiredInformations = false,
-                        m_pendingDeactivation = false,
-                        m_recoveringPassword = true
-                    },
-                    m_externalAccounts = new List<ExternalAccount>()
+
+				if (playerInfo != null)
+				{
+					UbiAccount? account = UbisoftDatabase.AccountDatabase.GetAccountByUbiAcctId(playerInfo.AccountId, playerInfo.UbiAcctName);
+
+                    if (account != null)
+                        return Result(new { account = account, exist = true });
+                    else if (!string.IsNullOrEmpty(playerInfo.Name))
 					{
-						new ExternalAccount()
-						{
-							m_accountType = 11,
-							m_id = "loh",
-							m_username = "aabb0"
-						},
-						new ExternalAccount()
-						{
-							m_accountType = 25,
-							m_id = "pidr",
-							m_username = "aabb1"
-						},
-						new ExternalAccount()
-						{
-							m_accountType = 31,
-							m_id = "whatev",
-							m_username = "aabb2"
-						}
-
-					},
-                    m_dateOfBirth = new DateTime(1990, 11, 1)
-                };
-
-                return Result(new { account = account, exist = true });
+						if (playerInfo.Name == "Tracking")
+                            return Result(new { account = UbisoftDatabase.AccountDatabase.GetTrackingAccount(), exist = true });
+						else
+                            return Result(new { account = playerInfo.Name, exist = false });
+                    }
+                }
             }
 
-            return Result(new { account = "voodooperson05", exist = false });
+            return Result(new { exist = false });
         }
 
         [RMCMethod(4)]
-		public void LinkAccount()
+		public RMCResult? LinkAccount(string ubi_account_username, string ubi_account_password)
 		{
-			UNIMPLEMENTED();
-		}
+			if (Context != null && Context.Client.Info != null)
+			{
+                UbiAccount? account = UbisoftDatabase.AccountDatabase.GetAccountByUsername(ubi_account_username);
+
+                if (account != null && account.m_password == ubi_account_password)
+                {
+                    Context.Client.Info.UbiAcctName = account.m_username;
+                    Context.Client.Info.UbiPass = account.m_password;
+					Context.Client.Info.UbiMail = account.m_email;
+					Context.Client.Info.UbiLanguageCode = account.m_preferred_language;
+                    Context.Client.Info.UbiCountryCode = account.m_country_code;
+                    return Error(0);
+                }
+            }
+
+			return null; // Only way to reject invalid accounts.
+        }
 
 		[RMCMethod(5)]
-		public void GetTOS()
+		public RMCResult GetTOS(string country_code, string language_code, bool html_version)
 		{
-			UNIMPLEMENTED();
-		}
+            if (Context != null && Context.Client.Info != null)
+			{
+                Context.Client.Info.UbiCountryCode = country_code;
+                Context.Client.Info.UbiLanguageCode = language_code;
+            }
+
+            return Result(new { tos = new TOS(country_code, language_code) });
+        }
 
 		[RMCMethod(6)]
-		public void ValidateUsername()
+		public RMCResult ValidateUsername(string username)
 		{
-			UNIMPLEMENTED();
-		}
+            if (Context != null && Context.Client.Info != null)
+                Context.Client.Info.UbiAcctName = username;
+
+            return Result(new { username_validation = new UsernameValidation() });
+        }
 
 		[RMCMethod(7)]
-		public void ValidatePassword()
+		public RMCResult ValidatePassword(string password, string username)
 		{
-			UNIMPLEMENTED();
-		}
+            if (Context != null && Context.Client.Info != null)
+                Context.Client.Info.UbiPass = password;
+
+            return Result(new { failed_reasons = new List<ValidationFailureReason>() });
+        }
 
 		[RMCMethod(8)]
-		public void ValidateEmail()
+		public RMCResult ValidateEmail(string email)
 		{
-			UNIMPLEMENTED();
-		}
+            if (Context != null && Context.Client.Info != null)
+                Context.Client.Info.UbiMail = email;
+
+            return Result(new { failed_reasons = new List<ValidationFailureReason>() });
+        }
 
 		[RMCMethod(9)]
 		public void GetCountryList()

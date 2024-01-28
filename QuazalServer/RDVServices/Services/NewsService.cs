@@ -11,15 +11,57 @@ namespace QuazalServer.RDVServices.Services
 	[RMCService(RMCProtocolId.NewsService)]
 	public class NewsService : RMCServiceBase
 	{
-		[RMCMethod(8)]
+        [RMCMethod(1)]
+        public void GetChannels()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(2)]
+        public void GetChannelsByTypes()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(3)]
+        public void GetSubscribableChannels()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(4)]
+        public void GetChannelsByIDs()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(5)]
+        public void GetSubscribedChannels()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(6)]
+        public void SubscribeChannel()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(7)]
+        public void UnsubscribeChannel()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(8)]
 		public RMCResult GetNewsHeaders(NewsRecipient recipient, uint offset, uint size)
 		{
-			var plInfo = Context.Client.Info;
+			var plInfo = Context?.Client.Info;
 			var random = new Random();
 
 			var funNews = new List<string>{
 				"Actumcnally",
-				$"Hello { plInfo.Name }! Welcome to Alcatraz server!",
+				$"Hello { plInfo?.Name }! Welcome to Alcatraz server!",
 				$"Players online: { NetworkPlayers.Players.Count-1 }",
 				"Need Deluxe Edition content? Enter IWantDeluxeCars and IWantDeluxeChallenges in Extras > Exclusive Content menu!",
 				"All UPlay Rewards were unlocked for you!",
@@ -55,10 +97,27 @@ namespace QuazalServer.RDVServices.Services
 		}
 
         [RMCMethod(10)]
-        public RMCResult UNK10()
+        public RMCResult GetNumberOfNews(NewsRecipient recipient)
+        {
+            return Result(new { number_of_news = 0 });
+        }
+
+        [RMCMethod(11)]
+        public void GetChannelByType()
         {
             UNIMPLEMENTED();
-            return Error(0);
+        }
+
+        [RMCMethod(12)]
+        public void GetNewsHeadersByType()
+        {
+            UNIMPLEMENTED();
+        }
+
+        [RMCMethod(13)]
+        public void GetNewsMessagesByType()
+        {
+            UNIMPLEMENTED();
         }
     }
 }

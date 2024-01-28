@@ -4,9 +4,9 @@ using QuazalServer.QNetZ.Interfaces;
 
 namespace QuazalServer.RDVServices.Services
 {
-    [RMCService(RMCProtocolId._71Service)]
+    [RMCService(RMCProtocolId.OfflineGameNotificationsService)]
 
-    public class _71Service : RMCServiceBase
+    public class OfflineGameNotificationsService : RMCServiceBase
     {
         [RMCMethod(1)]
         public RMCResult UKN1()

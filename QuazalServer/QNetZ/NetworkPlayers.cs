@@ -30,13 +30,14 @@ namespace QuazalServer.QNetZ
 
 		public static PlayerInfo CreatePlayerInfo(QClient connection)
 		{
-            PlayerInfo plInfo = new();
+            PlayerInfo plInfo = new()
+            {
+                Client = connection,
+                PID = 0,
+                RVCID = RVCIDCounter++
+            };
 
-			plInfo.Client = connection;
-			plInfo.PID = 0;
-			plInfo.RVCID = RVCIDCounter++;
-
-			Players.Add(plInfo);
+            Players.Add(plInfo);
 
 			return plInfo;
 		}
