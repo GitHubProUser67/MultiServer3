@@ -87,9 +87,13 @@ class Program
         QuazalServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/quazal.json");
 
         QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
+        QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.InitiateDatabase();
 
         if (QuazalServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(QuazalServerConfiguration.DiscordChannelID, QuazalServerConfiguration.DiscordBotToken);
+
+        // Timer for scheduled updates every 30 seconds.
+        _ = new Timer(QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.ScheduledDatabaseUpdate, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(new List<Tuple<int, string>>
