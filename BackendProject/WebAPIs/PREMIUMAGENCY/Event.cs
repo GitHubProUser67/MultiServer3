@@ -1,153 +1,125 @@
-﻿using BackendProject.MiscUtils;
+using CustomLogger;
 using HttpMultipartParser;
 
 namespace BackendProject.WebAPIs.PREMIUMAGENCY
 {
     public class Event
     {
-        public static string? checkEventRequestPOST(byte[]? PostData, string? ContentType)
+        public static string? checkEventRequestPOST(byte[]? PostData, string? ContentType, string eventId)
         {
-            string eventId = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
-            if (boundary != null && PostData != null)
+            switch (eventId)
             {
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                case "76":
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - CheckEvent sent for LOCAL MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                         "<status type=\"int\">0</status>\r\n" +
+                         "</xml>";
+                case "63":
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - CheckEvent sent for QA MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                         "<status type=\"int\">0</status>\r\n" +
+                         "</xml>";
+                case "95":
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                         "<status type=\"int\">0</status>\r\n" +
+                         "</xml>";
+                default:
+                    {
+                        LoggerAccessor.LogError($"CheckEvent unhandled for eventId {eventId} | POSTDATA: \n{PostData}");
+                        return null;
+                    }
+            }
+        }
 
-                    eventId = data.GetParameterValue("evid");
+        public static string? entryEventRequestPOST(byte[]? PostData, string? ContentType, string eventId)
+        {
 
-                    ms.Flush();
-                }
+            switch (eventId)
+            {
+                case "63":
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for QA MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n" +
+                         "<status type=\"int\">1</status>\r\n" +
+                         "</xml>";
+                case "76":
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for LOCAL MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n" +
+                         "<status type=\"int\">1</status>\r\n" +
+                         "</xml>";
+                case "95":
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n" +
+                         "<status type=\"int\">1</status>\r\n" +
+                         "</xml>";
+                default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - EntryEvent unhandled for eventId {eventId} | POSTDATA: \n{PostData}");
+                        return null;
+                    }
+            }
+        }
 
-                switch (eventId)
-                {
-                    case "76":
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
-                             "<status type=\"int\">0</status>\r\n" +
-                             "</xml>";
-                    case "95":
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
-                             "<status type=\"int\">0</status>\r\n" +
-                             "</xml>";
-                }
+        public static string? getUserEventCustomRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        {
+            switch (eventId)
+            {
+                case "63":
+                    if (File.Exists($"{workpath}/eventController/MikuLiveEvent/qagetUserEventCustom.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/qagetUserEventCustom.xml");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetUserEventCustom sent for QA MikuLiveEvent {eventId}!");
+                    break;
+                case "76":
+                    if (File.Exists($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetUserEventCustom sent for LOCAL MikuLiveEvent {eventId}!");
+                    break;
+                case "95":
+                    if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetUserEventCustom sent for PUBLIC MikuLiveEvent {eventId}!");
+                    break;
+                default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetUserEventCustom unhandled for eventId {eventId} | POSTDATA: \n{PostData}");
+                        return null;
+                    }
             }
 
             return null;
         }
 
-        public static string? entryEventRequestPOST(byte[]? PostData, string? ContentType)
+        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType, string eventId)
         {
-            string eventId = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
-            if (boundary != null && PostData != null)
+            switch (eventId)
             {
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    eventId = data.GetParameterValue("evid");
-
-                    ms.Flush();
-                }
-
-                switch (eventId)
-                {
-                    case "76":
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n" +
-                             "<status type=\"int\">1</status>\r\n" +
-                             "</xml>";
-                    case "63":
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n" +
-                             "<status type=\"int\">1</status>\r\n" +
-                             "</xml>";
-                    case "95":
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n" +
-                             "<status type=\"int\">1</status>\r\n" +
-                             "</xml>";
-                }
-            }
-
-            return null;
-        }
-
-        public static string? getUserEventCustomRequestPOST(byte[]? PostData, string? ContentType, string workpath)
-        {
-            string eventId = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
-            if (boundary != null && PostData != null)
-            {
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    eventId = data.GetParameterValue("evid");
-
-                    ms.Flush();
-                }
-
-                switch (eventId)
-                {
-                    case "76":
-                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml"))
-                            return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml");
-                        break;
-                    case "63":
-                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/qagetUserEventCustom.xml"))
-                            return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/qagetUserEventCustom.xml");
-                        break;
-                    case "95":
-                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml"))
-                            return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml");
-                        break;
-                }
-            }
-
-            return null;
-        }
-
-        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType)
-        {
-            string eventId = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
-            if (boundary != null && PostData != null)
-            {
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    eventId = data.GetParameterValue("evid");
-
-                    ms.Flush();
-                }
-
-                switch (eventId)
-                {
-                    case "76":
+                case "76":
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - ClearEvent sent for LOCAL MikuLiveEvent {eventId}!");
                         return "<xml>" +
                             "\r\n<result type=\"int\">1</result>" +
                             "\r\n<description type=\"text\">Success</description>" +
@@ -155,26 +127,36 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                             "\r\n<error_message type=\"text\">None</error_message>" +
                             "\r\n<status type=\"int\">2</status>" +
                             "\r\n</xml>";
-                    case "63":
-                        return "<xml>" +
-                            "\r\n<result type=\"int\">1</result>" +
-                            "\r\n<description type=\"text\">Success</description>" +
-                            "\r\n<error_no type=\"int\">0</error_no>" +
-                            "\r\n<error_message type=\"text\">None</error_message>" +
-                            "\r\n<status type=\"int\">2</status>" +
-                            "\r\n</xml>";
-                    case "95":
-                        return "<xml>" +
-                            "\r\n<result type=\"int\">1</result>" +
-                            "\r\n<description type=\"text\">Success</description>" +
-                            "\r\n<error_no type=\"int\">0</error_no>" +
-                            "\r\n<error_message type=\"text\">None</error_message>" +
-                            "\r\n<status type=\"int\">2</status>" +
-                            "\r\n</xml>";
-                }
-            }
+                    }
+                case "63":
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - ClearEvent sent for QA MikuLiveEvent {eventId}!");
 
-            return null;
+                        return "<xml>" +
+                            "\r\n<result type=\"int\">1</result>" +
+                            "\r\n<description type=\"text\">Success</description>" +
+                            "\r\n<error_no type=\"int\">0</error_no>" +
+                            "\r\n<error_message type=\"text\">None</error_message>" +
+                            "\r\n<status type=\"int\">2</status>" +
+                            "\r\n</xml>";
+                    }
+                case "95":
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - ClearEvent sent for PUBLIC MikuLiveEvent {eventId}!");
+                        return "<xml>" +
+                            "\r\n<result type=\"int\">1</result>" +
+                            "\r\n<description type=\"text\">Success</description>" +
+                            "\r\n<error_no type=\"int\">0</error_no>" +
+                            "\r\n<error_message type=\"text\">None</error_message>" +
+                            "\r\n<status type=\"int\">2</status>" +
+                            "\r\n</xml>";
+                    }
+                default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - ClearEvent unhandled for eventId {eventId} | POSTDATA: \n{PostData}");
+                        return null;
+                    }
+            }
         }
     }
 }
