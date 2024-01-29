@@ -1,34 +1,28 @@
-﻿using BackendProject.MiscUtils;
+using CustomLogger;
 using HttpMultipartParser;
+using Microsoft.Extensions.Logging;
 
 namespace BackendProject.WebAPIs.PREMIUMAGENCY
 {
     public class Custom
     {
-        public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType, string workpath)
+        public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
             string? output = null;
-            string eventId = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
-            if (boundary != null && PostData != null)
+            switch (eventId)
             {
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                case "95":
+                    if (File.Exists($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml"))
+                        output = File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - SetUserEventCustom sent for MikuLiveEvent {eventId}!");
 
-                    eventId = data.GetParameterValue("evid");
 
-                    ms.Flush();
-                }
-
-                switch (eventId)
-                {
-                    case "95":
-                        if (File.Exists($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml"))
-                            output = File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml");
-                        break;
-                }
+                    break;
+                default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - SetUserEventCustom unhandled for eventId {eventId}");
+                        return null;
+                    }
             }
 
             return output;

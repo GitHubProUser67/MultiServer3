@@ -1,4 +1,5 @@
-﻿using BackendProject.MiscUtils;
+using BackendProject.MiscUtils;
+using CustomLogger;
 using HttpMultipartParser;
 
 namespace BackendProject.WebAPIs.PREMIUMAGENCY
@@ -21,32 +22,147 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                     ms.Flush();
                 }
 
-                if (resKey == "jul2009")
+                LoggerAccessor.LogInfo($"Attempting to locate resource with key {resKey}");
+
+                switch(resKey)
                 {
-                    if (File.Exists($"{workpath}/eventController/infoboard/09/{resKey}.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/infoboard/09/{resKey}.xml");
+                    case "theater_ev_setting":
+                        {
+                            if (File.Exists($"{workpath}/eventController/shoeikingdom/{resKey}.xml"))
+                            {
+
+                            }
+                                return File.ReadAllText($"{workpath}/eventController/shoeikingdom/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "jul2009":
+                        {
+                            if (File.Exists($"{workpath}/eventController/infoboard/09/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/infoboard/09/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+
+                    case "concert_complete_judge":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_play_image":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_play_info":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_play_sound":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_wait_image":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_wait_info":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_wait_sound":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "concert_diva_image":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "miku_jukebox":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    default:
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Resource is missing with resource key {resKey}!");
+
+                            return "<xml>" +
+                                   "\r\n\t<result type=\"int\">0</result>" +
+                                   "\r\n\t<description type=\"text\">Failed</description>" +
+                                   "\r\n\t<error_no type=\"int\">303</error_no>" +
+                                   "\r\n\t<error_message type=\"text\">No Resource Found</error_message>" +
+                                   $"\r\n\r\n\t<key type=\"text\">{resKey}</key>" +
+                                   "\r\n\t<seq type=\"int\">2</seq>" +
+                                   "\r\n\t<resource type=\"int\">1</resource>" +
+                                   "\r\n\t<data></data>" +
+                                   "\r\n</xml>";
+                        }
                 }
-                else if (resKey.Contains("concert"))
+            }
+
+            return null;
+        }
+
+        public static string? getInformationBoardSchedulePOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        {
+            string resKey = string.Empty;
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+            if (boundary != null && PostData != null)
+            {
+                using (MemoryStream ms = new(PostData))
                 {
-                    if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-                }
-                else if (resKey.Contains("miku_jukebox"))
-                {
-                    if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml");
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    resKey = data.GetParameterValue("key");
+
+                    ms.Flush();
                 }
 
-                return "<xml>" +
-                       "\r\n\t<result type=\"int\">0</result>" +
-                       "\r\n\t<description type=\"text\">Failed</description>" +
-                       "\r\n\t<error_no type=\"int\">303</error_no>" +
-                       "\r\n\t<error_message type=\"text\">No Resource Found</error_message>" +
-                       $"\r\n\r\n\t<key type=\"text\">{resKey}</key>" +
-                       "\r\n\t<seq type=\"int\">2</seq>" +
-                       "\r\n\t<resource type=\"int\">1</resource>" +
-                       "\r\n\t<data></data>" +
-                       "\r\n</xml>";
+                switch(eventId)
+                {
+                    default:
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - InfoBoardSchedule is unhandled with eventId {eventId} | ResKey {resKey}!");
+                            return "<xml></xml>";
+                        }
+                }
             }
 
             return null;
