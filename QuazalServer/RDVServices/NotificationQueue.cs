@@ -24,8 +24,8 @@ namespace QuazalServer.RDVServices
 
 	public static class NotificationQueue
 	{
-		private static readonly object _sync = new object();
-		private static List<NotificationQueueEntry> queued = new List<NotificationQueueEntry>();
+		private static readonly object _sync = new();
+		private static List<NotificationQueueEntry> queued = new();
 
 		public static void AddNotification(NotificationEvent eventData, QClient client, uint timeout)
 		{
