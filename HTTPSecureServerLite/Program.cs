@@ -11,12 +11,14 @@ public static class HTTPSServerConfiguration
     public static bool DNSAllowUnsafeRequests { get; set; } = false;
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
+    public static string HTTPSTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
+    public static bool EnablePUTMethod { get; set; } = true;
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;
@@ -55,10 +57,12 @@ public static class HTTPSServerConfiguration
             PHPStaticFolder = config.php.static_folder;
             PHPDebugErrors = config.php.debug_errors;
             HTTPSStaticFolder = config.https_static_folder;
+            HTTPSTempFolder = config.https_temp_folder;
             HTTPSCertificateFile = config.certificate_file;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
+            EnablePUTMethod = config.enable_put_method;
             EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists

@@ -2,9 +2,10 @@
 using BackendProject.MiscUtils;
 using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
-using BackendProject.WebAPIs.OUWF;
+//using BackendProject.WebAPIs.OUWF;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
+using HttpMultipartParser;
 using HTTPServer.API.JUGGERNAUT;
 using HTTPServer.API.NDREAMS;
 using HTTPServer.Extensions;
@@ -159,7 +160,7 @@ namespace HTTPServer
                                                     else
                                                         response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                                 }
-                                                else if ((Host == "ouwf.outso-srv1.com") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data"))
+                                                /*else if ((Host == "ouwf.outso-srv1.com") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data"))
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
 
@@ -184,7 +185,7 @@ namespace HTTPServer
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                         response = HttpResponse.Send(res, "text/xml");
-                                                }
+                                                }*/
                                                 else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
@@ -444,7 +445,54 @@ namespace HTTPServer
                                                             }
                                                             break;
                                                         case "PUT":
-                                                            response = HttpBuilder.NotAllowed();
+                                                            if (HTTPServerConfiguration.EnablePUTMethod)
+                                                            {
+                                                                string ContentType = request.GetContentType();
+                                                                if (request.getDataStream != null && !string.IsNullOrEmpty(ContentType))
+                                                                {
+                                                                    string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+                                                                    if (!string.IsNullOrEmpty(boundary))
+                                                                    {
+                                                                        string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{string.Join("/", segments.Take(segments.Length - 1).ToArray())}";
+                                                                        Directory.CreateDirectory(UploadDirectoryPath);
+                                                                        var data = MultipartFormDataParser.Parse(request.getDataStream, boundary);
+                                                                        foreach (FilePart? multipartfile in data.Files)
+                                                                        {
+                                                                            if (multipartfile.Data.Length > 0)
+                                                                            {
+                                                                                using (Stream filedata = multipartfile.Data)
+                                                                                {
+                                                                                    int copyNumber = 0;
+                                                                                    string UploadFilePath = UploadDirectoryPath + $"/{multipartfile.FileName}";
+
+                                                                                    while (File.Exists(UploadFilePath))
+                                                                                    {
+                                                                                        copyNumber++;
+                                                                                        UploadFilePath = Path.Combine(UploadDirectoryPath,
+                                                                                            $"{Path.GetFileNameWithoutExtension(multipartfile.FileName)} (Copy {copyNumber}){Path.GetExtension(multipartfile.FileName)}");
+                                                                                    }
+
+                                                                                    using (FileStream fileStream = File.Create(UploadFilePath))
+                                                                                    {
+                                                                                        filedata.Seek(0, SeekOrigin.Begin);
+                                                                                        filedata.CopyTo(fileStream);
+                                                                                    }
+
+                                                                                    filedata.Flush();
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        response = HttpBuilder.Ok();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.NotAllowed();
+                                                                }
+                                                                else
+                                                                    response = HttpBuilder.NotAllowed();
+                                                            }
+                                                            else
+                                                                response = HttpBuilder.NotAllowed();
                                                             break;
                                                         case "DELETE":
                                                             response = HttpBuilder.NotAllowed();
@@ -1021,11 +1069,11 @@ namespace HTTPServer
                 {
                     if (ex.InnerException is SocketException socketException &&
                         socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
-                        LoggerAccessor.LogError($"[HTTP] - WriteResponse - IO-Socket thrown an exception : {ex}");
+                        LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream - IO-Socket thrown an exception : {ex}");
                 }
                 catch (Exception ex)
                 {
-                    LoggerAccessor.LogError($"[HTTP] - WriteResponse thrown an assertion : {ex}");
+                    LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream thrown an assertion : {ex}");
                 }
 
                 try

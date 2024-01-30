@@ -114,9 +114,8 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest, string clientip, string? clientport)
         {
-            string? encoding = request.GetHeaderValue("Accept-Encoding");
-
             string? queryparam = null;
+            string? encoding = request.GetHeaderValue("Accept-Encoding");
 
             if (request.QueryParameters != null && request.QueryParameters.TryGetValue("directory", out queryparam) && queryparam == "on")
             {

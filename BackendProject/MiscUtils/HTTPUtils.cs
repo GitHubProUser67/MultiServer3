@@ -624,6 +624,18 @@ namespace BackendProject.MiscUtils
             }
         }
 
+        public static string? GetExtensionFromMime(string? mimeType)
+        {
+            if (string.IsNullOrEmpty(mimeType))
+                return null;
+            else
+            {
+                string? extension;
+
+                return mimeTypes.TryGetValue(mimeType, out extension) ? extension : null;
+            }
+        }
+
         public static byte[] RemoveUnwantedPHPHeaders(byte[] phpOutputBytes)
         {
             // Find the index where headers end and content starts (indicated by an empty line)

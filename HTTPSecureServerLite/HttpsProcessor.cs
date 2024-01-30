@@ -4,7 +4,9 @@ using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
+using HttpMultipartParser;
 using Newtonsoft.Json;
+using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -208,7 +210,7 @@ namespace HTTPSecureServerLite
                                     }
                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                     ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                     ctx.Response.StatusCode = (int)statusCode;
                                     ctx.Response.ContentType = "text/html";
@@ -233,7 +235,7 @@ namespace HTTPSecureServerLite
                                     }
                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                     ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                     ctx.Response.StatusCode = (int)statusCode;
                                     ctx.Response.ContentType = "text/html";
                                     sent = await ctx.Response.Send(CollectPHP.Item1);
@@ -667,7 +669,6 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.OK;
                                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                     ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                     ctx.Response.StatusCode = (int)statusCode;
                                                     ctx.Response.ContentType = "application/json";
@@ -686,7 +687,6 @@ namespace HTTPSecureServerLite
                                                 statusCode = HttpStatusCode.OK;
                                                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                 ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/json";
                                                 sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
@@ -724,7 +724,7 @@ namespace HTTPSecureServerLite
                                                             }
                                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                             ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                             ctx.Response.StatusCode = (int)statusCode;
                                                             ctx.Response.ContentType = "text/html";
@@ -749,7 +749,7 @@ namespace HTTPSecureServerLite
                                                             }
                                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                             ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                             ctx.Response.StatusCode = (int)statusCode;
                                                             ctx.Response.ContentType = "text/html";
                                                             sent = await ctx.Response.Send(CollectPHP.Item1);
@@ -1377,7 +1377,55 @@ namespace HTTPSecureServerLite
                             }
                             break;
                         case "PUT":
-                            statusCode = HttpStatusCode.Forbidden;
+                            if (HTTPSServerConfiguration.EnablePUTMethod)
+                            {
+                                string ContentType = ctx.Request.ContentType;
+                                byte[] PostData = ctx.Request.DataAsBytes;
+                                if (PostData != Array.Empty<byte>() && !string.IsNullOrEmpty(ContentType))
+                                {
+                                    string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+                                    if (!string.IsNullOrEmpty(boundary))
+                                    {
+                                        string UploadDirectoryPath = HTTPSServerConfiguration.HTTPSTempFolder + $"/DataUpload/{string.Join("/", segments.Take(segments.Length - 1).ToArray())}";
+                                        Directory.CreateDirectory(UploadDirectoryPath);
+                                        var data = MultipartFormDataParser.Parse(new MemoryStream(PostData), boundary);
+                                        foreach (FilePart? multipartfile in data.Files)
+                                        {
+                                            if (multipartfile.Data.Length > 0)
+                                            {
+                                                using (Stream filedata = multipartfile.Data)
+                                                {
+                                                    int copyNumber = 0;
+                                                    string UploadFilePath = UploadDirectoryPath + $"/{multipartfile.FileName}";
+
+                                                    while (File.Exists(UploadFilePath))
+                                                    {
+                                                        copyNumber++;
+                                                        UploadFilePath = Path.Combine(UploadDirectoryPath,
+                                                            $"{Path.GetFileNameWithoutExtension(multipartfile.FileName)} (Copy {copyNumber}){Path.GetExtension(multipartfile.FileName)}");
+                                                    }
+
+                                                    using (FileStream fileStream = File.Create(UploadFilePath))
+                                                    {
+                                                        filedata.Seek(0, SeekOrigin.Begin);
+                                                        filedata.CopyTo(fileStream);
+                                                    }
+
+                                                    filedata.Flush();
+                                                }
+                                            }
+                                        }
+
+                                        statusCode = HttpStatusCode.OK;
+                                    }
+                                    else
+                                        statusCode = HttpStatusCode.Forbidden;
+                                }
+                                else
+                                    statusCode = HttpStatusCode.Forbidden;
+                            }
+                            else
+                                statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
                             sent = await ctx.Response.Send();
@@ -1455,6 +1503,7 @@ namespace HTTPSecureServerLite
                 ctx.Response.ContentType = "text/plain";
                 sent = await ctx.Response.Send();
             }
+
 #if DEBUG
             if (!sent)
                 LoggerAccessor.LogWarn($"[HTTPS] - {clientip}:{clientport} Failed to receive the response! Client might have closed the wire.");

@@ -18,7 +18,9 @@ public static class HTTPServerConfiguration
     public static string PluginParams { get; set; } = string.Empty;
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
+    public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
+    public static bool EnablePUTMethod { get; set; } = true;
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;
@@ -57,6 +59,7 @@ public static class HTTPServerConfiguration
             HTTPPort = config.http_port;
             APIStaticFolder = config.api_static_folder;
             HTTPStaticFolder = config.http_static_folder;
+            HTTPTempFolder = config.http_temp_folder;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DefaultPluginsPort = config.default_plugins_port;
             BufferSize = config.buffer_size;
@@ -65,6 +68,7 @@ public static class HTTPServerConfiguration
             PluginsFolder = config.plugins_folder;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
+            EnablePUTMethod = config.enable_put_method;
             EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists
@@ -111,7 +115,7 @@ class Program
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
+                    () => _ = new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 
