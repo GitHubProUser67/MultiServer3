@@ -21,7 +21,7 @@ namespace HTTPSecureServerLite
                 string HeaderString = ctx.Request.RetrieveHeaderValue("Range").Replace("bytes=", string.Empty);
                 if (HeaderString.Contains(','))
                 {
-                    using (MemoryStream ms = new())
+                    using (HugeMemoryStream ms = new())
                     {
                         Span<byte> Separator = new byte[] { 0x0D, 0x0A };
                         string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
