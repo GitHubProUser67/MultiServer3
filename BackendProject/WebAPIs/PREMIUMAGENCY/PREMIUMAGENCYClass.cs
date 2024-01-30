@@ -1,4 +1,9 @@
-﻿namespace BackendProject.WebAPIs.PREMIUMAGENCY
+﻿using BackendProject.MiscUtils;
+using CustomLogger;
+using HttpMultipartParser;
+using Microsoft.Extensions.Logging;
+
+namespace BackendProject.WebAPIs.PREMIUMAGENCY
 {
     public class PREMIUMAGENCYClass : IDisposable
     {
@@ -19,32 +24,51 @@
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
 
+            string eventId = string.Empty;
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+            using (MemoryStream ms = new(PostData))
+            {
+                var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                eventId = data.GetParameterValue("evid");
+
+                ms.Flush();
+            }
+
             switch (method)
             {
                 case "POST":
                     switch (absolutepath)
                     {
                         case "/eventController/checkEvent.do":
-                            return Event.checkEventRequestPOST(PostData, ContentType);
+                            return Event.checkEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/entryEvent.do":
-                            return Event.entryEventRequestPOST(PostData, ContentType);
+                            return Event.entryEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/getUserEventCustom.do":
-                            return Event.getUserEventCustomRequestPOST(PostData, ContentType, workpath);
+                            return Event.getUserEventCustomRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/clearEvent.do":
-                            return Event.clearEventRequestPOST(PostData, ContentType);
+                            return Event.clearEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/getEventTrigger.do":
-                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath);
+                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/confirmEventTrigger.do":
-                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath);
+                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/getResource.do":
                             return Resource.getResourcePOST(PostData, ContentType, workpath);
+                        //case "/eventController/getInformationBoardSchedule.do":
+                            //return Resource.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/setUserEventCustom.do":
-                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath);
+                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, eventId);
                         default:
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled server request discovered: {absolutepath.Split("/eventController/")} | DETAILS: \n{PostData}");
+                            }
                             break;
                     }
                     break;
                 default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - Method unhandled {method}");
+                    }
                     break;
             }
 

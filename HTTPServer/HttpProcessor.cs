@@ -2,6 +2,7 @@
 using BackendProject.MiscUtils;
 using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
+using BackendProject.WebAPIs.OUWF;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
 using HTTPServer.API.JUGGERNAUT;
@@ -157,6 +158,32 @@ namespace HTTPServer
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                         response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
+                                                }
+                                                else if ((Host == "ouwf.outso-srv1.com") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data"))
+                                                {
+                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
+
+                                                    string? res = null;
+                                                    OuWFClass OuWF = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
+                                                    using (MemoryStream postdata = new())
+                                                    {
+                                                        request.getDataStream.CopyTo(postdata);
+
+                                                        postdata.Position = 0;
+                                                        // Find the number of bytes in the stream
+                                                        int contentLength = (int)postdata.Length;
+                                                        // Create a byte array
+                                                        byte[] buffer = new byte[contentLength];
+                                                        // Read the contents of the memory stream into the byte array
+                                                        postdata.Read(buffer, 0, contentLength);
+                                                        res = OuWF.ProcessRequest(buffer, request.GetContentType());
+                                                        postdata.Flush();
+                                                    }
+                                                    OuWF.Dispose();
+                                                    if (string.IsNullOrEmpty(res))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                        response = HttpResponse.Send(res, "text/xml");
                                                 }
                                                 else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                                 {
