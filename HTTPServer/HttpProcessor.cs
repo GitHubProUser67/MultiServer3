@@ -692,7 +692,7 @@ namespace HTTPServer
                     string HeaderString = request.GetHeaderValue("Range").Replace("bytes=", string.Empty);
                     if (HeaderString.Contains(','))
                     {
-                        using (MemoryStream ms = new())
+                        using (HugeMemoryStream ms = new())
                         {
                             int buffersize = HTTPServerConfiguration.BufferSize;
                             Span<byte> Separator = new byte[] { 0x0D, 0x0A };

@@ -44,6 +44,23 @@ namespace BackendProject.MiscUtils
             }
         }
 
+        public void ProcessFolder(string directoryPath)
+        {
+            if ((File.GetAttributes(directoryPath) & FileAttributes.Archive) == FileAttributes.Archive)
+            {
+                using (MultipartFormDataContent formData = new())
+                {
+                    // Add each file to the multipart form data
+                    foreach (string filePath in Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories))
+                    {
+                        formData.Add(new StreamContent(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), Path.GetFileName(filePath), filePath);
+                    }
+
+                    ZipStream = new(formData.ReadAsStreamAsync().Result);
+                }
+            }
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
