@@ -23,6 +23,8 @@
         {
             st.Position = 0;
             st.CopyTo(this);
+            st.Close();
+            st.Dispose();
             Position = 0;
         }
 
