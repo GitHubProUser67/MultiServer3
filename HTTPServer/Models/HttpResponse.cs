@@ -123,16 +123,12 @@ namespace HTTPServer.Models
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
-                foreach (var innerArray in HeaderInput)
+                foreach (string[]? innerArray in HeaderInput)
                 {
                     // Ensure the inner array has at least two elements
                     if (innerArray.Length >= 2)
-                    {
                         // Extract two values from the inner array
-                        string value1 = innerArray[0];
-                        string value2 = innerArray[1];
-                        response.Headers.Add(value1, value2);
-                    }
+                        response.Headers.Add(innerArray[0], innerArray[1]);
                 }
             }
             if (streamtosend != null)

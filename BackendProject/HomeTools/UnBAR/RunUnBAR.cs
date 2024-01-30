@@ -56,7 +56,7 @@ namespace BackendProject.HomeTools.UnBAR
             {
                 try
                 {
-                    RawBarData = File.ReadAllBytes(filePath);
+                    RawBarData = await File.ReadAllBytesAsync(filePath);
 
                     if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
                         isSharc = true;

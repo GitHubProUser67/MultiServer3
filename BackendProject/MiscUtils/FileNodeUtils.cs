@@ -66,7 +66,7 @@ namespace BackendProject.MiscUtils
                 {
                     if (!IsHidden(file))
                     {
-                        string mimetype = MiscUtils.HTTPUtils.GetMimeType(Path.GetExtension(file.FullName));
+                        string mimetype = HTTPUtils.GetMimeType(Path.GetExtension(file.FullName));
 
                         switch (mimetype)
                         {

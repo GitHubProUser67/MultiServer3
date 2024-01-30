@@ -958,6 +958,7 @@ namespace BackendProject.MiscUtils
         {
             return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
         }
+#pragma warning restore
 
         /// <summary>
         /// Know if the file is outdated with a given maximum age.
@@ -966,13 +967,30 @@ namespace BackendProject.MiscUtils
         /// <param name="filePath">The path of the file to check for.</param>
         /// <param name="maxAge">The maximum age of the file to determine it's status</param>
         /// <returns>A boolean.</returns>
-#pragma warning restore
         public static bool IsFileOutdated(string filePath, TimeSpan maxAge)
         {
             if (!File.Exists(filePath))
-                return true; // The file is outdated
+                return true; // The file is non-existant
 
             if (File.GetLastWriteTime(filePath) < DateTime.Now - maxAge)
+                return true; // The file is outdated
+
+            return false; // The file is up to date
+        }
+
+        /// <summary>
+        /// Know if the directory is outdated with a given maximum age.
+        /// <para>Savoir si le dossier visé est obsolète grâce à un paramètre d'obsolescence.</para>
+        /// </summary>
+        /// <param name="directoryPath">The path of the directory to check for.</param>
+        /// <param name="maxAge">The maximum age of the directory to determine it's status</param>
+        /// <returns>A boolean.</returns>
+        public static bool IsDirectoryOutdated(string directoryPath, TimeSpan maxAge)
+        {
+            if (!File.Exists(directoryPath))
+                return true; // The directory is non-existant
+
+            if (Directory.GetCreationTime(directoryPath) < DateTime.Now - maxAge)
                 return true; // The file is outdated
 
             return false; // The file is up to date
