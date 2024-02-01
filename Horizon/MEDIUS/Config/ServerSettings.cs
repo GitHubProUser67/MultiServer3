@@ -37,11 +37,16 @@ namespace Horizon.MEDIUS.Config
         /// </summary>
         public int LocationID = 0;
 
-        #region NpMLSIp
+        #region NpMLSOverride
         /// <summary>
         /// If NpMLSIpOverride is set, server will authenticate on the designed MLS server that is validated for NpTickets.
         /// </summary>
         public string NpMLSIpOverride { get; set; } = string.Empty;
+
+        /// <summary>
+        /// If NpMLSIpOverride is set, server will authenticate on the designed MLS server that is validated for NpTickets.
+        /// </summary>
+        public int NpMLSPortOverride { get; set; } = -1;
         #endregion
 
         #region Database
