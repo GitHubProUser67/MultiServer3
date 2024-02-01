@@ -5,7 +5,7 @@ namespace Horizon.HTTPSERVICE
 {
     public class CrudRoomManager
     {
-        private static List<Room> rooms = new();
+        private static readonly List<Room> rooms = new();
 
         // Update or Create a Room based on the provided parameters
         public static void UpdateOrCreateRoom(string appId, string? gameName, string? worldId, string? accountName, string? languageType, bool host)

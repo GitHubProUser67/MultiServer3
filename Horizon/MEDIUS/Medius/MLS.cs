@@ -15,6 +15,7 @@ using System.Net;
 using System.Security.Cryptography;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
+using Horizon.MUM;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -2829,7 +2830,8 @@ namespace Horizon.MEDIUS.Medius
                         var totalUsers = MediusClass.Manager.GetClients(data.ClientObject.ApplicationId);
                         if (totalUsers.Count == 0)
                         {
-                            await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId));
+                            // If something breaks, report on GITHUB.
+                            // await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId));
 
                             data.ClientObject.Queue(new MediusGetTotalUsersResponse()
                             {
@@ -3283,8 +3285,25 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    LoggerAccessor.LogInfo($"Successfully JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-                                    //await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+                                    Channel? foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
+                                        data.ClientObject.ApplicationId,
+                                        ChannelType.Lobby,
+                                        data.ClientObject.FilterMask1,
+                                        data.ClientObject.FilterMask2,
+                                        data.ClientObject.FilterMask3,
+                                        data.ClientObject.FilterMask4,
+                                        data.ClientObject.FilterMaskLevel
+                                    );
+
+                                    if (foundchannel != null)
+                                    {
+                                        // Join new channel
+                                        await data.ClientObject.JoinChannel(foundchannel);
+
+                                        LoggerAccessor.LogInfo($"Successfully JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    }
+                                    else
+                                        LoggerAccessor.LogError($"Requested a non-existant JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                             case MediusUserAction.LeftGameWorld:
@@ -3298,7 +3317,13 @@ namespace Horizon.MEDIUS.Medius
                             case MediusUserAction.LeftPartyWorld:
                                 {
                                     await data.ClientObject.LeaveParty(data.ClientObject.CurrentParty);
+
                                     LoggerAccessor.LogInfo($"Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    break;
+                                }
+                            default:
+                                {
+                                    LoggerAccessor.LogWarn($"Requested a non-existant UserState {data.ClientObject.AccountId}:{data.ClientObject.AccountName}, please report to GITHUB.");
                                     break;
                                 }
                         }
@@ -5067,7 +5092,7 @@ namespace Horizon.MEDIUS.Medius
                             MaxPlayers = partyCreateRequest.MaxPlayers
                         };
 
-                        partyChannel.Clients.Add(data.ClientObject);
+                        partyChannel.LocalClients.Add(data.ClientObject);
 
                         await MediusClass.Manager.AddChannel(partyChannel);
 
@@ -5731,7 +5756,7 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            var lobbyPlayersFound = channel.Clients.Where(x => x != null && x.IsConnected).ToList();
+                            var lobbyPlayersFound = channel.LocalClients.Where(x => x != null && x.IsConnected).ToList();
 
                             foreach (var lobbyPlayer in lobbyPlayersFound)
                             {
@@ -5916,7 +5941,7 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            LoggerAccessor.LogWarn($"World Clients in {channel.Name} : {channel.Clients.Count()}");
+                            LoggerAccessor.LogWarn($"World Clients in {channel.Name} : {channel.LocalClients.Count()}");
 
                             string findWorldType = "Find Game World";
                             if (findWorldByNameRequest.WorldType != MediusFindWorldType.FindGameWorld)
@@ -5946,7 +5971,7 @@ namespace Horizon.MEDIUS.Medius
                             #region FindGameWorld
                             if (findWorldByNameRequest.WorldType == MediusFindWorldType.FindGameWorld)
                             {
-                                gameWorldNameList = channel.Channels.Where(x => x.Type == ChannelType.Game)
+                                gameWorldNameList = channel.LocalChannels.Where(x => x.Type == ChannelType.Game)
                                 .Select(x => new MediusFindWorldByNameResponse()
                                 {
                                     MessageID = findWorldByNameRequest.MessageID,
@@ -5985,7 +6010,7 @@ namespace Horizon.MEDIUS.Medius
                             #region FindLobbyWorld
                             else if (findWorldByNameRequest.WorldType == MediusFindWorldType.FindLobbyWorld)
                             {
-                                var lobbyNameList = channel.Channels.Where(x => x.AppType == MediusApplicationType.LobbyChatChannel)
+                                var lobbyNameList = channel.LocalChannels.Where(x => x.AppType == MediusApplicationType.LobbyChatChannel)
                                 .Select(x => new MediusFindWorldByNameResponse()
                                 {
                                     MessageID = findWorldByNameRequest.MessageID,
@@ -6012,7 +6037,7 @@ namespace Horizon.MEDIUS.Medius
                             #region FIndAllWorlds
                             else if (findWorldByNameRequest.WorldType == MediusFindWorldType.FIndAllWorlds)
                             {
-                                var lobbyNameList = channel.Channels.Where(x => x.AppType == MediusApplicationType.LobbyChatChannel)
+                                var lobbyNameList = channel.LocalChannels.Where(x => x.AppType == MediusApplicationType.LobbyChatChannel)
                                 .Select(x => new MediusFindWorldByNameResponse()
                                 {
                                     MessageID = findWorldByNameRequest.MessageID,
@@ -6027,7 +6052,7 @@ namespace Horizon.MEDIUS.Medius
                                 }).ToArray();
 
 
-                                var gameOrPartyNameList = channel.Channels.Where(x => x.AppType == MediusApplicationType.MediusAppTypeGame)
+                                var gameOrPartyNameList = channel.LocalChannels.Where(x => x.AppType == MediusApplicationType.MediusAppTypeGame)
                                 .Select(x => new MediusFindWorldByNameResponse()
                                 {
                                     MessageID = findWorldByNameRequest.MessageID,
@@ -6083,9 +6108,9 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            LoggerAccessor.LogWarn($"Game Clients in {game.GameName} : {game.Clients.Count()}");
+                            LoggerAccessor.LogWarn($"Game Clients in {game.GameName} : {game.LocalClients.Count()}");
 
-                            var playerList = game.Clients.Where(x => x != null || x.InGame && x.Client.IsConnected).Select(x => new MediusGameWorldPlayerListResponse()
+                            var playerList = game.LocalClients.Where(x => x != null || x.InGame && x.Client.IsConnected).Select(x => new MediusGameWorldPlayerListResponse()
                             {
                                 MessageID = gameWorldPlayerListRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusSuccess,
@@ -6643,7 +6668,7 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            var results = channel.Clients.Where(x => x.IsConnected).Select(x => new MediusGetLobbyPlayerNames_ExtraInfoResponse()
+                            var results = channel.LocalClients.Where(x => x.IsConnected).Select(x => new MediusGetLobbyPlayerNames_ExtraInfoResponse()
                             {
                                 MessageID = getLobbyPlayerNames_ExtraInfoRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusSuccess,
@@ -6695,7 +6720,7 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            var results = channel.Clients.Where(x => x.IsConnected).Select(x => new MediusGetLobbyPlayerNamesResponse()
+                            var results = channel.LocalClients.Where(x => x.IsConnected).Select(x => new MediusGetLobbyPlayerNamesResponse()
                             {
                                 MessageID = getLobbyPlayerNamesRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusSuccess,
@@ -6852,13 +6877,12 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            data.ClientObject.Queue(new MediusSetLobbyWorldFilterResponse()
+                            data.ClientObject?.Queue(new MediusSetLobbyWorldFilterResponse()
                             {
                                 MessageID = setLobbyWorldFilterRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusFail
                             });
                         }
-
 
                         break;
                     }
@@ -6896,7 +6920,7 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            data.ClientObject.Queue(new MediusSetLobbyWorldFilterResponse()
+                            data.ClientObject?.Queue(new MediusSetLobbyWorldFilterResponse()
                             {
                                 MessageID = setLobbyWorldFilterRequest1.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusFail
@@ -6921,10 +6945,15 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         // Create channel
-                        Channel channel = new Channel(createChannelRequest);
+                        Channel channel = new(createChannelRequest);
 
-                        // Check for channel with same name
-                        var existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+                        // Check in MUM pool to see if it contains the channel.
+                        Channel? existingChannel = MumChannelHandler.GetRemoteChannelByName(channel, data.ClientObject.IP);
+
+                        if (existingChannel == null)
+                            // Check for channel with same name
+                            existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+
                         if (existingChannel != null)
                         {
                             // Send to client
@@ -6966,10 +6995,15 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         // Create channel
-                        Channel channel = new Channel(createChannelRequest0);
+                        Channel channel = new(createChannelRequest0);
 
-                        // Check for channel with same name
-                        var existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+                        // Check in MUM pool to see if it contains the channel.
+                        Channel? existingChannel = MumChannelHandler.GetRemoteChannelByName(channel, data.ClientObject.IP);
+
+                        if (existingChannel == null)
+                            // Check for channel with same name
+                            existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+
                         if (existingChannel != null)
                         {
                             // Send to client
@@ -7011,13 +7045,18 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         // Create channel
-                        Channel channel = new Channel(createChannelRequest1);
+                        Channel channel = new(createChannelRequest1);
 
                         if (createChannelRequest1.MaxPlayers > 257)
                             channel.MaxPlayers = createChannelRequest1.MaxPlayers;
 
-                        // Check for channel with same name
-                        var existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+                        // Check in MUM pool to see if it contains the channel.
+                        Channel? existingChannel = MumChannelHandler.GetRemoteChannelByName(channel, data.ClientObject.IP);
+
+                        if (existingChannel == null)
+                            // Check for channel with same name
+                            existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+
                         //Logger.Warn($"existingChannelId {existingChannel.Id} || channelId {channel.Id}");
                         if (existingChannel != null)
                         {
@@ -7072,10 +7111,14 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<int> notSecure = new List<int>() { 10010, 10190 };
+                        List<int> notSecure = new() { 10010, 10190 };
                         IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
-                        var channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId);
+                        Channel? channel = MumChannelHandler.GetRemoteChannelById(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
+
+                        if (channel == null)
+                            channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId);
+
                         if (channel == null)
                         {
                             LoggerAccessor.LogWarn($"{data.ClientObject.AccountName} attempting to join non-existent channel {joinChannelRequest}");
@@ -7098,9 +7141,6 @@ namespace Horizon.MEDIUS.Medius
                         {
                             LoggerAccessor.LogInfo($"Channel Joining: {channel.Name} Generic Fields: {channel.GenericField1} {channel.GenericField2} {channel.GenericField3} {channel.GenericField4} {channel.GenericFieldLevel} Type: {channel.Type}");
 
-                            // Join new channel
-                            await data.ClientObject.JoinChannel(channel);
-
                             // Indicate the client is connecting to a different part of Medius
                             data.ClientObject.KeepAliveUntilNextConnection();
 
@@ -7120,8 +7160,8 @@ namespace Horizon.MEDIUS.Medius
                                         {
                                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                             {
-                                                new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
-                                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
+                                                new() { Address = channel.LobbyIp, Port = channel.LobbyPort, AddressType = NetAddressType.NetAddressTypeExternal },
+                                                new() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                             }
                                         },
                                         Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -7144,8 +7184,8 @@ namespace Horizon.MEDIUS.Medius
                                         {
                                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                             {
-                                                new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal },
-                                                new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
+                                                new() { Address = channel.LobbyIp, Port = channel.LobbyPort, AddressType = NetAddressType.NetAddressTypeExternal },
+                                                new() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                             }
                                         },
                                         Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -7171,7 +7211,11 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        var channel = MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+                        Channel? channel = MumChannelHandler.GetLeastPopulatedRemoteChannel(data.ClientObject.ApplicationId, data.ClientObject.IP);
+
+                        if (channel == null)
+                            channel = MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+
                         if (channel == null)
                         {
                             // Log
@@ -7186,9 +7230,6 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             LoggerAccessor.LogInfo($"Joining Least Populated Channel: {channel.Name} PlayerCount {channel.PlayerCount} Generic Fields: {channel.GenericField1} {channel.GenericField2} {channel.GenericField3} {channel.GenericField4} {channel.GenericFieldLevel} Type: {channel.Type}");
-
-                            // Join new channel
-                            await data.ClientObject.JoinChannel(channel);
 
                             // Indicate the client is connecting to a different part of Medius
                             data.ClientObject.KeepAliveUntilNextConnection();
@@ -7207,8 +7248,8 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                         {
-                                            new NetAddress() { Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                            new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                            new() { Address = channel.LobbyIp, Port = channel.LobbyPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                            new() { AddressType = NetAddressType.NetAddressNone},
                                         }
                                     },
                                     Type = NetConnectionType.NetConnectionTypeClientServerTCP
@@ -7232,8 +7273,11 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        // Find channel
-                        var channel = MediusClass.Manager.GetChannelByChannelId(channelInfoRequest.MediusWorldID, data.ClientObject.ApplicationId);
+                        Channel? channel = MumChannelHandler.GetRemoteChannelById(channelInfoRequest.MediusWorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
+
+                        if (channel == null)
+                            channel = MediusClass.Manager.GetChannelByChannelId(channelInfoRequest.MediusWorldID, data.ClientObject.ApplicationId);
+
                         if (channel == null)
                         {
                             // No channels
@@ -7286,13 +7330,28 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<MediusChannelListResponse> channelResponses = new List<MediusChannelListResponse>();
+                        List<MediusChannelListResponse> channelResponses = new();
 
-                        IEnumerable<Channel> lobbyChannels = null;
+                        IEnumerable<Channel>? RemotelobbyChannels = null;
+
+                        IEnumerable<Channel>? lobbyChannels = null;
 
                         //If PS Home Dev/Retail, we Filter
                         if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
                         {
+                            RemotelobbyChannels = MumChannelHandler.GetRemoteChannelListFiltered(
+                                data.ClientObject.ApplicationId,
+                                channelListRequest.PageID,
+                                channelListRequest.PageSize,
+                                ChannelType.Lobby,
+                                data.ClientObject.FilterMask1,
+                                data.ClientObject.FilterMask2,
+                                data.ClientObject.FilterMask3,
+                                data.ClientObject.FilterMask4,
+                                data.ClientObject.FilterMaskLevel,
+                                data.ClientObject.IP
+                            );
+
                             lobbyChannels = MediusClass.Manager.GetChannelListFiltered(
                                 data.ClientObject.ApplicationId,
                                 channelListRequest.PageID,
@@ -7308,6 +7367,14 @@ namespace Horizon.MEDIUS.Medius
                         else
                         //Default
                         {
+                            RemotelobbyChannels = MumChannelHandler.GetRemoteChannelsList(
+                                data.ClientObject.ApplicationId,
+                                channelListRequest.PageID,
+                                channelListRequest.PageSize,
+                                ChannelType.Lobby,
+                                data.ClientObject.IP
+                            );
+
                             lobbyChannels = MediusClass.Manager.GetChannelList(
                                 data.ClientObject.ApplicationId,
                                 channelListRequest.PageID,
@@ -7316,7 +7383,23 @@ namespace Horizon.MEDIUS.Medius
                             );
                         }
 
-                        foreach (var channel in lobbyChannels)
+                        if (RemotelobbyChannels != null)
+                        {
+                            foreach (Channel? channel in RemotelobbyChannels)
+                            {
+                                channelResponses.Add(new MediusChannelListResponse()
+                                {
+                                    MessageID = channelListRequest.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                    MediusWorldID = channel.Id,
+                                    LobbyName = channel.Name,
+                                    PlayerCount = channel.PlayerCount,
+                                    EndOfList = false
+                                });
+                            }
+                        }
+
+                        foreach (Channel? channel in lobbyChannels)
                         {
                             channelResponses.Add(new MediusChannelListResponse()
                             {
@@ -7342,7 +7425,7 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             // Ensure the end of list flag is set
-                            channelResponses[channelResponses.Count - 1].EndOfList = true;
+                            channelResponses[^1].EndOfList = true;
 
                             // Add to responses
                             data.ClientObject.Queue(channelResponses);
@@ -7369,7 +7452,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             MessageID = getTotalChannelsRequest.MessageID,
                             StatusCode = MediusCallbackStatus.MediusSuccess,
-                            Total = MediusClass.Manager.GetChannelCount(ChannelType.Lobby, data.ClientObject.ApplicationId)
+                            Total = MediusClass.Manager.GetChannelCount(ChannelType.Lobby, data.ClientObject.ApplicationId) + MumChannelHandler.GetRemoteChannelCount(ChannelType.Lobby, data.ClientObject.ApplicationId, data.ClientObject.IP)
                         });
                         break;
                     }
@@ -7388,17 +7471,50 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<MediusChannelList_ExtraInfoResponse> channelResponses = new List<MediusChannelList_ExtraInfoResponse>();
+                        List<MediusChannelList_ExtraInfoResponse> channelResponses = new();
 
                         // Deadlocked only uses this to connect to a non-game channel (lobby)
                         // So we'll filter by lobby here
-                        var channels = MediusClass.Manager.GetChannelList(
+
+                        IEnumerable<Channel>? RemoteChannels = MumChannelHandler.GetRemoteChannelsList(
+                                data.ClientObject.ApplicationId,
+                                channelList_ExtraInfoRequest1.PageID,
+                                channelList_ExtraInfoRequest1.PageSize,
+                                ChannelType.Lobby,
+                                data.ClientObject.IP
+                            );
+
+                        IEnumerable<Channel> localchannels = MediusClass.Manager.GetChannelList(
                             data.ClientObject.ApplicationId,
                             channelList_ExtraInfoRequest1.PageID,
                             channelList_ExtraInfoRequest1.PageSize,
                             ChannelType.Lobby);
 
-                        foreach (var channel in channels)
+                        if (RemoteChannels != null)
+                        {
+                            foreach (Channel? channel in RemoteChannels)
+                            {
+                                channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
+                                {
+                                    MessageID = channelList_ExtraInfoRequest1.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                    MediusWorldID = channel.Id,
+                                    LobbyName = channel.Name,
+                                    GameWorldCount = (ushort)channel.GameCount,
+                                    PlayerCount = (ushort)channel.PlayerCount,
+                                    MaxPlayers = (ushort)channel.MaxPlayers,
+                                    GenericField1 = (uint)channel.GenericField1,
+                                    GenericField2 = (uint)channel.GenericField2,
+                                    GenericField3 = (uint)channel.GenericField3,
+                                    GenericField4 = (uint)channel.GenericField4,
+                                    GenericFieldLevel = channel.GenericFieldLevel,
+                                    SecurityLevel = channel.SecurityLevel,
+                                    EndOfList = false
+                                });
+                            }
+                        }
+
+                        foreach (Channel? channel in localchannels)
                         {
                             channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
                             {
@@ -7432,7 +7548,7 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             // Ensure the end of list flag is set
-                            channelResponses[channelResponses.Count - 1].EndOfList = true;
+                            channelResponses[^1].EndOfList = true;
 
                             // Add to responses
                             data.ClientObject.Queue(channelResponses);
@@ -7454,17 +7570,50 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<MediusChannelList_ExtraInfoResponse> channelResponses = new List<MediusChannelList_ExtraInfoResponse>();
+                        List<MediusChannelList_ExtraInfoResponse> channelResponses = new();
 
                         // Deadlocked only uses this to connect to a non-game channel (lobby)
                         // So we'll filter by lobby here
-                        var channels = MediusClass.Manager.GetChannelList(
+
+                        IEnumerable<Channel>? RemoteChannels = MumChannelHandler.GetRemoteChannelsList(
+                                data.ClientObject.ApplicationId,
+                                channelList_ExtraInfoRequest0.PageID,
+                                channelList_ExtraInfoRequest0.PageSize,
+                                ChannelType.Lobby,
+                                data.ClientObject.IP
+                            );
+
+                        IEnumerable<Channel> localchannels = MediusClass.Manager.GetChannelList(
                             data.ClientObject.ApplicationId,
                             channelList_ExtraInfoRequest0.PageID,
                             channelList_ExtraInfoRequest0.PageSize,
                             ChannelType.Lobby);
 
-                        foreach (var channel in channels)
+                        if (RemoteChannels != null)
+                        {
+                            foreach (Channel? channel in RemoteChannels)
+                            {
+                                channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
+                                {
+                                    MessageID = channelList_ExtraInfoRequest0.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                    MediusWorldID = channel.Id,
+                                    LobbyName = channel.Name,
+                                    GameWorldCount = (ushort)channel.GameCount,
+                                    PlayerCount = (ushort)channel.PlayerCount,
+                                    MaxPlayers = (ushort)channel.MaxPlayers,
+                                    GenericField1 = (uint)channel.GenericField1,
+                                    GenericField2 = (uint)channel.GenericField2,
+                                    GenericField3 = (uint)channel.GenericField3,
+                                    GenericField4 = (uint)channel.GenericField4,
+                                    GenericFieldLevel = channel.GenericFieldLevel,
+                                    SecurityLevel = channel.SecurityLevel,
+                                    EndOfList = false
+                                });
+                            }
+                        }
+
+                        foreach (Channel? channel in localchannels)
                         {
                             channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
                             {
@@ -7498,7 +7647,7 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             // Ensure the end of list flag is set
-                            channelResponses[channelResponses.Count - 1].EndOfList = true;
+                            channelResponses[^1].EndOfList = true;
 
                             // Add to responses
                             data.ClientObject.Queue(channelResponses);
@@ -7520,19 +7669,52 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<MediusChannelList_ExtraInfoResponse> channelResponses = new List<MediusChannelList_ExtraInfoResponse>();
+                        List<MediusChannelList_ExtraInfoResponse> channelResponses = new();
 
                         if (data.ClientObject.FilterMaskLevel == 0)
                         {
                             // Deadlocked only uses this to connect to a non-game channel (lobby)
                             // So we'll filter by lobby here
-                            var channels = MediusClass.Manager.GetChannelList(
+
+                            IEnumerable<Channel>? RemoteChannels = MumChannelHandler.GetRemoteChannelsList(
+                               data.ClientObject.ApplicationId,
+                               channelList_ExtraInfoRequest.PageID,
+                               channelList_ExtraInfoRequest.PageSize,
+                               ChannelType.Lobby,
+                               data.ClientObject.IP
+                           );
+
+                            IEnumerable<Channel> localchannels = MediusClass.Manager.GetChannelList(
                                 data.ClientObject.ApplicationId,
                                 channelList_ExtraInfoRequest.PageID,
                                 channelList_ExtraInfoRequest.PageSize,
                                 ChannelType.Lobby);
 
-                            foreach (var channel in channels)
+                            if (RemoteChannels != null)
+                            {
+                                foreach (Channel? channel in RemoteChannels)
+                                {
+                                    channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
+                                    {
+                                        MessageID = channelList_ExtraInfoRequest.MessageID,
+                                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                                        MediusWorldID = channel.Id,
+                                        LobbyName = channel.Name,
+                                        GameWorldCount = (ushort)channel.GameCount,
+                                        PlayerCount = (ushort)channel.PlayerCount,
+                                        MaxPlayers = (ushort)channel.MaxPlayers,
+                                        GenericField1 = (uint)channel.GenericField1,
+                                        GenericField2 = (uint)channel.GenericField2,
+                                        GenericField3 = (uint)channel.GenericField3,
+                                        GenericField4 = (uint)channel.GenericField4,
+                                        GenericFieldLevel = channel.GenericFieldLevel,
+                                        SecurityLevel = channel.SecurityLevel,
+                                        EndOfList = false
+                                    });
+                                }
+                            }
+
+                            foreach (Channel? channel in localchannels)
                             {
                                 channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
                                 {
@@ -7557,7 +7739,21 @@ namespace Horizon.MEDIUS.Medius
                         {
                             // Deadlocked only uses this to connect to a non-game channel (lobby)
                             // So we'll filter by lobby here
-                            var channels = MediusClass.Manager.GetChannelListFiltered(
+
+                            IEnumerable<Channel>? RemoteChannels = MumChannelHandler.GetRemoteChannelListFiltered(
+                                data.ClientObject.ApplicationId,
+                                channelList_ExtraInfoRequest.PageID,
+                                channelList_ExtraInfoRequest.PageSize,
+                                ChannelType.Lobby,
+                                data.ClientObject.FilterMask1,
+                                data.ClientObject.FilterMask2,
+                                data.ClientObject.FilterMask3,
+                                data.ClientObject.FilterMask4,
+                                data.ClientObject.FilterMaskLevel,
+                                data.ClientObject.IP
+                            );
+
+                            IEnumerable<Channel> localchannels = MediusClass.Manager.GetChannelListFiltered(
                                 data.ClientObject.ApplicationId,
                                 channelList_ExtraInfoRequest.PageID,
                                 channelList_ExtraInfoRequest.PageSize,
@@ -7568,7 +7764,31 @@ namespace Horizon.MEDIUS.Medius
                                 data.ClientObject.FilterMask4,
                                 data.ClientObject.FilterMaskLevel);
 
-                            foreach (var channel in channels)
+                            if (RemoteChannels != null)
+                            {
+                                foreach (Channel? channel in RemoteChannels)
+                                {
+                                    channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
+                                    {
+                                        MessageID = channelList_ExtraInfoRequest.MessageID,
+                                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                                        MediusWorldID = channel.Id,
+                                        LobbyName = channel.Name,
+                                        GameWorldCount = (ushort)channel.GameCount,
+                                        PlayerCount = (ushort)channel.PlayerCount,
+                                        MaxPlayers = (ushort)channel.MaxPlayers,
+                                        GenericField1 = (uint)channel.GenericField1,
+                                        GenericField2 = (uint)channel.GenericField2,
+                                        GenericField3 = (uint)channel.GenericField3,
+                                        GenericField4 = (uint)channel.GenericField4,
+                                        GenericFieldLevel = channel.GenericFieldLevel,
+                                        SecurityLevel = channel.SecurityLevel,
+                                        EndOfList = false
+                                    });
+                                }
+                            }
+
+                            foreach (Channel? channel in localchannels)
                             {
                                 channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
                                 {
@@ -7603,7 +7823,7 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             // Ensure the end of list flag is set
-                            channelResponses[channelResponses.Count - 1].EndOfList = true;
+                            channelResponses[^1].EndOfList = true;
 
                             // Add to responses
                             data.ClientObject.Queue(channelResponses);
@@ -9946,10 +10166,10 @@ namespace Horizon.MEDIUS.Medius
                 var channel = clientObject.CurrentChannel;
                 var game = clientObject.CurrentGame;
                 var currentClanId = clientObject.ClanId;
-                var allPlayers = channel.Clients;
-                var allInClan = channel.Clients.Where(x => x.ClanId != currentClanId);
-                var allButSender = channel.Clients.Where(x => x != clientObject);
-                var targetPlayer = channel.Clients.FirstOrDefault(x => x.AccountId == chatMessage.TargetID);
+                var allPlayers = channel.LocalClients;
+                var allInClan = channel.LocalClients.Where(x => x.ClanId != currentClanId);
+                var allButSender = channel.LocalClients.Where(x => x != clientObject);
+                var targetPlayer = channel.LocalClients.FirstOrDefault(x => x.AccountId == chatMessage.TargetID);
 
                 List<BaseScertMessage> chatResponses = new List<BaseScertMessage>();
 
@@ -10037,9 +10257,9 @@ namespace Horizon.MEDIUS.Medius
             var channel = clientObject.CurrentChannel;
             var game = clientObject.CurrentGame;
             var currentClanId = clientObject.ClanId;
-            var allPlayers = channel.Clients;
-            var allInClan = channel.Clients.Where(x => x.ClanId == currentClanId);
-            var allButSender = channel.Clients.Where(x => x != clientObject);
+            var allPlayers = channel.LocalClients;
+            var allInClan = channel.LocalClients.Where(x => x.ClanId == currentClanId);
+            var allButSender = channel.LocalClients.Where(x => x != clientObject);
             List<BaseScertMessage> chatResponses = new List<BaseScertMessage>();
 
             // ERROR -- Need to be logged in

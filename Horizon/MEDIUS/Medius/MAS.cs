@@ -13,6 +13,7 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
+using Horizon.MUM;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -2474,7 +2475,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMASIpOverride) ? MediusClass.Settings.NpMASIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                 new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                 }
                                 },
@@ -2514,7 +2515,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                     {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMASIpOverride) ? MediusClass.Settings.NpMASIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                     }
                                 },

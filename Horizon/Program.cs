@@ -102,6 +102,10 @@ class Program
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
+            GeoIPUtils.Initialize();
+
+            Task.Run(() => { new Horizon.MUM.MumServerHandler("*", 10076).StartServer(); });
+
             Horizon.MEDIUS.MediusClass.MediusMain();
 
             _ = Task.Run(() => Parallel.Invoke(

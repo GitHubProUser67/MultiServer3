@@ -37,6 +37,13 @@ namespace Horizon.MEDIUS.Config
         /// </summary>
         public int LocationID = 0;
 
+        #region NpMASIp
+        /// <summary>
+        /// If NpMASIpOverride is set, server will authenticate on the designed MAS server that is validated for NpTickets.
+        /// </summary>
+        public string NpMASIpOverride { get; set; } = string.Empty;
+        #endregion
+
         #region Database
         //#####################################
         //# Database Connection Configuration #
@@ -367,6 +374,13 @@ namespace Horizon.MEDIUS.Config
         /// # Substring dictionary
         public string VulgaritySubstringDictionary = "vulgar.fpat";
 
+        #endregion
+
+        #region MUM
+        /// <summary>
+        /// List of MUM Ips/Ports.
+        /// </summary>
+        public List<string> MUMIPs { get; set; } = new();
         #endregion
     }
 

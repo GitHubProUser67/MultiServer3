@@ -4,7 +4,6 @@ using BackendProject.Horizon.RT.Common;
 using BackendProject.Horizon.RT.Models;
 using BackendProject.Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
-using Horizon.MEDIUS.Medius.Models;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -15,6 +14,7 @@ using Horizon.MEDIUS.Medius;
 using Horizon.HTTPSERVICE;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
+using Horizon.MUM;
 
 namespace Horizon.MEDIUS
 {
@@ -41,6 +41,8 @@ namespace Horizon.MEDIUS
 
         public static AntiCheat AntiCheatPlugin = new();
         public static BackendProject.Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
+
+        public static List<string> MUMServerIPsList = new();
 
         private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
@@ -531,6 +533,16 @@ namespace Horizon.MEDIUS
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
+
+            if (Settings.MUMIPs.Count > 0)
+            {
+                foreach (string ip in Settings.MUMIPs)
+                {
+                    if (IPAddress.TryParse(ip, out _))
+                        if (!MUMServerIPsList.Contains(ip))
+                            MUMServerIPsList.Add(ip);
+                }
+            }
         }
 
         private static async Task RefreshAppSettings()
