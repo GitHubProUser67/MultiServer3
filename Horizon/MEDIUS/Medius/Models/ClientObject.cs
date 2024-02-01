@@ -8,8 +8,9 @@ using Horizon.MEDIUS.PluginArgs;
 using BackendProject.Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
-using static Horizon.MEDIUS.Medius.Models.Game;
+using static Horizon.MUM.Game;
 using Horizon.PluginManager;
+using Horizon.MUM;
 
 namespace Horizon.MEDIUS.Medius.Models
 {

@@ -8,6 +8,8 @@ using System.Security.Principal;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
+using System.Xml;
 
 namespace BackendProject.MiscUtils
 {

@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-using BackendProject.MiscUtils;
+﻿using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Net;
 using System.Text;
