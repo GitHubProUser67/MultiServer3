@@ -2475,7 +2475,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMASIpOverride) ? MediusClass.Settings.NpMASIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                 new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                 }
                                 },
@@ -2515,7 +2515,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                     {
-                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMASIpOverride) ? MediusClass.Settings.NpMASIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                     }
                                 },
