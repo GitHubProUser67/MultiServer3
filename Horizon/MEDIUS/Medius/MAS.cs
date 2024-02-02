@@ -10,7 +10,6 @@ using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.PluginManager;
 using System.Net;
-using Microsoft.Extensions.Logging;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 using Horizon.MUM;
@@ -1194,14 +1193,14 @@ namespace Horizon.MEDIUS.Medius
                             return;
                         }
 
-                        await HorizonServerConfiguration.Database.CreateAccount(new BackendProject.Horizon.LIBRARY.Database.Models.CreateAccountDTO()
+                        await HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
                             AccountPassword = VariousUtils.ComputeSHA256(accountRegRequest.Password),
                             MachineId = data.MachineId,
                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                             AppId = data.ClientObject.ApplicationId
-                        }).ContinueWith((r) =>
+                        }, clientChannel).ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null)
                             {
@@ -1447,7 +1446,7 @@ namespace Horizon.MEDIUS.Medius
                                                 MachineId = data.MachineId,
                                                 MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                                 AppId = data.ClientObject.ApplicationId
-                                            }).ContinueWith(async (r) =>
+                                            }, clientChannel).ContinueWith(async (r) =>
                                             {
                                                 if (r.IsCompletedSuccessfully && r.Result != null)
                                                 {
@@ -1654,7 +1653,7 @@ namespace Horizon.MEDIUS.Medius
 
                                                 LoggerAccessor.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
 
-                                                if (r.Result.IsBanned == true)
+                                                if (r.Result.IsBanned)
                                                 {
                                                     // Account is banned
                                                     // Respond with Statuscode MediusAccountBanned
@@ -1721,7 +1720,7 @@ namespace Horizon.MEDIUS.Medius
                                                             MachineId = data.MachineId,
                                                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                                             AppId = data.ClientObject.ApplicationId
-                                                        }).ContinueWith(async (r) =>
+                                                        }, clientChannel).ContinueWith(async (r) =>
                                                         {
                                                             LoggerAccessor.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
 

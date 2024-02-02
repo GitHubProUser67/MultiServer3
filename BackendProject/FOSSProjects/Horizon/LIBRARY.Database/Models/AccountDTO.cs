@@ -62,6 +62,11 @@ namespace BackendProject.Horizon.LIBRARY.Database.Models
         public string? MachineId { get; set; }
 
         /// <summary>
+        /// IP of the client when it first connected.
+        /// </summary>
+        public string? FirstClientIp { get; set; }
+
+        /// <summary>
         /// Whether or not the player has been banned.
         /// </summary>
         public bool IsBanned { get; set; }
@@ -80,7 +85,7 @@ namespace BackendProject.Horizon.LIBRARY.Database.Models
         public int clanPlayerId { get; set; }
         public int playerId { get; set; }
         public DateTime playerLevelUpdateDate { get; set; }
-        public string playerName { get; set; }
+        public string? playerName { get; set; }
         public DateTime playerStatusUpdateDate { get; set; }
         public int status { get; set; }
         public int clanPlayerLevelId { get; set; }

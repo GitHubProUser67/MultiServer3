@@ -387,6 +387,13 @@ namespace Horizon.MEDIUS.Config
         /// </summary>
         public List<string> MUMIPs { get; set; } = new();
         #endregion
+
+        #region MLS
+        /// <summary>
+        /// Allows the login of guests, will be needed if you plan on using multi-MLS setup.
+        /// </summary>
+        public bool AllowGuests { get; set; } = true;
+        #endregion
     }
 
     #region TextFilterContext

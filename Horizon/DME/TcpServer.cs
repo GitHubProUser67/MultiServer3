@@ -237,7 +237,7 @@ namespace Horizon.DME
             if (clientChannel == null)
                 return;
 
-            List<BaseScertMessage> responses = new List<BaseScertMessage>();
+            List<BaseScertMessage> responses = new();
             string key = clientChannel.Id.AsLongText();
 
             try

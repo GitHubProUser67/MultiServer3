@@ -16,6 +16,8 @@ using System.Security.Cryptography;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
+using BackendProject.Horizon.RT.Cryptography.RSA;
+using System.Text;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -86,7 +88,7 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10114, 10130, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10984, 10724 };
+                        List<int> pre108ServerComplete = new() { 10114, 10130, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10984, 10724 };
 
                         #region Compatible AppId
                         if (!MediusClass.Manager.IsAppIdSupported(clientConnectTcp.AppId))
@@ -104,60 +106,55 @@ namespace Horizon.MEDIUS.Medius
                         if (data.ClientObject == null)
                         {
                             LoggerAccessor.LogWarn("CLIENTOBJECT NULL FALLBACK");
-                            //data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
-                            if (data.ClientObject == null)
+
+                            List<ClientObject> clients = MediusClass.Manager.GetClients(clientConnectTcp.AppId);
+                            LoggerAccessor.LogWarn($"Clients Count for AppId {clients.Count}");
+                            foreach (ClientObject client in clients)
                             {
-                                var clients = MediusClass.Manager.GetClients(clientConnectTcp.AppId);
-                                LoggerAccessor.LogWarn($"Clients Count for AppId {clients.Count()}");
-                                foreach (var client in clients)
+                                if (client.Token == clientConnectTcp.AccessToken)
                                 {
-                                    if (client.Token == clientConnectTcp.AccessToken)
-                                    {
-                                        LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
-                                        data.ClientObject = client;
-                                    }
+                                    LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
+                                    data.ClientObject = client;
                                 }
                             }
                         }
 
                         #region Client Object Null?
-                        //If Client Object is null, then ignore
+                        //If Client Object is null, then ignore or create a guest.
                         if (data.ClientObject == null)
                         {
-                            LoggerAccessor.LogError($"IGNORING CLIENT {data} || {data.ClientObject}");
-                            //data.Ignore = true;
+                            if (MediusClass.Settings.AllowGuests)
+                            {
+                                data.ClientObject = new();
+                                data.ClientObject.OnConnected();
+                                if (!await GuestLogin(clientChannel, data))
+                                {
+                                    LoggerAccessor.LogError($"IGNORING BANNED CLIENT {data} || {data.ClientObject}");
+                                    //data.Ignore = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"IGNORING UNKNOWN CLIENT {data} || {data.ClientObject}");
+                                //data.Ignore = true;
+                                break;
+                            }
                         }
                         #endregion
-                        else
+
+                        LoggerAccessor.LogInfo("Client valid!");
+
+                        data.ClientObject.OnConnected();
+
+                        // Update our client object to use existing one
+                        data.ClientObject.ApplicationId = clientConnectTcp.AppId;
+
+                        #region if PS3
+                        if (scertClient.IsPS3Client)
                         {
-                            LoggerAccessor.LogInfo("Client valid!");
-
-                            data.ClientObject.OnConnected();
-
-                            // Update our client object to use existing one
-                            data.ClientObject.ApplicationId = clientConnectTcp.AppId;
-
-                            #region if PS3
-                            if (scertClient.IsPS3Client)
-                            {
-                                //CAC & Warhawk
-                                if (data.ClientObject.ApplicationId == 20623 || data.ClientObject.ApplicationId == 20624 || data.ClientObject.ApplicationId == 20043 || data.ClientObject.ApplicationId == 20044)
-                                {
-                                    Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                                    {
-                                        PlayerId = 0,
-                                        ScertId = GenerateNewScertClientId(),
-                                        PlayerCount = 0x0001,
-                                        IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                                    }, clientChannel);
-                                }
-                                else
-                                    Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
-                            }
-                            #endregion
-                            else if (scertClient.MediusVersion > 108 && scertClient.MediusVersion != 111 && scertClient.ApplicationID != 20624 && scertClient.ApplicationID != 11484)
-                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
-                            else
+                            //CAC & Warhawk
+                            if (data.ClientObject.ApplicationId == 20623 || data.ClientObject.ApplicationId == 20624 || data.ClientObject.ApplicationId == 20043 || data.ClientObject.ApplicationId == 20044)
                             {
                                 Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                 {
@@ -166,20 +163,65 @@ namespace Horizon.MEDIUS.Medius
                                     PlayerCount = 0x0001,
                                     IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
+                            }
+                            else
+                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
+                        }
+                        #endregion
+                        else if (scertClient.MediusVersion > 108 && scertClient.MediusVersion != 111 && scertClient.ApplicationID != 20624 && scertClient.ApplicationID != 11484)
+                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
+                        else
+                        {
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                            {
+                                PlayerId = 0,
+                                ScertId = GenerateNewScertClientId(),
+                                PlayerCount = 0x0001,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                            }, clientChannel);
 
-                                //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
-                                if (scertClient.CipherService.EnableEncryption == true && scertClient.RsaAuthKey != null)
-                                    Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
+                            if (scertClient.CipherService.EnableEncryption == true && scertClient.RsaAuthKey != null)
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
 
-                                if (pre108ServerComplete.Contains(data.ApplicationId))
-                                    Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+                            if (pre108ServerComplete.Contains(data.ApplicationId))
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
-                                /*
+                            /*
 
-                                 //If Frequency, TMBO, Socom 1, ATV Offroad Fury 2,  My Street, or Field Commander Beta then
-                                 if (data.ApplicationId == 10010 || data.ApplicationId == 10031 || data.ApplicationId == 10274 || data.ApplicationId == 10540 || data.ApplicationId == 10284 || data.ApplicationId == 20190)
+                             //If Frequency, TMBO, Socom 1, ATV Offroad Fury 2,  My Street, or Field Commander Beta then
+                             if (data.ApplicationId == 10010 || data.ApplicationId == 10031 || data.ApplicationId == 10274 || data.ApplicationId == 10540 || data.ApplicationId == 10284 || data.ApplicationId == 20190)
+                             {
+                                 //Do NOT send hereCryptKey Game
+                                 Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                  {
-                                     //Do NOT send hereCryptKey Game
+                                     PlayerId = 0,
+                                     ScertId = GenerateNewScertClientId(),
+                                     PlayerCount = 0x0001,
+                                     IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                                 }, clientChannel);
+
+                                 //If ATV Offroad Fury 2, complete connection
+                                 if (pre108ServerComplete.Contains(data.ApplicationId))
+                                 {
+                                     Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+                                 }
+                             }
+                             else
+                             {
+                                 // If RFOM, Starhawk
+                                 if (data.ApplicationId == 20174 || data.ApplicationId == 20043 || data.ApplicationId == 22920)
+                                 {
+                                     //Do Nothing
+                                 }
+                                 else
+                                 {
+                                     //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
+                                     if (scertClient.CipherService.EnableEncryption != true)
+                                     {
+                                         Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                                     }
+
                                      Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                      {
                                          PlayerId = 0,
@@ -187,45 +229,14 @@ namespace Horizon.MEDIUS.Medius
                                          PlayerCount = 0x0001,
                                          IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                      }, clientChannel);
-
-                                     //If ATV Offroad Fury 2, complete connection
-                                     if (pre108ServerComplete.Contains(data.ApplicationId))
-                                     {
-                                         Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                                     }
                                  }
-                                 else
+
+                                 if (scertClient.MediusVersion > 108 || pre108ServerComplete.Contains(data.ApplicationId))
                                  {
-                                     // If RFOM, Starhawk
-                                     if (data.ApplicationId == 20174 || data.ApplicationId == 20043 || data.ApplicationId == 22920)
-                                     {
-                                         //Do Nothing
-                                     }
-                                     else
-                                     {
-                                         //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
-                                         if (scertClient.CipherService.EnableEncryption != true)
-                                         {
-                                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                                         }
-
-                                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                                         {
-                                             PlayerId = 0,
-                                             ScertId = GenerateNewScertClientId(),
-                                             PlayerCount = 0x0001,
-                                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                                         }, clientChannel);
-                                     }
-
-                                     if (scertClient.MediusVersion > 108 || pre108ServerComplete.Contains(data.ApplicationId))
-                                     {
-                                         Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-                                     }
+                                     Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                                  }
-                                */
-                            }
-
+                             }
+                            */
                         }
 
                         break;
@@ -10640,5 +10651,82 @@ namespace Horizon.MEDIUS.Medius
 
             return null;
         }
+
+        #region GuestLogin
+        private async Task<bool> GuestLogin(IChannel clientChannel, ChannelData data)
+        {
+            bool Anonymous = false;
+
+            var fac = new PS2CipherFactory();
+            var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
+            IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
+
+            if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId ?? string.Empty)) // Would be too easy if the Client could bypass Ban with a Guest...
+            {
+                // Then queue send ban message
+                await QueueBanMessage(data, "You have been banned from this server.");
+
+                if (data.ClientObject != null)
+                    await data.ClientObject.Logout();
+
+                return false;
+            }
+
+            List<int> p2pSetIP = new() { 10010, 10031, 10164, 10190, 10330, 10694, 10782, 10884, 10974, 21834, 21924 };
+
+            char[] charsToRemove = { ':', 'f', '{', '}' };
+
+            if (data.ClientObject != null && p2pSetIP.Contains(data.ClientObject.ApplicationId))
+                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
+
+            AccountDTO? accountDto = await HorizonServerConfiguration.Database.GetAccountByFirstIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
+
+            if (accountDto == null)
+            {
+                Anonymous = true;
+
+                int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
+                LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
+
+                accountDto = new()
+                {
+                    AccountId = iAccountID,
+                    AccountName = BitConverter.ToString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes("Guest" + iAccountID))).Replace("-", "")
+                };
+            }
+            else if (accountDto.IsBanned) // Would be too easy if the Client could bypass Ban with a Guest...
+            {
+                // Then queue send ban message
+                await QueueBanMessage(data, "Your CID has been banned");
+
+                if (data.ClientObject != null)
+                    await data.ClientObject.Logout();
+
+                return false;
+            }
+
+            if (data.ClientObject != null)
+                await data.ClientObject.Login(accountDto);
+
+            #region Update DB IP and CID
+            if (!Anonymous)
+            {
+                await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
+                if (data.ClientObject != null && !string.IsNullOrEmpty(data.MachineId))
+                    await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+            }
+            #endregion
+
+            if (data.ClientObject != null)
+            {
+                // Add to logged in clients
+                MediusClass.Manager.AddClient(data.ClientObject);
+
+                LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
+            }
+
+            return true;
+        }
+        #endregion
     }
 }

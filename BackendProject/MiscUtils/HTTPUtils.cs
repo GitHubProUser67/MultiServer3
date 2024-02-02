@@ -1,4 +1,5 @@
-﻿using System.Collections.Specialized;
+﻿using ComponentAce.Compression.Libs.zlib;
+using System.Collections.Specialized;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
@@ -583,8 +584,9 @@ namespace BackendProject.MiscUtils
 
         public static readonly Dictionary<string, byte[]> PathernDictionary = new()
         {
-            { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } }
             // Add more entries as needed
+            { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } },
+            { "video/mp4", new byte[] { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70 } }
         };
 
         public static string[] DefaultDocuments =
@@ -776,6 +778,25 @@ namespace BackendProject.MiscUtils
             }
 
             return byteoutput;
+        }
+
+        public static HugeMemoryStream InflateStream(Stream input)
+        {
+            using (HugeMemoryStream ms = new())
+            {
+                using (ZOutputStream stream2 = new(ms, 9, true))
+                {
+                    Span<byte> buffer = new byte[32768];
+                    int read = 0;
+                    while ((read = input.Read(buffer)) > 0)
+                    {
+                        stream2.Write(buffer.ToArray(), 0, read);
+                    }
+                    stream2.finish();
+                    ms.Position = 0;
+                    return ms;
+                }
+            }
         }
 
         public static byte[]? MakeDnsResponsePacket(byte[] Req, IPAddress Ip)

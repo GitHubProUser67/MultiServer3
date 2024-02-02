@@ -11,7 +11,12 @@ namespace HTTPSecureServerLite
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
+
+            // Little note, range-requests often not even request any compression.
+
             const int rangebuffersize = 32768;
+
+            string? acceptencoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
 
             using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -61,6 +66,18 @@ namespace HTTPSecureServerLite
                                 endByte = filesize;
                             if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
                             {
+                                string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                                        "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                                        "        <head>\r\n" +
+                                        "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                                        "        </head>\r\n" +
+                                        "        <body>\r\n" +
+                                        "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                                        "        </body>\r\n" +
+                                        "</html>";
+
                                 ms.Flush();
                                 ms.Close();
                                 fs.Flush();
@@ -68,17 +85,13 @@ namespace HTTPSecureServerLite
                                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                                 ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                                 ctx.Response.ContentType = "text/html; charset=UTF-8";
-                                return ctx.Response.Send("<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
-                                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
-                                    "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
-                                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
-                                    "        <head>\r\n" +
-                                    "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
-                                    "        </head>\r\n" +
-                                    "        <body>\r\n" +
-                                    "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
-                                    "        </body>\r\n" +
-                                    "</html>").Result;
+                                if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                    return ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else
+                                    return ctx.Response.Send(payload).Result;
                             }
                             else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                             {
@@ -91,7 +104,16 @@ namespace HTTPSecureServerLite
                                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                                 ctx.Response.ContentType = ContentType;
                                 fs.Position = 0;
-                                return ctx.Response.Send(new FileInfo(local_path).Length, fs).Result;
+                                long fileinfosize = new FileInfo(local_path).Length;
+
+                                if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && fileinfosize <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                    using Stream st = HTTPUtils.InflateStream(fs);
+                                        return ctx.Response.Send(st.Length, st).Result;
+                                }
+                                else
+                                    return ctx.Response.Send(fileinfosize, fs).Result;
                             }
                             else
                             {
@@ -147,22 +169,30 @@ namespace HTTPSecureServerLite
                     endByte = filesize;
                 if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
                 {
+                    string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                                        "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                                        "        <head>\r\n" +
+                                        "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                                        "        </head>\r\n" +
+                                        "        <body>\r\n" +
+                                        "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                                        "        </body>\r\n" +
+                                        "</html>";
+
                     fs.Flush();
                     fs.Close();
                     ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                     ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                     ctx.Response.ContentType = "text/html; charset=UTF-8";
-                    return ctx.Response.Send("<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
-                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
-                        "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
-                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
-                        "        <head>\r\n" +
-                        "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
-                        "        </head>\r\n" +
-                        "        <body>\r\n" +
-                        "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
-                        "        </body>\r\n" +
-                        "</html>").Result;
+                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        return ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else
+                        return ctx.Response.Send(payload).Result;
                 }
                 else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                 {
@@ -191,7 +221,17 @@ namespace HTTPSecureServerLite
                     else
                         ctx.Response.ContentType = ContentType;
                     fs.Position = 0;
-                    return ctx.Response.Send(new FileInfo(local_path).Length, fs).Result;
+
+                    long fileinfosize = new FileInfo(local_path).Length;
+
+                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && fileinfosize <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                        using Stream st = HTTPUtils.InflateStream(fs);
+                            return ctx.Response.Send(st.Length, st).Result;
+                    }
+                    else
+                        return ctx.Response.Send(fileinfosize, fs).Result;
                 }
                 else
                 {

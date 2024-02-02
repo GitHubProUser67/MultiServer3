@@ -84,8 +84,11 @@ namespace Horizon.MEDIUS.Medius
             return null;
         }
 
-        public ClientObject? GetClientByAccessToken(string accessToken, int appId)
+        public ClientObject? GetClientByAccessToken(string? accessToken, int appId)
         {
+            if (string.IsNullOrEmpty(accessToken))
+                return null;
+
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
             foreach (var appIdInGroup in appIdsInGroup)
@@ -2044,19 +2047,28 @@ namespace Horizon.MEDIUS.Medius
         {
             try
             {
-                Queue<(int, string)> clientsToRemove = new Queue<(int, string)>();
+                Queue<(int, string)> clientsToRemove = new();
 
-                while (_addQueue.TryDequeue(out var newClient))
+                while (_addQueue.TryDequeue(out ClientObject? newClient))
                 {
-                    if (!_lookupsByAppId.TryGetValue(newClient.ApplicationId, out var quickLookup))
+                    if (!_lookupsByAppId.TryGetValue(newClient.ApplicationId, out QuickLookup? quickLookup))
                         _lookupsByAppId.Add(newClient.ApplicationId, quickLookup = new QuickLookup());
 
                     try
                     {
-                        quickLookup.AccountIdToClient.Add(newClient.AccountId, newClient);
-                        quickLookup.AccountNameToClient.Add(newClient.AccountName.ToLower(), newClient);
-                        quickLookup.AccessTokenToClient.Add(newClient.Token, newClient);
-                        quickLookup.SessionKeyToClient.Add(newClient.SessionKey, newClient);
+                        if (!string.IsNullOrEmpty(newClient.AccountName) &&
+                            !string.IsNullOrEmpty(newClient.Token) &&
+                            !string.IsNullOrEmpty(newClient.SessionKey) &&
+                            !quickLookup.AccountIdToClient.ContainsKey(newClient.AccountId) &&
+                            !quickLookup.AccountNameToClient.ContainsKey(newClient.AccountName.ToLower()) &&
+                            !quickLookup.AccessTokenToClient.ContainsKey(newClient.Token) &&
+                            !quickLookup.SessionKeyToClient.ContainsKey(newClient.SessionKey))
+                        {
+                            quickLookup.AccountIdToClient.Add(newClient.AccountId, newClient);
+                            quickLookup.AccountNameToClient.Add(newClient.AccountName.ToLower(), newClient);
+                            quickLookup.AccessTokenToClient.Add(newClient.Token, newClient);
+                            quickLookup.SessionKeyToClient.Add(newClient.SessionKey, newClient);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -2076,7 +2088,6 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         LoggerAccessor.LogError(e);
-                        //throw e;
                     }
                 }
 
@@ -2113,16 +2124,6 @@ namespace Horizon.MEDIUS.Medius
                         }
                     }
                 }
-
-                /*
-                try
-                {
-
-                } catch (Exception e)
-                {
-                    Logger.Warn(e);
-                }
-                */
             }
             catch (Exception ex)
             {
