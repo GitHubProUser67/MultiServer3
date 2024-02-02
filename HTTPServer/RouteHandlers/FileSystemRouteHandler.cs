@@ -13,7 +13,7 @@ namespace HTTPServer.RouteHandlers
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
                 return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
-                return Handle_LocalFile(filepath);
+                return Handle_LocalFile(request, filepath);
             else
                 return HttpBuilder.NotFound();
         }
@@ -54,8 +54,10 @@ namespace HTTPServer.RouteHandlers
                 return HttpBuilder.NotFound();
         }
 
-        private static HttpResponse Handle_LocalFile(string local_path)
+        private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
         {
+            string? encoding = request.GetHeaderValue("Accept-Encoding");
+
             HttpResponse response = new(false)
             {
                 HttpStatusCode = HttpStatusCode.Ok
@@ -80,19 +82,33 @@ namespace HTTPServer.RouteHandlers
             else
                 response.Headers["Content-Type"] = ContentType;
 
-            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+            {
+                response.Headers.Add("Content-Encoding", "deflate");
+                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            }
+            else
+                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
         }
 
-        public static HttpResponse Handle_LocalFile_Download(string local_path)
+        public static HttpResponse Handle_LocalFile_Download(HttpRequest request, string local_path)
         {
+            string? encoding = request.GetHeaderValue("Accept-Encoding");
+
             HttpResponse response = new(false)
             {
                 HttpStatusCode = HttpStatusCode.Ok,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
-            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+            {
+                response.Headers.Add("Content-Encoding", "deflate");
+                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            }
+            else
+                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
         }

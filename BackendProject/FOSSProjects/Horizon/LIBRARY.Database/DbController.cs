@@ -7,6 +7,8 @@ using BackendProject.Horizon.LIBRARY.Database.Config;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using System.Text;
 using System.Web;
+using DotNetty.Transport.Channels;
+using System.Net;
 
 namespace BackendProject.Horizon.LIBRARY.Database
 {
@@ -272,11 +274,35 @@ namespace BackendProject.Horizon.LIBRARY.Database
         }
 
         /// <summary>
+        /// Get account by the first registered Ip (usually unsafe, TODO: make medius refresh this on regular intervals).
+        /// </summary>
+        /// <param name="RequestedIp">Requested Ip to search for.</param>
+        /// <returns>Returns account.</returns>
+        public async Task<AccountDTO?> GetAccountByFirstIp(string RequestedIp)
+        {
+            AccountDTO? result = null;
+
+            try
+            {
+                if (_settings.SimulatedMode)
+                    result = _simulatedAccounts.FirstOrDefault(x => x.FirstClientIp == RequestedIp);
+                else
+                    result = await GetDbAsync<AccountDTO>($"Account/getAccount?RequestedIp={RequestedIp}");
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError(e);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Creates an account.
         /// </summary>
         /// <param name="createAccount">Account creation parameters.</param>
         /// <returns>Returns created account.</returns>
-        public async Task<AccountDTO?> CreateAccount(CreateAccountDTO createAccount)
+        public async Task<AccountDTO?> CreateAccount(CreateAccountDTO createAccount, IChannel clientChannel)
         {
             AccountDTO? result = null;
 
@@ -289,6 +315,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                     {
                         _simulatedAccounts.Add(result = new AccountDTO()
                         {
+                            FirstClientIp = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }),
                             AccountId = _simulatedAccountIdCounter++,
                             AccountName = createAccount.AccountName,
                             AccountPassword = createAccount.AccountPassword,

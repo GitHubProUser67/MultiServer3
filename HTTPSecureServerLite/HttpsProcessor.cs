@@ -1512,17 +1512,39 @@ namespace HTTPSecureServerLite
         private static bool SendFile(HttpContextBase ctx, string filePath, string contentType)
         {
             bool sent = false;
+
             long contentLen = new FileInfo(filePath).Length;
 
-            using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            string? acceptencoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+
+            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && contentLen <= 80000000) // We must be reasonable on the file-size here (80 Mb).
             {
-                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                ctx.Response.ContentType = contentType;
-                ctx.Response.StatusCode = 200;
-                sent = ctx.Response.Send(contentLen, fs).Result;
-                fs.Flush();
+                using (Stream st = HTTPUtils.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                {
+                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                    ctx.Response.ContentType = contentType;
+                    ctx.Response.StatusCode = 200;
+                    sent = ctx.Response.Send(st.Length, st).Result;
+                    st.Flush();
+                    st.Close();
+                }
+            }
+            else
+            {
+                using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                    ctx.Response.ContentType = contentType;
+                    ctx.Response.StatusCode = 200;
+                    sent = ctx.Response.Send(contentLen, fs).Result;
+                    fs.Flush();
+                    fs.Close();
+                }
             }
 
             return sent;

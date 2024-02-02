@@ -598,9 +598,6 @@ namespace HTTPServer
                         if (!response.Headers.ContainsKey("Content-Type"))
                             response.Headers.Add("Content-Type", "text/plain");
 
-                        if (!response.Headers.ContainsKey("Content-Length"))
-                            response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
-
                         if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent)
                         {
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -609,28 +606,44 @@ namespace HTTPServer
                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                         }
 
+                        string? encoding = null;
+                        int buffersize = HTTPServerConfiguration.BufferSize;
+
+                        if (!response.Headers.ContainsKey("Content-Length"))
+                        {
+                            if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                            {
+
+                            }
+                            else
+                                response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+                        }
+
                         WriteLineToStream(stream, response.ToHeader());
 
                         stream.Flush();
 
-                        int buffersize = HTTPServerConfiguration.BufferSize;
                         long totalBytes = response.ContentStream.Length;
                         long bytesLeft = totalBytes;
 
                         if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                             buffersize = 500000;
 
+                        HttpResponseContentStream ctwire = new(stream);
+
                         while (bytesLeft > 0)
                         {
                             Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
                             int n = response.ContentStream.Read(buffer);
 
-                            stream.Write(buffer);
+                            ctwire.Write(buffer);
 
                             bytesLeft -= n;
                         }
 
-                        stream.Flush();
+                        ctwire.WriteTerminator();
+
+                        ctwire.Flush();
 
                         if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
                                 || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
@@ -678,7 +691,12 @@ namespace HTTPServer
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
+
+            // Little note, range-requests often not even request any compression.
+
             const int rangebuffersize = 32768;
+
+            string? acceptencoding = request.GetHeaderValue("Accept-Encoding");
 
             HttpResponse? response = null;
 
@@ -733,15 +751,7 @@ namespace HTTPServer
                                     endByte = filesize;
                                 if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
                                 {
-                                    ms.Flush();
-                                    ms.Close();
-                                    response = new(false)
-                                    {
-                                        HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
-                                    };
-                                    response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
-                                    response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                                    response.ContentAsUTF8 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                                    string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
                                         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
                                         "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
                                         "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
@@ -752,6 +762,22 @@ namespace HTTPServer
                                         "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
                                         "        </body>\r\n" +
                                         "</html>";
+
+                                    ms.Flush();
+                                    ms.Close();
+                                    response = new(false)
+                                    {
+                                        HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                                    };
+                                    response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                                    response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                                    {
+                                        response.Headers.Add("Content-Encoding", "gzip");
+                                        response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
+                                    }
+                                    else
+                                        response.ContentAsUTF8 = payload;
                                     goto shortcut; // Do we really have the choice?
                                 }
                                 else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
@@ -764,7 +790,13 @@ namespace HTTPServer
                                     };
                                     response.Headers.Add("Accept-Ranges", "bytes");
                                     response.Headers.Add("Content-Type", ContentType);
-                                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                                    {
+                                        response.Headers.Add("Content-Encoding", "deflate");
+                                        response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                                    }
+                                    else
+                                        response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                                     goto shortcut; // Do we really have the choice?
                                 }
                                 else
@@ -797,10 +829,21 @@ namespace HTTPServer
                             response.Headers.Add("Accept-Ranges", "bytes");
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
                             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                            response.Headers.Add("Content-Length", ms.Length.ToString());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                            string? encoding = null;
+
+                            if (!response.Headers.ContainsKey("Content-Length"))
+                            {
+                                if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                                {
+
+                                }
+                                else
+                                    response.Headers.Add("Content-Length", ms.Length.ToString());
+                            }
 
                             WriteLineToStream(stream, response.ToHeader());
 
@@ -812,17 +855,21 @@ namespace HTTPServer
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
 
+                            HttpResponseContentStream ctwire = new(stream);
+
                             while (bytesLeft > 0)
                             {
                                 Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
                                 int n = ms.Read(buffer);
 
-                                stream.Write(buffer);
+                                ctwire.Write(buffer);
 
                                 bytesLeft -= n;
                             }
 
-                            stream.Flush();
+                            ctwire.WriteTerminator();
+
+                            ctwire.Flush();
 
                             ms.Flush();
                             ms.Close();
@@ -875,13 +922,7 @@ namespace HTTPServer
                         endByte = filesize;
                     if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
                     {
-                        response = new(false)
-                        {
-                            HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
-                        };
-                        response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
-                        response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                        response.ContentAsUTF8 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                        string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
                             "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
                             "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
                             "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
@@ -892,6 +933,20 @@ namespace HTTPServer
                             "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
                             "        </body>\r\n" +
                             "</html>";
+
+                        response = new(false)
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                        };
+                        response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                        response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                        if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                        {
+                            response.Headers.Add("Content-Encoding", "gzip");
+                            response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else
+                            response.ContentAsUTF8 = payload;
                     }
                     else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                     {
@@ -919,7 +974,13 @@ namespace HTTPServer
                         }
                         else
                             response.Headers["Content-Type"] = ContentType;
-                        response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                        {
+                            response.Headers.Add("Content-Encoding", "deflate");
+                            response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                        }
+                        else
+                            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     }
                     else
                     {
@@ -951,32 +1012,48 @@ namespace HTTPServer
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
                         response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                        response.Headers.Add("Content-Length", TotalBytes.ToString());
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                        int buffersize = HTTPServerConfiguration.BufferSize;
+
+                        string? encoding = null;
+
+                        if (!response.Headers.ContainsKey("Content-Length"))
+                        {
+                            if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                            {
+
+                            }
+                            else
+                                response.Headers.Add("Content-Length", TotalBytes.ToString());
+                        }
 
                         WriteLineToStream(stream, response.ToHeader());
 
                         stream.Flush();
 
-                        int buffersize = HTTPServerConfiguration.BufferSize;
                         long bytesLeft = TotalBytes;
 
                         if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                             buffersize = 500000;
+
+                        HttpResponseContentStream ctwire = new(stream);
 
                         while (bytesLeft > 0)
                         {
                             Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
                             int n = fs.Read(buffer);
 
-                            stream.Write(buffer);
+                            ctwire.Write(buffer);
 
                             bytesLeft -= n;
                         }
 
-                        stream.Flush();
+                        ctwire.WriteTerminator();
+
+                        ctwire.Flush();
 
                         if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
                                         || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
@@ -1018,35 +1095,51 @@ namespace HTTPServer
 
                         if (response.ContentStream != null) // Safety.
                         {
+                            int buffersize = HTTPServerConfiguration.BufferSize;
+
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
                             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                            response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                            string? encoding = null;
+
+                            if (!response.Headers.ContainsKey("Content-Length"))
+                            {
+                                if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                                {
+
+                                }
+                                else
+                                    response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+                            }
 
                             WriteLineToStream(stream, response.ToHeader());
 
                             stream.Flush();
 
-                            int buffersize = HTTPServerConfiguration.BufferSize;
                             long totalBytes = response.ContentStream.Length;
                             long bytesLeft = totalBytes;
 
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
 
+                            HttpResponseContentStream ctwire = new(stream);
+
                             while (bytesLeft > 0)
                             {
                                 Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
                                 int n = response.ContentStream.Read(buffer);
 
-                                stream.Write(buffer);
+                                ctwire.Write(buffer);
 
                                 bytesLeft -= n;
                             }
 
-                            stream.Flush();
+                            ctwire.WriteTerminator();
+
+                            ctwire.Flush();
 
                             if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
                                         || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)

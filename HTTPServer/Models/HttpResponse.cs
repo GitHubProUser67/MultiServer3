@@ -51,6 +51,9 @@ namespace HTTPServer.Models
                 };
             else
                 Headers = new Dictionary<string, string>();
+
+            if (HTTPServerConfiguration.HttpVersion == "1.1")
+                Headers.Add("Transfer-Encoding", "chunked");
         }
 
         #endregion
@@ -64,8 +67,10 @@ namespace HTTPServer.Models
 
         public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
         {
-            HttpResponse response = new(false);
-            response.HttpStatusCode = statuscode;
+            HttpResponse response = new(false)
+            {
+                HttpStatusCode = statuscode
+            };
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
@@ -91,8 +96,10 @@ namespace HTTPServer.Models
 
         public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
         {
-            HttpResponse response = new(false);
-            response.HttpStatusCode = statuscode;
+            HttpResponse response = new(false)
+            {
+                HttpStatusCode = statuscode
+            };
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
@@ -118,8 +125,10 @@ namespace HTTPServer.Models
 
         public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
         {
-            HttpResponse response = new(false);
-            response.HttpStatusCode = statuscode;
+            HttpResponse response = new(false)
+            {
+                HttpStatusCode = statuscode
+            };
             response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
