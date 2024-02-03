@@ -2223,9 +2223,13 @@ namespace Horizon.MEDIUS.Medius
         /// </summary>
         /// <param name="AnonymousIDRangeSeed">Config Value for changing the MAS</param>
         /// <returns></returns>
-        public int AnonymousAccountIDGenerator(int AnonymousIDRangeSeed)
+        public int AnonymousAccountIDGenerator(int AnonymousIDRangeSeed, bool reverse)
         {
-            // Search between the given seed and max id value.
+            if (reverse)
+                // Anonymous login expect a negative id < 0.
+                return new Random().Next(-80000000, 0);
+
+            // Search between the given seed and max id value for classic guest handling.
             return new Random().Next(AnonymousIDRangeSeed, 80000000);
         }
         #endregion
