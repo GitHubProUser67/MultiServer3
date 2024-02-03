@@ -360,55 +360,7 @@ namespace Horizon.MUIS
                     {
                         if (data.ApplicationId == MuisClass.Settings.CompatibleApplicationIds.Find(appId => appId == data.ApplicationId))
                         {
-                            if (MuisClass.Settings.PokePatchOn == true && MediusClass.Settings.AntiCheatOn) // Requires AntiCheat.
-                            {
-                                if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
-                                {
-                                    try
-                                    {
-                                        var jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
-
-                                        foreach (var appProperty in jsonObject.Properties())
-                                        {
-                                            string? appId = appProperty.Name;
-
-                                            if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
-                                            {
-                                                var innerObject = appProperty.Value as JObject;
-
-                                                if (innerObject != null)
-                                                {
-                                                    foreach (var offsetProperty in innerObject.Properties())
-                                                    {
-                                                        string? offset = offsetProperty.Name;
-                                                        string? valuestr = offsetProperty.Value.ToString();
-
-                                                        if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", ""), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.HexNumber, null, out uint hexValue))
-                                                        {
-                                                            LoggerAccessor.LogInfo($"[MUIS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
-                                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                                            {
-                                                                start_Address = offsetValue,
-                                                                Payload = BitConverter.GetBytes(hexValue),
-                                                                SkipEncryption = true
-
-                                                            }, clientChannel);
-                                                        }
-                                                        else
-                                                            LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to initialise! {ex}.");
-                                    }
-                                }
-                                else
-                                    LoggerAccessor.LogWarn($"[MUIS] - No MemoryPoke config found.");
-                            }
+                            PokePatch(clientChannel, data);
 
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
@@ -538,6 +490,8 @@ namespace Horizon.MUIS
                         //Check if Client AppId equals the Appid in CompatibleAppId list
                         if (data.ApplicationId == compAppId)
                         {
+                            PokePatch(clientChannel, data);
+
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
                                 //Send Standard/Variable Flow
@@ -931,6 +885,59 @@ namespace Horizon.MUIS
             return Task.FromResult(MediusTimeZone.MediusTimeZone_GMT);
         }
         #endregion
+
+        private void PokePatch(IChannel clientChannel, ChannelData data)
+        {
+            if (MuisClass.Settings.PokePatchOn == true && MediusClass.Settings.AntiCheatOn) // Requires AntiCheat.
+            {
+                if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
+                {
+                    try
+                    {
+                        var jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
+
+                        foreach (var appProperty in jsonObject.Properties())
+                        {
+                            string? appId = appProperty.Name;
+
+                            if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
+                            {
+                                var innerObject = appProperty.Value as JObject;
+
+                                if (innerObject != null)
+                                {
+                                    foreach (var offsetProperty in innerObject.Properties())
+                                    {
+                                        string? offset = offsetProperty.Name;
+                                        string? valuestr = offsetProperty.Value.ToString();
+
+                                        if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", ""), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.Any, null, out uint hexValue))
+                                        {
+                                            LoggerAccessor.LogInfo($"[MUIS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
+                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                                            {
+                                                start_Address = offsetValue,
+                                                Payload = BitConverter.GetBytes(hexValue),
+                                                SkipEncryption = true
+
+                                            }, clientChannel);
+                                        }
+                                        else
+                                            LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to initialise! {ex}.");
+                    }
+                }
+                else
+                    LoggerAccessor.LogWarn($"[MUIS] - No MemoryPoke config found.");
+            }
+        }
 
         protected uint GenerateNewScertClientId()
         {
