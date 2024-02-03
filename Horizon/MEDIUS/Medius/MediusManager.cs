@@ -2225,14 +2225,8 @@ namespace Horizon.MEDIUS.Medius
         /// <returns></returns>
         public int AnonymousAccountIDGenerator(int AnonymousIDRangeSeed)
         {
-            int result; // eax
-
-            //for integers
-            Random r = new Random();
-            int rInt = r.Next(-80000000, 0);
-
-            result = rInt;
-            return result;
+            // Search between the given seed and max id value.
+            return new Random().Next(AnonymousIDRangeSeed, 80000000);
         }
         #endregion
 
