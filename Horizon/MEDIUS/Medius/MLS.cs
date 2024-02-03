@@ -10685,7 +10685,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 Anonymous = true;
 
-                int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
+                int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed, false);
                 LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
                 accountDto = new()
