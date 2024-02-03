@@ -10691,7 +10691,11 @@ namespace Horizon.MEDIUS.Medius
                 accountDto = new()
                 {
                     AccountId = iAccountID,
-                    AccountName = BitConverter.ToString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes("Guest" + iAccountID))).Replace("-", "")
+                    AccountName = $"Guest_{new BackendProject.MiscUtils.Crc32Utils().Get(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X}",
+                    AccountPassword = "UNSET",
+                    MachineId = data.MachineId,
+                    MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
+                    AppId = data.ClientObject?.ApplicationId
                 };
             }
             else if (accountDto.IsBanned) // Would be too easy if the Client could bypass Ban with a Guest...
