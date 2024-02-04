@@ -66,7 +66,7 @@ namespace MitmDNS
                 Parallel.ForEach(rules, s => {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
-                       
+
                     }
                     else
                     {

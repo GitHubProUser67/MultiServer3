@@ -3,7 +3,7 @@ using HttpMultipartParser;
 
 namespace BackendProject.WebAPIs.PREMIUMAGENCY
 {
-    public class Event
+    public class Ranking
     {
         public static string? checkEventRequestPOST(byte[]? PostData, string? ContentType, string eventId)
         {
@@ -92,6 +92,7 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                          "<description type=\"text\">Success</description>\r\n\t" +
                          "<error_no type=\"int\">0</error_no>\r\n\t" +
                          "<error_message type=\"text\">None</error_message>\r\n" +
+                         "<status type=\"int\">1</status>\r\n" +
                          "</xml>";
                 case "95":
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent sent for PUBLIC MikuLiveEvent {eventId}!");

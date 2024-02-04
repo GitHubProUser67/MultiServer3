@@ -29,9 +29,6 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                     case "theater_ev_setting":
                         {
                             if (File.Exists($"{workpath}/eventController/shoeikingdom/{resKey}.xml"))
-                            {
-
-                            }
                                 return File.ReadAllText($"{workpath}/eventController/shoeikingdom/{resKey}.xml");
 
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -110,10 +107,50 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
                         }
                         break;
-                    case "miku_jukebox":
+                    case "miku_jukebox_mp4":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/resources/{resKey}.xml");
+                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "miku_jukebox1_mp4":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "miku_jukebox1_board":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "miku_jukebox1_info":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "miku_jukebox1_time":
+                        {
+                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "liveevent_idolmaster":
+                        {
+                            if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/{resKey}.xml");
 
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
                         }

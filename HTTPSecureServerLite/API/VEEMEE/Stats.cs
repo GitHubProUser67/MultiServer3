@@ -30,6 +30,8 @@ namespace HTTPSecureServerLite.API.VEEMEE
 
             if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"))
                 return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/Acorn_Medow/stats_config.json"));
+            if (File.Exists($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/nml/stats_config.xml"))
+                return Processor.sign(File.ReadAllText($"{HTTPSServerConfiguration.APIStaticFolder}/VEEMEE/nml/stats_config.xml"));
             else
                 return null;
         }

@@ -12,27 +12,32 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                 case "76":
                     if (File.Exists($"{workpath}/eventController/MikuLiveJack/localgetEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveJack/localgetEventTrigger.xml");
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for LOCAL MikuLiveJack {eventId}!");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger sent for LOCAL MikuLiveJack {eventId}!");
                     break;
                 case "63":
                     if (File.Exists($"{workpath}/eventController/MikuLiveJack/qagetEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveJack/qagetEventTrigger.xml");
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for QA MikuLiveJack {eventId}!");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger sent for QA MikuLiveJack {eventId}!");
                     break;
                 case "90":
                     if (File.Exists($"{workpath}/eventController/MikuLiveJack/getEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveJack/getEventTrigger.xml");
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC MikuLiveJack {eventId}!");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC MikuLiveJack {eventId}!");
                     break;
                 case "91":
                     if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/getEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/getEventTrigger.xml");
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC MikuLiveJukebox {eventId}!");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC MikuLiveJukebox {eventId}!");
                     break;
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/getEventTrigger.xml");
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC MikuLiveEvent {eventId}!");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC MikuLiveEvent {eventId}!");
+                    break;
+                case "148":
+                    if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/getEventTrigger.xml");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger sent for iDOLM@ASTERs {eventId}!");
                     break;
                 default:
                     {
@@ -97,6 +102,11 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/MikuLiveJack/localconfirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveJack/localconfirmEventTrigger.xml");
                     LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for MikuLiveJack {eventId}!");
+                    break;
+                case "148":
+                    if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/confirmEventTrigger.xml");
+                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for iDOLM@ASTERs {eventId}!");
                     break;
                 default:
                     {
