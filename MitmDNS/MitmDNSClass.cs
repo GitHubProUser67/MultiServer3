@@ -12,9 +12,9 @@ namespace MitmDNS
         public static Dictionary<string, DnsSettings>? DicRules = null;
         public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
 
-        public void MitmDNSMain()
+        public async void MitmDNSMain()
         {
-            _ = Task.Run(() => {
+            await Task.Run(() => {
                 if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
