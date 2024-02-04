@@ -2,6 +2,7 @@
 using CustomLogger;
 using HttpMultipartParser;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace BackendProject.WebAPIs.PREMIUMAGENCY
 {
@@ -44,8 +45,6 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                             return Event.checkEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/entryEvent.do":
                             return Event.entryEventRequestPOST(PostData, ContentType, eventId);
-                        case "/eventController/getUserEventCustom.do":
-                            return Event.getUserEventCustomRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/clearEvent.do":
                             return Event.clearEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/getEventTrigger.do":
@@ -54,20 +53,25 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                             return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/getResource.do":
                             return Resource.getResourcePOST(PostData, ContentType, workpath);
-                        //case "/eventController/getInformationBoardSchedule.do":
-                            //return Resource.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/setUserEventCustom.do":
                             return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, eventId);
+                        case "/eventController/getUserEventCustom.do":
+                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, eventId);
+                        case "/eventController/getUserEventCustomList.do":
+                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, eventId);
+                        //case "/eventController/getInformationBoardSchedule.do":
+                        //return Resource.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
                         default:
                             {
-                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled server request discovered: {absolutepath.Split("/eventController/")} | DETAILS: \n{PostData}");
+                                string toTrim = "/eventController/";
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
                             }
                             break;
                     }
                     break;
                 default:
                     {
-                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - Method unhandled {method}");
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled Server method: {method}");
                     }
                     break;
             }
