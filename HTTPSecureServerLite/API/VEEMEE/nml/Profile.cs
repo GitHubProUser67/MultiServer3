@@ -130,13 +130,20 @@ namespace HTTPSecureServerLite.API.VEEMEE.nml
                     XmlDocument doc = new XmlDocument();
                     doc.Load(apiPath);
 
-                    XmlNode profilesNode = doc.SelectSingleNode("//profiles");
+                    XmlNode? profilesNode = doc.SelectSingleNode("//profiles");
 
                     // Check for existing variable entries and overwrite or add new ones
                     XmlNodeList variableNodes = profilesNode.SelectNodes("//variable");
                     foreach (XmlNode variableNode in variableNodes)
                     {
-                        string name = variableNode.Attributes["name"].Value;
+                        string? name = variableNode.Attributes["name"].Value;
+                        string guidValue = string.Empty;
+                        XmlNodeList? XmlNodeList = variableNode.SelectNodes("///value");
+                        foreach (XmlNode valueNode in variableNode)
+                        {
+                            guidValue = valueNode.Value;
+                        }
+
                         if (name == xmlContent.Contains($"name={name}").ToString())
                         {
                             variableNode.Attributes["value"].Value = name;
@@ -152,12 +159,12 @@ namespace HTTPSecureServerLite.API.VEEMEE.nml
                     }
 
                     // Check for existing variable entries and overwrite or add new ones
-                    XmlNodeList listNodes = profilesNode.SelectNodes("//list");
+                    XmlNodeList? listNodes = profilesNode.SelectNodes("//list");
                     foreach (XmlNode listNode in listNodes)
                     {
-                        string name = listNode.Attributes["name"].Value;
+                        string? name = listNode.Attributes["name"].Value;
                         string guidValue = string.Empty;
-                        XmlNodeList XmlNodeList = listNode.SelectNodes("///value");
+                        XmlNodeList? XmlNodeList = listNode.SelectNodes("///value");
                         foreach(XmlNode valueNode in listNode)
                         {
                             guidValue = valueNode.Value;
