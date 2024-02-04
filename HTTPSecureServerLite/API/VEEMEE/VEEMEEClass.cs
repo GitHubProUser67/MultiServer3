@@ -1,4 +1,6 @@
-﻿namespace HTTPSecureServerLite.API.VEEMEE
+﻿using HTTPSecureServerLite.API.VEEMEE.nml;
+
+namespace HTTPSecureServerLite.API.VEEMEE
 {
     public class VEEMEEClass : IDisposable
     {
@@ -78,6 +80,16 @@
                             return (Storage.ReadTable(PostData, ContentType), null);
                         case "/storage/writetable.php":
                             return (Storage.WriteTable(PostData, ContentType), null);
+                        case "/nml/rc2/profile/verify.php":
+                            return (Profile.Verify(PostData, ContentType), null);
+                        case "/nml/rc2/profile/reward.php":
+                            return (Profile.Reward(PostData, ContentType), null);
+                        case "/nml/rc2/profile/get.php":
+                            return (Profile.Get(PostData, ContentType), null);
+                        case "/nml/rc2/profile/set.php":
+                            return (Profile.Set(PostData, ContentType), null);
+                        case "/nml/rc2/stats/getConfig.php":
+                            return (Stats.GetConfig(false, PostData, ContentType), null);
                         default:
                             break;
                     }

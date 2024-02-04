@@ -160,7 +160,7 @@ namespace HTTPServer
                                                     else
                                                         response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                                 }
-                                                /*else if ((Host == "ouwf.outso-srv1.com") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data"))
+                                                else if ((Host == "ouwf.outso-srv1.com") && request.getDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data"))
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
 
@@ -185,7 +185,7 @@ namespace HTTPServer
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                         response = HttpResponse.Send(res, "text/xml");
-                                                }*/
+                                                }
                                                 else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
