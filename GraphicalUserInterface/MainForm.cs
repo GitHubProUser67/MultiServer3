@@ -9,8 +9,6 @@ namespace GraphicalUserInterface
         private static string tycoonguid = string.Empty;
         private static string horizonguid = string.Empty;
         private static string dnsguid = string.Empty;
-        private static string multispyguid = string.Empty;
-        private static string srvemuguid = string.Empty;
         private static string quazalguid = string.Empty;
 
         public MainForm()
@@ -57,12 +55,6 @@ namespace GraphicalUserInterface
                     if (!string.IsNullOrEmpty(dnsguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(dnsguid);
-                    if (!string.IsNullOrEmpty(multispyguid))
-                        // Stop the program
-                        await ProcessManager.ShutdownProcess(multispyguid);
-                    if (!string.IsNullOrEmpty(srvemuguid))
-                        // Stop the program
-                        await ProcessManager.ShutdownProcess(srvemuguid);
                     if (!string.IsNullOrEmpty(quazalguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(quazalguid);
@@ -149,29 +141,6 @@ namespace GraphicalUserInterface
             dnsguid = Guid.NewGuid().ToString();
             // Start the program
             _ = ProcessManager.StartupProgram("MitmDNS.exe", dnsguid);
-        }
-
-        private async void buttonStartMultiSpy_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(multispyguid))
-                // Stop the program
-                await ProcessManager.ShutdownProcess(multispyguid);
-
-            multispyguid = Guid.NewGuid().ToString();
-            // Start the program
-            _ = ProcessManager.StartupProgram("MultiSpy.exe", multispyguid);
-        }
-
-
-        private async void buttonStartSRVEmu_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(srvemuguid))
-                // Stop the program
-                await ProcessManager.ShutdownProcess(srvemuguid);
-
-            srvemuguid = Guid.NewGuid().ToString();
-            // Start the program
-            _ = ProcessManager.StartupProgram("SRVEmu.exe", srvemuguid);
         }
 
         private async void buttonStartQuazal_Click(object sender, EventArgs e)
@@ -264,30 +233,6 @@ namespace GraphicalUserInterface
                 // Stop the program
                 await ProcessManager.ShutdownProcess(dnsguid);
                 dnsguid = string.Empty;
-            }
-            else
-                Console.WriteLine("No Process started for this server");
-        }
-
-        private async void buttonStopMultiSpy_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(multispyguid))
-            {
-                // Stop the program
-                await ProcessManager.ShutdownProcess(multispyguid);
-                multispyguid = string.Empty;
-            }
-            else
-                Console.WriteLine("No Process started for this server");
-        }
-
-        private async void buttonStopSRVEmu_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(srvemuguid))
-            {
-                // Stop the program
-                await ProcessManager.ShutdownProcess(srvemuguid);
-                srvemuguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");
