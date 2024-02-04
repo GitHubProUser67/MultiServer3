@@ -54,7 +54,6 @@ namespace MitmDNS
 
         private void ParseRules(string Filename, bool IsFilename = true)
         {
-
             DicRules = new Dictionary<string, DnsSettings>();
             StarRules = new List<KeyValuePair<string, DnsSettings>>();
 
