@@ -18,6 +18,7 @@ namespace Horizon.MUM
         [JsonIgnore]
         public static int IdCounter = 0;
 
+        [JsonIgnore]
         public List<ClientObject> LocalClients = new();
         public List<Channel> LocalChannels = new();
 
@@ -50,7 +51,9 @@ namespace Horizon.MUM
         public int GameCount => _games.Count;
         public int PartyCount => _parties.Count;
 
+        [JsonIgnore]
         public List<Game> _games = new();
+        [JsonIgnore]
         public List<Party> _parties = new();
         public DateTime _timeCreated = Utils.GetHighPrecisionUtcTime();
 
