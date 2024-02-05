@@ -13,15 +13,12 @@ namespace Horizon.MUM
         Game
     }
 
-    [Serializable]
     public class Channel
     {
         [JsonIgnore]
         public static int IdCounter = 0;
 
-        [JsonIgnore]
         public List<ClientObject> LocalClients = new();
-        [JsonIgnore]
         public List<Channel> LocalChannels = new();
 
         public string LobbyIp = MediusClass.SERVER_IP.ToString();
@@ -48,17 +45,13 @@ namespace Horizon.MUM
         public MediusGameHostType GameHostType;
         public MediusWorldStatus WorldStatus;
 
-        [JsonIgnore]
         public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || (Utils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds && GameCount == 0 && PartyCount == 0);
         public virtual int PlayerCount => LocalClients.Count;
         public int GameCount => _games.Count;
         public int PartyCount => _parties.Count;
 
-        [JsonIgnore]
         protected List<Game> _games = new();
-        [JsonIgnore]
         protected List<Party> _parties = new();
-        [JsonIgnore]
         protected bool _removeChannel = false;
         protected DateTime _timeCreated = Utils.GetHighPrecisionUtcTime();
 
@@ -115,11 +108,24 @@ namespace Horizon.MUM
             int index = MumChannelHandler.GetIndexOfLocalChannelByNameAndAppId(Name, ApplicationId);
 
             if (index != -1)
+                _ = MumChannelHandler.UpdateMumChannels(index, LocalChannels);
+            else
+                MumChannelHandler.AddMumChannelsList(LocalChannels);
+
+            foreach (Game game in _games)
             {
-                lock (MumChannelHandler.AccessibleChannels)
-                {
-                    MumChannelHandler.AccessibleChannels[index] = this;
-                }
+                index = MumGameHandler.GetIndexOfLocalGameByNameAndAppId(Name, game.GameName, ApplicationId);
+
+                if (index != -1)
+                    _ = MumGameHandler.UpdateMumGame(index, game);
+            }
+
+            foreach (Party party in _parties)
+            {
+                index = MumPartyHandler.GetIndexOfLocalPartyByNameAndAppId(Name, party.PartyName, ApplicationId);
+
+                if (index != -1)
+                    _ = MumPartyHandler.UpdateMumParty(index, party);
             }
 
             return Task.CompletedTask;
@@ -146,6 +152,9 @@ namespace Horizon.MUM
         {
             LocalChannels.Add(channel);
 
+            // Also update MUM.
+            _ = UpdateMumReport();
+
             return Task.CompletedTask;
         }
 
@@ -171,12 +180,15 @@ namespace Horizon.MUM
         {
             _parties.Add(party);
 
+            // Also update MUM.
+            _ = MumPartyHandler.AddMumParty(party);
+
             _ = UpdateMumReport();
         }
 
         public virtual void UnregisterParty(Party party)
         {
-            // Remove game
+            // Remove Party
             _parties.Remove(party);
 
             // If empty, just end channel
@@ -191,6 +203,9 @@ namespace Horizon.MUM
         public virtual void RegisterGame(Game game)
         {
             _games.Add(game);
+
+            // Also update MUM.
+            _ = MumGameHandler.AddMumGame(game);
 
             _ = UpdateMumReport();
         }

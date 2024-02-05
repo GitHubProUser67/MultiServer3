@@ -12,8 +12,6 @@ namespace HTTPSecureServerLite
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
 
-            // Little note, range-requests often not even request any compression.
-
             const int rangebuffersize = 32768;
 
             string? acceptencoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
@@ -97,23 +95,29 @@ namespace HTTPSecureServerLite
                             {
                                 ms.Flush();
                                 ms.Close();
-                                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
-                                ctx.Response.Headers.Add("Accept-Ranges", "bytes");
-                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                ctx.Response.ContentType = ContentType;
                                 fs.Position = 0;
                                 long fileinfosize = new FileInfo(local_path).Length;
-
                                 if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && fileinfosize <= 80000000) // We must be reasonable on the file-size here (80 Mb).
                                 {
-                                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                                    using Stream st = HTTPUtils.InflateStream(fs);
+                                    using (Stream st = HTTPUtils.InflateStream(fs))
+                                    {
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+                                        ctx.Response.Headers.Add("Accept-Ranges", "bytes");
+                                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                        ctx.Response.ContentType = ContentType;
                                         return ctx.Response.Send(st.Length, st).Result;
+                                    }
                                 }
                                 else
+                                {
+                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+                                    ctx.Response.Headers.Add("Accept-Ranges", "bytes");
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.ContentType = ContentType;
                                     return ctx.Response.Send(fileinfosize, fs).Result;
+                                }
                             }
                             else
                             {
@@ -142,7 +146,6 @@ namespace HTTPSecureServerLite
                         ctx.Response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
                         ctx.Response.Headers.Add("Content-Length", ms.Length.ToString());
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                         ctx.Response.StatusCode = (int)HttpStatusCode.PartialContent;
 
@@ -197,7 +200,6 @@ namespace HTTPSecureServerLite
                 else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                 {
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;
@@ -220,18 +222,30 @@ namespace HTTPSecureServerLite
                     }
                     else
                         ctx.Response.ContentType = ContentType;
+
                     fs.Position = 0;
-
                     long fileinfosize = new FileInfo(local_path).Length;
-
                     if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && fileinfosize <= 80000000) // We must be reasonable on the file-size here (80 Mb).
                     {
-                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                        using Stream st = HTTPUtils.InflateStream(fs);
+                        using (Stream st = HTTPUtils.InflateStream(fs))
+                        {
+                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+                            ctx.Response.Headers.Add("Accept-Ranges", "bytes");
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.ContentType = ContentType;
                             return ctx.Response.Send(st.Length, st).Result;
+                        }
                     }
                     else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+                        ctx.Response.Headers.Add("Accept-Ranges", "bytes");
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = ContentType;
                         return ctx.Response.Send(fileinfosize, fs).Result;
+                    }
                 }
                 else
                 {
@@ -261,7 +275,6 @@ namespace HTTPSecureServerLite
                     ctx.Response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
                     ctx.Response.Headers.Add("Content-Length", TotalBytes.ToString());
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                     ctx.Response.StatusCode = (int)HttpStatusCode.PartialContent;
 

@@ -25,7 +25,7 @@ namespace Horizon.DME
 
         public int Port => DmeClass.Settings.TCPPort;
 
-        public List<ushort> clientTokens = new List<ushort>();
+        public List<ushort> clientTokens = new();
 
         protected IEventLoopGroup? _bossGroup = null;
         protected IEventLoopGroup? _workerGroup = null;

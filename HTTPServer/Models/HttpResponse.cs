@@ -10,17 +10,17 @@ namespace HTTPServer.Models
         // https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
         Continue = 100,
-        Ok = 200,
+        OK = 200,
         Created = 201,
         Accepted = 202,
-        PartialContent = 206,
+        Partial_Content = 206,
         MovedPermanently = 301,
         Found = 302,
         PermanentRedirect = 308,
-        NotModified = 304,
+        Not_Modified = 304,
         BadRequest = 400,
         Forbidden = 403,
-        NotFound = 404,
+        Not_Found = 404,
         MethodNotAllowed = 405,
         RangeNotSatisfiable = 416,
         InternalServerError = 500,
@@ -65,7 +65,7 @@ namespace HTTPServer.Models
             return string.Format("{0} {1}", (int)HttpStatusCode, HttpStatusCode.ToString());
         }
 
-        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
+        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
         {
             HttpResponse response = new(false)
             {
@@ -94,7 +94,7 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
+        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
         {
             HttpResponse response = new(false)
             {
@@ -123,7 +123,7 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.Ok)
+        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
         {
             HttpResponse response = new(false)
             {
@@ -160,10 +160,7 @@ namespace HTTPServer.Models
         {
             StringBuilder strBuilder = new();
 
-            if ((int)HttpStatusCode == 206)
-                strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HTTPServerConfiguration.HttpVersion, 206, "Partial Content"));
-            else
-                strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HTTPServerConfiguration.HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString()));
+            strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HTTPServerConfiguration.HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString().Replace("_", " ")));
             strBuilder.Append(Headers.ToHttpHeaders());
             strBuilder.Append("\r\n\r\n");
 

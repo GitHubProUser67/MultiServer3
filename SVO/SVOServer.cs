@@ -15,7 +15,7 @@ namespace SVO
         private volatile bool threadActive;
 
         private HttpListener? listener;
-        private string ip;
+        private readonly string ip;
 
         public SVOServer(string ip)
         {
@@ -34,7 +34,7 @@ namespace SVO
         {
             if (thread != null)
             {
-                LoggerAccessor.LogError("SVO Server already active.");
+                LoggerAccessor.LogWarn("SVO Server already active.");
                 return;
             }
             thread = new Thread(Listen);
@@ -93,7 +93,7 @@ namespace SVO
                 listener = new HttpListener();
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-				listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, 10061));
+				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
                 listener.Start();
             }
             catch (Exception e)
@@ -117,7 +117,7 @@ namespace SVO
                     if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening && VariousUtils.IsTCPPortAvailable(10058) && VariousUtils.IsTCPPortAvailable(10060) && VariousUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening) // Check if server is closed, then, start it again.
                         listener.Start();
                     else
                         threadActive = false;
@@ -127,7 +127,7 @@ namespace SVO
                     LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     listener.Stop();
 
-                    if (!listener.IsListening && VariousUtils.IsTCPPortAvailable(10058) && VariousUtils.IsTCPPortAvailable(10060) && VariousUtils.IsTCPPortAvailable(10061)) // Check if server is closed, then, start it again.
+                    if (!listener.IsListening) // Check if server is closed, then, start it again.
                         listener.Start();
                     else
                         threadActive = false;
@@ -149,8 +149,8 @@ namespace SVO
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
                 else
                 {
-                    string? UserAgent = ctx.Request.UserAgent;
-                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.ToLower().Contains("firefox") || UserAgent.ToLower().Contains("chrome") || UserAgent.ToLower().Contains("trident") || UserAgent.ToLower().Contains("bytespider"))) // Get Away TikTok.
+                    string? UserAgent = ctx.Request.UserAgent.ToLower();
+                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
                     else
                     {
@@ -245,7 +245,39 @@ namespace SVO
                     else if (absolutepath.Contains("/TWISTEDMETALX_XML/"))
                         await TwistedMetalX.TwistedMetalX_SVO(ctx.Request, ctx.Response);
                     else
-                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    {
+                        // Only meant to be used with fairly small files.
+
+                        string filePath = Path.Combine(SVOServerConfiguration.SVOStaticFolder, absolutepath[1..]);
+
+                        if (File.Exists(filePath))
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+
+                            ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
+                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+
+                            byte[] FileContent = await File.ReadAllBytesAsync(filePath);
+
+                            if (ctx.Response.OutputStream.CanWrite)
+                            {
+                                try
+                                {
+                                    ctx.Response.ContentLength64 = FileContent.Length;
+                                    ctx.Response.OutputStream.Write(FileContent, 0, FileContent.Length);
+                                }
+                                catch (Exception)
+                                {
+                                    // Not Important;
+                                }
+                            }
+                        }
+                        else
+                            ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    }
                 }
                 catch (HttpListenerException e) when (e.ErrorCode == 64)
                 {

@@ -246,7 +246,7 @@ namespace HTTPServer
                                                     if (res == null)
                                                         response = HttpBuilder.InternalServerError();
                                                     else if (res == string.Empty)
-                                                        response = HttpBuilder.Ok();
+                                                        response = HttpBuilder.OK();
                                                     else
                                                         response = HttpResponse.Send(res, "text/xml");
                                                 }
@@ -317,7 +317,7 @@ namespace HTTPServer
                                                             switch (absolutepath)
                                                             {
                                                                 case "/networktest/post_128":
-                                                                    response = HttpBuilder.Ok();
+                                                                    response = HttpBuilder.OK();
                                                                     break;
                                                                 case "/!HomeTools/MakeBarSdat/":
                                                                     if (IsIPAllowed(clientip))
@@ -483,7 +483,7 @@ namespace HTTPServer
                                                                             }
                                                                         }
 
-                                                                        response = HttpBuilder.Ok();
+                                                                        response = HttpBuilder.OK();
                                                                     }
                                                                     else
                                                                         response = HttpBuilder.NotAllowed();
@@ -501,7 +501,7 @@ namespace HTTPServer
                                                             response = FileSystemRouteHandler.HandleHEAD(filePath);
                                                             break;
                                                         case "OPTIONS":
-                                                            response = HttpBuilder.Ok();
+                                                            response = HttpBuilder.OK();
                                                             response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
                                                             break;
                                                         case "PROPFIND":
@@ -584,6 +584,8 @@ namespace HTTPServer
 
                     if (response.ContentStream != null) // Safety.
                     {
+                        string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
+
                         if (request.Method == "OPTIONS")
                         {
                             response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
@@ -591,66 +593,80 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        response.Headers.Add("Access-Control-Allow-Origin", "*");
-
-                        response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-
-                        if (!response.Headers.ContainsKey("Content-Type"))
-                            response.Headers.Add("Content-Type", "text/plain");
-
-                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent)
+                        if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
                         {
-                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                            if (File.Exists(filePath))
-                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                            response.Headers.Clear();
+
+                            response.Headers.Add("ETag", EtagMD5);
+
+                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
                         }
-
-                        string? encoding = null;
-                        int buffersize = HTTPServerConfiguration.BufferSize;
-
-                        if (!response.Headers.ContainsKey("Content-Length"))
+                        else
                         {
-                            if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                            int buffersize = HTTPServerConfiguration.BufferSize;
+                            string? encoding = null;
+
+                            response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+
+                            if (!response.Headers.ContainsKey("Content-Type"))
+                                response.Headers.Add("Content-Type", "text/plain");
+
+                            if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content)
                             {
-
+                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                response.Headers.Add("ETag", EtagMD5);
+                                if (File.Exists(filePath))
+                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                             }
-                            else
-                                response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+
+                            if (!response.Headers.ContainsKey("Content-Length"))
+                            {
+                                if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                                {
+
+                                }
+                                else
+                                    response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+                            }
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+
+                            long totalBytes = response.ContentStream.Length;
+                            long bytesLeft = totalBytes;
+
+                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                                buffersize = 500000;
+
+                            HttpResponseContentStream ctwire = new(stream);
+
+                            while (bytesLeft > 0)
+                            {
+                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                int n = response.ContentStream.Read(buffer);
+
+                                ctwire.Write(buffer);
+
+                                bytesLeft -= n;
+                            }
+
+                            ctwire.WriteTerminator();
+
+                            ctwire.Flush();
                         }
 
-                        WriteLineToStream(stream, response.ToHeader());
-
-                        stream.Flush();
-
-                        long totalBytes = response.ContentStream.Length;
-                        long bytesLeft = totalBytes;
-
-                        if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                            buffersize = 500000;
-
-                        HttpResponseContentStream ctwire = new(stream);
-
-                        while (bytesLeft > 0)
-                        {
-                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                            int n = response.ContentStream.Read(buffer);
-
-                            ctwire.Write(buffer);
-
-                            bytesLeft -= n;
-                        }
-
-                        ctwire.WriteTerminator();
-
-                        ctwire.Flush();
-
-                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
-                                || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
+                        if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content
+                                || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently || response.HttpStatusCode == Models.HttpStatusCode.Not_Modified)
                             LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                         else
                         {
-                            if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
+                            if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
                                 LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", filePath, response.HttpStatusCode));
                             else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
                                 LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
@@ -691,8 +707,6 @@ namespace HTTPServer
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
-
-            // Little note, range-requests often not even request any compression.
 
             const int rangebuffersize = 32768;
 
@@ -786,7 +800,7 @@ namespace HTTPServer
                                     ms.Close();
                                     response = new(false)
                                     {
-                                        HttpStatusCode = Models.HttpStatusCode.Ok
+                                        HttpStatusCode = Models.HttpStatusCode.OK
                                     };
                                     response.Headers.Add("Accept-Ranges", "bytes");
                                     response.Headers.Add("Content-Type", ContentType);
@@ -823,14 +837,13 @@ namespace HTTPServer
                             ms.Position = 0;
                             response = new(true)
                             {
-                                HttpStatusCode = Models.HttpStatusCode.PartialContent
+                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
                             };
                             response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                             response.Headers.Add("Accept-Ranges", "bytes");
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
                             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
                             string? encoding = null;
@@ -874,18 +887,7 @@ namespace HTTPServer
                             ms.Flush();
                             ms.Close();
 
-                            if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
-                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
-                                LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                            else
-                            {
-                                if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
-                                    LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
-                                else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
-                                    LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                                else
-                                    LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                            }
+                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
 
                             try
                             {
@@ -952,7 +954,7 @@ namespace HTTPServer
                     {
                         response = new(false)
                         {
-                            HttpStatusCode = Models.HttpStatusCode.Ok
+                            HttpStatusCode = Models.HttpStatusCode.OK
                         };
                         response.Headers.Add("Accept-Ranges", "bytes");
                         string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
@@ -986,7 +988,7 @@ namespace HTTPServer
                     {
                         response = new(true)
                         {
-                            HttpStatusCode = Models.HttpStatusCode.PartialContent
+                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
                         };
                         long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                         fs.Position = startByte;
@@ -1013,7 +1015,6 @@ namespace HTTPServer
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
                         response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
                         int buffersize = HTTPServerConfiguration.BufferSize;
@@ -1055,18 +1056,7 @@ namespace HTTPServer
 
                         ctwire.Flush();
 
-                        if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
-                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
-                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                        else
-                        {
-                            if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
-                                LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
-                            else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
-                                LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                            else
-                                LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                        }
+                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
 
                         try
                         {
@@ -1095,58 +1085,75 @@ namespace HTTPServer
 
                         if (response.ContentStream != null) // Safety.
                         {
-                            int buffersize = HTTPServerConfiguration.BufferSize;
+                            string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
 
-                            response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
-
-                            string? encoding = null;
-
-                            if (!response.Headers.ContainsKey("Content-Length"))
+                            if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
                             {
-                                if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                                response.Headers.Clear();
+
+                                response.Headers.Add("ETag", EtagMD5);
+
+                                response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+
+                                WriteLineToStream(stream, response.ToHeader());
+
+                                stream.Flush();
+                            }
+                            else
+                            {
+                                int buffersize = HTTPServerConfiguration.BufferSize;
+                                string? encoding = null;
+
+                                response.Headers.Add("Access-Control-Allow-Origin", "*");
+                                response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                response.Headers.Add("ETag", EtagMD5);
+                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                                if (!response.Headers.ContainsKey("Content-Length"))
                                 {
+                                    if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                                    {
 
+                                    }
+                                    else
+                                        response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
                                 }
-                                else
-                                    response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+
+                                WriteLineToStream(stream, response.ToHeader());
+
+                                stream.Flush();
+
+                                long totalBytes = response.ContentStream.Length;
+                                long bytesLeft = totalBytes;
+
+                                if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                                    buffersize = 500000;
+
+                                HttpResponseContentStream ctwire = new(stream);
+
+                                while (bytesLeft > 0)
+                                {
+                                    Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                    int n = response.ContentStream.Read(buffer);
+
+                                    ctwire.Write(buffer);
+
+                                    bytesLeft -= n;
+                                }
+
+                                ctwire.WriteTerminator();
+
+                                ctwire.Flush();
+
                             }
 
-                            WriteLineToStream(stream, response.ToHeader());
-
-                            stream.Flush();
-
-                            long totalBytes = response.ContentStream.Length;
-                            long bytesLeft = totalBytes;
-
-                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                                buffersize = 500000;
-
-                            HttpResponseContentStream ctwire = new(stream);
-
-                            while (bytesLeft > 0)
-                            {
-                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                                int n = response.ContentStream.Read(buffer);
-
-                                ctwire.Write(buffer);
-
-                                bytesLeft -= n;
-                            }
-
-                            ctwire.WriteTerminator();
-
-                            ctwire.Flush();
-
-                            if (response.HttpStatusCode == Models.HttpStatusCode.Ok || response.HttpStatusCode == Models.HttpStatusCode.PartialContent
-                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently)
+                            if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content
+                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently || response.HttpStatusCode == Models.HttpStatusCode.Not_Modified)
                                 LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                             else
                             {
-                                if (response.HttpStatusCode == Models.HttpStatusCode.NotFound)
+                                if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
                                     LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
                                 else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
                                     LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));

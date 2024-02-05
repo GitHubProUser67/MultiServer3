@@ -28,39 +28,39 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                 {
                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(HTTPServerConfiguration.HTTPStaticFolder + indexFile, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request.IP, request.PORT, request);
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                        return HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                        return HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }, new string[] { "Date", DateTime.Now.ToString("r") }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") }));
                                     else
                                         return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                 }
                                 else
                                 {
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                {
-                                    using (FileStream stream = new(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                     {
-                                        byte[]? buffer = null;
-
-                                        using (MemoryStream ms = new())
+                                        using (FileStream stream = new(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                         {
-                                            stream.CopyTo(ms);
-                                            buffer = ms.ToArray();
-                                            ms.Flush();
+                                            byte[]? buffer = null;
+
+                                            using (MemoryStream ms = new())
+                                            {
+                                                stream.CopyTo(ms);
+                                                buffer = ms.ToArray();
+                                                ms.Flush();
+                                            }
+
+                                            stream.Flush();
+
+                                            return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" }, new string[] { "Date", DateTime.Now.ToString("r") }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") } });
                                         }
-
-                                        stream.Flush();
-
-                                        return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                     }
-                                }
-                                else
-                                    return HttpResponse.Send(new FileStream(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                    else
+                                        return HttpResponse.Send(new FileStream(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Date", DateTime.Now.ToString("r") }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") } });
                                 }
                             }
                         }
 
                         return new HttpResponse(false)
                                 {
-                                    HttpStatusCode = HttpStatusCode.NotFound,
+                                    HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
                                 };
                      }
@@ -73,7 +73,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Callable = (HttpRequest request) => {
                         return new HttpResponse(false)
                                 {
-                                    HttpStatusCode = HttpStatusCode.NotFound,
+                                    HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
                                 };
                      }
@@ -125,7 +125,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
 
                         return new HttpResponse(false)
                                 {
-                                    HttpStatusCode = HttpStatusCode.NotFound,
+                                    HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
                                 };
                      }

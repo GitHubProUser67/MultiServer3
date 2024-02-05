@@ -2,41 +2,100 @@
 using CustomLogger;
 using Horizon.MEDIUS;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Text;
 
 namespace Horizon.MUM
 {
     public class MumChannelHandler
     {
-        public static List<Channel> AccessibleChannels = new();
+        private readonly static List<List<Channel>> AccessibleChannels = new();
 
-        public static string SerializeChannel(Channel channel)
+        public static Task AddMumChannelsList(List<Channel> channelstoadd)
         {
-            return JsonConvert.SerializeObject(channel, Formatting.Indented);
+            lock (AccessibleChannels)
+            {
+                AccessibleChannels.Add(channelstoadd);
+            }
+
+            return Task.CompletedTask;
         }
 
-        public static string SerializeChannelsList()
+        public static Task UpdateMumChannels(int index, List<Channel> channelstoupdate)
+        {
+            lock (AccessibleChannels)
+            {
+                AccessibleChannels[index] = channelstoupdate;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public static string JsonSerializeChannel(Channel channel)
+        {
+            return JsonConvert.SerializeObject(channel, Formatting.Indented, new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+            });
+        }
+
+        public static string XMLSerializeChannel(Channel channel)
+        {
+            return JsonConvert.DeserializeXmlNode(JsonConvert.SerializeObject(channel, new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+            }), "Channel")?.OuterXml ?? "<Channel></Channel>";
+        }
+
+        public static string JsonSerializeChannelsList()
         {
             if (AccessibleChannels.Count > 0)
-                return JsonConvert.SerializeObject(AccessibleChannels, Formatting.Indented);
+                return JsonConvert.SerializeObject(AccessibleChannels, Formatting.Indented, new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                });
             else
                 return "[]";
+        }
+
+        public static string XMLSerializeChannelsList()
+        {
+            if (AccessibleChannels.Count > 0)
+                return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(AccessibleChannels, new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                })))).ToString()
+                    , "Root")?.OuterXml ?? "<Root></Root>";
+            else
+                return "<Root></Root>";
+        }
+
+        public static string GetCRC32ChannelsList()
+        {
+            string XMLData = "<Root>";
+
+            foreach (List<Channel> channels in AccessibleChannels)
+            {
+                for (int i = 0; i < channels.Count; i++)
+                {
+                    Channel channel = channels[i];
+                    XMLData += $"<CRC32 name=\"{channel.Name}\">{new BackendProject.MiscUtils.Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
+                }
+            }
+
+            return XMLData + "</Root>";
         }
 
         public static int GetIndexOfLocalChannelByNameAndAppId(string channelName, int AppId)
         {
             try
             {
-                // Check if the AccessibleChannels list is not empty
-                if (AccessibleChannels.Count > 0)
+                for (int i = 0; i < AccessibleChannels.Count; i++)
                 {
-                    // Find the index of the channel that matches the given name and ID
-                    int index = AccessibleChannels
-                        .FindIndex(channel => channel.Name == channelName && channel.ApplicationId == AppId);
-
-                    // If a matching channel is found, return its index
-                    if (index != -1)
-                        return index;
+                    // If a matching channel is found, return the index of the list where it was found.
+                    if (AccessibleChannels[i].FindIndex(channel => channel.Name == channelName && channel.ApplicationId == AppId) != -1)
+                        return i;
                 }
             }
             catch (Exception e)
@@ -56,16 +115,23 @@ namespace Horizon.MUM
                 {
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
-                        string? RemoteChannelsList = GetPublicJsonConfig(ip, 10076, "GetChannels");
+                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<Channel>? ConvertedChannelsList = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList);
-
-                            if (ConvertedChannelsList != null && ConvertedChannelsList.Count > 0)
+                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                return ConvertedChannelsList
-                                    .Where(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId)
-                                    .First();
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                            });
+
+                            if (ConvertedChannelsLists != null)
+                            {
+                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
+                                {
+                                    Channel? matchingChannel = ConvertedChannelsLists[i].FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
+
+                                    if (matchingChannel != null)
+                                        return matchingChannel;
+                                }
                             }
                         }
                     }
@@ -94,16 +160,23 @@ namespace Horizon.MUM
                 {
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
-                        string? RemoteChannelsList = GetPublicJsonConfig(ip, 10076, "GetChannels");
+                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<Channel>? ConvertedChannelsList = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList);
-
-                            if (ConvertedChannelsList != null && ConvertedChannelsList.Count > 0)
+                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                return ConvertedChannelsList
-                                    .Where(channel => channel.Id == WorldId && channel.ApplicationId == Appid)
-                                    .First();
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                            });
+
+                            if (ConvertedChannelsLists != null)
+                            {
+                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
+                                {
+                                    Channel? matchingChannel = ConvertedChannelsLists[i].FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
+
+                                    if (matchingChannel != null)
+                                        return matchingChannel;
+                                }
                             }
                         }
                     }
@@ -132,17 +205,26 @@ namespace Horizon.MUM
                 {
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
-                        string? RemoteChannelsList = GetPublicJsonConfig(ip, 10076, "GetChannels");
+                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<Channel>? ConvertedChannelsList = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList);
-
-                            if (ConvertedChannelsList != null && ConvertedChannelsList.Count > 0)
+                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                return ConvertedChannelsList
-                                    .Where(channel => channel.ApplicationId == Appid)
-                                    .OrderBy(channel => channel.PlayerCount)
-                                    .First();
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                            });
+
+                            if (ConvertedChannelsLists != null)
+                            {
+                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
+                                {
+                                    Channel? matchingChannel = ConvertedChannelsLists[i]
+                                        .Where(channel => channel.ApplicationId == Appid)
+                                        .OrderBy(channel => channel.PlayerCount)
+                                        .FirstOrDefault();
+
+                                    if (matchingChannel != null)
+                                        return matchingChannel;
+                                }
                             }
                         }
                     }
@@ -171,22 +253,32 @@ namespace Horizon.MUM
                 {
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
-                        string? RemoteChannelsList = GetPublicJsonConfig(ip, 10076, "GetChannels");
+                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<Channel>? ConvertedChannelsList = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList);
-
-                            if (ConvertedChannelsList != null && ConvertedChannelsList.Count > 0)
+                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                return ConvertedChannelsList.Where(x => x.Type == type &&
-                                        x.ApplicationId == appId &&
-                                        x.GenericField1 == FieldMask1 &&
-                                        x.GenericField2 == FieldMask2 &&
-                                        x.GenericField3 == FieldMask3 &&
-                                        x.GenericField4 == FieldMask4 &&
-                                        x.GenericFieldLevel == (MediusWorldGenericFieldLevelType)filterMaskLevelType)
-                                    .Skip((pageIndex - 1) * pageSize)
-                                    .Take(pageSize);
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                            });
+
+                            if (ConvertedChannelsLists != null)
+                            {
+                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
+                                {
+                                    IEnumerable<Channel>? matchingChannelList = ConvertedChannelsLists[i]
+                                        .Where(x => x.Type == type &&
+                                            x.ApplicationId == appId &&
+                                            x.GenericField1 == FieldMask1 &&
+                                            x.GenericField2 == FieldMask2 &&
+                                            x.GenericField3 == FieldMask3 &&
+                                            x.GenericField4 == FieldMask4 &&
+                                            x.GenericFieldLevel == (MediusWorldGenericFieldLevelType)filterMaskLevelType)
+                                        .Skip((pageIndex - 1) * pageSize)
+                                        .Take(pageSize);
+
+                                    if (matchingChannelList != null)
+                                        return matchingChannelList;
+                                }
                             }
                         }
                     }
@@ -215,17 +307,27 @@ namespace Horizon.MUM
                 {
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
-                        string? RemoteChannelsList = GetPublicJsonConfig(ip, 10076, "GetChannels");
+                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<Channel>? ConvertedChannelsList = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList);
-
-                            if (ConvertedChannelsList != null && ConvertedChannelsList.Count > 0)
+                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                return ConvertedChannelsList.Where(x => x.Type == type &&
-                                        x.ApplicationId == appId)
-                                    .Skip((pageIndex - 1) * pageSize)
-                                    .Take(pageSize);
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                            });
+
+                            if (ConvertedChannelsLists != null)
+                            {
+                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
+                                {
+                                    IEnumerable<Channel>? matchingChannelList = ConvertedChannelsLists[i]
+                                        .Where(x => x.Type == type &&
+                                            x.ApplicationId == appId)
+                                        .Skip((pageIndex - 1) * pageSize)
+                                        .Take(pageSize);
+
+                                    if (matchingChannelList != null)
+                                        return matchingChannelList;
+                                }
                             }
                         }
                     }
@@ -254,13 +356,27 @@ namespace Horizon.MUM
                 {
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
-                        string? RemoteChannelsList = GetPublicJsonConfig(ip, 10076, "GetChannels");
+                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<Channel>? ConvertedChannelsList = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList);
+                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            {
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                            });
 
-                            if (ConvertedChannelsList != null && ConvertedChannelsList.Count > 0)
-                                return (uint)ConvertedChannelsList.Count(x => x.Type == type && x.ApplicationId == appId);
+                            uint totalCount = 0;
+
+                            if (ConvertedChannelsLists != null)
+                            {
+                                foreach (List<Channel> ConvertedChannelsList in ConvertedChannelsLists)
+                                {
+                                    // Add the count of matching channels to the total count
+                                    totalCount += (uint)ConvertedChannelsList
+                                        .Where(x => x.Type == type && x.ApplicationId == appId).Count();
+                                }
+                            }
+
+                            return totalCount;
                         }
                     }
                 }
@@ -278,43 +394,6 @@ namespace Horizon.MUM
             }
 
             return 0;
-        }
-
-        public static string? GetPublicJsonConfig(string ip, ushort port, string command)
-        {
-#if NET7_0
-            try
-            {
-                HttpClient client = new();
-                client.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
-                client.DefaultRequestHeaders.Add("method", "GET");
-                client.DefaultRequestHeaders.Add("content-type", "application/json; charset=UTF-8");
-                HttpResponseMessage response = client.GetAsync($"http://{ip}:{port}/{command}/").Result;
-                response.EnsureSuccessStatusCode();
-                return response.Content.ReadAsStringAsync().Result;
-            }
-            catch (Exception)
-            {
-                // Not Important.
-            }
-#else
-            try
-            {
-#pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                WebClient client = new();
-                client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
-                client.Headers.Add("method", "GET");
-                client.Headers.Add("content-type", "application/json; charset=UTF-8");
-                return client.DownloadStringTaskAsync(new Uri($"http://{ip}:{port}/{command}/")).Result;
-#pragma warning restore
-            }
-            catch (Exception)
-            {
-                // Not Important.
-            }
-#endif
-
-            return null;
         }
     }
 }

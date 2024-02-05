@@ -1,5 +1,4 @@
-﻿using BackendProject.MiscUtils;
-using CustomLogger;
+﻿using CustomLogger;
 using QuazalServer.QNetZ;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
@@ -16,7 +15,7 @@ namespace QuazalServer.ServerProcessors
 		{
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            Parallel.ForEach(PrudpInstance, tuple => { if (VariousUtils.IsUDPPortAvailable(tuple.Item1)) new Thread(() => HandleClient(tuple.Item1, BackendPID, tuple.Item2, tuple.Item3, null)).Start(); });
+            Parallel.ForEach(PrudpInstance, tuple => { new Thread(() => HandleClient(tuple.Item1, BackendPID, tuple.Item2, tuple.Item3, null)).Start(); });
         }
 
         public void StopAsync()

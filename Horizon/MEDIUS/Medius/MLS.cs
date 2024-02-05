@@ -10639,7 +10639,7 @@ namespace Horizon.MEDIUS.Medius
         {
             try
             {
-                return _scertHandler.Group
+                return _scertHandler?.Group?
                     .Select(x => _channelDatas[x.Id.AsLongText()]?.ClientObject)
                     .Where(x => x is DMEObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
                     .MinBy(x => (x as DMEObject).CurrentWorlds) as DMEObject;
@@ -10685,7 +10685,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 Anonymous = true;
 
-                int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed, false);
+                int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
                 LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
                 accountDto = new()

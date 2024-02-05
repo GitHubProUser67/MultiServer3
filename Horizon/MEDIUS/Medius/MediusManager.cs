@@ -1280,11 +1280,6 @@ namespace Horizon.MEDIUS.Medius
                 quickLookup.ChanneNameToChannel.Add(channel.Name, channel);
             }
 
-            lock (MumChannelHandler.AccessibleChannels)
-            {
-                MumChannelHandler.AccessibleChannels.Add(channel);
-            }
-
             await channel.OnChannelCreate(channel);
         }
 
@@ -2223,14 +2218,10 @@ namespace Horizon.MEDIUS.Medius
         /// </summary>
         /// <param name="AnonymousIDRangeSeed">Config Value for changing the MAS</param>
         /// <returns></returns>
-        public int AnonymousAccountIDGenerator(int AnonymousIDRangeSeed, bool reverse)
+        public int AnonymousAccountIDGenerator(int AnonymousIDRangeSeed)
         {
-            if (reverse)
-                // Anonymous login expect a negative id < 0.
-                return new Random().Next(-80000000, 0);
-
-            // Search between the given seed and max id value for classic guest handling.
-            return new Random().Next(AnonymousIDRangeSeed, 80000000);
+            // Anonymous login expect a negative id < 0.
+            return new Random().Next(-80000000, AnonymousIDRangeSeed);
         }
         #endregion
 

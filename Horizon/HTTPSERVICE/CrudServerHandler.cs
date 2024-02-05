@@ -58,8 +58,7 @@ namespace Horizon.HTTPSERVICE
                     else
                     {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                        ctx.Response.ContentType = "application/json";
+                        ctx.Response.ContentType = "application/json; charset=UTF-8";
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
@@ -85,7 +84,6 @@ namespace Horizon.HTTPSERVICE
                         if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
                         {
                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                             ctx.Response.ContentType = "image/x-icon";
                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                             string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
