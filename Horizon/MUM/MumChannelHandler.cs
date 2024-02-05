@@ -10,23 +10,23 @@ namespace Horizon.MUM
 {
     public class MumChannelHandler
     {
-        private readonly static List<List<Channel>> AccessibleChannels = new();
+        private readonly static List<Channel> AccessibleChannels = new();
 
-        public static Task AddMumChannelsList(List<Channel> channelstoadd)
+        public static Task AddMumChannelsList(Channel channeltoadd)
         {
             lock (AccessibleChannels)
             {
-                AccessibleChannels.Add(channelstoadd);
+                AccessibleChannels.Add(channeltoadd);
             }
 
             return Task.CompletedTask;
         }
 
-        public static Task UpdateMumChannels(int index, List<Channel> channelstoupdate)
+        public static Task UpdateMumChannels(int index, Channel channeltoupdate)
         {
             lock (AccessibleChannels)
             {
-                AccessibleChannels[index] = channelstoupdate;
+                AccessibleChannels[index] = channeltoupdate;
             }
 
             return Task.CompletedTask;
@@ -79,13 +79,9 @@ namespace Horizon.MUM
         {
             string XMLData = "<Root>";
 
-            foreach (List<Channel> channels in AccessibleChannels)
+            foreach (Channel channel in AccessibleChannels)
             {
-                for (int i = 0; i < channels.Count; i++)
-                {
-                    Channel channel = channels[i];
-                    XMLData += $"<CRC32 name=\"{channel.Name}\">{new BackendProject.MiscUtils.Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
-                }
+                XMLData += $"<CRC32 name=\"{channel.Name}\">{new BackendProject.MiscUtils.Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
             }
 
             return XMLData + "</Root>";
@@ -95,12 +91,11 @@ namespace Horizon.MUM
         {
             try
             {
-                for (int i = 0; i < AccessibleChannels.Count; i++)
-                {
-                    // If a matching channel is found, return the index of the list where it was found.
-                    if (AccessibleChannels[i].FindIndex(channel => channel.Name == channelName && channel.ApplicationId == AppId) != -1)
-                        return i;
-                }
+                // If a matching channel is found, return the index of the list where it was found.
+                int index = AccessibleChannels.FindIndex(channel => channel.Name == channelName && channel.ApplicationId == AppId);
+
+                if (index != -1)
+                    return index;
             }
             catch (Exception e)
             {
@@ -115,16 +110,15 @@ namespace Horizon.MUM
         {
             try
             {
-                for (int i = 0; i < AccessibleChannels.Count; i++)
-                {
-                    // If a matching channel is found, return the index of the list where it was found.
-                    if (AccessibleChannels[i].FindIndex(channel => channel.Id == channelId && channel.ApplicationId == AppId) != -1)
-                        return i;
-                }
+                // If a matching channel is found, return the index of the list where it was found.
+                int index = AccessibleChannels.FindIndex(channel => channel.Id == channelId && channel.ApplicationId == AppId);
+
+                if (index != -1)
+                    return index;
             }
             catch (Exception e)
             {
-                LoggerAccessor.LogError($"[MUM] - GetIndexOfLocalChannelByNameAndAppId thrown an exception: {e}");
+                LoggerAccessor.LogError($"[MUM] - GetIndexOfLocalChannelByIdAndAppId thrown an exception: {e}");
             }
 
             // If no matching channel is found, return -1
@@ -142,7 +136,7 @@ namespace Horizon.MUM
                         string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
@@ -150,13 +144,10 @@ namespace Horizon.MUM
 
                             if (ConvertedChannelsLists != null)
                             {
-                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
-                                {
-                                    Channel? matchingChannel = ConvertedChannelsLists[i].FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
+                                Channel? matchingChannel = ConvertedChannelsLists.FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
 
-                                    if (matchingChannel != null)
-                                        return matchingChannel;
-                                }
+                                if (matchingChannel != null)
+                                    return matchingChannel;
                             }
                         }
                     }
@@ -188,7 +179,7 @@ namespace Horizon.MUM
                         string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
@@ -196,13 +187,10 @@ namespace Horizon.MUM
 
                             if (ConvertedChannelsLists != null)
                             {
-                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
-                                {
-                                    Channel? matchingChannel = ConvertedChannelsLists[i].FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
+                                Channel? matchingChannel = ConvertedChannelsLists.FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
 
-                                    if (matchingChannel != null)
-                                        return matchingChannel;
-                                }
+                                if (matchingChannel != null)
+                                    return matchingChannel;
                             }
                         }
                     }
@@ -234,7 +222,7 @@ namespace Horizon.MUM
                         string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
@@ -242,16 +230,13 @@ namespace Horizon.MUM
 
                             if (ConvertedChannelsLists != null)
                             {
-                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
-                                {
-                                    Channel? matchingChannel = ConvertedChannelsLists[i]
+                                Channel? matchingChannel = ConvertedChannelsLists
                                         .Where(channel => channel.ApplicationId == Appid)
                                         .OrderBy(channel => channel.PlayerCount)
                                         .FirstOrDefault();
 
-                                    if (matchingChannel != null)
-                                        return matchingChannel;
-                                }
+                                if (matchingChannel != null)
+                                    return matchingChannel;
                             }
                         }
                     }
@@ -278,12 +263,14 @@ namespace Horizon.MUM
             {
                 if (MediusClass.MUMServerIPsList.Count > 0)
                 {
+                    List<Channel> ChannelsLists = new();
+
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
                         string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
@@ -291,9 +278,7 @@ namespace Horizon.MUM
 
                             if (ConvertedChannelsLists != null)
                             {
-                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
-                                {
-                                    IEnumerable<Channel>? matchingChannelList = ConvertedChannelsLists[i]
+                                foreach (Channel channel in ConvertedChannelsLists
                                         .Where(x => x.Type == type &&
                                             x.ApplicationId == appId &&
                                             x.GenericField1 == FieldMask1 &&
@@ -302,14 +287,16 @@ namespace Horizon.MUM
                                             x.GenericField4 == FieldMask4 &&
                                             x.GenericFieldLevel == (MediusWorldGenericFieldLevelType)filterMaskLevelType)
                                         .Skip((pageIndex - 1) * pageSize)
-                                        .Take(pageSize);
-
-                                    if (matchingChannelList != null)
-                                        return matchingChannelList;
+                                        .Take(pageSize))
+                                {
+                                    ChannelsLists.Add(channel);
                                 }
                             }
                         }
                     }
+
+                    if (ChannelsLists.Count > 0)
+                        return ChannelsLists;
                 }
             }
             catch (InvalidOperationException invalidOperationException)
@@ -333,12 +320,14 @@ namespace Horizon.MUM
             {
                 if (MediusClass.MUMServerIPsList.Count > 0)
                 {
+                    List<Channel> ChannelsLists = new();
+
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
                         string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
@@ -346,20 +335,20 @@ namespace Horizon.MUM
 
                             if (ConvertedChannelsLists != null)
                             {
-                                for (int i = 0; i < ConvertedChannelsLists.Count; i++)
+                                foreach (Channel channel in ConvertedChannelsLists
+                                         .Where(x => x.Type == type &&
+                                             x.ApplicationId == appId)
+                                         .Skip((pageIndex - 1) * pageSize)
+                                         .Take(pageSize))
                                 {
-                                    IEnumerable<Channel>? matchingChannelList = ConvertedChannelsLists[i]
-                                        .Where(x => x.Type == type &&
-                                            x.ApplicationId == appId)
-                                        .Skip((pageIndex - 1) * pageSize)
-                                        .Take(pageSize);
-
-                                    if (matchingChannelList != null)
-                                        return matchingChannelList;
+                                    ChannelsLists.Add(channel);
                                 }
                             }
                         }
                     }
+
+                    if (ChannelsLists.Count > 0)
+                        return ChannelsLists;
                 }
             }
             catch (InvalidOperationException invalidOperationException)
@@ -383,32 +372,29 @@ namespace Horizon.MUM
             {
                 if (MediusClass.MUMServerIPsList.Count > 0)
                 {
+                    uint totalCount = 0;
+
                     foreach (string ip in MediusClass.MUMServerIPsList)
                     {
                         string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
-                            List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
+                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
-                            uint totalCount = 0;
-
                             if (ConvertedChannelsLists != null)
                             {
-                                foreach (List<Channel> ConvertedChannelsList in ConvertedChannelsLists)
-                                {
-                                    // Add the count of matching channels to the total count
-                                    totalCount += (uint)ConvertedChannelsList
-                                        .Where(x => x.Type == type && x.ApplicationId == appId).Count();
-                                }
+                                // Add the count of matching channels to the total count
+                                totalCount += (uint)ConvertedChannelsLists
+                                    .Where(x => x.Type == type && x.ApplicationId == appId).Count();
                             }
-
-                            return totalCount;
                         }
                     }
+
+                    return totalCount;
                 }
             }
             catch (InvalidOperationException invalidOperationException)

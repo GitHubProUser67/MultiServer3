@@ -109,9 +109,9 @@ namespace Horizon.MUM
             int index = MumChannelHandler.GetIndexOfLocalChannelByIdAndAppId(Id, ApplicationId);
 
             if (index != -1)
-                _ = MumChannelHandler.UpdateMumChannels(index, LocalChannels);
+                _ = MumChannelHandler.UpdateMumChannels(index, this);
             else
-                MumChannelHandler.AddMumChannelsList(LocalChannels);
+                MumChannelHandler.AddMumChannelsList(this);
 
             foreach (Game game in _games)
             {
