@@ -36,7 +36,8 @@ namespace Horizon.MUM
         {
             return JsonConvert.SerializeObject(channel, Formatting.Indented, new JsonSerializerSettings
             {
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
             });
         }
 
@@ -44,7 +45,8 @@ namespace Horizon.MUM
         {
             return JsonConvert.DeserializeXmlNode(JsonConvert.SerializeObject(channel, new JsonSerializerSettings
             {
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
             }), "Channel")?.OuterXml ?? "<Channel></Channel>";
         }
 
@@ -53,7 +55,8 @@ namespace Horizon.MUM
             if (AccessibleChannels.Count > 0)
                 return JsonConvert.SerializeObject(AccessibleChannels, Formatting.Indented, new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                 });
             else
                 return "[]";
@@ -64,7 +67,8 @@ namespace Horizon.MUM
             if (AccessibleChannels.Count > 0)
                 return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(AccessibleChannels, new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                 })))).ToString()
                     , "Root")?.OuterXml ?? "<Root></Root>";
             else
@@ -107,6 +111,26 @@ namespace Horizon.MUM
             return -1;
         }
 
+        public static int GetIndexOfLocalChannelByIdAndAppId(int channelId, int AppId)
+        {
+            try
+            {
+                for (int i = 0; i < AccessibleChannels.Count; i++)
+                {
+                    // If a matching channel is found, return the index of the list where it was found.
+                    if (AccessibleChannels[i].FindIndex(channel => channel.Id == channelId && channel.ApplicationId == AppId) != -1)
+                        return i;
+                }
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError($"[MUM] - GetIndexOfLocalChannelByNameAndAppId thrown an exception: {e}");
+            }
+
+            // If no matching channel is found, return -1
+            return -1;
+        }
+
         public static Channel? GetRemoteChannelByName(Channel channel, IPAddress ClientIp)
         {
             try
@@ -120,7 +144,8 @@ namespace Horizon.MUM
                         {
                             List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -165,7 +190,8 @@ namespace Horizon.MUM
                         {
                             List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -210,7 +236,8 @@ namespace Horizon.MUM
                         {
                             List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -258,7 +285,8 @@ namespace Horizon.MUM
                         {
                             List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -312,7 +340,8 @@ namespace Horizon.MUM
                         {
                             List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -361,7 +390,8 @@ namespace Horizon.MUM
                         {
                             List<List<Channel>>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<List<Channel>>>(RemoteChannelsList, new JsonSerializerSettings
                             {
-                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays
+                                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
                             });
 
                             uint totalCount = 0;

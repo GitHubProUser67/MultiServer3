@@ -9,7 +9,7 @@ using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.MEDIUS;
 using Horizon.MEDIUS.Medius.Models;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Horizon.MUM
 {
@@ -72,13 +72,14 @@ namespace Horizon.MUM
         public DateTime? UtcTimeStarted => utcTimeStarted;
         public DateTime? UtcTimeEnded => utcTimeEnded;
 
-        protected MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
+        public MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
         public bool hasHostJoined = false;
+        public DateTime utcTimeCreated;
+        public DateTime? utcTimeStarted;
+        public DateTime? utcTimeEnded;
+        public DateTime? utcTimeEmpty;
+
         protected string? accountIdsAtStart;
-        protected DateTime utcTimeCreated;
-        protected DateTime? utcTimeStarted;
-        protected DateTime? utcTimeEnded;
-        protected DateTime? utcTimeEmpty;
         protected bool destroyed = false;
 
         public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
