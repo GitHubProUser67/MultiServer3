@@ -18,7 +18,6 @@ namespace Horizon.MUM
         [JsonIgnore]
         public static int IdCounter = 0;
 
-        [JsonIgnore]
         public List<ClientObject> LocalClients = new();
         public List<Channel> LocalChannels = new();
 
