@@ -111,7 +111,7 @@ namespace Horizon.MUM
             if (index != -1)
                 _ = MumChannelHandler.UpdateMumChannels(index, this);
             else
-                MumChannelHandler.AddMumChannelsList(this);
+                _ = MumChannelHandler.AddMumChannelsList(this);
 
             foreach (Game game in _games)
             {
