@@ -10,28 +10,6 @@ namespace Horizon.MUM
 {
     public class MumChannelHandler
     {
-        private readonly static List<Channel> AccessibleChannels = new();
-
-        public static Task AddMumChannelsList(Channel channeltoadd)
-        {
-            lock (AccessibleChannels)
-            {
-                AccessibleChannels.Add(channeltoadd);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public static Task UpdateMumChannels(int index, Channel channeltoupdate)
-        {
-            lock (AccessibleChannels)
-            {
-                AccessibleChannels[index] = channeltoupdate;
-            }
-
-            return Task.CompletedTask;
-        }
-
         public static string JsonSerializeChannel(Channel channel)
         {
             return JsonConvert.SerializeObject(channel, Formatting.Indented, new JsonSerializerSettings
@@ -52,34 +30,27 @@ namespace Horizon.MUM
 
         public static string JsonSerializeChannelsList()
         {
-            if (AccessibleChannels.Count > 0)
-                return JsonConvert.SerializeObject(AccessibleChannels, Formatting.Indented, new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                });
-            else
-                return "[]";
+            return JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), Formatting.Indented, new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+            });
         }
 
         public static string XMLSerializeChannelsList()
         {
-            if (AccessibleChannels.Count > 0)
-                return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(AccessibleChannels, new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                })))).ToString()
-                    , "Root")?.OuterXml ?? "<Root></Root>";
-            else
-                return "<Root></Root>";
+            return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+            })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>";
         }
 
         public static string GetCRC32ChannelsList()
         {
             string XMLData = "<Root>";
 
-            foreach (Channel channel in AccessibleChannels)
+            foreach (Channel channel in MediusClass.Manager.GetAllChannels())
             {
                 XMLData += $"<CRC32 name=\"{channel.Name}\">{new BackendProject.MiscUtils.Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
             }
@@ -92,7 +63,7 @@ namespace Horizon.MUM
             try
             {
                 // If a matching channel is found, return the index of the list where it was found.
-                int index = AccessibleChannels.FindIndex(channel => channel.Name == channelName && channel.ApplicationId == AppId);
+                int index = MediusClass.Manager.GetAllChannels().FindIndex(channel => channel.Name == channelName && channel.ApplicationId == AppId);
 
                 if (index != -1)
                     return index;
@@ -111,7 +82,7 @@ namespace Horizon.MUM
             try
             {
                 // If a matching channel is found, return the index of the list where it was found.
-                int index = AccessibleChannels.FindIndex(channel => channel.Id == channelId && channel.ApplicationId == AppId);
+                int index = MediusClass.Manager.GetAllChannels().FindIndex(channel => channel.Id == channelId && channel.ApplicationId == AppId);
 
                 if (index != -1)
                     return index;

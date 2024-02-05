@@ -1161,6 +1161,34 @@ namespace Horizon.MEDIUS.Medius
 
         #region Channels
 
+        public List<Channel> GetAllChannels()
+        {
+            List<Channel> channels = new();
+
+            foreach (int[] appIds in _appIdGroups.Values)
+            {
+                foreach (int appId in appIds)
+                {
+                    var appIdsInGroup = GetAppIdsInGroup(appId);
+
+                    foreach (var appIdInGroup in appIdsInGroup)
+                    {
+                        if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                        {
+                            lock (quickLookup.ChannelIdToChannel)
+                            {
+                                Channel channel = quickLookup.ChannelIdToChannel.FirstOrDefault(x => x.Value.ApplicationId == appId).Value;
+                                if (channel != null)
+                                    channels.Add(channel);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return channels;
+        }
+
         public Channel? GetChannelByChannelId(int channelId, int appId)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
@@ -2181,7 +2209,7 @@ namespace Horizon.MEDIUS.Medius
 
         public int[] GetAppIdsInGroup(int appId)
         {
-            return _appIdGroups.FirstOrDefault(x => x.Value.Contains(appId)).Value ?? new int[0];
+            return _appIdGroups.FirstOrDefault(x => x.Value.Contains(appId)).Value ?? Array.Empty<int>();
         }
 
         #endregion
