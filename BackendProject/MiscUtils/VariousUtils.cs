@@ -8,8 +8,6 @@ using System.Security.Principal;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
-using System.Xml.Serialization;
-using System.Xml;
 
 namespace BackendProject.MiscUtils
 {
@@ -88,6 +86,34 @@ namespace BackendProject.MiscUtils
 
             // Add the new element to the last position
             newArray[^1] = newElement;
+
+            return newArray;
+        }
+
+        /// <summary>
+        /// Add multiple dynamic arrays to an existing array structure.
+        /// <para>Ajoute plusieurs objets dynamiques sur une structure existante.</para>
+        /// </summary>
+        /// <typeparam name="T">Type of the elements in the arrays.</typeparam>
+        /// <param name="jaggedArray">A complex array.</param>
+        /// <param name="newElements">The complex elements to add.</param>
+        /// <returns>A complex jagged array.</returns>
+        public static T[][] AddElementsToLastPosition<T>(T[][] jaggedArray, params T[][] newElements)
+        {
+            // Create a new jagged array with increased size
+            T[][] newArray = new T[jaggedArray.Length + newElements.Length][];
+
+            // Copy existing elements to the new array
+            for (int i = 0; i < jaggedArray.Length; i++)
+            {
+                newArray[i] = jaggedArray[i];
+            }
+
+            // Add the new elements to the last positions
+            for (int i = 0; i < newElements.Length; i++)
+            {
+                newArray[jaggedArray.Length + i] = newElements[i];
+            }
 
             return newArray;
         }
@@ -655,6 +681,58 @@ namespace BackendProject.MiscUtils
                 return null;
 
             return input[startToRemove..][..^endToRemove];
+        }
+
+        /// <summary>
+        /// Compute the MD5 checksum of a stream.
+        /// <para>Calcul la somme des contrôles en MD5 d'un stream.</para>
+        /// </summary>
+        /// <param name="input">The input stream.</param>
+        /// <returns>A string.</returns>
+        public static string ComputeMD5(Stream input)
+        {
+            // Create a MD5   
+            using (MD5 md5Hash = MD5.Create())
+            {
+                // ComputeHash - returns byte array  
+                byte[] bytes = md5Hash.ComputeHash(input);
+
+                input.Position = 0;
+
+                // Convert byte array to a string   
+                StringBuilder builder = new();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+
+                md5Hash.Clear();
+
+                return builder.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Compute the MD5 checksum of a byte array.
+        /// <para>Calcul la somme des contrôles en MD5 d'un tableau de bytes.</para>
+        /// </summary>
+        /// <param name="input">The input byte array.</param>
+        /// <returns>A string.</returns>
+        public static string ComputeMD5(byte[] input)
+        {
+            // Create a MD5   
+            using (MD5 md5Hash = MD5.Create())
+            {
+                // ComputeHash - returns byte array  
+                byte[] bytes = md5Hash.ComputeHash(input);
+
+                // Convert byte array to a string   
+                StringBuilder builder = new();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+
+                md5Hash.Clear();
+
+                return builder.ToString();
+            }
         }
 
         /// <summary>

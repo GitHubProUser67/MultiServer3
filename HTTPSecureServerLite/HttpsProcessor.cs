@@ -143,14 +143,19 @@ namespace HTTPSecureServerLite
 
             try
             {
-                if (ctx.Request.Url != null && !ctx.Request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
+                if (ctx.Request.Url != null)
                 {
-                    fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.RawWithQuery);
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with a ByteDance crawler!");
+                    else
+                    {
+                        fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.RawWithQuery);
 
-                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with URL : {fullurl}");
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with URL : {fullurl}");
 
-                    absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
-                    statusCode = HttpStatusCode.Continue;
+                        absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
+                        statusCode = HttpStatusCode.Continue;
+                    }
                 }
                 else
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with invalid parameters!");
@@ -159,6 +164,14 @@ namespace HTTPSecureServerLite
             {
 
             }
+
+#if DEBUG
+            foreach (string? key in ctx.Request.Headers.AllKeys)
+            {
+                string? value = ctx.Request.Headers[key];
+                LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Headers : HeaderIndex -> {key} | HeaderItem -> {value}");
+            }
+#endif
 
             ctx.Response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
 
@@ -208,7 +221,6 @@ namespace HTTPSecureServerLite
                                         }
                                     }
                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                     ctx.Response.StatusCode = (int)statusCode;
@@ -233,7 +245,6 @@ namespace HTTPSecureServerLite
                                         }
                                     }
                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                     ctx.Response.StatusCode = (int)statusCode;
                                     ctx.Response.ContentType = "text/html";
@@ -259,7 +270,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             ctx.Response.StatusCode = (int)statusCode;
@@ -270,7 +280,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
@@ -312,7 +321,6 @@ namespace HTTPSecureServerLite
                     else
                     {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
@@ -337,7 +345,6 @@ namespace HTTPSecureServerLite
                     else
                     {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         ctx.Response.ContentType = "text/xml";
                         statusCode = HttpStatusCode.OK;
                     }
@@ -356,7 +363,6 @@ namespace HTTPSecureServerLite
                     else
                     {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         statusCode = HttpStatusCode.OK;
                     }
                     ctx.Response.StatusCode = (int)statusCode;
@@ -379,7 +385,6 @@ namespace HTTPSecureServerLite
                     {
                         res = $"<ohs>{res}</ohs>";
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         ctx.Response.ContentType = "application/xml;charset=UTF-8";
                         statusCode = HttpStatusCode.OK;
                     }
@@ -401,7 +406,6 @@ namespace HTTPSecureServerLite
                     else
                     {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         ctx.Response.ContentType = "text/xml";
                         statusCode = HttpStatusCode.OK;
                     }
@@ -597,7 +601,6 @@ namespace HTTPSecureServerLite
                                                 devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
                                         });
                                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "application/json;charset=UTF-8";
@@ -628,7 +631,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             DLNADevice Device = new(src);
@@ -667,7 +669,6 @@ namespace HTTPSecureServerLite
                                                 {
                                                     statusCode = HttpStatusCode.OK;
                                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                     ctx.Response.StatusCode = (int)statusCode;
                                                     ctx.Response.ContentType = "application/json";
@@ -685,7 +686,6 @@ namespace HTTPSecureServerLite
                                             {
                                                 statusCode = HttpStatusCode.OK;
                                                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/json";
                                                 sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
@@ -722,7 +722,6 @@ namespace HTTPSecureServerLite
                                                                 }
                                                             }
                                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                             ctx.Response.StatusCode = (int)statusCode;
@@ -747,7 +746,6 @@ namespace HTTPSecureServerLite
                                                                 }
                                                             }
                                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                             ctx.Response.StatusCode = (int)statusCode;
                                                             ctx.Response.ContentType = "text/html";
@@ -773,7 +771,6 @@ namespace HTTPSecureServerLite
                                                                 {
                                                                     statusCode = HttpStatusCode.OK;
                                                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                                                     ctx.Response.StatusCode = (int)statusCode;
@@ -784,7 +781,6 @@ namespace HTTPSecureServerLite
                                                                 {
                                                                     statusCode = HttpStatusCode.OK;
                                                                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                                                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                                     ctx.Response.StatusCode = (int)statusCode;
                                                                     ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
@@ -845,7 +841,6 @@ namespace HTTPSecureServerLite
                                                 }
                                             }
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             ctx.Response.StatusCode = (int)statusCode;
@@ -870,7 +865,6 @@ namespace HTTPSecureServerLite
                                                 }
                                             }
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/html";
@@ -1051,7 +1045,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={makeres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1081,7 +1074,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={unbarres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1111,7 +1103,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1141,7 +1132,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1171,7 +1161,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1201,7 +1190,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={ticketlistres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1231,7 +1219,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Content-disposition", $"attachment; filename={infres.Value.Item2}");
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -1261,7 +1248,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
                                             sent = await ctx.Response.Send(channelres);
@@ -1290,7 +1276,6 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.OK;
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/plain";
                                             sent = await ctx.Response.Send(sceneres);
@@ -1337,7 +1322,6 @@ namespace HTTPSecureServerLite
                                                 }
                                             }
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             ctx.Response.StatusCode = (int)statusCode;
@@ -1358,7 +1342,6 @@ namespace HTTPSecureServerLite
                                                 }
                                             }
                                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             ctx.Response.StatusCode = (int)statusCode;
                                             ctx.Response.ContentType = "text/html";
@@ -1522,12 +1505,12 @@ namespace HTTPSecureServerLite
                 using (Stream st = HTTPUtils.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
                 {
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                     ctx.Response.Headers.Add("Content-Encoding", "deflate");
                     ctx.Response.ContentType = contentType;
                     ctx.Response.StatusCode = 200;
                     sent = ctx.Response.Send(st.Length, st).Result;
+
                     st.Flush();
                     st.Close();
                 }
@@ -1537,11 +1520,11 @@ namespace HTTPSecureServerLite
                 using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                    ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                     ctx.Response.ContentType = contentType;
                     ctx.Response.StatusCode = 200;
                     sent = ctx.Response.Send(contentLen, fs).Result;
+
                     fs.Flush();
                     fs.Close();
                 }

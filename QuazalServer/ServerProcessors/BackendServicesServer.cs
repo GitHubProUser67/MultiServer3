@@ -16,7 +16,7 @@ namespace QuazalServer.ServerProcessors
 		{
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            Parallel.ForEach(PrudpInstance, tuple => { if (VariousUtils.IsUDPPortAvailable(tuple.Item1)) new Thread(() => HandleClient(tuple.Item1, serverPID, tuple.Item2, null)).Start(); });
+            Parallel.ForEach(PrudpInstance, tuple => { new Thread(() => HandleClient(tuple.Item1, serverPID, tuple.Item2, null)).Start(); });
         }
 
         public void StopAsync()

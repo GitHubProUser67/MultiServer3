@@ -229,16 +229,39 @@ namespace Horizon.MEDIUS.Medius
                     {
                         if (createGameWithAttrResponse.MessageID.Value.Contains("-") && data.ClientObject != null)
                         {
-                            int gameOrPartyId = int.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[0]);
-                            int accountId = int.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[1]);
-                            string msgId = createGameWithAttrResponse.MessageID.Value.Split('-')[2];
+                            bool offseted = false;
                             int partyType = 0;
-                            var game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
-                            var party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
-                            var rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
+                            int gameOrPartyId = 0;
+                            int accountId = 0;
+                            string msgId = string.Empty;
+
+                            string[] messageParts = createGameWithAttrResponse.MessageID.Value.Split('-');
+
+                            if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
+                            {
+                                offseted = true;
+                                gameOrPartyId = int.Parse(messageParts[0]);
+                                accountId = -int.Parse(messageParts[2]);
+                                msgId = messageParts[3];
+                            }
+                            else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
+                                int.TryParse(messageParts[1], out accountId))
+                                msgId = messageParts[2];
+                            else
+                            {
+                                LoggerAccessor.LogWarn("[MPS] - createGameWithAttrResponse received an invalid MessageID, ignoring request...");
+                                break;
+                            }
+
+                            Game? game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
+                            Party? party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
+                            ClientObject? rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
                             try
                             {
-                                partyType = int.Parse(createGameWithAttrResponse.MessageID.Value.Split('-')[3]);
+                                if (offseted)
+                                    partyType = int.Parse(messageParts[4]);
+                                else
+                                    partyType = int.Parse(messageParts[3]);
                             }
                             catch (Exception)
                             {
@@ -341,16 +364,39 @@ namespace Horizon.MEDIUS.Medius
                     {
                         if (data.ClientObject != null)
                         {
-                            int gameOrPartyId = int.Parse(joinGameResponse.MessageID.Value.Split('-')[0]);
-                            int accountId = int.Parse(joinGameResponse.MessageID.Value.Split('-')[1]);
-                            string msgId = joinGameResponse.MessageID.Value.Split('-')[2];
+                            bool offseted = false;
                             int partyType = 0;
-                            var game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
-                            var party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
-                            var rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
+                            int gameOrPartyId = 0;
+                            int accountId = 0;
+                            string msgId = string.Empty;
+
+                            string[] messageParts = joinGameResponse.MessageID.Value.Split('-');
+
+                            if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
+                            {
+                                offseted = true;
+                                gameOrPartyId = int.Parse(messageParts[0]);
+                                accountId = -int.Parse(messageParts[2]);
+                                msgId = messageParts[3];
+                            }
+                            else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
+                                int.TryParse(messageParts[1], out accountId))
+                                msgId = messageParts[2];
+                            else
+                            {
+                                LoggerAccessor.LogWarn("[MPS] - joinGameResponse received an invalid MessageID, ignoring request...");
+                                break;
+                            }
+
+                            Game? game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
+                            Party? party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
+                            ClientObject? rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
                             try
                             {
-                                partyType = int.Parse(joinGameResponse.MessageID.Value.Split('-')[3]);
+                                if (offseted)
+                                    partyType = int.Parse(messageParts[4]);
+                                else
+                                    partyType = int.Parse(messageParts[3]);
                             }
                             catch (Exception)
                             {

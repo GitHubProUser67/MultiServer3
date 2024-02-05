@@ -2633,7 +2633,7 @@ namespace Horizon.MEDIUS.Medius
 
             List<int> p2pSetIP = new() { 10010 };
 
-            int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed, true);
+            int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
             LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
             if (data.ClientObject != null && p2pSetIP.Contains(data.ClientObject.ApplicationId))

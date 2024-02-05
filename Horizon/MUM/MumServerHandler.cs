@@ -46,9 +46,9 @@ namespace Horizon.MUM
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/GetChannels/", async (HttpContextBase ctx) =>
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/GetChannelsJson/", async (HttpContextBase ctx) =>
                 {
-                    if (ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
                     {
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                         ctx.Response.ContentType = "text/plain";
@@ -57,23 +57,70 @@ namespace Horizon.MUM
                     else
                     {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
-                        ctx.Response.ContentType = "application/json";
+                        ctx.Response.ContentType = "application/json; charset=UTF-8";
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                         {
                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(MumChannelHandler.SerializeChannelsList())));
+                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(MumChannelHandler.JsonSerializeChannelsList())));
                         }
                         else
-                            await ctx.Response.Send(MumChannelHandler.SerializeChannelsList());
+                            await ctx.Response.Send(MumChannelHandler.JsonSerializeChannelsList());
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/GetChannelsXML/", async (HttpContextBase ctx) =>
+                {
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.ContentType = "text/xml; charset=UTF-8";
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(MumChannelHandler.XMLSerializeChannelsList())));
+                        }
+                        else
+                            await ctx.Response.Send(MumChannelHandler.XMLSerializeChannelsList());
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/GetChannelsCRC/", async (HttpContextBase ctx) =>
+                {
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.ContentType = "text/xml; charset=UTF-8";
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(MumChannelHandler.GetCRC32ChannelsList())));
+                        }
+                        else
+                            await ctx.Response.Send(MumChannelHandler.GetCRC32ChannelsList());
                     }
                 });
 
                 _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/favicon.ico", async (HttpContextBase ctx) =>
                 {
-                    if (ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
                     {
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                         ctx.Response.ContentType = "text/plain";
@@ -84,7 +131,6 @@ namespace Horizon.MUM
                         if (File.Exists(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"))
                         {
                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                             ctx.Response.ContentType = "image/x-icon";
                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                             string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");

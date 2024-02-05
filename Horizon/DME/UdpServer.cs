@@ -26,8 +26,8 @@ namespace Horizon.DME
         protected ClientObject? ClientObject { get; set; } = null;
         protected EndPoint? AuthenticatedEndPoint { get; set; } = null;
 
-        private ConcurrentQueue<ScertDatagramPacket> _recvQueue = new ConcurrentQueue<ScertDatagramPacket>();
-        private ConcurrentQueue<ScertDatagramPacket> _sendQueue = new ConcurrentQueue<ScertDatagramPacket>();
+        private ConcurrentQueue<ScertDatagramPacket> _recvQueue = new();
+        private ConcurrentQueue<ScertDatagramPacket> _sendQueue = new();
 
         private BaseScertMessage? _lastMessage { get; set; } = null;
 

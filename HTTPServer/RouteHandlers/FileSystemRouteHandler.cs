@@ -24,7 +24,7 @@ namespace HTTPServer.RouteHandlers
             {
                 HttpResponse response = new(false)
                 {
-                    HttpStatusCode = HttpStatusCode.Ok
+                    HttpStatusCode = HttpStatusCode.OK
                 };
                 string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
                 if (ContentType == "application/octet-stream")
@@ -60,7 +60,7 @@ namespace HTTPServer.RouteHandlers
 
             HttpResponse response = new(false)
             {
-                HttpStatusCode = HttpStatusCode.Ok
+                HttpStatusCode = HttpStatusCode.OK
             };
             string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
             if (ContentType == "application/octet-stream")
@@ -99,7 +99,7 @@ namespace HTTPServer.RouteHandlers
 
             HttpResponse response = new(false)
             {
-                HttpStatusCode = HttpStatusCode.Ok,
+                HttpStatusCode = HttpStatusCode.OK,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
              if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
@@ -118,7 +118,7 @@ namespace HTTPServer.RouteHandlers
             HttpResponse response = new(false);
             if (Data != null)
             {
-                response.HttpStatusCode = HttpStatusCode.Ok;
+                response.HttpStatusCode = HttpStatusCode.OK;
                 response.Headers["Content-disposition"] = $"attachment; filename={FileName}";
                 response.ContentStream = new MemoryStream(Data);
             }
@@ -183,7 +183,7 @@ namespace HTTPServer.RouteHandlers
 
                 return new HttpResponse(false)
                 {
-                    HttpStatusCode = HttpStatusCode.NotFound,
+                    HttpStatusCode = HttpStatusCode.Not_Found,
                     ContentAsUTF8 = string.Empty
                 };
 

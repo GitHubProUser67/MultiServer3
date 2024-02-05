@@ -11,11 +11,11 @@ namespace HTTPServer
     {
         #region Public Methods
 
-        public static HttpResponse Ok()
+        public static HttpResponse OK()
         {
             return new HttpResponse(false)
             {
-                HttpStatusCode = HttpStatusCode.Ok,
+                HttpStatusCode = HttpStatusCode.OK,
             };
         }
 
@@ -63,7 +63,7 @@ namespace HTTPServer
         {
             return new HttpResponse(false)
             {
-                HttpStatusCode = HttpStatusCode.NotFound,
+                HttpStatusCode = HttpStatusCode.Not_Found,
             };
         }
 

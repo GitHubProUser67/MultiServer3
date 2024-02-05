@@ -6,12 +6,15 @@ using BackendProject.Horizon.LIBRARY.Database.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
-using Horizon.MUM;
+using System.Text.Json.Serialization;
+using Horizon.MEDIUS;
+using Horizon.MEDIUS.Medius.Models;
 
-namespace Horizon.MEDIUS.Medius.Models
+namespace Horizon.MUM
 {
     public class Party
     {
+        [JsonIgnore]
         public static int IdCounter = 1;
 
         public class PartyClient
@@ -25,7 +28,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public int Id = 0;
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
-        public List<PartyClient> Clients = new();
+        public List<PartyClient> LocalClients = new();
         public string? PartyName;
         public string? PartyPassword;
         public MediusGameHostType PartyHostType;
@@ -61,7 +64,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
-        public int PlayerCount => Clients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
+        public int PlayerCount => LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
 
         public Party(ClientObject client, IMediusRequest partyCreate, Channel? chatChannel, DMEObject dmeServer)
         {
@@ -128,7 +131,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public string GetActivePlayerList()
         {
-            var playlist = Clients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+            var playlist = LocalClients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
             if (playlist != null)
                 return string.Join(",", playlist);
 
@@ -138,19 +141,19 @@ namespace Horizon.MEDIUS.Medius.Models
         public virtual Task Tick()
         {
             // Remove timedout clients
-            for (int i = 0; i < Clients.Count; ++i)
+            for (int i = 0; i < LocalClients.Count; ++i)
             {
-                var client = Clients[i];
+                var client = LocalClients[i];
 
                 if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.Id != Id)
                 {
-                    Clients.RemoveAt(i);
+                    LocalClients.RemoveAt(i);
                     --i;
                 }
             }
 
             // Auto close when everyone leaves or if host fails to connect after timeout time
-            if (!utcTimeEmpty.HasValue && Clients.Count(x => x.InGame) == 0 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+            if (!utcTimeEmpty.HasValue && LocalClients.Count(x => x.InGame) == 0 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
 
             return Task.CompletedTask;
@@ -158,7 +161,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification notification)
         {
-            var player = Clients.FirstOrDefault(x => x.Client?.SessionKey == notification.PlayerSessionKey);
+            var player = LocalClients.FirstOrDefault(x => x.Client?.SessionKey == notification.PlayerSessionKey);
             if (player == null)
                 return;
 
@@ -190,12 +193,12 @@ namespace Horizon.MEDIUS.Medius.Models
         public virtual void AddPlayer(ClientObject client)
         {
             // Don't add again
-            if (Clients.Any(x => x.Client == client))
+            if (LocalClients.Any(x => x.Client == client))
                 return;
 
             LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: {client} added.");
 
-            Clients.Add(new PartyClient()
+            LocalClients.Add(new PartyClient()
             {
                 Client = client,
                 DmeId = client.DmeClientId ?? -1
@@ -207,7 +210,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         protected virtual async Task OnPlayerLeft(PartyClient player)
         {
-            LoggerAccessor.LogInfo($"Game {Id}: {PartyName}: {player.Client} left.");
+            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: {player.Client} left.");
 
             player.InGame = false;
 
@@ -231,7 +234,7 @@ namespace Horizon.MEDIUS.Medius.Models
                 Host = null;
 
             // Remove from clients list
-            Clients.RemoveAll(x => x.Client == client);
+            LocalClients.RemoveAll(x => x.Client == client);
         }
 
         public virtual void OnPartyPlayerReport(MediusPartyPlayerReport report)
@@ -251,20 +254,20 @@ namespace Horizon.MEDIUS.Medius.Models
             // destroy flag
             destroyed = true;
 
-            LoggerAccessor.LogInfo($"Game {Id}: {PartyName}: EndParty() called.");
+            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: EndParty() called.");
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnPartyArgs() { Party = this });
 
             // Remove players from game world
-            while (Clients.Count > 0)
+            while (LocalClients.Count > 0)
             {
-                var client = Clients[0].Client;
+                var client = LocalClients[0].Client;
                 if (client == null)
-                    Clients.RemoveAt(0);
+                    LocalClients.RemoveAt(0);
                 else
                     await client.LeaveParty(this);
-                    // client.LeaveChannel(ChatChannel);
+                // client.LeaveChannel(ChatChannel);
             }
 
 

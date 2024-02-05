@@ -15,6 +15,7 @@ namespace Horizon.MUM
 {
     public class Game
     {
+        [JsonIgnore]
         public static int IdCounter = 1;
 
         public class GameClient
@@ -29,7 +30,6 @@ namespace Horizon.MUM
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
-        [JsonIgnore]
         public List<GameClient> LocalClients = new();
         public string? GameName;
         public string? GamePassword;
