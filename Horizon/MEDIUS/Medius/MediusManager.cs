@@ -816,12 +816,13 @@ namespace Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                Game game = new(client, request, client.CurrentChannel, dme);
-
-                //Set game host type to PeerToPeer for those speci
-                game.GameHostType = MediusGameHostType.MediusGameHostPeerToPeer;
-                game.ApplicationId = client.ApplicationId;
-                game.Host = client;
+                Game game = new(client, request, client.CurrentChannel, dme)
+                {
+                    //Set game host type to PeerToPeer for those speci
+                    GameHostType = MediusGameHostType.MediusGameHostPeerToPeer,
+                    ApplicationId = client.ApplicationId,
+                    Host = client
+                };
 
 
                 // Join game

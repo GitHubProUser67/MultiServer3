@@ -22,7 +22,7 @@ namespace Horizon.MUM
         public List<Channel> LocalChannels = new();
 
         public string LobbyIp = MediusClass.SERVER_IP.ToString();
-        public string RegionCode = BackendProject.MiscUtils.GeoIPUtils.GetGeoCodeFromIP(MediusClass.SERVER_IP) ?? "";
+        public string RegionCode = BackendProject.MiscUtils.GeoIPUtils.GetGeoCodeFromIP(MediusClass.SERVER_IP) ?? string.Empty;
         public int LobbyPort = MediusClass.LobbyServer.TCPPort;
         public int Id = 0;
         public int ApplicationId = 0;
@@ -50,10 +50,11 @@ namespace Horizon.MUM
         public int GameCount => _games.Count;
         public int PartyCount => _parties.Count;
 
-        protected List<Game> _games = new();
-        protected List<Party> _parties = new();
+        public List<Game> _games = new();
+        public List<Party> _parties = new();
+        public DateTime _timeCreated = Utils.GetHighPrecisionUtcTime();
+
         protected bool _removeChannel = false;
-        protected DateTime _timeCreated = Utils.GetHighPrecisionUtcTime();
 
         public Channel()
         {
@@ -105,7 +106,7 @@ namespace Horizon.MUM
 
         private Task UpdateMumReport()
         {
-            int index = MumChannelHandler.GetIndexOfLocalChannelByNameAndAppId(Name, ApplicationId);
+            int index = MumChannelHandler.GetIndexOfLocalChannelByIdAndAppId(Id, ApplicationId);
 
             if (index != -1)
                 _ = MumChannelHandler.UpdateMumChannels(index, LocalChannels);
