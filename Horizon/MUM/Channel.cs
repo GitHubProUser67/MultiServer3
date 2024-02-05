@@ -106,34 +106,6 @@ namespace Horizon.MUM
             Password = request.LobbyPassword;
         }
 
-        private Task UpdateMumReport()
-        {
-            int index = MumChannelHandler.GetIndexOfLocalChannelByIdAndAppId(Id, ApplicationId);
-
-            if (index != -1)
-                _ = MumChannelHandler.UpdateMumChannels(index, this);
-            else
-                _ = MumChannelHandler.AddMumChannelsList(this);
-
-            foreach (Game game in _games)
-            {
-                index = MumGameHandler.GetIndexOfLocalGameByNameAndAppId(Name, game.GameName, ApplicationId);
-
-                if (index != -1)
-                    _ = MumGameHandler.UpdateMumGame(index, game);
-            }
-
-            foreach (Party party in _parties)
-            {
-                index = MumPartyHandler.GetIndexOfLocalPartyByNameAndAppId(Name, party.PartyName, ApplicationId);
-
-                if (index != -1)
-                    _ = MumPartyHandler.UpdateMumParty(index, party);
-            }
-
-            return Task.CompletedTask;
-        }
-
         public virtual Task Tick()
         {
             // Remove inactive clients
@@ -146,17 +118,12 @@ namespace Horizon.MUM
                 }
             }
 
-            _ = UpdateMumReport();
-
             return Task.CompletedTask;
         }
 
         public virtual Task OnChannelCreate(Channel channel)
         {
             LocalChannels.Add(channel);
-
-            // Also update MUM.
-            _ = UpdateMumReport();
 
             return Task.CompletedTask;
         }
@@ -165,16 +132,12 @@ namespace Horizon.MUM
         {
             LocalClients.Add(client);
 
-            _ = UpdateMumReport();
-
             return Task.CompletedTask;
         }
 
         public virtual void OnPlayerLeft(ClientObject client)
         {
             LocalClients.RemoveAll(x => x == client);
-
-            _ = UpdateMumReport();
         }
 
         #region Parties
@@ -182,11 +145,6 @@ namespace Horizon.MUM
         public virtual void RegisterParty(Party party)
         {
             _parties.Add(party);
-
-            // Also update MUM.
-            _ = MumPartyHandler.AddMumParty(party);
-
-            _ = UpdateMumReport();
         }
 
         public virtual void UnregisterParty(Party party)
@@ -197,8 +155,6 @@ namespace Horizon.MUM
             // If empty, just end channel
             if (_parties.Count == 0)
                 _removeChannel = true;
-
-            _ = UpdateMumReport();
         }
         #endregion
 
@@ -206,11 +162,6 @@ namespace Horizon.MUM
         public virtual void RegisterGame(Game game)
         {
             _games.Add(game);
-
-            // Also update MUM.
-            _ = MumGameHandler.AddMumGame(game);
-
-            _ = UpdateMumReport();
         }
 
         public virtual void UnregisterGame(Game game)
@@ -221,8 +172,6 @@ namespace Horizon.MUM
             // If empty, just end channel
             if (_games.Count == 0)
                 _removeChannel = true;
-
-            _ = UpdateMumReport();
         }
         #endregion
 
