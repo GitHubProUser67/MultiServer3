@@ -44,6 +44,23 @@ namespace BackendProject.MiscUtils
             return "[]";
         }
 
+        public static string GetMediaFilesAsJson(string directoryPath)
+        {
+            try
+            {
+                if (!Directory.Exists(directoryPath))
+                    return "[]";
+
+                return JsonConvert.SerializeObject(new FileSystemUtils().GetMediaFilesList(directoryPath));
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[GetMediaFilesAsJson] - Errored out with exception - {ex}");
+            }
+
+            return "[]";
+        }
+
         private static bool IsHidden(FileSystemInfo fileSystemInfo)
         {
             return (fileSystemInfo.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;

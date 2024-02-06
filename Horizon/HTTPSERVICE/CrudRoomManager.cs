@@ -42,10 +42,10 @@ namespace Horizon.HTTPSERVICE
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
+                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
@@ -79,7 +79,7 @@ namespace Horizon.HTTPSERVICE
                     if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
                     {
                         if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.CrudRoomManagerAPIKey));
+                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
                         else
                             GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                     }

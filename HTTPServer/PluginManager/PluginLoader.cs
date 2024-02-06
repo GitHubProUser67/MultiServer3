@@ -6,7 +6,7 @@ namespace HTTPServer.PluginManager
     {
         public static List<HTTPPlugin> LoadPluginsFromFolder(string folderPath)
         {
-            List<HTTPPlugin> plugins = new List<HTTPPlugin>();
+            List<HTTPPlugin> plugins = new();
 
             if (Directory.Exists(folderPath))
             {

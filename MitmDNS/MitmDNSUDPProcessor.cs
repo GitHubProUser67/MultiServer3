@@ -47,7 +47,7 @@ namespace MitmDNS
             return Task.CompletedTask;
         }
 
-        private Span<byte> ProcRequest(byte[] data)
+        private static Span<byte> ProcRequest(byte[] data)
         {
             string fullname = string.Join(".", HTTPUtils.GetDnsName(data).ToArray());
 
@@ -56,9 +56,8 @@ namespace MitmDNS
             string url = string.Empty;
             bool treated = false;
 
-            IPAddress? arparuleaddr = null;
 
-            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out arparuleaddr)) // IPV4 Only.
+            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
             {
                 if (arparuleaddr != null)
                 {
@@ -113,8 +112,7 @@ namespace MitmDNS
             {
                 try
                 {
-                    IPAddress? address;
-                    if (!IPAddress.TryParse(url, out address))
+                    if (!IPAddress.TryParse(url, out IPAddress? address))
                         ip = Dns.GetHostEntry(url).AddressList[0];
                     else ip = address;
                 }
@@ -133,7 +131,7 @@ namespace MitmDNS
             return null;
         }
 
-        private byte[] TrimArray(byte[] arr)
+        private static byte[] TrimArray(byte[] arr)
         {
             int i = arr.Length - 1;
             while (arr[i] == 0) i--;

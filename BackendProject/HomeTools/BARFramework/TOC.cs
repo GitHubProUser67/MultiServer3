@@ -1,4 +1,4 @@
-using BackendProject.HomeTools.Crypto;
+using BackendProject.CryptoUtils;
 using System.Collections;
 
 namespace BackendProject.HomeTools.BARFramework
@@ -193,7 +193,7 @@ namespace BackendProject.HomeTools.BARFramework
                 binaryWriter.Write(tocentry.IV);
             }
             binaryWriter.Close();
-            return new AESCTR256EncryptDecrypt().InitiateCTRBuffer(memoryStream.ToArray(), Convert.FromBase64String(key), IV);
+            return AESCTR256EncryptDecrypt.InitiateCTRBuffer(memoryStream.ToArray(), Convert.FromBase64String(key), IV);
         }
 
         public uint Version1Size

@@ -23,27 +23,25 @@ namespace HTTPServer.Extensions
 
                 // Extract POST data (if available)
                 string? postData = null;
-                if (request.Method == "POST" && request.getDataStream != null)
+                if (request.Method == "POST" && request.GetDataStream != null)
                 {
-                    using (MemoryStream ms = new())
-                    {
-                        request.getDataStream.CopyTo(ms);
+                    using MemoryStream ms = new();
+                    request.GetDataStream.CopyTo(ms);
 
-                        ms.Position = 0;
+                    ms.Position = 0;
 
-                        // Find the number of bytes in the stream
-                        int contentLength = (int)ms.Length;
+                    // Find the number of bytes in the stream
+                    int contentLength = (int)ms.Length;
 
-                        // Create a byte array
-                        byte[] buffer = new byte[contentLength];
+                    // Create a byte array
+                    byte[] buffer = new byte[contentLength];
 
-                        // Read the contents of the memory stream into the byte array
-                        ms.Read(buffer, 0, contentLength);
+                    // Read the contents of the memory stream into the byte array
+                    ms.Read(buffer, 0, contentLength);
 
-                        postData = Encoding.UTF8.GetString(buffer);
+                    postData = Encoding.UTF8.GetString(buffer);
 
-                        ms.Flush();
-                    }
+                    ms.Flush();
                 }
 
                 Process proc = new();

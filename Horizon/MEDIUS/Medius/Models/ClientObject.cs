@@ -54,12 +54,12 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public ConcurrentQueue<BaseScertMessage> TcpSendMessageQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+        public ConcurrentQueue<BaseScertMessage> TcpSendMessageQueue { get; } = new();
 
         /// <summary>
         /// 
         /// </summary>
-        public ConcurrentQueue<ScertDatagramPacket> UdpSendMessageQueue { get; } = new ConcurrentQueue<ScertDatagramPacket>();
+        public ConcurrentQueue<ScertDatagramPacket> UdpSendMessageQueue { get; } = new();
 
         /// <summary>
         /// 
@@ -192,7 +192,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public List<GameListFilter> GameListFilters = new List<GameListFilter>();
+        public List<GameListFilter> GameListFilters = new();
 
         /// <summary>
         /// 
@@ -219,7 +219,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public ConcurrentQueue<BaseScertMessage> SendMessageQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+        public ConcurrentQueue<BaseScertMessage> SendMessageQueue { get; } = new();
 
         /// <summary>
         /// 

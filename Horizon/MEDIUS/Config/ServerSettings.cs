@@ -385,7 +385,7 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// List of MUM Ips/Ports.
         /// </summary>
-        public List<string> MUMIPs { get; set; } = new();
+        public Dictionary<string, string> MUMServersAccessList { get; set; } = new();
         #endregion
 
         #region MLS

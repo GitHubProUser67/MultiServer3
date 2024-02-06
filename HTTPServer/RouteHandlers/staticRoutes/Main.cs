@@ -136,9 +136,9 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "POST",
                     Host = "sonyhome.thqsandbox.com",
                     Callable = (HttpRequest request) => {
-                        if (request.getDataStream != null)
+                        if (request.GetDataStream != null)
                         {
-                            string? UFCResult = THQ.ProcessUFCUserData(request.getDataStream, HTTPUtils.ExtractBoundary(request.GetContentType()));
+                            string? UFCResult = THQ.ProcessUFCUserData(request.GetDataStream, HTTPUtils.ExtractBoundary(request.GetContentType()));
                             if (!string.IsNullOrEmpty(UFCResult))
                                 return HttpResponse.Send(UFCResult, "text/xml");
                         }

@@ -42,7 +42,7 @@ namespace Horizon.MEDIUS
         public static AntiCheat AntiCheatPlugin = new();
         public static BackendProject.Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
 
-        public static List<string> MUMServerIPsList = new();
+        public static Dictionary<string, string> MUMLocalServersAccessList = new();
 
         private static Dictionary<int, AppSettings> _appSettings = new();
         private static AppSettings _defaultAppSettings = new(0);
@@ -534,13 +534,19 @@ namespace Horizon.MEDIUS
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());
 
-            if (Settings.MUMIPs.Count > 0)
+            if (Settings.MUMServersAccessList.Count > 0)
             {
-                foreach (string ip in Settings.MUMIPs)
+                foreach (KeyValuePair<string, string> kvp in Settings.MUMServersAccessList)
                 {
-                    if (IPAddress.TryParse(ip, out _))
-                        if (!MUMServerIPsList.Contains(ip))
-                            MUMServerIPsList.Add(ip);
+                    string IPValue = kvp.Key;
+
+                    if (IPAddress.TryParse(IPValue, out _))
+                    {
+                        if (MUMLocalServersAccessList.ContainsKey(IPValue))
+                            MUMLocalServersAccessList[IPValue] = kvp.Value;
+                        else
+                            MUMLocalServersAccessList.Add(IPValue, kvp.Value);
+                    }
                 }
             }
         }

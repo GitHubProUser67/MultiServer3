@@ -2,7 +2,7 @@
 {
     public struct DnsSettings
     {
-        public string? Address; //For redirect to
+        public string? Address; // For redirect to
         public HandleMode? Mode;
     }
 
