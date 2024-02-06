@@ -28,26 +28,42 @@ namespace Horizon.MUM
             }), "Channel")?.OuterXml ?? "<Channel></Channel>";
         }
 
-        public static string JsonSerializeChannelsList()
+        public static string? JsonSerializeChannelsList(bool encrypt)
         {
-            return JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), Formatting.Indented, new JsonSerializerSettings
-            {
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-            });
+            if (encrypt)
+                return "<Secure>" + BackendProject.CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), Formatting.Indented, new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                }), Convert.FromBase64String(HorizonServerConfiguration.MediusAPIKey), MumUtils.ConfigIV) + "</Secure>";
+            else
+                return JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), Formatting.Indented, new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                });
         }
 
-        public static string XMLSerializeChannelsList()
+        public static string? XMLSerializeChannelsList(bool encrypt)
         {
-            return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), new JsonSerializerSettings
-            {
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-            })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>";
+            if (encrypt)
+                return "<Secure>" + BackendProject.CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(HorizonServerConfiguration.MediusAPIKey), MumUtils.ConfigIV) + "</Secure>";
+            else
+                return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
+                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>";
         }
 
         public static string GetCRC32ChannelsList()
         {
+            // No need to protect the CRC list, nothing critical in here.
+
             string XMLData = "<Root>";
 
             foreach (Channel channel in MediusClass.Manager.GetAllChannels())
@@ -100,11 +116,11 @@ namespace Horizon.MUM
         {
             try
             {
-                if (MediusClass.MUMServerIPsList.Count > 0)
+                if (MediusClass.MUMLocalServersAccessList.Count > 0)
                 {
-                    foreach (string ip in MediusClass.MUMServerIPsList)
+                    foreach (KeyValuePair<string, string> kvp in MediusClass.MUMLocalServersAccessList)
                     {
-                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
+                        string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
@@ -143,11 +159,11 @@ namespace Horizon.MUM
         {
             try
             {
-                if (MediusClass.MUMServerIPsList.Count > 0)
+                if (MediusClass.MUMLocalServersAccessList.Count > 0)
                 {
-                    foreach (string ip in MediusClass.MUMServerIPsList)
+                    foreach (KeyValuePair<string, string> kvp in MediusClass.MUMLocalServersAccessList)
                     {
-                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
+                        string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
@@ -186,11 +202,11 @@ namespace Horizon.MUM
         {
             try
             {
-                if (MediusClass.MUMServerIPsList.Count > 0)
+                if (MediusClass.MUMLocalServersAccessList.Count > 0)
                 {
-                    foreach (string ip in MediusClass.MUMServerIPsList)
+                    foreach (KeyValuePair<string, string> kvp in MediusClass.MUMLocalServersAccessList)
                     {
-                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
+                        string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
@@ -232,13 +248,13 @@ namespace Horizon.MUM
         {
             try
             {
-                if (MediusClass.MUMServerIPsList.Count > 0)
+                if (MediusClass.MUMLocalServersAccessList.Count > 0)
                 {
                     List<Channel> ChannelsLists = new();
 
-                    foreach (string ip in MediusClass.MUMServerIPsList)
+                    foreach (KeyValuePair<string, string> kvp in MediusClass.MUMLocalServersAccessList)
                     {
-                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
+                        string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
@@ -289,13 +305,13 @@ namespace Horizon.MUM
         {
             try
             {
-                if (MediusClass.MUMServerIPsList.Count > 0)
+                if (MediusClass.MUMLocalServersAccessList.Count > 0)
                 {
                     List<Channel> ChannelsLists = new();
 
-                    foreach (string ip in MediusClass.MUMServerIPsList)
+                    foreach (KeyValuePair<string, string> kvp in MediusClass.MUMLocalServersAccessList)
                     {
-                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
+                        string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
@@ -341,13 +357,13 @@ namespace Horizon.MUM
         {
             try
             {
-                if (MediusClass.MUMServerIPsList.Count > 0)
+                if (MediusClass.MUMLocalServersAccessList.Count > 0)
                 {
                     uint totalCount = 0;
 
-                    foreach (string ip in MediusClass.MUMServerIPsList)
+                    foreach (KeyValuePair<string, string> kvp in MediusClass.MUMLocalServersAccessList)
                     {
-                        string? RemoteChannelsList = MumClient.GetJsonServerResult(ip, 10076, "GetChannelsJson");
+                        string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
                         {
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings

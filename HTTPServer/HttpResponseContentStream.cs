@@ -11,7 +11,7 @@ namespace HTTPServer
 		//RTFM: https://datatracker.ietf.org/doc/html/rfc9112#section-7
 
 		private readonly Stream inner;
-		private bool UseChunkedTransfer;
+		private readonly bool UseChunkedTransfer;
 		//private bool UseCompressedTransfer;
 		//private string UseCompressionAlgorithm;
 

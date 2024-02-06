@@ -52,7 +52,7 @@ namespace MitmDNS
             _ = new MitmDNSUDPProcessor().RunDns();
         }
 
-        private void ParseRules(string Filename, bool IsFilename = true)
+        private static void ParseRules(string Filename, bool IsFilename = true)
         {
             DicRules = new Dictionary<string, DnsSettings>();
             StarRules = new List<KeyValuePair<string, DnsSettings>>();
@@ -137,7 +137,7 @@ namespace MitmDNS
             LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
-        private Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
+        private static Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
         {
             // Read all lines from the test file
             string[] lines = File.ReadAllLines(Filename);

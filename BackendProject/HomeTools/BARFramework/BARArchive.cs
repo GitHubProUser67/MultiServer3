@@ -1,3 +1,4 @@
+using BackendProject.CryptoUtils;
 using BackendProject.HomeTools.Crypto;
 using BackendProject.MiscUtils;
 using CustomLogger;
@@ -595,12 +596,12 @@ namespace BackendProject.HomeTools.BARFramework
                 if (m_endian == EndianType.BigEndian) // This data is always little endian.
                 {
                     writer.Write(Utils.EndianSwap(IV));
-                    writer.Write(Utils.EndianSwap(new AESCTR256EncryptDecrypt().InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV)));
+                    writer.Write(Utils.EndianSwap(AESCTR256EncryptDecrypt.InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV)));
                 }
                 else
                 {
                     writer.Write(IV);
-                    writer.Write(new AESCTR256EncryptDecrypt().InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV));
+                    writer.Write(AESCTR256EncryptDecrypt.InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV));
                 }
             }
             else

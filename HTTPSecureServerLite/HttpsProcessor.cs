@@ -22,10 +22,10 @@ namespace HTTPSecureServerLite
         private static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
         public static bool IsStarted = false;
         private static WebserverLite? _Server;
-        private string ip;
-        private string certpath;
-        private string certpass;
-        private int port;
+        private readonly string ip;
+        private readonly string certpath;
+        private readonly string certpass;
+        private readonly int port;
 
         public HttpsProcessor(string certpath, string certpass, string ip, int port)
         {
@@ -253,49 +253,47 @@ namespace HTTPSecureServerLite
                             }
                             else
                             {
-                                using (FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                using FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                byte[]? buffer = null;
+
+                                using (MemoryStream ms = new())
                                 {
-                                    byte[]? buffer = null;
+                                    stream.CopyTo(ms);
+                                    buffer = ms.ToArray();
+                                    ms.Flush();
+                                }
 
-                                    using (MemoryStream ms = new())
+                                if (buffer != null)
+                                {
+                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                     {
-                                        stream.CopyTo(ms);
-                                        buffer = ms.ToArray();
-                                        ms.Flush();
-                                    }
-
-                                    if (buffer != null)
-                                    {
-                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                            ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                            sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
-                                        }
-                                        else
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                            ctx.Response.StatusCode = (int)statusCode;
-                                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                            sent = await ctx.Response.Send(buffer);
-                                        }
+                                        statusCode = HttpStatusCode.OK;
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
+                                        sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
                                     }
                                     else
                                     {
-                                        statusCode = HttpStatusCode.InternalServerError;
+                                        statusCode = HttpStatusCode.OK;
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
-                                        ctx.Response.ContentType = "text/plain";
-                                        sent = await ctx.Response.Send();
+                                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
+                                        sent = await ctx.Response.Send(buffer);
                                     }
-
-                                    stream.Flush();
                                 }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "text/plain";
+                                    sent = await ctx.Response.Send();
+                                }
+
+                                stream.Flush();
                             }
                             break;
                         }
@@ -414,6 +412,8 @@ namespace HTTPSecureServerLite
                 }
                 else
                 {
+                    string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+
                     switch (ctx.Request.Method.ToString())
                     {
                         case "GET":
@@ -476,9 +476,8 @@ namespace HTTPSecureServerLite
                                                 string url = string.Empty;
                                                 bool treated = false;
 
-                                                IPAddress? arparuleaddr = null;
 
-                                                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out arparuleaddr)) // IPV4 Only.
+                                                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                                                 {
                                                     if (arparuleaddr != null)
                                                     {
@@ -532,8 +531,7 @@ namespace HTTPSecureServerLite
                                                 {
                                                     try
                                                     {
-                                                        IPAddress? address;
-                                                        if (!IPAddress.TryParse(url, out address))
+                                                        if (!IPAddress.TryParse(url, out IPAddress? address))
                                                             ip = Dns.GetHostEntry(url).AddressList[0];
                                                         else ip = address;
                                                     }
@@ -586,6 +584,18 @@ namespace HTTPSecureServerLite
                                     ctx.Response.ContentType = "text/plain";
                                     sent = await ctx.Response.Send("User-agent: *\nDisallow: / ");
                                     break;
+                                case "/!GetMediaList/":
+                                    statusCode = HttpStatusCode.OK;
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "application/json";
+                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                    {
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder))));
+                                    }
+                                    else
+                                        sent = await ctx.Response.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder));
+                                    break;
                                 case "/!DLNADiscovery/":
                                     if (IsIPAllowed(clientip))
                                     {
@@ -604,8 +614,7 @@ namespace HTTPSecureServerLite
                                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "application/json;charset=UTF-8";
-                                        string? encoding0 = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
-                                        if (!string.IsNullOrEmpty(encoding0) && encoding0.Contains("gzip"))
+                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                         {
                                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
                                             sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
@@ -658,7 +667,6 @@ namespace HTTPSecureServerLite
                                 default:
                                     if (Directory.Exists(filePath) && filePath.EndsWith("/"))
                                     {
-                                        string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (ctx.Request.RetrieveQueryValue("directory") == "on")
                                         {
                                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
@@ -754,49 +762,47 @@ namespace HTTPSecureServerLite
                                                     }
                                                     else
                                                     {
-                                                        using (FileStream stream = new(filePath + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                                        using FileStream stream = new(filePath + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                                        byte[]? buffer = null;
+
+                                                        using (MemoryStream ms = new())
                                                         {
-                                                            byte[]? buffer = null;
+                                                            stream.CopyTo(ms);
+                                                            buffer = ms.ToArray();
+                                                            ms.Flush();
+                                                        }
 
-                                                            using (MemoryStream ms = new())
+                                                        if (buffer != null)
+                                                        {
+                                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                                             {
-                                                                stream.CopyTo(ms);
-                                                                buffer = ms.ToArray();
-                                                                ms.Flush();
-                                                            }
-
-                                                            if (buffer != null)
-                                                            {
-                                                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                                {
-                                                                    statusCode = HttpStatusCode.OK;
-                                                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
-                                                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                                                    ctx.Response.StatusCode = (int)statusCode;
-                                                                    ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
-                                                                    sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
-                                                                }
-                                                                else
-                                                                {
-                                                                    statusCode = HttpStatusCode.OK;
-                                                                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
-                                                                    ctx.Response.StatusCode = (int)statusCode;
-                                                                    ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
-                                                                    sent = await ctx.Response.Send(buffer);
-                                                                }
+                                                                statusCode = HttpStatusCode.OK;
+                                                                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
+                                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                                ctx.Response.StatusCode = (int)statusCode;
+                                                                ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
+                                                                sent = await ctx.Response.Send(HTTPUtils.Compress(buffer));
                                                             }
                                                             else
                                                             {
-                                                                statusCode = HttpStatusCode.InternalServerError;
+                                                                statusCode = HttpStatusCode.OK;
+                                                                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                                 ctx.Response.StatusCode = (int)statusCode;
-                                                                ctx.Response.ContentType = "text/plain";
-                                                                sent = await ctx.Response.Send();
+                                                                ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
+                                                                sent = await ctx.Response.Send(buffer);
                                                             }
-
-                                                            stream.Flush();
                                                         }
+                                                        else
+                                                        {
+                                                            statusCode = HttpStatusCode.InternalServerError;
+                                                            ctx.Response.StatusCode = (int)statusCode;
+                                                            ctx.Response.ContentType = "text/plain";
+                                                            sent = await ctx.Response.Send();
+                                                        }
+
+                                                        stream.Flush();
                                                     }
                                                     break;
                                                 }
@@ -822,7 +828,6 @@ namespace HTTPSecureServerLite
                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                     {
                                         var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
-                                        string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -934,9 +939,8 @@ namespace HTTPSecureServerLite
                                             string url = string.Empty;
                                             bool treated = false;
 
-                                            IPAddress? arparuleaddr = null;
 
-                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out arparuleaddr)) // IPV4 Only.
+                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                                             {
                                                 if (arparuleaddr != null)
                                                 {
@@ -990,8 +994,7 @@ namespace HTTPSecureServerLite
                                             {
                                                 try
                                                 {
-                                                    IPAddress? address;
-                                                    if (!IPAddress.TryParse(url, out address))
+                                                    if (!IPAddress.TryParse(url, out IPAddress? address))
                                                         ip = Dns.GetHostEntry(url).AddressList[0];
                                                     else ip = address;
                                                 }
@@ -1308,7 +1311,6 @@ namespace HTTPSecureServerLite
                                     else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                     {
                                         (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
-                                        string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -1375,26 +1377,24 @@ namespace HTTPSecureServerLite
                                         {
                                             if (multipartfile.Data.Length > 0)
                                             {
-                                                using (Stream filedata = multipartfile.Data)
+                                                using Stream filedata = multipartfile.Data;
+                                                int copyNumber = 0;
+                                                string UploadFilePath = UploadDirectoryPath + $"/{multipartfile.FileName}";
+
+                                                while (File.Exists(UploadFilePath))
                                                 {
-                                                    int copyNumber = 0;
-                                                    string UploadFilePath = UploadDirectoryPath + $"/{multipartfile.FileName}";
-
-                                                    while (File.Exists(UploadFilePath))
-                                                    {
-                                                        copyNumber++;
-                                                        UploadFilePath = Path.Combine(UploadDirectoryPath,
-                                                            $"{Path.GetFileNameWithoutExtension(multipartfile.FileName)} (Copy {copyNumber}){Path.GetExtension(multipartfile.FileName)}");
-                                                    }
-
-                                                    using (FileStream fileStream = File.Create(UploadFilePath))
-                                                    {
-                                                        filedata.Seek(0, SeekOrigin.Begin);
-                                                        filedata.CopyTo(fileStream);
-                                                    }
-
-                                                    filedata.Flush();
+                                                    copyNumber++;
+                                                    UploadFilePath = Path.Combine(UploadDirectoryPath,
+                                                        $"{Path.GetFileNameWithoutExtension(multipartfile.FileName)} (Copy {copyNumber}){Path.GetExtension(multipartfile.FileName)}");
                                                 }
+
+                                                using (FileStream fileStream = File.Create(UploadFilePath))
+                                                {
+                                                    filedata.Seek(0, SeekOrigin.Begin);
+                                                    filedata.CopyTo(fileStream);
+                                                }
+
+                                                filedata.Flush();
                                             }
                                         }
 
@@ -1502,38 +1502,34 @@ namespace HTTPSecureServerLite
 
             if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && contentLen <= 80000000) // We must be reasonable on the file-size here (80 Mb).
             {
-                using (Stream st = HTTPUtils.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
-                {
-                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                    ctx.Response.ContentType = contentType;
-                    ctx.Response.StatusCode = 200;
-                    sent = ctx.Response.Send(st.Length, st).Result;
+                using Stream st = HTTPUtils.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                ctx.Response.ContentType = contentType;
+                ctx.Response.StatusCode = 200;
+                sent = ctx.Response.Send(st.Length, st).Result;
 
-                    st.Flush();
-                    st.Close();
-                }
+                st.Flush();
+                st.Close();
             }
             else
             {
-                using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                    ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                    ctx.Response.ContentType = contentType;
-                    ctx.Response.StatusCode = 200;
-                    sent = ctx.Response.Send(contentLen, fs).Result;
+                using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                ctx.Response.ContentType = contentType;
+                ctx.Response.StatusCode = 200;
+                sent = ctx.Response.Send(contentLen, fs).Result;
 
-                    fs.Flush();
-                    fs.Close();
-                }
+                fs.Flush();
+                fs.Close();
             }
 
             return sent;
         }
 
-        private void ParseRules(string Filename, bool IsFilename = true)
+        private static void ParseRules(string Filename, bool IsFilename = true)
         {
             DicRules = new Dictionary<string, DnsSettings>();
             StarRules = new List<KeyValuePair<string, DnsSettings>>();
@@ -1618,7 +1614,7 @@ namespace HTTPSecureServerLite
             LoggerAccessor.LogInfo("[HTTPS_DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
-        private Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
+        private static Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
         {
             // Read all lines from the test file
             string[] lines = File.ReadAllLines(Filename);
@@ -1689,7 +1685,7 @@ namespace HTTPSecureServerLite
 
         public struct DnsSettings
         {
-            public string? Address; //For redirect to
+            public string? Address; // For redirect to
             public HandleMode? Mode;
         }
 

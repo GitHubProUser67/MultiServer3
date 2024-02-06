@@ -88,7 +88,7 @@ namespace HTTPServer.Models
             }
         }
 
-        public Stream? getDataStream
+        public Stream? GetDataStream
         {
             get
             {

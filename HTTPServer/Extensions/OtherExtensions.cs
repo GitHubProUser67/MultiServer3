@@ -20,7 +20,7 @@ namespace HTTPServer.Extensions
             int indexOfQuestionMark = input.IndexOf('?');
 
             if (indexOfQuestionMark >= 0)
-                return input.Substring(0, indexOfQuestionMark);
+                return input[..indexOfQuestionMark];
             else
                 return input;
         }

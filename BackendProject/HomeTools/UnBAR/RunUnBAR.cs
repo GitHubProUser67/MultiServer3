@@ -2,6 +2,7 @@ using CustomLogger;
 using BackendProject.HomeTools.BARFramework;
 using BackendProject.HomeTools.Crypto;
 using BackendProject.MiscUtils;
+using BackendProject.CryptoUtils;
 
 namespace BackendProject.HomeTools.UnBAR
 {
@@ -68,7 +69,6 @@ namespace BackendProject.HomeTools.UnBAR
 
                     if (isSharc && RawBarData.Length > 52)
                     {
-                        AESCTR256EncryptDecrypt? aes256 = new();
                         ToolsImpl? toolsImpl = new();
 
                         try
@@ -83,7 +83,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                 Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
+                                SharcHeader = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcHeader,
                                  Convert.FromBase64String(options), HeaderIV);
 
                                 if (SharcHeader == Array.Empty<byte>())
@@ -94,7 +94,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                     Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                    SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
+                                    SharcHeader = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcHeader,
                                      Convert.FromBase64String(options), HeaderIV);
 
                                     if (SharcHeader == Array.Empty<byte>())
@@ -105,7 +105,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                         Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                        SharcHeader = aes256.InitiateCTRBuffer(SharcHeader,
+                                        SharcHeader = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcHeader,
                                          Convert.FromBase64String(options), HeaderIV);
 
                                         if (SharcHeader == Array.Empty<byte>())
@@ -134,7 +134,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                                     toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
 
-                                    SharcTOC = aes256.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
+                                    SharcTOC = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
 
                                     if (SharcTOC != Array.Empty<byte>())
                                     {
@@ -179,7 +179,6 @@ namespace BackendProject.HomeTools.UnBAR
                             LoggerAccessor.LogError($"[RunUnBAR] - SHARC Decryption failed! with error - {ex}");
                         }
 
-                        aes256 = null;
                         toolsImpl = null;
                     }
                     else

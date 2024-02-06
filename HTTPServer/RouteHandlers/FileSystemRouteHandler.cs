@@ -159,21 +159,19 @@ namespace HTTPServer.RouteHandlers
                         {
                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                             {
-                                using (FileStream stream = new(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                using FileStream stream = new(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                byte[]? buffer = null;
+
+                                using (MemoryStream ms = new())
                                 {
-                                    byte[]? buffer = null;
-
-                                    using (MemoryStream ms = new())
-                                    {
-                                        stream.CopyTo(ms);
-                                        buffer = ms.ToArray();
-                                        ms.Flush();
-                                    }
-
-                                    stream.Flush();
-
-                                    return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                    stream.CopyTo(ms);
+                                    buffer = ms.ToArray();
+                                    ms.Flush();
                                 }
+
+                                stream.Flush();
+
+                                return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                             }
                             else
                                 return HttpResponse.Send(new FileStream(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
