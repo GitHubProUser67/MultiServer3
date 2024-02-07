@@ -4,6 +4,7 @@ using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.OUWF;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
+using BackendProject.WeBAPIs.VEEMEE;
 using CustomLogger;
 using HttpMultipartParser;
 using HTTPServer.API.JUGGERNAUT;
@@ -120,6 +121,7 @@ namespace HTTPServer
                                                     i++;
                                                 }
                                             }
+
                                             else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.GetDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
@@ -184,6 +186,34 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
+
+                                                VEEMEEClass veemee = new(request.Method, absolutepath); 
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+
+                                                    postdata.Position = 0;
+                                                    // Find the number of bytes in the stream
+                                                    int contentLength = (int)postdata.Length;
+                                                    // Create a byte array
+                                                    byte[] buffer = new byte[contentLength];
+                                                    // Read the contents of the memory stream into the byte array
+                                                    postdata.Read(buffer, 0, contentLength);
+                                                    var res = veemee.ProcessRequest(buffer, request.GetContentType(), absolutepath);
+                                                    postdata.Flush();
+
+                                                    veemee.Dispose();
+
+                                                    if (string.IsNullOrEmpty(res.Item1))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                        response = HttpResponse.Send(res.Item1, "text/xml");
+                                                }
                                             }
                                             else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                             {
