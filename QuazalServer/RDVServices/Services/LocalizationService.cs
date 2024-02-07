@@ -7,16 +7,19 @@ namespace QuazalServer.RDVServices.Services
 	[RMCService(RMCProtocolId.LocalizationService)]
 	public class LocalizationService : RMCServiceBase
 	{
-		[RMCMethod(1)]
+		private static string LocaleCode = "en-US";
+
+        [RMCMethod(1)]
 		public RMCResult GetLocaleCode()
 		{
-			return Result("en-US");
+			return Result(LocaleCode);
 		}
 
 		[RMCMethod(2)]
 		public RMCResult SetLocaleCode(string localeCode)
 		{
-			return Error(0);
+            LocaleCode = localeCode;
+            return Error(0);
 		}
 	}
 }

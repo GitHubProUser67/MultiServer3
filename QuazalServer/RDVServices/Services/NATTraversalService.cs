@@ -16,7 +16,7 @@ namespace QuazalServer.RDVServices.Services
 			// urlTargetList contains all player urls (basicmcnally given by MatchMakingService.GetSessionURLs)
 			// Server sends InitiateProbe to all players in that url with those URLs
 			// Then clients communicate with each other...
-			foreach (var urlTarget in urlTargetList)
+			foreach (StationURL? urlTarget in urlTargetList)
 			{
 				QClient? qclient = Context?.Handler.GetQClientByEndPoint(new(IPAddress.Parse(urlTarget.Address), urlTarget.Parameters["port"]));
 

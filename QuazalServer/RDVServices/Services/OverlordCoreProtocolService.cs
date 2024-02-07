@@ -10,8 +10,8 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(1)]
         public RMCResult UKN1()
         {
-            UNIMPLEMENTED();
-            return Error(0);
+            var list = new List<string>();
+            return Result(list);
         }
     }
 }

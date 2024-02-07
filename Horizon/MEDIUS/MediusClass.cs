@@ -593,8 +593,8 @@ namespace Horizon.MEDIUS
                 }
 
                 // get locations
-                var locations = await HorizonServerConfiguration.Database.GetLocations();
-                var channels = await HorizonServerConfiguration.Database.GetChannels();
+                LocationDTO[]? locations = await HorizonServerConfiguration.Database.GetLocations();
+                ChannelDTO[]? channels = await HorizonServerConfiguration.Database.GetChannels();
 
                 // add new channels
                 if (channels != null)

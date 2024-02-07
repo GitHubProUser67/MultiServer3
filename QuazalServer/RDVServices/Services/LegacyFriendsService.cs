@@ -69,7 +69,7 @@ namespace QuazalServer.RDVServices.Services
                 }
             }
 
-            return Result(new List<FriendData>());
+            return Error(0);
         }
 	}
 }

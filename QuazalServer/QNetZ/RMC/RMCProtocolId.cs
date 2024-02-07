@@ -27,6 +27,7 @@ namespace QuazalServer.QNetZ
         ChallengeStoreProtocol          = 102,
         EventStatsProtocol              = 103,
         LairAccountManagementProtocol   = 104,
+        LadderHelperProtocol            = 107,
         PlayerStatsService           	= 108,
         RichPresenceService          	= 109,
         ClansService                 	= 110,
@@ -42,7 +43,7 @@ namespace QuazalServer.QNetZ
         UplayWinService                 = 120,
         DriverG2WService             	= 121,
         Game2WebService              	= 122,
-        UplayPassService             	= 123,
+        GameSessionExService            = 123,
         OverlordCoreProtocolService     = 5003,
         OverlordFriendsService          = 5005,
         PS3SecureConnectionService = int.MaxValue -1, // Custom built for PS3 Ubisoft Rendez-vous clients.

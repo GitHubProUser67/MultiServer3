@@ -26,8 +26,7 @@ namespace Horizon.MEDIUS.Medius
             public Dictionary<string, DMEObject> SessionKeyToDmeClient = new();
 
 
-            public Dictionary<int, Channel> ChannelIdToChannel = new();
-            public Dictionary<string, Channel> ChanneNameToChannel = new();
+            public Dictionary<int, List<Channel>> AppIdToChannel = new();
             public Dictionary<int, Game> GameIdToGame = new();
             public Dictionary<int, Party> PartyIdToGame = new();
 
@@ -36,30 +35,26 @@ namespace Horizon.MEDIUS.Medius
         }
 
         private Dictionary<string, int[]> _appIdGroups = new();
-        private Dictionary<int, QuickLookup> _lookupsByAppId = new();
+        private readonly Dictionary<int, QuickLookup> _lookupsByAppId = new();
 
-        private List<MediusFile> _mediusFiles = new();
-        private List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new();
+        private readonly List<MediusFile> _mediusFiles = new();
+        private readonly List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new();
 
-        private ConcurrentQueue<ClientObject> _addQueue = new();
+        private readonly ConcurrentQueue<ClientObject> _addQueue = new();
 
         #region Clients
         public List<ClientObject> GetClients(int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key)).SelectMany(x => x.Value.AccountIdToClient.Select(x => x.Value)).ToList();
+            return _lookupsByAppId.Where(x => GetAppIdsInGroup(appId).Contains(x.Key)).SelectMany(x => x.Value.AccountIdToClient.Select(x => x.Value)).ToList();
         }
 
         public ClientObject? GetClientByAccountId(int accountId, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    if (quickLookup.AccountIdToClient.TryGetValue(accountId, out var result))
+                    if (quickLookup.AccountIdToClient.TryGetValue(accountId, out ClientObject? result))
                         return result;
                 }
             }
@@ -69,14 +64,13 @@ namespace Horizon.MEDIUS.Medius
 
         public ClientObject? GetClientByAccountName(string accountName, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
             accountName = accountName.ToLower();
 
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    if (quickLookup.AccountNameToClient.TryGetValue(accountName, out var result))
+                    if (quickLookup.AccountNameToClient.TryGetValue(accountName, out ClientObject? result))
                         return result;
                 }
             }
@@ -89,13 +83,11 @@ namespace Horizon.MEDIUS.Medius
             if (string.IsNullOrEmpty(accessToken))
                 return null;
 
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    if (quickLookup.AccessTokenToClient.TryGetValue(accessToken, out var result))
+                    if (quickLookup.AccessTokenToClient.TryGetValue(accessToken, out ClientObject? result))
                         return result;
                 }
             }
@@ -105,13 +97,11 @@ namespace Horizon.MEDIUS.Medius
 
         public ClientObject? GetClientBySessionKey(string sessionKey, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    if (quickLookup.SessionKeyToDmeClient.TryGetValue(sessionKey, out var result))
+                    if (quickLookup.SessionKeyToDmeClient.TryGetValue(sessionKey, out DMEObject? result))
                         return result;
                 }
             }
@@ -121,13 +111,11 @@ namespace Horizon.MEDIUS.Medius
 
         public DMEObject? GetDmeByAccessToken(string accessToken, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    if (quickLookup.AccessTokenToDmeClient.TryGetValue(accessToken, out var result))
+                    if (quickLookup.AccessTokenToDmeClient.TryGetValue(accessToken, out DMEObject? result))
                         return result;
                 }
             }
@@ -137,13 +125,11 @@ namespace Horizon.MEDIUS.Medius
 
         public DMEObject? GetDmeBySessionKey(string sessionKey, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    if (quickLookup.SessionKeyToDmeClient.TryGetValue(sessionKey, out var result))
+                    if (quickLookup.SessionKeyToDmeClient.TryGetValue(sessionKey, out DMEObject? result))
                         return result;
                 }
             }
@@ -226,7 +212,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 lock (lookupByAppId.Value.GameIdToGame)
                 {
-                    var game = lookupByAppId.Value.GameIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.DMEWorldId == dmeWorldId).Value;
+                    Game? game = lookupByAppId.Value.GameIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.DMEWorldId == dmeWorldId).Value;
                     if (game != null)
                         return game;
                 }
@@ -241,7 +227,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 lock (lookupByAppId.Value.PartyIdToGame)
                 {
-                    var party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey).Value;
+                    Party? party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey).Value;
                     if (party != null)
                         return party;
                 }
@@ -256,7 +242,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 lock (lookupByAppId.Value.PartyIdToGame)
                 {
-                    var party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.ApplicationId == appId && x.Value.PartyName == name).Value;
+                    Party? party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.ApplicationId == appId && x.Value.PartyName == name).Value;
                     if (party != null)
                         return party;
                 }
@@ -268,9 +254,11 @@ namespace Horizon.MEDIUS.Medius
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
-                lock (lookupByAppId.Value.ChanneNameToChannel)
+                lock (lookupByAppId.Value.AppIdToChannel)
                 {
-                    if (lookupByAppId.Value.ChanneNameToChannel.TryGetValue(worldName, out var channel))
+                    Channel? channel = lookupByAppId.Value.AppIdToChannel.SelectMany(kv => kv.Value) // Flatten all channels
+                                      .FirstOrDefault(c => c.Name == worldName); // Find the first channel with matching name
+                    if (channel != null)
                         return channel;
                 }
             }
@@ -444,7 +432,8 @@ namespace Horizon.MEDIUS.Medius
 
             // Try to get next free dme server
             // If none exist, return error to clist
-            var dme = MediusClass.ProxyServer.GetFreeDme(client.ApplicationId);
+            DMEObject? dme = MediusClass.ProxyServer.GetFreeDme(client.ApplicationId);
+
             if (dme == null)
             {
                 client.Queue(new MediusCreateGameResponse()
@@ -463,6 +452,7 @@ namespace Horizon.MEDIUS.Medius
                     game = new Game(client, request, gameChannel, dme);
                 else
                     game = new Game(client, request, client.CurrentChannel, dme);
+
                 await AddGame(game);
 
                 // Send create game request to dme server
@@ -1165,42 +1155,36 @@ namespace Horizon.MEDIUS.Medius
         {
             List<Channel> channels = new();
 
-            foreach (int[] appIds in _appIdGroups.Values)
-            {
+            Parallel.ForEach(_appIdGroups.Values, appIds => {
                 foreach (int appId in appIds)
                 {
-                    var appIdsInGroup = GetAppIdsInGroup(appId);
-
-                    foreach (var appIdInGroup in appIdsInGroup)
+                    if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
                     {
-                        if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                        lock (quickLookup.AppIdToChannel)
                         {
-                            lock (quickLookup.ChannelIdToChannel)
-                            {
-                                Channel channel = quickLookup.ChannelIdToChannel.FirstOrDefault(x => x.Value.ApplicationId == appId).Value;
-                                if (channel != null)
-                                    channels.Add(channel);
-                            }
+                            channels.AddRange(quickLookup.AppIdToChannel
+                                .Where(pair => pair.Key == appId)
+                                .SelectMany(pair => pair.Value)
+                                .ToList());
                         }
                     }
                 }
-            }
+            });
 
             return channels;
         }
 
         public Channel? GetChannelByChannelId(int channelId, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    lock (quickLookup.ChannelIdToChannel)
+                    lock (quickLookup.AppIdToChannel)
                     {
-                        if (quickLookup.ChannelIdToChannel.TryGetValue(channelId, out var result))
-                            return result;
+                        Channel? channel = quickLookup.AppIdToChannel.SelectMany(kv => kv.Value).Where(c => c.Id == channelId && c.ApplicationId == appId).FirstOrDefault();
+                        if (channel != null)
+                            return channel;
                     }
                 }
             }
@@ -1210,15 +1194,15 @@ namespace Horizon.MEDIUS.Medius
 
         public Channel? GetChannelByChannelName(string channelName, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    lock (quickLookup.ChannelIdToChannel)
+                    lock (quickLookup.AppIdToChannel)
                     {
-                        return quickLookup.ChannelIdToChannel.FirstOrDefault(x => x.Value.Name == channelName && appIdsInGroup.Contains(x.Value.ApplicationId)).Value;
+                        Channel? channel = quickLookup.AppIdToChannel.SelectMany(kv => kv.Value).FirstOrDefault(x => x.Name == channelName && x.ApplicationId == appId);
+                        if (channel != null)
+                            return channel;
                     }
                 }
             }
@@ -1228,11 +1212,9 @@ namespace Horizon.MEDIUS.Medius
 
         public Channel? GetChannelByRequestFilter(int appId, ChannelType type, ulong FieldMask1, ulong FieldMask2, ulong FieldMask3, ulong FieldMask4, MediusLobbyFilterMaskLevelType filterMaskLevelType)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
             return _lookupsByAppId
-                .Where(x => appIdsInGroup.Contains(x.Key))
-                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
+                .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                .SelectMany(x => x.Value.AppIdToChannel.SelectMany(x => x.Value))
                 .Where(x => x.Type == type &&
                     x.ApplicationId == appId &&
                     x.GenericField1 == FieldMask1 &&
@@ -1245,16 +1227,15 @@ namespace Horizon.MEDIUS.Medius
 
         public uint GetChannelCount(ChannelType type, int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
             uint count = 0;
 
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    lock (quickLookup.ChannelIdToChannel)
+                    lock (quickLookup.AppIdToChannel)
                     {
-                        count += (uint)quickLookup.ChannelIdToChannel.Count(x => x.Value.Type == type && x.Value.ApplicationId == appId);
+                        count += (uint)quickLookup.AppIdToChannel.SelectMany(kv => kv.Value).Count(x => x.Type == type && x.ApplicationId == appId);
                     }
                 }
             }
@@ -1265,16 +1246,15 @@ namespace Horizon.MEDIUS.Medius
         public Channel GetOrCreateDefaultLobbyChannel(int appId)
         {
             Channel? channel = null;
-            var appIdsInGroup = GetAppIdsInGroup(appId);
 
-            foreach (var appIdInGroup in appIdsInGroup)
+            foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
-                if (_lookupsByAppId.TryGetValue(appIdInGroup, out var quickLookup))
+                if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
                 {
-                    lock (quickLookup.ChannelIdToChannel)
+                    lock (quickLookup.AppIdToChannel)
                     {
                         //, x => x.Value.Type == ChannelType.Lobby
-                        channel = quickLookup.ChannelIdToChannel.FirstOrDefault(x => x.Value.ApplicationId == appId).Value;
+                        channel = quickLookup.AppIdToChannel.SelectMany(kv => kv.Value).FirstOrDefault(x => x.ApplicationId == appId);
                         if (channel != null)
                             return channel;
                     }
@@ -1299,14 +1279,12 @@ namespace Horizon.MEDIUS.Medius
             if (!_lookupsByAppId.TryGetValue(channel.ApplicationId, out QuickLookup? quickLookup))
                 _lookupsByAppId.Add(channel.ApplicationId, quickLookup = new QuickLookup());
 
-            lock (quickLookup.ChannelIdToChannel)
+            lock (quickLookup.AppIdToChannel)
             {
-                quickLookup.ChannelIdToChannel.Add(channel.Id, channel);
-            }
-
-            lock (quickLookup.ChanneNameToChannel)
-            {
-                quickLookup.ChanneNameToChannel.Add(channel.Name, channel);
+                if (!quickLookup.AppIdToChannel.ContainsKey(channel.ApplicationId))
+                    quickLookup.AppIdToChannel.Add(channel.ApplicationId, new List<Channel>() { channel });
+                else
+                    quickLookup.AppIdToChannel[channel.ApplicationId].Add(channel);
             }
 
             await channel.OnChannelCreate(channel);
@@ -1327,11 +1305,9 @@ namespace Horizon.MEDIUS.Medius
         /// <returns></returns>
         public IEnumerable<Channel> GetChannelListFiltered(int appId, int pageIndex, int pageSize, ChannelType type, ulong FieldMask1, ulong FieldMask2, ulong FieldMask3, ulong FieldMask4, MediusLobbyFilterMaskLevelType filterMaskLevelType)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
             return _lookupsByAppId
-                .Where(x => appIdsInGroup.Contains(x.Key))
-                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
+                .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                .SelectMany(x => x.Value.AppIdToChannel.SelectMany(x => x.Value))
                 .Where(x => x.Type == type &&
                     x.ApplicationId == appId &&
                     x.GenericField1 == FieldMask1 &&
@@ -1353,11 +1329,9 @@ namespace Horizon.MEDIUS.Medius
         /// <returns></returns>
         public IEnumerable<Channel> GetChannelListUnfiltered(int appId, int pageIndex, int pageSize)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
             return _lookupsByAppId
-                .Where(x => appIdsInGroup.Contains(x.Key))
-                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
+                .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                .SelectMany(x => x.Value.AppIdToChannel.SelectMany(x => x.Value))
                 .Where(x => x.ApplicationId == appId)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize);
@@ -1373,11 +1347,9 @@ namespace Horizon.MEDIUS.Medius
         /// <returns></returns>
         public IEnumerable<Channel> GetChannelList(int appId, int pageIndex, int pageSize, ChannelType type)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
             return _lookupsByAppId
-                .Where(x => appIdsInGroup.Contains(x.Key))
-                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
+                .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                .SelectMany(x => x.Value.AppIdToChannel.SelectMany(x => x.Value))
                 .Where(x => x.Type == type &&
                     x.ApplicationId == appId)
                 .Skip((pageIndex - 1) * pageSize)
@@ -1391,11 +1363,9 @@ namespace Horizon.MEDIUS.Medius
         /// <returns></returns>
         public Channel GetChannelLeastPoplated(int appId)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
             return _lookupsByAppId
-                .Where(x => appIdsInGroup.Contains(x.Key))
-                .SelectMany(x => x.Value.ChannelIdToChannel.Select(x => x.Value))
+                .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                .SelectMany(x => x.Value.AppIdToChannel.SelectMany(x => x.Value))
                 .Where(x => x.ApplicationId == appId).OrderBy(kvp => kvp.PlayerCount).First();
         }
         #endregion
@@ -2003,28 +1973,29 @@ namespace Horizon.MEDIUS.Medius
         {
             try
             {
-                Queue<(QuickLookup, int)> channelsToRemove = new Queue<(QuickLookup, int)>();
+                Queue<(QuickLookup, int)> channelsToRemove = new();
 
                 // Tick channels
                 foreach (var quickLookup in _lookupsByAppId)
                 {
-                    foreach (var channelKeyPair in quickLookup.Value.ChannelIdToChannel)
+                    foreach (var channelKeyPair in quickLookup.Value.AppIdToChannel)
                     {
-                        if (channelKeyPair.Value.ReadyToDestroy)
+                        foreach (Channel channel in channelKeyPair.Value)
                         {
-                            LoggerAccessor.LogInfo($"Destroying Channel {channelKeyPair.Value}");
-                            channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
-                        }
-                        else
-                        {
-                            await channelKeyPair.Value.Tick();
+                            if (channel.ReadyToDestroy)
+                            {
+                                LoggerAccessor.LogInfo($"Destroying Channel {channelKeyPair.Value}");
+                                channelsToRemove.Enqueue((quickLookup.Value, channelKeyPair.Key));
+                            }
+                            else
+                                await channel.Tick();
                         }
                     }
                 }
 
                 // Remove channels
-                while (channelsToRemove.TryDequeue(out var lookupAndChannelId))
-                    lookupAndChannelId.Item1.ChannelIdToChannel.Remove(lookupAndChannelId.Item2);
+                while (channelsToRemove.TryDequeue(out (QuickLookup, int) lookupAndChannelApplicationId))
+                    lookupAndChannelApplicationId.Item1.AppIdToChannel.Remove(lookupAndChannelApplicationId.Item2);
             }
             catch (Exception ex)
             {
@@ -2196,10 +2167,11 @@ namespace Horizon.MEDIUS.Medius
         public async Task OnDatabaseAuthenticated()
         {
             // get supported app ids
-            var appids = await HorizonServerConfiguration.Database.GetAppIds();
+            AppIdDTO[]? appids = await HorizonServerConfiguration.Database.GetAppIds();
 
-            // build dictionary of app ids from response
-            _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds.ToArray());
+            if (appids != null)
+                // build dictionary of app ids from response
+                _appIdGroups = appids.ToDictionary(x => x.Name, x => x.AppIds != null ? x.AppIds.ToArray() : Array.Empty<int>());
         }
 
         public bool IsAppIdSupported(int appId)

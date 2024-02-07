@@ -79,7 +79,64 @@ namespace QuazalServer.RDVServices.DDL.Models
 		public ICollection<GameSessionProperty>? m_attributes { get; set; }
 	}
 
-	public class GameSessionSearchResult
+    public class GameSessionParticipant
+    {
+        public uint m_pid { get; set; }
+        public string? m_name { get; set; }
+        public ICollection<StationURL>? m_station_ur_ls { get; set; }
+    }
+
+    public class GameSessionInvitationSent
+    {
+        public GameSessionKey? m_session_key { get; set; }
+        public uint m_recipient_pid { get; set; }
+        public string? m_message { get; set; }
+        public DateTime? m_creation_time { get; set; }
+    }
+
+    public class GameSessionInvitationReceived
+    {
+        public GameSessionKey? m_session_key { get; set; }
+        public uint m_sender_pid { get; set; }
+        public string? m_message { get; set; }
+        public DateTime? m_creation_time { get; set; }
+    }
+
+    public class GameSessionQuery
+    {
+        public uint m_type_id { get; set; }
+        public uint m_query_id { get; set; }
+        public ICollection<GameSessionProperty>? m_parameters { get; set; }
+    }
+
+    public class GameSessionSocialQuery
+    {
+        public uint m_type_id { get; set; }
+        public uint m_query_id { get; set; }
+        public ICollection<GameSessionProperty>? m_parameters { get; set; }
+        public ICollection<uint>? m_participant_i_ds { get; set; }
+    }
+
+    public class GameSessionMessage
+    {
+        public GameSessionKey? m_session_key { get; set; }
+        public string? m_message { get; set; }
+    }
+
+    public class GameSessionSearchWithParticipantsResult
+    {
+        public GameSessionSearchResult? m_search_result { get; set; }
+        public ICollection<uint>? m_participant_i_ds { get; set; }
+    }
+
+    public class GameSessionUnsuccessfulJoinSession
+    {
+        public GameSessionKey? m_session_key { get; set; }
+        public uint m_error_category { get; set; }
+        public uint m_error_code { get; set; }
+    }
+
+    public class GameSessionSearchResult
 	{
 		public GameSessionSearchResult()
 		{
