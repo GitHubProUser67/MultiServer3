@@ -172,7 +172,7 @@ namespace SSFWServer
                             // Modifying the object if needed
                             userData.LogonCount += 1;
                             logoncount = userData.LogonCount;
-                            File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json",JsonConvert.SerializeObject(userData));
+                            File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json",JsonConvert.SerializeObject(userData, Formatting.Indented));
                         }
                     }
                     else
@@ -190,7 +190,7 @@ namespace SSFWServer
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
                         LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
 
-                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", JsonConvert.SerializeObject(userData));
+                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
                     }
                 }
 

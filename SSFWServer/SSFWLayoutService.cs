@@ -161,8 +161,7 @@ namespace SSFWServer
                 int existingIndex = -1;
                 for (int i = 0; i < jsonArray.Count; i++)
                 {
-                    JObject? obj = jsonArray[i] as JObject;
-                    if (obj != null && obj.Properties().Any(p => p.Name == sceneid))
+                    if (jsonArray[i] is JObject obj && obj.Properties().Any(p => p.Name == sceneid))
                     {
                         existingIndex = i;
                         break;
@@ -172,22 +171,15 @@ namespace SSFWServer
                 if (existingIndex >= 0)
                 {
                     // Update the existing object with the new POST data
-                    JObject? existingObject = jsonArray[existingIndex] as JObject;
-
-                    if (existingObject != null)
+                    if (jsonArray[existingIndex] is JObject existingObject)
                         existingObject[sceneid] = JObject.Parse(Encoding.UTF8.GetString(postData));
                 }
                 else
-                {
-                    // Create a new object with the objectId and POST data
-                    JObject newObject = new()
+                    // Add the new object to the JSON array
+                    jsonArray.Add(new JObject()
                     {
                         { sceneid, JObject.Parse(Encoding.UTF8.GetString(postData)) }
-                    };
-
-                    // Add the new object to the JSON array
-                    jsonArray.Add(newObject);
-                }
+                    });
 
                 File.WriteAllText(filePath, jsonArray.ToString());
             }

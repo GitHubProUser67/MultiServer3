@@ -18,7 +18,7 @@ namespace SSFWServer
         public bool HandleAvatarLayout(byte[] buffer, string directorypath, string filepath, string absolutepath, bool delete)
         {
             // Define the regular expression pattern to match a number at the end of the string
-            Regex regex = new Regex(@"\d+(?![\d/])$");
+            Regex regex = new(@"\d+(?![\d/])$");
 
             // Check if the string ends with a number
             if (regex.IsMatch(absolutepath))
@@ -26,11 +26,8 @@ namespace SSFWServer
                 // Get the matched number as a string
                 string numberString = regex.Match(absolutepath).Value;
 
-                // Convert the matched number to an integer
-                int number;
-
                 // Check if the number is valid
-                if (int.TryParse(numberString, out number))
+                if (int.TryParse(numberString, out int number))
                 {
                     SSFWUpdateAvatar(directorypath + "/list.json", number, delete);
 
@@ -71,11 +68,13 @@ namespace SSFWServer
                     else
                     {
                         // Create a new JSON object with the specified number
-                        JObject jsonObject = new JObject();
-                        jsonObject[""] = contentToUpdate;
+                        JObject jsonObject = new()
+                        {
+                            [string.Empty] = contentToUpdate
+                        };
 
                         // Check if the element already exists
-                        JToken existingItem = jsonArray.FirstOrDefault(item => item.Value<int>(string.Empty) == contentToUpdate);
+                        JToken? existingItem = jsonArray.FirstOrDefault(item => item.Value<int>(string.Empty) == contentToUpdate);
 
                         if (existingItem != null)
                             // Update the existing element

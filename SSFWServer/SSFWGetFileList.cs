@@ -21,11 +21,7 @@ namespace SSFWServer
                     List<FileItem>? files = GetFilesInfo(directoryPath + "/" + segment);
 
                     if (files != null)
-                    {
-                        FilesContainer container = new FilesContainer { files = files };
-
-                        return JsonConvert.SerializeObject(container, Formatting.Indented);
-                    }
+                        return JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented);
                 }
             }
             catch (Exception e)
@@ -38,20 +34,19 @@ namespace SSFWServer
 
         private List<FileItem>? GetFilesInfo(string directoryPath)
         {
-            List<FileItem> files = new List<FileItem>();
+            List<FileItem> files = new();
             try
             {
 
                 foreach (string filePath in Directory.GetFiles(directoryPath).Where(name => name.EndsWith(".json")))
                 {
-                    FileInfo fileInfo = new FileInfo(filePath);
-                    FileItem fileItem = new FileItem
+                    FileInfo fileInfo = new(filePath);
+                    files.Add(new FileItem()
                     {
-                        objectId = Path.GetFileNameWithoutExtension(fileInfo.Name),
-                        size = (int)fileInfo.Length,
-                        lastUpdate = "0"
-                    };
-                    files.Add(fileItem);
+                        ObjectId = Path.GetFileNameWithoutExtension(fileInfo.Name),
+                        Size = (int)fileInfo.Length,
+                        LastUpdate = "0"
+                    });
                 }
 
                 return files;
@@ -66,14 +61,14 @@ namespace SSFWServer
 
         private class FileItem
         {
-            public string? objectId { get; set; }
-            public int size { get; set; }
-            public string? lastUpdate { get; set; }
+            public string? ObjectId { get; set; }
+            public int Size { get; set; }
+            public string? LastUpdate { get; set; }
         }
 
         private class FilesContainer
         {
-            public List<FileItem>? files { get; set; }
+            public List<FileItem>? Files { get; set; }
         }
 
         protected virtual void Dispose(bool disposing)

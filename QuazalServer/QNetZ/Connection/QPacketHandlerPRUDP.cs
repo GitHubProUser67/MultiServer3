@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Net.Sockets;
 using BackendProject.MiscUtils;
+using DotNetty.Extensions;
 
 namespace QuazalServer.QNetZ
 {
@@ -18,15 +19,26 @@ namespace QuazalServer.QNetZ
 			this.BackendPort = BackendPort;
         }
 
-        private readonly UdpClient UDP;
+        public QPacketHandlerPRUDP(UdpSocket udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
+        {
+            NettyUDP = udp;
+            SourceName = sourceName;
+            this.AccessKey = AccessKey;
+            PID = pid;
+            Port = port;
+            this.BackendPort = BackendPort;
+        }
 
-		public string SourceName;
+        private readonly UdpClient? UDP;
+        private readonly UdpSocket? NettyUDP;
+
+        public string SourceName;
 		public string AccessKey;
 		public readonly uint PID;
 		public readonly int Port;
         public readonly int BackendPort;
-        private List<QPacket> AccumulatedPackets = new();
-		private List<QReliableResponse> CachedResponses = new();
+        private readonly List<QPacket> AccumulatedPackets = new();
+		private readonly List<QReliableResponse> CachedResponses = new();
 		private readonly List<ulong> NATPingTimeToIgnore = new();
 
 		public List<QClient> Clients = new();
@@ -147,9 +159,14 @@ namespace QuazalServer.QNetZ
 
 			// bufferize in queue then send, that's how Quazal does it
 			if (!CacheResponse(reqPacket, sendPacket, ep))
-				_ = UDP.SendAsync(data, data.Length, ep);
+			{
+				if (NettyUDP != null)
+                    _ = NettyUDP.SendAsync(ep, data);
+				else if (UDP != null)
+                    _ = UDP.SendAsync(data, data.Length, ep);
+            }
 
-			LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {VariousUtils.ByteArrayToHexString(data)}");
+            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {VariousUtils.ByteArrayToHexString(data)}");
 		}
 
 		public QPacket MakeACK(QPacket p, QClient client)
@@ -170,10 +187,13 @@ namespace QuazalServer.QNetZ
 		public void SendACK(QPacket p, QClient client)
 		{
 			byte[] payload = MakeACK(p, client).toBuffer(AccessKey);
-            _ = UDP.SendAsync(payload, payload.Length, client.Endpoint);
-		}
+            if (NettyUDP != null)
+                _ = NettyUDP.SendAsync(client.Endpoint, payload);
+            else if (UDP != null)
+                _ = UDP.SendAsync(payload, payload.Length, client.Endpoint);
+        }
 
-		public void MakeAndSend(QClient client, QPacket reqPacket, QPacket newPacket, byte[] data)
+        public void MakeAndSend(QClient client, QPacket reqPacket, QPacket newPacket, byte[] data)
 		{
             MemoryStream stream = new(data);
 

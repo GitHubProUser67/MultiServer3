@@ -20,7 +20,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
         private int _simulatedClanIdCounter = 1;
         private int _simulatedClanMessageIdCounter = 1;
         private int _simulatedClanInvitationIdCounter = 1;
-        private int[] SimulatedAppIdList = new int[] {
+        private readonly int[] SimulatedAppIdList = new int[] {
             10683,
             10684,
             11354,
@@ -70,19 +70,25 @@ namespace BackendProject.Horizon.LIBRARY.Database
             10538,
             10582,
             10584,
-            97134
+            97134,
+            10394,
+            10694,
+            10694,
+            20244,
+            10933,
+            10934
         };
         private string? _dbAccessToken = null;
         private string? _dbAccountName = null;
 
-        private List<AccountDTO> _simulatedAccounts = new();
-        private List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new();
-        private List<NpIdDTO> _simulatedNpIdAccounts = new();
-        private List<ClanDTO> _simulatedClans = new();
-        private List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new();
-        private List<FileDTO> _simulatedMediusFiles = new();
-        private List<FileMetaDataDTO> _simulatedFileMetaData = new();
-        private List<FileAttributesDTO> _simulatedFileAttributes = new();
+        private readonly List<AccountDTO> _simulatedAccounts = new();
+        private readonly List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new();
+        private readonly List<NpIdDTO> _simulatedNpIdAccounts = new();
+        private readonly List<ClanDTO> _simulatedClans = new();
+        private readonly List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new();
+        private readonly List<FileDTO> _simulatedMediusFiles = new();
+        private readonly List<FileMetaDataDTO> _simulatedFileMetaData = new();
+        private readonly List<FileAttributesDTO> _simulatedFileAttributes = new();
 
         public DbController(string configFile)
         {
@@ -202,14 +208,14 @@ namespace BackendProject.Horizon.LIBRARY.Database
                         {
                             AccountId = 2,
                             AccountName = "gameRecorder_r2_pubeta_master",
-                            AccountPassword = "",
+                            AccountPassword = string.Empty,
                             AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
                             AccountCustomWideStats = new int[1000],
                             AppId = 21731,
-                            MachineId = "",
-                            MediusStats = "",
-                            Friends = new AccountRelationDTO[0],
-                            Ignored = new AccountRelationDTO[0],
+                            MachineId = string.Empty,
+                            MediusStats = string.Empty,
+                            Friends = Array.Empty<AccountRelationDTO>(),
+                            Ignored = Array.Empty<AccountRelationDTO>(),
                             IsBanned = false
                         });
                     }
@@ -220,14 +226,14 @@ namespace BackendProject.Horizon.LIBRARY.Database
                         {
                             AccountId = 2,
                             AccountName = "ftb3 Moderator_0",
-                            AccountPassword = "",
+                            AccountPassword = string.Empty,
                             AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
                             AccountCustomWideStats = new int[1000],
                             AppId = 21694,
-                            MachineId = "",
-                            MediusStats = "",
-                            Friends = new AccountRelationDTO[0],
-                            Ignored = new AccountRelationDTO[0],
+                            MachineId = string.Empty,
+                            MediusStats = string.Empty,
+                            Friends = Array.Empty<AccountRelationDTO>(),
+                            Ignored = Array.Empty<AccountRelationDTO>(),
                             IsBanned = false
                         });
                     }
@@ -324,8 +330,8 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             AppId = createAccount.AppId,
                             MachineId = createAccount.MachineId,
                             MediusStats = createAccount.MediusStats,
-                            Friends = new AccountRelationDTO[0],
-                            Ignored = new AccountRelationDTO[0],
+                            Friends = Array.Empty<AccountRelationDTO>(),
+                            Ignored = Array.Empty<AccountRelationDTO>(),
                             IsBanned = false
                         });
                     }
@@ -3565,22 +3571,9 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode == true)
                 {
                     return new ChannelDTO[]
-                    {   
-                        /*
-                        new ChannelDTO()
-                        {
-                            AppId = 10540,
-                            Id = 1,
-                            Name = "Rank1",
-                            MaxPlayers = 256,
-                            GenericField1 = 1,
-                            GenericFieldFilter = 1
-                        },
-                        */
-
+                    {
                         // Ratchet UYA PS2
-
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10550,
                             Id = 1,
@@ -3589,7 +3582,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 1000,
                             GenericFieldFilter = 16
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10683,
                             Id = 1,
@@ -3601,7 +3594,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField4 = 0,
                             GenericFieldFilter = 32
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10684,
                             Id = 1,
@@ -3613,7 +3606,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField4 = 0,
                             GenericFieldFilter = 32
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10694,
                             Id = 1,
@@ -3623,7 +3616,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField2 = 1,
                             GenericFieldFilter = 64
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 20624,
                             Id = 1,
@@ -3633,7 +3626,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField2 = 1,
                             GenericFieldFilter = 64
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 20244,
                             Id = 1,
@@ -3642,7 +3635,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 1,
                             GenericFieldFilter = 64
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10540,
                             Id = 2,
@@ -3651,23 +3644,23 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 16,
                             GenericFieldFilter = 1
                         },
-                        //Arc the Lad: End of Darkness
-                        new ChannelDTO()
+                        // Arc the Lad: End of Darkness
+                        new()
                         {
                             AppId = 10984,
                             Id = 1,
                             Name = "Yewbell",
                             MaxPlayers = 256,
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10984,
                             Id = 2,
                             Name = "Rueloon",
                             MaxPlayers = 256,
                         },
-                        //WRC 04
-                        new ChannelDTO()
+                        // WRC 04
+                        new()
                         {
                             AppId = 10394,
                             Id = 1,
@@ -3676,7 +3669,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 4096,
                             GenericFieldFilter = 1
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10394,
                             Id = 2,
@@ -3686,7 +3679,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericFieldFilter = 1
                         },
                         //WRC05 Beta
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10933,
                             Id = 1,
@@ -3695,7 +3688,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 4096,
                             GenericFieldFilter = 1
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10933,
                             Id = 2,
@@ -3704,7 +3697,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 8192,
                             GenericFieldFilter = 1
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10933,
                             Id = 3,
@@ -3714,7 +3707,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericFieldFilter = 1
                         },
                         //WRC Rally Evolved
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10934,
                             Id = 1,
@@ -3723,7 +3716,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 4096,
                             GenericFieldFilter = 1
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10934,
                             Id = 2,
@@ -3732,7 +3725,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                             GenericField1 = 8192,
                             GenericFieldFilter = 1
                         },
-                        new ChannelDTO()
+                        new()
                         {
                             AppId = 10934,
                             Id = 3,
@@ -3765,43 +3758,43 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 {
                     return new LocationDTO[]
                     {
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 0,
                             Id = 0,
                             Name = "Location 1"
                         },
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 23044,
                             Id = 0,
                             Name = "US"
                         },
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 24000,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 24180,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 10680,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 10683,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new LocationDTO()
+                        new()
                         {
                             AppId = 10684,
                             Id = 40,

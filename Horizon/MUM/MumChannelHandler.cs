@@ -122,21 +122,11 @@ namespace Horizon.MUM
                     {
                         string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
-                        {
-                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
+                            return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                            });
-
-                            if (ConvertedChannelsLists != null)
-                            {
-                                Channel? matchingChannel = ConvertedChannelsLists.FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
-
-                                if (matchingChannel != null)
-                                    return matchingChannel;
-                            }
-                        }
+                            })?.FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
                     }
                 }
             }
@@ -165,21 +155,11 @@ namespace Horizon.MUM
                     {
                         string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
-                        {
-                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
+                            return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                            });
-
-                            if (ConvertedChannelsLists != null)
-                            {
-                                Channel? matchingChannel = ConvertedChannelsLists.FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
-
-                                if (matchingChannel != null)
-                                    return matchingChannel;
-                            }
-                        }
+                            })?.FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
                     }
                 }
             }
@@ -208,24 +188,11 @@ namespace Horizon.MUM
                     {
                         string? RemoteChannelsList = MumClient.GetServerResult(kvp.Key, 10076, "GetChannelsJson", kvp.Value);
                         if (!string.IsNullOrEmpty(RemoteChannelsList))
-                        {
-                            List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
+                            return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                                 Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                            });
-
-                            if (ConvertedChannelsLists != null)
-                            {
-                                Channel? matchingChannel = ConvertedChannelsLists
-                                        .Where(channel => channel.ApplicationId == Appid)
-                                        .OrderBy(channel => channel.PlayerCount)
-                                        .FirstOrDefault();
-
-                                if (matchingChannel != null)
-                                    return matchingChannel;
-                            }
-                        }
+                            })?.Where(channel => channel.ApplicationId == Appid).OrderBy(channel => channel.PlayerCount).FirstOrDefault();
                     }
                 }
             }

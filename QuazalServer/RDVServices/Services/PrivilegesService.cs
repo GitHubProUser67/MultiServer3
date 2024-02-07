@@ -11,8 +11,9 @@ namespace QuazalServer.RDVServices.Services
 	[RMCService(RMCProtocolId.PrivilegesService)]
 	public class PrivilegesService : RMCServiceBase
 	{
+        // TODO, properly handle all the privileges per account.
 
-		[RMCMethod(1)]
+        [RMCMethod(1)]
 		public RMCResult GetPrivileges(string localeCode)
 		{
 			var privileges = new Dictionary<uint, Privilege>();
@@ -30,41 +31,49 @@ namespace QuazalServer.RDVServices.Services
 		}
 
 		[RMCMethod(2)]
-		public void ActivateKey()
+		public RMCResult ActivateKey(string uniqueKey, string languageCode)
 		{
-			UNIMPLEMENTED();
-		}
-
-		[RMCMethod(3)]
-		public RMCResult ActivateKeyWithExpectedPrivileges(string uniqueKey, string languageCode, IEnumerable<uint> expectedPrivilegeIDs)
-		{
-			var privilegeList = new List<Privilege>();
-
             UNIMPLEMENTED();
 
-            PrivilegeGroup privilege = new();
-			privilege.m_description = uniqueKey + " unlock";
-			privilege.m_privileges = privilegeList;
+            PrivilegeGroup privilege = new()
+            {
+                m_description = uniqueKey + " unlock",
+                m_privileges = new List<Privilege>()
+            };
 
-			return Result(privilege);
+            return Result(privilege);
+		}
+
+        [RMCMethod(3)]
+		public RMCResult ActivateKeyWithExpectedPrivileges(string uniqueKey, string languageCode, IEnumerable<uint> expectedPrivilegeIDs)
+		{
+            UNIMPLEMENTED();
+
+            PrivilegeGroup privilege = new()
+            {
+                m_description = uniqueKey + " unlock",
+                m_privileges = new List<Privilege>()
+            };
+
+            return Result(privilege);
 		}
 
 		[RMCMethod(4)]
-		public void GetPrivilegeRemainDuration()
+		public RMCResult GetPrivilegeRemainDuration(uint privilege_id)
 		{
-			UNIMPLEMENTED();
-		}
+            return Result(new { seconds = (uint)1000000 });
+        }
 
-		[RMCMethod(5)]
-		public void GetExpiredPrivileges()
+        [RMCMethod(5)]
+		public RMCResult GetExpiredPrivileges()
 		{
-			UNIMPLEMENTED();
-		}
+            return Result(new { expired_privileges = new List<PrivilegeEx>() });
+        }
 
-		[RMCMethod(6)]
-		public void GetPrivilegesEx()
+        [RMCMethod(6)]
+		public RMCResult GetPrivilegesEx(string locale_code)
 		{
-			UNIMPLEMENTED();
-		}
-	}
+            return Result(new { privileges_ex = new List<PrivilegeEx>() });
+        }
+    }
 }
