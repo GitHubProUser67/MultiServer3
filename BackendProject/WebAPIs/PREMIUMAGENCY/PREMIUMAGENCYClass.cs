@@ -59,8 +59,8 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                             return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/getUserEventCustomList.do":
                             return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, eventId);
-                        //case "/eventController/getInformationBoardSchedule.do":
-                        //return Resource.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
+                        case "/eventController/getInformationBoardSchedule.do":
+                            return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
                         default:
                             {
                                 string toTrim = "/eventController/";

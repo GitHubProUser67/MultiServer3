@@ -3,6 +3,9 @@ using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
 using BackendProject.MiscUtils;
+using BackendProject.WeBAPIs.VEEMEE.goalie_sfrgbt;
+using BackendProject.WeBAPIs.VEEMEE.gofish;
+using BackendProject.WeBAPIs.VEEMEE.olm;
 
 public static class HTTPSServerConfiguration
 {
@@ -108,9 +111,13 @@ class Program
         SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
         // Timer for scheduled updates every 24 hours
-        _ = new Timer(HTTPSecureServerLite.API.VEEMEE.goalie_sfrgbt.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-        _ = new Timer(HTTPSecureServerLite.API.VEEMEE.gofish.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-        _ = new Timer(HTTPSecureServerLite.API.VEEMEE.olm.ScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        GSScoreBoardData.sbAPIPath = HTTPSServerConfiguration.APIStaticFolder;
+        GFScoreBoardData.gfAPIPath = HTTPSServerConfiguration.APIStaticFolder;
+        olmScoreBoardData.olmAPIPath = HTTPSServerConfiguration.APIStaticFolder;
+
+        _ = new Timer(GSScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        _ = new Timer(GFScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        _ = new Timer(olmScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         if (HTTPSServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPSServerConfiguration.DiscordChannelID, HTTPSServerConfiguration.DiscordBotToken);
