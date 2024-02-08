@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace HTTPServer
 {
@@ -60,6 +61,7 @@ namespace HTTPServer
 
         public void HandleClient(TcpClient tcpClient)
         {
+            HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
@@ -212,7 +214,15 @@ namespace HTTPServer
                                                     if (string.IsNullOrEmpty(res.Item1))
                                                         response = HttpBuilder.InternalServerError();
                                                     else
-                                                        response = HttpResponse.Send(res.Item1, "text/xml");
+                                                    {
+                                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                        statusCode = HttpStatusCode.OK;
+                                                    }
+                                                    response.HttpStatusCode = (Models.HttpStatusCode)statusCode;
+                                                    if(!string.IsNullOrEmpty(res.Item2))
+                                                        response = HttpResponse.Send(res.Item1, res.Item2);
+                                                    else
+                                                        response = HttpResponse.Send(res.Item1, "text/plain");
                                                 }
                                             }
                                             else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
