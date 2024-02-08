@@ -107,6 +107,91 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
                         }
                         break;
+                    //HomeCafe Questionaire
+                    case "hc_Enquete_enable":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "hc_Enquete_id":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "hc_Enquete_reward":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "hc_Enquete":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "hc_Enquete_screen":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    //hc_gallery
+                    case "hc_gallery_main":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_gallery/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_gallery/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "hc_gallery_skysetting":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_gallery/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_gallery/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    //Event Item Shop
+                    case "hc_shop":
+                        {
+                            if (File.Exists($"{workpath}/eventController/hc_shop/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/hc_shop/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    //RollyCafe1F
+                    case "hc_plan":
+                        {
+                            if (File.Exists($"{workpath}/eventController/RollyCafe1F/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    case "hc_plan_error":
+                        {
+                            if (File.Exists($"{workpath}/eventController/RollyCafe1F/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
+                    //Miku Music Survey
                     case "miku_jukebox_mp4":
                         {
                             if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))

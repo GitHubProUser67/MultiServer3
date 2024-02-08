@@ -2,6 +2,7 @@
 using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using BackendProject.WebAPIs;
+using BackendProject.WebAPIs.NDREAMS;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
@@ -312,8 +313,8 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
-                    API.VEEMEE.VEEMEEClass veemee = new(ctx.Request.Method.ToString(), absolutepath); // Todo, loss of GET informations.
-                    var res = veemee.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    BackendProject.WeBAPIs.VEEMEE.VEEMEEClass veemee = new(ctx.Request.Method.ToString(), absolutepath); // Todo, loss of GET informations.
+                    var res = veemee.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
                     veemee.Dispose();
                     if (string.IsNullOrEmpty(res.Item1))
                         statusCode = HttpStatusCode.InternalServerError;
@@ -333,8 +334,8 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
-                    API.NDREAMS.NDREAMSClass ndreams = new(ctx.Request.Method.ToString(), absolutepath);
-                    string? res = ndreams.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    NDREAMSClass ndreams = new(ctx.Request.Method.ToString(), absolutepath);
+                    string? res = ndreams.ProcessRequest(null, ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     ndreams.Dispose();
                     if (string.IsNullOrEmpty(res))
                     {
@@ -354,7 +355,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                    API.HELLFIRE.HELLFIREClass hellfire = new(ctx.Request.Method.ToString(), HTTPUtils.RemoveQueryString(absolutepath));
+                    BackendProject.WeBAPIs.HELLFIRE.HELLFIREClass hellfire = new(ctx.Request.Method.ToString(), HTTPUtils.RemoveQueryString(absolutepath));
                     string? res = hellfire.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     hellfire.Dispose();
                     if (string.IsNullOrEmpty(res))
