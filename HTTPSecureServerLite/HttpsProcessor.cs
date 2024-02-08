@@ -1,6 +1,7 @@
 ﻿using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using BackendProject.WebAPIs;
+using BackendProject.WebAPIs.NDREAMS;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using CustomLogger;
@@ -332,8 +333,8 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
-                    BackendProject.WeBAPIs.NDREAMS.NDREAMSClass ndreams = new(ctx.Request.Method.ToString(), absolutepath);
-                    string? res = ndreams.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    NDREAMSClass ndreams = new(ctx.Request.Method.ToString(), absolutepath);
+                    string? res = ndreams.ProcessRequest(null, ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     ndreams.Dispose();
                     if (string.IsNullOrEmpty(res))
                     {

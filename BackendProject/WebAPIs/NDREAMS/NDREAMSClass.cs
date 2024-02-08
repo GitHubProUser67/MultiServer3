@@ -1,10 +1,13 @@
-﻿namespace BackendProject.WeBAPIs.NDREAMS
+﻿using BackendProject.WebAPIs.NDREAMS.Aurora;
+using BackendProject.WebAPIs.NDREAMS.Fubar;
+
+namespace BackendProject.WebAPIs.NDREAMS
 {
     public class NDREAMSClass : IDisposable
     {
+        private bool disposedValue;
         private string absolutepath;
         private string method;
-        private bool disposedValue;
 
         public NDREAMSClass(string method, string absolutepath)
         {
@@ -12,7 +15,7 @@
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[]? PostData, string? ContentType)
+        public string? ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -22,6 +25,10 @@
                 case "POST":
                     switch (absolutepath)
                     {
+                        case "/fubar/fisi.php":
+                            return fisi.fisiProcess(PostData, ContentType);
+                        case "/aurora/visit.php":
+                            return visitClass.ProcessVisit(PostData, ContentType);
                         default:
                             break;
                     }

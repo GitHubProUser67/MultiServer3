@@ -27,6 +27,10 @@
     <ProjectReference Include="..\BackendProject\BackendProject.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="API\" />
+  </ItemGroup>
+
   <Target Name="CopyFolderToBuildDirectory" AfterTargets="Build">
     <ItemGroup>
       <SourceFolder Include="$(SolutionDir)\HTTPServer\static\**\*" />

@@ -1,6 +1,6 @@
 ﻿using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
-using HTTPServer.API;
+using BackendProject.WebAPIs.THQ;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using Newtonsoft.Json;
@@ -84,7 +84,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = "onlineconfigservice.ubi.com",
                     Callable = (HttpRequest request) => {
-                        return HttpResponse.Send(API.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters["onlineConfigID"]), "application/json; charset=utf-8");
+                        return HttpResponse.Send(BackendProject.WebAPIs.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters["onlineConfigID"]), "application/json; charset=utf-8");
                      }
                 },
                 new() {
@@ -113,7 +113,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                                 {
                                                     case "en":
                                                         if (format == "xml")
-                                                            return HttpResponse.Send(API.UBISOFT.MatchMakingConfig.XMLData.DFSPS3NTSCENXMLPayload, "text/html; charset=utf-8"); // Not an error, packet shows this content type...
+                                                            return HttpResponse.Send(BackendProject.WebAPIs.UBISOFT.MatchMakingConfig.XMLData.DFSPS3NTSCENXMLPayload, "text/html; charset=utf-8"); // Not an error, packet shows this content type...
                                                         break;
                                                 }
                                                 break;
@@ -138,7 +138,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Callable = (HttpRequest request) => {
                         if (request.GetDataStream != null)
                         {
-                            string? UFCResult = THQ.ProcessUFCUserData(request.GetDataStream, HTTPUtils.ExtractBoundary(request.GetContentType()));
+                            string? UFCResult = THQ.ProcessUFCUserData(request.GetDataStream, HTTPUtils.ExtractBoundary(request.GetContentType()), HTTPServerConfiguration.APIStaticFolder);
                             if (!string.IsNullOrEmpty(UFCResult))
                                 return HttpResponse.Send(UFCResult, "text/xml");
                         }
