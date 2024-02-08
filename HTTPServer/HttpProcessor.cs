@@ -875,10 +875,16 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        response = new(true)
-                        {
-                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
-                        };
+                        if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                            response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            };
+                        else
+                            response = new(true)
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            };
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -1025,30 +1031,32 @@ namespace HTTPServer
                     }
                     else
                     {
-                        response = new(true)
-                        {
-                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
-                        };
                         long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                         fs.Position = startByte;
+						
                         string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
                         if (ContentType == "application/octet-stream")
                         {
-                            bool matched = false;
                             foreach (var entry in HTTPUtils.PathernDictionary)
                             {
                                 if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
                                 {
-                                    matched = true;
-                                    response.Headers["Content-Type"] = entry.Key;
+                                    ContentType = entry.Key;
                                     break;
                                 }
                             }
-                            if (!matched)
-                                response.Headers["Content-Type"] = ContentType;
                         }
+                        if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                            response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            };
                         else
-                            response.Headers["Content-Type"] = ContentType;
+                            response = new(true)
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            };
+                        response.Headers.Add("Content-Type", ContentType);
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
