@@ -1,5 +1,6 @@
 ﻿using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
+using BackendProject.WebTools;
 using HTTPServer.API;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
@@ -53,7 +54,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                         }
                                     }
                                     else
-                                        return HttpResponse.Send(new FileStream(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Date", DateTime.Now.ToString("r") }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") } });
+                                        return HttpResponse.Send(File.Open(HTTPServerConfiguration.HTTPStaticFolder + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Date", DateTime.Now.ToString("r") }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") } });
                                 }
                             }
                         }

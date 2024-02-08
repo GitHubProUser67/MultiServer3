@@ -19,6 +19,7 @@ public static class HTTPServerConfiguration
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
+    public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool EnablePUTMethod { get; set; } = true;
     public static bool EnableDiscordPlugin { get; set; } = true;
@@ -60,6 +61,7 @@ public static class HTTPServerConfiguration
             APIStaticFolder = config.api_static_folder;
             HTTPStaticFolder = config.http_static_folder;
             HTTPTempFolder = config.http_temp_folder;
+            ConvertersFolder = config.converters_folder;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DefaultPluginsPort = config.default_plugins_port;
             BufferSize = config.buffer_size;

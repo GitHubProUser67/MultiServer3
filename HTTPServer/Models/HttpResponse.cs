@@ -1,4 +1,5 @@
 ﻿// Copyright (C) 2016 by Barend Erasmus and donated to the public domain
+using BackendProject.MiscUtils;
 using HTTPServer.Extensions;
 using System.Text;
 
@@ -42,8 +43,10 @@ namespace HTTPServer.Models
 
         #region Constructors
 
-        public HttpResponse(bool keepalive)
+        public HttpResponse(bool keepalive, string? HttpVersionOverride = null)
         {
+            string HttpVersion = (!string.IsNullOrEmpty(HttpVersionOverride)) ? HttpVersionOverride : HTTPServerConfiguration.HttpVersion;
+
             if (keepalive)
                 Headers = new Dictionary<string, string>
                 {
@@ -52,7 +55,7 @@ namespace HTTPServer.Models
             else
                 Headers = new Dictionary<string, string>();
 
-            if (HTTPServerConfiguration.HttpVersion == "1.1")
+            if (HttpVersion == "1.1")
                 Headers.Add("Transfer-Encoding", "chunked");
         }
 
@@ -123,9 +126,9 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, string? HttpVersionOverride = null)
         {
-            HttpResponse response = new(false)
+            HttpResponse response = new(false, HttpVersionOverride)
             {
                 HttpStatusCode = statuscode
             };
@@ -141,7 +144,12 @@ namespace HTTPServer.Models
                 }
             }
             if (streamtosend != null)
-                response.ContentStream = streamtosend;
+            {
+                if (streamtosend.CanSeek)
+                    response.ContentStream = streamtosend;
+                else
+                    response.ContentStream = new HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize);
+            }
             else
                 response.ContentStream = null;
 

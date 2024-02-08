@@ -28,6 +28,21 @@
             Position = 0;
         }
 
+        public HugeMemoryStream(Stream st, int BufferSize)
+        {
+            int bytesRead = 0;
+            byte[] buffer = new byte[BufferSize]; // 4KB buffer, you can adjust this based on your needs
+
+            // Read from source and write to destination in chunks
+            while ((bytesRead = st.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                Write(buffer, 0, bytesRead);
+            }
+            st.Close();
+            st.Dispose();
+            Position = 0;
+        }
+
         public HugeMemoryStream(Span<byte> SpanToMem)
         {
             Write(SpanToMem);
