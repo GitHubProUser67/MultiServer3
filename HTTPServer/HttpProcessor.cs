@@ -1,14 +1,15 @@
 ﻿// Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
+using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.OUWF;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
-using BackendProject.WeBAPIs.VEEMEE;
-using BackendProject.WebAPIs.JUGGERNAUT;
-using BackendProject.WebAPIs.NDREAMS;
+using BackendProject.WebTools;
 using CustomLogger;
 using HttpMultipartParser;
+using HTTPServer.API.JUGGERNAUT;
+using HTTPServer.API.NDREAMS;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using HTTPServer.RouteHandlers;
@@ -16,7 +17,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
-using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace HTTPServer
 {
@@ -61,7 +61,6 @@ namespace HTTPServer
 
         public void HandleClient(TcpClient tcpClient)
         {
-            HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
@@ -123,7 +122,6 @@ namespace HTTPServer
                                                     i++;
                                                 }
                                             }
-
                                             else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.GetDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
@@ -189,42 +187,6 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
-                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
-                                            {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
-
-                                                VEEMEEClass veemee = new(request.Method, absolutepath); 
-                                                if (request.GetDataStream != null)
-                                                {
-                                                    using MemoryStream postdata = new();
-                                                    request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    var res = veemee.ProcessRequest(buffer, request.GetContentType(), absolutepath);
-                                                    postdata.Flush();
-
-                                                    veemee.Dispose();
-
-                                                    if (string.IsNullOrEmpty(res.Item1))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                    {
-                                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                        statusCode = HttpStatusCode.OK;
-                                                    }
-                                                    response.HttpStatusCode = (Models.HttpStatusCode)statusCode;
-                                                    if(!string.IsNullOrEmpty(res.Item2))
-                                                        response = HttpResponse.Send(res.Item1, res.Item2);
-                                                    else
-                                                        response = HttpResponse.Send(res.Item1, "text/plain");
-                                                }
-                                            }
                                             else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
@@ -248,7 +210,6 @@ namespace HTTPServer
                                                 }
                                                 else
                                                     res = ndreams.ProcessRequest(request.QueryParameters);
-
                                                 ndreams.Dispose();
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
@@ -326,6 +287,43 @@ namespace HTTPServer
                                                                 break;
                                                             case "/robots.txt":
                                                                 response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
+                                                                break;
+                                                            case "/!webvideo":
+                                                            case "/!webvideo/":
+                                                                Dictionary<string, string>? QueryDic = request.QueryParameters;
+                                                                if (QueryDic != null && QueryDic.Count > 0)
+                                                                {
+                                                                    WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
+                                                                    if (vid != null && vid.Available)
+                                                                        response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
+                                                                            Models.HttpStatusCode.OK, request.GetHeaderValue("User-Agent").Contains("PSHome") && (vid.ContentType == "video/mp4" || vid.ContentType == "video/mpeg" || vid.ContentType == "audio/mpeg") ? "1.0" : null); // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                                                                    else
+                                                                        response = new HttpResponse(false)
+                                                                        {
+                                                                            HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                            ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
+                                                                                    "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
+                                                                            Headers = { { "Content-Type", "text/html" } }
+                                                                        };
+                                                                }
+                                                                else
+                                                                    response = new HttpResponse(false)
+                                                                    {
+                                                                        HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                        ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
+                                                                                "<p>Manual use parameters:" +
+                                                                                "<ul>" +
+                                                                                "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
+                                                                                "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
+                                                                                "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
+                                                                                "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
+                                                                                "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
+                                                                                "<li>Also you can use many <i>yt-dlp" +
+                                                                                "</i> and <i>ffmpeg" +
+                                                                                "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
+                                                                                "</ul></p>",
+                                                                        Headers = { { "Content-Type", "text/html" } }
+                                                                    };
                                                                 break;
                                                             case "/!GetMediaList/":
                                                                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
@@ -681,7 +679,7 @@ namespace HTTPServer
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
 
-                            HttpResponseContentStream ctwire = new(stream);
+                            HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
 
                             while (bytesLeft > 0)
                             {
@@ -766,9 +764,10 @@ namespace HTTPServer
                         string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
                         if (ContentType == "application/octet-stream")
                         {
+                            byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
                             foreach (var entry in HTTPUtils.PathernDictionary)
                             {
-                                if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
+                                if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -833,10 +832,16 @@ namespace HTTPServer
                             {
                                 ms.Flush();
                                 ms.Close();
-                                response = new(false)
-                                {
-                                    HttpStatusCode = Models.HttpStatusCode.OK
-                                };
+                                if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                                    response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                                    {
+                                        HttpStatusCode = Models.HttpStatusCode.OK
+                                    };
+                                else
+                                    response = new(false)
+                                    {
+                                        HttpStatusCode = Models.HttpStatusCode.OK
+                                    };
                                 response.Headers.Add("Accept-Ranges", "bytes");
                                 response.Headers.Add("Content-Type", ContentType);
                                 if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
@@ -903,7 +908,7 @@ namespace HTTPServer
                         if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                             buffersize = 500000;
 
-                        HttpResponseContentStream ctwire = new(stream);
+                        HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
 
                         while (bytesLeft > 0)
                         {
@@ -985,30 +990,31 @@ namespace HTTPServer
                     }
                     else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                     {
-                        response = new(false)
-                        {
-                            HttpStatusCode = Models.HttpStatusCode.OK
-                        };
-                        response.Headers.Add("Accept-Ranges", "bytes");
                         string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
                         if (ContentType == "application/octet-stream")
                         {
-                            bool matched = false;
                             byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
                             foreach (var entry in HTTPUtils.PathernDictionary)
                             {
                                 if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                 {
-                                    matched = true;
-                                    response.Headers["Content-Type"] = entry.Key;
+                                    ContentType = entry.Key;
                                     break;
                                 }
                             }
-                            if (!matched)
-                                response.Headers["Content-Type"] = ContentType;
                         }
+                        if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                            response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.OK
+                            };
                         else
-                            response.Headers["Content-Type"] = ContentType;
+                            response = new(false)
+                            {
+                                HttpStatusCode = Models.HttpStatusCode.OK
+                            };
+                        response.Headers.Add("Accept-Ranges", "bytes");
+                        response.Headers.Add("Content-Type", ContentType);
                         if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
                         {
                             response.Headers.Add("Content-Encoding", "deflate");
@@ -1073,7 +1079,7 @@ namespace HTTPServer
                         if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                             buffersize = 500000;
 
-                        HttpResponseContentStream ctwire = new(stream);
+                        HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
 
                         while (bytesLeft > 0)
                         {
@@ -1162,7 +1168,7 @@ namespace HTTPServer
                                 if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                     buffersize = 500000;
 
-                                HttpResponseContentStream ctwire = new(stream);
+                                HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
 
                                 while (bytesLeft > 0)
                                 {

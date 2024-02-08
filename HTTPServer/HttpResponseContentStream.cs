@@ -20,10 +20,10 @@ namespace HTTPServer
 		/// </summary>
 		/// <param name="inner">The stream used to communicate with client.</param>
 		/// <param name="chunked">Use HTTP Chunked Transfer</param>
-		public HttpResponseContentStream(Stream inner)
+		public HttpResponseContentStream(Stream inner, bool UseChunkedTransfer)
 		{
             this.inner = inner;
-            UseChunkedTransfer = HTTPServerConfiguration.HttpVersion == "1.1";
+            this.UseChunkedTransfer = UseChunkedTransfer;
             //todo: add compression support (and compression + chunked).
         }
 
