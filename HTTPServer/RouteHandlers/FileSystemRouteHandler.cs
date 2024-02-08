@@ -1,4 +1,5 @@
 ﻿// Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
+using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
@@ -56,32 +57,34 @@ namespace HTTPServer.RouteHandlers
 
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
         {
+            HttpResponse? response = null;
             string? encoding = request.GetHeaderValue("Accept-Encoding");
 
-            HttpResponse response = new(false)
-            {
-                HttpStatusCode = HttpStatusCode.OK
-            };
             string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
             if (ContentType == "application/octet-stream")
             {
-                bool matched = false;
                 byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
                 foreach (var entry in HTTPUtils.PathernDictionary)
                 {
                     if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
                     {
-                        matched = true;
-                        response.Headers["Content-Type"] = entry.Key;
+                        ContentType = entry.Key;
                         break;
                     }
                 }
-                if (!matched)
-                    response.Headers["Content-Type"] = ContentType;
             }
+            if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                {
+                    HttpStatusCode = HttpStatusCode.OK
+                };
             else
-                response.Headers["Content-Type"] = ContentType;
-
+                response = new(false)
+                {
+                    HttpStatusCode = HttpStatusCode.OK
+                };
+            response.Headers.Add("Accept-Ranges", "bytes");
+            response.Headers.Add("Content-Type", ContentType);
             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
             {
                 response.Headers.Add("Content-Encoding", "deflate");
@@ -174,7 +177,7 @@ namespace HTTPServer.RouteHandlers
                                 return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                             }
                             else
-                                return HttpResponse.Send(new FileStream(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                return HttpResponse.Send(File.Open(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                         }
                     }
                 }

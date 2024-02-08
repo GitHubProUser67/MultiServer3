@@ -687,7 +687,7 @@ namespace BackendProject.MiscUtils
         /// Compute the MD5 checksum of a stream.
         /// <para>Calcul la somme des contrôles en MD5 d'un stream.</para>
         /// </summary>
-        /// <param name="input">The input stream.</param>
+        /// <param name="input">The input stream (must be seekable).</param>
         /// <returns>A string.</returns>
         public static string ComputeMD5(Stream input)
         {

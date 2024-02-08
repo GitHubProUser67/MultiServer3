@@ -71,14 +71,15 @@ namespace HTTPServer.Models
                 {
                     Dictionary<string, string> parameterDictionary = new();
 
-                    foreach (string parameter in Url[(Url.IndexOf("?") + 1)..].Split('&'))
+                    int questionMarkIndex = Url.IndexOf("?");
+                    if (questionMarkIndex != -1) // If '?' is found
                     {
-                        string[] keyValue = parameter.Split('=');
-
-                        if (keyValue.Length == 2)
-                            parameterDictionary[keyValue[0]] = keyValue[1];
-                        else
-                            parameterDictionary[keyValue[0]] = string.Empty;
+                        string trimmedurl = Url[(questionMarkIndex + 1)..];
+                        foreach (string? UrlArg in System.Web.HttpUtility.ParseQueryString(trimmedurl).AllKeys) // Thank you WebOne.
+                        {
+                            if (!string.IsNullOrEmpty(UrlArg))
+                                parameterDictionary[UrlArg] = System.Web.HttpUtility.ParseQueryString(trimmedurl)[UrlArg] ?? string.Empty;
+                        }
                     }
 
                     return parameterDictionary;
