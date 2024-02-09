@@ -121,10 +121,6 @@ namespace BackendProject.HomeTools.AFS
             await Task.WhenAll(HashMapTasks);
 
             HashMapTasks = null;
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
         public static void ScheduledUpdate(object? state)
