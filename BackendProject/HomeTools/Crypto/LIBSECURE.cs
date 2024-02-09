@@ -9,7 +9,7 @@ namespace BackendProject.HomeTools.Crypto
 {
     internal class LIBSECURE
     {
-        public byte[]? InitiateLibSecureXTEACTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, int blocksize)
+        public byte[]? InitiateLibsecureXTEACTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, int blocksize)
         {
             if (KeyBytes != null && KeyBytes.Length == 16 && m_iv != null && m_iv.Length == 8 && FileBytes != null)
             {
@@ -44,7 +44,7 @@ namespace BackendProject.HomeTools.Crypto
                 }
             }
             else
-                LoggerAccessor.LogError("[LIBSECURE] - InitiateLibSecureXTEACTRBuffer - Invalid FileBytes, KeyByes or IV!");
+                LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBuffer - Invalid FileBytes, KeyByes or IV!");
 
             return null;
         }

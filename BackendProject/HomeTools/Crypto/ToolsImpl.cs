@@ -325,7 +325,7 @@ namespace BackendProject.HomeTools.Crypto
             return array3;
         }
 
-        public byte[] ProcessXTEABlocksAsync(byte[] inputArray, byte[] Key, byte[] IV)
+        public byte[] ProcessLibsecureXTEABlocks(byte[] inputArray, byte[] Key, byte[] IV)
         {
             int inputIndex = 0;
             int inputLength = inputArray.Length;
@@ -338,7 +338,7 @@ namespace BackendProject.HomeTools.Crypto
                 int blockSize = Math.Min(8, inputLength - inputIndex);
                 byte[] block = new byte[blockSize];
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[]? taskResult = libsecure.InitiateLibSecureXTEACTRBuffer(block, Key, IV, blockSize) ?? null;
+                byte[]? taskResult = libsecure.InitiateLibsecureXTEACTRBuffer(block, Key, IV, blockSize) ?? null;
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
                 toolsimpl.IncrementIVBytes(IV, 1);

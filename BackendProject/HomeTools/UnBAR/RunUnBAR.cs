@@ -20,7 +20,7 @@ namespace BackendProject.HomeTools.UnBAR
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        public void RunEncrypt(string filePath, string sdatfilePath, string? sdatnpdcopyfile)
+        public static void RunEncrypt(string filePath, string sdatfilePath, string? sdatnpdcopyfile)
         {
             try
             {
@@ -426,7 +426,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                 try
                 {
-                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(toolsImpl.ProcessXTEABlocksAsync(data, Key, tableOfContent.IV));
+                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(toolsImpl.ProcessLibsecureXTEABlocks(data, Key, tableOfContent.IV));
                 }
                 catch (Exception ex)
                 {

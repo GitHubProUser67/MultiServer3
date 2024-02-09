@@ -3,6 +3,7 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 using BackendProject.MiscUtils;
+using BackendProject.HomeTools.AFS;
 
 public static class HTTPServerConfiguration
 {
@@ -112,6 +113,10 @@ class Program
         LoggerAccessor.SetupLogger("HTTPServer");
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
+
+        AFSClass.MapperHelperFolder = HTTPServerConfiguration.HomeToolsHelperStaticFolder;
+
+        _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         if (HTTPServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
