@@ -1,12 +1,13 @@
-﻿using CustomLogger;
+﻿using BackendProject.HomeTools.AFS;
+using CustomLogger;
 using System.Text.RegularExpressions;
 
 namespace BackendProject.HomeTools.UnBAR
 {
-    public class Mapper
+    public class LegacyMapper
     {
         // Declare a global list to store file paths
-        private List<string> filePathList = new();
+        private readonly List<string> filePathList = new();
 
         public Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
         {
@@ -28,7 +29,7 @@ namespace BackendProject.HomeTools.UnBAR
                     filePathList.Add(foldertomap + "/ObjectXMLBruteforce.xml");
                 }
 
-                IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl")
+                IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl") || s.ToLower().EndsWith(".atmos")
                 || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
                 || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown"));
                 List<MappedList> mappedListList = new();
@@ -283,7 +284,7 @@ namespace BackendProject.HomeTools.UnBAR
             }
         }
 
-        private int ComputeAFSHash(string text)
+        private static int ComputeAFSHash(string text)
         {
             int hash = 0;
             foreach (char ch in text.ToLower().Replace(Path.DirectorySeparatorChar, '/'))
@@ -291,7 +292,7 @@ namespace BackendProject.HomeTools.UnBAR
             return hash;
         }
 
-        internal List<MappedList> ScanForString(string sourceFile)
+        internal static List<MappedList> ScanForString(string sourceFile)
         {
             List<RegexPatterns> regexPatternsList = new()
               {
@@ -848,34 +849,24 @@ namespace BackendProject.HomeTools.UnBAR
             {
                 if (!string.IsNullOrEmpty(regexPatterns.pattern))
                 {
-                    foreach (Match match in Regex.Matches(input, regexPatterns.pattern))
-                    {
-                        if (!mappedListList.Contains(new MappedList()
+                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern), match => {
+                        lock (mappedListList)
                         {
-                            type = regexPatterns.type,
-                            file = match.Value
-                        }))
-                            mappedListList.Add(new MappedList()
+                            if (!mappedListList.Contains(new MappedList()
                             {
                                 type = regexPatterns.type,
                                 file = match.Value
-                            });
-                    }
+                            }))
+                                mappedListList.Add(new MappedList()
+                                {
+                                    type = regexPatterns.type,
+                                    file = match.Value
+                                });
+                        }
+                    });
                 }
             });
             return mappedListList;
         }
-    }
-
-    public class MappedList
-    {
-        public string? type;
-        public string? file;
-    }
-
-    public class RegexPatterns
-    {
-        public string? type;
-        public string? pattern;
     }
 }

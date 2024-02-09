@@ -6,6 +6,7 @@ using BackendProject.MiscUtils;
 using BackendProject.WeBAPIs.VEEMEE.goalie_sfrgbt;
 using BackendProject.WeBAPIs.VEEMEE.gofish;
 using BackendProject.WeBAPIs.VEEMEE.olm;
+using BackendProject.HomeTools.AFS;
 
 public static class HTTPSServerConfiguration
 {
@@ -110,11 +111,12 @@ class Program
 
         SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
 
-        // Timer for scheduled updates every 24 hours
+        AFSClass.MapperHelperFolder = HTTPSServerConfiguration.HomeToolsHelperStaticFolder;
         GSScoreBoardData.sbAPIPath = HTTPSServerConfiguration.APIStaticFolder;
         GFScoreBoardData.gfAPIPath = HTTPSServerConfiguration.APIStaticFolder;
         olmScoreBoardData.olmAPIPath = HTTPSServerConfiguration.APIStaticFolder;
 
+        _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
         _ = new Timer(GSScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
         _ = new Timer(GFScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
         _ = new Timer(olmScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
