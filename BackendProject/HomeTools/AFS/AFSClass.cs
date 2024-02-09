@@ -26,17 +26,17 @@ namespace BackendProject.HomeTools.AFS
 
                     // Search for files with names matching the CRC hash, regardless of the extension
                     foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                      .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\..*)?").IsMatch(Path.GetFileName(path)))
+                      .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                       .ToArray())
                     {
                         string NewfilePath = CurrentFolder + $"/{text}";
                         string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                         if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                            Directory.CreateDirectory(destinationDirectory);
+                            Directory.CreateDirectory(destinationDirectory.ToUpper());
 
                         if (!File.Exists(NewfilePath))
-                            File.Move(filePath, NewfilePath);
+                            File.Move(filePath, NewfilePath.ToUpper());
 
                         if (File.Exists(NewfilePath))
                             await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath));
@@ -68,17 +68,17 @@ namespace BackendProject.HomeTools.AFS
 
                                 // Search for files with names matching the CRC hash, regardless of the extension
                                 foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                                  .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\..*)?").IsMatch(Path.GetFileName(path)))
+                                  .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                                   .ToArray())
                                 {
                                     string NewfilePath = CurrentFolder + $"/{text}";
                                     string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                                     if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                                        Directory.CreateDirectory(destinationDirectory);
+                                        Directory.CreateDirectory(destinationDirectory.ToUpper());
 
                                     if (!File.Exists(NewfilePath))
-                                        File.Move(filePath, NewfilePath);
+                                        File.Move(filePath, NewfilePath.ToUpper());
 
                                     if (File.Exists(NewfilePath))
                                         await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath));
@@ -98,17 +98,17 @@ namespace BackendProject.HomeTools.AFS
                     {
                         // Search for files with names matching the CRC hash, regardless of the extension
                         foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                          .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\..*)?").IsMatch(Path.GetFileName(path)))
+                          .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                           .ToArray())
                         {
                             string NewfilePath = CurrentFolder + $"/{MappedAFSHashesCache[CrcHash]}";
                             string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                             if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                                Directory.CreateDirectory(destinationDirectory);
+                                Directory.CreateDirectory(destinationDirectory.ToUpper());
 
                             if (!File.Exists(NewfilePath))
-                                File.Move(filePath, NewfilePath);
+                                File.Move(filePath, NewfilePath.ToUpper());
 
                             if (File.Exists(NewfilePath))
                                 await AFSMap.SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath));

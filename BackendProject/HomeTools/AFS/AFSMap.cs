@@ -20,33 +20,33 @@ namespace BackendProject.HomeTools.AFS
 
                             // Search for files with names matching the CRC hash, regardless of the extension
                             foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                              .Where(path => new Regex($"(?:0X)?{AFSHash.ComputeAFSHash(cdatapath)}(?:\\..*)?").IsMatch(Path.GetFileName(path)))
+                              .Where(path => new Regex($"(?:0X)?{AFSHash.ComputeAFSHash(cdatapath)}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                               .ToArray())
                             {
                                 string NewfilePath = CurrentFolder + $"/{cdatapath}";
                                 string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                                 if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                                    Directory.CreateDirectory(destinationDirectory);
+                                    Directory.CreateDirectory(destinationDirectory.ToUpper());
 
                                 if (!File.Exists(NewfilePath))
-                                    File.Move(filePath, NewfilePath);
+                                    File.Move(filePath, NewfilePath.ToUpper());
                             }
                         }
 
                         // Search for files with names matching the CRC hash, regardless of the extension
                         foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                          .Where(path => new Regex($"(?:0X)?{AFSHash.ComputeAFSHash(prefix + text)}(?:\\..*)?").IsMatch(Path.GetFileName(path)))
+                          .Where(path => new Regex($"(?:0X)?{AFSHash.ComputeAFSHash(prefix + text)}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                           .ToArray())
                         {
                             string NewfilePath = CurrentFolder + $"/{text}";
                             string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                             if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                                Directory.CreateDirectory(destinationDirectory);
+                                Directory.CreateDirectory(destinationDirectory.ToUpper());
 
                             if (!File.Exists(NewfilePath))
-                                File.Move(filePath, NewfilePath);
+                                File.Move(filePath, NewfilePath.ToUpper());
 
                             if (File.Exists(NewfilePath) && (NewfilePath.ToLower().EndsWith(".mdl") || NewfilePath.ToLower().EndsWith(".atmos")
                             || NewfilePath.ToLower().EndsWith(".efx") || NewfilePath.ToLower().EndsWith(".xml") || NewfilePath.ToLower().EndsWith(".scene")
