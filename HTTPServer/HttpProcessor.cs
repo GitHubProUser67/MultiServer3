@@ -148,15 +148,7 @@ namespace HTTPServer
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = ohs.ProcessRequest(buffer, request.GetContentType(), apiPath);
+                                                    res = ohs.ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
                                                 ohs.Dispose();
@@ -174,15 +166,7 @@ namespace HTTPServer
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = OuWF.ProcessRequest(buffer, request.GetContentType());
+                                                    res = OuWF.ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 OuWF.Dispose();
@@ -191,7 +175,7 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
-                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
+                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && request.Method != null && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
 
@@ -200,15 +184,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    var res = veemee.ProcessRequest(buffer, request.GetContentType(), absolutepath);
+                                                    var res = veemee.ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
                                                     postdata.Flush();
 
                                                     veemee.Dispose();
@@ -217,14 +193,11 @@ namespace HTTPServer
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                     {
-                                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                        statusCode = HttpStatusCode.OK;
+                                                        if (!string.IsNullOrEmpty(res.Item2))
+                                                            response = HttpResponse.Send(res.Item1, res.Item2);
+                                                        else
+                                                            response = HttpResponse.Send(res.Item1, "text/plain");
                                                     }
-                                                    response.HttpStatusCode = (Models.HttpStatusCode)statusCode;
-                                                    if(!string.IsNullOrEmpty(res.Item2))
-                                                        response = HttpResponse.Send(res.Item1, res.Item2);
-                                                    else
-                                                        response = HttpResponse.Send(res.Item1, "text/plain");
                                                 }
                                             }
                                             else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
@@ -237,15 +210,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = ndreams.ProcessRequest(request.QueryParameters, buffer, request.GetContentType());
+                                                    res = ndreams.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 else
@@ -267,15 +232,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = juggernaut.ProcessRequest(request.QueryParameters, buffer, request.GetContentType());
+                                                    res = juggernaut.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 else
@@ -298,15 +255,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-
-                                                    postdata.Position = 0;
-                                                    // Find the number of bytes in the stream
-                                                    int contentLength = (int)postdata.Length;
-                                                    // Create a byte array
-                                                    byte[] buffer = new byte[contentLength];
-                                                    // Read the contents of the memory stream into the byte array
-                                                    postdata.Read(buffer, 0, contentLength);
-                                                    res = agency.ProcessRequest(buffer, request.GetContentType());
+                                                    res = agency.ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -366,11 +315,12 @@ namespace HTTPServer
                                                                         Headers = { { "Content-Type", "text/html" } }
                                                                     };
                                                                 break;
+                                                            case "/!GetMediaList":
                                                             case "/!GetMediaList/":
                                                                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                                    response = HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                                                    response = HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder + "/!MediaPath"))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                                                 else
-                                                                    response = HttpResponse.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder), "application/json");
+                                                                    response = HttpResponse.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder + "/!MediaPath"), "application/json");
                                                                 break;
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
