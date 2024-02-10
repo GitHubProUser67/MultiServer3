@@ -50,6 +50,8 @@
             buttonStartHorizon = new Button();
             pictureBoxPSMSImage = new PictureBox();
             tableLayoutPanelMain = new TableLayoutPanel();
+            buttonStarteaEmu = new Button();
+            buttonStopeaEmu = new Button();
             groupBoxWebServerManagement.SuspendLayout();
             groupBoxAuxiliaryServerManagement.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPSMSImage).BeginInit();
@@ -208,6 +210,8 @@
             // groupBoxAuxiliaryServerManagement
             // 
             groupBoxAuxiliaryServerManagement.Anchor = AnchorStyles.Top;
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopeaEmu);
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStarteaEmu);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopQuazal);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartQuazal);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopDNS);
@@ -298,6 +302,26 @@
             tableLayoutPanelMain.Size = new Size(1007, 261);
             tableLayoutPanelMain.TabIndex = 4;
             // 
+            // buttonStarteaEmu
+            // 
+            buttonStarteaEmu.Location = new Point(33, 146);
+            buttonStarteaEmu.Name = "buttonStarteaEmu";
+            buttonStarteaEmu.Size = new Size(128, 29);
+            buttonStarteaEmu.TabIndex = 16;
+            buttonStarteaEmu.Text = "Start eaEmu";
+            buttonStarteaEmu.UseVisualStyleBackColor = true;
+            buttonStarteaEmu.Click += buttonStarteaEmu_Click;
+            // 
+            // buttonStopeaEmu
+            // 
+            buttonStopeaEmu.Location = new Point(181, 146);
+            buttonStopeaEmu.Name = "buttonStopeaEmu";
+            buttonStopeaEmu.Size = new Size(123, 29);
+            buttonStopeaEmu.TabIndex = 17;
+            buttonStopeaEmu.Text = "Stop eaEmu";
+            buttonStopeaEmu.UseVisualStyleBackColor = true;
+            buttonStopeaEmu.Click += buttonStopeaEmu_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -344,5 +368,7 @@
         private TableLayoutPanel tableLayoutPanelMain;
         private Button buttonStopQuazal;
         private Button buttonStartQuazal;
+        private Button buttonStopeaEmu;
+        private Button buttonStarteaEmu;
     }
 }
