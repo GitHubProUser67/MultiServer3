@@ -171,6 +171,7 @@ namespace BackendProject.MiscUtils
         "prod.homemq.online.scee.com",
         "homeec.scej-nbs.jp",
         "qa-homect-scej.jp",
+        "gp1.wac.edgecastcdn.net",
         "example.com"
         };
 
