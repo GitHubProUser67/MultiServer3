@@ -586,6 +586,7 @@ namespace HTTPSecureServerLite
                                     ctx.Response.ContentType = "text/plain";
                                     sent = await ctx.Response.Send("User-agent: *\nDisallow: / ");
                                     break;
+                                case "/!GetMediaList":
                                 case "/!GetMediaList/":
                                     statusCode = HttpStatusCode.OK;
                                     ctx.Response.StatusCode = (int)statusCode;
@@ -593,10 +594,10 @@ namespace HTTPSecureServerLite
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                     {
                                         ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                        sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder))));
+                                        sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder + "/!MediaPath"))));
                                     }
                                     else
-                                        sent = await ctx.Response.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder));
+                                        sent = await ctx.Response.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder + "/!MediaPath"));
                                     break;
                                 case "/!DLNADiscovery/":
                                     if (IsIPAllowed(clientip))
