@@ -18,7 +18,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
-using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace HTTPServer
 {
@@ -26,6 +25,7 @@ namespace HTTPServer
     {
         #region Fields
 
+        private readonly List<uint> CachedVideosCRCs = new(20); // Anti-spam
         private readonly List<Route> Routes = new();
 
         #endregion
@@ -63,7 +63,6 @@ namespace HTTPServer
 
         public void HandleClient(TcpClient tcpClient)
         {
-            HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
@@ -281,20 +280,112 @@ namespace HTTPServer
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 Dictionary<string, string>? QueryDic = request.QueryParameters;
-                                                                if (QueryDic != null && QueryDic.Count > 0)
+                                                                if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
                                                                 {
-                                                                    WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
-                                                                    if (vid != null && vid.Available)
-                                                                        response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
-                                                                            Models.HttpStatusCode.OK, request.GetHeaderValue("User-Agent").Contains("PSHome") && (vid.ContentType == "video/mp4" || vid.ContentType == "video/mpeg" || vid.ContentType == "audio/mpeg") ? "1.0" : null); // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                                                                    else
-                                                                        response = new HttpResponse(false)
+                                                                    uint CRCCache = new Crc32Utils().Get(Encoding.UTF8.GetBytes(QueryDic["url"]));
+                                                                    string ConverterCacheDir = HTTPServerConfiguration.HTTPTempFolder + "/!VideoConverterCache/";
+
+                                                                    lock (CachedVideosCRCs)
+                                                                    {
+                                                                        if (!CachedVideosCRCs.Contains(CRCCache))
                                                                         {
-                                                                            HttpStatusCode = Models.HttpStatusCode.OK,
-                                                                            ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
-                                                                                    "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
-                                                                            Headers = { { "Content-Type", "text/html" } }
-                                                                        };
+                                                                            CachedVideosCRCs.Add(CRCCache);
+
+                                                                            WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
+                                                                            if (vid != null && vid.Available && vid.VideoStream != null)
+                                                                            {
+                                                                                HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
+                                                                                if (ms.Length > 0)
+                                                                                {
+                                                                                    DirectoryInfo directory = new(ConverterCacheDir);
+                                                                                    directory.Create();
+                                                                                    FileInfo[] files = directory.GetFiles();
+                                                                                    if (files.Length >= 20)
+                                                                                    {
+                                                                                        FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
+                                                                                        LoggerAccessor.LogInfo("[HTTP] - Replacing Temp Cached video file: " + oldestFile.Name);
+                                                                                        if (File.Exists(oldestFile.FullName))
+                                                                                            File.Delete(oldestFile.FullName);
+                                                                                    }
+                                                                                    using (FileStream file = new(ConverterCacheDir + $"{CRCCache}_{vid.FileName}", FileMode.Create, FileAccess.Write))
+                                                                                        ms.CopyTo(file);
+                                                                                    ms.Position = 0;
+                                                                                    response = HttpResponse.Send(ms, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
+                                                                                    Models.HttpStatusCode.OK, request.GetHeaderValue("User-Agent").Contains("PSHome") && (vid.ContentType == "video/mp4" || vid.ContentType == "video/mpeg" || vid.ContentType == "audio/mpeg") ? "1.0" : null); // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                                                                                }
+                                                                                else // if failed, we remove the cached indicator.
+                                                                                {
+                                                                                    if (CachedVideosCRCs.Contains(CRCCache))
+                                                                                        CachedVideosCRCs.Remove(CRCCache);
+
+                                                                                    response = HttpBuilder.InternalServerError();
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                if (CachedVideosCRCs.Contains(CRCCache))
+                                                                                    CachedVideosCRCs.Remove(CRCCache);
+
+                                                                                response = new HttpResponse(false)
+                                                                                {
+                                                                                    HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                                    ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
+                                                                                            "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
+                                                                                    Headers = { { "Content-Type", "text/html" } }
+                                                                                };
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            bool found = false;
+
+                                                                            foreach (string file in Directory.GetFiles(ConverterCacheDir))
+                                                                            {
+                                                                                if (Path.GetFileName(file).StartsWith($"{CRCCache}_") && new FileInfo(file).Length > 0) // We exclude temp files.
+                                                                                {
+                                                                                    found = true;
+                                                                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(file));
+                                                                                    if (ContentType == "application/octet-stream")
+                                                                                    {
+                                                                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(file, 20);
+                                                                                        foreach (var entry in HTTPUtils.PathernDictionary)
+                                                                                        {
+                                                                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                                            {
+                                                                                                ContentType = entry.Key;
+                                                                                                break;
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                                                                                        response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                                                                                        {
+                                                                                            HttpStatusCode = Models.HttpStatusCode.OK
+                                                                                        };
+                                                                                    else
+                                                                                        response = new(false)
+                                                                                        {
+                                                                                            HttpStatusCode = Models.HttpStatusCode.OK
+                                                                                        };
+                                                                                    response.Headers.Add("Accept-Ranges", "bytes");
+                                                                                    response.Headers.Add("Content-Type", ContentType);
+                                                                                    response.Headers.Add("Content-Disposition", "attachment; filename=\"" + Path.GetFileName(file).Replace($"{CRCCache}_", string.Empty) + "\"");
+                                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(file).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                                                                                    {
+                                                                                        response.Headers.Add("Content-Encoding", "deflate");
+                                                                                        response.ContentStream = HTTPUtils.InflateStream(File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                                                                                    }
+                                                                                    else
+                                                                                        response.ContentStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+																					
+                                                                                    break;
+                                                                                }
+                                                                            }
+
+                                                                            if (!found)
+                                                                                response = HttpBuilder.NotFound();
+                                                                        }
+                                                                    }
                                                                 }
                                                                 else
                                                                     response = new HttpResponse(false)
