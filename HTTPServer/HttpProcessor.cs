@@ -25,7 +25,6 @@ namespace HTTPServer
     {
         #region Fields
 
-        private readonly List<uint> CachedVideosCRCs = new(20); // Anti-spam
         private readonly List<Route> Routes = new();
 
         #endregion
@@ -279,132 +278,45 @@ namespace HTTPServer
                                                                 break;
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
-                                                                Dictionary<string, string>? QueryDic = request.QueryParameters;
-                                                                if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
-                                                                {
-                                                                    uint CRCCache = new Crc32Utils().Get(Encoding.UTF8.GetBytes(request.Url));
-                                                                    string ConverterCacheDir = HTTPServerConfiguration.HTTPTempFolder + "/!VideoConverterCache/";
-
-                                                                    lock (CachedVideosCRCs)
-                                                                    {
-                                                                        if (!CachedVideosCRCs.Contains(CRCCache))
-                                                                        {
-                                                                            CachedVideosCRCs.Add(CRCCache);
-
-                                                                            WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
-                                                                            if (vid != null && vid.Available && vid.VideoStream != null)
-                                                                            {
-                                                                                HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
-                                                                                if (ms.Length > 0)
-                                                                                {
-                                                                                    DirectoryInfo directory = new(ConverterCacheDir);
-                                                                                    directory.Create();
-                                                                                    FileInfo[] files = directory.GetFiles();
-                                                                                    if (files.Length >= 20)
-                                                                                    {
-                                                                                        FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
-                                                                                        LoggerAccessor.LogInfo("[HTTP] - Replacing Temp Cached video file: " + oldestFile.Name);
-                                                                                        if (File.Exists(oldestFile.FullName))
-                                                                                            File.Delete(oldestFile.FullName);
-                                                                                    }
-                                                                                    using (FileStream file = new(ConverterCacheDir + $"{CRCCache}_{vid.FileName}", FileMode.Create, FileAccess.Write))
-                                                                                        ms.CopyTo(file);
-                                                                                    ms.Position = 0;
-                                                                                    response = HttpResponse.Send(ms, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
-                                                                                    Models.HttpStatusCode.OK, request.GetHeaderValue("User-Agent").Contains("PSHome") && (vid.ContentType == "video/mp4" || vid.ContentType == "video/mpeg" || vid.ContentType == "audio/mpeg") ? "1.0" : null); // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                                                                                }
-                                                                                else // if failed, we remove the cached indicator.
-                                                                                {
-                                                                                    if (CachedVideosCRCs.Contains(CRCCache))
-                                                                                        CachedVideosCRCs.Remove(CRCCache);
-
-                                                                                    response = HttpBuilder.InternalServerError();
-                                                                                }
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                if (CachedVideosCRCs.Contains(CRCCache))
-                                                                                    CachedVideosCRCs.Remove(CRCCache);
-
-                                                                                response = new HttpResponse(false)
-                                                                                {
-                                                                                    HttpStatusCode = Models.HttpStatusCode.OK,
-                                                                                    ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
-                                                                                            "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
-                                                                                    Headers = { { "Content-Type", "text/html" } }
-                                                                                };
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            bool found = false;
-
-                                                                            foreach (string file in Directory.GetFiles(ConverterCacheDir))
-                                                                            {
-                                                                                if (Path.GetFileName(file).StartsWith($"{CRCCache}_") && new FileInfo(file).Length > 0) // We exclude temp files.
-                                                                                {
-                                                                                    found = true;
-                                                                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(file));
-                                                                                    if (ContentType == "application/octet-stream")
-                                                                                    {
-                                                                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(file, 20);
-                                                                                        foreach (var entry in HTTPUtils.PathernDictionary)
-                                                                                        {
-                                                                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                                                                                            {
-                                                                                                ContentType = entry.Key;
-                                                                                                break;
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                                                                                        response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                                                                                        {
-                                                                                            HttpStatusCode = Models.HttpStatusCode.OK
-                                                                                        };
-                                                                                    else
-                                                                                        response = new(false)
-                                                                                        {
-                                                                                            HttpStatusCode = Models.HttpStatusCode.OK
-                                                                                        };
-                                                                                    response.Headers.Add("Accept-Ranges", "bytes");
-                                                                                    response.Headers.Add("Content-Type", ContentType);
-                                                                                    response.Headers.Add("Content-Disposition", "attachment; filename=\"" + Path.GetFileName(file).Replace($"{CRCCache}_", string.Empty) + "\"");
-                                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(file).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
-                                                                                    {
-                                                                                        response.Headers.Add("Content-Encoding", "deflate");
-                                                                                        response.ContentStream = HTTPUtils.InflateStream(File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                                                                                    }
-                                                                                    else
-                                                                                        response.ContentStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-																					
-                                                                                    break;
-                                                                                }
-                                                                            }
-
-                                                                            if (!found)
-                                                                                response = HttpBuilder.NotFound();
-                                                                        }
-                                                                    }
-                                                                }
+                                                                if (request.GetHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
+                                                                    response = HttpBuilder.NotAllowed();
                                                                 else
-                                                                    response = new HttpResponse(false)
+                                                                {
+                                                                    Dictionary<string, string>? QueryDic = request.QueryParameters;
+                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
                                                                     {
-                                                                        HttpStatusCode = Models.HttpStatusCode.OK,
-                                                                        ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
-                                                                                "<p>Manual use parameters:" +
-                                                                                "<ul>" +
-                                                                                "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
-                                                                                "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
-                                                                                "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
-                                                                                "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
-                                                                                "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
-                                                                                "<li>Also you can use many <i>yt-dlp" +
-                                                                                "</i> and <i>ffmpeg" +
-                                                                                "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
-                                                                                "</ul></p>",
-                                                                        Headers = { { "Content-Type", "text/html" } }
-                                                                    };
+                                                                        WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
+                                                                        if (vid != null && vid.Available)
+                                                                            response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
+                                                                                Models.HttpStatusCode.OK);
+                                                                        else
+                                                                            response = new HttpResponse(false)
+                                                                            {
+                                                                                HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                                ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
+                                                                                        "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
+                                                                                Headers = { { "Content-Type", "text/html" } }
+                                                                            };
+                                                                    }
+                                                                    else
+                                                                        response = new HttpResponse(false)
+                                                                        {
+                                                                            HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                            ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
+                                                                                    "<p>Manual use parameters:" +
+                                                                                    "<ul>" +
+                                                                                    "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
+                                                                                    "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
+                                                                                    "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
+                                                                                    "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
+                                                                                    "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
+                                                                                    "<li>Also you can use many <i>yt-dlp" +
+                                                                                    "</i> and <i>ffmpeg" +
+                                                                                    "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
+                                                                                    "</ul></p>",
+                                                                            Headers = { { "Content-Type", "text/html" } }
+                                                                        };
+                                                                }
                                                                 break;
                                                             case "/!GetMediaList":
                                                             case "/!GetMediaList/":
