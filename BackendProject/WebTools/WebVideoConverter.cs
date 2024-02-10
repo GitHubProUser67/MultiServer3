@@ -285,6 +285,7 @@ namespace BackendProject.WebTools
                 {
                     FileName = $"{ConverterDir}/yt-dlp",
                     Arguments = string.Format("\"{0}\"{1} -o -", Arguments["url"], YoutubeDlArgs),
+                    WorkingDirectory = ConverterDir,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
                 };
@@ -293,6 +294,7 @@ namespace BackendProject.WebTools
                 {
                     FileName = $"{ConverterDir}/ffmpeg",
                     Arguments = string.Format("-i pipe: {0} pipe:", FFmpegArgs),
+                    WorkingDirectory = ConverterDir,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = false
