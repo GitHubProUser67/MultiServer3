@@ -8,7 +8,12 @@
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 11100-11100 -p 11101-11101 -p 11140-11140 -p 21850-21850 -p 21851-21851 -p 21870-21870 -p 21871-21871</DockerfileRunArguments>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<ApplicationIcon>eaEmuServer.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="eaEmuServer.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098">
