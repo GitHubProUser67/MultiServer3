@@ -491,7 +491,7 @@ namespace HTTPServer
                                                                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                                                                 if (!string.IsNullOrEmpty(boundary))
                                                                 {
-                                                                    string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{string.Join("/", segments.Take(segments.Length - 1).ToArray())}";
+                                                                    string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{absolutepath[1..]}";
                                                                     Directory.CreateDirectory(UploadDirectoryPath);
                                                                     var data = MultipartFormDataParser.Parse(request.GetDataStream, boundary);
                                                                     foreach (FilePart? multipartfile in data.Files)
@@ -1325,31 +1325,29 @@ namespace HTTPServer
 
             if (headers.ContainsKey("Content-Length"))
             {
-                long bytesLeft = Convert.ToInt32(headers["Content-Length"]);
+                int bytesLeft = Convert.ToInt32(headers["Content-Length"]); // No more than 2gb
 
-                using (MemoryStream contentStream = new())
+                using MemoryStream contentStream = new();
+                while (bytesLeft > 0)
                 {
-                    while (bytesLeft > 0)
-                    {
-                        Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
-                        int n = inputStream.Read(buffer);
+                    Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+                    int n = inputStream.Read(buffer);
 
-                        contentStream.Write(buffer);
+                    contentStream.Write(buffer);
 
-                        bytesLeft -= n;
-                    }
-
-                    contentStream.Position = 0;
-
-                    if (req.Data == null)
-                    {
-                        req.Data = new MemoryStream();
-                        contentStream.CopyTo(req.Data);
-                        req.Data.Position = 0;
-                    }
-
-                    contentStream.Flush();
+                    bytesLeft -= n;
                 }
+
+                contentStream.Position = 0;
+
+                if (req.Data == null)
+                {
+                    req.Data = new MemoryStream();
+                    contentStream.CopyTo(req.Data);
+                    req.Data.Position = 0;
+                }
+
+                contentStream.Flush();
             }
 
             return req;

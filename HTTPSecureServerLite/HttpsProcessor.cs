@@ -1372,7 +1372,7 @@ namespace HTTPSecureServerLite
                                     string? boundary = HTTPUtils.ExtractBoundary(ContentType);
                                     if (!string.IsNullOrEmpty(boundary))
                                     {
-                                        string UploadDirectoryPath = HTTPSServerConfiguration.HTTPSTempFolder + $"/DataUpload/{string.Join("/", segments.Take(segments.Length - 1).ToArray())}";
+                                        string UploadDirectoryPath = HTTPSServerConfiguration.HTTPSTempFolder + $"/DataUpload/{absolutepath[1..]}";
                                         Directory.CreateDirectory(UploadDirectoryPath);
                                         var data = MultipartFormDataParser.Parse(new MemoryStream(PostData), boundary);
                                         foreach (FilePart? multipartfile in data.Files)
