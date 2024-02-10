@@ -282,7 +282,7 @@ namespace HTTPServer
                                                                 Dictionary<string, string>? QueryDic = request.QueryParameters;
                                                                 if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
                                                                 {
-                                                                    uint CRCCache = new Crc32Utils().Get(Encoding.UTF8.GetBytes(QueryDic["url"]));
+                                                                    uint CRCCache = new Crc32Utils().Get(Encoding.UTF8.GetBytes(request.Url));
                                                                     string ConverterCacheDir = HTTPServerConfiguration.HTTPTempFolder + "/!VideoConverterCache/";
 
                                                                     lock (CachedVideosCRCs)
