@@ -673,7 +673,7 @@ namespace HTTPSecureServerLite
                                         {
                                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                             {
-                                                byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}")));
+                                                byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}")));
 
                                                 if (buffer != null)
                                                 {
@@ -698,7 +698,7 @@ namespace HTTPSecureServerLite
                                                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/json";
-                                                sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https:/{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}"));
+                                                sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}"));
                                             }
                                         }
                                         else

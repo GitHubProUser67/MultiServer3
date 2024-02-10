@@ -388,7 +388,7 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(outputStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, filePath, $"http://{VariousUtils.GetPublicIPAddress(true, true)}{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                        response = FileSystemRouteHandler.Handle(request, filePath, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
                                                                 }
                                                                 break;
                                                         }

@@ -170,7 +170,8 @@ namespace BackendProject.MiscUtils
         "destinationhome.live",
         "prod.homemq.online.scee.com",
         "homeec.scej-nbs.jp",
-        "qa-homect-scej.jp"
+        "qa-homect-scej.jp",
+        "example.com"
         };
 
         public static X509Certificate2 CreateRootCertificateAuthority(string FileName)

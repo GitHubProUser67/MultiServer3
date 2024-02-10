@@ -19,7 +19,7 @@ namespace BackendProject.FileHelper.Utils
 
     public class FileStructure
     {
-        public FileNodeUtils? root { get; set; }
+        public FileNodeUtils? Root { get; set; }
     }
 
     public class FileStructureToJson
@@ -29,7 +29,7 @@ namespace BackendProject.FileHelper.Utils
             try
             {
                 if (Directory.Exists(rootDirectory))
-                    return JsonConvert.SerializeObject(new FileStructure() { root = CreateFileNode(rootDirectory, httpdirectoryrequest) },
+                    return JsonConvert.SerializeObject(new FileStructure() { Root = CreateFileNode(rootDirectory, httpdirectoryrequest) },
                      Formatting.Indented, new JsonSerializerSettings()
                      {
                          NullValueHandling = NullValueHandling.Ignore
