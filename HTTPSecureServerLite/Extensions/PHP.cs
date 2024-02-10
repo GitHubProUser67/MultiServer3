@@ -9,85 +9,31 @@ namespace HTTPSecureServerLite.Extensions
     {
         public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, string ip, string port, HttpContextBase ctx)
         {
-            if (ctx.Request.Url != null)
+            if (!string.IsNullOrEmpty(ctx.Request.Url.RawWithQuery) && !string.IsNullOrEmpty(port))
             {
-                string[][] HeadersLocal = Array.Empty<string[]>();
-                byte[]? returndata = null;
                 int index = ctx.Request.Url.RawWithQuery.IndexOf("?");
                 string? queryString = index == -1 ? string.Empty : ctx.Request.Url.RawWithQuery[(index + 1)..];
+
                 // Get paths for PHP
                 string? documentRootPath = Path.GetDirectoryName(FilePath);
                 string? scriptFilePath = Path.GetFullPath(FilePath);
                 string? scriptFileName = Path.GetFileName(FilePath);
                 string? tempPath = Path.GetTempPath();
 
+                string[][] HeadersLocal = Array.Empty<string[]>(); ;
+                byte[]? returndata = null;
+                byte[]? postData = null;
+
                 // Extract POST data (if available)
-                string? postData = null;
-                if (ctx.Request.Method.ToString() == "POST" && ctx.Request.DataAsBytes != null)
-                    postData = Encoding.UTF8.GetString(ctx.Request.DataAsBytes);
+                if (ctx.Request.Method.ToString() == "POST")
+                    postData = ctx.Request.DataAsBytes;
 
                 Process proc = new();
 
                 proc.StartInfo.FileName = $"{phppath}/{phpver}/php-cgi";
 
-                if (VariousUtils.IsWindows())
-                {
-                    if (postData == null)
-                    {
-                        proc.StartInfo.Arguments = $"-q -d \"error_reporting=E_ALL\" -d \"display_errors={HTTPSServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
-                        $"-d \"extension_dir='{$@"{phppath}/{phpver}/ext/"}'\" -d \"extension=php_bz2.dll\" " +
-                        $"-d \"extension=php_com_dotnet.dll\" -d \"extension=php_curl.dll\" -d \"extension=php_dba.dll\" -d \"extension=php_dl_test.dll\" -d \"extension=php_enchant.dll\" " +
-                        $"-d \"extension=php_exif.dll\" -d \"extension=php_ffi.dll\" -d \"extension=php_fileinfo.dll\" -d \"extension=php_ftp.dll\" -d \"extension=php_gd.dll\" -d \"extension=php_gettext.dll\" " +
-                        $"-d \"extension=php_gmp.dll\" -d \"extension=php_imap.dll\" -d \"extension=php_intl.dll\" -d \"extension=php_ldap.dll\" -d \"extension=php_mbstring.dll\" " +
-                        $"-d \"extension=php_mysqli.dll\" -d \"extension=php_odbc.dll\" -d \"extension=php_openssl.dll\" " +
-                        $"-d \"extension=php_pdo_mysql.dll\" -d \"extension=php_pdo_odbc.dll\" -d \"extension=php_pdo_pgsql.dll\" " +
-                        $"-d \"extension=php_pdo_sqlite.dll\" -d \"extension=php_pgsql.dll\" -d \"extension=php_shmop.dll\" -d \"extension=php_snmp.dll\" -d \"extension=php_soap.dll\" " +
-                        $"-d \"extension=php_sockets.dll\" -d \"extension=php_sodium.dll\" -d \"extension=php_sqlite3.dll\" -d \"extension=php_sysvshm.dll\" -d \"extension=php_tidy.dll\" " +
-                        $"-d \"extension=php_xsl.dll\" -d \"extension=php_zend_test.dll\" -d \"extension=php_zip.dll\" \"{FilePath}\"";
-                    }
-                    else
-                    {
-                        proc.StartInfo.Arguments = $"-q -d \"error_reporting=E_ALL\" -d \"display_errors={HTTPSServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
-                        $"-d \"extension_dir='{$@"{phppath}/{phpver}/ext/"}'\" -d \"extension=php_bz2.dll\" " +
-                        $"-d \"extension=php_com_dotnet.dll\" -d \"extension=php_curl.dll\" -d \"extension=php_dba.dll\" -d \"extension=php_dl_test.dll\" -d \"extension=php_enchant.dll\" " +
-                        $"-d \"extension=php_exif.dll\" -d \"extension=php_ffi.dll\" -d \"extension=php_fileinfo.dll\" -d \"extension=php_ftp.dll\" -d \"extension=php_gd.dll\" -d \"extension=php_gettext.dll\" " +
-                        $"-d \"extension=php_gmp.dll\" -d \"extension=php_imap.dll\" -d \"extension=php_intl.dll\" -d \"extension=php_ldap.dll\" -d \"extension=php_mbstring.dll\" " +
-                        $"-d \"extension=php_mysqli.dll\" -d \"extension=php_odbc.dll\" -d \"extension=php_openssl.dll\" " +
-                        $"-d \"extension=php_pdo_mysql.dll\" -d \"extension=php_pdo_odbc.dll\" -d \"extension=php_pdo_pgsql.dll\" " +
-                        $"-d \"extension=php_pdo_sqlite.dll\" -d \"extension=php_pgsql.dll\" -d \"extension=php_shmop.dll\" -d \"extension=php_snmp.dll\" -d \"extension=php_soap.dll\" " +
-                        $"-d \"extension=php_sockets.dll\" -d \"extension=php_sodium.dll\" -d \"extension=php_sqlite3.dll\" -d \"extension=php_sysvshm.dll\" -d \"extension=php_tidy.dll\" " +
-                        $"-d \"extension=php_xsl.dll\" -d \"extension=php_zend_test.dll\" -d \"extension=php_zip.dll\" -d \"post_data={postData}\" \"{FilePath}\"";
-                    }
-                }
-                else
-                {
-                    if (postData == null)
-                    {
-                        proc.StartInfo.Arguments = $"-q -d \"error_reporting=E_ALL\" -d \"display_errors={HTTPSServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
-                        $"-d \"extension_dir='{$@"{phppath}/{phpver}/ext/"}'\" -d \"extension=php_bz2.so\" " +
-                        $"-d \"extension=php_com_dotnet.so\" -d \"extension=php_curl.so\" -d \"extension=php_dba.so\" -d \"extension=php_dl_test.so\" -d \"extension=php_enchant.so\" " +
-                        $"-d \"extension=php_exif.so\" -d \"extension=php_ffi.so\" -d \"extension=php_fileinfo.so\" -d \"extension=php_ftp.so\" -d \"extension=php_gd.so\" -d \"extension=php_gettext.so\" " +
-                        $"-d \"extension=php_gmp.so\" -d \"extension=php_imap.so\" -d \"extension=php_intl.so\" -d \"extension=php_ldap.so\" -d \"extension=php_mbstring.so\" " +
-                        $"-d \"extension=php_mysqli.so\" -d \"extension=php_odbc.so\" -d \"extension=php_openssl.so\" " +
-                        $"-d \"extension=php_pdo_mysql.so\" -d \"extension=php_pdo_odbc.so\" -d \"extension=php_pdo_pgsql.so\" " +
-                        $"-d \"extension=php_pdo_sqlite.so\" -d \"extension=php_pgsql.so\" -d \"extension=php_shmop.so\" -d \"extension=php_snmp.so\" -d \"extension=php_soap.so\" " +
-                        $"-d \"extension=php_sockets.so\" -d \"extension=php_sodium.so\" -d \"extension=php_sqlite3.so\" -d \"extension=php_sysvshm.so\" -d \"extension=php_tidy.so\" " +
-                        $"-d \"extension=php_xsl.so\" -d \"extension=php_zend_test.so\" -d \"extension=php_zip.so\" \"{FilePath}\"";
-                    }
-                    else
-                    {
-                        proc.StartInfo.Arguments = $"-q -d \"error_reporting=E_ALL\" -d \"display_errors={HTTPSServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
-                        $"-d \"extension_dir='{$@"{phppath}/{phpver}/ext/"}'\" -d \"extension=php_bz2.so\" " +
-                        $"-d \"extension=php_com_dotnet.so\" -d \"extension=php_curl.so\" -d \"extension=php_dba.so\" -d \"extension=php_dl_test.so\" -d \"extension=php_enchant.so\" " +
-                        $"-d \"extension=php_exif.so\" -d \"extension=php_ffi.so\" -d \"extension=php_fileinfo.so\" -d \"extension=php_ftp.so\" -d \"extension=php_gd.so\" -d \"extension=php_gettext.so\" " +
-                        $"-d \"extension=php_gmp.so\" -d \"extension=php_imap.so\" -d \"extension=php_intl.so\" -d \"extension=php_ldap.so\" -d \"extension=php_mbstring.so\" " +
-                        $"-d \"extension=php_mysqli.so\" -d \"extension=php_odbc.so\" -d \"extension=php_openssl.so\" " +
-                        $"-d \"extension=php_pdo_mysql.so\" -d \"extension=php_pdo_odbc.so\" -d \"extension=php_pdo_pgsql.so\" " +
-                        $"-d \"extension=php_pdo_sqlite.so\" -d \"extension=php_pgsql.so\" -d \"extension=php_shmop.so\" -d \"extension=php_snmp.so\" -d \"extension=php_soap.so\" " +
-                        $"-d \"extension=php_sockets.so\" -d \"extension=php_sodium.so\" -d \"extension=php_sqlite3.so\" -d \"extension=php_sysvshm.so\" -d \"extension=php_tidy.so\" " +
-                        $"-d \"extension=php_xsl.so\" -d \"extension=php_zend_test.so\" -d \"extension=php_zip.so\" -d \"post_data={postData}\" \"{FilePath}\"";
-                    }
-                }
+                proc.StartInfo.Arguments = $"-q -d \"error_reporting=E_ALL\" -d \"display_errors={HTTPSServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
+                             $"-d \"extension_dir='{$@"{phppath}/{phpver}/ext/"}'\" \"{FilePath}\"";
 
                 proc.StartInfo.CreateNoWindow = false;
                 proc.StartInfo.UseShellExecute = false;
@@ -116,7 +62,8 @@ namespace HTTPSecureServerLite.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", VariousUtils.GetPublicIPAddress());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
-                proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ip}:{port}{ctx.Request.Url.RawWithQuery}");
+                proc.StartInfo.EnvironmentVariables.Add("REFERER", ctx.Request.RetrieveHeaderValue("Referer"));
+                proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{ctx.Request.Url.RawWithQuery}");
                 proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", ctx.Request.RetrieveHeaderValue("Cookie"));
                 proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", ctx.Request.RetrieveHeaderValue("Accept"));
                 proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", ctx.Request.RetrieveHeaderValue("Accept-Charset"));
@@ -128,15 +75,21 @@ namespace HTTPSecureServerLite.Extensions
                 proc.Start();
 
                 if (postData != null)
-                    proc.StandardInput.WriteLine(postData);
+                {
+                    // Write request body to standard input, for POST data
+                    using StreamWriter? sw = proc.StandardInput;
+                    sw.BaseStream.Write(postData, 0, postData.Length);
+                }
 
                 using (MemoryStream memoryStream = new())
                 {
                     using (StreamReader reader = proc.StandardOutput)
                     {
+                        int i = 0;
+                        int bytesRead = 0;
+
                         // Read PHP output to memory stream
                         byte[] buffer = new byte[4096];
-                        int bytesRead = 0;
                         while ((bytesRead = reader.BaseStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
                             memoryStream.Write(buffer, 0, bytesRead);
@@ -156,8 +109,6 @@ namespace HTTPSecureServerLite.Extensions
                             if (header.Trim().StartsWith("Set-Cookie:", StringComparison.OrdinalIgnoreCase))
                                 setCookieHeaders.Add(header.Trim());
                         }
-
-                        int i = 0;
 
                         // Add cookies to the HttpListenerResponse
                         foreach (string setCookieHeader in setCookieHeaders)

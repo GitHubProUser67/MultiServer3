@@ -145,7 +145,7 @@ namespace HTTPSecureServerLite
 
             try
             {
-                if (ctx.Request.Url != null)
+                if (!string.IsNullOrEmpty(ctx.Request.Url.RawWithQuery))
                 {
                     if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with a ByteDance crawler!");
@@ -822,7 +822,7 @@ namespace HTTPSecureServerLite
                                     else if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
                                     {
                                         statusCode = HttpStatusCode.PermanentRedirect;
-                                        ctx.Response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{ctx.Request.Url}");
+                                        ctx.Response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{ctx.Request.Url.RawWithQuery}");
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/html";
                                         sent = await ctx.Response.Send();
@@ -1305,7 +1305,7 @@ namespace HTTPSecureServerLite
                                     if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
                                     {
                                         statusCode = HttpStatusCode.PermanentRedirect;
-                                        ctx.Response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{ctx.Request.Url}");
+                                        ctx.Response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{ctx.Request.Url.RawWithQuery}");
                                         ctx.Response.StatusCode = (int)statusCode;
                                         ctx.Response.ContentType = "text/html";
                                         sent = await ctx.Response.Send();
