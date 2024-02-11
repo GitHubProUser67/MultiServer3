@@ -19,6 +19,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
+using BackendProject.WebAPIs.HOMECORE;
 
 namespace HTTPServer
 {
@@ -143,14 +144,12 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
-                                                OHSClass ohs = new(request.Method, absolutepath, version);
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = ohs.ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    res = new OHSClass(request.Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
-                                                ohs.Dispose();
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
@@ -161,14 +160,12 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
 
                                                 string? res = null;
-                                                OuWFClass OuWF = new(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder);
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = OuWF.ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new OuWFClass(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
-                                                OuWF.Dispose();
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
@@ -178,15 +175,12 @@ namespace HTTPServer
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
 
-                                                VEEMEEClass veemee = new(request.Method, absolutepath); 
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    var res = veemee.ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
+                                                    var res = new VEEMEEClass(request.Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
                                                     postdata.Flush();
-
-                                                    veemee.Dispose();
 
                                                     if (string.IsNullOrEmpty(res.Item1))
                                                         response = HttpBuilder.InternalServerError();
@@ -204,7 +198,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new(request.Method, absolutepath);
+                                                NDREAMSClass ndreams = new NDREAMSClass(request.Method, absolutepath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -249,12 +243,11 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
                                                 string? res = null;
-                                                PREMIUMAGENCYClass agency = new(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = agency.ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new PREMIUMAGENCYClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -271,6 +264,24 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
+                                                            case "/publisher/list/":
+                                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
+
+                                                                string? res = null;
+                                                                HOMECOREClass homecore = new(request.Method, absolutepath);
+                                                                if (request.GetDataStream != null)
+                                                                {
+                                                                    using MemoryStream postdata = new();
+                                                                    request.GetDataStream.CopyTo(postdata);
+                                                                    res = homecore.ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
+                                                                    postdata.Flush();
+                                                                }
+                                                                homecore.Dispose();
+                                                                if (string.IsNullOrEmpty(res))
+                                                                    response = HttpBuilder.InternalServerError();
+                                                                else
+                                                                    response = HttpResponse.Send(res, "text/xml");
+                                                                break;
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;

@@ -2,9 +2,12 @@
 using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using BackendProject.WebAPIs;
+using BackendProject.WebAPIs.HOMECORE;
 using BackendProject.WebAPIs.NDREAMS;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
+using BackendProject.WeBAPIs.HELLFIRE;
+using BackendProject.WeBAPIs.VEEMEE;
 using CustomLogger;
 using HttpMultipartParser;
 using Newtonsoft.Json;
@@ -313,9 +316,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
-                    BackendProject.WeBAPIs.VEEMEE.VEEMEEClass veemee = new(ctx.Request.Method.ToString(), absolutepath); // Todo, loss of GET informations.
-                    var res = veemee.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
-                    veemee.Dispose();
+                    (string?, string?) res = new VEEMEEClass(ctx.Request.Method.ToString(), absolutepath).ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
                     if (string.IsNullOrEmpty(res.Item1))
                         statusCode = HttpStatusCode.InternalServerError;
                     else
@@ -334,9 +335,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
-                    NDREAMSClass ndreams = new(ctx.Request.Method.ToString(), absolutepath);
-                    string? res = ndreams.ProcessRequest(null, ctx.Request.DataAsBytes, ctx.Request.ContentType);
-                    ndreams.Dispose();
+                    string? res = new NDREAMSClass(ctx.Request.Method.ToString(), absolutepath).ProcessRequest(null, ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     if (string.IsNullOrEmpty(res))
                     {
                         ctx.Response.ContentType = "text/plain";
@@ -355,9 +354,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                    BackendProject.WeBAPIs.HELLFIRE.HELLFIREClass hellfire = new(ctx.Request.Method.ToString(), HTTPUtils.RemoveQueryString(absolutepath));
-                    string? res = hellfire.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
-                    hellfire.Dispose();
+                    string? res = new HELLFIREClass(ctx.Request.Method.ToString(), HTTPUtils.RemoveQueryString(absolutepath)).ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     if (string.IsNullOrEmpty(res))
                         statusCode = HttpStatusCode.InternalServerError;
                     else
@@ -373,9 +370,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
-                    OHSClass ohs = new(ctx.Request.Method.ToString(), absolutepath, 0);
-                    string? res = ohs.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, apiPath);
-                    ohs.Dispose();
+                    string? res = new OHSClass(ctx.Request.Method.ToString(), absolutepath, 0).ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, apiPath);
                     if (string.IsNullOrEmpty(res))
                     {
                         ctx.Response.ContentType = "text/plain";
@@ -395,9 +390,7 @@ namespace HTTPSecureServerLite
                 {
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
-                    PREMIUMAGENCYClass agency = new(ctx.Request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder);
-                    string? res = agency.ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
-                    agency.Dispose();
+                    string? res = new PREMIUMAGENCYClass(ctx.Request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType);
                     if (string.IsNullOrEmpty(res))
                     {
                         ctx.Response.ContentType = "text/plain";
@@ -579,6 +572,24 @@ namespace HTTPSecureServerLite
                                             }
                                         }
                                     }
+                                    break;
+                                case "/publisher/list/":
+                                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
+
+                                    string? res = new HOMECOREClass(ctx.Request.Method.ToString(), absolutepath).ProcessRequest(ctx.Request.DataAsBytes, ctx.Request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
+                                    if (string.IsNullOrEmpty(res))
+                                    {
+                                        ctx.Response.ContentType = "text/plain";
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                    }
+                                    else
+                                    {
+                                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        ctx.Response.ContentType = "text/xml";
+                                        statusCode = HttpStatusCode.OK;
+                                    }
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    sent = await ctx.Response.Send(res);
                                     break;
                                 case "/robots.txt": // Get Away Google.
                                     statusCode = HttpStatusCode.OK;
