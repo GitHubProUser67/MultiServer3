@@ -890,36 +890,32 @@ namespace BackendProject.MiscUtils
                 // Try using Google DNS (8.8.8.8) first
                 foreach (IPAddress googleDnsAddress in Dns.GetHostAddresses("8.8.8.8"))
                 {
-                    using (Ping ping = new())
+                    using Ping ping = new();
+                    try
                     {
-                        try
+                        if (ping.Send(googleDnsAddress).Status == IPStatus.Success)
                         {
-                            if (ping.Send(googleDnsAddress).Status == IPStatus.Success)
+                            // If successful, use the resolved IP address for the original host
+                            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+                            foreach (IPAddress address in addresses)
                             {
-                                // If successful, use the resolved IP address for the original host
-                                IPAddress[] addresses = Dns.GetHostAddresses(hostName);
-                                foreach (IPAddress address in addresses)
+                                using Ping hostPing = new();
+                                try
                                 {
-                                    using (Ping hostPing = new())
-                                    {
-                                        try
-                                        {
-                                            PingReply hostReply = hostPing.Send(address);
-                                            if (hostReply.Status == IPStatus.Success)
-                                                return address.ToString();
-                                        }
-                                        catch (PingException)
-                                        {
-                                            continue;
-                                        }
-                                    }
+                                    PingReply hostReply = hostPing.Send(address);
+                                    if (hostReply.Status == IPStatus.Success)
+                                        return address.ToString();
+                                }
+                                catch (PingException)
+                                {
+                                    continue;
                                 }
                             }
                         }
-                        catch (PingException)
-                        {
-                            continue;
-                        }
+                    }
+                    catch (PingException)
+                    {
+                        continue;
                     }
                 }
 
@@ -928,18 +924,16 @@ namespace BackendProject.MiscUtils
                 {
                     foreach (IPAddress address in Dns.GetHostAddresses(hostName))
                     {
-                        using (Ping ping = new())
+                        using Ping ping = new();
+                        try
                         {
-                            try
-                            {
-                                PingReply reply = ping.Send(address);
-                                if (reply.Status == IPStatus.Success)
-                                    return address.ToString();
-                            }
-                            catch (PingException)
-                            {
-                                continue;
-                            }
+                            PingReply reply = ping.Send(address);
+                            if (reply.Status == IPStatus.Success)
+                                return address.ToString();
+                        }
+                        catch (PingException)
+                        {
+                            continue;
                         }
                     }
                 }
@@ -947,18 +941,16 @@ namespace BackendProject.MiscUtils
                 {
                     foreach (IPAddress address in Dns.GetHostEntry(hostName).AddressList)
                     {
-                        using (Ping ping = new())
+                        using Ping ping = new();
+                        try
                         {
-                            try
-                            {
-                                PingReply reply = ping.Send(address);
-                                if (reply.Status == IPStatus.Success)
-                                    return address.ToString();
-                            }
-                            catch (PingException)
-                            {
-                                continue;
-                            }
+                            PingReply reply = ping.Send(address);
+                            if (reply.Status == IPStatus.Success)
+                                return address.ToString();
+                        }
+                        catch (PingException)
+                        {
+                            continue;
                         }
                     }
                 }
@@ -976,12 +968,14 @@ namespace BackendProject.MiscUtils
         /// <para>Savoir si le port TCP en question est disponible.</para>
         /// </summary>
         /// <param name="port">The port on which we scan.</param>
+        /// <param name="ip">The optional ip on which we scan.</param>
         /// <returns>A boolean.</returns>
-        public static bool IsTCPPortAvailable(int port)
+        public static bool IsTCPPortAvailable(int port, string ip = "localhost")
         {
             try
             {
-                new TcpClient().Connect(IPAddress.Loopback, port);
+                using TcpClient client = new(ip, port);
+                client.Close();
             }
             catch (Exception)
             {
@@ -998,12 +992,13 @@ namespace BackendProject.MiscUtils
         /// <para>Savoir si le port UDP en question est disponible.</para>
         /// </summary>
         /// <param name="port">The port on which we scan.</param>
+        /// <param name="ip">The optional ip on which we scan.</param>
         /// <returns>A boolean.</returns>
-        public static bool IsUDPPortAvailable(int port)
+        public static bool IsUDPPortAvailable(int port, string ip = "localhost")
         {
             try
             {
-                using (UdpClient udpClient = new(port))
+                using (UdpClient udpClient = new(ip, port))
                 {
                     udpClient.Close();
                 }

@@ -82,6 +82,14 @@ namespace HTTPServer
                 HttpStatusCode = HttpStatusCode.MethodNotAllowed,
             };
         }
+
+        public static HttpResponse MissingParameters()
+        {
+            return new HttpResponse(false)
+            {
+                HttpStatusCode = HttpStatusCode.Missing_parameters,
+            };
+        }
         #endregion
     }
 }

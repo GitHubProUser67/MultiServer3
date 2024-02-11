@@ -58,7 +58,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                             }
                         }
 
-                        return new HttpResponse(false)
+                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
@@ -71,7 +71,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "POST",
                     Host = "master10.doublefusion.com",
                     Callable = (HttpRequest request) => {
-                        return new HttpResponse(false)
+                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
@@ -84,7 +84,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = "onlineconfigservice.ubi.com",
                     Callable = (HttpRequest request) => {
-                        return HttpResponse.Send(BackendProject.WebAPIs.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters["onlineConfigID"]), "application/json; charset=utf-8");
+                        return HttpResponse.Send(BackendProject.WebAPIs.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters?["onlineConfigID"]), "application/json; charset=utf-8");
                      }
                 },
                 new() {
@@ -123,7 +123,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                             }
                         }
 
-                        return new HttpResponse(false)
+                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
@@ -143,7 +143,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                 return HttpResponse.Send(UFCResult, "text/xml");
                         }
 
-                        return new HttpResponse(false)
+                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                             {
                                 HttpStatusCode = HttpStatusCode.InternalServerError,
                                 ContentAsUTF8 = string.Empty
