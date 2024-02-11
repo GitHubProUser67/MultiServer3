@@ -24,6 +24,7 @@ namespace HTTPServer.Models
         Not_Found = 404,
         MethodNotAllowed = 405,
         RangeNotSatisfiable = 416,
+        Missing_parameters = 422,
         InternalServerError = 500,
         NotImplemented = 501,
         BadGateway = 502,

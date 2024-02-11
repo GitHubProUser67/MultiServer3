@@ -19,11 +19,11 @@ namespace HTTPServer.RouteHandlers
                 return HttpBuilder.NotFound();
         }
 
-        public static HttpResponse HandleHEAD(string local_path)
+        public static HttpResponse HandleHEAD(HttpRequest request, string local_path)
         {
             if (File.Exists(local_path))
             {
-                HttpResponse response = new(false)
+                HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive")
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
@@ -74,12 +74,12 @@ namespace HTTPServer.RouteHandlers
                 }
             }
             if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
             else
-                response = new(false)
+                response = new(request.GetHeaderValue("Connection") == "keep-alive")
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
@@ -100,7 +100,7 @@ namespace HTTPServer.RouteHandlers
         {
             string? encoding = request.GetHeaderValue("Accept-Encoding");
 
-            HttpResponse response = new(false)
+            HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive")
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
@@ -116,9 +116,9 @@ namespace HTTPServer.RouteHandlers
             return response;
         }
 
-        public static HttpResponse Handle_ByteSubmit_Download(byte[]? Data, string FileName)
+        public static HttpResponse Handle_ByteSubmit_Download(HttpRequest request, byte[]? Data, string FileName)
         {
-            HttpResponse response = new(false);
+            HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive");
             if (Data != null)
             {
                 response.HttpStatusCode = HttpStatusCode.OK;
@@ -182,7 +182,7 @@ namespace HTTPServer.RouteHandlers
                     }
                 }
 
-                return new HttpResponse(false)
+                return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                 {
                     HttpStatusCode = HttpStatusCode.Not_Found,
                     ContentAsUTF8 = string.Empty

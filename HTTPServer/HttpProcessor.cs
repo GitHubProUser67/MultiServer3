@@ -18,6 +18,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Collections.Specialized;
 
 namespace HTTPServer
 {
@@ -60,7 +61,7 @@ namespace HTTPServer
             return false;
         }
 
-        public void HandleClient(TcpClient tcpClient)
+        public void HandleClient(TcpClient tcpClient, int ListenerPort)
         {
             try
             {
@@ -276,6 +277,29 @@ namespace HTTPServer
                                                             case "/robots.txt":
                                                                 response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
                                                                 break;
+                                                            case "/!player":
+                                                            case "/!player/":
+                                                                // We want to check if the router allows external IPs first.
+                                                                string ServerIP = VariousUtils.GetPublicIPAddress(true);
+                                                                try
+                                                                {
+                                                                    using TcpClient client = new(ServerIP, ListenerPort);
+                                                                    client.Close();
+                                                                }
+                                                                catch (Exception) // Failed to connect, so we fallback to local IP.
+                                                                {
+                                                                    ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                                                                }
+                                                                if (ServerIP.Length > 15)
+                                                                    ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
+                                                                WebVideoPlayer? WebPlayer = new((request.QueryParameters ?? new Dictionary<string, string>()).Aggregate(new NameValueCollection(),
+                                                                    (seed, current) => {
+                                                                        seed.Add(current.Key, current.Value);
+                                                                        return seed;
+                                                                    }), $"http://{ServerIP}/!webvideo/?");
+                                                                response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
+                                                                WebPlayer = null;
+                                                                break;
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.GetHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -290,7 +314,7 @@ namespace HTTPServer
                                                                             response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
                                                                                 Models.HttpStatusCode.OK);
                                                                         else
-                                                                            response = new HttpResponse(false)
+                                                                            response = new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                                                                             {
                                                                                 HttpStatusCode = Models.HttpStatusCode.OK,
                                                                                 ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
@@ -299,7 +323,7 @@ namespace HTTPServer
                                                                             };
                                                                     }
                                                                     else
-                                                                        response = new HttpResponse(false)
+                                                                        response = new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
                                                                         {
                                                                             HttpStatusCode = Models.HttpStatusCode.OK,
                                                                             ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
@@ -357,7 +381,7 @@ namespace HTTPServer
                                                                 {
                                                                     var makeres = HomeToolsInterface.MakeBarSdat(request.GetDataStream, request.GetContentType());
                                                                     if (makeres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(makeres.Value.Item1, makeres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -369,7 +393,7 @@ namespace HTTPServer
                                                                 {
                                                                     var unbarres = HomeToolsInterface.UnBarAsync(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                     if (unbarres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(unbarres.Value.Item1, unbarres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -381,7 +405,7 @@ namespace HTTPServer
                                                                 {
                                                                     var cdsres = HomeToolsInterface.CDS(request.GetDataStream, request.GetContentType());
                                                                     if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -393,7 +417,7 @@ namespace HTTPServer
                                                                 {
                                                                     var cdsres = HomeToolsInterface.CDSBruteforceAsync(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                     if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -405,7 +429,7 @@ namespace HTTPServer
                                                                 {
                                                                     var cdsres = HomeToolsInterface.HCDBUnpack(request.GetDataStream, request.GetContentType());
                                                                     if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(cdsres.Value.Item1, cdsres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -417,7 +441,7 @@ namespace HTTPServer
                                                                 {
                                                                     var ticketlistres = HomeToolsInterface.TicketList(request.GetDataStream, request.GetContentType());
                                                                     if (ticketlistres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(ticketlistres.Value.Item1, ticketlistres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, ticketlistres.Value.Item1, ticketlistres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -429,7 +453,7 @@ namespace HTTPServer
                                                                 {
                                                                     var infres = HomeToolsInterface.INF(request.GetDataStream, request.GetContentType());
                                                                     if (infres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(infres.Value.Item1, infres.Value.Item2);
+                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, infres.Value.Item1, infres.Value.Item2);
                                                                     else
                                                                         response = HttpBuilder.InternalServerError();
                                                                 }
@@ -528,7 +552,40 @@ namespace HTTPServer
                                                         response = HttpBuilder.NotAllowed();
                                                         break;
                                                     case "HEAD":
-                                                        response = FileSystemRouteHandler.HandleHEAD(filePath);
+                                                        switch (absolutepath)
+                                                        {
+                                                            case "/!webvideo":
+                                                            case "/!webvideo/":
+                                                                if (request.GetHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
+                                                                    response = HttpBuilder.NotAllowed();
+                                                                else
+                                                                {
+                                                                    Dictionary<string, string>? QueryDic = request.QueryParameters;
+                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
+                                                                    {
+                                                                        WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
+                                                                        if (vid != null && vid.Available && vid.VideoStream != null)
+                                                                        {
+                                                                            using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
+                                                                            response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                                                                            {
+                                                                                HttpStatusCode = Models.HttpStatusCode.OK
+                                                                            };
+                                                                            response.Headers.Add("Content-Type", vid.ContentType);
+                                                                            response.Headers.Add("Content-Length", ms.Length.ToString());
+                                                                            ms.Flush();
+                                                                        }
+                                                                        else
+                                                                            response = HttpBuilder.InternalServerError();
+                                                                    }
+                                                                    else
+                                                                        response = HttpBuilder.MissingParameters();
+                                                                }
+                                                                break;
+                                                            default:
+                                                                response = FileSystemRouteHandler.HandleHEAD(request, filePath);
+                                                                break;
+                                                        }
                                                         break;
                                                     case "OPTIONS":
                                                         response = HttpBuilder.OK();
@@ -807,7 +864,7 @@ namespace HTTPServer
 
                                 ms.Flush();
                                 ms.Close();
-                                response = new(false)
+                                response = new(request.GetHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
                                 };
@@ -827,12 +884,12 @@ namespace HTTPServer
                                 ms.Flush();
                                 ms.Close();
                                 if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                                    response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                                    response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                                     {
                                         HttpStatusCode = Models.HttpStatusCode.OK
                                     };
                                 else
-                                    response = new(false)
+                                    response = new(request.GetHeaderValue("Connection") == "keep-alive")
                                     {
                                         HttpStatusCode = Models.HttpStatusCode.OK
                                     };
@@ -974,7 +1031,7 @@ namespace HTTPServer
                             "        </body>\r\n" +
                             "</html>";
 
-                        response = new(false)
+                        response = new(request.GetHeaderValue("Connection") == "keep-alive")
                         {
                             HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
                         };
@@ -1004,12 +1061,12 @@ namespace HTTPServer
                             }
                         }
                         if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new(false, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                            response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                             {
                                 HttpStatusCode = Models.HttpStatusCode.OK
                             };
                         else
-                            response = new(false)
+                            response = new(request.GetHeaderValue("Connection") == "keep-alive")
                             {
                                 HttpStatusCode = Models.HttpStatusCode.OK
                             };
