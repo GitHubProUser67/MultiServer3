@@ -234,8 +234,6 @@ namespace SVO
                         await PlayStationHome.Home_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/motorstorm3ps3_xml/"))
                         await MotorStormApocalypse.MSApocalypse_SVO(ctx.Request, ctx.Response);
-                    else if (absolutepath.Contains("/wox_ws/"))
-                        await WipeoutHD.WipeoutHD_OTG(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BUZZPS3_SVML/"))
                         await BuzzQuizGame.BuzzQuizGame_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BOURBON_XML/"))
@@ -260,7 +258,7 @@ namespace SVO
                             ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
 
-                            byte[] FileContent = await File.ReadAllBytesAsync(filePath);
+                            byte[] FileContent = File.ReadAllBytes(filePath);
 
                             if (ctx.Response.OutputStream.CanWrite)
                             {

@@ -118,7 +118,6 @@ namespace SVO
             }
 #endif
 
-            ctx.Response.ChunkedTransfer = true;
             ctx.Response.Headers.Add("Server", "Microsoft HTTP API 2.0");
 
             if (statusCode == HttpStatusCode.Continue)
@@ -130,6 +129,8 @@ namespace SVO
                         case "POST":
                             if (!string.IsNullOrEmpty(ctx.Request.ContentType))
                             {
+                                ctx.Response.ChunkedTransfer = true;
+
                                 statusCode = HttpStatusCode.OK;
                                 ctx.Response.ContentType = "application/xml;charset=UTF-8";
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -163,14 +164,14 @@ namespace SVO
                                 statusCode = HttpStatusCode.Forbidden;
                                 ctx.Response.StatusCode = (int)statusCode;
                                 ctx.Response.ContentType = "text/plain";
-                                sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                                sent = await ctx.Response.Send();
                             }
                             break;
                         default:
                             statusCode = HttpStatusCode.Forbidden;
                             ctx.Response.StatusCode = (int)statusCode;
                             ctx.Response.ContentType = "text/plain";
-                            sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                            sent = await ctx.Response.Send();
                             break;
                     }
                 }
@@ -184,6 +185,8 @@ namespace SVO
 
                     if (File.Exists(filePath))
                     {
+                        ctx.Response.ChunkedTransfer = true;
+
                         statusCode = HttpStatusCode.OK;
                         ctx.Response.StatusCode = (int)statusCode;
                         ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
@@ -191,14 +194,14 @@ namespace SVO
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.
                         ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                        sent = await ctx.Response.SendFinalChunk(await File.ReadAllBytesAsync(filePath));
+                        sent = await ctx.Response.SendFinalChunk(File.ReadAllBytes(filePath));
                     }
                     else
                     {
                         statusCode = HttpStatusCode.NotFound;
                         ctx.Response.StatusCode = (int)statusCode;
                         ctx.Response.ContentType = "text/plain";
-                        sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                        sent = await ctx.Response.Send();
                     }
                 }
             }
@@ -206,7 +209,7 @@ namespace SVO
             {
                 ctx.Response.StatusCode = (int)statusCode; // Send the other status.
                 ctx.Response.ContentType = "text/plain";
-                sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                sent = await ctx.Response.Send();
             }
 
 #if DEBUG

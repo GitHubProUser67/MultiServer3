@@ -1,7 +1,10 @@
 using BackendProject.MiscUtils;
 using CustomLogger;
+using HttpMultipartParser;
+using System;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 
 namespace SVO
@@ -16,7 +19,7 @@ namespace SVO
                 {
                     ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                     ctx.Response.ContentType = "text/plain";
-                    return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                    return await ctx.Response.Send();
                 }
 
                 string method = ctx.Request.Method.ToString();
@@ -29,6 +32,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -40,6 +44,7 @@ namespace SVO
                                         "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/TicketLogin\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/Friends\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/Friends\"/>" +
+                                        "<DATA dataType=\"URI\" name=\"profileUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/profile/Upload\"/>" +
                                         "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Upload\"/>" +
                                         "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"eulaURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/legal/Eula\"/>" +
@@ -61,7 +66,6 @@ namespace SVO
                                         "<DATA dataType=\"URI\" name=\"ghostDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/ghost/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendActivitiesURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/activities/FriendActivities\"/>" +
                                         "<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/activities/UploadEvents\"/>" +
-                                        //"<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"https://43.194.208.246:10080/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
                                         "<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
                                         "</Start>"));
                         }
@@ -72,6 +76,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -360,6 +365,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -407,6 +413,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -425,6 +432,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -458,6 +466,8 @@ namespace SVO
 
                                 if (cookieHeader != null)
                                 {
+                                    ctx.Response.ChunkedTransfer = true;
+
                                     string[] cookies = cookieHeader.Split(';');
 
                                     foreach (string cookie in cookies)
@@ -490,7 +500,7 @@ namespace SVO
                                 {
                                     ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                                     ctx.Response.ContentType = "text/plain";
-                                    return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                                    return await ctx.Response.Send();
                                 }
                         }
                         break;
@@ -514,6 +524,8 @@ namespace SVO
 
                                 if (cookieHeader != null)
                                 {
+                                    ctx.Response.ChunkedTransfer = true;
+
                                     string[] cookies = cookieHeader.Split(';');
 
                                     foreach (string cookie in cookies)
@@ -579,7 +591,7 @@ namespace SVO
                                 {
                                     ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                                     ctx.Response.ContentType = "text/plain";
-                                    return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                                    return await ctx.Response.Send();
                                 }
                         }
                         break;
@@ -589,6 +601,7 @@ namespace SVO
                         switch (method)
                         {
                             case "POST":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 string signature = string.Empty;
 
@@ -697,6 +710,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
@@ -712,6 +726,7 @@ namespace SVO
                         switch (method)
                         {
                             case "GET":
+                                ctx.Response.ChunkedTransfer = true;
 
                                 string leaderboardId = string.Empty;
 
@@ -808,6 +823,8 @@ namespace SVO
 
                                 if (cookieHeader != null)
                                 {
+                                    ctx.Response.ChunkedTransfer = true;
+
                                     string[] cookies = cookieHeader.Split(';');
 
                                     foreach (string cookie in cookies)
@@ -840,12 +857,12 @@ namespace SVO
                                 {
                                     ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                                     ctx.Response.ContentType = "text/plain";
-                                    return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                                    return await ctx.Response.Send();
                                 }
                         }
                         break;
 
-                    case "/wox_ws/rest/binary/Download":
+                    case "/wox_ws/rest/games/PostScore":
 
                         switch (method)
                         {
@@ -864,6 +881,145 @@ namespace SVO
 
                                 if (cookieHeader != null)
                                 {
+                                    ctx.Response.ChunkedTransfer = true;
+
+                                    string[] cookies = cookieHeader.Split(';');
+
+                                    foreach (string cookie in cookies)
+                                    {
+                                        string[] parts = cookie.Trim().Split('=');
+
+                                        string key = parts[0];
+                                        string value = parts[1];
+
+                                        if (key == "name")
+                                            name = value;
+                                        else if (key == "authKey")
+                                            authKey = value;
+                                        else if (key == "timeZone")
+                                            timeZone = value;
+                                        else if (key == "signature")
+                                            signature = value;
+                                        else if (key == "id")
+                                            id = value;
+                                    }
+
+                                    Dictionary<string, string> parameterDictionary = new(); // Query sent are dynamic for this request.
+
+                                    int questionMarkIndex = ctx.Request.Url.RawWithQuery.IndexOf("?");
+                                    if (questionMarkIndex != -1) // If '?' is found
+                                    {
+                                        string trimmedurl = ctx.Request.Url.RawWithQuery[(questionMarkIndex + 1)..];
+                                        foreach (string? UrlArg in System.Web.HttpUtility.ParseQueryString(trimmedurl).AllKeys) // Thank you WebOne.
+                                        {
+                                            if (!string.IsNullOrEmpty(UrlArg))
+                                                parameterDictionary[UrlArg] = System.Web.HttpUtility.ParseQueryString(trimmedurl)[UrlArg] ?? string.Empty;
+                                        }
+                                    }
+
+                                    ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                                    ctx.Response.Headers.Set("Content-Language", string.Empty);
+
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                        "<PostScore>" +
+                                        "</PostScore>"));
+                                }
+                                else
+                                {
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                    ctx.Response.ContentType = "text/plain";
+                                    return await ctx.Response.Send();
+                                }
+                        }
+                        break;
+
+                    case "/wox_ws/rest/lb/GuessRanking":
+
+                        switch (method)
+                        {
+                            case "GET":
+
+                                string name = string.Empty;
+
+                                string authKey = string.Empty;
+
+                                string timeZone = string.Empty;
+
+                                string signature = string.Empty;
+                                string id = string.Empty;
+
+                                string? cookieHeader = ctx.Request.Headers.Get("Cookie");
+
+                                if (cookieHeader != null)
+                                {
+                                    ctx.Response.ChunkedTransfer = true;
+
+                                    string[] cookies = cookieHeader.Split(';');
+
+                                    foreach (string cookie in cookies)
+                                    {
+                                        string[] parts = cookie.Trim().Split('=');
+
+                                        string key = parts[0];
+                                        string value = parts[1];
+
+                                        if (key == "name")
+                                            name = value;
+                                        else if (key == "authKey")
+                                            authKey = value;
+                                        else if (key == "timeZone")
+                                            timeZone = value;
+                                        else if (key == "signature")
+                                            signature = value;
+                                        else if (key == "id")
+                                            id = value;
+                                    }
+
+                                    string leaderboardId = string.Empty;
+                                    if (ctx.Request.QuerystringExists("leaderboardId"))
+                                        leaderboardId = ctx.Request.RetrieveQueryValue("leaderboardId");
+
+                                    ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
+                                    ctx.Response.Headers.Set("Content-Language", string.Empty);
+
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                        "<Leaderboard>" +
+                                        "<GuessRanking>" +
+                                        $"<lb id=\"{leaderboardId}\" tr=\"0\" gm=\"0\" rt=\"4\" sc=\"0\" sId=\"SP_TIME_TRIAL.Venom._01_Track\" url=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/lb/{leaderboardId}\"/>" +
+                                        "</GuessRanking>" +
+                                        "</Leaderboard>"));
+                                }
+                                else
+                                {
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                    ctx.Response.ContentType = "text/plain";
+                                    return await ctx.Response.Send();
+                                }
+                        }
+                        break;
+
+                    case "/wox_ws/rest/binary/Download":
+
+                        switch (method)
+                        {
+                            case "GET":
+                                string name = string.Empty;
+
+                                string authKey = string.Empty;
+
+                                string timeZone = string.Empty;
+
+                                string signature = string.Empty;
+                                string id = string.Empty;
+
+                                string? cookieHeader = ctx.Request.Headers.Get("Cookie");
+
+                                if (cookieHeader != null)
+                                {
+                                    ctx.Response.ChunkedTransfer = true;
+
                                     string[] cookies = cookieHeader.Split(';');
 
                                     foreach (string cookie in cookies)
@@ -889,31 +1045,50 @@ namespace SVO
 
                                     string fileName = ctx.Request.RetrieveQueryValue("filename");
 
-                                    if (File.Exists($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/fileservices/{name}/{fileName}.bin"))
+                                    // Wipeout 2048 is stuck at this stage...
+
+                                    if (!new Regex(@"\.[^.]+$").Match(fileName).Success) // We give a default extension if none found.
+                                        fileName += ".bin";
+
+                                    ctx.Response.ContentType = "application/binary";
+
+                                    if (File.Exists($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/rest/fileservices/{name}/{fileName}"))
                                     {
                                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                        ctx.Response.ContentType = "application/binary";
-                                        return await ctx.Response.SendFinalChunk(await File.ReadAllBytesAsync($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/fileservices/{name}/{fileName}.bin"));
+                                        return await ctx.Response.SendFinalChunk(File.ReadAllBytes($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/rest/fileservices/{name}/{fileName}"));
+                                    }
+                                    else if (fileName == "PROFILE.bin") // Game always expect a file to be sent even if it not exist.
+                                    {
+                                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                        return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes("<?xml version=\"3.0\"?>\n" +
+                                            "<GenStats>\n\t" +
+                                            "<Version>1.0</Version>\n\t" +
+                                            $"<ProfileHash>{SVOProcessor.EXPERIMENTAL_CalcuateOTGSecuredHash("m4nT15")}</ProfileHash>\n\t" +
+                                            "<Stats>\n" +
+                                            "</Stats>\n" +
+                                            "</GenStats>\n")); // This obviously doens't work yet as a response.
                                     }
                                     else
                                     {
+                                        ctx.Response.ChunkedTransfer = false;
+
                                         ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
                                         ctx.Response.ContentType = "text/plain";
-                                        return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                                        return await ctx.Response.Send();
                                     }
                                 }
                                 else
                                 {
                                     ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                                     ctx.Response.ContentType = "text/plain";
-                                    return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                                    return await ctx.Response.Send();
                                 }
                         }
                         break;
                     default:
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                         ctx.Response.ContentType = "text/plain";
-                        return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                        return await ctx.Response.Send();
 
                         #endregion
                 }
@@ -921,11 +1096,15 @@ namespace SVO
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[OTG_HTTPS] - Wipeout2048_OTG thrown an assertion - {ex}");
+
+                ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                ctx.Response.ContentType = "text/plain";
+                return await ctx.Response.Send();
             }
 
-            ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            ctx.Response.StatusCode = (int)HttpStatusCode.NotImplemented;
             ctx.Response.ContentType = "text/plain";
-            return await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+            return await ctx.Response.Send();
         }
     }
 }
