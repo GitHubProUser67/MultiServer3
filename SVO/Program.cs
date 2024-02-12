@@ -119,7 +119,7 @@ class Program
             LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new OTGHTTPSServer(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty").StartSecureOTG(),
+                    () => new OTGSecureServerLite(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty", "0.0.0.0", 10062).StartServer(), // 0.0.0.0 as the certificate binds to this ip.
                     async () => await SVOManager.StartTickPooling(),
                     () => RefreshConfig()
                 ));

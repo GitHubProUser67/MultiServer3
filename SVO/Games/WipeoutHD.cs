@@ -33,10 +33,7 @@ namespace SVO
                                     response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                     response.Headers.Set("Content-Language", string.Empty);
 
-                                    byte[]? uriStore = null;
-
-                                    if (SVOServerConfiguration.SVOHTTPSBypass)
-                                        uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                    byte[]? uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<Start>" +
                                             "<DATA dataType=\"URI\" name=\"startURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/main/Start\"/>" +
                                             "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/TicketLogin\"/>" +
@@ -53,37 +50,6 @@ namespace SVO
                                             "<DATA dataType=\"URI\" name=\"leaderboardsPageURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetPage\"/>" +
                                             "<DATA dataType=\"URI\" name=\"mediusStatsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetMediusStats\"/>" +
                                             "<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetPlayerTimes\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"guessRankingURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GuessRanking\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"rankedConfigURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetRankedConfig\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboardScoreRangeURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/GetLeaderboardRange\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboards2048URL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/{leaderboardId}\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboards2048PageURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/GetPage\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboards2048XPURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/GetXPLeaderboard\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"ghostUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/ghost/Upload\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"ghostDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/ghost/Download\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"friendActivitiesURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/activities/FriendActivities\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"uploadEventsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/activities/UploadEvents\"/>" +
-                                            //"<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"http://43.194.208.246:10080/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"frameDataUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/FrameRateAnalizer/gui/main/uploadFrameData\"/>" +
-                                            "</Start>");
-                                    else
-                                        uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                            "<Start>" +
-                                            "<DATA dataType=\"URI\" name=\"startURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/main/Start\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/TicketLogin\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"friendsUploadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/Friends\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"friendsDownloadURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/account/Friends\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Upload\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Download\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"eulaURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/legal/Eula\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"announcementsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/legal/Announcements\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"postScoreURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/games/PostScore\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"postWO2048ScoreURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/games/PostWO2048Score\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboardsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/{leaderboardId}\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboardsListURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetList\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"leaderboardsPageURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetPage\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"mediusStatsURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetMediusStats\"/>" +
-                                            "<DATA dataType=\"URI\" name=\"playerTimesURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/lb/GetPlayerTimes\"/>" +
                                             "<DATA dataType=\"URI\" name=\"guessRankingURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GuessRanking\"/>" +
                                             "<DATA dataType=\"URI\" name=\"rankedConfigURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lb/GetRankedConfig\"/>" +
                                             "<DATA dataType=\"URI\" name=\"leaderboardScoreRangeURL\" value=\"http://wipeout2048.online.scee.com:10060/wox_ws/rest/lbNGP/GetLeaderboardRange\"/>" +
@@ -809,9 +775,9 @@ namespace SVO
                                         psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
                                         if (VariousUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
-                                            LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
+                                            LoggerAccessor.LogInfo($"OTG : User {psnname} logged in and is on RPCN");
                                         else
-                                            LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on PSN");
+                                            LoggerAccessor.LogInfo($"OTG : User {psnname} logged in and is on PSN");
 
                                         ms.Flush();
                                     }
@@ -956,7 +922,7 @@ namespace SVO
 
                                     byte[] GetPageData;
 
-                                    if (filterMode != string.Empty)
+                                    if (!string.IsNullOrEmpty(filterMode))
                                     {
                                         GetPageData = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<Leaderboard>" +
