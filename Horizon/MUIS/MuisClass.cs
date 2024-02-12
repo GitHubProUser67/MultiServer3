@@ -507,7 +507,7 @@ namespace Horizon.MUIS
                         UserCount = 1,
                         MaxUsers = 256,
                         Endpoint = iptofile,
-                        SvoURL = $"http://{iptofile}:10060/wox_ws/rest/main/Start ",
+                        SvoURL = $"https://{iptofile}:10062/wox_ws/rest/main/Start ",
                         ExtendedInfo = null,
                         UniverseBilling = null,
                         BillingSystemName = null,

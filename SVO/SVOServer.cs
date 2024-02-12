@@ -93,7 +93,7 @@ namespace SVO
                 listener = new HttpListener();
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
+                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
                 listener.Start();
             }
             catch (Exception e)
@@ -154,7 +154,7 @@ namespace SVO
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
                     else
                     {
-                        if (ctx.Request.Url != null && ctx.Request.Url.AbsolutePath != null && ctx.Request.Url.LocalPath != null)
+                        if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
                         {
                             LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
                             // get filename path
