@@ -882,62 +882,13 @@ namespace BackendProject.MiscUtils
         /// </summary>
         /// <param name="hostName">The domain on which we search.</param>
         /// <param name="fallback">The fallback IP if we fail to find any results</param>
+        /// <param name="RequirePing">If we want to check if domain respond to a Ping</param>
         /// <returns>A string.</returns>
-        public static string GetFirstActiveIPAddress(string hostName, string fallback)
+        public static string GetFirstActiveIPAddress(string hostName, string fallback, bool RequirePing = false)
         {
             try
             {
-                // Try using Google DNS (8.8.8.8) first
-                foreach (IPAddress googleDnsAddress in Dns.GetHostAddresses("8.8.8.8"))
-                {
-                    using Ping ping = new();
-                    try
-                    {
-                        if (ping.Send(googleDnsAddress).Status == IPStatus.Success)
-                        {
-                            // If successful, use the resolved IP address for the original host
-                            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
-                            foreach (IPAddress address in addresses)
-                            {
-                                using Ping hostPing = new();
-                                try
-                                {
-                                    PingReply hostReply = hostPing.Send(address);
-                                    if (hostReply.Status == IPStatus.Success)
-                                        return address.ToString();
-                                }
-                                catch (PingException)
-                                {
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-                    catch (PingException)
-                    {
-                        continue;
-                    }
-                }
-
-                // If Google DNS resolution fails, fall back to the existing logic
-                if (IsWindows())
-                {
-                    foreach (IPAddress address in Dns.GetHostAddresses(hostName))
-                    {
-                        using Ping ping = new();
-                        try
-                        {
-                            PingReply reply = ping.Send(address);
-                            if (reply.Status == IPStatus.Success)
-                                return address.ToString();
-                        }
-                        catch (PingException)
-                        {
-                            continue;
-                        }
-                    }
-                }
-                else
+                if (RequirePing)
                 {
                     foreach (IPAddress address in Dns.GetHostEntry(hostName).AddressList)
                     {
@@ -954,6 +905,8 @@ namespace BackendProject.MiscUtils
                         }
                     }
                 }
+                else
+                    return Dns.GetHostEntry(hostName).AddressList.FirstOrDefault()?.ToString() ?? fallback;
             }
             catch (Exception)
             {
