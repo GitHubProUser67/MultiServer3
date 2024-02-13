@@ -564,28 +564,10 @@ namespace SVO
                                         fs.Flush();
                                     }
 
-                                    /*if (ctx.Request.HeaderExists("Expect"))
-                                    {
-                                        // Split the input string by '-'
-                                        string[] parts = ctx.Request.RetrieveHeaderValue("Expect").Split('-');
-
-                                        if (parts.Length == 2)
-                                        {
-                                            // Parse the first part as an integer
-                                            if (int.TryParse(parts[0], out int intValue))
-                                                ctx.Response.StatusCode = intValue;
-                                            else
-                                                ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                                        }
-                                        else
-                                            ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                                    }
-                                    else
-                                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;*/
-
                                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;
 
-                                    return await ctx.Response.SendFinalChunk(buffer);
+                                    return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                       "<Friends><status value=\"0\"/></Friends>"));
                                 }
                                 else
                                 {
