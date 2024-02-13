@@ -34,7 +34,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -66,7 +66,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -192,7 +192,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -309,7 +309,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -438,7 +438,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -493,7 +493,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -547,7 +547,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -639,7 +639,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -699,7 +699,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -750,7 +750,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -989,7 +989,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1077,7 +1077,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1132,7 +1132,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1190,7 +1190,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1242,7 +1242,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1295,7 +1295,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1351,7 +1351,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -1404,7 +1404,7 @@ namespace SVO
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
