@@ -149,21 +149,29 @@ namespace SVO
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
                 else
                 {
-                    string? UserAgent = ctx.Request.UserAgent.ToLower();
-                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
-                    else
+                    try
                     {
-                        if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
+                        string? UserAgent = ctx.Request.UserAgent.ToLower();
+                        if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                         {
-                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
-                            // get filename path
-                            absolutepath = ctx.Request.Url.AbsolutePath;
-                            isok = true;
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
                         }
-                        else
-                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid parameters!");
                     }
+                    catch (Exception)
+                    {
+
+                    }
+
+                    if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
+                    {
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                        // get filename path
+                        absolutepath = ctx.Request.Url.AbsolutePath;
+                        isok = true;
+                    }
+                    else
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid parameters!");
                 }
             }
             catch (Exception)
@@ -240,6 +248,8 @@ namespace SVO
                         await Starhawk.Starhawk_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/SOCOMCF_SVML/"))
                         await SocomConfrontation.SocomConfrontation_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/SINGSTARPS3_SVML/"))
+                        await SingStar.Singstar_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/TWISTEDMETALX_XML/"))
                         await TwistedMetalX.TwistedMetalX_SVO(ctx.Request, ctx.Response);
                     else
