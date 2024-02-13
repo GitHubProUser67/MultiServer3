@@ -44,7 +44,6 @@ namespace SVO
                                         "<DATA dataType=\"URI\" name=\"ticketLoginURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/TicketLogin\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/Friends\"/>" +
                                         "<DATA dataType=\"URI\" name=\"friendsDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/account/Friends\"/>" +
-                                        "<DATA dataType=\"URI\" name=\"profileUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/profile/Upload\"/>" +
                                         "<DATA dataType=\"URI\" name=\"binaryUploadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Upload\"/>" +
                                         "<DATA dataType=\"URI\" name=\"binaryDownloadURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/binary/Download\"/>" +
                                         "<DATA dataType=\"URI\" name=\"eulaURL\" value=\"https://wipeout2048.online.scee.com:10062/wox_ws/rest/legal/Eula\"/>" +
