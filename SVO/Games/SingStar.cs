@@ -51,7 +51,7 @@ namespace SVO.Games
                                         if (SVOServerConfiguration.SVOHTTPSBypass)
                                             uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                                             "<SVML>\n" +
-                                            $"    <SET name=\"IP\" IPAddress=\"{VariousUtils.GetPublicIPAddress()}\" />    \r\n" +
+                                            $"    <SET name=\"IP\" IPAddress=\"{request.RemoteEndPoint.Address}\" />    \r\n" +
                                             $"    <DATA dataType=\"DATA\" name=\"createGameURI\" value=\"http://singstar.svo.online.com:10060/SINGSTARPS3_SVML/game/Game_Create.jsp?gameMode=%d\" />\r\n" +
                                             $"    <DATA dataType=\"DATA\" name=\"gamePostBinaryStatsURI\" value=\"http://singstar.svo.online.com:10060/SINGSTARPS3_SVML/game/Game_PostBinaryStats_Submit.jsp\" />\r\n" +
                                             $"    <DATA dataType=\"DATA\" name=\"finishGameURI\" value=\"http://singstar.svo.online.com:10060/SINGSTARPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n" +
@@ -73,7 +73,7 @@ namespace SVO.Games
                                         else
                                             uriStore = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                                             "<SVML>\n" +
-                                            $"    <SET name=\"IP\" IPAddress=\"{VariousUtils.GetPublicIPAddress()}\" />    \r\n" +
+                                            $"    <SET name=\"IP\" IPAddress=\"{request.RemoteEndPoint.Address}\" />    \r\n" +
                                             $"    <DATA dataType=\"DATA\" name=\"createGameURI\" value=\"http://singstar.svo.online.com:10060/SINGSTARPS3_SVML/game/Game_Create.jsp?gameMode=%d\" />\r\n" +
                                             $"    <DATA dataType=\"DATA\" name=\"gamePostBinaryStatsURI\" value=\"http://singstar.svo.online.com:10060/SINGSTARPS3_SVML/game/Game_PostBinaryStats_Submit.jsp\" />\r\n" +
                                             $"    <DATA dataType=\"DATA\" name=\"finishGameURI\" value=\"http://singstar.svo.online.com:10060/SINGSTARPS3_SVML/game/Game_Finish_Submit.jsp\" />\r\n" +
