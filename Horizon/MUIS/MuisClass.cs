@@ -200,7 +200,7 @@ namespace Horizon.MUIS
                     11354, 21914, 21624, 20764, 20371, 20384, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
                     20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
                     20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
-                    10984, 10782, 10421, 10130, 10954, 21784
+                    10984, 10782, 10421, 10130, 10954, 21784, 21564, 21574
                 });
 
                 string? iptofile = SERVER_IP?.ToString();
@@ -975,6 +975,44 @@ namespace Horizon.MUIS
                         UserCount = 1,
                         MaxUsers = 256,
                         SvoURL = $"http://{iptofile}:10060/WTS06_SVML/index.svml ",
+                    }
+                });
+
+                Settings.Universes.Add(21564, new UniverseInfo[]
+                {
+                    new UniverseInfo()
+                    {
+                        Name = "Warhawk",
+                        Description = "US Server",
+                        Status = 1,
+                        UserCount = 1,
+                        MaxUsers = 256,
+                        Endpoint = iptofile,
+                        SvoURL = $"http://{iptofile}:10060/WARHAWK_SVML/index.jsp ",
+                        ExtendedInfo = $"v1.50 http://{iptofile}/medius-patch/warhawk-prod/r016/",
+                        UniverseBilling = "SCEA",
+                        BillingSystemName = "Sony Computer Entertainment America Inc.",
+                        Port = 10075,
+                        UniverseId = 1
+                    }
+                });
+
+                Settings.Universes.Add(21574, new UniverseInfo[]
+                {
+                    new UniverseInfo()
+                    {
+                        Name = "Warhawk",
+                        Description = "EU Server",
+                        Status = 1,
+                        UserCount = 1,
+                        MaxUsers = 256,
+                        Endpoint = iptofile,
+                        SvoURL = $"http://{iptofile}:10060/WARHAWK_SVML/index.jsp ",
+                        ExtendedInfo = $"v1.50 http://{iptofile}/medius-patch/warhawk-prod/r016/",
+                        UniverseBilling = "SCEA",
+                        BillingSystemName = "Sony Computer Entertainment America Inc.",
+                        Port = 10075,
+                        UniverseId = 1
                     }
                 });
 
