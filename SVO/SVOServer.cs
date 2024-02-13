@@ -240,6 +240,8 @@ namespace SVO
                     }
                     else if (absolutepath.Contains("/HUBPS3_SVML/"))
                         await PlayStationHome.Home_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/WARHAWK_SVML/"))
+                        await Warhawk.Warhawk_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/motorstorm3ps3_xml/"))
                         await MotorStormApocalypse.MSApocalypse_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BUZZPS3_SVML/"))

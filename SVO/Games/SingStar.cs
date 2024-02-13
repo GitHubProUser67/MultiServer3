@@ -36,7 +36,7 @@ namespace SVO.Games
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -121,7 +121,7 @@ namespace SVO.Games
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -167,7 +167,7 @@ namespace SVO.Games
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -243,7 +243,7 @@ namespace SVO.Games
                                         response.AppendHeader("Set-Cookie", $"Sig={sig}==; Path=/");
 
                                         byte[] sp_Login = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                                            "<XML action=\"http://scee-home.playstation.net/c.home/prod/live\">\r\n" +
+                                            "<XML>\r\n" +
                                             "    <SP_Login>\r\n" +
                                             "        <status>\r\n" +
                                             "            <id>20600</id>\r\n" +
@@ -284,7 +284,7 @@ namespace SVO.Games
 
                                     string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
 
-                                    if (serverMac == null)
+                                    if (string.IsNullOrEmpty(serverMac))
                                     {
                                         response.StatusCode = (int)HttpStatusCode.Forbidden;
                                         return;
@@ -294,7 +294,7 @@ namespace SVO.Games
                                         response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
 
-                                        byte[] homeEnterWorld = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n" +
+                                        byte[] homeResponse = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n" +
                                             "<SVML>\r\n" +
                                             " <SS:SCREEN name=\"page\">\r\n" +
                                             "   <SS:TEXT name=\"title\" x=\"0\" y=\"40\">My SingStar Online</SS:TEXT>\r\n\r\n" +
@@ -347,8 +347,8 @@ namespace SVO.Games
                                         {
                                             try
                                             {
-                                                response.ContentLength64 = homeEnterWorld.Length;
-                                                response.OutputStream.Write(homeEnterWorld, 0, homeEnterWorld.Length);
+                                                response.ContentLength64 = homeResponse.Length;
+                                                response.OutputStream.Write(homeResponse, 0, homeResponse.Length);
                                             }
                                             catch (Exception)
                                             {
