@@ -690,7 +690,19 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
+                        if (request.Headers.ContainsKey("If-Modified-Since") && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(filePath).LastWriteTimeUtc)
+                        {
+                            response.Headers.Clear();
+
+                            response.Headers.Add("ETag", EtagMD5);
+
+                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+                        }
+                        else if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
                         {
                             response.Headers.Clear();
 
@@ -1195,7 +1207,19 @@ namespace HTTPServer
                         {
                             string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
 
-                            if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
+                            if (request.Headers.ContainsKey("If-Modified-Since") && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
+                            {
+                                response.Headers.Clear();
+
+                                response.Headers.Add("ETag", EtagMD5);
+
+                                response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+
+                                WriteLineToStream(stream, response.ToHeader());
+
+                                stream.Flush();
+                            }
+                            else if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
                             {
                                 response.Headers.Clear();
 
