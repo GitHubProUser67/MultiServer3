@@ -172,6 +172,9 @@ namespace BackendProject.MiscUtils
         "homeec.scej-nbs.jp",
         "qa-homect-scej.jp",
         "gp1.wac.edgecastcdn.net",
+        "api.singstar.online.scee.com",
+        "warhawk-prod3.svo.online.scea.com",
+        "singstar.svo.online.com",
         "example.com"
         };
 
