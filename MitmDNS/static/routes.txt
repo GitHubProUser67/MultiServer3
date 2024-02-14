@@ -138,3 +138,13 @@ gconnect.ubi.com,Redirect,IP
 ndreams.stats.s3.amazonaws.com,Redirect,IP
 gsconnect.ubisoft.com,Redirect,IP
 ghostps3live.quazal.net,Redirect,IP
+easo.ea.com,Redirect,IP
+sing2.online.scee.com,Redirect,IP
+sing3.online.scee.com,Redirect,IP
+sing4.online.scee.com,Redirect,IP
+singstar.svo.online.com,Redirect,IP
+warhawk.ps3.online.scea.com,Redirect,IP
+warhawk-prod3.svo.online.scea.com,Redirect,IP
+warhawk.bwps.online.scee.com,Redirect,54.85.199.52
+singstar.telemetry.online.scea.com,Redirect,IP
+api.singstar.online.scee.com,Redirect,IP
