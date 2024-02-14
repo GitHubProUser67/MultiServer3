@@ -49,7 +49,7 @@ namespace Horizon.HTTPSERVICE
 
                 _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/GetRooms/", async (HttpContextBase ctx) =>
                 {
-                    if (ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
                     {
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                         ctx.Response.ContentType = "text/plain";
@@ -73,7 +73,7 @@ namespace Horizon.HTTPSERVICE
 
                 _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/favicon.ico", async (HttpContextBase ctx) =>
                 {
-                    if (ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
                     {
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                         ctx.Response.ContentType = "text/plain";
