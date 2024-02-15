@@ -475,7 +475,7 @@ namespace Horizon.MUM
             try
             {
                 if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !string.IsNullOrEmpty(client.AccountName))
-                    CrudRoomManager.RemoveUser(client.ApplicationId.ToString(), client.CurrentGame.GameName, client.WorldId.ToString(), client.AccountName);
+                    CrudRoomManager.RemoveUserFromGame(client.ApplicationId.ToString(), client.CurrentGame.GameName, client.WorldId.ToString(), client.AccountName);
 
                 if (PlayerCount <= 1)
                     CrudRoomManager.RemoveGame(client.ApplicationId.ToString(), client.WorldId.ToString(), GameName);
@@ -682,7 +682,7 @@ namespace Horizon.MUM
 
             try
             {
-                CrudRoomManager.RemoveGame(appid.ToString(), DMEWorldId.ToString(), GameName);
+                CrudRoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
             }
             catch (Exception)
             {

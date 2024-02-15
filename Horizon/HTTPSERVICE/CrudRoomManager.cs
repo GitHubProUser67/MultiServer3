@@ -64,7 +64,7 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Remove a user from a specific room based on the provided parameters
-        public static void RemoveUser(string appId, string gameName, string worldId, string accountName)
+        public static void RemoveUserFromGame(string appId, string gameName, string worldId, string accountName)
         {
             var roomToRemoveUser = rooms.FirstOrDefault(r => r.AppId == appId);
 

@@ -692,7 +692,7 @@ namespace Horizon.MEDIUS.Medius.Models
             PostStatus();
         }
 
-        public async Task LeaveChannel(Channel channel)
+        public async Task LeaveChannel(Channel? channel)
         {
             if (CurrentChannel != null && CurrentChannel == channel)
             {

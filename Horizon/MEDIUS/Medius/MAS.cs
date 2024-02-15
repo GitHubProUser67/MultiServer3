@@ -66,13 +66,13 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        List<int> pre108ServerComplete = new List<int>() { 10114, 10130, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
+                        List<int> pre108ServerComplete = new() { 10114, 10130, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
 
                         ///<summary>
                         /// Some do not post-108 so we have to account for those too!
                         /// tmheadon 10694 does not for initial
                         /// </summary>
-                        List<int> post108ServerComplete = new List<int>() { 10694 };
+                        List<int> post108ServerComplete = new() { 10694 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
@@ -133,6 +133,36 @@ namespace Horizon.MEDIUS.Medius
                         if (pre108ServerComplete.Contains(data.ApplicationId))
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
+                        if (MediusClass.Settings.HttpsSVOCheckPatcher)
+                        {
+                            switch (clientConnectTcp.AppId)
+                            {
+                                case 21354:
+                                    CheatQuery(0x008625E0, 6, clientChannel); // SingStar Hits v1.00
+                                    break;
+                                case 21574:
+                                    CheatQuery(0x0070c068, 6, clientChannel); // Warhawk EU v1.50
+                                    break;
+                                case 21564:
+                                    CheatQuery(0x0070BFF8, 6, clientChannel); // Warhawk US v1.50
+                                    break;
+                            }
+                        }
+
+                        break;
+                    }
+
+                case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
+                    {
+                        byte[]? QueryData = clientCheatQuery.Data;
+
+                        if (QueryData != null)
+                        {
+                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{VariousUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+
+                            if (QueryData.Length == 6 && VariousUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
+                                PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
+                        }
                         break;
                     }
 
@@ -315,7 +345,27 @@ namespace Horizon.MEDIUS.Medius
                 case MediusServerSessionBeginRequest1 serverSessionBeginRequest1:
                     {
                         // Create DME object
-                        //data.ClientObject = Program.ProxyServer.ReserveDMEObject(serverSessionBeginRequest1);
+                        // data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(serverSessionBeginRequest1);
+
+                        char[] charsToRemove = { ':', 'f', '{', '}' };
+                        var clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
+
+                        LoggerAccessor.LogInfo($"[MAS] - clientObjects {clientObjects.Count}");
+
+                        string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
+
+                        //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
+                        foreach (var client in clientObjects)
+                        {
+                            string clientIPStr = client.IP.ToString().Trim(charsToRemove);
+
+                            LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
+
+                            if (clientIPStr == connectingIP)
+                                data.ClientObject = client;
+
+                            LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
+                        }
 
                         if (data.ClientObject != null)
                         {
@@ -2419,17 +2469,13 @@ namespace Horizon.MEDIUS.Medius
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
-            List<int> pre108Secure = new List<int>() { 10010, 10031, 10190, 10124, 10680, 10683, 10684 };
-            List<int> p2pSetIP = new List<int>() { 10010, 10031, 10164, 10190, 10330, 10694, 10782, 10884, 10974, 21834, 21924 };
-
-            if (data.ClientObject != null && p2pSetIP.Contains(data.ClientObject.ApplicationId))
-            {
-                char[] charsToRemove = { ':', 'f', '{', '}' };
-                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
-            }
+            List<int> pre108Secure = new() { 10010, 10031, 10190, 10124, 10680, 10683, 10684 };
 
             if (data.ClientObject != null)
+            {
+                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
                 await data.ClientObject.Login(accountDto);
+            }
 
             #region Update DB IP and CID
             await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
@@ -2781,6 +2827,53 @@ namespace Horizon.MEDIUS.Medius
             }
             */
             return Uint;
+        }
+        #endregion
+
+        #region PokeEngine
+        private bool CheatQuery(uint address, int Length, IChannel? clientChannel)
+        {
+            // address = 0, don't read
+            if (address == 0)
+                return false;
+
+            // client channel is null, don't read
+            if (clientChannel == null)
+                return false;
+
+            // read client memory
+            Queue(new RT_MSG_SERVER_CHEAT_QUERY()
+            {
+                QueryType = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY,
+                SequenceId = 1,
+                StartAddress = address,
+                Length = Length,
+            }, clientChannel);
+
+            // return read
+            return true;
+        }
+
+        private bool PatchHttpsSVOCheck(uint patchLocation, IChannel? clientChannel)
+        {
+            // patch location = 0, don't patch
+            if (patchLocation == 0)
+                return false;
+
+            // client channel is null, don't patch
+            if (clientChannel == null)
+                return false;
+
+            // poke client memory
+            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+            {
+                start_Address = patchLocation,
+                Payload = new byte[] { 0x3A, 0x2F }, // We patch to :/ instead of s: as the check only compare first 6 characters.
+                SkipEncryption = false,
+            }, clientChannel);
+
+            // return patched
+            return true;
         }
         #endregion
     }
