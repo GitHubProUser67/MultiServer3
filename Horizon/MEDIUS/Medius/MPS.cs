@@ -878,13 +878,18 @@ namespace Horizon.MEDIUS.Medius
                 /// </summary>
                 case MediusServerEndGameOnMeRequest serverEndGameOnMeRequest:
                     {
-                        //await CrudRoomManager.RemoveGame(data.ClientObject.ApplicationId.ToString(), serverEndGameOnMeRequest.MediusWorldID.ToString(), GameName);
-
-                        data.ClientObject?.Queue(new MediusServerEndGameOnMeResponse()
+                        if (data.ClientObject != null)
                         {
-                            MessageID = serverEndGameOnMeRequest.MessageID,
-                            Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                        });
+                            if (data.ClientObject.CurrentGame != null)
+                                await data.ClientObject.CurrentGame.EndGame(data.ClientObject.ApplicationId);
+
+                            data.ClientObject.Queue(new MediusServerEndGameOnMeResponse()
+                            {
+                                MessageID = serverEndGameOnMeRequest.MessageID,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                            });
+                        }
+
                         break;
                     }
                 #endregion

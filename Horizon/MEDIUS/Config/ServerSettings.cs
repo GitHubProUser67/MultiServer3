@@ -394,6 +394,11 @@ namespace Horizon.MEDIUS.Config
         /// </summary>
         public bool AllowGuests { get; set; } = true;
         #endregion
+
+        /// <summary>
+        /// Tries to patch HTTPS ticketlogin check inside Medius client SDK.
+        /// </summary>
+        public bool HttpsSVOCheckPatcher { get; set; } = true;
     }
 
     #region TextFilterContext

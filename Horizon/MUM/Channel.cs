@@ -64,6 +64,37 @@ namespace Horizon.MUM
             Id = IdCounter++;
         }
 
+        public Channel(int ApplicationId, string Name, string Password, int MaxPlayers, uint GenericField1, uint GenericField2, uint GenericField3, uint GenericField4, MediusWorldGenericFieldLevelType GenericFieldLevel)
+        {
+            Id = IdCounter++;
+
+            this.ApplicationId = ApplicationId;
+            this.Name = Name;
+            this.Password = Password;
+            SecurityLevel = string.IsNullOrEmpty(Password) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD;
+            this.MaxPlayers = MaxPlayers;
+            this.GenericField1 = GenericField1;
+            this.GenericField2 = GenericField2;
+            this.GenericField3 = GenericField3;
+            this.GenericField4 = GenericField4;
+            this.GenericFieldLevel = GenericFieldLevel;
+        }
+
+        public Channel(int ApplicationId, string Name, string? Password, int MaxPlayers, uint GenericField1, uint GenericField2, uint GenericField3, MediusWorldGenericFieldLevelType GenericFieldLevel)
+        {
+            Id = IdCounter++;
+
+            this.ApplicationId = ApplicationId;
+            this.Name = Name;
+            this.Password = Password;
+            SecurityLevel = string.IsNullOrEmpty(Password) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD;
+            this.MaxPlayers = MaxPlayers;
+            this.GenericField1 = GenericField1;
+            this.GenericField2 = GenericField2;
+            this.GenericField3 = GenericField3;
+            this.GenericFieldLevel = GenericFieldLevel;
+        }
+
         public Channel(MediusCreateChannelRequest request)
         {
             Id = IdCounter++;

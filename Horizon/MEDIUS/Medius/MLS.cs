@@ -5332,7 +5332,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<int> FilteredGameLists = new List<int>() { 21924, 10994, 11203, 11204 };
+                        List<int> FilteredGameLists = new List<int>() { 21924, 10994, 11203, 11204, 21564, 21574, 20044 };
                         List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920 };
 
                         //By Filter
@@ -5374,7 +5374,7 @@ namespace Horizon.MEDIUS.Medius
                             // Make last end of list
                             if (gameList.Length > 0)
                             {
-                                gameList[gameList.Length - 1].EndOfList = true;
+                                gameList[^1].EndOfList = true;
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5431,7 +5431,7 @@ namespace Horizon.MEDIUS.Medius
                             // Make last end of list
                             if (gameList.Length > 0)
                             {
-                                gameList[gameList.Length - 1].EndOfList = true;
+                                gameList[^1].EndOfList = true;
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5488,7 +5488,7 @@ namespace Horizon.MEDIUS.Medius
                             // Make last end of list
                             if (gameList.Length > 0)
                             {
-                                gameList[gameList.Length - 1].EndOfList = true;
+                                gameList[^1].EndOfList = true;
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5937,7 +5937,7 @@ namespace Horizon.MEDIUS.Medius
 
                         MediusFindWorldByNameResponse[]? gameWorldNameList = null;
 
-                        var channel = MediusClass.Manager.GetWorldByName(findWorldByNameRequest.Name);
+                        Channel? channel = MediusClass.Manager.GetWorldByName(findWorldByNameRequest.Name);
 
                         if (channel == null)
                         {
@@ -9597,13 +9597,26 @@ namespace Horizon.MEDIUS.Medius
                                 ch[i] = textFilterRequest1.Text[i];
                             }
 
-                            data.ClientObject.Queue(new MediusTextFilterResponse1()
+                            if (string.IsNullOrEmpty(textFilterRequest1.Text))
                             {
-                                MessageID = textFilterRequest1.MessageID,
-                                StatusCode = MediusCallbackStatus.MediusSuccess,
-                                TextSize = textFilterRequest1.TextSize,
-                                Text = ch,
-                            });
+                                data.ClientObject.Queue(new MediusTextFilterResponse1()
+                                {
+                                    MessageID = textFilterRequest1.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                    TextSize = textFilterRequest1.TextSize,
+                                    Text = ch,
+                                });
+                            }
+                            else
+                            {
+                                data.ClientObject.Queue(new MediusTextFilterResponse1()
+                                {
+                                    MessageID = textFilterRequest1.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusPass,
+                                    TextSize = textFilterRequest1.TextSize,
+                                    Text = ch,
+                                });
+                            }
                         }
                         else
                         {
@@ -10672,14 +10685,11 @@ namespace Horizon.MEDIUS.Medius
                 return false;
             }
 
-            List<int> p2pSetIP = new() { 10010, 10031, 10164, 10190, 10330, 10694, 10782, 10884, 10974, 21834, 21924 };
+            string ClientIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' });
 
-            char[] charsToRemove = { ':', 'f', '{', '}' };
+            data.ClientObject?.SetIp(ClientIP);
 
-            if (data.ClientObject != null && p2pSetIP.Contains(data.ClientObject.ApplicationId))
-                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
-
-            AccountDTO? accountDto = await HorizonServerConfiguration.Database.GetAccountByFirstIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
+            AccountDTO? accountDto = await HorizonServerConfiguration.Database.GetAccountByFirstIp(ClientIP);
 
             if (accountDto == null)
             {
