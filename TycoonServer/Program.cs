@@ -6,7 +6,7 @@ using TycoonServer;
 
 public static class TycoonServerConfiguration
 {
-    public static string TycoonStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
+    public static string TycoonStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static List<string>? BannedIPs { get; set; }
 
     /// <summary>
