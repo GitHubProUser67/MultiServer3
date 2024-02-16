@@ -128,7 +128,7 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
 
-                                data.ClientObject = new((ARPaddr != null) ? string.Join(":", ARPaddr) : null);
+                                data.ClientObject = new((ARPaddr != null) ? string.Join(":", ARPaddr) : data.MachineId);
                                 data.ClientObject.OnConnected();
                                 if (!await GuestLogin(clientChannel, data))
                                 {
