@@ -1056,7 +1056,7 @@ namespace Horizon.MEDIUS.Medius
                 Message = new MediusServerCreateGameWithAttributesRequest2()
                 {
                     MessageID = new MessageId($"{msgId}"),
-                    MediusWorldID = (uint)gameId,
+                    MediusWorldUID = (uint)gameId,
                     Attributes = game.Attributes,
                     ApplicationID = client.ApplicationId,
                     MaxClients = game.MaxPlayers,
