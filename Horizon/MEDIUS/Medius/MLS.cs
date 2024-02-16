@@ -34,30 +34,30 @@ namespace Horizon.MEDIUS.Medius
         }
 
         //KILLZONE PS2 ONLY
-        public ClientObject ReserveClient(MediusVersionServerRequest request)
+        public ClientObject ReserveClient(MediusVersionServerRequest request, string? MachineId)
         {
-            var client = new ClientObject();
+            var client = new ClientObject(MachineId);
             client.BeginSession();
             return client;
         }
 
-        public ClientObject ReserveClient(MediusSessionBeginRequest request)
+        public ClientObject ReserveClient(MediusSessionBeginRequest request, string? MachineId)
         {
-            var client = new ClientObject();
+            var client = new ClientObject(MachineId);
             client.BeginSession();
             return client;
         }
 
-        public ClientObject ReserveClient1(MediusSessionBeginRequest1 request)
+        public ClientObject ReserveClient1(MediusSessionBeginRequest1 request, string? MachineId)
         {
-            var client = new ClientObject();
+            var client = new ClientObject(MachineId);
             client.BeginSession();
             return client;
         }
 
-        public ClientObject ReserveClient(MediusExtendedSessionBeginRequest request)
+        public ClientObject ReserveClient(MediusExtendedSessionBeginRequest request, string? MachineId)
         {
-            var client = new ClientObject();
+            var client = new ClientObject(MachineId);
             client.BeginSession();
             return client;
         }
@@ -125,7 +125,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             if (MediusClass.Settings.AllowGuests)
                             {
-                                data.ClientObject = new();
+                                data.ClientObject = new(data.MachineId);
                                 data.ClientObject.OnConnected();
                                 if (!await GuestLogin(clientChannel, data))
                                 {
@@ -1883,7 +1883,7 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         // Responses
-                        List<MediusGetBuddyList_ExtraInfoResponse> friendListResponses = new List<MediusGetBuddyList_ExtraInfoResponse>();
+                        List<MediusGetBuddyList_ExtraInfoResponse> friendListResponses = new();
 
                         List<int> rcpsp = new List<int> { 20770, 20774 };
 

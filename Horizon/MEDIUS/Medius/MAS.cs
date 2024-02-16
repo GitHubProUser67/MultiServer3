@@ -29,9 +29,9 @@ namespace Horizon.MEDIUS.Medius
 
         }
 
-        public ClientObject ReserveClient(MediusServerSessionBeginRequest request)
+        public ClientObject ReserveClient(MediusServerSessionBeginRequest request, string? MachineId)
         {
-            var client = new ClientObject();
+            var client = new ClientObject(MachineId);
             client.BeginSession();
             return client;
         }
@@ -102,7 +102,7 @@ namespace Horizon.MEDIUS.Medius
 
                                 LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
 
-                                if (clientIPStr == connectingIP)
+                                if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
                                     data.ClientObject = client;
 
                                 LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
@@ -260,13 +260,13 @@ namespace Horizon.MEDIUS.Medius
                         {
                             LoggerAccessor.LogInfo("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
                             // Create client object
-                            data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest);
+                            data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest, data.MachineId);
                         }
 
                         //If Message Routing App id
                         if (data.ApplicationId == 120)
                         {
-                            data.ClientObject = new ClientObject();
+                            data.ClientObject = new ClientObject(data.MachineId);
                             data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(mgclSessionBeginRequest);
                         }
 
@@ -365,7 +365,7 @@ namespace Horizon.MEDIUS.Medius
 
                             LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
 
-                            if (clientIPStr == connectingIP)
+                            if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
                                 data.ClientObject = client;
 
                             LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
@@ -601,7 +601,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusExtendedSessionBeginRequest extendedSessionBeginRequest:
                     {
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest);
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest, data.MachineId);
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
@@ -639,7 +639,7 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ApplicationId != 10442)
                             // Create client object
-                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest);
+                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest, data.MachineId);
 
                         if (data.ClientObject != null)
                         {
@@ -687,7 +687,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusSessionBeginRequest1 sessionBeginRequest1:
                     {
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1);
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1, data.MachineId);
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
