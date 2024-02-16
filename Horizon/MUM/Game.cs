@@ -63,7 +63,7 @@ namespace Horizon.MUM
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
-        public DMEObject DMEServer;
+        public DMEObject? DMEServer;
         public Channel? ChatChannel;
         public ClientObject? Host;
 
@@ -88,7 +88,7 @@ namespace Horizon.MUM
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
-        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject dmeServer)
+        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject? dmeServer)
         {
             if (createGame is MediusCreateGameRequest r)
                 FromCreateGameRequest(r);
@@ -113,6 +113,37 @@ namespace Horizon.MUM
             ChatChannel = chatChannel;
             ChatChannel?.RegisterGame(this);
             Host = client;
+            SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
+
+            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+        }
+
+        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject? dmeServer, int WorldId)
+        {
+            if (createGame is MediusCreateGameRequest r)
+                FromCreateGameRequest(r);
+            else if (createGame is MediusCreateGameRequest0 r0)
+                FromCreateGameRequest0(r0);
+            else if (createGame is MediusCreateGameRequest1 r1)
+                FromCreateGameRequest1(r1);
+            else if (createGame is MediusMatchCreateGameRequest r2)
+                FromMatchCreateGameRequest(r2);
+            else if (createGame is MediusServerCreateGameOnMeRequest r3)
+                FromCreateGameOnMeRequest(r3);
+            else if (createGame is MediusServerCreateGameOnSelfRequest r5)
+                FromCreateGameOnSelfRequest(r5);
+            else if (createGame is MediusServerCreateGameOnSelfRequest0 r6)
+                FromCreateGameOnSelfRequest0(r6);
+
+            Id = IdCounter++;
+
+            utcTimeCreated = Utils.GetHighPrecisionUtcTime();
+            utcTimeEmpty = null;
+            DMEServer = dmeServer;
+            ChatChannel = chatChannel;
+            ChatChannel?.RegisterGame(this);
+            Host = client;
+            WorldID = WorldId;
             SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
 
             LoggerAccessor.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
@@ -342,7 +373,7 @@ namespace Horizon.MUM
             }
         }
 
-        public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification connectNotification)
+        public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification connectNotification, string WorldId)
         {
             var player = LocalClients.FirstOrDefault(x => x.Client?.SessionKey == connectNotification.PlayerSessionKey);
 
@@ -353,7 +384,7 @@ namespace Horizon.MUM
             {
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT:
                     {
-                        await OnPlayerJoined(player, false);
+                        await OnPlayerJoined(player, WorldId, false);
                         break;
                     }
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_DISCONNECT:
@@ -364,7 +395,7 @@ namespace Horizon.MUM
             }
         }
 
-        public virtual async Task OnMediusJoinGameResponse(string? Sessionkey)
+        public virtual async Task OnMediusJoinGameResponse(string? Sessionkey, string WorldId)
         {
             if (string.IsNullOrEmpty(Sessionkey))
                 return;
@@ -374,19 +405,19 @@ namespace Horizon.MUM
             if (player == null)
                 return;
 
-            await OnPlayerJoined(player, true);
+            await OnPlayerJoined(player, WorldId, true);
         }
 
-        public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest)
+        public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest, string WorldId)
         {
             GameClient? player = LocalClients.FirstOrDefault(x => x != null && x.Client != null && x.Client.IsConnected);
             if (player == null)
                 return;
 
-            await OnPlayerJoined(player, true);
+            await OnPlayerJoined(player, WorldId, true);
         }
 
-        public virtual async Task OnPlayerJoined(GameClient player, bool logevent)
+        public virtual async Task OnPlayerJoined(GameClient player, string WorldId, bool logevent)
         {
             bool ishost = false;
 
@@ -394,25 +425,25 @@ namespace Horizon.MUM
 
             if (player.Client == Host)
             {
-                LoggerAccessor.LogInfo($"[Game] -> OnHostJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+                LoggerAccessor.LogInfo($"[Game] -> OnHostJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
                 ishost = true;
                 hasHostJoined = true;
             }
             else
-                LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+                LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
             if (!string.IsNullOrEmpty(player.Client?.CurrentGame?.GameName) && !player.Client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(player.Client.WorldId.ToString()) && !string.IsNullOrEmpty(player.Client.AccountName) && logevent)
             {
                 if (ishost)
-                    _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {player.Client.WorldId} as the Host.");
+                    _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {WorldId} as the Host.");
                 else
-                    _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {player.Client.WorldId}.");
+                    _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {player.Client.AccountName} Joined: {player.Client.CurrentGame.GameName} in world: {WorldId}.");
             }
 
             try
             {
                 if (player.Client != null)
-                    CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, player.Client.WorldId.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), ishost);
+                    CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, WorldId.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), ishost);
             }
             catch (Exception)
             {
@@ -682,7 +713,10 @@ namespace Horizon.MUM
 
             try
             {
-                CrudRoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
+                if (DMEWorldId != -1) // Not P2P
+                    CrudRoomManager.RemoveGame(appid.ToString(), DMEWorldId.ToString(), GameName);
+                else
+                    CrudRoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
             }
             catch (Exception)
             {

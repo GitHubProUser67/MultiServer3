@@ -660,22 +660,17 @@ namespace Horizon.MEDIUS.Medius
                 // Create and add
                 try
                 {
-                    Game? game = GetGameByName(matchCreateGameRequest.GameName, client);
-
-                    if (game == null)
+                    Game game = new(client, matchCreateGameRequest, client.CurrentChannel, null, client.WorldId)
                     {
-                        game = new(client, matchCreateGameRequest, client.CurrentChannel, null)
-                        {
-                            MaxPlayers = matchCreateGameRequest.MaxPlayers,
-                            GameHostType = matchCreateGameRequest.GameHostType,
-                            GameName = matchCreateGameRequest.GameName,
-                            RequestData = matchCreateGameRequest.RequestData,
-                            AppDataSize = matchCreateGameRequest.ApplicationDataSize,
-                            AppData = matchCreateGameRequest.ApplicationData
-                        };
+                        MaxPlayers = matchCreateGameRequest.MaxPlayers,
+                        GameHostType = matchCreateGameRequest.GameHostType,
+                        GameName = matchCreateGameRequest.GameName,
+                        RequestData = matchCreateGameRequest.RequestData,
+                        AppDataSize = matchCreateGameRequest.ApplicationDataSize,
+                        AppData = matchCreateGameRequest.ApplicationData
+                    };
 
-                        await AddGame(game);
-                    }
+                    await AddGame(game);
 
                     // Try to get next free MPS server
                     // If none exist, return error to clist
@@ -747,6 +742,7 @@ namespace Horizon.MEDIUS.Medius
                         GameHostType = matchCreateGameRequest.GameHostType,
                         GameName = matchCreateGameRequest.GameName
                     };
+
                     await AddGame(game);
 
                     game.RequestData = matchCreateGameRequest.RequestData;
@@ -790,14 +786,8 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
-            string? gamePassword = null;
             NetAddressList gameNetAddressList = new();
             int worldId = -1;
-            int maxClients = -1;
-            int GenericFieldLevel1 = -1;
-            int GenericFieldLevel2 = -1;
-            int GenericFieldLevel3 = -1;
-            int GameLevel = -1;
 
             var p2pHostAddress = ((IPEndPoint)channel.RemoteAddress).Address.ToString();
             string p2pHostAddressRemoved = p2pHostAddress.Remove(0, 7);
@@ -829,59 +819,18 @@ namespace Horizon.MEDIUS.Medius
                 }
 
                 worldId = r.WorldID;
-                gamePassword = r.GamePassword;
-                maxClients = r.MaxClients;
-                GenericFieldLevel1 = r.GenericField1;
-                GenericFieldLevel2 = r.GenericField2;
-                GenericFieldLevel3 = r.GenericField3;
-                GameLevel = r.GameLevel;
             }
             else if (request is MediusServerCreateGameOnSelfRequest r1)
             {
                 gameName = r1.GameName;
                 gameNetAddressList = r1.AddressList;
                 worldId = r1.WorldID;
-                gamePassword = r1.GamePassword;
-                maxClients = r1.MaxClients;
-                GenericFieldLevel1 = r1.GenericField1;
-                GenericFieldLevel2 = r1.GenericField2;
-                GenericFieldLevel3 = r1.GenericField3;
-                GameLevel = r1.GameLevel;
             }
             else if (request is MediusServerCreateGameOnSelfRequest0 r2)
             {
                 gameName = r2.GameName;
                 gameNetAddressList = r2.AddressList;
                 worldId = r2.WorldID;
-                gamePassword = r2.GamePassword;
-                maxClients = r2.MaxClients;
-                GenericFieldLevel1 = r2.GenericField1;
-                GenericFieldLevel2 = r2.GenericField2;
-                GenericFieldLevel3 = r2.GenericField3;
-                GameLevel = r2.GameLevel;
-            }
-
-            if (client.CurrentChannel?.Id != worldId)
-            {
-                Channel? newchannel = GetChannelByChannelId(worldId, client.ApplicationId);
-                if (newchannel != null)
-                    await client.JoinChannel(newchannel);
-                else if (!string.IsNullOrEmpty(gameName))
-                {
-                    // Create channel
-                    Channel NewChannel = new(client.ApplicationId, gameName, gamePassword, maxClients, (uint)GenericFieldLevel1, (uint)GenericFieldLevel2, (uint)GenericFieldLevel3, (MediusWorldGenericFieldLevelType)GameLevel);
-                    await client.JoinChannel(NewChannel);
-                }
-                else
-                {
-                    // Failure adding game for some reason
-                    client.Queue(new MediusCreateGameResponse()
-                    {
-                        MessageID = request.MessageID,
-                        MediusWorldID = -1,
-                        StatusCode = MediusCallbackStatus.MediusFail
-                    });
-                }
             }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
@@ -927,7 +876,7 @@ namespace Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                Game game = new(client, request, client.CurrentChannel, dme)
+                Game game = new(client, request, client.CurrentChannel, dme, worldId)
                 {
                     //Set game host type to PeerToPeer for those speci
                     GameHostType = MediusGameHostType.MediusGameHostPeerToPeer,
@@ -937,7 +886,7 @@ namespace Horizon.MEDIUS.Medius
 
                 // Join game
                 await client.JoinGameP2P(game);
-                await game.OnMediusServerCreateGameOnMeRequest(request);
+                await game.OnMediusServerCreateGameOnMeRequest(request, game.WorldID.ToString());
 
                 await AddGame(game);
 
