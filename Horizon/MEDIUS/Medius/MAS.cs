@@ -66,6 +66,8 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
+                        IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
+
                         List<int> pre108ServerComplete = new() { 10114, 10130, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
 
                         ///<summary>
@@ -75,7 +77,10 @@ namespace Horizon.MEDIUS.Medius
                         List<int> post108ServerComplete = new() { 10694 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
-                        data.MachineId = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
+
+                        if (ARPaddr != null && data.MachineId == null)
+                            data.MachineId = string.Join(":", ARPaddr);
+
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
                         #region Check if AppId from Client matches Server
@@ -601,8 +606,10 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusExtendedSessionBeginRequest extendedSessionBeginRequest:
                     {
+                        IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
+
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest, (ARPaddr != null) ? string.Join(":", ARPaddr) : null);
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
@@ -637,10 +644,11 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case MediusSessionBeginRequest sessionBeginRequest:
                     {
+                        IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
 
                         if (data.ApplicationId != 10442)
                             // Create client object
-                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
+                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest, (ARPaddr != null) ? string.Join(":", ARPaddr) : null);
 
                         if (data.ClientObject != null)
                         {
@@ -687,8 +695,10 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusSessionBeginRequest1 sessionBeginRequest1:
                     {
+                        IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
+
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1, (ARPaddr != null) ? string.Join(":", ARPaddr) : null);
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
