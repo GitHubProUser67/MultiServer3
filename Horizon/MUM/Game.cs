@@ -702,7 +702,15 @@ namespace Horizon.MUM
             ChatChannel?.UnregisterGame(this);
 
             // Send end game
-            if (DMEWorldId > 0)
+            if (DMEWorldId == -1)
+            {
+                DMEServer?.Queue(new MediusServerEndGameRequest()
+                {
+                    WorldID = WorldID,
+                    BrutalFlag = false
+                });
+            }
+            else if (DMEWorldId > 0)
             {
                 DMEServer?.Queue(new MediusServerEndGameRequest()
                 {
