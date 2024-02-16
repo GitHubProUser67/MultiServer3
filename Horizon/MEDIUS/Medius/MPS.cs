@@ -202,8 +202,10 @@ namespace Horizon.MEDIUS.Medius
                 case MediusServerSetAttributesRequest dmeSetAttributesRequest:
                     {
                         // Create DME object
-                        DMEObject dme = new(dmeSetAttributesRequest);
-                        dme.ApplicationId = data.ApplicationId;
+                        DMEObject dme = new(dmeSetAttributesRequest)
+                        {
+                            ApplicationId = data.ApplicationId
+                        };
                         dme.BeginSession();
                         MediusClass.Manager.AddDmeClient(dme);
 
@@ -889,7 +891,7 @@ namespace Horizon.MEDIUS.Medius
                         if (data.ClientObject != null)
                         {
                             if (data.ClientObject.CurrentGame != null)
-                                await data.ClientObject.CurrentGame.EndGame(data.ClientObject.ApplicationId);
+                                await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
 
                             data.ClientObject.Queue(new MediusServerEndGameOnMeResponse()
                             {
@@ -1119,9 +1121,9 @@ namespace Horizon.MEDIUS.Medius
             return dme;
         }
 
-        public ClientObject ReserveClient(MediusServerSessionBeginRequest mgclSessionBeginRequest)
+        public ClientObject ReserveClient(MediusServerSessionBeginRequest mgclSessionBeginRequest, string? MachineId)
         {
-            ClientObject client = new();
+            ClientObject client = new(MachineId);
             client.BeginSession();
             return client;
         }

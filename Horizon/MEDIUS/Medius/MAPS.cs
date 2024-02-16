@@ -143,7 +143,7 @@ namespace Horizon.MEDIUS.Medius
 
                 case NetMessageHello netMessageHello:
                     {
-                        data.ClientObject = MediusClass.ProfileServer.ReserveClient(netMessageHello);
+                        data.ClientObject = MediusClass.ProfileServer.ReserveClient(netMessageHello, data.MachineId);
 
                         // Create client object
                         data.ClientObject.ApplicationId = data.ApplicationId;
@@ -288,9 +288,9 @@ namespace Horizon.MEDIUS.Medius
             return shiftedSequence;
         }
 
-        public ClientObject ReserveClient(NetMessageHello request)
+        public ClientObject ReserveClient(NetMessageHello request, string? MachineId)
         {
-            ClientObject client = new();
+            ClientObject client = new(MachineId);
             client.BeginSession();
             return client;
         }

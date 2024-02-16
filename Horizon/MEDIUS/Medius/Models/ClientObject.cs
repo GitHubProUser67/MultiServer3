@@ -109,6 +109,11 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
+        public string? MachineId { get; protected set; } = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public byte[] AccountStats { get; set; } = new byte[256];
 
         /// <summary>
@@ -350,8 +355,10 @@ namespace Horizon.MEDIUS.Medius.Models
         /// </summary>
         private DateTime _lastServerEchoValue = DateTime.UnixEpoch;
 
-        public ClientObject()
+        public ClientObject(string? MachineId = null)
         {
+            this.MachineId = MachineId;
+
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();
 
