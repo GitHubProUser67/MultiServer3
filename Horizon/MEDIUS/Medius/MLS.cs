@@ -126,17 +126,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             if (MediusClass.Settings.AllowGuests)
                             {
-                                string ARPaddr = string.Empty;
-                                try
-                                {
-                                    ARPaddr = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
-                                }
-                                catch (Exception) // Yep, falls into that, go figure :/
-                                {
-                                    ARPaddr = string.Join(":", Enumerable.Repeat("FF", 6));
-                                }
-
-                                data.ClientObject = new(ARPaddr);
+                                data.ClientObject = new(string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
                                 data.ClientObject.OnConnected();
                                 if (!await GuestLogin(clientChannel, data))
                                 {
