@@ -444,10 +444,14 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 if (gameOrPartyId != 0 && game != null)
                                 {
+                                    bool P2PLog = false;
+
                                     #region P2P
                                     if (game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer &&
                                         game.netAddressList?.AddressList[0].AddressType == NetAddressType.NetAddressTypeSignalAddress && rClient != null)
                                     {
+                                        P2PLog = true;
+
                                         // Join game P2P
                                         await rClient.JoinGameP2P(game);
 
@@ -479,6 +483,8 @@ namespace Horizon.MEDIUS.Medius
                                         game.netAddressList?.AddressList[1].AddressType == NetAddressType.NetAddressTypeInternal && rClient != null
                                         )
                                     {
+                                        P2PLog = true;
+
                                         // Join game P2P
                                         await rClient.JoinGameP2P(game);
 
@@ -511,6 +517,8 @@ namespace Horizon.MEDIUS.Medius
                                         game.netAddressList?.AddressList[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport && rClient != null
                                         )
                                     {
+                                        P2PLog = true;
+
                                         // Join game P2P
                                         await rClient.JoinGameP2P(game);
 
@@ -611,7 +619,7 @@ namespace Horizon.MEDIUS.Medius
                                     /// For Legacy Medius v1.50 clients that DO NOT 
                                     /// send a ServerConnectNotificationConnect when creating a game
                                     if (data.ClientObject.MediusVersion < 109 && data.ClientObject.ApplicationId != 10394)
-                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey);
+                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey, P2PLog ? game.WorldID.ToString() : game.DMEWorldId.ToString());
                                 }
 
                                 /*
@@ -916,7 +924,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             Game? conn = MediusClass.Manager.GetGameByDmeWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
-                                await conn.OnMediusServerConnectNotification(connectNotification);
+                                await conn.OnMediusServerConnectNotification(connectNotification, conn.DMEWorldId.ToString());
                         }
                         else if (data.ClientObject != null)
                         {
@@ -1046,7 +1054,7 @@ namespace Horizon.MEDIUS.Medius
                 Message = new MediusServerCreateGameWithAttributesRequest2()
                 {
                     MessageID = new MessageId($"{msgId}"),
-                    MediusWorldUID = (uint)gameId,
+                    MediusWorldID = (uint)gameId,
                     Attributes = game.Attributes,
                     ApplicationID = client.ApplicationId,
                     MaxClients = game.MaxPlayers,
@@ -1054,14 +1062,14 @@ namespace Horizon.MEDIUS.Medius
                     {
                         AccessKey = client.Token,
                         SessionKey = client.SessionKey,
-                        WorldID = gameId,
+                        WorldID = game.WorldID,
                         ServerKey = new RSA_KEY(),
                         AddressList = new NetAddressList()
                         {
                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                               {
-                                  new NetAddress() { BinaryAddress = BitConverter.ToUInt32(client.IP.GetAddressBytes()), BinaryPort = 0, AddressType = NetAddressType.NetAddressTypeBinaryExternal }, //Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeBinaryExternal},
-                                  new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                  new() { BinaryAddress = BitConverter.ToUInt32(client.IP.GetAddressBytes()), BinaryPort = 0, AddressType = NetAddressType.NetAddressTypeBinaryExternal }, //Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeBinaryExternal},
+                                  new() { AddressType = NetAddressType.NetAddressNone},
                               }
                         },
                         Type = NetConnectionType.NetConnectionTypePeerToPeerUDP

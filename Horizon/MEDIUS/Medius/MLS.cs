@@ -6575,7 +6575,7 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.CurrentGame != null)
                         {
-                            CrudRoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentGame.ApplicationId.ToString(), data.ClientObject.CurrentGame.GameName, data.ClientObject.CurrentGame.WorldID.ToString(), data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(), true);
+                            CrudRoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentGame.ApplicationId.ToString(), data.ClientObject.CurrentGame.GameName, (data.ClientObject.CurrentGame.DMEWorldId != -1) ? data.ClientObject.CurrentGame.DMEWorldId.ToString() : data.ClientObject.CurrentGame.WorldID.ToString(), data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(), true);
                             await data.ClientObject.CurrentGame.OnWorldReport(worldReport, data.ClientObject.ApplicationId);
                         }
 
