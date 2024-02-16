@@ -13,7 +13,6 @@ using System.Net;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 using Horizon.MUM;
-using System.Text;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -76,7 +75,7 @@ namespace Horizon.MEDIUS.Medius
                         List<int> post108ServerComplete = new() { 10694 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
-                        data.MachineId = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }))).GetAddressBytes().Select(b => b.ToString("X2")));
+                        data.MachineId = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
                         #region Check if AppId from Client matches Server
@@ -603,7 +602,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusExtendedSessionBeginRequest extendedSessionBeginRequest:
                     {
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }))).GetAddressBytes().Select(b => b.ToString("X2"))));
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
@@ -641,7 +640,7 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ApplicationId != 10442)
                             // Create client object
-                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }))).GetAddressBytes().Select(b => b.ToString("X2"))));
+                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
 
                         if (data.ClientObject != null)
                         {
@@ -689,7 +688,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusSessionBeginRequest1 sessionBeginRequest1:
                     {
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }))).GetAddressBytes().Select(b => b.ToString("X2"))));
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1, string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;

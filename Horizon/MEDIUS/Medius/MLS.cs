@@ -126,7 +126,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             if (MediusClass.Settings.AllowGuests)
                             {
-                                data.ClientObject = new(string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }))).GetAddressBytes().Select(b => b.ToString("X2"))));
+                                data.ClientObject = new(string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6)));
                                 data.ClientObject.OnConnected();
                                 if (!await GuestLogin(clientChannel, data))
                                 {
