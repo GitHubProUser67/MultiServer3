@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
+using ArpLookup;
 
 namespace BackendProject.MiscUtils
 {
@@ -1044,6 +1045,19 @@ namespace BackendProject.MiscUtils
                     break;
             }
             return $"{pstring}/1.0 UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
+        }
+
+        /// <summary>
+        /// Get the MAC of the Netowrk IP.
+        /// </summary>
+        /// <param name="ipAddress">IP to check.</param>
+        /// <returns></returns>
+        public static PhysicalAddress? GetMAC(IPAddress ipAddress)
+        {
+            if (Arp.IsSupported)
+                return Arp.Lookup(ipAddress);
+            else
+                return null;
         }
     }
 }
