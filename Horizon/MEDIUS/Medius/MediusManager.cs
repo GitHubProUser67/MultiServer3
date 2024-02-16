@@ -797,6 +797,11 @@ namespace Horizon.MEDIUS.Medius
             int GenericFieldLevel1 = -1;
             int GenericFieldLevel2 = -1;
             int GenericFieldLevel3 = -1;
+            int GenericFieldLevel4 = -1;
+            int GenericFieldLevel5 = -1;
+            int GenericFieldLevel6 = -1;
+            int GenericFieldLevel7 = -1;
+            int GenericFieldLevel8 = -1;
             int GameLevel = -1;
 
             var p2pHostAddress = ((IPEndPoint)channel.RemoteAddress).Address.ToString();
@@ -804,6 +809,7 @@ namespace Horizon.MEDIUS.Medius
 
             if (request is MediusServerCreateGameOnMeRequest r)
             {
+                LoggerAccessor.LogError("MediusServerCreateGameOnMeRequest");
                 gameName = r.GameName;
 
                 if (r.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport ||
@@ -831,13 +837,17 @@ namespace Horizon.MEDIUS.Medius
                 worldId = r.WorldID;
                 gamePassword = r.GamePassword;
                 maxClients = r.MaxClients;
-                GenericFieldLevel1 = r.GenericField1;
-                GenericFieldLevel2 = r.GenericField2;
-                GenericFieldLevel3 = r.GenericField3;
+                GenericFieldLevel1 = 0xFF;
+                GenericFieldLevel2 = 0xFF;
+                GenericFieldLevel3 = 0xFF;
+                GenericFieldLevel4 = 0xFF;
+                GenericFieldLevel5 = 0xFF;
+                GenericFieldLevel6 = 2;
                 GameLevel = r.GameLevel;
             }
             else if (request is MediusServerCreateGameOnSelfRequest r1)
             {
+                LoggerAccessor.LogError("MediusServerCreateGameOnSelfRequest");
                 gameName = r1.GameName;
                 gameNetAddressList = r1.AddressList;
                 worldId = r1.WorldID;
@@ -850,6 +860,7 @@ namespace Horizon.MEDIUS.Medius
             }
             else if (request is MediusServerCreateGameOnSelfRequest0 r2)
             {
+                LoggerAccessor.LogError("MediusServerCreateGameOnSelfRequest0");
                 gameName = r2.GameName;
                 gameNetAddressList = r2.AddressList;
                 worldId = r2.WorldID;
@@ -932,8 +943,10 @@ namespace Horizon.MEDIUS.Medius
                     //Set game host type to PeerToPeer for those speci
                     GameHostType = MediusGameHostType.MediusGameHostPeerToPeer,
                     ApplicationId = client.ApplicationId,
-                    Host = client
+                    Host = client,
                 };
+
+                LoggerAccessor.LogError(game.GenericField1);
 
                 // Join game
                 await client.JoinGameP2P(game);

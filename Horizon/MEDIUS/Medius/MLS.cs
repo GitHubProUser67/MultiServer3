@@ -61,7 +61,7 @@ namespace Horizon.MEDIUS.Medius
             client.BeginSession();
             return client;
         }
-
+        int count = 0;
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
@@ -101,6 +101,19 @@ namespace Horizon.MEDIUS.Medius
 
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
+
+                        if (count <= 5)
+                        {
+                            data.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+                            {
+                                Severity = 255,
+                                EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,
+                                LanguageType = DME_SERVER_LANGUAGE_TYPE.DME_SERVER_LANGUAGE_US_ENGLISH,
+                                EndOfMessage = true,
+                                Message = "Hello user,\n\nThanks for playing :)\n\n- Score"
+                            });
+                        }
+                        count++;
 
                         data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
                         if (data.ClientObject == null)
@@ -547,6 +560,14 @@ namespace Horizon.MEDIUS.Medius
                             Player = data.ClientObject,
                             Request = getAnnouncementsRequest
                         });
+
+                        // give champions blade wh
+                        Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                        {
+                            start_Address = 0x00A5EA30,
+                            Payload = new byte[] { 0x02, 0, 0, 0 },
+                            SkipEncryption = false
+                        }, clientChannel);
 
                         await HorizonServerConfiguration.Database.GetLatestAnnouncement(data.ApplicationId).ContinueWith((r) =>
                         {
@@ -5335,11 +5356,20 @@ namespace Horizon.MEDIUS.Medius
                         List<int> FilteredGameLists = new List<int>() { 21924, 10994, 11203, 11204, 21564, 21574, 20044 };
                         List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920 };
 
+                        List<int> warhawk = new List<int>() { 21564, 21574, 200044 };
+
                         //By Filter
                         if (FilteredGameLists.Contains(data.ClientObject.ApplicationId))
                         {
+                            int app = 0;
+                            // temp solution
+                            if (warhawk.Contains(data.ClientObject.ApplicationId))
+                            {
+                                app = data.ClientObject.ApplicationId;
+                            }
+
                             var gameList = MediusClass.Manager.GetGameList(
-                               data.ClientObject.ApplicationId,
+                               app,
                                gameList_ExtraInfoRequest.PageID,
                                gameList_ExtraInfoRequest.PageSize,
                                data.ClientObject.GameListFilters)
@@ -5374,7 +5404,7 @@ namespace Horizon.MEDIUS.Medius
                             // Make last end of list
                             if (gameList.Length > 0)
                             {
-                                gameList[^1].EndOfList = true;
+                                gameList[gameList.Length - 1].EndOfList = true;
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -6575,6 +6605,8 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.CurrentGame != null)
                         {
+                            worldReport.GenericField6 = 2;
+
                             CrudRoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentGame.ApplicationId.ToString(), data.ClientObject.CurrentGame.GameName, data.ClientObject.CurrentGame.WorldID.ToString(), data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(), true);
                             await data.ClientObject.CurrentGame.OnWorldReport(worldReport, data.ClientObject.ApplicationId);
                         }

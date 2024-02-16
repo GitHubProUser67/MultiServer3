@@ -13,6 +13,7 @@ using System.Net;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 using Horizon.MUM;
+using BackendProject.EmailUtils;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -148,7 +149,7 @@ namespace Horizon.MEDIUS.Medius
                                     CheatQuery(0x0070c068, 6, clientChannel); // Warhawk EU v1.50
                                     break;
                                 case 21564:
-                                    CheatQuery(0x0070BFF8, 6, clientChannel); // Warhawk US v1.50
+                                    //CheatQuery(0x0070BFF8, 6, clientChannel); // Warhawk US v1.50
                                     break;
                             }
                         }
@@ -1651,6 +1652,64 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusTicketLoginRequest ticketLoginRequest:
                     {
+                        //public MediusCallbackStatus StatusCodeTicketLogin;
+                        //public MediusPasswordType PasswordType;
+
+                        ////Wrapped Account Login
+                        //public MessageId MessageID2 { get; set; }
+                        //public MediusCallbackStatus StatusCodeAccountLogin;
+                        //public int AccountID;
+                        //public MediusAccountType AccountType;
+                        //public int MediusWorldID;
+                        //public NetConnectionInfo ConnectInfo;
+                        //data.ClientObject.Queue(new MediusTicketLoginResponse()
+                        //{
+                        //    MessageID = ticketLoginRequest.MessageID,
+                        //    StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountBanned,
+                        //    StatusCodeAccountLogin = MediusCallbackStatus.MediusAccountBanned,
+                        //});
+
+                        // Send ban message
+                        //data.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+                        //{
+                        //    Severity = (byte)MediusClass.GetAppSettingsOrDefault(data.ApplicationId).BanSystemMessageSeverity,
+                        //    EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,
+                        //    LanguageType = DME_SERVER_LANGUAGE_TYPE.DME_SERVER_LANGUAGE_US_ENGLISH,
+                        //    EndOfMessage = true,
+                        //    Message = "You're banned brother"
+                        //});
+                        //break;
+                        //IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
+                        //data.ClientObject.Queue(new MediusAccountLoginResponse()
+                        //{
+                        //    MessageID = ticketLoginRequest.MessageID,
+                        //    StatusCode = MediusCallbackStatus.MediusAccountBanned,
+                        //    AccountID = 1,
+                        //    AccountType = MediusAccountType.MediusMasterAccount,
+                        //    MediusWorldID = 0,
+                        //    ConnectInfo = new NetConnectionInfo()
+                        //    {
+                        //        AccessKey = data.ClientObject.Token,
+                        //        SessionKey = data.ClientObject.SessionKey,
+                        //        WorldID = 0,
+                        //        ServerKey = MediusClass.GlobalAuthPublic,
+                        //        AddressList = new NetAddressList()
+                        //        {
+                        //            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                        //            {
+                        //            new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                        //            new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                        //            }
+                        //        },
+                        //        Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        //    }
+                        //});
+
+
+                                //public int AccountID;
+                                //public MediusAccountType AccountType;
+                                //public int MediusWorldID;
+                                //public NetConnectionInfo ConnectInfo;
 
                         // ERROR - Need a session
                         if (data.ClientObject == null)

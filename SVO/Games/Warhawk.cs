@@ -452,6 +452,227 @@ namespace SVO.Games
 
                             break;
 
+                        case "/WARHAWK_SVML/account/Account_Login_Submit.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "POST":
+                                    LoggerAccessor.LogError("HELLO");
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (string.IsNullOrEmpty(serverMac))
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        int appId = Convert.ToInt32(HttpUtility.ParseQueryString(request.Url.Query).Get("applicationID"));
+
+                                        if (!request.HasEntityBody)
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+
+                                        response.Headers.Set("Content-Type", "text/xml");
+
+                                        string userName = "sisterly-syrup69";
+
+
+                                        response.AddHeader("Set-Cookie", $"LangID=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctID=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPCountry=us; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKeyTime=03-31-2023 16:03:41; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPLang=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ModerateMode=false; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"TimeZone=PST; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPContentRating=201326592; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKey=nRqnf97f~UaSANLErurJIzq9GXGWqWCADdA3TfqUIVXXisJyMnHsQ34kA&C^0R#&~JULZ7xUOY*rXW85slhQF&P&Eq$7kSB&VBtf`V8rb^BC`53jGCgIT; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctName={userName}; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"OwnerID=-255; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"Sig=AAAAAAAAA==; Path=/");
+
+
+                                        byte[] xmlMessage = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<SVML>\r\n\t" +
+                                            "<Login>\r\n\t\t" +
+                                            "<status>\r\n\t\t\t" +
+                                            "<message>ACCT_LOGIN_SUCCESS</message>\r\n\t\t" +
+                                            "</status>\r\n\t\t" +
+                                            $"<userName>{userName}</userName>\r\n\t\t" +
+                                            $"<maxLength>{userName.Length}</maxLength>\r\n\t\t" +
+                                            $"<accountID>1</accountID>\r\n\t" +
+                                            $"</Login>\r\n" +
+                                            $"</SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = xmlMessage.Length;
+                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/WARHAWK_SVML/account/Account_Login.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (string.IsNullOrEmpty(serverMac))
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        int appId = Convert.ToInt32(HttpUtility.ParseQueryString(request.Url.Query).Get("applicationID"));
+
+                                        if (!request.HasEntityBody)
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+
+                                        response.Headers.Set("Content-Type", "text/xml");
+
+                                     
+
+                                        LoggerAccessor.LogInfo($"Idk something or other\n");
+
+                                        response.Headers.Set("X-SVOMac", serverMac);
+
+                                        string? sig = HttpUtility.ParseQueryString(request.Url.Query).Get("sig");
+
+                                        int accountId = -1;
+
+                                        string langId = "0";
+
+                                        response.AddHeader("Set-Cookie", $"LangID=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctID=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPCountry=us; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKeyTime=03-31-2023 16:03:41; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPLang=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ModerateMode=false; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"TimeZone=PST; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPContentRating=201326592; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKey=nRqnf97f~UaSANLErurJIzq9GXGWqWCADdA3TfqUIVXXisJyMnHsQ34kA&C^0R#&~JULZ7xUOY*rXW85slhQF&P&Eq$7kSB&VBtf`V8rb^BC`53jGCgIT; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctName=sisterly-syrup69; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"OwnerID=-255; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"Sig=AAAAAAAAAAAAA==; Path=/");
+
+                                        byte[] sp_Login = Encoding.UTF8.GetBytes($"<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>       \r\n\r\n    <TEXT name=\"text\" x=\"320\" y=\"30\" align=\"center\" \r\n     class=\"TEXT1\">LOGIN</TEXT>\r\n             \r\n    <RECTANGLE name=\"rect\" x=\"70\" y=\"70\" width=\"500\" height=\"225\" zValue=\"200000.0\"\r\n     class=\"RECT1\"/> \r\n     \r\n    <TEXT name=\"text\" x=\"320\" y=\"50\" align=\"center\" class=\"TEXT2\"></TEXT>\r\n    \r\n    <FORM name=\"form1\" action=\"http://warhawk-prod3.svo.online.scea.com:10060/WARHAWK_SVML/account/Account_Login_Submit.jsp\" method=\"POST\">\r\n        \r\n        <TEXT name=\"text\" x=\"315\" y=\"105\" align=\"right\" class=\"TEXT3\">USER NAME:</TEXT>\r\n        \r\n        <INPUT type=\"text\" x=\"320\" y=\"100\" width=\"200\" \r\n            name=\"userName\" \r\n            maxLength=\"16\" \r\n            value=\"pheino\"            \r\n            class=\"INPUT1\" height=\"25\" selectable=\"default\"/>            \r\n        <TEXT name=\"text\" x=\"315\" y=\"145\" align=\"right\" class=\"TEXT3\">PASSWORD:</TEXT>\r\n        \r\n        <INPUT type=\"password\" x=\"320\" y=\"140\" width=\"200\" height=\"25\" \r\n         name=\"passWord\" \r\n         maxLength=\"16\"\r\n         value=\"aaaaa\"                  \r\n         class=\"INPUT1\" selectable=\"true\" down=\"submit1\"/>         \r\n        <INPUT type=\"submit\" name=\"submit1\" value=\"LOGIN\" x=\"275\" y=\"180\" width=\"100\" height=\"25\"\r\n         fontSize=\"12\" class=\"SUBMIT1\" />\r\n        \r\n    </FORM>\r\n    \r\n    <TEXT name=\"text\" x=\"325\" y=\"325\" align=\"center\" \r\n     class=\"TEXT1\">IP Address = {request.RemoteEndPoint.Address}</TEXT>\r\n     \r\n    </SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = sp_Login.Length;
+                                                response.OutputStream.Write(sp_Login, 0, sp_Login.Length);
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
+                        case "/WARHAWK_SVML/medius/Medius_Account_Login.jsp":
+                            switch (request.HttpMethod)
+                            {
+                                case "GET":
+                                    LoggerAccessor.LogError("OI");
+                                    string? clientMac = request.Headers.Get("X-SVOMac");
+
+                                    string? serverMac = SVOProcessor.CalcuateSVOMac(clientMac);
+
+                                    if (string.IsNullOrEmpty(serverMac))
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        int appId = Convert.ToInt32(HttpUtility.ParseQueryString(request.Url.Query).Get("applicationID"));
+
+                                        if (!request.HasEntityBody)
+                                        {
+                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            return;
+                                        }
+
+                                        response.Headers.Set("Content-Type", "text/xml");
+
+                                        string userName = "sisterly-syrup69";
+
+
+                                        response.AddHeader("Set-Cookie", $"LangID=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctID=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPCountry=us; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKeyTime=03-31-2023 16:03:41; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPLang=1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ModerateMode=false; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"TimeZone=PST; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"ClanID=-1; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"NPContentRating=201326592; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AuthKey=nRqnf97f~UaSANLErurJIzq9GXGWqWCADdA3TfqUIVXXisJyMnHsQ34kA&C^0R#&~JULZ7xUOY*rXW85slhQF&P&Eq$7kSB&VBtf`V8rb^BC`53jGCgIT; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"AcctName={userName}; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"OwnerID=-255; Path=/");
+                                        response.AppendHeader("Set-Cookie", $"Sig=AAAAAAAAA==; Path=/");
+
+
+                                        byte[] xmlMessage = Encoding.UTF8.GetBytes($"<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>       \r\n\r\n    <PAGEID name=\"pageID_Medius_Account_Login\"/>\r\n    \r\n    <TEXT name=\"text\" x=\"320\" y=\"30\" align=\"center\" \r\n     class=\"TEXT1\">LOGIN</TEXT>\r\n             \r\n    <RECTANGLE name=\"rect\" x=\"70\" y=\"70\" width=\"500\" height=\"225\" zValue=\"200000.0\"\r\n     class=\"RECT1\"/> \r\n    \r\n    <TEXT name=\"statusAccountLogin\" x=\"320\" y=\"80\" align=\"center\" \r\n    class=\"TEXT1\">statusAccountLogin</TEXT>\r\n    \r\n    <TEXT name=\"text\" x=\"315\" y=\"105\" align=\"right\" class=\"TEXT3\">USER NAME:</TEXT>\r\n    \r\n    <INPUT type=\"text\" x=\"320\" y=\"100\" width=\"200\" name=\"userName\" maxLength=\"16\" \r\n     class=\"INPUT1\" height=\"25\" value=\"\" selectable=\"default\"/>\r\n    \r\n    <TEXT name=\"text\" x=\"315\" y=\"145\" align=\"right\" class=\"TEXT3\">PASSWORD:</TEXT>\r\n    \r\n    <INPUT type=\"password\" x=\"320\" y=\"140\" width=\"200\" height=\"25\" name=\"passWord\" \r\n     value=\"\" maxLength=\"16\"\r\n     class=\"INPUT1\" selectable=\"true\" down=\"login\"/>   \r\n   \r\n    <BUTTON name=\"login\" x=\"275\" y=\"180\" width=\"100\" height=\"25\"\r\n     fontSize=\"12\" class=\"SUBMIT1\" selectable=\"true\" href=\"\">LOGIN</BUTTON>     \r\n    \r\n    <MEDIUS_PLUGIN name=\"mediusInitialize\" type=\"INITIALIZE\" authServerIP=\"warhawk-prod3.online.scea.com\" port=\"10075\"/>\r\n\r\n    <MEDIUS_PLUGIN name=\"mediusLogin\" type=\"LOGIN\" \r\n     userNameField=\"passWord\" userNameLength=\"16\"\r\n     passWordField=\"passWord\" passWordLength=\"16\" loginButton=\"login\"/>  \r\n    \r\n    <BUTTON name=\"button1\" x=\"225\" y=\"250\" width=\"200\" height=\"25\"\r\n     align=\"center\" class=\"BUTTON1\" href=\"http://warhawk-prod3.svo.online.scea.com:10060/WARHAWK_SVML/account/Account_AgeVerification.jsp\">Did this change....CREATE ACCOUNT</BUTTON>\r\n    \r\n</SVML>");
+
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+
+                                        if (response.OutputStream.CanWrite)
+                                        {
+                                            try
+                                            {
+                                                response.ContentLength64 = xmlMessage.Length;
+                                                response.OutputStream.Write(xmlMessage, 0, xmlMessage.Length);
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Not Important;
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+
                         case "/WARHAWK_SVML/game/Game_Create_Player_Submit.jsp":
                             switch (request.HttpMethod)
                             {
