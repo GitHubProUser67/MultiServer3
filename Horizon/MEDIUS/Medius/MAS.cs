@@ -137,6 +137,10 @@ namespace Horizon.MEDIUS.Medius
                         {
                             switch (clientConnectTcp.AppId)
                             {
+                                case 20384:
+                                    CheatQuery(0x008625b0, 6, clientChannel); // SingStar Vol3 Retail
+                                    CheatQuery(0x00b96850, 6, clientChannel); // SingStar Starter Pack
+                                    break;
                                 case 21354:
                                     CheatQuery(0x008625E0, 6, clientChannel); // SingStar Hits v1.00
                                     break;
