@@ -789,7 +789,7 @@ namespace Horizon.MEDIUS.Medius
             NetAddressList gameNetAddressList = new();
             int worldId = -1;
 
-            var p2pHostAddress = ((IPEndPoint)channel.RemoteAddress).Address.ToString();
+            string p2pHostAddress = ((IPEndPoint)channel.RemoteAddress).Address.ToString();
             string p2pHostAddressRemoved = p2pHostAddress.Remove(0, 7);
 
             if (request is MediusServerCreateGameOnMeRequest r)
@@ -814,9 +814,7 @@ namespace Horizon.MEDIUS.Medius
 
                 }
                 else
-                {
                     gameNetAddressList = r.AddressList;
-                }
 
                 worldId = r.WorldID;
             }
