@@ -24,6 +24,8 @@ namespace Horizon.MEDIUS.Medius
 
         public static ServerSettings Settings = new();
 
+        private static ClientObject? clientObject = null;
+
         public MAS()
         {
 
@@ -109,7 +111,10 @@ namespace Horizon.MEDIUS.Medius
                                 LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr}:{client.MachineId} to active connection: {connectingIP}:{data.MachineId}");
 
                                 if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
+                                {
                                     data.ClientObject = client;
+                                    clientObject = client;
+                                }
 
                                 LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                             }
@@ -357,25 +362,8 @@ namespace Horizon.MEDIUS.Medius
                         // Create DME object
                         // data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(serverSessionBeginRequest1);
 
-                        char[] charsToRemove = { ':', 'f', '{', '}' };
-                        var clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
-
-                        LoggerAccessor.LogInfo($"[MAS] - clientObjects {clientObjects.Count}");
-
-                        string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
-
-                        //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
-                        foreach (var client in clientObjects)
-                        {
-                            string clientIPStr = client.IP.ToString().Trim(charsToRemove);
-
-                            LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr}:{client.MachineId} to active connection: {connectingIP}:{data.MachineId}");
-
-                            if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
-                                data.ClientObject = client;
-
-                            LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
-                        }
+                        if (data.ClientObject == null)
+                            data.ClientObject = clientObject;
 
                         if (data.ClientObject != null)
                         {
