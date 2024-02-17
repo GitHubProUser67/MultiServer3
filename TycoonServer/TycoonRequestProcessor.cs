@@ -89,7 +89,7 @@ namespace TycoonServer
                             else
                                 return "<Response><Gift>111111</Gift></Response>";
                         case "RequestTown":
-                            Thread.Sleep(100); // Why is that in here? Because the game is so bugged that responding too fast makes it crash.
+                            Thread.Sleep(1000); // Why is that in here? Because the game is so bugged that responding too fast makes it crash.
                             return TownInstance.RequestTown(UserID, InstanceID, DisplayName);
                         case "RequestUser":
                             if (File.Exists($"{TycoonServerConfiguration.TycoonStaticFolder}/TYCOON/User_Data/{UserID}.xml"))
