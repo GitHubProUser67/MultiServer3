@@ -108,16 +108,8 @@ namespace Horizon.MEDIUS.Medius
 
                                 LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr}:{client.MachineId} to active connection: {connectingIP}:{data.MachineId}");
 
-                                if (clientIPStr == connectingIP)
-                                {
-                                    if (!string.IsNullOrEmpty(data.MachineId) && !string.IsNullOrEmpty(client.MachineId))
-                                    {
-                                        if (data.MachineId == client.MachineId)
-                                            data.ClientObject = client;
-                                    }
-                                    else
-                                        data.ClientObject = client;
-                                }
+                                if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
+                                    data.ClientObject = client;
 
                                 LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                             }
@@ -379,16 +371,8 @@ namespace Horizon.MEDIUS.Medius
 
                             LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr}:{client.MachineId} to active connection: {connectingIP}:{data.MachineId}");
 
-                            if (clientIPStr == connectingIP)
-                            {
-                                if (!string.IsNullOrEmpty(data.MachineId) && !string.IsNullOrEmpty(client.MachineId))
-                                {
-                                    if (data.MachineId == client.MachineId)
-                                        data.ClientObject = client;
-                                }
-                                else
-                                    data.ClientObject = client;
-                            }
+                            if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
+                                data.ClientObject = client;
 
                             LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                         }
