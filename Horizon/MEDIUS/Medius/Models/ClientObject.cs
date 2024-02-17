@@ -132,11 +132,6 @@ namespace Horizon.MEDIUS.Medius.Models
         public string? MGCLSessionKey { get; protected set; } = null;
 
         /// <summary>
-        /// MAC Address (unsafe)
-        /// </summary>
-        public string? MACAddress { get; set; }
-
-        /// <summary>
         /// Unique MGCL hardcoded game identifer per Medius title
         /// </summary>
         public int ApplicationId { get; set; } = 0;
