@@ -56,7 +56,9 @@ namespace HTTPServer
         public static bool IsIPAllowed(string ipAddress)
         {
             if ((HTTPServerConfiguration.AllowedIPs != null && HTTPServerConfiguration.AllowedIPs.Contains(ipAddress))
-                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost")
+                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost"
+                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress().ToString().ToLower() 
+                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress(true).ToString().ToLower())
                 return true;
 
             return false;
