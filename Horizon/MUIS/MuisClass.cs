@@ -997,43 +997,29 @@ namespace Horizon.MUIS
                     }
                 });
 
-                Settings.Universes.Add(21564, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "Warhawk",
-                        Description = "US Server",
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 256,
-                        Endpoint = iptofile,
-                        SvoURL = $"http://{iptofile}:10060/WARHAWK_SVML/index.jsp?languageID=1 ",
-                        ExtendedInfo = $"v1.50 http://{iptofile}/medius-patch/warhawk-prod/r016/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America Inc.",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
+                List<int> WarhawkAppIDs = new() { 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
 
-                Settings.Universes.Add(21574, new UniverseInfo[]
+                foreach (int AppID in WarhawkAppIDs)
                 {
-                    new UniverseInfo()
+                    Settings.Universes.Add(AppID, new UniverseInfo[]
                     {
-                        Name = "Warhawk",
-                        Description = "EU Server",
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 256,
-                        Endpoint = iptofile,
-                        SvoURL = $"http://{iptofile}:10060/WARHAWK_SVML/index.jsp?languageID=1 ",
-                        ExtendedInfo = $"v1.50 http://{iptofile}/medius-patch/warhawk-prod/r016/",
-                        UniverseBilling = "SCEA",
-                        BillingSystemName = "Sony Computer Entertainment America Inc.",
-                        Port = 10075,
-                        UniverseId = 1
-                    }
-                });
+                        new()
+                        {
+                            Name = "Warhawk",
+                            Description = "Matchmaking Server",
+                            Status = 1,
+                            UserCount = 1,
+                            MaxUsers = 256,
+                            Endpoint = iptofile,
+                            SvoURL = $"http://{iptofile}:10060/WARHAWK_SVML/index.jsp?languageID=1 ",
+                            ExtendedInfo = $"v1.50 http://{iptofile}/medius-patch/warhawk-prod/r016/",
+                            UniverseBilling = "SCEA",
+                            BillingSystemName = "Sony Computer Entertainment America Inc.",
+                            Port = 10075,
+                            UniverseId = 1
+                        }
+                    });
+                }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE) ?? Directory.GetCurrentDirectory() + "/static");
 

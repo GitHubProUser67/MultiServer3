@@ -154,8 +154,10 @@ namespace Horizon.MEDIUS.Medius
                         #region if PS3
                         if (scertClient.IsPS3Client)
                         {
+                            List<int> ConnectAcceptTCPGames = new() { 20623, 20624, 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
+
                             //CAC & Warhawk
-                            if (data.ClientObject.ApplicationId == 20623 || data.ClientObject.ApplicationId == 20624 || data.ClientObject.ApplicationId == 20043 || data.ClientObject.ApplicationId == 20044)
+                            if (ConnectAcceptTCPGames.Contains(data.ClientObject.ApplicationId))
                             {
                                 Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                 {
@@ -5333,8 +5335,8 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<int> FilteredGameLists = new List<int>() { 21924, 10994, 11203, 11204, 21564, 21574, 20044 };
-                        List<int> NonFilteredGameLists = new List<int>() { 20770, 20623, 20624, 20764, 22920 };
+                        List<int> FilteredGameLists = new() { 21924, 10994, 11203, 11204 };
+                        List<int> NonFilteredGameLists = new() { 20770, 20623, 20624, 20764, 22920, 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
 
                         //By Filter
                         if (FilteredGameLists.Contains(data.ClientObject.ApplicationId))
@@ -5390,7 +5392,6 @@ namespace Horizon.MEDIUS.Medius
                                 });
                             }
                         }
-
                         // Size Matters  20770, CAC 20623, 20624
                         else if (NonFilteredGameLists.Contains(data.ClientObject.ApplicationId))
                         {
