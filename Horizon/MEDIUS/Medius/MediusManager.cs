@@ -831,15 +831,15 @@ namespace Horizon.MEDIUS.Medius
                 worldId = r2.WorldID;
             }
 
-            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
+            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value).Where(g => g.GameName == gameName));
 
-            // Ensure the name is unique
-            // If the host leaves then we unreserve the name
-            if (existingGames.Any(x => x.WorldStatus != MediusWorldStatus.WorldClosed && x.WorldStatus != MediusWorldStatus.WorldInactive && x.GameName == gameName && x.Host != null && x.Host.IsConnected))
+            if (existingGames.Any())
             {
+                // TODO, do more checks if needed, like if host is there ect... cause medius could maybe optimize the game attribution.
+
                 client.Queue(new RT_MSG_SERVER_APP()
                 {
-                    //Send Success response
+                    // Send Success response
                     Message = new MediusServerCreateGameOnMeResponse()
                     {
                         MessageID = request.MessageID,

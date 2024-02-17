@@ -1121,9 +1121,9 @@ namespace Horizon.MEDIUS.Medius
             return dme;
         }
 
-        public ClientObject ReserveClient(MediusServerSessionBeginRequest mgclSessionBeginRequest, string? MachineId)
+        public ClientObject ReserveClient(MediusServerSessionBeginRequest mgclSessionBeginRequest)
         {
-            ClientObject client = new(MachineId);
+            ClientObject client = new();
             client.BeginSession();
             return client;
         }
