@@ -20,11 +20,11 @@ namespace Horizon.MEDIUS.Medius
         public override int TCPPort => MediusClass.Settings.MPSPort;
         public override int UDPPort => 00000;
 
-        DateTime lastSend = Utils.GetHighPrecisionUtcTime();
+        private static DateTime lastSend = Utils.GetHighPrecisionUtcTime();
 
-        IChannel? channel = null;
-        ChannelData? channelData = null;
-        ClientObject? clientObject = null;
+        private static IChannel? channel = null;
+        private static ChannelData? channelData = null;
+        private static ClientObject? clientObject = null;
 
         public MPS()
         {
