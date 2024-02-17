@@ -53,7 +53,9 @@ namespace HTTPSecureServerLite
         private static bool IsIPAllowed(string ipAddress)
         {
             if ((HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress))
-                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost")
+                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost"
+                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress().ToString().ToLower()
+                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress(true).ToString().ToLower())
                 return true;
 
             return false;
