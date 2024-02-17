@@ -831,23 +831,26 @@ namespace Horizon.MEDIUS.Medius
                 worldId = r2.WorldID;
             }
 
-            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value).Where(g => g.GameName == gameName));
-
-            if (existingGames.Any())
+            // We make sure a game with the same name not already exist, if so, we tell client about.
+            if (client.CurrentChannel != null)
             {
-                // TODO, do more checks if needed, like if host is there ect... cause medius could maybe optimize the game attribution.
-
-                client.Queue(new RT_MSG_SERVER_APP()
+                foreach (Channel SubChannel in client.CurrentChannel.LocalChannels)
                 {
-                    // Send Success response
-                    Message = new MediusServerCreateGameOnMeResponse()
+                    if (SubChannel.GameCount > 0 && SubChannel._games.Any(game => game.GameName == gameName))
                     {
-                        MessageID = request.MessageID,
-                        Confirmation = MGCL_ERROR_CODE.MGCL_GAME_NAME_EXISTS,
-                        MediusWorldID = -1,
+                        client.Queue(new RT_MSG_SERVER_APP()
+                        {
+                            Message = new MediusServerCreateGameOnMeResponse()
+                            {
+                                MessageID = request.MessageID,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_GAME_NAME_EXISTS,
+                                MediusWorldID = -1,
+                            }
+                        });
+
+                        return;
                     }
-                });
-                return;
+                }
             }
 
             LoggerAccessor.LogDebug("NON-DME SUPPORTED CLIENT**\n  NOT CHECKING FOR FREE DME SERVER");

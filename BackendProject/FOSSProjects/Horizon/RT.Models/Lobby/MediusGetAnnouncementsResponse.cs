@@ -17,6 +17,8 @@ namespace BackendProject.Horizon.RT.Models
         public string Announcement; // ANNOUNCEMENT_MAXLEN
         public bool EndOfList;
 
+        public List<int> warhawkIds = new() { 21564, 21574, 20044 }; // list of warhawk app IDs
+
         public override void Deserialize(MessageReader reader)
         {
             base.Deserialize(reader);
@@ -30,7 +32,13 @@ namespace BackendProject.Horizon.RT.Models
             if (reader.MediusVersion <= 112)
                 Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
             else if (reader.MediusVersion == 113)
-                Announcement = reader.ReadString(Constants.ANNOUNCEMENT1_MAXLEN);
+            {
+                // warhawk
+                if (warhawkIds.Contains(reader.AppId))
+                    Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
+                else
+                    Announcement = reader.ReadString(Constants.ANNOUNCEMENT1_MAXLEN);
+            }
             else
                 Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
 
@@ -51,7 +59,13 @@ namespace BackendProject.Horizon.RT.Models
             if (writer.MediusVersion <= 112)
                 writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
             else if (writer.MediusVersion == 113)
-                writer.Write(Announcement, Constants.ANNOUNCEMENT1_MAXLEN);
+            {
+                // warhawk
+                if (warhawkIds.Contains(writer.AppId))
+                    writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
+                else
+                    writer.Write(Announcement, Constants.ANNOUNCEMENT1_MAXLEN);
+            }
             else
                 writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
             writer.Write(EndOfList);
