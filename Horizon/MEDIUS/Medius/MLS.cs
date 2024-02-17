@@ -35,30 +35,30 @@ namespace Horizon.MEDIUS.Medius
         }
 
         //KILLZONE PS2 ONLY
-        public ClientObject ReserveClient(MediusVersionServerRequest request, string? MachineId)
+        public ClientObject ReserveClient(MediusVersionServerRequest request)
         {
-            var client = new ClientObject(MachineId);
+            var client = new ClientObject();
             client.BeginSession();
             return client;
         }
 
-        public ClientObject ReserveClient(MediusSessionBeginRequest request, string? MachineId)
+        public ClientObject ReserveClient(MediusSessionBeginRequest request)
         {
-            var client = new ClientObject(MachineId);
+            var client = new ClientObject();
             client.BeginSession();
             return client;
         }
 
-        public ClientObject ReserveClient1(MediusSessionBeginRequest1 request, string? MachineId)
+        public ClientObject ReserveClient1(MediusSessionBeginRequest1 request)
         {
-            var client = new ClientObject(MachineId);
+            var client = new ClientObject();
             client.BeginSession();
             return client;
         }
 
-        public ClientObject ReserveClient(MediusExtendedSessionBeginRequest request, string? MachineId)
+        public ClientObject ReserveClient(MediusExtendedSessionBeginRequest request)
         {
-            var client = new ClientObject(MachineId);
+            var client = new ClientObject();
             client.BeginSession();
             return client;
         }
@@ -126,14 +126,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             if (MediusClass.Settings.AllowGuests)
                             {
-                                if (!string.IsNullOrEmpty(data.MachineId))
-                                    data.ClientObject = new(data.MachineId);
-                                else
-                                {
-                                    IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
-
-                                    data.ClientObject = new((ARPaddr != null) ? string.Join(":", ARPaddr) : null);
-                                }
+                                data.ClientObject = new();
                                 data.ClientObject.OnConnected();
                                 if (!await GuestLogin(clientChannel, data))
                                 {
@@ -6585,7 +6578,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             CrudRoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentGame.ApplicationId.ToString(), data.ClientObject.CurrentGame.GameName, 
                                 (data.ClientObject.CurrentGame.DMEWorldId != -1) ? data.ClientObject.CurrentGame.DMEWorldId.ToString() : data.ClientObject.CurrentGame.WorldID.ToString(),
-                                data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(), (data.ClientObject == data.ClientObject.CurrentGame.Host));
+                                data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(), data.ClientObject == data.ClientObject.CurrentGame.Host);
 
                             await data.ClientObject.CurrentGame.OnWorldReport(worldReport, data.ClientObject.ApplicationId);
                         }

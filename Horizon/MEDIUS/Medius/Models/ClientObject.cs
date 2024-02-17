@@ -109,11 +109,6 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public string? MachineId { get; protected set; } = null;
-
-        /// <summary>
-        /// 
-        /// </summary>
         public byte[] AccountStats { get; set; } = new byte[256];
 
         /// <summary>
@@ -135,6 +130,11 @@ namespace Horizon.MEDIUS.Medius.Models
         /// MGCL Session Key
         /// </summary>
         public string? MGCLSessionKey { get; protected set; } = null;
+
+        /// <summary>
+        /// MAC Address (unsafe)
+        /// </summary>
+        public string? MACAddress { get; set; }
 
         /// <summary>
         /// Unique MGCL hardcoded game identifer per Medius title
@@ -355,10 +355,8 @@ namespace Horizon.MEDIUS.Medius.Models
         /// </summary>
         private DateTime _lastServerEchoValue = DateTime.UnixEpoch;
 
-        public ClientObject(string? MachineId = null)
+        public ClientObject()
         {
-            this.MachineId = MachineId;
-
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();
 

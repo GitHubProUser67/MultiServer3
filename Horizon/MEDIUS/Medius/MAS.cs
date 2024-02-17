@@ -31,9 +31,9 @@ namespace Horizon.MEDIUS.Medius
 
         }
 
-        public ClientObject ReserveClient(MediusServerSessionBeginRequest request, string? MachineId)
+        public ClientObject ReserveClient(MediusServerSessionBeginRequest request)
         {
-            var client = new ClientObject(MachineId);
+            var client = new ClientObject();
             client.BeginSession();
             return client;
         }
@@ -68,8 +68,6 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
-                        IEnumerable<string>? ARPaddr = VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2"));
-
                         List<int> pre108ServerComplete = new() { 10114, 10130, 10164, 10190, 10124, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
 
                         ///<summary>
@@ -79,9 +77,6 @@ namespace Horizon.MEDIUS.Medius
                         List<int> post108ServerComplete = new() { 10694 };
 
                         data.ApplicationId = clientConnectTcp.AppId;
-
-                        if (ARPaddr != null && data.MachineId == null)
-                            data.MachineId = string.Join(":", ARPaddr);
 
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
@@ -97,20 +92,22 @@ namespace Horizon.MEDIUS.Medius
                         if (clientConnectTcp.AccessToken == null && clientConnectTcp.SessionKey == null)
                         {
                             char[] charsToRemove = { ':', 'f', '{', '}' };
-                            var clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
+                            List<ClientObject> clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
 
                             LoggerAccessor.LogInfo($"[MAS] - clientObjects {clientObjects.Count}");
 
                             string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
 
+                            string GuessedMACAddr = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(connectingIP))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
+
                             //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
-                            foreach (var client in clientObjects)
+                            foreach (ClientObject client in clientObjects)
                             {
                                 string clientIPStr = client.IP.ToString().Trim(charsToRemove);
 
-                                LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr}:{client.MachineId} to active connection: {connectingIP}:{data.MachineId}");
+                                LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
 
-                                if (clientIPStr == connectingIP && data.MachineId == client.MachineId)
+                                if (clientIPStr == connectingIP && client.MACAddress == GuessedMACAddr)
                                 {
                                     data.ClientObject = client;
                                     clientObject = client;
@@ -263,21 +260,21 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusServerSessionBeginRequest mgclSessionBeginRequest:
                     {
-                        List<int> nonSecure = new List<int>() { 10010, 10031 };
-                        List<int> preCreateClient = new List<int>() { 10680 };
+                        List<int> nonSecure = new() { 10010, 10031 };
+                        List<int> preCreateClient = new() { 10680 };
 
                         //UYA Public Beta v1.0
                         if (preCreateClient.Contains(data.ApplicationId))
                         {
                             LoggerAccessor.LogInfo("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
                             // Create client object
-                            data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest, data.MachineId);
+                            data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest);
                         }
 
                         //If Message Routing App id
                         if (data.ApplicationId == 120)
                         {
-                            data.ClientObject = new ClientObject(data.MachineId);
+                            data.ClientObject = new ClientObject();
                             data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(mgclSessionBeginRequest);
                         }
 
@@ -595,10 +592,11 @@ namespace Horizon.MEDIUS.Medius
                 case MediusExtendedSessionBeginRequest extendedSessionBeginRequest:
                     {
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest, data.MachineId);
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient(extendedSessionBeginRequest);
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
+                        data.ClientObject.MACAddress = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
                         data.ClientObject.OnConnected();
 
                         await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
@@ -632,13 +630,14 @@ namespace Horizon.MEDIUS.Medius
                     {
                         if (data.ApplicationId != 10442)
                             // Create client object
-                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest, data.MachineId);
+                            data.ClientObject = MediusClass.LobbyServer.ReserveClient(sessionBeginRequest);
 
                         if (data.ClientObject != null)
                         {
                             data.ClientObject.ApplicationId = data.ApplicationId;
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.MediusConnectionType = sessionBeginRequest.ConnectionClass;
+                            data.ClientObject.MACAddress = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
                             data.ClientObject.OnConnected();
 
                             LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
@@ -680,10 +679,11 @@ namespace Horizon.MEDIUS.Medius
                 case MediusSessionBeginRequest1 sessionBeginRequest1:
                     {
                         // Create client object
-                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1, data.MachineId);
+                        data.ClientObject = MediusClass.LobbyServer.ReserveClient1(sessionBeginRequest1);
                         data.ClientObject.ApplicationId = data.ApplicationId;
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
+                        data.ClientObject.MACAddress = string.Join(":", VariousUtils.GetMAC(IPAddress.Parse(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' })))?.GetAddressBytes().Select(b => b.ToString("X2")) ?? Enumerable.Repeat("FF", 6));
                         data.ClientObject.OnConnected();
 
                         LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
