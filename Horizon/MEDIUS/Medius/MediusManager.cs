@@ -446,7 +446,14 @@ namespace Horizon.MEDIUS.Medius
 
             return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
                             .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
-                            .Where(x => (x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging))
+                            .Where(x => x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging)
+                            .Skip((pageIndex - 1) * pageSize)
+                            .Take(pageSize);
+        }
+
+        public IEnumerable<Game> GetGameListInLocalChannel(Channel channel, int pageIndex, int pageSize)
+        {
+            return channel._games.Where(x => x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging)
                             .Skip((pageIndex - 1) * pageSize)
                             .Take(pageSize);
         }
@@ -832,25 +839,19 @@ namespace Horizon.MEDIUS.Medius
             }
 
             // We make sure a game with the same name not already exist, if so, we tell client about.
-            if (client.CurrentChannel != null)
+            if (client.CurrentChannel != null && client.CurrentChannel.GameCount > 0 && client.CurrentChannel._games.Any(game => game.GameName == gameName))
             {
-                foreach (Channel SubChannel in client.CurrentChannel.LocalChannels)
+                client.Queue(new RT_MSG_SERVER_APP()
                 {
-                    if (SubChannel.GameCount > 0 && SubChannel._games.Any(game => game.GameName == gameName))
+                    Message = new MediusServerCreateGameOnMeResponse()
                     {
-                        client.Queue(new RT_MSG_SERVER_APP()
-                        {
-                            Message = new MediusServerCreateGameOnMeResponse()
-                            {
-                                MessageID = request.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_GAME_NAME_EXISTS,
-                                MediusWorldID = -1,
-                            }
-                        });
-
-                        return;
+                        MessageID = request.MessageID,
+                        Confirmation = MGCL_ERROR_CODE.MGCL_GAME_NAME_EXISTS,
+                        MediusWorldID = -1,
                     }
-                }
+                });
+
+                return;
             }
 
             LoggerAccessor.LogDebug("NON-DME SUPPORTED CLIENT**\n  NOT CHECKING FOR FREE DME SERVER");
