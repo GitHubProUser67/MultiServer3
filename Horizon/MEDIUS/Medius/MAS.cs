@@ -147,6 +147,9 @@ namespace Horizon.MEDIUS.Medius
                         {
                             switch (data.ApplicationId)
                             {
+                                case 20371:
+                                    CheatQuery(0x10085d80, 6, clientChannel); // PS Home 1.50 Beta
+                                    break;
                                 case 20384:
                                     CheatQuery(0x008625b0, 6, clientChannel); // SingStar Vol3 Retail
                                     CheatQuery(0x00b96850, 6, clientChannel); // SingStar Starter Pack
