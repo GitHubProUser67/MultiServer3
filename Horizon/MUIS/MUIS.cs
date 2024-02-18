@@ -433,25 +433,6 @@ namespace Horizon.MUIS
                                     // MUIS Standard Flow - Deprecated after Medius Client/Server Library 1.50
                                     if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_UNIVERSES))
                                     {
-                                        if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
-                                        {
-                                            // Split the string based on whitespace
-                                            string[] parts = info.ExtendedInfo.Split(' ');
-
-                                            // Check if there is only one space
-                                            if (parts.Length == 2)
-                                            {
-                                                switch (data.ApplicationId)
-                                                {
-                                                    case 20371:
-                                                        info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionBetaHDK, data.ExtraData)}";
-                                                        break;
-                                                    case 20374:
-                                                        info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionRetail, data.ExtraData)}";
-                                                        break;
-                                                }
-                                            }
-                                        }
 
                                         Queue(new RT_MSG_SERVER_APP()
                                         {
@@ -637,28 +618,53 @@ namespace Horizon.MUIS
                                         }
                                         #endregion
 
-                                        Queue(new RT_MSG_SERVER_APP()
+                                        if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_DNS) ||
+                                            getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_EXTRAINFO))
                                         {
-                                            Message = new MediusUniverseVariableInformationResponse()
+
+                                            if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
                                             {
-                                                MessageID = getUniverseInfo.MessageID,
-                                                StatusCode = MediusCallbackStatus.MediusSuccess,
-                                                InfoFilter = getUniverseInfo.InfoType,
-                                                UniverseID = info.UniverseId,
-                                                ExtendedInfo = info.ExtendedInfo,
-                                                UniverseName = info.Name,
-                                                UniverseDescription = info.Description,
-                                                SvoURL = info.SvoURL,
-                                                Status = info.Status,
-                                                UserCount = info.UserCount,
-                                                MaxUsers = info.MaxUsers,
-                                                DNS = info.Endpoint,
-                                                Port = info.Port,
-                                                UniverseBilling = info.UniverseBilling,
-                                                BillingSystemName = info.BillingSystemName,
-                                                EndOfList = isLast
+                                                // Split the string based on whitespace
+                                                string[] parts = info.ExtendedInfo.Split(' ');
+
+                                                // Check if there is only one space
+                                                if (parts.Length == 2)
+                                                {
+                                                    switch (data.ApplicationId)
+                                                    {
+                                                        case 20371:
+                                                            info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionBetaHDK, data.ExtraData)}";
+                                                            break;
+                                                        case 20374:
+                                                            info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionRetail, data.ExtraData)}";
+                                                            break;
+                                                    }
+                                                }
                                             }
-                                        }, clientChannel);
+
+                                            Queue(new RT_MSG_SERVER_APP()
+                                            {
+                                                Message = new MediusUniverseVariableInformationResponse()
+                                                {
+                                                    MessageID = getUniverseInfo.MessageID,
+                                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+                                                    InfoFilter = getUniverseInfo.InfoType,
+                                                    UniverseID = info.UniverseId,
+                                                    ExtendedInfo = info.ExtendedInfo,
+                                                    UniverseName = info.Name,
+                                                    UniverseDescription = info.Description,
+                                                    SvoURL = info.SvoURL,
+                                                    Status = info.Status,
+                                                    UserCount = info.UserCount,
+                                                    MaxUsers = info.MaxUsers,
+                                                    DNS = info.Endpoint,
+                                                    Port = info.Port,
+                                                    UniverseBilling = info.UniverseBilling,
+                                                    BillingSystemName = info.BillingSystemName,
+                                                    EndOfList = isLast
+                                                }
+                                            }, clientChannel);
+                                        }
 
                                         #region News
                                         if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_NEWS))
