@@ -1,0 +1,10 @@
+<xml>
+<result type="int">1</result>
+<description type="text">Success</description>
+<error_no type="int">0</error_no>
+<error_message type="text">None</error_message>
+<key type="text">concert_play_sound</key>
+<seq type="int">2</seq>
+<resource type="int">1</resource>
+<data type="text">http://scej-home.playstation.net/eventController/MikuLiveEvent/assets/MyBestHomePSHomeEdition_Beat_Charger_202309111501.mp4</data>
+</xml>
