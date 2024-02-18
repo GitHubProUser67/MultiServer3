@@ -145,7 +145,7 @@ namespace Horizon.MEDIUS.Medius
 
                         if (MediusClass.Settings.HttpsSVOCheckPatcher)
                         {
-                            switch (clientConnectTcp.AppId)
+                            switch (data.ApplicationId)
                             {
                                 case 20384:
                                     CheatQuery(0x008625b0, 6, clientChannel); // SingStar Vol3 Retail

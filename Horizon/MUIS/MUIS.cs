@@ -14,6 +14,8 @@ using Horizon.MUIS.Config;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using Horizon.MEDIUS;
+using BackendProject.MiscUtils;
+using System.Text;
 
 namespace Horizon.MUIS
 {
@@ -217,7 +219,7 @@ namespace Horizon.MUIS
                             data.ApplicationId = clientConnectTcp.AppId;
                             scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                            List<int> pre108ServerComplete = new List<int>() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
+                            List<int> pre108ServerComplete = new() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
 
                             if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null && scertClient.CipherService.EnableEncryption == true)
                                 Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
@@ -240,6 +242,42 @@ namespace Horizon.MUIS
 
                             if (pre108ServerComplete.Contains(data.ApplicationId))
                                 Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+
+                            if (MuisClass.Settings.PokePatchOn)
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20374:
+                                        CheatQuery(0x100372c8, 5, clientChannel); // Check for 01.83 HDK online debug eboot.
+                                        break;
+                                    case 20371:
+                                        CheatQuery(0x1003dd98, 5, clientChannel); // Check for 01.50 Retail Beta eboot.
+                                        break;
+                                }
+                            }
+
+                            break;
+                        }
+                    case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
+                        {
+                            byte[]? QueryData = clientCheatQuery.Data;
+
+                            if (QueryData != null)
+                            {
+                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{(clientChannel.RemoteAddress as IPEndPoint)?.Address} Has Data:{VariousUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+
+                                switch (data.ApplicationId)
+                                {
+                                    case 20374:
+                                        if (QueryData.Length == 5 && QueryData[2] == 0x2e && Encoding.ASCII.GetString(QueryData) != HorizonServerConfiguration.HomeVersionRetail && MuisClass.Settings.PokePatchOn)
+                                            PatchHomeVersionString(clientCheatQuery.StartAddress, clientChannel, HorizonServerConfiguration.HomeVersionRetail);
+                                        break;
+                                    case 20371:
+                                        if (QueryData.Length == 5 && QueryData[2] == 0x2e && Encoding.ASCII.GetString(QueryData) != HorizonServerConfiguration.HomeVersionBetaHDK && MuisClass.Settings.PokePatchOn)
+                                            PatchHomeVersionString(clientCheatQuery.StartAddress, clientChannel, HorizonServerConfiguration.HomeVersionBetaHDK);
+                                        break;
+                                }
+                            }
                             break;
                         }
                     case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
@@ -943,6 +981,54 @@ namespace Horizon.MUIS
         {
             return _clientCounter++;
         }
+
+        #region PokeEngine
+        private bool CheatQuery(uint address, int Length, IChannel? clientChannel)
+        {
+            // address = 0, don't read
+            if (address == 0)
+                return false;
+
+            // client channel is null, don't read
+            if (clientChannel == null)
+                return false;
+
+            // read client memory
+            Queue(new RT_MSG_SERVER_CHEAT_QUERY()
+            {
+                QueryType = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY,
+                SequenceId = 1,
+                StartAddress = address,
+                Length = Length,
+            }, clientChannel);
+
+            // return read
+            return true;
+        }
+
+        private bool PatchHomeVersionString(uint patchLocation, IChannel? clientChannel, string VersionString)
+        {
+            // patch location = 0, don't patch
+            if (patchLocation == 0)
+                return false;
+
+            // client channel is null, don't patch
+            if (clientChannel == null)
+                return false;
+
+            // poke client memory
+            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+            {
+                start_Address = patchLocation,
+                Payload = Encoding.ASCII.GetBytes(VersionString),
+                SkipEncryption = false,
+            }, clientChannel);
+
+            // return patched
+            return true;
+        }
+
+        #endregion
 
         public class PokeData
         {
