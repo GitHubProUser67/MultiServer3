@@ -13,6 +13,8 @@ using System.Net;
 using BackendProject.Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 using Horizon.MUM;
+using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -23,8 +25,6 @@ namespace Horizon.MEDIUS.Medius
         public override int UDPPort => 00000;
 
         public static ServerSettings Settings = new();
-
-        private static ClientObject? clientObject = null;
 
         public MAS()
         {
@@ -89,11 +89,7 @@ namespace Horizon.MEDIUS.Medius
                         }
                         #endregion
 
-                        if (clientObject != null)
-                        {
-
-                        }
-                        else if (clientConnectTcp.AccessToken == null && clientConnectTcp.SessionKey == null)
+                        if (clientConnectTcp.AccessToken == null && clientConnectTcp.SessionKey == null)
                         {
                             char[] charsToRemove = { ':', 'f', '{', '}' };
                             List<ClientObject> clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
@@ -110,10 +106,7 @@ namespace Horizon.MEDIUS.Medius
                                 LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
 
                                 if (clientIPStr == connectingIP)
-                                {
                                     data.ClientObject = client;
-                                    clientObject = client;
-                                }
 
                                 LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
                             }
@@ -165,6 +158,8 @@ namespace Horizon.MEDIUS.Medius
                                     break;
                             }
                         }
+
+                        PokePatch(clientChannel, data);
 
                         break;
                     }
@@ -365,7 +360,27 @@ namespace Horizon.MEDIUS.Medius
                         // data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(serverSessionBeginRequest1);
 
                         if (data.ClientObject == null)
-                            data.ClientObject = clientObject;
+                        {
+                            char[] charsToRemove = { ':', 'f', '{', '}' };
+                            List<ClientObject> clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
+
+                            LoggerAccessor.LogInfo($"[MAS] - clientObjects {clientObjects.Count}");
+
+                            string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
+
+                            //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
+                            foreach (ClientObject client in clientObjects)
+                            {
+                                string clientIPStr = client.IP.ToString().Trim(charsToRemove);
+
+                                LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
+
+                                if (clientIPStr == connectingIP)
+                                    data.ClientObject = client;
+
+                                LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
+                            }
+                        }
 
                         if (data.ClientObject != null)
                         {
@@ -603,8 +618,6 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
                         data.ClientObject.OnConnected();
 
-                        clientObject = data.ClientObject;
-
                         await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
@@ -644,8 +657,6 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.MediusConnectionType = sessionBeginRequest.ConnectionClass;
                             data.ClientObject.OnConnected();
-
-                            clientObject = data.ClientObject;
 
                             LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
@@ -691,8 +702,6 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
                         data.ClientObject.OnConnected();
-
-                        clientObject = data.ClientObject;
 
                         LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
@@ -2836,6 +2845,58 @@ namespace Horizon.MEDIUS.Medius
         #endregion
 
         #region PokeEngine
+
+        private void PokePatch(IChannel clientChannel, ChannelData data)
+        {
+            if (MediusClass.Settings.PokePatchOn)
+            {
+                if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
+                {
+                    try
+                    {
+                        JObject? jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
+
+                        foreach (JProperty? appProperty in jsonObject.Properties())
+                        {
+                            string? appId = appProperty.Name;
+
+                            if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
+                            {
+                                if (appProperty.Value is JObject innerObject)
+                                {
+                                    foreach (JProperty? offsetProperty in innerObject.Properties())
+                                    {
+                                        string? offset = offsetProperty.Name;
+                                        string? valuestr = offsetProperty.Value.ToString();
+
+                                        if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", string.Empty), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.Any, null, out uint hexValue))
+                                        {
+                                            LoggerAccessor.LogInfo($"[MAS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
+                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+                                            {
+                                                start_Address = offsetValue,
+                                                Payload = BitConverter.GetBytes(hexValue),
+                                                SkipEncryption = true
+
+                                            }, clientChannel);
+                                        }
+                                        else
+                                            LoggerAccessor.LogWarn($"[MAS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogWarn($"[MAS] - MemoryPoke failed to initialise! {ex}.");
+                    }
+                }
+                else
+                    LoggerAccessor.LogWarn($"[MAS] - No MemoryPoke config found.");
+            }
+        }
+
         private bool CheatQuery(uint address, int Length, IChannel? clientChannel)
         {
             // address = 0, don't read
