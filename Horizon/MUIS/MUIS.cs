@@ -430,30 +430,28 @@ namespace Horizon.MUIS
                                     }
                                     #endregion
 
-                                    if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
+                                    // MUIS Standard Flow - Deprecated after Medius Client/Server Library 1.50
+                                    if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_UNIVERSES))
                                     {
-                                        // Split the string based on whitespace
-                                        string[] parts = info.ExtendedInfo.Split(' ');
-
-                                        // Check if there is only one space
-                                        if (parts.Length == 2)
+                                        if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
                                         {
-                                            switch (data.ApplicationId)
+                                            // Split the string based on whitespace
+                                            string[] parts = info.ExtendedInfo.Split(' ');
+
+                                            // Check if there is only one space
+                                            if (parts.Length == 2)
                                             {
-                                                case 20371:
-                                                    info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionBetaHDK, data.ExtraData)}";
-                                                    break;
-                                                case 20374:
-                                                    info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionRetail, data.ExtraData)}";
-                                                    break;
+                                                switch (data.ApplicationId)
+                                                {
+                                                    case 20371:
+                                                        info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionBetaHDK, data.ExtraData)}";
+                                                        break;
+                                                    case 20374:
+                                                        info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionRetail, data.ExtraData)}";
+                                                        break;
+                                                }
                                             }
                                         }
-                                    }
-
-                                    // MUIS Standard Flow - Deprecated after Medius Client/Server Library 1.50
-                                    if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_DNS) ||
-                                        getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_UNIVERSES))
-                                    {
 
                                         Queue(new RT_MSG_SERVER_APP()
                                         {

@@ -24,6 +24,8 @@ namespace Horizon.MEDIUS.Medius
         public override int TCPPort => MediusClass.Settings.MASPort;
         public override int UDPPort => 00000;
 
+        public static List<Tuple<bool, ClientObject>> GameHostClientQueue = new List<Tuple<bool, ClientObject>>();
+
         public static ServerSettings Settings = new();
 
         public MAS()
@@ -89,28 +91,28 @@ namespace Horizon.MEDIUS.Medius
                         }
                         #endregion
 
-                        if (clientConnectTcp.AccessToken == null && clientConnectTcp.SessionKey == null)
-                        {
-                            char[] charsToRemove = { ':', 'f', '{', '}' };
-                            List<ClientObject> clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
+                        //if (clientConnectTcp.AccessToken == null && clientConnectTcp.SessionKey == null)
+                        //{
+                        //    char[] charsToRemove = { ':', 'f', '{', '}' };
+                        //    List<ClientObject> clientObjects = MediusClass.Manager.GetClients(data.ApplicationId);
 
-                            LoggerAccessor.LogInfo($"[MAS] - clientObjects {clientObjects.Count}");
+                        //    LoggerAccessor.LogInfo($"[MAS] - clientObjects {clientObjects.Count}");
 
-                            string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
+                        //    string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
 
-                            //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
-                            foreach (ClientObject client in clientObjects)
-                            {
-                                string clientIPStr = client.IP.ToString().Trim(charsToRemove);
+                        //    //var clientObjects2 = clientObjects.Where(acct => acct.IP == IPAddress.Parse(connectingIP)).ToList();
+                        //    foreach (ClientObject client in clientObjects)
+                        //    {
+                        //        string clientIPStr = client.IP.ToString().Trim(charsToRemove);
 
-                                LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
+                        //        LoggerAccessor.LogWarn($"[MAS] - clientobject IP compare: {clientIPStr} to active connection: {connectingIP}");
 
-                                if (clientIPStr == connectingIP)
-                                    data.ClientObject = client;
+                        //        if (clientIPStr == connectingIP)
+                        //            data.ClientObject = client;
 
-                                LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
-                            }
-                        }
+                        //        LoggerAccessor.LogWarn($"[MAS] - ClientObject: {data.ClientObject}");
+                        //    }
+                        //}
 
                         // If this is a PS3 client or medius version equal or superior to 109
                         if (scertClient.IsPS3Client || scertClient.MediusVersion >= 109)
@@ -463,6 +465,32 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusServerAuthenticationRequest mgclAuthRequest:
                     {
+                        // specify chars to trim from ip
+                        char[] charsToRemove = { ':', 'f', '{', '}' };
+
+                        // grab connecting ip
+                        string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
+
+                        // get index of client
+                        int queueIndex = GameHostClientQueue.FindIndex(tuple => 
+                            !tuple.Item1 && // auth = false
+                            tuple.Item2.IP.ToString().Trim(charsToRemove) == connectingIP // ip matches
+                        );
+
+                        // host found
+                        if (queueIndex != -1)
+                        {
+                            // get client
+                            ClientObject client = GameHostClientQueue[queueIndex].Item2;
+
+                            // update list
+                            GameHostClientQueue[queueIndex] = Tuple.Create(true, client);
+
+                            // update auth client
+                            data.ClientObject = client;
+                        }
+
+
                         List<int> nonSecure = new() { 10010, 10031, 10190 };
 
                         //var dmeObject = data.ClientObject as DMEObject;
@@ -1672,10 +1700,10 @@ namespace Horizon.MEDIUS.Medius
                         // Check the client isn't already logged in
                         if (MediusClass.Manager.GetClientByAccountName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId)?.IsLoggedIn ?? false)
                         {
-                            data.ClientObject.Queue(new MediusTicketLoginResponse()
+                            data.ClientObject.Queue(new MediusAccountLoginResponse()
                             {
                                 MessageID = ticketLoginRequest.MessageID,
-                                StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountLoggedIn
+                                StatusCode = MediusCallbackStatus.MediusAccountLoggedIn
                             });
                         }
                         else
