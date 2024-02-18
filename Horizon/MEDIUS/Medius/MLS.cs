@@ -344,6 +344,9 @@ namespace Horizon.MEDIUS.Medius
                             }
                         }, clientChannel);
 
+                        // update queue
+                        MAS.GameHostClientQueue.RemoveAll(tuple => tuple.Item2 == data.ClientObject);
+
                         // End session
                         data.ClientObject.EndSession();
                         data.ClientObject = null;
@@ -6514,6 +6517,19 @@ namespace Horizon.MEDIUS.Medius
                         {
                             LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {worldReport} without being logged in.");
                             break;
+                        }
+
+                        // create client host object
+                        Tuple<bool, ClientObject> gameHostClient = new Tuple<bool, ClientObject>(false, data.ClientObject);
+
+                        // perform search on queue
+                        bool queueContainsClient = MAS.GameHostClientQueue.Any(tuple => tuple.Item2 == data.ClientObject);
+
+                        // add host to queue
+                        if (!queueContainsClient)
+                        {
+                            LoggerAccessor.LogError($"QUEUING {data.ClientObject.AccountName} FOR REAUTH");
+                            MAS.GameHostClientQueue.Add(gameHostClient);
                         }
 
                         if (data.ClientObject.CurrentGame != null)
