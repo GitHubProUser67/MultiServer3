@@ -41,6 +41,7 @@ namespace Horizon.MUIS
         protected internal class ChannelData
         {
             public int ApplicationId { get; set; } = 0;
+            public string? ExtraData { get; set; } // Just as a neat storage space for anything.
             public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
             public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
         }
@@ -243,6 +244,16 @@ namespace Horizon.MUIS
                             if (pre108ServerComplete.Contains(data.ApplicationId))
                                 Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
+                            switch (data.ApplicationId)
+                            {
+                                /*case 20374:
+                                    CheatQuery(0x100372c8, 5, clientChannel); // Check for 01.83 HDK online debug eboot version string.
+                                    break;*/
+                                case 20371:
+                                    CheatQuery(0x1003dd98, 5, clientChannel); // Check for 01.50 Retail Beta eboot version string.
+                                    break;
+                            }
+
                             break;
                         }
                     case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
@@ -256,12 +267,9 @@ namespace Horizon.MUIS
                                 switch (data.ApplicationId)
                                 {
                                     case 20374:
-                                        if (QueryData.Length == 5 && QueryData[2] == 0x2e && Encoding.ASCII.GetString(QueryData) != HorizonServerConfiguration.HomeVersionRetail && MuisClass.Settings.PokePatchOn)
-                                            PatchHomeVersionString(clientCheatQuery.StartAddress, clientChannel, HorizonServerConfiguration.HomeVersionRetail);
-                                        break;
                                     case 20371:
-                                        if (QueryData.Length == 5 && QueryData[2] == 0x2e && Encoding.ASCII.GetString(QueryData) != HorizonServerConfiguration.HomeVersionBetaHDK && MuisClass.Settings.PokePatchOn)
-                                            PatchHomeVersionString(clientCheatQuery.StartAddress, clientChannel, HorizonServerConfiguration.HomeVersionBetaHDK);
+                                        if (QueryData.Length == 5 && QueryData[2] == 0x2e)
+                                            data.ExtraData = Encoding.ASCII.GetString(QueryData); // We store client version in ExtraData.
                                         break;
                                 }
                             }
@@ -385,8 +393,6 @@ namespace Horizon.MUIS
                     {
                         if (data.ApplicationId == MuisClass.Settings.CompatibleApplicationIds.Find(appId => appId == data.ApplicationId))
                         {
-                            PokePatch(clientChannel, data);
-
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
                                 if (getUniverse_ExtraInfoRequest.InfoType == 0)
@@ -427,6 +433,25 @@ namespace Horizon.MUIS
                                     // MUIS Standard Flow - Deprecated after Medius Client/Server Library 1.50
                                     if (getUniverse_ExtraInfoRequest.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_UNIVERSES))
                                     {
+                                        if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
+                                        {
+                                            // Split the string based on whitespace
+                                            string[] parts = info.ExtendedInfo.Split(' ');
+
+                                            // Check if there is only one space
+                                            if (parts.Length == 2)
+                                            {
+                                                switch (data.ApplicationId)
+                                                {
+                                                    case 20371:
+                                                        info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionBetaHDK, data.ExtraData)}";
+                                                        break;
+                                                    case 20374:
+                                                        info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionRetail, data.ExtraData)}";
+                                                        break;
+                                                }
+                                            }
+                                        }
 
                                         Queue(new RT_MSG_SERVER_APP()
                                         {
@@ -515,8 +540,6 @@ namespace Horizon.MUIS
                         //Check if Client AppId equals the Appid in CompatibleAppId list
                         if (data.ApplicationId == compAppId)
                         {
-                            PokePatch(clientChannel, data);
-
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
                                 //Send Standard/Variable Flow
@@ -911,75 +934,13 @@ namespace Horizon.MUIS
         }
         #endregion
 
-        private void PokePatch(IChannel clientChannel, ChannelData data)
-        {
-            if (MuisClass.Settings.PokePatchOn)
-            {
-                switch (data.ApplicationId)
-                {
-                    case 20374:
-                        CheatQuery(0x100372c8, 5, clientChannel); // Check for 01.83 HDK online debug eboot.
-                        break;
-                    case 20371:
-                        CheatQuery(0x1003dd98, 5, clientChannel); // Check for 01.50 Retail Beta eboot.
-                        break;
-                }
-
-                if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
-                {
-                    try
-                    {
-                        var jsonObject = JObject.Parse(File.ReadAllText(Directory.GetCurrentDirectory() + $"/static/poke_config.json"));
-
-                        foreach (var appProperty in jsonObject.Properties())
-                        {
-                            string? appId = appProperty.Name;
-
-                            if (!string.IsNullOrEmpty(appId) && appId == data.ApplicationId.ToString())
-                            {
-                                var innerObject = appProperty.Value as JObject;
-
-                                if (innerObject != null)
-                                {
-                                    foreach (var offsetProperty in innerObject.Properties())
-                                    {
-                                        string? offset = offsetProperty.Name;
-                                        string? valuestr = offsetProperty.Value.ToString();
-
-                                        if (!string.IsNullOrEmpty(offset) && !string.IsNullOrEmpty(valuestr) && uint.TryParse(offset.Replace("0x", ""), NumberStyles.HexNumber, null, out uint offsetValue) && uint.TryParse(valuestr, NumberStyles.Any, null, out uint hexValue))
-                                        {
-                                            LoggerAccessor.LogInfo($"[MUIS] - MemoryPoke sent to appid {appId} with infos : offset:{offset} - value:{valuestr}");
-                                            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-                                            {
-                                                start_Address = offsetValue,
-                                                Payload = BitConverter.GetBytes(hexValue),
-                                                SkipEncryption = true
-
-                                            }, clientChannel);
-                                        }
-                                        else
-                                            LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to convert json properties! Check your Json syntax.");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerAccessor.LogWarn($"[MUIS] - MemoryPoke failed to initialise! {ex}.");
-                    }
-                }
-                else
-                    LoggerAccessor.LogWarn($"[MUIS] - No MemoryPoke config found.");
-            }
-        }
-
         protected uint GenerateNewScertClientId()
         {
             return _clientCounter++;
         }
 
-        #region PokeEngine
+        #region QueryEngine
+
         private bool CheatQuery(uint address, int Length, IChannel? clientChannel)
         {
             // address = 0, don't read
@@ -1003,34 +964,6 @@ namespace Horizon.MUIS
             return true;
         }
 
-        private bool PatchHomeVersionString(uint patchLocation, IChannel? clientChannel, string VersionString)
-        {
-            // patch location = 0, don't patch
-            if (patchLocation == 0)
-                return false;
-
-            // client channel is null, don't patch
-            if (clientChannel == null)
-                return false;
-
-            // poke client memory
-            Queue(new RT_MSG_SERVER_MEMORY_POKE()
-            {
-                start_Address = patchLocation,
-                Payload = Encoding.ASCII.GetBytes(VersionString),
-                SkipEncryption = false,
-            }, clientChannel);
-
-            // return patched
-            return true;
-        }
-
         #endregion
-
-        public class PokeData
-        {
-            public string? Offset { get; set; }
-            public string? Value { get; set; }
-        }
     }
 }

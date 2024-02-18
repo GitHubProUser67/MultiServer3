@@ -399,6 +399,12 @@ namespace Horizon.MEDIUS.Config
         /// Tries to patch HTTPS ticketlogin check inside Medius client SDK.
         /// </summary>
         public bool HttpsSVOCheckPatcher { get; set; } = true;
+
+        /// <summary>
+        /// General Patcher.
+        /// </summary>
+        public bool PokePatchOn { get; set; } = true;
+
     }
 
     #region TextFilterContext
