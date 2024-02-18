@@ -158,6 +158,9 @@ namespace Horizon.MEDIUS.Medius
                                 case 21564:
                                     CheatQuery(0x0070BFF8, 6, clientChannel); // Warhawk US v1.50
                                     break;
+                                case 22924:
+                                    CheatQuery(0x00df0008, 6, clientChannel); // Starhawk v1.4 Retail
+                                    break;
                             }
                         }
 
