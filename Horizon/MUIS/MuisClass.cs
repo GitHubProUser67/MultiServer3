@@ -197,10 +197,10 @@ namespace Horizon.MUIS
                 // Add the appids to the ApplicationIds list
                 Settings.CompatibleApplicationIds.AddRange(new List<int>
                 {
-                    11354, 21914, 21624, 20764, 20371, 20384, 22500, 10540, 22920, 21731, 21834, 23624, 20043,
-                    20032, 20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344,
-                    20434, 22204, 23360, 21513, 21064, 20804, 20374, 21094, 22274, 20060,
-                    10984, 10782, 10421, 10130, 10954, 21784, 21564, 21574, 21354
+                    11354, 21914, 21624, 20764, 20371, 20384, 22500, 10540, 22920, 21731, 21834, 23624, 20032,
+                    20034, 20454, 20314, 21874, 21244, 20304, 20463, 21614, 20344, 20434, 22204, 23360, 21513,
+                    21064, 20804, 20374, 21094, 20060, 10984, 10782, 10421, 10130, 10954, 21784, 21564, 21354,
+                    21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044
                 });
 
                 string? iptofile = SERVER_IP?.ToString();
@@ -859,23 +859,6 @@ namespace Horizon.MUIS
                         Status = 1,
                         UserCount = 1,
                         MaxUsers = 256,
-                    }
-                });
-
-                Settings.Universes.Add(20043, new UniverseInfo[]
-                {
-                    new UniverseInfo()
-                    {
-                        Name = "Warhawk Pubeta NTSC",
-                        Description = "A Emulated Server project by MultiServer",
-                        Endpoint = iptofile,
-                        Port = 10075,
-                        UniverseId = 7,
-                        SvoURL = "",
-                        Status = 1,
-                        UserCount = 1,
-                        MaxUsers = 255,
-                        ExtendedInfo = $"v1.13 http://{iptofile}/medius-patch/warhawk-pubeta/warhawk/20070608_r012/NPUA80093.cfg"
                     }
                 });
 

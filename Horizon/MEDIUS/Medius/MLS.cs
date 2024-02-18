@@ -5336,12 +5336,11 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         List<int> FilteredGameLists = new() { 21924, 10994, 11203, 11204 };
-                        List<int> NonFilteredGameLists = new() { 20770, 20623, 20624, 20764, 22920, 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
 
-                        //By Filter
+                        // By Filter
                         if (FilteredGameLists.Contains(data.ClientObject.ApplicationId))
                         {
-                            var gameList = MediusClass.Manager.GetGameList(
+                            MediusGameList_ExtraInfoResponse[]? gameList = MediusClass.Manager.GetGameList(
                                data.ClientObject.ApplicationId,
                                gameList_ExtraInfoRequest.PageID,
                                gameList_ExtraInfoRequest.PageSize,
@@ -5392,73 +5391,10 @@ namespace Horizon.MEDIUS.Medius
                                 });
                             }
                         }
-                        // Size Matters  20770, CAC 20623, 20624
-                        else if (NonFilteredGameLists.Contains(data.ClientObject.ApplicationId))
+                        else if (data.ClientObject.CurrentChannel != null) // P2P, so check locally.
                         {
-                            int Count = MediusClass.Manager.GetGameCountAppId(data.ClientObject.ApplicationId);
-                            LoggerAccessor.LogWarn($"[MLS] - Game Non-Filtered - {data.ClientObject.ApplicationId.ToString()} - Count: {Count}");
-
-                            var gameList = MediusClass.Manager.GetGameListAppId(
-                                data.ClientObject.ApplicationId,
-                                gameList_ExtraInfoRequest.PageID,
-                                gameList_ExtraInfoRequest.PageSize)
-                                .Select(x => new MediusGameList_ExtraInfoResponse()
-                                {
-                                    MessageID = gameList_ExtraInfoRequest.MessageID,
-                                    StatusCode = MediusCallbackStatus.MediusSuccess,
-
-                                    GameHostType = x.GameHostType,
-                                    GameLevel = x.GameLevel,
-                                    GameName = x.GameName,
-                                    GameStats = x.GameStats,
-                                    GenericField1 = x.GenericField1,
-                                    GenericField2 = x.GenericField2,
-                                    GenericField3 = x.GenericField3,
-                                    GenericField4 = x.GenericField4,
-                                    GenericField5 = x.GenericField5,
-                                    GenericField6 = x.GenericField6,
-                                    GenericField7 = x.GenericField7,
-                                    GenericField8 = x.GenericField8,
-                                    MaxPlayers = (ushort)x.MaxPlayers,
-                                    MediusWorldID = x.Id,
-                                    MinPlayers = (ushort)x.MinPlayers,
-                                    PlayerCount = (ushort)x.PlayerCount,
-                                    PlayerSkillLevel = x.PlayerSkillLevel,
-                                    RulesSet = x.RulesSet,
-                                    SecurityLevel = (string.IsNullOrEmpty(x.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD),
-                                    WorldStatus = x.WorldStatus,
-                                    EndOfList = false
-                                }).ToArray();
-
-                            // Make last end of list
-                            if (gameList.Length > 0)
-                            {
-                                gameList[^1].EndOfList = true;
-
-                                // Add to responses
-                                data.ClientObject.Queue(gameList);
-                            }
-                            else
-                            {
-                                data.ClientObject.Queue(new MediusGameList_ExtraInfoResponse()
-                                {
-                                    MessageID = gameList_ExtraInfoRequest.MessageID,
-                                    StatusCode = MediusCallbackStatus.MediusNoResult,
-                                    EndOfList = true
-                                });
-                            }
-                        }
-
-                        //No Filter
-                        else
-                        {
-                            int Count = MediusClass.Manager.GetGameCountAppId(data.ClientObject.ApplicationId);
-                            LoggerAccessor.LogWarn($"[MLS] - Game Non-Filtered - {data.ClientObject.ApplicationId.ToString()} - Count: {Count}");
-
-                            var gameList = MediusClass.Manager.GetGameListAppId(
-                                data.ClientObject.ApplicationId,
-                                gameList_ExtraInfoRequest.PageID,
-                                gameList_ExtraInfoRequest.PageSize)
+                            MediusGameList_ExtraInfoResponse[]? gameList = MediusClass.Manager.GetGameListInLocalChannel(
+                                data.ClientObject.CurrentChannel, gameList_ExtraInfoRequest.PageID, gameList_ExtraInfoRequest.PageSize)
                             .Select(x => new MediusGameList_ExtraInfoResponse()
                             {
                                 MessageID = gameList_ExtraInfoRequest.MessageID,
@@ -5505,6 +5441,16 @@ namespace Horizon.MEDIUS.Medius
                                 });
                             }
                         }
+                        else
+                        {
+                            // We need at least a current channel for P2P
+                            data.ClientObject.Queue(new MediusGameList_ExtraInfoResponse()
+                            {
+                                MessageID = gameList_ExtraInfoRequest.MessageID,
+                                StatusCode = MediusCallbackStatus.MediusFail,
+                                EndOfList = true
+                            });
+                        }
 
                         break;
                     }
@@ -5523,7 +5469,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        List<int> appIdCheck = new List<int>() { 10694, 10952, 10954, 11234, 10394, 10933 };
+                        List<int> appIdCheck = new() { 10694, 10952, 10954, 11234, 10394, 10933 };
 
                         if (appIdCheck.Contains(data.ClientObject.ApplicationId))
                         {
