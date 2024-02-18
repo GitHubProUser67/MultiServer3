@@ -621,7 +621,6 @@ namespace Horizon.MUIS
                                         if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_DNS) ||
                                             getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_EXTRAINFO))
                                         {
-
                                             if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
                                             {
                                                 // Split the string based on whitespace

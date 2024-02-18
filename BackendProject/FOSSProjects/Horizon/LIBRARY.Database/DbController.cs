@@ -31,6 +31,8 @@ namespace BackendProject.Horizon.LIBRARY.Database
             22500,
             10540,
             22920,
+            22923,
+            22924,
             21731,
             21834,
             23624,
