@@ -243,19 +243,6 @@ namespace Horizon.MUIS
                             if (pre108ServerComplete.Contains(data.ApplicationId))
                                 Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
-                            if (MuisClass.Settings.PokePatchOn)
-                            {
-                                switch (data.ApplicationId)
-                                {
-                                    case 20374:
-                                        CheatQuery(0x100372c8, 5, clientChannel); // Check for 01.83 HDK online debug eboot.
-                                        break;
-                                    case 20371:
-                                        CheatQuery(0x1003dd98, 5, clientChannel); // Check for 01.50 Retail Beta eboot.
-                                        break;
-                                }
-                            }
-
                             break;
                         }
                     case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
@@ -926,8 +913,18 @@ namespace Horizon.MUIS
 
         private void PokePatch(IChannel clientChannel, ChannelData data)
         {
-            if (MuisClass.Settings.PokePatchOn == true && MediusClass.Settings.AntiCheatOn) // Requires AntiCheat.
+            if (MuisClass.Settings.PokePatchOn)
             {
+                switch (data.ApplicationId)
+                {
+                    case 20374:
+                        CheatQuery(0x100372c8, 5, clientChannel); // Check for 01.83 HDK online debug eboot.
+                        break;
+                    case 20371:
+                        CheatQuery(0x1003dd98, 5, clientChannel); // Check for 01.50 Retail Beta eboot.
+                        break;
+                }
+
                 if (File.Exists(Directory.GetCurrentDirectory() + $"/static/poke_config.json"))
                 {
                     try
