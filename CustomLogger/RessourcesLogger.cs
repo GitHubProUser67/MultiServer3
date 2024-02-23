@@ -46,16 +46,16 @@ namespace CustomLogger
         {
             PerformanceInformation pi = new();
             if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
-                return Convert.ToInt64((pi.PhysicalAvailable.ToInt64() * pi.PageSize.ToInt64() / 1048576));
+                return Convert.ToInt64(pi.PhysicalAvailable.ToInt64() * pi.PageSize.ToInt64() / 1048576);
 
             return -1;
         }
 
-        public static Int64 GetTotalMemoryInMiB()
+        public static long GetTotalMemoryInMiB()
         {
             PerformanceInformation pi = new();
             if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
-                return Convert.ToInt64((pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1048576));
+                return Convert.ToInt64(pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1048576);
 
             return -1;
         }

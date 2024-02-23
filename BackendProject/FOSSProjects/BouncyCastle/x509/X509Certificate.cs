@@ -58,10 +58,11 @@ namespace Org.BouncyCastle.X509
         private readonly X509CertificateStructure c;
         //private Dictionary<> pkcs12Attributes = new Dictionary<>();
         //private List<> pkcs12Ordering = new List<>();
-        private readonly string sigAlgName;
         private readonly byte[] sigAlgParams;
         private readonly BasicConstraints basicConstraints;
         private readonly bool[] keyUsage;
+
+        private string m_sigAlgName = null;
 
         private AsymmetricKeyParameter publicKeyValue;
         private CachedEncoding cachedEncoding;
@@ -84,10 +85,8 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                this.sigAlgName = X509SignatureUtilities.GetSignatureName(c.SignatureAlgorithm);
-
                 Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
-                this.sigAlgParams = (null == parameters) ? null : parameters.GetEncoded(Asn1Encodable.Der);
+                this.sigAlgParams = parameters?.GetEncoded(Asn1Encodable.Der);
             }
             catch (Exception e)
             {
@@ -288,13 +287,11 @@ namespace Org.BouncyCastle.X509
         }
 
         /// <summary>
-		/// A meaningful version of the Signature Algorithm. (EG SHA1WITHRSA)
+		/// A meaningful version of the Signature Algorithm. (e.g. SHA1WITHRSA)
 		/// </summary>
-		/// <returns>A sting representing the signature algorithm.</returns>
-		public virtual string SigAlgName
-        {
-            get { return sigAlgName; }
-        }
+		/// <returns>A string representing the signature algorithm.</returns>
+		public virtual string SigAlgName => Objects.EnsureSingletonInitialized(ref m_sigAlgName, SignatureAlgorithm,
+            X509SignatureUtilities.GetSignatureName);
 
         /// <summary>
         /// Get the Signature Algorithms Object ID.
@@ -720,7 +717,7 @@ namespace Org.BouncyCastle.X509
         {
             var tbsCertificate = c.TbsCertificate;
 
-            if (!IsAlgIDEqual(c.SignatureAlgorithm, tbsCertificate.Signature))
+            if (!X509SignatureUtilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
             return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);
@@ -750,23 +747,6 @@ namespace Org.BouncyCastle.X509
         private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
         {
             return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-        }
-
-        private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
-        {
-            if (!id1.Algorithm.Equals(id2.Algorithm))
-                return false;
-
-            Asn1Encodable p1 = id1.Parameters;
-            Asn1Encodable p2 = id2.Parameters;
-
-            if ((p1 == null) == (p2 == null))
-                return Objects.Equals(p1, p2);
-
-            // Exactly one of p1, p2 is null at this point
-            return p1 == null
-                ? p2.ToAsn1Object() is Asn1Null
-                : p1.ToAsn1Object() is Asn1Null;
         }
     }
 }

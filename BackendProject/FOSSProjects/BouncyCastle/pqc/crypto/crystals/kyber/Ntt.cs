@@ -1,3 +1,4 @@
+﻿
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
     internal static class Ntt

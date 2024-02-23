@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public sealed class LMOtsSignature
         : IEncodable
     {
@@ -23,47 +24,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LMOtsSignature GetInstance(object src)
         {
             if (src is LMOtsSignature lmOtsSignature)
-            {
                 return lmOtsSignature;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
 
-                byte[] C = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                byte[] sig = BinaryReaders.ReadBytesFully(binaryReader, parameter.P * parameter.N);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                return new LMOtsSignature(parameter, C, sig);
-            }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.4 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes, false));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null) input.Close();
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+
+            throw new ArgumentException($"cannot parse {src}");
         }
 
+        internal static LMOtsSignature Parse(BinaryReader binaryReader)
+        {
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
+
+            byte[] C = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+
+            byte[] sig = BinaryReaders.ReadBytesFully(binaryReader, parameter.P * parameter.N);
+
+            return new LMOtsSignature(parameter, C, sig);
+        }
+
+        public byte[] GetC() => Arrays.Clone(m_C);
+
+        public byte[] GetY() => Arrays.Clone(m_y);
+
         public LMOtsParameters ParamType => m_paramType;
-
-        // FIXME
-        public byte[] C => m_C;
-
-        // FIXME
-        public byte[] Y => m_y;
 
         public override bool Equals(object obj)
         {
@@ -93,5 +84,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Bytes(m_y)
                 .Build();
         }
+
+        [Obsolete("Use 'GetC' instead")]
+        public byte[] C => m_C;
+
+        [Obsolete("Use 'GetY' instead")]
+        public byte[] Y => m_y;
     }
 }

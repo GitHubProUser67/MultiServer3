@@ -120,7 +120,7 @@ namespace BackendProject.HomeTools.UnBAR
                                 if (isLittleEndian == true)
                                     Buffer.BlockCopy(SharcHeader, SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
                                 else
-                                    Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(SharcHeader, 4), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
+                                    Buffer.BlockCopy(EndianUtils.EndianSwap(SharcHeader), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
 
                                 byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
 
@@ -520,9 +520,8 @@ namespace BackendProject.HomeTools.UnBAR
             byte[] result = new byte[4];
             // Copy the first 4 bytes from the last 20 bytes into the result array.
             Array.Copy(input, input.Length - 20, result, 0, 4);
-            result = Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(result, 4);
 
-            return result;
+            return EndianUtils.EndianSwap(result);
         }
 
 

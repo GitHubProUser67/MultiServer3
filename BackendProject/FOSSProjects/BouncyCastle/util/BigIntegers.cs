@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Utilities
         private const int MaxIterations = 1000;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [CLSCompliant(false)]
         public static void AsUint32ArrayLittleEndian(BigInteger n, Span<uint> buf)
         {
             int uintsLength = n.GetLengthofUInt32Array();
@@ -186,10 +187,10 @@ namespace Org.BouncyCastle.Utilities
         public static BigInteger ModOddInverse(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
-                throw new ArgumentException("must be odd", "M");
+                throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
-            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
             {
                 X = X.Mod(M);
             }
@@ -225,12 +226,12 @@ namespace Org.BouncyCastle.Utilities
         public static BigInteger ModOddInverseVar(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
-                throw new ArgumentException("must be odd", "M");
+                throw new ArgumentException("must be odd", nameof(M));
             if (M.SignValue != 1)
                 throw new ArithmeticException("BigInteger: modulus not positive");
             if (M.Equals(One))
                 return Zero;
-            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
             {
                 X = X.Mod(M);
             }
@@ -262,6 +263,72 @@ namespace Org.BouncyCastle.Utilities
                 if (!Mod.ModOddInverseVar(m, x, z))
                     throw new ArithmeticException("BigInteger not invertible");
                 return Nat.ToBigInteger(len, z);
+            }
+        }
+
+        public static bool ModOddIsCoprime(BigInteger M, BigInteger X)
+        {
+            if (!M.TestBit(0))
+                throw new ArgumentException("must be odd", nameof(M));
+            if (M.SignValue != 1)
+                throw new ArithmeticException("BigInteger: modulus not positive");
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
+            {
+                X = X.Mod(M);
+            }
+
+            int bits = M.BitLength;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2048)
+            {
+                int len = Nat.GetLengthForBits(bits);
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                return 0 != Mod.ModOddIsCoprime(m, x);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                return 0 != Mod.ModOddIsCoprime(m, x);
+            }
+        }
+
+        public static bool ModOddIsCoprimeVar(BigInteger M, BigInteger X)
+        {
+            if (!M.TestBit(0))
+                throw new ArgumentException("must be odd", nameof(M));
+            if (M.SignValue != 1)
+                throw new ArithmeticException("BigInteger: modulus not positive");
+            if (X.SignValue < 0 || X.BitLength > M.BitLength)
+            {
+                X = X.Mod(M);
+            }
+            if (X.Equals(One))
+                return true;
+
+            int bits = M.BitLength;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2048)
+            {
+                int len = Nat.GetLengthForBits(bits);
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                return Mod.ModOddIsCoprimeVar(m, x);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                return Mod.ModOddIsCoprimeVar(m, x);
             }
         }
     }

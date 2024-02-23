@@ -1,4 +1,5 @@
 using BackendProject.CryptoUtils;
+using BackendProject.MiscUtils;
 using System.Collections;
 
 namespace BackendProject.HomeTools.BARFramework
@@ -173,12 +174,12 @@ namespace BackendProject.HomeTools.BARFramework
             {
                 if (endian == EndianType.BigEndian)
                 {
-                    binaryWriter.Write(Utils.EndianSwap((int)tocentry.FileName));
+                    binaryWriter.Write(EndianUtils.EndianSwap((int)tocentry.FileName));
                     uint num = tocentry.DataOffset;
                     num |= (uint)tocentry.Compression;
-                    binaryWriter.Write(Utils.EndianSwap(num));
-                    binaryWriter.Write(Utils.EndianSwap(tocentry.Size));
-                    binaryWriter.Write(Utils.EndianSwap(tocentry.CompressedSize));
+                    binaryWriter.Write(EndianUtils.EndianSwap(num));
+                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.Size));
+                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.CompressedSize));
                 }
                 else
                 {

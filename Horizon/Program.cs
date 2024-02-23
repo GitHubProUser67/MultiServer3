@@ -48,11 +48,8 @@ public static class HorizonServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             EnableMedius = config.medius.enabled;
             EnableDME = config.dme.enabled;

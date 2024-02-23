@@ -136,37 +136,39 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 #endif
 
-        private void CTR_DRBG_Reseed_algorithm(byte[] additionalInput)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-			CTR_DRBG_Reseed_algorithm(Spans.FromNullableReadOnly(additionalInput));
-#else
-			byte[] seedMaterial = Arrays.Concatenate(GetEntropy(), additionalInput);
-
-            seedMaterial = BlockCipherDF(seedMaterial, mSeedLength / 8);
-
-            CTR_DRBG_Update(seedMaterial, mKey, mV);
-
-            mReseedCounter = 1;
-#endif
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void CTR_DRBG_Reseed_algorithm(ReadOnlySpan<byte> additionalInput)
         {
 			int entropyLength = GetEntropyLength();
-			int seedLength = entropyLength + additionalInput.Length;
+			int inputLength = entropyLength + additionalInput.Length;
 
-			Span<byte> seedMaterial = seedLength <= 256
-				? stackalloc byte[seedLength]
-				: new byte[seedLength];
+			Span<byte> input = inputLength <= 256
+				? stackalloc byte[inputLength]
+				: new byte[inputLength];
 
-			GetEntropy(seedMaterial[..entropyLength]);
-			additionalInput.CopyTo(seedMaterial[entropyLength..]);
+			GetEntropy(input[..entropyLength]);
+			additionalInput.CopyTo(input[entropyLength..]);
 
-            seedMaterial = BlockCipherDF(seedMaterial, mSeedLength / 8);
+            byte[] seedMaterial = BlockCipherDF(input, mSeedLength / 8);
+            input.Fill(0x00);
 
             CTR_DRBG_Update(seedMaterial, mKey, mV);
+            Array.Clear(seedMaterial, 0, seedMaterial.Length);
+
+            mReseedCounter = 1;
+        }
+#else
+        private void CTR_DRBG_Reseed_algorithm(byte[] additionalInput)
+        {
+			byte[] entropy = GetEntropy();
+			byte[] input = Arrays.Concatenate(entropy, additionalInput);
+            Array.Clear(entropy, 0, entropy.Length);
+
+            byte[] seedMaterial = BlockCipherDF(input, mSeedLength / 8);
+            Array.Clear(input, 0, input.Length);
+
+            CTR_DRBG_Update(seedMaterial, mKey, mV);
+            Array.Clear(seedMaterial, 0, seedMaterial.Length);
 
             mReseedCounter = 1;
         }
@@ -191,7 +193,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         private byte[] GetEntropy()
 	    {
 	        byte[] entropy = mEntropySource.GetEntropy();
-	        if (entropy.Length < (mSecurityStrength + 7) / 8)
+	        if (entropy == null || entropy.Length < (mSecurityStrength + 7) / 8)
 	            throw new InvalidOperationException("Insufficient entropy provided by entropy source");
 	        return entropy;
 	    }
@@ -474,9 +476,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 			bool predictionResistant)
 	    {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var outputSpan = output.AsSpan(outputOff, outputLen);
             return additionalInput == null
-                ? Generate(output.AsSpan(outputOff, outputLen), predictionResistant)
-                : GenerateWithInput(output.AsSpan(outputOff, outputLen), additionalInput.AsSpan(), predictionResistant);
+                ? Generate(outputSpan, predictionResistant)
+                : GenerateWithInput(outputSpan, additionalInput.AsSpan(), predictionResistant);
 #else
 			if (mIsTdea)
 	        {
@@ -606,9 +609,11 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
 		private int ImplGenerate(ReadOnlySpan<byte> seed, Span<byte> output)
 		{
-            byte[] tmp = new byte[mV.Length];
-
             mEngine.Init(true, ExpandToKeyParameter(mKey));
+
+            Span<byte> tmp = mV.Length <= 64
+                ? stackalloc byte[mV.Length]
+                : new byte[mV.Length];
 
             int outputLen = output.Length;
             for (int i = 0, limit = outputLen / tmp.Length; i <= limit; i++)
@@ -619,7 +624,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
                 {
                     AddOneTo(mV);
 
-                    mEngine.ProcessBlock(mV, 0, tmp, 0);
+                    mEngine.ProcessBlock(mV, tmp);
 
                     tmp[..bytesToCopy].CopyTo(output[(i * tmp.Length)..]);
                 }
@@ -715,7 +720,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
         private void PadKey(byte[] keyMaster, int keyOff, byte[] tmp, int tmpOff)
 	    {
-	        tmp[tmpOff + 0] = (byte)(keyMaster[keyOff + 0] & 0xfe);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            PadKey(keyMaster.AsSpan(keyOff), tmp.AsSpan(tmpOff));
+#else
+            tmp[tmpOff + 0] = (byte)(keyMaster[keyOff + 0] & 0xfe);
 	        tmp[tmpOff + 1] = (byte)((keyMaster[keyOff + 0] << 7) | ((keyMaster[keyOff + 1] & 0xfc) >> 1));
 	        tmp[tmpOff + 2] = (byte)((keyMaster[keyOff + 1] << 6) | ((keyMaster[keyOff + 2] & 0xf8) >> 2));
 	        tmp[tmpOff + 3] = (byte)((keyMaster[keyOff + 2] << 5) | ((keyMaster[keyOff + 3] & 0xf0) >> 3));
@@ -725,6 +733,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        tmp[tmpOff + 7] = (byte)(keyMaster[keyOff + 6] << 1);
 
             DesParameters.SetOddParity(tmp, tmpOff, 8);
+#endif
 	    }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

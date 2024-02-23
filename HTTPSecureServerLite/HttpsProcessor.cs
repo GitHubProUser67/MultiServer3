@@ -8,11 +8,13 @@ using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
 using BackendProject.WeBAPIs.HELLFIRE;
 using BackendProject.WeBAPIs.VEEMEE;
+using BackendProject.WebTools;
 using CustomLogger;
 using HttpMultipartParser;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -158,7 +160,20 @@ namespace HTTPSecureServerLite
                     {
                         fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.RawWithQuery);
 
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with URL : {fullurl}");
+                        string SuplementalMessage = string.Empty;
+                        string? GeoCodeString = GeoIPUtils.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+
+                        if (!string.IsNullOrEmpty(GeoCodeString))
+                        {
+                            // Split the input string by the '-' character
+                            string[] parts = GeoCodeString.Split('-');
+
+                            // Check if there are exactly two parts
+                            if (parts.Length == 2)
+                                SuplementalMessage = " Located at " + parts[0] + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+                        }
+
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}");
 
                         absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
                         statusCode = HttpStatusCode.Continue;
@@ -599,6 +614,32 @@ namespace HTTPSecureServerLite
                                     ctx.Response.ContentType = "text/plain";
                                     sent = await ctx.Response.Send("User-agent: *\nDisallow: / ");
                                     break;
+                                case "/!player":
+                                case "/!player/":
+                                    // We want to check if the router allows external IPs first.
+                                    string ServerIP = VariousUtils.GetPublicIPAddress(true);
+                                    try
+                                    {
+                                        using TcpClient client = new(ServerIP, ctx.Request.Destination.Port);
+                                        client.Close();
+                                    }
+                                    catch (Exception) // Failed to connect, so we fallback to local IP.
+                                    {
+                                        ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                                    }
+                                    if (ServerIP.Length > 15)
+                                        ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
+                                    WebVideoPlayer? WebPlayer = new(ctx.Request.Query.Elements, $"http://{ServerIP}/!webvideo/?");
+                                    statusCode = HttpStatusCode.OK;
+                                    ctx.Response.StatusCode = (int)statusCode;
+                                    ctx.Response.ContentType = "text/html";
+                                    foreach (string[] HeaderCollection in WebPlayer.HeadersToSet)
+                                    {
+                                        ctx.Response.Headers.Add(HeaderCollection[0], HeaderCollection[1]);
+                                    }
+                                    sent = await ctx.Response.Send(WebPlayer.HtmlPage);
+                                    WebPlayer = null;
+                                    break;
                                 case "/!GetMediaList":
                                 case "/!GetMediaList/":
                                     statusCode = HttpStatusCode.OK;
@@ -607,10 +648,10 @@ namespace HTTPSecureServerLite
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                     {
                                         ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                        sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder + "/!MediaPath"))));
+                                        sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder, "mp4"))));
                                     }
                                     else
-                                        sent = await ctx.Response.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder + "/!MediaPath"));
+                                        sent = await ctx.Response.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder, "mp4"));
                                     break;
                                 case "/!DLNADiscovery/":
                                     if (IsIPAllowed(clientip))
@@ -1088,7 +1129,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/UnBar/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var unbarres = HomeToolsInterface.UnBarAsync(new MemoryStream(ctx.Request.DataAsBytes), ctx.Request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                        var unbarres = await HomeToolsInterface.UnBar(new MemoryStream(ctx.Request.DataAsBytes), ctx.Request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder);
                                         if (unbarres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;
@@ -1146,7 +1187,7 @@ namespace HTTPSecureServerLite
                                 case "/!HomeTools/CDSBruteforce/":
                                     if (IsIPAllowed(clientip))
                                     {
-                                        var cdsres = HomeToolsInterface.CDSBruteforceAsync(new MemoryStream(ctx.Request.DataAsBytes), ctx.Request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                        var cdsres = HomeToolsInterface.CDSBruteforce(new MemoryStream(ctx.Request.DataAsBytes), ctx.Request.ContentType);
                                         if (cdsres != null)
                                         {
                                             statusCode = HttpStatusCode.OK;

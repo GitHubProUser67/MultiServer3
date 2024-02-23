@@ -7,7 +7,7 @@ namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertTcpFrameDecoder : ByteToMessageDecoder
     {
-        readonly ByteOrder byteOrder;
+        readonly DotNetty.Buffers.ByteOrder byteOrder;
         readonly int maxFrameLength;
         readonly int lengthFieldOffset;
         readonly int lengthFieldLength;
@@ -68,7 +68,7 @@ namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
         ///     Defaults to <c>true</c> in other overloads.
         /// </param>
         public ScertTcpFrameDecoder(int maxFrameLength, int lengthFieldOffset, int lengthFieldLength, int lengthAdjustment, int initialBytesToStrip, bool failFast)
-            : this(ByteOrder.BigEndian, maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip, failFast)
+            : this(DotNetty.Buffers.ByteOrder.BigEndian, maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip, failFast)
         {
         }
 
@@ -91,7 +91,7 @@ namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
         ///     <see cref="maxFrameLength" /> has been read.
         ///     Defaults to <c>true</c> in other overloads.
         /// </param>
-        public ScertTcpFrameDecoder(ByteOrder byteOrderLocal, int maxFrameLengthLocal, int lengthFieldOffsetLocal, int lengthFieldLengthLocal, int lengthAdjustmentLocal, int initialBytesToStripLocal, bool failFastLocal)
+        public ScertTcpFrameDecoder(DotNetty.Buffers.ByteOrder byteOrderLocal, int maxFrameLengthLocal, int lengthFieldOffsetLocal, int lengthFieldLengthLocal, int lengthAdjustmentLocal, int initialBytesToStripLocal, bool failFastLocal)
         {
             if (maxFrameLengthLocal <= 0)
             {
@@ -226,7 +226,7 @@ namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
         /// <param name="length">The length of the framelenght field. Expected: 1, 2, 3, 4, or 8.</param>
         /// <param name="order">The preferred <see cref="ByteOrder" /> of buffer.</param>
         /// <returns>A long integer that represents the unadjusted length of the next frame.</returns>
-        protected virtual long GetUnadjustedFrameLength(IByteBuffer buffer, int offset, int length, ByteOrder order)
+        protected virtual long GetUnadjustedFrameLength(IByteBuffer buffer, int offset, int length, DotNetty.Buffers.ByteOrder order)
         {
             long frameLength = -1;
             switch (length)
@@ -235,16 +235,16 @@ namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
                     frameLength = buffer.GetByte(offset);
                     break;
                 case 2:
-                    frameLength = order == ByteOrder.BigEndian ? buffer.GetUnsignedShort(offset) : buffer.GetUnsignedShortLE(offset);
+                    frameLength = order == DotNetty.Buffers.ByteOrder.BigEndian ? buffer.GetUnsignedShort(offset) : buffer.GetUnsignedShortLE(offset);
                     break;
                 case 3:
-                    frameLength = order == ByteOrder.BigEndian ? buffer.GetUnsignedMedium(offset) : buffer.GetUnsignedMediumLE(offset);
+                    frameLength = order == DotNetty.Buffers.ByteOrder.BigEndian ? buffer.GetUnsignedMedium(offset) : buffer.GetUnsignedMediumLE(offset);
                     break;
                 case 4:
-                    frameLength = order == ByteOrder.BigEndian ? buffer.GetInt(offset) : buffer.GetIntLE(offset);
+                    frameLength = order == DotNetty.Buffers.ByteOrder.BigEndian ? buffer.GetInt(offset) : buffer.GetIntLE(offset);
                     break;
                 case 8:
-                    frameLength = order == ByteOrder.BigEndian ? buffer.GetLong(offset) : buffer.GetLongLE(offset);
+                    frameLength = order == DotNetty.Buffers.ByteOrder.BigEndian ? buffer.GetLong(offset) : buffer.GetLongLE(offset);
                     break;
                 default:
                     LoggerAccessor.LogError("unsupported lengthFieldLength: " + lengthFieldLength + " (expected: 1, 2, 3, 4, or 8)");

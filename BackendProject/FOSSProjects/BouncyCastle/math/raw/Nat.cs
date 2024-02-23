@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Numerics;
@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 #endif
 
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.Raw
 {
@@ -742,7 +743,11 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint EqualTo(int len, ReadOnlySpan<uint> x, uint y)
+#else
         public static uint EqualTo(int len, uint[] x, uint y)
+#endif
         {
             uint d = x[0] ^ y;
             for (int i = 1; i < len; ++i)
@@ -765,19 +770,10 @@ namespace Org.BouncyCastle.Math.Raw
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static uint EqualTo(int len, ReadOnlySpan<uint> x, uint y)
-        {
-            uint d = x[0] ^ y;
-            for (int i = 1; i < len; ++i)
-            {
-                d |= x[i];
-            }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
-        }
-#endif
-
+        public static uint EqualTo(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
+#else
         public static uint EqualTo(int len, uint[] x, uint[] y)
+#endif
         {
             uint d = 0;
             for (int i = 0; i < len; ++i)
@@ -799,20 +795,12 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)(((int)d - 1) >> 31);
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static uint EqualTo(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
-        {
-            uint d = 0;
-            for (int i = 0; i < len; ++i)
-            {
-                d |= x[i] ^ y[i];
-            }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
-        }
-#endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint EqualToZero(int len, ReadOnlySpan<uint> x)
+#else
         public static uint EqualToZero(int len, uint[] x)
+#endif
         {
             uint d = 0;
             for (int i = 0; i < len; ++i)
@@ -833,19 +821,6 @@ namespace Org.BouncyCastle.Math.Raw
             d = (d >> 1) | (d & 1);
             return (uint)(((int)d - 1) >> 31);
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static uint EqualToZero(int len, ReadOnlySpan<uint> x)
-        {
-            uint d = 0;
-            for (int i = 0; i < len; ++i)
-            {
-                d |= x[i];
-            }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
-        }
-#endif
 
         public static uint[] FromBigInteger(int bits, BigInteger x)
         {
@@ -953,6 +928,32 @@ namespace Org.BouncyCastle.Math.Raw
             return (x[w] >> b) & 1;
         }
 #endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int GetBitLength(int len, ReadOnlySpan<uint> x)
+#else
+        public static int GetBitLength(int len, uint[] x)
+#endif
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[i];
+                if (x_i != 0)
+                    return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x_i);
+            }
+            return 0;
+        }
+
+        public static int GetBitLength(int len, uint[] x, int xOff)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[xOff + i];
+                if (x_i != 0)
+                    return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x_i);
+            }
+            return 0;
+        }
 
         public static int GetLengthForBits(int bits)
         {

@@ -5,6 +5,9 @@ using System.Globalization;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Numerics;
 #endif
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -1464,6 +1467,12 @@ namespace Org.BouncyCastle.Math
 
         public override int GetHashCode()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(magnitude.AsSpan()));
+            hc.Add(sign);
+            return hc.ToHashCode();
+#else
             int hc = magnitude.Length;
             if (magnitude.Length > 0)
             {
@@ -1476,6 +1485,7 @@ namespace Org.BouncyCastle.Math
             }
 
             return sign < 0 ? ~hc : hc;
+#endif
         }
 
         // TODO Make public?
@@ -1719,6 +1729,8 @@ namespace Org.BouncyCastle.Math
             return (biggie.sign >= 0 ? biggie : biggie.Add(m));
         }
 
+        public BigInteger ModDivide(BigInteger y, BigInteger m) => ModMultiply(y.ModInverse(m), m);
+
         public BigInteger ModInverse(
             BigInteger m)
         {
@@ -1874,6 +1886,10 @@ namespace Org.BouncyCastle.Math
         {
             Array.Clear(x, 0, x.Length);
         }
+
+        public BigInteger ModMultiply(BigInteger y, BigInteger m) => Multiply(y).Mod(m);
+
+        public BigInteger ModSquare(BigInteger m) => Square().Mod(m);
 
         public BigInteger ModPow(BigInteger e, BigInteger m)
         {
@@ -3192,11 +3208,13 @@ namespace Org.BouncyCastle.Math
             ToByteArray(false, output);
         }
 
+        [CLSCompliant(false)]
         public void ToUInt32ArrayBigEndian(Span<uint> output)
         {
             ToUInt32ArrayBigEndian(false, output);
         }
 
+        [CLSCompliant(false)]
         public void ToUInt32ArrayLittleEndian(Span<uint> output)
         {
             ToUInt32ArrayLittleEndian(false, output);
@@ -3214,11 +3232,13 @@ namespace Org.BouncyCastle.Math
             ToByteArray(true, output);
         }
 
+        [CLSCompliant(false)]
         public void ToUInt32ArrayBigEndianUnsigned(Span<uint> output)
         {
             ToUInt32ArrayBigEndian(true, output);
         }
 
+        [CLSCompliant(false)]
         public void ToUInt32ArrayLittleEndianUnsigned(Span<uint> output)
         {
             ToUInt32ArrayLittleEndian(true, output);

@@ -22,7 +22,7 @@ namespace DotNetty.Extensions
 
             //}
 
-            var bytes = new byte[readableBytes];
+            byte[]? bytes = new byte[readableBytes];
             byteBuffer.GetBytes(byteBuffer.ReaderIndex, bytes);
             return bytes;
         }

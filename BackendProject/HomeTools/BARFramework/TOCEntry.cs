@@ -1,3 +1,5 @@
+using BackendProject.MiscUtils;
+
 namespace BackendProject.HomeTools.BARFramework
 {
     public class TOCEntry
@@ -156,7 +158,7 @@ namespace BackendProject.HomeTools.BARFramework
 
         internal byte[] GetRawDataWithEndianSwap()
         {
-            return Utils.EndianSwap(m_data);
+            return EndianUtils.EndianSwap(m_data);
         }
 
         public override int GetHashCode()

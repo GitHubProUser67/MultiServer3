@@ -31,11 +31,8 @@ public static class QuazalServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             ServerBindAddress = config.server_bind_address;
             ServerPublicBindAddress = config.server_public_bind_address;
@@ -55,14 +52,6 @@ public static class QuazalServerConfiguration
 
 class Program
 {
-    static void GCCollectTask(object? state)
-    {
-        // Perform a periodic GC Collect Task.
-        LoggerAccessor.LogInfo("GC Collect at - " + DateTime.Now);
-
-        GC.Collect();
-    }
-
     static Task RefreshConfig()
     {
         while (true)
@@ -134,9 +123,6 @@ class Program
                     }, 2, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
-
-        // Set up a timer that triggers every 10 seconds, the API being in beta state, GC collection is still necessary.
-        Timer timer = new(GCCollectTask, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
         if (VariousUtils.IsWindows())
         {

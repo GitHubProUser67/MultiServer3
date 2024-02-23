@@ -6,134 +6,133 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public class LmsSignature
         : IEncodable
     {
-        private int q;
-        private LMOtsSignature otsSignature;
-        private LMSigParameters parameter;
-        private byte[][] y;
+        private readonly int m_q;
+        private readonly LMOtsSignature m_otsSignature;
+        private readonly LMSigParameters m_parameters;
+        private readonly byte[][] m_y;
 
         public LmsSignature(int q, LMOtsSignature otsSignature, LMSigParameters parameter, byte[][] y)
         {
-            this.q = q;
-            this.otsSignature = otsSignature;
-            this.parameter = parameter;
-            this.y = y;
+            m_q = q;
+            m_otsSignature = otsSignature;
+            m_parameters = parameter;
+            m_y = y;
         }
 
         public static LmsSignature GetInstance(object src)
         {
             if (src is LmsSignature lmsSignature)
-            {
                 return lmsSignature;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
 
-                LMOtsSignature otsSignature = LMOtsSignature.GetInstance(src);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMSigParameters type = LMSigParameters.GetParametersByID(index);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                byte[][] path = new byte[type.H][];
-                for (int h = 0; h < path.Length; h++)
-                {
-                    path[h] = new byte[type.M];
-                    binaryReader.Read(path[h], 0, path[h].Length);
-                }
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
-                return new LmsSignature(q, otsSignature, type, path);
-            }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes, false));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null) input.Close();// todo platform dispose
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+            throw new ArgumentException($"cannot parse {src}");
         }
 
-        public override bool Equals(Object o)
+        internal static LmsSignature Parse(BinaryReader binaryReader)
+        {
+            int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            LMOtsSignature otsSignature = LMOtsSignature.Parse(binaryReader);
+
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMSigParameters type = LMSigParameters.GetParametersByID(index);
+
+            byte[][] path = new byte[type.H][];
+            for (int h = 0; h < path.Length; h++)
+            {
+                path[h] = new byte[type.M];
+                binaryReader.Read(path[h], 0, path[h].Length);
+            }
+
+            return new LmsSignature(q, otsSignature, type, path);
+        }
+
+        // TODO[api] Fix parameter name
+        public override bool Equals(object o)
         {
             if (this == o)
-            {
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
-                return false;
-            }
 
-            LmsSignature that = (LmsSignature)o;
-
-            if (q != that.q)
-            {
-                return false;
-            }
-            if (otsSignature != null ? !otsSignature.Equals(that.otsSignature) : that.otsSignature != null)
-            {
-                return false;
-            }
-            if (parameter != null ? !parameter.Equals(that.parameter) : that.parameter != null)
-            {
-                return false;
-            }
-
-            return Compare2DArrays(y, that.y);
-        }
-
-        private bool Compare2DArrays(byte[][] a, byte[][] b)
-        {
-            for (int i = 0; i < a.Length; i++)
-            {
-                for (int j = 0; j < a[0].Length; j++)
-                {
-                    if (!a[i][j].Equals(b[i][j]))
-                        return false;
-                }
-            }
-            return true;
+            return o is LmsSignature that
+                && this.m_q == that.m_q
+                && Objects.Equals(this.m_otsSignature, that.m_otsSignature)
+                && Objects.Equals(this.m_parameters, that.m_parameters)
+                && DeepEquals(this.m_y, that.m_y);
         }
 
         public override int GetHashCode()
         {
-            int result = q;
-            result = (31 * result + (otsSignature != null ? otsSignature.GetHashCode() : 0));
-            result = (31 * result + (parameter != null ? parameter.GetHashCode() : 0));
-            // result = 31 * result + Arrays.GetHashCode(y); //Todo arrays support for 2d arrays?
+            int result = m_q;
+            result = 31 * result + Objects.GetHashCode(m_otsSignature);
+            result = 31 * result + Objects.GetHashCode(m_parameters);
+            result = 31 * result + DeepGetHashCode(m_y);
             return result;
         }
 
         public byte[] GetEncoded()
         {
             return Composer.Compose()
-                .U32Str(q)
-                .Bytes(otsSignature.GetEncoded())
-                .U32Str(parameter.ID)
-                .Bytes2(y)
+                .U32Str(m_q)
+                .Bytes(m_otsSignature.GetEncoded())
+                .U32Str(m_parameters.ID)
+                .Bytes2(m_y)
                 .Build();
         }
 
-        public int Q => q;
+        public LMOtsSignature OtsSignature => m_otsSignature;
 
-        public LMOtsSignature OtsSignature => otsSignature;
+        public int Q => m_q;
 
-        public LMSigParameters SigParameters => parameter;
+        public LMSigParameters SigParameters => m_parameters;
 
-        // FIXME
-        public byte[][] Y => y;
+        // TODO[api]
+        public byte[][] Y => m_y;
+
+        private static bool DeepEquals(byte[][] a, byte[][] b)
+        {
+            if (a == b)
+                return true;
+
+            int length = a.Length;
+            if (length != b.Length)
+                return false;
+
+            for (int i = 0; i < length; ++i)
+            {
+                if (!Arrays.AreEqual(a[i], b[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static int DeepGetHashCode(byte[][] a)
+        {
+            if (a == null)
+                return 0;
+
+            int length = a.Length;
+            int hc = length + 1;
+
+            for (int i = 0; i < length; ++i)
+            {
+                hc *= 257;
+                hc ^= Arrays.GetHashCode(a[i]);
+            }
+
+            return hc;
+        }
     }
 }

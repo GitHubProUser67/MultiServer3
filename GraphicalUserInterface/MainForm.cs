@@ -10,7 +10,7 @@ namespace GraphicalUserInterface
         private static string horizonguid = string.Empty;
         private static string dnsguid = string.Empty;
         private static string quazalguid = string.Empty;
-        private static string eaemuguid = string.Empty;
+        private static string multisocksguid = string.Empty;
 
         public MainForm()
         {
@@ -59,9 +59,9 @@ namespace GraphicalUserInterface
                     if (!string.IsNullOrEmpty(quazalguid))
                         // Stop the program
                         await ProcessManager.ShutdownProcess(quazalguid);
-                    if (!string.IsNullOrEmpty(eaemuguid))
+                    if (!string.IsNullOrEmpty(multisocksguid))
                         // Stop the program
-                        await ProcessManager.ShutdownProcess(eaemuguid);
+                        await ProcessManager.ShutdownProcess(multisocksguid);
                 }
                 catch (Exception ex)
                 {
@@ -159,15 +159,15 @@ namespace GraphicalUserInterface
         }
 
 
-        private async void buttonStarteaEmu_Click(object sender, EventArgs e)
+        private async void buttonStartMultiSocks_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(eaemuguid))
+            if (!string.IsNullOrEmpty(multisocksguid))
                 // Stop the program
-                await ProcessManager.ShutdownProcess(eaemuguid);
+                await ProcessManager.ShutdownProcess(multisocksguid);
 
-            eaemuguid = Guid.NewGuid().ToString();
+            multisocksguid = Guid.NewGuid().ToString();
             // Start the program
-            _ = ProcessManager.StartupProgram("eaEmuServer.exe", eaemuguid);
+            _ = ProcessManager.StartupProgram("MultiSocks.exe", multisocksguid);
         }
 
         private async void buttonStopHTTPS_Click(object sender, EventArgs e)
@@ -266,13 +266,13 @@ namespace GraphicalUserInterface
                 Console.WriteLine("No Process started for this server");
         }
 
-        private async void buttonStopeaEmu_Click(object sender, EventArgs e)
+        private async void buttonStopMultiSocks_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(eaemuguid))
+            if (!string.IsNullOrEmpty(multisocksguid))
             {
                 // Stop the program
-                await ProcessManager.ShutdownProcess(eaemuguid);
-                eaemuguid = string.Empty;
+                await ProcessManager.ShutdownProcess(multisocksguid);
+                multisocksguid = string.Empty;
             }
             else
                 Console.WriteLine("No Process started for this server");

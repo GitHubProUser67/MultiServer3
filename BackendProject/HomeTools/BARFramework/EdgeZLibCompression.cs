@@ -1,3 +1,4 @@
+using BackendProject.MiscUtils;
 using ComponentAce.Compression.Libs.zlib;
 
 namespace BackendProject.HomeTools.BARFramework
@@ -50,7 +51,7 @@ namespace BackendProject.HomeTools.BARFramework
             chunkHeader.SourceSize = (ushort)InData.Length;
             chunkHeader.CompressedSize = (ushort)array2.Length;
             byte[] array4 = chunkHeader.GetBytes();
-            array4 = Utils.EndianSwap(array4);
+            array4 = EndianUtils.EndianSwap(array4);
             Array.Copy(array4, 0, array3, 0, ChunkHeader.SizeOf);
             return array3;
         }
@@ -63,7 +64,7 @@ namespace BackendProject.HomeTools.BARFramework
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
-                array = Utils.EndianSwap(array);
+                array = EndianUtils.EndianSwap(array);
                 ChunkHeader header = ChunkHeader.FromBytes(array);
                 int compressedSize = header.CompressedSize;
                 byte[] array2 = new byte[compressedSize];

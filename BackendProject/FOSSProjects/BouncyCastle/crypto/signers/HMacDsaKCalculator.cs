@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -28,8 +28,10 @@ namespace Org.BouncyCastle.Crypto.Signers
         public HMacDsaKCalculator(IDigest digest)
         {
             this.hMac = new HMac(digest);
-            this.V = new byte[hMac.GetMacSize()];
-            this.K = new byte[hMac.GetMacSize()];
+
+            int macSize = hMac.GetMacSize();
+            this.V = new byte[macSize];
+            this.K = new byte[macSize];
         }
 
         public virtual bool IsDeterministic
@@ -45,9 +47,6 @@ namespace Org.BouncyCastle.Crypto.Signers
         public void Init(BigInteger n, BigInteger d, byte[] message)
         {
             this.n = n;
-
-            Arrays.Fill(V, 0x01);
-            Arrays.Fill(K, 0);
 
             BigInteger mInt = BitsToInt(message);
             if (mInt.CompareTo(n) >= 0)
@@ -68,6 +67,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] x = BigIntegers.AsUnsignedByteArray(size, d);
             byte[] m = BigIntegers.AsUnsignedByteArray(size, mInt);
 #endif
+
+            Arrays.Fill(K, 0x00);
+            Arrays.Fill(V, 0x01);
 
             hMac.Init(new KeyParameter(K));
 
@@ -94,6 +96,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             hMac.BlockUpdate(x, 0, x.Length);
             hMac.BlockUpdate(m, 0, m.Length);
 #endif
+            InitAdditionalInput1(hMac);
             hMac.DoFinal(K, 0);
 
             hMac.Init(new KeyParameter(K));
@@ -134,7 +137,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
-        /// <summary>Supports use of additional input.</summary>
+        /// <summary>Supply additional input to HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1)).</summary>
         /// <remarks>
         /// RFC 6979 3.6. Additional data may be added to the input of HMAC [..]. A use case may be a protocol that
         /// requires a non-deterministic signature algorithm on a system that does not have access to a high-quality
@@ -150,15 +153,25 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
+        /// <summary>Supply additional input to HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1)).</summary>
+        /// <remarks>
+        /// Refer to comments for <see cref="InitAdditionalInput0(HMac)"/>.
+        /// </remarks>
+        /// <param name="hmac1">The <see cref="HMac"/> to which the additional input should be added.</param>
+        protected virtual void InitAdditionalInput1(HMac hmac1)
+        {
+        }
+
         private BigInteger BitsToInt(byte[] t)
         {
-            BigInteger v = new BigInteger(1, t);
+            int blen = t.Length * 8;
+            int qlen = n.BitLength;
 
-            if (t.Length * 8 > n.BitLength)
+            BigInteger v = BigIntegers.FromUnsignedByteArray(t);
+            if (blen > qlen)
             {
-                v = v.ShiftRight(t.Length * 8 - n.BitLength);
+                v = v.ShiftRight(blen - qlen);
             }
-
             return v;
         }
     }

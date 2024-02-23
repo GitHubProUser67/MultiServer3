@@ -46,11 +46,8 @@ public static class HTTPSServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             DNSOnlineConfig = config.online_routes_config;
             DNSConfig = config.routes_config;
@@ -110,6 +107,8 @@ class Program
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
         SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
+
+        GeoIPUtils.Initialize();
 
         AFSClass.MapperHelperFolder = HTTPSServerConfiguration.HomeToolsHelperStaticFolder;
         GSScoreBoardData.sbAPIPath = HTTPSServerConfiguration.APIStaticFolder;

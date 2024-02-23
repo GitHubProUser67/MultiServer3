@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -30,3 +30,4 @@ namespace Org.BouncyCastle.Crypto
 		int EntropySize { get; }
 	}
 }
+

@@ -351,17 +351,15 @@ namespace BackendProject.MiscUtils
 
             using (FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                using (BinaryReader reader = new(fileStream))
-                {
-                    int bytesRead = reader.Read(result, 0, bytesToRead);
+                using BinaryReader reader = new(fileStream);
+                int bytesRead = reader.Read(result, 0, bytesToRead);
 
-                    // If the file is less than 10 bytes, pad with null bytes
-                    for (int i = bytesRead; i < bytesToRead; i++)
-                    {
-                        result[i] = 0;
-                    }
-                    reader.Close();
+                // If the file is less than 10 bytes, pad with null bytes
+                for (int i = bytesRead; i < bytesToRead; i++)
+                {
+                    result[i] = 0;
                 }
+                reader.Close();
             }
 
             return result;
@@ -385,6 +383,24 @@ namespace BackendProject.MiscUtils
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Reverse a byte array (When c# fails in some very rare occurances).
+        /// <para>Retourne un tableau de bytes (Quand c# n'arrive pas à le faire à de rare moments).</para>
+        /// </summary>
+        /// <param name="input">The input byte array.</param>
+        /// <returns>A byte array.</returns>
+        public static byte[] ReverseByteArray(byte[] input)
+        {
+            byte[] reversedArray = new byte[input.Length];
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                reversedArray[i] = input[input.Length - 1 - i];
+            }
+
+            return reversedArray;
         }
 
         /// <summary>
@@ -617,6 +633,23 @@ namespace BackendProject.MiscUtils
         }
 
         /// <summary>
+        /// Adds a prefix to the file extension.
+        /// <para>Ajoute un préfixe à l'extension du fichier.</para>
+        /// </summary>
+        /// <param name="filePath">The input filePath.</param>
+        /// <param name="insertion">The string to insert before file ext.</param>
+        /// <returns>A string.</returns>
+        public static string InsertStringBeforeExtension(string filePath, string insertion)
+        {
+            string? directory = Path.GetDirectoryName(filePath);
+
+            if (!string.IsNullOrEmpty(directory))
+                return Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(filePath)}{insertion}{Path.GetExtension(filePath)}");
+            else
+                return filePath;
+        }
+
+        /// <summary>
         /// Converts a string to it's hexadecimal respresentation.
         /// <para>Transforme un string en sa représatation en hexadécimal.</para>
         /// </summary>
@@ -692,23 +725,17 @@ namespace BackendProject.MiscUtils
         /// <returns>A string.</returns>
         public static string ComputeMD5(Stream input)
         {
-            // Create a MD5   
-            using (MD5 md5Hash = MD5.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] bytes = md5Hash.ComputeHash(input);
+            // ComputeHash - returns byte array  
+            byte[] bytes = MD5.Create().ComputeHash(input);
 
-                input.Position = 0;
+            input.Position = 0;
 
-                // Convert byte array to a string   
-                StringBuilder builder = new();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
+            // Convert byte array to a string   
+            StringBuilder builder = new();
+            for (int i = 0; i < bytes.Length; i++)
+                builder.Append(bytes[i].ToString("x2"));
 
-                md5Hash.Clear();
-
-                return builder.ToString();
-            }
+            return builder.ToString();
         }
 
         /// <summary>
@@ -719,21 +746,15 @@ namespace BackendProject.MiscUtils
         /// <returns>A string.</returns>
         public static string ComputeMD5(byte[] input)
         {
-            // Create a MD5   
-            using (MD5 md5Hash = MD5.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] bytes = md5Hash.ComputeHash(input);
+            // ComputeHash - returns byte array  
+            byte[] bytes = MD5.Create().ComputeHash(input);
 
-                // Convert byte array to a string   
-                StringBuilder builder = new();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
+            // Convert byte array to a string   
+            StringBuilder builder = new();
+            for (int i = 0; i < bytes.Length; i++)
+                builder.Append(bytes[i].ToString("x2"));
 
-                md5Hash.Clear();
-
-                return builder.ToString();
-            }
+            return builder.ToString();
         }
 
         /// <summary>
@@ -744,21 +765,15 @@ namespace BackendProject.MiscUtils
         /// <returns>A string.</returns>
         public static string ComputeMD5(string input)
         {
-            // Create a MD5   
-            using (MD5 md5Hash = MD5.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] bytes = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+            // ComputeHash - returns byte array  
+            byte[] bytes = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(input));
 
-                // Convert byte array to a string   
-                StringBuilder builder = new();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
+            // Convert byte array to a string   
+            StringBuilder builder = new();
+            for (int i = 0; i < bytes.Length; i++)
+                builder.Append(bytes[i].ToString("x2"));
 
-                md5Hash.Clear();
-
-                return builder.ToString();
-            }
+            return builder.ToString();
         }
 
         /// <summary>
@@ -769,21 +784,15 @@ namespace BackendProject.MiscUtils
         /// <returns>A string.</returns>
         public static string ComputeSHA256(string input)
         {
-            // Create a SHA256   
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+            // ComputeHash - returns byte array  
+            byte[] bytes = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(input));
 
-                // Convert byte array to a string   
-                StringBuilder builder = new();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
+            // Convert byte array to a string   
+            StringBuilder builder = new();
+            for (int i = 0; i < bytes.Length; i++)
+                builder.Append(bytes[i].ToString("x2"));
 
-                sha256Hash.Clear();
-
-                return builder.ToString();
-            }
+            return builder.ToString();
         }
 
         /// <summary>
@@ -841,31 +850,25 @@ namespace BackendProject.MiscUtils
         {
             try
             {
-                if (!NetworkInterface.GetIsNetworkAvailable())
-                    return IPAddress.Loopback;
-
-                // Get all network interfaces on the machine.
-                NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-
-                // Filter out loopback and non-operational interfaces.
-                var validInterfaces = networkInterfaces
-                    .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.ToLowerInvariant().Contains("virtual"));
-
-                // Find the first valid interface with the desired IP version.
-                foreach (NetworkInterface? networkInterface in validInterfaces)
+                if (NetworkInterface.GetIsNetworkAvailable())
                 {
-                    IPInterfaceProperties? properties = networkInterface.GetIPProperties();
+                    // Find the first valid interface with the desired IP version.
+                    foreach (NetworkInterface? networkInterface in NetworkInterface.GetAllNetworkInterfaces()
+                        .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.ToLowerInvariant().Contains("virtual")))
+                    {
+                        IPInterfaceProperties? properties = networkInterface.GetIPProperties();
 
-                    // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
-                    var addresses = allowipv6
-                        ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
-                        : properties.UnicastAddresses
-                            .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
-                            .Select(addr => addr.Address.ToString());
+                        // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
+                        var addresses = allowipv6
+                            ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
+                            : properties.UnicastAddresses
+                                .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
+                                .Select(addr => addr.Address.ToString());
 
-                    // If there is at least one address, return the first one
-                    if (addresses.Any())
-                        return IPAddress.Parse(addresses.First());
+                        // If there is at least one address, return the first one
+                        if (addresses.Any())
+                            return IPAddress.Parse(addresses.First());
+                    }
                 }
             }
             catch (Exception)
@@ -893,11 +896,9 @@ namespace BackendProject.MiscUtils
                 {
                     foreach (IPAddress address in Dns.GetHostEntry(hostName).AddressList)
                     {
-                        using Ping ping = new();
                         try
                         {
-                            PingReply reply = ping.Send(address);
-                            if (reply.Status == IPStatus.Success)
+                            if (new Ping().Send(address).Status == IPStatus.Success)
                                 return address.ToString();
                         }
                         catch (PingException)
@@ -928,8 +929,7 @@ namespace BackendProject.MiscUtils
         {
             try
             {
-                using TcpClient client = new(ip, port);
-                client.Close();
+                new TcpClient(ip, port).Close();
             }
             catch (Exception)
             {
@@ -952,10 +952,7 @@ namespace BackendProject.MiscUtils
         {
             try
             {
-                using (UdpClient udpClient = new(ip, port))
-                {
-                    udpClient.Close();
-                }
+                new UdpClient(ip, port).Close();
             }
             catch (Exception)
             {
@@ -1039,6 +1036,21 @@ namespace BackendProject.MiscUtils
                 case PlatformID.Win32S:
                 case PlatformID.Win32Windows:
                     pstring = "WIN32";
+                    break;
+                case PlatformID.WinCE:
+                    pstring = "WINCE";
+                    break;
+                case PlatformID.Unix:
+                    pstring = "UNIX";
+                    break;
+                case PlatformID.Xbox:
+                    pstring = "XBOX";
+                    break;
+                case PlatformID.MacOSX:
+                    pstring = "MACOSX";
+                    break;
+                case PlatformID.Other:
+                    pstring = "OTHER";
                     break;
                 default:
                     pstring = "OTHER";

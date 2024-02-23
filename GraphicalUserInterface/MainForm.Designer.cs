@@ -50,8 +50,8 @@
             buttonStartHorizon = new Button();
             pictureBoxPSMSImage = new PictureBox();
             tableLayoutPanelMain = new TableLayoutPanel();
-            buttonStarteaEmu = new Button();
-            buttonStopeaEmu = new Button();
+            buttonStartMultiSocks = new Button();
+            buttonStopMultiSocks = new Button();
             groupBoxWebServerManagement.SuspendLayout();
             groupBoxAuxiliaryServerManagement.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPSMSImage).BeginInit();
@@ -210,8 +210,8 @@
             // groupBoxAuxiliaryServerManagement
             // 
             groupBoxAuxiliaryServerManagement.Anchor = AnchorStyles.Top;
-            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopeaEmu);
-            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStarteaEmu);
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopMultiSocks);
+            groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartMultiSocks);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopQuazal);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStartQuazal);
             groupBoxAuxiliaryServerManagement.Controls.Add(buttonStopDNS);
@@ -302,25 +302,25 @@
             tableLayoutPanelMain.Size = new Size(1007, 261);
             tableLayoutPanelMain.TabIndex = 4;
             // 
-            // buttonStarteaEmu
+            // buttonStartMultiSocks
             // 
-            buttonStarteaEmu.Location = new Point(33, 146);
-            buttonStarteaEmu.Name = "buttonStarteaEmu";
-            buttonStarteaEmu.Size = new Size(128, 29);
-            buttonStarteaEmu.TabIndex = 16;
-            buttonStarteaEmu.Text = "Start eaEmu";
-            buttonStarteaEmu.UseVisualStyleBackColor = true;
-            buttonStarteaEmu.Click += buttonStarteaEmu_Click;
+            buttonStartMultiSocks.Location = new Point(33, 146);
+            buttonStartMultiSocks.Name = "buttonStartMultiSocks";
+            buttonStartMultiSocks.Size = new Size(128, 29);
+            buttonStartMultiSocks.TabIndex = 16;
+            buttonStartMultiSocks.Text = "Start MultiSocks";
+            buttonStartMultiSocks.UseVisualStyleBackColor = true;
+            buttonStartMultiSocks.Click += buttonStartMultiSocks_Click;
             // 
-            // buttonStopeaEmu
+            // buttonStopMultiSocks
             // 
-            buttonStopeaEmu.Location = new Point(181, 146);
-            buttonStopeaEmu.Name = "buttonStopeaEmu";
-            buttonStopeaEmu.Size = new Size(123, 29);
-            buttonStopeaEmu.TabIndex = 17;
-            buttonStopeaEmu.Text = "Stop eaEmu";
-            buttonStopeaEmu.UseVisualStyleBackColor = true;
-            buttonStopeaEmu.Click += buttonStopeaEmu_Click;
+            buttonStopMultiSocks.Location = new Point(181, 146);
+            buttonStopMultiSocks.Name = "buttonStopMultiSocks";
+            buttonStopMultiSocks.Size = new Size(123, 29);
+            buttonStopMultiSocks.TabIndex = 17;
+            buttonStopMultiSocks.Text = "Stop MultiSocks";
+            buttonStopMultiSocks.UseVisualStyleBackColor = true;
+            buttonStopMultiSocks.Click += buttonStopMultiSocks_Click;
             // 
             // MainForm
             // 
@@ -368,7 +368,7 @@
         private TableLayoutPanel tableLayoutPanelMain;
         private Button buttonStopQuazal;
         private Button buttonStartQuazal;
-        private Button buttonStopeaEmu;
-        private Button buttonStarteaEmu;
+        private Button buttonStopMultiSocks;
+        private Button buttonStartMultiSocks;
     }
 }

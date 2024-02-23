@@ -48,11 +48,8 @@ public static class HTTPServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             PHPRedirectUrl = config.php.redirct_url;
             PHPVersion = config.php.version;
@@ -114,6 +111,8 @@ class Program
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
+        GeoIPUtils.Initialize();
+
         AFSClass.MapperHelperFolder = HTTPServerConfiguration.HomeToolsHelperStaticFolder;
 
         _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
@@ -122,7 +121,7 @@ class Program
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => _ = new HttpServer(new int[] { 80, 3074, 9090, 10010, 33000 }, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
+                    () => _ = new HttpServer(new int[] { HTTPServerConfiguration.HTTPPort, 3074, 9090, 10010, 33000 }, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 

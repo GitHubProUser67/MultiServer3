@@ -1,3 +1,4 @@
+
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     internal class Signature2

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
@@ -613,7 +613,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         protected virtual void ProcessMainBlock(byte[] output, int outOff)
         {
-            Check.DataLength(output, outOff, BLOCK_SIZE, "Output buffer too short");
+            Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
             /*
              * OCB-ENCRYPT/OCB-DECRYPT: Process any whole blocks

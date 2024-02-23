@@ -2,12 +2,12 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    // TODO[api] Make internal
     public sealed class LMOtsPublicKey
     {
         private readonly LMOtsParameters m_parameters;
@@ -25,60 +25,50 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static LMOtsPublicKey GetInstance(object src)
         {
-            //todo
             if (src is LMOtsPublicKey lmOtsPublicKey)
-            {
                 return lmOtsPublicKey;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
 
-                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                byte[] K = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
-                return new LMOtsPublicKey(parameter, I, q, K);
-            }
-            else if (src is byte[] bytes)
-            {
-                BinaryReader input = null;
-                try // 1.5 / 1.6 compatibility
-                {
-                    input = new BinaryReader(new MemoryStream(bytes, false));
-                    return GetInstance(input);
-                }
-                finally
-                {
-                    if (input != null) input.Close();//todo Platform Dispose
-                }
-            }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+            throw new ArgumentException($"cannot parse {src}");
         }
+
+        internal static LMOtsPublicKey Parse(BinaryReader binaryReader)
+        {
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
+
+            byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+            int q = BinaryReaders.ReadInt32BigEndian(binaryReader);
+
+            byte[] K = BinaryReaders.ReadBytesFully(binaryReader, parameter.N);
+
+            return new LMOtsPublicKey(parameter, I, q, K);
+        }
+
+        public byte[] GetI() => Arrays.Clone(m_I);
+
+        public byte[] GetK() => Arrays.Clone(m_K);
 
         public LMOtsParameters Parameters => m_parameters;
 
-        public byte[] I => m_I;
-
         public int Q => m_q;
-
-        public byte[] K => m_K;
 
         public override bool Equals(object obj)
         {
             if (this == obj)
                 return true;
-            if (!(obj is LMOtsPublicKey that))
-                return false;
 
-            return m_q == that.m_q
+            return obj is LMOtsPublicKey that
+                && m_q == that.m_q
                 && Objects.Equals(m_parameters, that.m_parameters)
                 && Arrays.AreEqual(m_I, that.m_I)
                 && Arrays.AreEqual(m_K, that.m_K);
@@ -86,9 +76,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public override int GetHashCode()
         {
-            int result = Objects.GetHashCode(m_parameters);
+            int result = m_q;
+            result = 31 * result + Objects.GetHashCode(m_parameters);
             result = 31 * result + Arrays.GetHashCode(m_I);
-            result = 31 * result + m_q;
             result = 31 * result + Arrays.GetHashCode(m_K);
             return result;
         }
@@ -105,26 +95,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LmsContext CreateOtsContext(LMOtsSignature signature)
         {
-            IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
+            IDigest ctx = LmsUtilities.GetDigest(m_parameters);
 
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
             LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
+#pragma warning disable CS0618 // Type or member is obsolete
             LmsUtilities.ByteArray(signature.C, ctx);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return new LmsContext(this, signature, ctx);
         }
 
         internal LmsContext CreateOtsContext(LmsSignature signature)
         {
-            IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
+            IDigest ctx = LmsUtilities.GetDigest(m_parameters);
 
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
             LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
+#pragma warning disable CS0618 // Type or member is obsolete
             LmsUtilities.ByteArray(signature.OtsSignature.C, ctx);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return new LmsContext(this, signature, ctx);
         }
+
+        [Obsolete("Use 'GetI' instead")]
+        public byte[] I => m_I;
+
+        [Obsolete("Use 'GetK' instead")]
+        public byte[] K => m_K;
     }
 }

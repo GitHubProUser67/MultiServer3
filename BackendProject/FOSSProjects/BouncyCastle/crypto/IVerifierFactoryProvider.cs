@@ -15,3 +15,4 @@ namespace Org.BouncyCastle.Crypto
 		IVerifierFactory CreateVerifierFactory (object algorithmDetails);
 	}
 }
+

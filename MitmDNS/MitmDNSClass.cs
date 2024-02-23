@@ -14,7 +14,7 @@ namespace MitmDNS
 
         public async void MitmDNSMain()
         {
-            await Task.Run(() => {
+            await Task.Run(async () => {
                 if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
@@ -24,10 +24,10 @@ namespace MitmDNS
 #if NET7_0
                         HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
                         response.EnsureSuccessStatusCode();
-                        ParseRules(response.Content.ReadAsStringAsync().Result, false);
+                        ParseRules(await response.Content.ReadAsStringAsync(), false);
 #else
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                        ParseRules(new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result, false);
+                        ParseRules(await new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig), false);
 #pragma warning restore
 #endif
                     }

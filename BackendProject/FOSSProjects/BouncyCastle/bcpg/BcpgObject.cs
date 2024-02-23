@@ -19,3 +19,4 @@ namespace Org.BouncyCastle.Bcpg
         public abstract void Encode(BcpgOutputStream bcpgOut);
     }
 }
+

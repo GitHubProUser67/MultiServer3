@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Net;
+using System.Text.RegularExpressions;
 
 namespace BackendProject.SSDP_DLNA
 {
@@ -6,17 +7,20 @@ namespace BackendProject.SSDP_DLNA
     {
         public static string? FetchXmlContent(string url)
         {
-            using (HttpClient client = new())
+            try
             {
-                try
-                {
-                    return client.GetStringAsync(url).Result.Replace("status=ok", string.Empty);
-                }
-                catch (HttpRequestException)
-                {
-                    CustomLogger.LoggerAccessor.LogError($"[FetchDNLARemote] - An exception was thrown while fetching XML from {url}");
-                    return null;
-                }
+#if NET7_0
+                return new HttpClient().GetStringAsync(url).Result.Replace("status=ok", string.Empty);
+#else
+#pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
+                return new WebClient().DownloadStringTaskAsync(url).Result.Replace("status=ok", string.Empty);
+#pragma warning restore
+#endif
+            }
+            catch (Exception ex)
+            {
+                CustomLogger.LoggerAccessor.LogError($"[FetchDNLARemote] - An exception was thrown while fetching XML from {url} : {ex}");
+                return null;
             }
         }
 
@@ -28,7 +32,7 @@ namespace BackendProject.SSDP_DLNA
                 return new DlnaDeviceInfo
                 {
                     Path = url,
-                    friendlyName = GetFriendlyName(xmlContent) ?? "Not Set",
+                    FriendlyName = GetFriendlyName(xmlContent) ?? "Not Set",
                     Logo = GetImagesUrl(xmlContent, uri.GetLeftPart(UriPartial.Authority))
                 };
             }
@@ -36,7 +40,7 @@ namespace BackendProject.SSDP_DLNA
             return new DlnaDeviceInfo
             {
                 Path = url,
-                friendlyName = GetFriendlyName(xmlContent) ?? "Not Set",
+                FriendlyName = GetFriendlyName(xmlContent) ?? "Not Set",
                 Logo = GetImagesUrl(xmlContent, url)
             };
         }
@@ -78,7 +82,7 @@ namespace BackendProject.SSDP_DLNA
     public class DlnaDeviceInfo
     {
         public string? Path { get; set; }
-        public string? friendlyName { get; set; }
+        public string? FriendlyName { get; set; }
         public string? Logo { get; set; }
     }
 }

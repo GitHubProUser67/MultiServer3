@@ -129,9 +129,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         private void setKey(
             byte[] key)
         {
-            if (BitConverter.IsLittleEndian) // Libsecure ideally check key and input endianess.
-                key = util.EndianTools.ReverseEndiannessInChunks(key, 4);
-
             int i, j;
             for (i = j = 0; i < 4; i++, j += 4)
             {

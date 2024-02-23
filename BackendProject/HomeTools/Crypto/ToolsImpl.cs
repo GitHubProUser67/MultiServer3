@@ -2,10 +2,7 @@ using CustomLogger;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
-using ICSharpCode.SharpZipLib.Zip.Compression;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ComponentAce.Compression.Libs.zlib;
-using BackendProject.HomeTools.BARFramework;
 using BackendProject.HomeTools.UnBAR;
 using BackendProject.MiscUtils;
 
@@ -94,33 +91,29 @@ namespace BackendProject.HomeTools.Crypto
 
         public static readonly byte[] TicketListV1IV = new byte[] { 0xc7, 0x96, 0x79, 0xe5, 0x79, 0x99, 0x9f, 0xbf };
 
-        public static void fail(string a)
+        public static void Fail(string a)
         {
             LoggerAccessor.LogError($"[UnBAR] ToolsImpl Failed with error {a}");
         }
 
         public string ValidateSha1(byte[] data)
         {
-            using (SHA1 sha1 = SHA1.Create())
+            using SHA1 sha1 = SHA1.Create();
+            byte[] hashBytes = sha1.ComputeHash(data);
+            StringBuilder sb = new();
+
+            foreach (byte b in hashBytes)
             {
-                byte[] hashBytes = sha1.ComputeHash(data);
-                StringBuilder sb = new();
-
-                foreach (byte b in hashBytes)
-                {
-                    sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
-                }
-
-                return sb.ToString().ToUpper();
+                sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
             }
+
+            return sb.ToString().ToUpper();
         }
 
         public byte[] ValidateBytesSha1(byte[] data)
         {
-            using (SHA1 sha1 = SHA1.Create())
-            {
-                return sha1.ComputeHash(data);
-            }
+            using SHA1 sha1 = SHA1.Create();
+            return sha1.ComputeHash(data);
         }
 
         public ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
@@ -133,7 +126,7 @@ namespace BackendProject.HomeTools.Crypto
             byte[] numArray1 = new byte[16];
             byte[] numArray2 = new byte[16];
             aesecbEncrypt(key, numArray1, 0, numArray2, 0, numArray1.Length);
-            BigInteger bigInteger1 = new BigInteger(ConversionUtils.reverseByteWithSizeFIX(numArray2));
+            BigInteger bigInteger1 = new(ConversionUtils.reverseByteWithSizeFIX(numArray2));
             BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
             byte[] src1 = ConversionUtils.reverseByteWithSizeFIX(bigInteger2.ToByteArray());
             if (src1.Length >= 16)
@@ -166,89 +159,6 @@ namespace BackendProject.HomeTools.Crypto
             }
         }
 
-        public byte[] ICSharpEdgeZlibCompress(byte[] inData)
-        {
-            MemoryStream memoryStream = new(inData.Length);
-            MemoryStream memoryStream2 = new(inData);
-            while (memoryStream2.Position < memoryStream2.Length)
-            {
-                int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
-                byte[] array = new byte[num];
-                memoryStream2.Read(array, 0, num);
-                byte[] array2 = ICSharpEdgeCompressChunk(array);
-                memoryStream.Write(array2, 0, array2.Length);
-            }
-            memoryStream2.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        private byte[] ICSharpEdgeCompressChunk(byte[] InData)
-        {
-            MemoryStream memoryStream = new();
-            Deflater deflater = new(9, true);
-            DeflaterOutputStream deflaterOutputStream = new(memoryStream, deflater);
-            deflaterOutputStream.Write(InData, 0, InData.Length);
-            deflaterOutputStream.Close();
-            memoryStream.Close();
-            byte[] array = memoryStream.ToArray();
-            byte[] array2;
-            if (array.Length >= InData.Length)
-                array2 = InData;
-            else
-                array2 = array;
-            byte[] array3 = new byte[array2.Length + 4];
-            Array.Copy(array2, 0, array3, 4, array2.Length);
-            ChunkHeader chunkHeader = default;
-            chunkHeader.SourceSize = (ushort)InData.Length;
-            chunkHeader.CompressedSize = (ushort)array2.Length;
-            byte[] array4 = chunkHeader.GetBytes();
-            array4 = Utils.EndianSwap(array4);
-            Array.Copy(array4, 0, array3, 0, ChunkHeader.SizeOf);
-            return array3;
-        }
-
-        public byte[] ICSharpEdgeZlibDecompress(byte[] inData)
-        {
-            MemoryStream memoryStream = new();
-            MemoryStream memoryStream2 = new(inData);
-            byte[] array = new byte[ChunkHeader.SizeOf];
-            while (memoryStream2.Position < memoryStream2.Length)
-            {
-                memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
-                array = Utils.EndianSwap(array);
-                ChunkHeader header = ChunkHeader.FromBytes(array);
-                int compressedSize = header.CompressedSize;
-                byte[] array2 = new byte[compressedSize];
-                memoryStream2.Read(array2, 0, compressedSize);
-                byte[] array3 = ICSharpDecompressEdgeZlibChunk(array2, header);
-                memoryStream.Write(array3, 0, array3.Length);
-            }
-            memoryStream2.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        private byte[] ICSharpDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
-        {
-            if (header.CompressedSize == header.SourceSize)
-                return inData;
-            MemoryStream baseInputStream = new(inData);
-            Inflater inf = new(true);
-            InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
-            MemoryStream memoryStream = new();
-            byte[] array = new byte[4096];
-            for (; ; )
-            {
-                int num = inflaterInputStream.Read(array, 0, array.Length);
-                if (num <= 0)
-                    break;
-                memoryStream.Write(array, 0, num);
-            }
-            inflaterInputStream.Close();
-            return memoryStream.ToArray();
-        }
-
         public byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
         {
             MemoryStream memoryStream = new();
@@ -257,7 +167,7 @@ namespace BackendProject.HomeTools.Crypto
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
-                array = Utils.EndianSwap(array);
+                array = EndianUtils.EndianSwap(array);
                 ChunkHeader header = ChunkHeader.FromBytes(array);
                 int compressedSize = header.CompressedSize;
                 byte[] array2 = new byte[compressedSize];
@@ -320,7 +230,7 @@ namespace BackendProject.HomeTools.Crypto
             chunkHeader.SourceSize = (ushort)InData.Length;
             chunkHeader.CompressedSize = (ushort)array2.Length;
             byte[] array4 = chunkHeader.GetBytes();
-            array4 = Utils.EndianSwap(array4);
+            array4 = EndianUtils.EndianSwap(array4);
             Array.Copy(array4, 0, array3, 0, ChunkHeader.SizeOf);
             return array3;
         }
@@ -338,7 +248,7 @@ namespace BackendProject.HomeTools.Crypto
                 int blockSize = Math.Min(8, inputLength - inputIndex);
                 byte[] block = new byte[blockSize];
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[]? taskResult = libsecure.InitiateLibsecureXTEACTRBuffer(block, Key, IV, blockSize) ?? null;
+                byte[]? taskResult = libsecure.InitiateLibsecureXTEACTRBlock(block, Key, IV) ?? null;
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
                 toolsimpl.IncrementIVBytes(IV, 1);
@@ -423,12 +333,12 @@ namespace BackendProject.HomeTools.Crypto
                 else if (opMode == ENCRYPT_MODE)
                     src = rijndaelManaged.CreateEncryptor().TransformFinalBlock(i, inOffset, len);
                 else
-                    fail("NOT SUPPORTED OPMODE");
+                    Fail("NOT SUPPORTED OPMODE");
                 ConversionUtils.arraycopy(src, 0, o, outOffset, len);
             }
             catch (Exception ex)
             {
-                fail(ex.Message);
+                Fail(ex.Message);
             }
         }
 
@@ -481,14 +391,12 @@ namespace BackendProject.HomeTools.Crypto
 
         public byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            byte[] returnbytes = VariousUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
-            return returnbytes;
+            return VariousUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
         public byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            byte[] returnbytes = VariousUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
-            return returnbytes;
+            return VariousUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
         public byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, XTEA Proxy and INF files.
@@ -544,7 +452,7 @@ namespace BackendProject.HomeTools.Crypto
                         Array.Copy(ISO97971, 0, block, blockLength, ISO97971.Length); // Copy the ISO97971 padding at the beginning
 
                         string hexresult = libsecure.MemXOR(VariousUtils.ByteArrayToHexString(ivBlk), VariousUtils.ByteArrayToHexString(block), blockSize);
-                        hexStr.Append(hexresult.Substring(0, hexresult.Length - BytesToFill * 2)); // Pemdas rule necessary, and we double size because we work with bytes in a string.
+                        hexStr.Append(hexresult[..^(BytesToFill * 2)]); // Pemdas rule necessary, and we double size because we work with bytes in a string.
                     }
                     else
                         hexStr.Append(libsecure.MemXOR(VariousUtils.ByteArrayToHexString(ivBlk), VariousUtils.ByteArrayToHexString(block), blockSize));

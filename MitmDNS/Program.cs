@@ -26,11 +26,8 @@ public static class MitmDNSServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             DNSOnlineConfig = config.online_routes_config;
             DNSConfig = config.routes_config;

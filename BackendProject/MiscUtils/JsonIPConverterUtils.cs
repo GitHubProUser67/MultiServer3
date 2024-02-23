@@ -3,6 +3,7 @@ using System.Net;
 
 namespace BackendProject.MiscUtils
 {
+    // This class is a workaround for lack of IPAddress convertion in JSON serialization.
     public class JsonIPConverterUtils : JsonConverter<IPAddress>
     {
         public override void WriteJson(JsonWriter writer, IPAddress? value, JsonSerializer serializer)

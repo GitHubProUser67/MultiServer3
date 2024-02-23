@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Asn1.Cms;
+﻿using Org.BouncyCastle.Asn1.Cms;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {

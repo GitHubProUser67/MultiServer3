@@ -15,61 +15,9 @@ namespace BackendProject.WebAPIs
 {
     public class HomeToolsInterface
     {
-        public static int maxBARTasks = Environment.ProcessorCount;
-        public static int maxCDSBruteforceTasks = Environment.ProcessorCount;
-        public static int BARTasksCounter = 0;
-        public static int CDSBruteforceTasksCounter = 0;
-
-        public static async Task<(byte[]?, string)?> UnBarAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
-        {
-            // Create a cancellation token source with the timeout
-            using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromHours(4));
-            // Run the function in a separate task
-            try
-            {
-                return await Task.Run(() => UnBar(PostData, ContentType, HelperStaticFolder), cancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Handle cancellation due to timeout
-                LoggerAccessor.LogError("[HomeToolsInterface] - UnBarAsync - A Task took too long, so it was canceled!");
-            }
-            catch (Exception)
-            {
-                // Handle other exceptions
-            }
-
-            return null;
-        }
-
-        public static async Task<(byte[]?, string)?> CDSBruteforceAsync(Stream? PostData, string? ContentType, string HelperStaticFolder)
-        {
-            // Create a cancellation token source with the timeout
-            using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromHours(4));
-            // Run the function in a separate task
-            try
-            {
-                return await Task.Run(() => CDSBruteforce(PostData, ContentType, HelperStaticFolder), cancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Handle cancellation due to timeout
-                LoggerAccessor.LogError("[HomeToolsInterface] - CDSBruteforceAsync - A Task took too long, so it was canceled!");
-            }
-            catch (Exception)
-            {
-                // Handle other exceptions
-            }
-
-            return null;
-        }
-
         public static (byte[]?, string)? MakeBarSdat(Stream? PostData, string? ContentType)
         {
-            BARTasksCounter++;
             (byte[]?, string)? output = null;
-            if (BARTasksCounter >= maxBARTasks)
-                return output;
             List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
@@ -435,17 +383,12 @@ namespace BackendProject.WebAPIs
                 output = (memoryStream.ToArray(), $"MakeBarSdat_Results.zip");
             }
 
-            BARTasksCounter--;
-
             return output;
         }
 
         public static async Task<(byte[]?, string)?> UnBar(Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
-            BARTasksCounter++;
             (byte[]?, string)? output = null;
-            if (BARTasksCounter >= maxBARTasks)
-                return output;
             List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
@@ -690,8 +633,6 @@ namespace BackendProject.WebAPIs
                 output = (memoryStream.ToArray(), $"UnBar_Results.zip");
             }
 
-            BARTasksCounter--;
-
             return output;
         }
 
@@ -830,12 +771,9 @@ namespace BackendProject.WebAPIs
             return output;
         }
 
-        public static (byte[]?, string)? CDSBruteforce(Stream? PostData, string? ContentType, string HelperStaticFolder)
+        public static (byte[]?, string)? CDSBruteforce(Stream? PostData, string? ContentType)
         {
-            CDSBruteforceTasksCounter++;
             (byte[]?, string)? output = null;
-            if (CDSBruteforceTasksCounter >= maxCDSBruteforceTasks)
-                return output;
             List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
@@ -867,11 +805,11 @@ namespace BackendProject.WebAPIs
                         BruteforceProcess? proc = new(buffer);
 
                         if (filename.ToLower().Contains(".hcdb"))
-                            TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, 1), $"{filename}_Bruteforced.hcdb"));
+                            TasksResult.Add((proc.StartBruteForce(1), $"{filename}_Bruteforced.hcdb"));
                         else if (filename.ToLower().Contains(".bar"))
-                            TasksResult.Add((proc.StartBruteForce(HelperStaticFolder, 2), $"{filename}_Bruteforced.bar"));
+                            TasksResult.Add((proc.StartBruteForce(2), $"{filename}_Bruteforced.bar"));
                         else
-                            TasksResult.Add((proc.StartBruteForce(HelperStaticFolder), $"{filename}_Bruteforced.xml"));
+                            TasksResult.Add((proc.StartBruteForce(), $"{filename}_Bruteforced.xml"));
 
                         proc = null;
 
@@ -904,8 +842,6 @@ namespace BackendProject.WebAPIs
 
                 output = (memoryStream.ToArray(), $"CDSBruteforce_Results.zip");
             }
-
-            CDSBruteforceTasksCounter--;
 
             return output;
         }
@@ -1316,17 +1252,7 @@ namespace BackendProject.WebAPIs
 
         private static string GenerateDynamicCacheGuid(string input)
         {
-            string md5hash = string.Empty;
-
-            using (MD5 md5 = MD5.Create())
-            {
-                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(VariousUtils.GetCurrentDateTime() + input));
-                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-                md5.Clear();
-            }
-
-            return md5hash;
+            return BitConverter.ToString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(VariousUtils.GetCurrentDateTime() + input))).Replace("-", string.Empty);
         }
-
     }
 }

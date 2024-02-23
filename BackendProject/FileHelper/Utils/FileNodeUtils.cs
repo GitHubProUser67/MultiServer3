@@ -43,12 +43,12 @@ namespace BackendProject.FileHelper.Utils
             return "[]";
         }
 
-        public static string GetMediaFilesAsJson(string directoryPath)
+        public static string GetMediaFilesAsJson(string directoryPath, string Extension)
         {
             try
             {
                 if (Directory.Exists(directoryPath))
-                    return JsonConvert.SerializeObject(FileSystemUtils.GetMediaFilesList(directoryPath));
+                    return JsonConvert.SerializeObject(FileSystemUtils.GetMediaFilesList(directoryPath, Extension));
             }
             catch (Exception ex)
             {

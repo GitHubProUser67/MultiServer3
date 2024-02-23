@@ -218,7 +218,7 @@ namespace Horizon.DME
             if (_mpsChannel == null)
                 return;
 
-            List<BaseScertMessage> responses = new List<BaseScertMessage>();
+            List<BaseScertMessage> responses = new();
 
             try
             {

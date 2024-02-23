@@ -9,39 +9,28 @@ namespace BackendProject.HomeTools.Crypto
 {
     internal class LIBSECURE
     {
-        public byte[]? InitiateLibsecureXTEACTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, int blocksize)
+        public byte[]? InitiateLibsecureXTEACTRBlock(byte[] BlkBytes, byte[] KeyBytes, byte[] m_iv)
         {
-            if (KeyBytes != null && KeyBytes.Length == 16 && m_iv != null && m_iv.Length == 8 && FileBytes != null)
+            if (KeyBytes.Length == 16 && m_iv.Length == 8 && BlkBytes.Length <= 8)
             {
+                byte[] returnbytes = new byte[BlkBytes.Length];
+
                 // Create the cipher
-                IBufferedCipher? cipher = null;
+                IBufferedCipher? cipher = CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/NOPADDING");
 
-                if (blocksize != 8)
-                    cipher = CipherUtilities.GetCipher("LIBSECUREXTEA/ENDIANCTR/ZEROBYTEPADDING");
-                else
-                    cipher = CipherUtilities.GetCipher("LIBSECUREXTEA/ENDIANCTR/NOPADDING");
+                BlkBytes = BlkBytes.Length != 8 ? BlkBytes.Concat(new byte[8 - BlkBytes.Length]).ToArray() : BlkBytes; // Pad to 8 Zero bytes.
 
-                cipher.Init(true, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv)); // Bouncy Castle not like padding in decrypt mode with custom data.
+                cipher.Init(true, new ParametersWithIV(new KeyParameter(EndianUtils.EndianSwap(KeyBytes)), EndianUtils.EndianSwap(m_iv))); // Bouncy Castle not like padding in decrypt mode with custom data.
 
                 // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(BlkBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(EndianUtils.EndianSwap(BlkBytes), 0, BlkBytes.Length, ciphertextBytes, 0);
                 cipher.DoFinal(ciphertextBytes, ciphertextLength);
 
                 cipher = null;
 
-                if (BitConverter.IsLittleEndian) // KeyBytes endian check directly in libsecure.
-                {
-                    byte[] returnbytes = new byte[blocksize];
-                    Buffer.BlockCopy(Org.BouncyCastle.util.EndianTools.ReverseEndiannessInChunks(ciphertextBytes, 4), 0, returnbytes, 0, returnbytes.Length);
-                    return returnbytes;
-                }
-                else
-                {
-                    byte[] returnbytes = new byte[blocksize];
-                    Buffer.BlockCopy(ciphertextBytes, 0, returnbytes, 0, returnbytes.Length);
-                    return returnbytes;
-                }
+                Buffer.BlockCopy(EndianUtils.EndianSwap(ciphertextBytes), 0, returnbytes, 0, returnbytes.Length);
+                return returnbytes;
             }
             else
                 LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBuffer - Invalid FileBytes, KeyByes or IV!");

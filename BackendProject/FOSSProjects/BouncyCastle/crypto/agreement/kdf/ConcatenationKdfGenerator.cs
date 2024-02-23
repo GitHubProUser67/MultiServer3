@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
         /// </summary>
         public int GenerateBytes(byte[]	output, int outOff, int length)
         {
-            Check.OutputLength(output, outOff, length, "output buffer too small");
+            Check.OutputLength(output, outOff, length, "output buffer too short");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return GenerateBytes(output.AsSpan(outOff, length));

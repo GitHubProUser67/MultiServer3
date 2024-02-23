@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier ExpiredCertsOnCrl = new DerObjectIdentifier("2.5.29.60");
 
         /**
-         * the subjectï¿½s alternative public key information
+         * the subject’s alternative public key information
          */
         public static readonly DerObjectIdentifier SubjectAltPublicKeyInfo = new DerObjectIdentifier("2.5.29.72");
 
@@ -214,14 +214,11 @@ namespace Org.BouncyCastle.Asn1.X509
             if (obj is Asn1Sequence sequence)
                 return new X509Extensions(sequence);
 
+            // TODO[api] Rename this class to just Extensions and drop support for this
             if (obj is Asn1TaggedObject taggedObject)
-            {
-                Asn1Utilities.CheckTagClass(taggedObject, Asn1Tags.ContextSpecific);
+                return GetInstance(Asn1Utilities.CheckContextTagClass(taggedObject).GetBaseObject().ToAsn1Object());
 
-                return GetInstance(taggedObject.GetBaseObject().ToAsn1Object());
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         /**

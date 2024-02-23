@@ -92,7 +92,20 @@ namespace HTTPServer
                             {
                                 string Host = request.GetHeaderValue("Host");
 
-                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested the HTTP Server with URL : {request.Url}");
+                                string SuplementalMessage = string.Empty;
+                                string? GeoCodeString = GeoIPUtils.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+
+                                if (!string.IsNullOrEmpty(GeoCodeString))
+                                {
+                                    // Split the input string by the '-' character
+                                    string[] parts = GeoCodeString.Split('-');
+
+                                    // Check if there are exactly two parts
+                                    if (parts.Length == 2)
+                                        SuplementalMessage = " Located at " + parts[0] + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+                                }
+
+                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {request.Url}");
 
                                 string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.GetHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
 
@@ -107,28 +120,26 @@ namespace HTTPServer
 
                                 string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
 
-                                HttpResponse? response = RouteRequest(inputStream, outputStream, request, absolutepath, Host);
+                                HttpResponse? response = null;
+
+                                if (HTTPServerConfiguration.plugins.Count > 0)
+                                {
+                                    foreach (PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+                                    {
+                                        response = plugin.ProcessPluginMessage(request);
+                                        if (response != null)
+                                            break;
+                                    }
+                                }
+
+                                response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
                                 if (response == null)
                                 {
                                     switch (Host)
                                     {
                                         default:
-                                            // A little bit out of the scope of Routes.
-                                            if (absolutepath.Contains("/!plugin/") && HTTPServerConfiguration.plugins.Count > 0)
-                                            {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a Plugin method : {absolutepath}");
-                                                int i = 0;
-                                                foreach (PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
-                                                {
-                                                    response = plugin.ProcessPluginMessage(request);
-                                                    if (response != null)
-                                                        break;
-                                                    i++;
-                                                }
-                                            }
-
-                                            else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.GetDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
+                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.GetDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
@@ -200,7 +211,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new NDREAMSClass(request.Method, absolutepath);
+                                                NDREAMSClass ndreams = new(request.Method, absolutepath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -358,9 +369,9 @@ namespace HTTPServer
                                                             case "/!GetMediaList":
                                                             case "/!GetMediaList/":
                                                                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                                    response = HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder + "/!MediaPath"))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                                                    response = HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder, "mp4"))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                                                 else
-                                                                    response = HttpResponse.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder + "/!MediaPath"), "application/json");
+                                                                    response = HttpResponse.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder, "mp4"), "application/json");
                                                                 break;
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
@@ -404,7 +415,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/UnBar/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var unbarres = HomeToolsInterface.UnBarAsync(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                    var unbarres = HomeToolsInterface.UnBar(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                     if (unbarres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
                                                                     else
@@ -428,7 +439,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/CDSBruteforce/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var cdsres = HomeToolsInterface.CDSBruteforceAsync(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                    var cdsres = HomeToolsInterface.CDSBruteforce(request.GetDataStream, request.GetContentType());
                                                                     if (cdsres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
                                                                     else

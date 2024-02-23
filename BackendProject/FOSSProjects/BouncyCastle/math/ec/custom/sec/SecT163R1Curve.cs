@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities.Encoders;

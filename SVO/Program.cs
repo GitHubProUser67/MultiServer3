@@ -49,11 +49,8 @@ public static class SVOServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             SVOStaticFolder = config.static_folder;
             SVOHTTPSBypass = config.https_bypass;
