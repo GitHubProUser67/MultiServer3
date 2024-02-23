@@ -122,6 +122,7 @@ namespace BackendProject.WebAPIs.OHS
         {
             try
             {
+                LoggerAccessor.LogDebug($"JAMINFORMAT INPUT: {dataforohs}");
                 // Execute the Lua script and get the result
                 object[] returnValues = ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", dataforohs));
 

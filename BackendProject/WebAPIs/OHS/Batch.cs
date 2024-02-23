@@ -82,6 +82,9 @@ namespace BackendProject.WebAPIs.OHS
                                     case "user/get/":
                                         resultfromcommand = User.Get(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
                                         break;
+                                    case "user/gets/":
+                                        resultfromcommand = User.Gets(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
+                                        break;
                                     case "user/set/":
                                         resultfromcommand = User.Set(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
                                         break;
@@ -112,8 +115,14 @@ namespace BackendProject.WebAPIs.OHS
                                     case "usercounter/get/":
                                         resultfromcommand = UserCounter.Get(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
+                                    case "userinventory/addglobalitems/":
+                                        resultfromcommand = UserInventory.AddGlobalItems(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        break;
                                     case "userinventory/getglobalitems/":
                                         resultfromcommand = UserInventory.GetGlobalItems(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        break;
+                                    case "userinventory/updateuserinventory/":
+                                        resultfromcommand = UserInventory.UpdateUserInventory(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
                                     case "userinventory/getuserinventory/":
                                         resultfromcommand = UserInventory.GetUserInventory(PostData, ContentType, directorypath + $"/{project}/", data, game);

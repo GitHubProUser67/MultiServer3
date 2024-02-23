@@ -6,6 +6,8 @@ using static BackendProject.WebAPIs.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
 using BackendProject.MiscUtils;
+using BackendProject.WeBAPIs.VEEMEE;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -191,8 +193,9 @@ namespace BackendProject.WebAPIs.OHS
 
         public static string? Get_All(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string? dataforohs = string.Empty;
+            string? output = string.Empty;
+            string? projectName = string.Empty;
 
             if (string.IsNullOrEmpty(batchparams))
             {
@@ -204,6 +207,7 @@ namespace BackendProject.WebAPIs.OHS
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                        projectName = data.GetParameterValue("project");
                         dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
                         ms.Flush();
                     }
@@ -218,7 +222,7 @@ namespace BackendProject.WebAPIs.OHS
                 {
                     // Parsing the JSON string
                     JObject? jsonObject = JObject.Parse(dataforohs);
-
+					
                     if (!global)
                     {
                         // Getting the value of the "user" field
@@ -249,7 +253,7 @@ namespace BackendProject.WebAPIs.OHS
                             if (!string.IsNullOrEmpty(tempreader))
                             {
                                 // Parse the JSON string to a JObject
-                                jsonObject = JObject.Parse(tempreader);
+                                jsonObject = JObject.Parse(tempreader);	
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
@@ -265,17 +269,22 @@ namespace BackendProject.WebAPIs.OHS
                 LoggerAccessor.LogError($"[User] - Json Format Error - {ex}");
             }
 
+            if (output == string.Empty)
+                output = "{ }";
+
+            LoggerAccessor.LogWarn($"JSON OUTPUT: {output}");
+
             if (!string.IsNullOrEmpty(batchparams))
             {
                 if (string.IsNullOrEmpty(output))
-                    return "{ }";
+                    return null;
                 else
                     return output;
             }
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
                     dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }
@@ -312,15 +321,16 @@ namespace BackendProject.WebAPIs.OHS
                 {
                     // Parsing the JSON string
                     JObject? jsonObject = JObject.Parse(dataforohs);
-
+                        
                     if (!global)
                     {
                         // Getting the value of the "user" field
-                        dataforohs = (string?)jsonObject["user"];
+                        string ohsUserName = (string?)jsonObject["user"];
+                        string ohsKey = (string?)jsonObject["key"];
 
-                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
                         {
-                            string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
+                            string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{ohsUserName}.json");
 
                             if (!string.IsNullOrEmpty(userprofile))
                             {
@@ -329,8 +339,18 @@ namespace BackendProject.WebAPIs.OHS
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                    // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                {
+
+                                    if (keyValueToken.ToObject<JObject>().TryGetValue(ohsKey, out JToken? ohsKeyValue))
+                                    {
+
+                                        // Convert the JToken to a Lua table-like string
+                                        output = JaminProcessor.ConvertToLuaTable(ohsKeyValue, false);
+                                    }
+
+                                    LoggerAccessor.LogWarn($"output user/get {output}");
+                                }
+
                             }
                         }
                     }
@@ -353,8 +373,113 @@ namespace BackendProject.WebAPIs.OHS
                         }
                         else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
                             output = "{[\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = {[\"accuracy\"] = 1}}";
+                        else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Halloween2012"))
+                            output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
                         else if ((string?)jsonObject["key"] == "vickie_version")
                             output = "{[\"vickie_version\"] = 7}";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[User] - Json Format Error - {ex}");
+            }
+
+            if (output == string.Empty)
+                output = "{ }";
+
+            if (!string.IsNullOrEmpty(batchparams))
+            {
+                if (string.IsNullOrEmpty(output))
+                    return null;
+                else
+                    return output;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(output))
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
+                else
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
+            }
+
+            return dataforohs;
+        }
+
+        public static string? Gets(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        {
+            string? dataforohs = null;
+            string? output = null;
+
+            if (string.IsNullOrEmpty(batchparams))
+            {
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                if (boundary != null)
+                {
+                    using (MemoryStream ms = new(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
+                        ms.Flush();
+                    }
+                }
+            }
+            else
+                dataforohs = batchparams;
+
+            try
+            {
+                if (!string.IsNullOrEmpty(dataforohs))
+                {
+                    // Parsing the JSON string
+                    JObject? jsonObject = JObject.Parse(dataforohs);
+
+                    if (!global)
+                    {
+                        // Getting the value of the "user" field
+                        dataforohs = (string?)jsonObject["user"];
+                        string[] keys = jsonObject["keys"].ToObject<string[]>();
+
+                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                        {
+                            string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
+
+                            if (!string.IsNullOrEmpty(userprofile))
+                            {
+                                // Parse the JSON string to a JObject
+                                jsonObject = JObject.Parse(userprofile);
+
+                                foreach (var key in keys)
+                                {
+                                    // Check if the "key" property exists and if it is an object
+                                    if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
+                                        // Convert the JToken to a Lua table-like string
+                                        output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                }
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(directorypath + $"/Global.json"))
+                        {
+                            string globaldata = File.ReadAllText(directorypath + $"/Global.json");
+
+                            if (!string.IsNullOrEmpty(globaldata))
+                            {
+                                // Parse the JSON string to a JObject
+                                jsonObject = JObject.Parse(globaldata);
+
+                                // Check if the "key" property exists and if it is an object
+                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                    // Convert the JToken to a Lua table-like string
+                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                            }
+                        }
+
                     }
                 }
             }
