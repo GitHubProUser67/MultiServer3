@@ -1008,7 +1008,7 @@ namespace Org.BouncyCastle.Pkix
 					lastException = e;
 				}
 			}
-			if (!validCrlFound && lastException != null)
+			if (!validCrlFound)
 			{
 				throw lastException;
 			}

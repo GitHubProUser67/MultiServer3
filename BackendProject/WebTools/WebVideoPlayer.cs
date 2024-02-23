@@ -158,7 +158,7 @@ namespace BackendProject.WebTools
                     HtmlPage = "<embed id='MediaPlayer' type='application/x-vlc-plugin'" +
                     "codebase='http://download.videolan.org/pub/videolan/vlc/last/win32/axvlc.cab'" +
                     "pluginspage='http://www.videolan.org'" +
-                    "showcontrols='true' showpositioncontrols='true' showstatusbar='tue' showgotobar='true'" +
+                    "showcontrols='true' showpositioncontrols='true' showstatusbar='tue' showgotobar='true' autoplay='yes'" +
                     "src='" + VideoUrl + "' autostart='true' style='width: 100%; height: 100%;' />";
                     break;
                 case "objectns":
@@ -170,6 +170,7 @@ namespace BackendProject.WebTools
                     HtmlPage = "<center><object ID='MediaPlayer' style='width: 100%; height: 100%;' " +
                     "CLASSID='CLSID:2179C5D3-EBFF-11CF-B6FD-00AA00B4E220' " +
                     "codebase='http://www.microsoft.com/netshow/download/en/nsasfinf.cab#Version=2,0,0,912'>" +
+                    "standby='Loading Microsoft Windows Media Player components...' " +
                     "<param name='FileName' value='" + VideoUrl + "'>" +
                     "<param name='ShowControls' value='true'>" +
                     "<param name='ShowDisplay' value='true'>" +
@@ -178,6 +179,7 @@ namespace BackendProject.WebTools
                     "<param name='ShowGoToBar' value='true'>" +
                     "<param name='Controls' value='true'>" +
                     "<param name='AutoSize' value='true'>" +
+                    "<param name='AutoStart' value='true'>" +
                     "</object></center>";
                     break;
                 case "objectwm":
@@ -185,14 +187,22 @@ namespace BackendProject.WebTools
                     // Download: http://microsoft.com/windows/mediaplayer/en/download/
                     HtmlPage = "<object ID='MediaPlayer' style='width: 100%; height: 100%;' " +
                     "CLASSID='CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6' " +
-                    "standby='Loading Microsoft Windows Media Player components...' " +
                     "codebase='http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#Version=6,4,7,1112'>" +
+                    "standby='Loading Microsoft Windows Media Player components...' " +
                     "<param name='URL' value='" + VideoUrl + "'>" +
+                    "<param name='ShowControls' value='true'>" +
+                    "<param name='ShowDisplay' value='true'>" +
+                    "<param name='ShowStatusBar' value='true'>" +
+                    "<param name='ShowPositionControls' value='true'>" +
+                    "<param name='ShowGoToBar' value='true'>" +
+                    "<param name='Controls' value='true'>" +
+                    "<param name='AutoSize' value='true'>" +
+                    "<param name='AutoStart' value='true'>" +
                     "</object>";
                     break;
                 case "html5":
                     // HTML5 VIDEO tag
-                    HtmlPage = "<center><video id='MediaPlayer' src='" + VideoUrl + "' controls='yes' style='width: 100%; height: 100%;'>"
+                    HtmlPage = "<center><video id='MediaPlayer' src='" + VideoUrl + "' controls='yes' autoplay='yes' style='width: 100%; height: 100%;'>"
                     + "Try another player type, as HTML5 is not supported.</video></center>";
                     break;
                 case "dynimg":

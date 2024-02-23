@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Org.BouncyCastle.Asn1.Rosstandart
 {
@@ -34,6 +34,12 @@ namespace Org.BouncyCastle.Asn1.Rosstandart
         public static readonly DerObjectIdentifier id_tc26_gost_3410_12_256_paramSet = id_tc26.Branch("2.1.1");
 
         public static readonly DerObjectIdentifier id_tc26_gost_3410_12_256_paramSetA = id_tc26_gost_3410_12_256_paramSet.Branch("1");
+
+        public static readonly DerObjectIdentifier id_tc26_gost_3410_12_256_paramSetB = id_tc26_gost_3410_12_256_paramSet.Branch("2");
+
+        public static readonly DerObjectIdentifier id_tc26_gost_3410_12_256_paramSetC = id_tc26_gost_3410_12_256_paramSet.Branch("3");
+
+        public static readonly DerObjectIdentifier id_tc26_gost_3410_12_256_paramSetD = id_tc26_gost_3410_12_256_paramSet.Branch("4");
 
         public static readonly DerObjectIdentifier id_tc26_gost_3410_12_512_paramSet = id_tc26.Branch("2.1.2");
 

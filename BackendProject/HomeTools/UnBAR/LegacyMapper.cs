@@ -36,7 +36,7 @@ namespace BackendProject.HomeTools.UnBAR
                 int i = 0;
                 foreach (string sourceFile in strings)
                 {
-                    LoggerAccessor.drawTextProgressBar($"[Mapper] - Scanning: {sourceFile}", i, strings.Count() - 1);
+                    LoggerAccessor.DrawTextProgressBar($"[Mapper] - Scanning: {sourceFile}", i, strings.Count() - 1);
                     mappedListList.AddRange(ScanForString(sourceFile));
                     i++;
                 }

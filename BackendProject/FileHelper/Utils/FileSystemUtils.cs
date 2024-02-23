@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.IO;
+using System.IO.Compression;
 using BackendProject.MiscUtils;
 
 namespace BackendProject.FileHelper.Utils
@@ -50,49 +51,36 @@ namespace BackendProject.FileHelper.Utils
         {
             if (Directory.Exists(directoryPath) && (File.GetAttributes(directoryPath) & FileAttributes.Archive) == FileAttributes.Archive) // We only process folders with the archive attribute.
             {
-                using (MultipartFormDataContent formData = new())
+                using MultipartFormDataContent formData = new();
+                // Add each file to the multipart form data
+                foreach (string filePath in Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories))
                 {
-                    // Add each file to the multipart form data
-                    foreach (string filePath in Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories))
-                    {
-                        if ((File.GetAttributes(filePath) & FileAttributes.Hidden) != FileAttributes.Hidden)
-                            formData.Add(new StreamContent(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), Path.GetFileName(filePath), filePath);
-                    }
-
-                    HugeMemoryStream DataStream = new(formData.ReadAsStreamAsync().Result);
-
-                    DataStream.Seek(0, SeekOrigin.Begin);
-
-                    return DataStream;
+                    if ((File.GetAttributes(filePath) & FileAttributes.Hidden) != FileAttributes.Hidden)
+                        formData.Add(new StreamContent(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), Path.GetFileName(filePath), filePath);
                 }
+
+                HugeMemoryStream DataStream = new(formData.ReadAsStreamAsync().Result);
+
+                DataStream.Seek(0, SeekOrigin.Begin);
+
+                return DataStream;
             }
 
             return null;
         }
 
-        public static Dictionary<string, string> GetMediaFilesList(string directoryPath)
+        public static Dictionary<string, string> GetMediaFilesList(string directoryPath, string Extension)
         {
             Dictionary<string, string> files = new();
 
-            if (Directory.Exists(directoryPath))
+            // Check if string starts with "."
+            if (Extension.StartsWith("."))
+                // Remove the leading "."
+                Extension = Extension[1..];
+
+            foreach (string file in Directory.GetFiles(directoryPath, $"*.{Extension}", SearchOption.AllDirectories))
             {
-                DirectoryInfo from = new(directoryPath);
-                Parallel.ForEach(from.AllFilesAndFolders().OfType<FileInfo>().Where(f =>
-                                f.Extension.ToLower() == ".mp4" ||
-                                f.Extension.ToLower() == ".mkv" ||
-                                f.Extension.ToLower() == ".m4a" ||
-                                f.Extension.ToLower() == ".mp3" ||
-                                f.Extension.ToLower() == ".ogg" ||
-                                f.Extension.ToLower() == ".wav"), file =>
-                                {
-                                    if ((File.GetAttributes(file.FullName) & FileAttributes.Hidden) != FileAttributes.Hidden)
-                                    {
-                                        lock (files)
-                                        {
-                                            files.Add(Path.GetFileNameWithoutExtension(file.FullName), $"http://{VariousUtils.GetPublicIPAddress(true, true)}/" + Path.GetRelativePath(directoryPath, file.FullName).Replace("\\", "/"));
-                                        }
-                                    }
-                                });
+                files.Add(Path.GetFileNameWithoutExtension(file), $"http://{VariousUtils.GetPublicIPAddress(true, true)}/" + Path.GetRelativePath(directoryPath, file).Replace("\\", "/"));
             }
 
             return files;

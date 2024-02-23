@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Crypto.Engines;
+﻿using Org.BouncyCastle.Crypto.Engines;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto
         public static IBlockCipher CreateEngine()
         {
 #if NETCOREAPP3_0_OR_GREATER
-            if (AesEngine_X86.IsSupported)
+            if (IsHardwareAccelerated)
                 return new AesEngine_X86();
 #endif
 

@@ -1,3 +1,5 @@
+using BackendProject.MiscUtils;
+
 namespace BackendProject.HomeTools.BARFramework
 {
     internal class BEBinaryWriter : EndianAwareBinaryWriter
@@ -8,7 +10,7 @@ namespace BackendProject.HomeTools.BARFramework
 
         public override void Write(byte[] bytes)
         {
-            m_bw.Write(Utils.EndianSwap(bytes));
+            m_bw.Write(EndianUtils.EndianSwap(bytes));
         }
 
         public override void Write(uint val)

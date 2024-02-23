@@ -12,37 +12,6 @@ namespace BackendProject.HomeTools.BARFramework
             return num;
         }
 
-        public static byte[] EndianSwap(byte[] dataIn)
-        {
-            int num = dataIn.Length;
-            byte[] array = new byte[num];
-            Array.Copy(dataIn, array, dataIn.Length);
-            int num2;
-            for (int i = 0; i < dataIn.Length; i += num2)
-            {
-                num2 = 4;
-                int num3 = dataIn.Length - i;
-                if (num3 < 4)
-                    num2 = num3;
-                Array.Reverse(array, i, num2);
-            }
-            return array;
-        }
-
-        public static uint EndianSwap(uint originalValue)
-        {
-            return ((originalValue & 0x000000FFU) << 24) |
-                   ((originalValue & 0x0000FF00U) << 8) |
-                   ((originalValue & 0x00FF0000U) >> 8) |
-                   ((originalValue & 0xFF000000U) >> 24);
-        }
-
-        public static int EndianSwap(int value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            Array.Reverse(bytes);
-            return BitConverter.ToInt32(bytes, 0);
-        }
 
         public static byte[] IntToByteArray(int value)
         {

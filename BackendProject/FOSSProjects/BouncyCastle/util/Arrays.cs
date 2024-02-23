@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 #endif
 using System.Text;
@@ -97,6 +98,7 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, int aFromIndex, int aToIndex, ulong[] b, int bFromIndex, int bToIndex)
         {
             int aLength = aToIndex - aFromIndex;
@@ -108,6 +110,44 @@ namespace Org.BouncyCastle.Utilities
             for (int i = 0; i < aLength; ++i)
             {
                 if (a[aFromIndex + i] != b[bFromIndex + i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static bool AreEqual(object[] a, object[] b)
+        {
+            if (a == b)
+                return true;
+
+            if (a == null || b == null)
+                return false;
+
+            int length = a.Length;
+            if (length != b.Length)
+                return false;
+
+            for (int i = 0; i < length; ++i)
+            {
+                if (!Objects.Equals(a[i], b[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static bool AreEqual(object[] a, int aFromIndex, int aToIndex, object[] b, int bFromIndex, int bToIndex)
+        {
+            int aLength = aToIndex - aFromIndex;
+            int bLength = bToIndex - bFromIndex;
+
+            if (aLength != bLength)
+                return false;
+
+            for (int i = 0; i < aLength; ++i)
+            {
+                if (!Objects.Equals(a[aFromIndex + i], b[bFromIndex + i]))
                     return false;
             }
 
@@ -204,6 +244,7 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        [CLSCompliant(false)]
         public static bool AreEqual(uint[] a, uint[] b)
         {
             if (a == b)
@@ -226,6 +267,7 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, ulong[] b)
         {
             if (a == b)
@@ -362,10 +404,13 @@ namespace Org.BouncyCastle.Utilities
         public static int GetHashCode(byte[] data)
         {
             if (data == null)
-            {
                 return 0;
-            }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(data);
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -376,15 +421,19 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(byte[] data, int off, int len)
         {
             if (data == null)
-            {
                 return 0;
-            }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(data.AsSpan(off, len));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -395,6 +444,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(int[] data)
@@ -402,6 +452,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -412,13 +467,20 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
+        [CLSCompliant(false)]
         public static int GetHashCode(ushort[] data)
         {
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -429,6 +491,7 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
         public static int GetHashCode(int[] data, int off, int len)
@@ -436,6 +499,11 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -446,13 +514,20 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
+        [CLSCompliant(false)]
         public static int GetHashCode(uint[] data)
         {
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -463,13 +538,20 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
+        [CLSCompliant(false)]
         public static int GetHashCode(uint[] data, int off, int len)
         {
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -480,13 +562,20 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
+        [CLSCompliant(false)]
         public static int GetHashCode(ulong[] data)
         {
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
+            return hc.ToHashCode();
+#else
             int i = data.Length;
             int hc = i + 1;
 
@@ -500,13 +589,20 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
         }
 
+        [CLSCompliant(false)]
         public static int GetHashCode(ulong[] data, int off, int len)
         {
             if (data == null)
                 return 0;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
+            return hc.ToHashCode();
+#else
             int i = len;
             int hc = i + 1;
 
@@ -520,6 +616,55 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return hc;
+#endif
+        }
+
+        public static int GetHashCode(object[] data)
+        {
+            if (data == null)
+                return 0;
+
+            int len = data.Length;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            for (int i = 0; i < len; ++i)
+            {
+                hc.Add(data[i]);
+            }
+            return hc.ToHashCode();
+#else
+            int hc = len + 1;
+            for (int i = 0; i < len; ++i)
+            {
+                hc *= 257;
+                hc ^= Objects.GetHashCode(data[i]);
+            }
+            return hc;
+#endif
+        }
+
+        public static int GetHashCode(object[] data, int off, int len)
+        {
+            if (data == null)
+                return 0;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HashCode hc = default;
+            for (int i = 0; i < len; ++i)
+            {
+                hc.Add(data[off + i]);
+            }
+            return hc.ToHashCode();
+#else
+            int hc = len + 1;
+            for (int i = 0; i < len; ++i)
+            {
+                hc *= 257;
+                hc ^= Objects.GetHashCode(data[off + i]);
+            }
+            return hc;
+#endif
         }
 
         public static bool[] Clone(bool[] data)
@@ -537,6 +682,7 @@ namespace Org.BouncyCastle.Utilities
             return data == null ? null : (short[])data.Clone();
         }
 
+        [CLSCompliant(false)]
         public static ushort[] Clone(ushort[] data)
         {
             return data == null ? null : (ushort[])data.Clone();
@@ -547,6 +693,7 @@ namespace Org.BouncyCastle.Utilities
             return data == null ? null : (int[])data.Clone();
         }
 
+        [CLSCompliant(false)]
         public static uint[] Clone(uint[] data)
         {
             return data == null ? null : (uint[])data.Clone();
@@ -557,6 +704,7 @@ namespace Org.BouncyCastle.Utilities
             return data == null ? null : (long[])data.Clone();
         }
 
+        [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data)
         {
             return data == null ? null : (ulong[])data.Clone();
@@ -572,6 +720,7 @@ namespace Org.BouncyCastle.Utilities
             return existing;
         }
 
+        [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data, ulong[] existing)
         {
             if (data == null)
@@ -621,6 +770,7 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        [CLSCompliant(false)]
         public static void Fill(ulong[] buf, ulong b)
         {
             int i = buf.Length;
@@ -674,6 +824,7 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        [CLSCompliant(false)]
         public static uint[] CopyOf(uint[] data, int newLength)
         {
             uint[] tmp = new uint[newLength];
@@ -795,6 +946,7 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        [CLSCompliant(false)]
         public static ushort[] Concatenate(ushort[] a, ushort[] b)
         {
             if (a == null)
@@ -850,6 +1002,7 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        [CLSCompliant(false)]
         public static uint[] Concatenate(uint[] a, uint[] b)
         {
             if (a == null)

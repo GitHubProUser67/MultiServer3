@@ -15,7 +15,7 @@ namespace BackendProject.HomeTools.BARFramework
                     result = new ZLibCompression();
             }
             else if (method == CompressionMethod.EdgeZLib)
-                result = new EdgeZLibCompression_ICSharp();
+                result = new EdgeZLibCompression();
             else if (method == CompressionMethod.Encrypted)
                 result = new NoCompression();
             return result;

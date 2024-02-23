@@ -62,7 +62,7 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// When true, server will encrypt all messages.
         /// </summary>
-        public bool EnableEncryption { get; private set; } = true;
+        public bool EnableEncryption { get; private set; } = false;
 
         /// <summary>
         /// When true, will enable medius file services and will allow messages like MediusCreateFile, MediusUploadFile, MediusDownloadFile, MediusFileListFiles

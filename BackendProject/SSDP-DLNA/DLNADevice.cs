@@ -155,7 +155,7 @@ namespace BackendProject.SSDP_DLNA
             try
             {
                 Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
-                SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("GET", SMP, 0, "", IP, Port)), SocketFlags.None);
+                SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("GET", SMP, 0, string.Empty, IP, Port)), SocketFlags.None);
                 HTML = HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
                 if (ReturnCode != 200) return false;
                 Services = DLNAService.ReadServices(HTML);
@@ -244,8 +244,7 @@ namespace BackendProject.SSDP_DLNA
             XML += "<u:Play xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>"+ Instance + "</InstanceID><Speed>1</Speed></u:Play>" + Environment.NewLine;
             XML += XMLFoot + Environment.NewLine;
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
-            string Request = HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Play", IP, Port) + XML;
-            SocWeb.Send(Encoding.UTF8.GetBytes(Request), SocketFlags.None);
+            SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Play", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
         }
 
@@ -281,8 +280,7 @@ namespace BackendProject.SSDP_DLNA
             XML += "<u:Pause xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>" + Instance + "</InstanceID></u:Pause>" + Environment.NewLine;
             XML += XMLFoot + Environment.NewLine;
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
-            string Request = HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Pause", IP, Port) + XML;
-            SocWeb.Send(Encoding.UTF8.GetBytes(Request), SocketFlags.None);
+            SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Pause", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
         }
 
@@ -389,8 +387,7 @@ namespace BackendProject.SSDP_DLNA
             XML += "</u:SetAVTransportURI>" + Environment.NewLine;
             XML += XMLFoot + Environment.NewLine;
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
-            string Request = HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", IP, Port) + XML;
-            SocWeb.Send(Encoding.UTF8.GetBytes(Request), SocketFlags.None);
+            SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
         }
 

@@ -194,23 +194,21 @@ namespace BackendProject.MiscUtils
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);
                             if (SegmentCompressedSize > 0 && SegmentCompressedSize <= 65536 && CompressedData.Length > 3 && CompressedData[0] == 0x5D && CompressedData[1] == 0x00 && CompressedData[2] == 0x00)
                             {
-                                using (MemoryStream compressedStream = new(CompressedData))
+                                using MemoryStream compressedStream = new(CompressedData);
+                                using (MemoryStream decompressedStream = new())
                                 {
-                                    using (MemoryStream decompressedStream = new())
-                                    {
-                                        SegmentDecompress(compressedStream, decompressedStream);
-                                        decompressedStream.Position = 0;
-                                        // Find the number of bytes in the stream
-                                        int contentLength = (int)decompressedStream.Length;
-                                        // Create a byte array
-                                        byte[] buffer = new byte[contentLength];
-                                        // Read the contents of the memory stream into the byte array
-                                        decompressedStream.Read(buffer, 0, contentLength);
-                                        arrayOfArrays[index] = buffer;
-                                        decompressedStream.Flush();
-                                    }
-                                    compressedStream.Flush();
+                                    SegmentDecompress(compressedStream, decompressedStream);
+                                    decompressedStream.Position = 0;
+                                    // Find the number of bytes in the stream
+                                    int contentLength = (int)decompressedStream.Length;
+                                    // Create a byte array
+                                    byte[] buffer = new byte[contentLength];
+                                    // Read the contents of the memory stream into the byte array
+                                    decompressedStream.Read(buffer, 0, contentLength);
+                                    arrayOfArrays[index] = buffer;
+                                    decompressedStream.Flush();
                                 }
+                                compressedStream.Flush();
                             }
                             else
                                 arrayOfArrays[index] = CompressedData; // Can happen, just means segment is not compressed.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
@@ -41,36 +41,42 @@ namespace Org.BouncyCastle.Utilities.IO
             binaryWriter.Write(littleEndian);
         }
 
+        [CLSCompliant(false)]
         public static void WriteUInt16BigEndian(BinaryWriter binaryWriter, ushort n)
         {
             ushort bigEndian = BitConverter.IsLittleEndian ? Shorts.ReverseBytes(n) : n;
             binaryWriter.Write(bigEndian);
         }
 
+        [CLSCompliant(false)]
         public static void WriteUInt16LittleEndian(BinaryWriter binaryWriter, ushort n)
         {
             ushort littleEndian = BitConverter.IsLittleEndian ? n : Shorts.ReverseBytes(n);
             binaryWriter.Write(littleEndian);
         }
 
+        [CLSCompliant(false)]
         public static void WriteUInt32BigEndian(BinaryWriter binaryWriter, uint n)
         {
             uint bigEndian = BitConverter.IsLittleEndian ? Integers.ReverseBytes(n) : n;
             binaryWriter.Write(bigEndian);
         }
 
+        [CLSCompliant(false)]
         public static void WriteUInt32LittleEndian(BinaryWriter binaryWriter, uint n)
         {
             uint littleEndian = BitConverter.IsLittleEndian ? n : Integers.ReverseBytes(n);
             binaryWriter.Write(littleEndian);
         }
 
+        [CLSCompliant(false)]
         public static void WriteUInt64BigEndian(BinaryWriter binaryWriter, ulong n)
         {
             ulong bigEndian = BitConverter.IsLittleEndian ? Longs.ReverseBytes(n) : n;
             binaryWriter.Write(bigEndian);
         }
 
+        [CLSCompliant(false)]
         public static void WriteUInt64LittleEndian(BinaryWriter binaryWriter, ulong n)
         {
             ulong littleEndian = BitConverter.IsLittleEndian ? n : Longs.ReverseBytes(n);

@@ -13,8 +13,8 @@ namespace HTTPServer
         #region Fields
 
         private readonly ConcurrentDictionary<int, TcpListener> _listeners = new();
-        private CancellationTokenSource _cts = null!;
-        private HttpProcessor Processor;
+        private readonly CancellationTokenSource _cts = null!;
+        private readonly HttpProcessor Processor;
 
         #endregion
 

@@ -35,10 +35,8 @@ namespace BackendProject.SSDP_DLNA
             try
             {
                 Thread.Sleep(1000);
-                if (UdpSocket != null)
-                    UdpSocket.Close();
-                if (THSend != null)
-                    THSend.Interrupt();
+                UdpSocket?.Close();
+                THSend?.Interrupt();
             }
             catch { ;}
             if (NewServer.Length > 0) Servers = NewServer.Trim(); // Bank in our new servers

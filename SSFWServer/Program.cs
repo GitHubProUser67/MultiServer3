@@ -34,11 +34,8 @@ public static class SSFWServerConfiguration
 
         try
         {
-            // Read the file
-            string json = File.ReadAllText(configPath);
-
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(json);
+            dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             SSFWMinibase = config.minibase;
             SSFWLegacyKey = config.legacyKey;

@@ -68,11 +68,10 @@ namespace SVO
 
         private bool RemoveAllPrefixes(HttpListener listener)
         {
-            // Get the prefixes that the Web server is listening to.
-            HttpListenerPrefixCollection prefixes = listener.Prefixes;
             try
             {
-                prefixes.Clear();
+                // Get the prefixes that the Web server is listening to.
+                listener.Prefixes.Clear();
             }
             // If the operation failed, return false.
             catch
@@ -83,7 +82,7 @@ namespace SVO
             return true;
         }
 
-        private void Listen()
+        private async void Listen()
         {
             threadActive = true;
 
@@ -108,9 +107,9 @@ namespace SVO
             {
                 try
                 {
-                    HttpListenerContext context = listener.GetContextAsync().Result;
+                    HttpListenerContext context = await listener.GetContextAsync();
                     if (!threadActive) break;
-                    Task.Run(() => ProcessContext(context));
+                    _ = Task.Run(() => ProcessContext(context));
                 }
                 catch (HttpListenerException e)
                 {

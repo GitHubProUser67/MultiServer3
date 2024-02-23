@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -40,13 +40,8 @@ namespace Org.BouncyCastle.Asn1
             return CheckedCast(Asn1Object.FromByteArray(bytes));
         }
 
-        internal Asn1Object GetContextInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            if (Asn1Tags.ContextSpecific != taggedObject.TagClass)
-                throw new InvalidOperationException("this method only valid for CONTEXT_SPECIFIC tags");
-
-            return CheckedCast(taggedObject.GetBaseUniversal(declaredExplicit, this));
-        }
+        internal Asn1Object GetContextInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            CheckedCast(Asn1Utilities.CheckContextTagClass(taggedObject).GetBaseUniversal(declaredExplicit, this));
 
         internal Asn1Tag Tag
         {

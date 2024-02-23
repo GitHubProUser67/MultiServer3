@@ -10,7 +10,7 @@ namespace BackendProject.MiscUtils
 
         private static GeoIPUtils? _instance;
 
-        private static string currentdir = Directory.GetCurrentDirectory();
+        private static readonly string currentdir = Directory.GetCurrentDirectory();
 
         public GeoIPUtils(DatabaseReader? reader)
         {
@@ -78,9 +78,7 @@ namespace BackendProject.MiscUtils
             {
                 try
                 {
-                    CountryResponse? countryresponse;
-
-                    if (Instance.Reader.TryCountry(IPAddr, out countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
+                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse? countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
                         return countryresponse.Country.Name + $"-{countryresponse.Country.IsInEuropeanUnion}";
                 }
                 catch (Exception)

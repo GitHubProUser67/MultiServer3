@@ -6,7 +6,7 @@ namespace CustomLogger
 {
     public class LoggerAccessor
     {
-        public static bool initiated = false;
+        private static bool initiated = false;
 
         public static void SetupLogger(string project)
         {
@@ -26,36 +26,33 @@ namespace CustomLogger
 
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 
-            using ILoggerFactory loggerFactory =
-                LoggerFactory.Create(builder =>
+            Logger = LoggerFactory.Create(builder =>
+            {
+                builder.AddSimpleConsole(options => { options.SingleLine = true; });
+
+                builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/{project}.log", new FileLoggerOptions()
                 {
-                    builder.AddSimpleConsole(options => { options.SingleLine = true; });
+                    Append = false,
+                    FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
+                    MaxRollingFiles = 100
+                }));
 
-                    builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/{project}.log", new FileLoggerOptions()
-                    {
-                        Append = false,
-                        FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
-                        MaxRollingFiles = 100
-                    }));
-
-                    _fileLogger.MinLevel = LogLevel.Information;
-                });
-
-            Logger = loggerFactory.CreateLogger(string.Empty);
-
+                _fileLogger.MinLevel = LogLevel.Information;
+            }).CreateLogger(string.Empty);
+#if DEBUG
             if (Environment.OSVersion.Platform == PlatformID.Win32NT 
                 || Environment.OSVersion.Platform == PlatformID.Win32S 
                 || Environment.OSVersion.Platform == PlatformID.Win32Windows)
                 Task.Run(RessourcesLogger.StartPerfWatcher);
-
+#endif
             initiated = true;
         }
 
-        public static void drawTextProgressBar(string? text, int progress, int total, bool warn = false)
+        public static void DrawTextProgressBar(string? text, int progress, int total, bool warn = false)
         {
             if (initiated)
             {
-                if (text == null)
+                if (string.IsNullOrEmpty(text))
                     text = string.Empty;
 
                 try

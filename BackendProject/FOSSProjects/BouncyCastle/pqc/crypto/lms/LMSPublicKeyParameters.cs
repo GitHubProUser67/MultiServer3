@@ -26,112 +26,62 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LmsPublicKeyParameters GetInstance(object src)
         {
             if (src is LmsPublicKeyParameters lmsPublicKeyParameters)
-            {
                 return lmsPublicKeyParameters;
-            }
-            else if (src is BinaryReader binaryReader)
-            {
-                int pubType = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
 
-                int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
-                LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
+            if (src is BinaryReader binaryReader)
+                return Parse(binaryReader);
 
-                byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+            if (src is Stream stream)
+                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-                byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
+            if (src is byte[] bytes)
+                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
 
-                return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
-            }
-            else if (src is byte[] bytes)
-             {
-                 BinaryReader input = null;
-                 try // 1.5 / 1.6 compatibility
-                 {
-                     input = new BinaryReader(new MemoryStream(bytes, false));
-                     return GetInstance(input);
-                 }
-                 finally
-                 {
-                     if (input != null)
-                     {
-                         input.Close();
-                     }
-                 }
-             }
-            else if (src is MemoryStream memoryStream)
-            {
-                return GetInstance(Streams.ReadAll(memoryStream));
-            }
-            throw new Exception ($"cannot parse {src}");
+            throw new ArgumentException($"cannot parse {src}");
         }
 
-        public override byte[] GetEncoded()
+        internal static LmsPublicKeyParameters Parse(BinaryReader binaryReader)
         {
-            return this.ToByteArray();
+            int pubType = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
+
+            int index = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
+
+            byte[] I = BinaryReaders.ReadBytesFully(binaryReader, 16);
+
+            byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, lmsParameter.M);
+
+            return new LmsPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
         }
 
-        public LMSigParameters GetSigParameters()
-        {
-            return parameterSet;
-        }
+        public override byte[] GetEncoded() => ToByteArray();
 
-        public LMOtsParameters GetOtsParameters()
-        {
-            return lmOtsType;
-        }
+        public LMSigParameters GetSigParameters() => parameterSet;
 
-        public LmsParameters GetLmsParameters()
-        {
-            return new LmsParameters(this.GetSigParameters(), this.GetOtsParameters());
-        }
+        public LMOtsParameters GetOtsParameters() => lmOtsType;
 
-        public byte[] GetT1()
-        {
-            return Arrays.Clone(T1);
-        }
+        public LmsParameters GetLmsParameters() => new LmsParameters(GetSigParameters(), GetOtsParameters());
 
-        internal bool MatchesT1(byte[] sig)
-        {
-            return Arrays.FixedTimeEquals(T1, sig);
-        }
+        public byte[] GetT1() => Arrays.Clone(T1);
 
-        public byte[] GetI()
-        {
-            return Arrays.Clone(I);
-        }
+        internal bool MatchesT1(byte[] sig) => Arrays.FixedTimeEquals(T1, sig);
 
-        byte[] RefI()
-        {
-            return I;
-        }
+        public byte[] GetI() => Arrays.Clone(I);
 
-        public override bool Equals(Object o)
+        internal byte[] RefI() => I;
+
+        // TODO[api] Fix parameter name
+        public override bool Equals(object o)
         {
             if (this == o)
-            {
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
-                return false;
-            }
 
-            LmsPublicKeyParameters publicKey = (LmsPublicKeyParameters)o;
-
-            if (!parameterSet.Equals(publicKey.parameterSet))
-            {
-                return false;
-            }
-            if (!lmOtsType.Equals(publicKey.lmOtsType))
-            {
-                return false;
-            }
-            if (!Arrays.AreEqual(I, publicKey.I))
-            {
-                return false;
-            }
-            return Arrays.AreEqual(T1, publicKey.T1);
+            return o is LmsPublicKeyParameters that
+                && this.parameterSet.Equals(that.parameterSet)
+                && this.lmOtsType.Equals(that.lmOtsType)
+                && Arrays.AreEqual(this.I, that.I)
+                && Arrays.AreEqual(this.T1, that.T1);
         }
 
         public override int GetHashCode()
@@ -178,9 +128,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .CreateOtsContext(S);
         }
 
-        public bool Verify(LmsContext context)
-        {
-            return Lms.VerifySignature(this, context);
-        }
+        public bool Verify(LmsContext context) => Lms.VerifySignature(this, context);
     }
 }

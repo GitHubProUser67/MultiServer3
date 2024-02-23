@@ -1,3 +1,5 @@
+using BackendProject.MiscUtils;
+
 namespace BackendProject.HomeTools.BARFramework
 {
     internal class BEBinaryReader : EndianAwareBinaryReader
@@ -9,7 +11,7 @@ namespace BackendProject.HomeTools.BARFramework
         public override byte[] ReadBytes(int length)
         {
             byte[] dataIn = m_br.ReadBytes(length);
-            return Utils.EndianSwap(dataIn);
+            return EndianUtils.EndianSwap(dataIn);
         }
 
         public override short ReadInt16()

@@ -27,12 +27,9 @@ namespace BackendProject.FileHelper
                 byte[] hashedSecretLast12Bytes = new byte[12];
 
                 Array.Copy(hashedSecret, hashedSecret.Length - 12, hashedSecretLast12Bytes, 0, 12);
-                string hashedSecretLast12HexString = BitConverter.ToString(hashedSecretLast12Bytes);
 
-                hashedSecretLast12HexString = hashedSecretLast12HexString.ToLower().Replace("-", "");
-
-                byte[] hashedSecretLast12HexBytes = Encoding.UTF8.GetBytes(hashedSecretLast12HexString);
-                byte[] secretFirst12Bytes = Encoding.UTF8.GetBytes(secretKey.Replace("FLWSECK-", "")[..12]);
+                byte[] hashedSecretLast12HexBytes = Encoding.UTF8.GetBytes(BitConverter.ToString(hashedSecretLast12Bytes).ToLower().Replace("-", string.Empty));
+                byte[] secretFirst12Bytes = Encoding.UTF8.GetBytes(secretKey.Replace("FLWSECK-", string.Empty)[..12]);
                 byte[] combineKey = new byte[24];
 
                 Array.Copy(secretFirst12Bytes, 0, combineKey, 0, secretFirst12Bytes.Length);
@@ -68,26 +65,15 @@ namespace BackendProject.FileHelper
 
                     Array.Copy(des.Key, 0, xteakey, 0, xteakey.Length);
 
-                    // With PSMultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
+                    // With MultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    byte[] cipheredkey = InitiateCustomXTEACipheredKey(xteakey, ReverseByteArray(xteakey));
+                    byte[] dst = new byte[encryptedData.Length - 6];
 
-                    if (cipheredkey != null)
-                    {
-                        byte[] dst = new byte[encryptedData.Length - 6];
+                    Array.Copy(encryptedData, 6, dst, 0, dst.Length);
 
-                        Array.Copy(encryptedData, 6, dst, 0, dst.Length);
+                    encryptedData = xtea.Decrypt(dst, InitiateCustomXTEACipheredKey(xteakey, VariousUtils.ReverseByteArray(xteakey)));
 
-                        encryptedData = xtea.Decrypt(dst, cipheredkey);
-
-                        if (encryptedData == null)
-                        {
-                            des.Dispose();
-                            xtea = null;
-                            return Array.Empty<byte>();
-                        }
-                    }
-                    else
+                    if (encryptedData == Array.Empty<byte>()) // Decryption failed.
                     {
                         des.Dispose();
                         xtea = null;
@@ -127,18 +113,6 @@ namespace BackendProject.FileHelper
             cipher = null;
 
             return ciphertextBytes;
-        }
-
-        private static byte[] ReverseByteArray(byte[] input)
-        {
-            byte[] reversedArray = new byte[input.Length];
-
-            for (int i = 0; i < input.Length; i++)
-            {
-                reversedArray[i] = input[input.Length - 1 - i];
-            }
-
-            return reversedArray;
         }
     }
 }

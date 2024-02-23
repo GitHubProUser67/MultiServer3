@@ -263,15 +263,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 				throw new ArgumentException("Number of rounds must be even");
 
 #if NETCOREAPP3_0_OR_GREATER
-            if (Sse41.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<short>>() == 16)
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse41.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
 			{
 				Vector128<uint> b0, b1, b2, b3;
 				{
                     var I = MemoryMarshal.AsBytes(input[..16]);
-					var t0 = MemoryMarshal.Read<Vector128<short>>(I[0x00..0x10]);
-                    var t1 = MemoryMarshal.Read<Vector128<short>>(I[0x10..0x20]);
-                    var t2 = MemoryMarshal.Read<Vector128<short>>(I[0x20..0x30]);
-                    var t3 = MemoryMarshal.Read<Vector128<short>>(I[0x30..0x40]);
+					var t0 = MemoryMarshal.Read<Vector128<ushort>>(I[0x00..0x10]);
+                    var t1 = MemoryMarshal.Read<Vector128<ushort>>(I[0x10..0x20]);
+                    var t2 = MemoryMarshal.Read<Vector128<ushort>>(I[0x20..0x30]);
+                    var t3 = MemoryMarshal.Read<Vector128<ushort>>(I[0x30..0x40]);
 
                     var u0 = Sse41.Blend(t0, t2, 0xF0);
 					var u1 = Sse41.Blend(t1, t3, 0xC3);

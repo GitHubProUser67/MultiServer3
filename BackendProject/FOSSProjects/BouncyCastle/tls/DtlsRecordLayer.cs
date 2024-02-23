@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
@@ -654,18 +654,18 @@ namespace Org.BouncyCastle.Tls
         {
             try
             {
-                return m_transport.Receive(buf, off, len, waitMillis);
+                // NOTE: the buffer is sized to support m_transport.GetReceiveLimit().
+                int received = m_transport.Receive(buf, off, len, waitMillis);
+
+                // Check the transport returned a sensible value, otherwise discard the datagram.
+                if (received <= len)
+                    return received;
             }
             catch (TlsTimeoutException)
             {
-                return -1;
             }
-            catch (SocketException e)
+            catch (SocketException e) when (TlsUtilities.IsTimeout(e))
             {
-                if (TlsUtilities.IsTimeout(e))
-                    return -1;
-
-                throw;
             }
             // TODO[tls-port] Can we support interrupted IO on .NET?
             //catch (InterruptedIOException e)
@@ -673,6 +673,8 @@ namespace Org.BouncyCastle.Tls
             //    e.bytesTransferred = 0;
             //    throw;
             //}
+
+            return -1;
         }
 
         // TODO Include 'currentTimeMillis' as an argument, use with Timeout, resetHeartbeat
@@ -715,10 +717,12 @@ namespace Org.BouncyCastle.Tls
             {
                 recordEpoch = m_readEpoch;
             }
-            else if (recordType == ContentType.handshake && null != m_retransmitEpoch
-                && epoch == m_retransmitEpoch.Epoch)
+            else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
             {
-                recordEpoch = m_retransmitEpoch;
+                if (recordType == ContentType.handshake)
+                {
+                    recordEpoch = m_retransmitEpoch;
+                }
             }
 
             if (null == recordEpoch)
@@ -994,7 +998,6 @@ namespace Org.BouncyCastle.Tls
             int recordLength = RecordHeaderLength;
             if (m_recordQueue.Available >= recordLength)
             {
-                short recordType = m_recordQueue.ReadUint8(0);
                 int epoch = m_recordQueue.ReadUint16(3);
 
                 DtlsEpoch recordEpoch = null;
@@ -1002,8 +1005,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     recordEpoch = m_readEpoch;
                 }
-                else if (recordType == ContentType.handshake && null != m_retransmitEpoch
-                    && epoch == m_retransmitEpoch.Epoch)
+                else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
                 {
                     recordEpoch = m_retransmitEpoch;
                 }
@@ -1038,7 +1040,6 @@ namespace Org.BouncyCastle.Tls
             {
                 this.m_inConnection = true;
 
-                short recordType = TlsUtilities.ReadUint8(buf, off);
                 int epoch = TlsUtilities.ReadUint16(buf, off + 3);
 
                 DtlsEpoch recordEpoch = null;
@@ -1046,8 +1047,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     recordEpoch = m_readEpoch;
                 }
-                else if (recordType == ContentType.handshake && null != m_retransmitEpoch
-                    && epoch == m_retransmitEpoch.Epoch)
+                else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
                 {
                     recordEpoch = m_retransmitEpoch;
                 }
