@@ -45,7 +45,7 @@ namespace BackendProject.WebAPIs.OHS
 
                 try
                 {
-                    string profiledatastring = directorypath + $"/User_Profiles/{user}_Currency.json";
+                    string profiledatastring = directorypath + $"/User_Profiles/{user}_Stats.json";
 
                     if (File.Exists(profiledatastring))
                     {
@@ -154,7 +154,7 @@ namespace BackendProject.WebAPIs.OHS
                 int value = jObject.Value<int>("value");
                 try
                 {
-                    string profileCurDataString = directorypath + $"User_Profiles/{user}_Currency.json";
+                    string profileCurDataString = directorypath + $"User_Profiles/{user}_Stats.json";
 
                     if (File.Exists(profileCurDataString))
                     {
@@ -274,9 +274,9 @@ namespace BackendProject.WebAPIs.OHS
                     // Getting the value of the "user" field
                     dataforohs = (string?)jsonObject["user"];
 
-                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
+                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
-                        string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Currency.json");
+                        string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Stats.json");
 
                         if (!string.IsNullOrEmpty(tempreader))
                         {
@@ -287,6 +287,84 @@ namespace BackendProject.WebAPIs.OHS
                             if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 // Convert the JToken to a Lua table-like string
                                 output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[UserCounter] - Json Format Error - {ex}");
+            }
+
+            if (!string.IsNullOrEmpty(batchparams))
+            {
+                if (string.IsNullOrEmpty(output))
+                    return "{ }";
+                else
+                    return output;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(output))
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                else
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
+            }
+
+            return dataforohs;
+        }
+
+        public static string? Get_Many(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        {
+            string? dataforohs = null;
+            string? output = null;
+
+            if (string.IsNullOrEmpty(batchparams))
+            {
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                if (boundary != null)
+                {
+                    using (MemoryStream ms = new(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
+                        ms.Flush();
+                    }
+                }
+            }
+            else
+                dataforohs = batchparams;
+
+            try
+            {
+                if (!string.IsNullOrEmpty(dataforohs))
+                {
+                    // Parsing the JSON string
+                    JObject? jsonObject = JObject.Parse(dataforohs);
+
+                    // Getting the value of the "user" field
+                    dataforohs = (string?)jsonObject["user"];
+                    string[] keys = jsonObject["keys"].ToObject<string[]>();
+
+                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
+                    {
+                        string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Stats.json");
+
+                        if (!string.IsNullOrEmpty(tempreader))
+                        {
+                            // Parse the JSON string to a JObject
+                            jsonObject = JObject.Parse(tempreader);
+
+                            foreach(string key in keys)
+                            {
+                                // Check if the "key" property exists
+                                if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
+                                    // Convert the JToken to a Lua table-like string
+                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                            }
+
                         }
                     }
                 }
@@ -347,10 +425,11 @@ namespace BackendProject.WebAPIs.OHS
                     // Getting the value of the "user" field
                     dataforohs = (string?)jsonObject["user"];
 
-                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Currency.json"))
+                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
-                        string currencydata = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Currency.json");
+                        string currencydata = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Stats.json");
 
+                        
                         if (!string.IsNullOrEmpty(currencydata))
                         {
                             // Parse the JSON string to a JObject

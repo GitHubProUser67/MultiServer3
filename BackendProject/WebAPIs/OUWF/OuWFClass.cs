@@ -36,6 +36,10 @@ namespace BackendProject.WebAPIs.OUWF
 
                         case "/list/":
                             return OuWFList.List(PostData, ContentType);
+                        case "/scrape/":
+                            return OuWFScrape.Scrape(PostData, ContentType);
+                        case "/set/":
+                            return OuWFSet.Set(PostData, ContentType);
                         case "/execute/":
                             return OuWFExecute.Execute(PostData, ContentType);
                         default:

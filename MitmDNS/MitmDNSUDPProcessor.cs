@@ -37,7 +37,7 @@ namespace MitmDNS
 
             udp.OnStop(ex =>
             {
-                LoggerAccessor.LogWarn($"[DNS_UDP] - DotNetty was stopped!");
+                LoggerAccessor.LogWarn($"[DNS_UDP] - DotNetty was stopped with exception: {ex}");
             });
 
             _ = udp.StartAsync();

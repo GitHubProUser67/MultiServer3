@@ -29,7 +29,6 @@ namespace BackendProject.WebAPIs.OUWF
                 LoggerAccessor.LogInfo($"[OuWF] - Requested List with instanceId {instanceId} | version {vers} | path {path}");
 
                 string xml = GenerateXml(path);
-                LoggerAccessor.LogInfo($"[OuWF] - List Response: {xml}");
                 ms.Flush();
 
                 return xml;
@@ -53,7 +52,31 @@ namespace BackendProject.WebAPIs.OUWF
 
                 string HDKBuildRoot = "C:/HDK186/Build/";
 
-                dirElement.InnerText = GetRelativePath(HDKBuildRoot, dir);
+                string editDir = GetRelativePath(HDKBuildRoot, dir);
+
+                string backSlashEdit;
+
+                /*
+                if(editDir.Contains("\\"))
+                {
+                    backSlashEdit = editDir.Replace("\\", "/");
+
+                    string pathTrim = GetRelativePath(directoryPath, backSlashEdit);
+                    dirElement.InnerText = pathTrim;
+                } else {
+                    string pathEditTrim = editDir.Replace(directoryPath, "");
+                    dirElement.InnerText = pathEditTrim;
+                }
+                */
+
+
+
+                //string pathEditTrim = editDir.Replace(directoryPath, "");
+
+                string partialPath = SplitPath(dir, directoryPath);
+
+                dirElement.InnerText = partialPath;
+
                 dirsElement.AppendChild(dirElement);
             }
 
@@ -65,7 +88,10 @@ namespace BackendProject.WebAPIs.OUWF
                     FileInfo fileInfo = new FileInfo(file);
 
                     XmlElement fileElement = xmlDoc.CreateElement("file");
-                    fileElement.SetAttribute("value", fileInfo.Name);
+
+                    string filePathTrimmed = fileInfo.Name.Replace(directoryPath, "");
+
+                    fileElement.SetAttribute("value", filePathTrimmed);
 
                     fileElement.SetAttribute("size", fileInfo.Length.ToString());
                     fileElement.SetAttribute("read_only", fileInfo.IsReadOnly.ToString());
@@ -80,6 +106,7 @@ namespace BackendProject.WebAPIs.OUWF
             xmlDoc.AppendChild(root);
 
             //xmlDoc.Save(xml);
+            LoggerAccessor.LogInfo($"[OuWF] - List Response: {xmlDoc.OuterXml}");
             return xmlDoc.OuterXml;
         }
 
@@ -94,6 +121,30 @@ namespace BackendProject.WebAPIs.OUWF
             Uri fullUri = new Uri(fullPath);
 
             return Uri.UnescapeDataString(rootUri.MakeRelativeUri(fullUri).ToString().Replace('/', Path.DirectorySeparatorChar));
+        }
+
+        static string SplitPath(string directory, string baseDirectory)
+        {
+            // Split the directory path into components
+            string[] directoryComponents = directory.Split(Path.DirectorySeparatorChar);
+            string[] baseDirectoryComponents = baseDirectory.Split(Path.DirectorySeparatorChar);
+
+            // Find the common base directory components
+            int commonLength = Math.Min(directoryComponents.Length, baseDirectoryComponents.Length);
+            for (int i = 0; i < commonLength; i++)
+            {
+                if (directoryComponents[i] != baseDirectoryComponents[i])
+                {
+                    commonLength = i;
+                    break;
+                }
+            }
+
+            // Concatenate the remaining directory components
+            string[] partialPathComponents = new string[directoryComponents.Length - commonLength];
+            Array.Copy(directoryComponents, commonLength, partialPathComponents, 0, partialPathComponents.Length);
+
+            return string.Join(Path.DirectorySeparatorChar.ToString(), partialPathComponents);
         }
     }
 }
