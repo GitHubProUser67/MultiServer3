@@ -16,7 +16,7 @@ namespace Horizon.MUM
     public class Game
     {
         [JsonIgnore]
-        public static int IdCounter = 1;
+        private static int IdCounter = 1;
 
         public class GameClient
         {
@@ -26,8 +26,7 @@ namespace Horizon.MUM
             public bool InGame;
         }
 
-        public int Id = 0;
-        public int DMEWorldId = -1;
+        public int MediusWorldId = 0;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
         public List<GameClient> LocalClients = new();
@@ -105,7 +104,7 @@ namespace Horizon.MUM
             else if (createGame is MediusServerCreateGameOnSelfRequest0 r6)
                 FromCreateGameOnSelfRequest0(r6);
 
-            Id = IdCounter++;
+            MediusWorldId = IdCounter++;
 
             utcTimeCreated = Utils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
@@ -115,7 +114,7 @@ namespace Horizon.MUM
             Host = client;
             SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: Created by {client} | Host: {Host}");
         }
 
         public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject? dmeServer, int WorldId)
@@ -135,7 +134,7 @@ namespace Horizon.MUM
             else if (createGame is MediusServerCreateGameOnSelfRequest0 r6)
                 FromCreateGameOnSelfRequest0(r6);
 
-            Id = IdCounter++;
+            MediusWorldId = IdCounter++;
 
             utcTimeCreated = Utils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
@@ -146,7 +145,7 @@ namespace Horizon.MUM
             WorldID = WorldId;
             SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: Created by {client} | Host: {Host}");
         }
 
         public GameDTO ToGameDTO()
@@ -158,7 +157,7 @@ namespace Horizon.MUM
                 GameEndDt = utcTimeEnded,
                 GameStartDt = utcTimeStarted,
                 GameHostType = GameHostType.ToString(),
-                GameId = Id,
+                GameId = MediusWorldId,
                 GameLevel = GameLevel,
                 GameName = GameName,
                 GameStats = GameStats,
@@ -356,9 +355,9 @@ namespace Horizon.MUM
             {
                 var client = LocalClients[i];
 
-                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.Id != Id)
+                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
                 {
-                    LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client?.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client?.Client?.IsConnected}\nClient CurrentGame ID: {client?.Client?.CurrentGame?.Id}\nGameId: {Id}\nMatch?: {client?.Client?.CurrentGame?.Id != Id}");
+                    LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client?.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client?.Client?.IsConnected}\nClient CurrentGame ID: {client?.Client?.CurrentGame?.MediusWorldId}\nGameId: {MediusWorldId}\nMatch?: {client?.Client?.CurrentGame?.MediusWorldId != MediusWorldId}");
                     LocalClients.RemoveAt(i);
                     --i;
                 }
@@ -460,7 +459,7 @@ namespace Horizon.MUM
             if (LocalClients.Any(x => x.Client == client))
                 return;
 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} added.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added.");
 
             LocalClients.Add(new GameClient()
             {
@@ -498,7 +497,7 @@ namespace Horizon.MUM
 
         public virtual async Task RemovePlayer(ClientObject client, int appid)
         {
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} removed.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} removed.");
 
             if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(client.WorldId.ToString()) && !string.IsNullOrEmpty(client.AccountName))
                 _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {client.AccountName} Left: {client.CurrentGame.GameName} in world: {client.WorldId}");
@@ -536,16 +535,9 @@ namespace Horizon.MUM
         {
             try
             {
-                ///Send database EndGameReport info
+                // Send database EndGameReport info
                 await EndGame(appid);
-                try
-                {
-                    CrudRoomManager.RemoveWorld(appid.ToString(), report.MediusWorldID.ToString());
-                }
-                catch (Exception)
-                {
-                    // Not Important
-                }
+
                 LoggerAccessor.LogInfo($"Successful local delete of game world [{report.MediusWorldID}]");
             }
             catch (Exception e)
@@ -557,13 +549,12 @@ namespace Horizon.MUM
         public virtual async Task OnWorldReport(MediusWorldReport report, int appId)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != Id)
+            if (report.MediusWorldID != MediusWorldId)
                 return;
 
             if (appId == 24180)
                 report.MaxPlayers = 10;
 
-            //Id = report.MediusWorldID;
             GameName = report.GameName;
             GameStats = report.GameStats;
             MinPlayers = report.MinPlayers;
@@ -598,7 +589,7 @@ namespace Horizon.MUM
         public virtual async Task OnWorldReport0(MediusWorldReport0 report)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != Id)
+            if (report.MediusWorldID != MediusWorldId)
                 return;
 
             GameName = report.GameName;
@@ -632,10 +623,9 @@ namespace Horizon.MUM
         public virtual async Task OnWorldReportOnMe(MediusServerWorldReportOnMe report)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != Id)
+            if (report.MediusWorldID != MediusWorldId)
                 return;
 
-            Id = report.MediusWorldID;
             ApplicationId = report.ApplicationID;
             GameName = report.GameName;
             GameStats = report.GameStats;
@@ -679,7 +669,7 @@ namespace Horizon.MUM
             // destroy flag
             destroyed = true;
 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: EndGame() called.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: EndGame() called.");
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });
@@ -702,29 +692,15 @@ namespace Horizon.MUM
             ChatChannel?.UnregisterGame(this);
 
             // Send end game
-            if (DMEWorldId == -1)
+            DMEServer?.Queue(new MediusServerEndGameRequest()
             {
-                DMEServer?.Queue(new MediusServerEndGameRequest()
-                {
-                    WorldID = WorldID,
-                    BrutalFlag = false
-                });
-            }
-            else if (DMEWorldId > 0)
-            {
-                DMEServer?.Queue(new MediusServerEndGameRequest()
-                {
-                    WorldID = DMEWorldId,
-                    BrutalFlag = false
-                });
-            }
+                WorldID = WorldID,
+                BrutalFlag = false
+            });
 
             try
             {
-                if (DMEWorldId != -1) // Not P2P
-                    CrudRoomManager.RemoveGame(appid.ToString(), DMEWorldId.ToString(), GameName);
-                else
-                    CrudRoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
+                CrudRoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
             }
             catch (Exception)
             {
@@ -734,7 +710,7 @@ namespace Horizon.MUM
             // Delete db entry if game hasn't started
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
-                _ = HorizonServerConfiguration.Database.DeleteGame(Id);
+                _ = HorizonServerConfiguration.Database.DeleteGame(MediusWorldId);
             else
                 _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
         }

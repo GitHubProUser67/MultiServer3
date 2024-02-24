@@ -28,7 +28,7 @@ namespace Horizon.MEDIUS.Medius.Models
                 case MediusGameListFilterField.MEDIUS_FILTER_GENERIC_FIELD_6: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.GenericField6 & Mask));
                 case MediusGameListFilterField.MEDIUS_FILTER_GENERIC_FIELD_7: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.GenericField7 & Mask));
                 case MediusGameListFilterField.MEDIUS_FILTER_GENERIC_FIELD_8: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.GenericField8 & Mask));
-                case MediusGameListFilterField.MEDIUS_FILTER_LOBBY_WORLDID: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.Id & Mask));
+                case MediusGameListFilterField.MEDIUS_FILTER_LOBBY_WORLDID: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.MediusWorldId & Mask));
                 case MediusGameListFilterField.MEDIUS_FILTER_MAX_PLAYERS: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.MaxPlayers & Mask));
                 case MediusGameListFilterField.MEDIUS_FILTER_MIN_PLAYERS: return ComparisonOperator.Compare(BaselineValue, (ulong)(game.MinPlayers & Mask));
                 case MediusGameListFilterField.MEDIUS_FILTER_PLAYER_COUNT: return ComparisonOperator.Compare((ulong)(game.PlayerCount & Mask), BaselineValue);
