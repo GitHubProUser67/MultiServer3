@@ -15,7 +15,7 @@ namespace Horizon.MUM
     public class Party
     {
         [JsonIgnore]
-        public static int IdCounter = 1;
+        private static int IdCounter = 1;
 
         public class PartyClient
         {
@@ -25,9 +25,9 @@ namespace Horizon.MUM
             public bool InGame;
         }
 
-        public int Id = 0;
-        public int DMEWorldId = -1;
+        public int MediusWorldId = 0;
         public int ApplicationId = 0;
+        public int WorldID;
         public List<PartyClient> LocalClients = new();
         public string? PartyName;
         public string? PartyPassword;
@@ -72,7 +72,7 @@ namespace Horizon.MUM
             if (partyCreate is MediusPartyCreateRequest r)
                 FromPartyCreateRequest(r);
 
-            Id = IdCounter++;
+            MediusWorldId = IdCounter++;
 
             utcTimeCreated = Utils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
@@ -81,7 +81,7 @@ namespace Horizon.MUM
             ChatChannel?.RegisterParty(this);
             Host = client;
 
-            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: Created by {client}");
+            LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: Created by {client}");
         }
 
         public PartyDTO ToPartyDTO()
@@ -93,7 +93,7 @@ namespace Horizon.MUM
                 PartyEndDt = utcTimeEnded,
                 PartyStartDt = utcTimeStarted,
                 GameHostType = PartyHostType.ToString(),
-                PartyId = Id,
+                PartyId = MediusWorldId,
                 PartyName = PartyName,
                 PartyPassword = PartyPassword,
                 GenericField1 = GenericField1,
@@ -146,7 +146,7 @@ namespace Horizon.MUM
             {
                 var client = LocalClients[i];
 
-                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.Id != Id)
+                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
                 {
                     LocalClients.RemoveAt(i);
                     --i;
@@ -197,7 +197,7 @@ namespace Horizon.MUM
             if (LocalClients.Any(x => x.Client == client))
                 return;
 
-            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: {client} added.");
+            LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {client} added.");
 
             LocalClients.Add(new PartyClient()
             {
@@ -211,7 +211,7 @@ namespace Horizon.MUM
 
         protected virtual async Task OnPlayerLeft(PartyClient player)
         {
-            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: {player.Client} left.");
+            LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {player.Client} left.");
 
             player.InGame = false;
 
@@ -228,7 +228,7 @@ namespace Horizon.MUM
 
         public virtual void RemovePlayer(ClientObject client)
         {
-            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: {client} removed.");
+            LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {client} removed.");
 
             // Remove host
             if (Host == client)
@@ -241,7 +241,7 @@ namespace Horizon.MUM
         public virtual void OnPartyPlayerReport(MediusPartyPlayerReport report)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != Id)
+            if (report.MediusWorldID != MediusWorldId)
                 return;
         }
 
@@ -255,7 +255,7 @@ namespace Horizon.MUM
             // destroy flag
             destroyed = true;
 
-            LoggerAccessor.LogInfo($"Party {Id}: {PartyName}: EndParty() called.");
+            LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: EndParty() called.");
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnPartyArgs() { Party = this });
@@ -278,7 +278,7 @@ namespace Horizon.MUM
             // Delete db entry if game hasn't started
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
-                _ = HorizonServerConfiguration.Database.DeleteParty(Id);
+                _ = HorizonServerConfiguration.Database.DeleteParty(MediusWorldId);
             else
                 _ = HorizonServerConfiguration.Database.UpdateParty(ToPartyDTO());
         }

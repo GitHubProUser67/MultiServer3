@@ -272,7 +272,7 @@ namespace Horizon.MEDIUS.Medius
 
                             if (partyType == 1 && party != null)
                             {
-                                party.DMEWorldId = createGameWithAttrResponse.WorldID;
+                                party.WorldID = createGameWithAttrResponse.WorldID;
                                 await party.PartyCreated();
                                 rClient?.Queue(new MediusPartyCreateResponse()
                                 {
@@ -297,14 +297,14 @@ namespace Horizon.MEDIUS.Medius
                                 }
                                 else if (game != null)
                                 {
-                                    game.DMEWorldId = createGameWithAttrResponse.WorldID;
+                                    game.WorldID = createGameWithAttrResponse.WorldID;
                                     await game.GameCreated();
 
                                     rClient?.Queue(new MediusMatchCreateGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
                                         StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        MediusWorldID = game.Id,
+                                        MediusWorldID = game.MediusWorldId,
                                         SystemSpecificStatusCode = 0,
                                         RequestData = rClient.requestData,
                                         ApplicationDataSize = rClient.appDataSize,
@@ -330,13 +330,13 @@ namespace Horizon.MEDIUS.Medius
                                 }
                                 else if (game != null)
                                 {
-                                    game.DMEWorldId = createGameWithAttrResponse.WorldID;
+                                    game.WorldID = createGameWithAttrResponse.WorldID;
                                     await game.GameCreated();
                                     rClient?.Queue(new MediusCreateGameResponse()
                                     {
                                         MessageID = new MessageId(msgId),
                                         StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        MediusWorldID = game.Id
+                                        MediusWorldID = game.MediusWorldId
                                     });
 
                                     // Send to plugins
@@ -430,7 +430,7 @@ namespace Horizon.MEDIUS.Medius
                                         },
                                         Type = NetConnectionType.NetConnectionTypeClientServerTCPAuxUDP
                                     },
-                                    partyIndex = party.Id,
+                                    partyIndex = party.MediusWorldId,
                                     maxPlayers = party.MaxPlayers
                                 });
                             }
@@ -446,14 +446,10 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 if (gameOrPartyId != 0 && game != null)
                                 {
-                                    bool P2PLog = false;
-
                                     #region P2P
                                     if (game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer &&
                                         game.netAddressList?.AddressList[0].AddressType == NetAddressType.NetAddressTypeSignalAddress && rClient != null)
                                     {
-                                        P2PLog = true;
-
                                         // Join game P2P
                                         await rClient.JoinGameP2P(game);
 
@@ -485,8 +481,6 @@ namespace Horizon.MEDIUS.Medius
                                         game.netAddressList?.AddressList[1].AddressType == NetAddressType.NetAddressTypeInternal && rClient != null
                                         )
                                     {
-                                        P2PLog = true;
-
                                         // Join game P2P
                                         await rClient.JoinGameP2P(game);
 
@@ -519,8 +513,6 @@ namespace Horizon.MEDIUS.Medius
                                         game.netAddressList?.AddressList[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport && rClient != null
                                         )
                                     {
-                                        P2PLog = true;
-
                                         // Join game P2P
                                         await rClient.JoinGameP2P(game);
 
@@ -575,7 +567,7 @@ namespace Horizon.MEDIUS.Medius
                                             {
                                                 AccessKey = joinGameResponse.AccessKey,
                                                 SessionKey = rClient.SessionKey,
-                                                WorldID = game.DMEWorldId,
+                                                WorldID = game.WorldID,
                                                 ServerKey = joinGameResponse.pubKey,
                                                 AddressList = new NetAddressList()
                                                 {
@@ -603,7 +595,7 @@ namespace Horizon.MEDIUS.Medius
                                             {
                                                 AccessKey = joinGameResponse.AccessKey,
                                                 SessionKey = rClient.SessionKey,
-                                                WorldID = game.DMEWorldId,
+                                                WorldID = game.WorldID,
                                                 ServerKey = joinGameResponse.pubKey,
                                                 AddressList = new NetAddressList()
                                                 {
@@ -621,7 +613,7 @@ namespace Horizon.MEDIUS.Medius
                                     /// For Legacy Medius v1.50 clients that DO NOT 
                                     /// send a ServerConnectNotificationConnect when creating a game
                                     if (data.ClientObject.MediusVersion < 109 && data.ClientObject.ApplicationId != 10394)
-                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey, P2PLog ? game.WorldID.ToString() : game.DMEWorldId.ToString());
+                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey, game.WorldID.ToString());
                                 }
 
                                 /*
@@ -922,15 +914,15 @@ namespace Horizon.MEDIUS.Medius
                     {
                         LoggerAccessor.LogInfo("MediusServerConnectNotification Received");
                         //LoggerAccessor.LogWarn($"sessionkey {(data.ClientObject as DMEObject).SessionKey} worldid {(int)connectNotification.MediusWorldUID}");
-                        if (data.ClientObject != null && MediusClass.Manager.GetGameByDmeWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
+                        if (data.ClientObject != null && MediusClass.Manager.GetGameByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
                         {
-                            Game? conn = MediusClass.Manager.GetGameByDmeWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
+                            Game? conn = MediusClass.Manager.GetGameByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
-                                await conn.OnMediusServerConnectNotification(connectNotification, conn.DMEWorldId.ToString());
+                                await conn.OnMediusServerConnectNotification(connectNotification, conn.WorldID.ToString());
                         }
                         else if (data.ClientObject != null)
                         {
-                            Party? conn = MediusClass.Manager.GetPartyByDmeWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
+                            Party? conn = MediusClass.Manager.GetPartyByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
                                 await conn.OnMediusServerConnectNotification(connectNotification);
                         }

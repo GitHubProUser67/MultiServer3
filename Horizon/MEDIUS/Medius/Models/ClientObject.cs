@@ -484,11 +484,11 @@ namespace Horizon.MEDIUS.Medius.Models
                 AccountId = AccountId,
                 LoggedIn = IsLoggedIn,
                 ChannelId = CurrentChannel?.Id,
-                GameId = CurrentGame?.Id,
+                GameId = CurrentGame?.MediusWorldId,
                 GameName = CurrentGame?.GameName,
-                PartyId = CurrentParty?.Id,
+                PartyId = CurrentParty?.MediusWorldId,
                 PartyName = CurrentParty?.PartyName,
-                WorldId = CurrentGame?.Id ?? CurrentChannel?.Id
+                WorldId = CurrentGame?.WorldID ?? CurrentParty?.WorldID
             });
         }
 
