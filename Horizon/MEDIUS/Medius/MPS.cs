@@ -418,7 +418,7 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         AccessKey = rClient.Token,
                                         SessionKey = rClient.SessionKey,
-                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(rClient.ApplicationId).Id,
+                                        WorldID = party.WorldID,
                                         ServerKey = joinGameResponse.pubKey,
                                         AddressList = new NetAddressList()
                                         {
@@ -615,128 +615,10 @@ namespace Horizon.MEDIUS.Medius
                                     if (data.ClientObject.MediusVersion < 109 && data.ClientObject.ApplicationId != 10394)
                                         await game.OnMediusJoinGameResponse(rClient?.SessionKey, game.WorldID.ToString());
                                 }
-
-                                /*
-
-                                if (game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer &&
-                                    game.netAddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
-                                {
-
-                                    // Join game P2P
-                                    await rClient?.JoinGameP2P(game);
-
-                                    // 
-                                    rClient?.Queue(new MediusJoinGameResponse()
-                                    {
-                                        MessageID = new MessageId(msgId),
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        GameHostType = game.GameHostType,
-                                        ConnectInfo = new NetConnectionInfo()
-                                        {
-                                            AccessKey = joinGameResponse.AccessKey,
-                                            SessionKey = rClient.SessionKey,
-                                            WorldID = game.WorldID,
-                                            ServerKey = joinGameResponse.pubKey,
-                                            AddressList = new NetAddressList()
-                                            {
-                                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
-                                                    new NetAddress() { Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
-                                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone},
-                                                }
-                                            },
-                                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
-                                        }
-                                    });
-                                }
-                                else if(game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer &&
-                                    game.netAddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeExternal &&
-                                    game.netAddressList.AddressList[1].AddressType == NetAddressType.NetAddressTypeInternal
-                                    )
-                                {
-                                    // Join game P2P
-                                    await rClient?.JoinGameP2P(game);
-
-                                    // 
-                                    rClient?.Queue(new MediusJoinGameResponse()
-                                    {
-                                        MessageID = new MessageId(msgId),
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        GameHostType = game.GameHostType,
-                                        ConnectInfo = new NetConnectionInfo()
-                                        {
-                                            AccessKey = joinGameResponse.AccessKey,
-                                            SessionKey = rClient.SessionKey,
-                                            WorldID = game.WorldID,
-                                            ServerKey = joinGameResponse.pubKey,
-                                            AddressList = new NetAddressList()
-                                            {
-                                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
-                                                    new NetAddress() { Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                    new NetAddress() { Address = game.netAddressList.AddressList[1].Address, Port = game.netAddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeInternal},
-                                                }
-                                            },
-                                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
-                                        }
-                                    });
-                                } 
-                                */
-
-                                /*
-                                if(rClient.WorldId == null)
-                                {
-                                    // 
-                                    rClient?.Queue(new MediusJoinGameResponse()
-                                    {
-                                        MessageID = new MessageId(msgId),
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        GameHostType = game.GameHostType,
-                                        ConnectInfo = new NetConnectionInfo()
-                                        {
-                                            AccessKey = joinGameResponse.AccessKey,
-                                            SessionKey = rClient.SessionKey,
-                                            WorldID = game.DMEWorldId,
-                                            ServerKey = joinGameResponse.pubKey,
-                                            AddressList = new NetAddressList()
-                                            {
-                                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
-                                                    new NetAddress() { Address = game.netAddressList.AddressList[1].Address, Port = game.netAddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone},
-                                                }
-                                            },
-                                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
-                                        }
-                                    });
-                                } else {
-                                    // 
-                                    rClient?.Queue(new MediusJoinGameResponse()
-                                    {
-                                        MessageID = new MessageId(msgId),
-                                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                                        GameHostType = game.GameHostType,
-                                        ConnectInfo = new NetConnectionInfo()
-                                        {
-                                            AccessKey = joinGameResponse.AccessKey,
-                                            SessionKey = rClient.SessionKey,
-                                            WorldID = game.DMEWorldId,
-                                            ServerKey = joinGameResponse.pubKey,
-                                            AddressList = new NetAddressList()
-                                            {
-                                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
-                                                    new NetAddress() { Address = (data.ClientObject as DMEObject).IP.MapToIPv4().ToString(), Port = (uint)(data.ClientObject as DMEObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone},
-                                                }
-                                            },
-                                            Type = NetConnectionType.NetConnectionTypeClientServerTCPAuxUDP
-                                        }
-                                    });
-                                }
-                                */
                             }
                         }
+                        else
+                            LoggerAccessor.LogError("[MPS] - joinGameResponse was requested but client is null, aborting!");
                         break;
                     }
                 #endregion

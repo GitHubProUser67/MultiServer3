@@ -221,13 +221,13 @@ namespace Horizon.MEDIUS.Medius
             return null;
         }
 
-        public Party? GetPartyByWorldId(string dmeSessionKey, int WorldId) // Todo, add worldid property to Party.
+        public Party? GetPartyByWorldId(string dmeSessionKey, int WorldId)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
                 lock (lookupByAppId.Value.PartyIdToGame)
                 {
-                    Party? party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey).Value;
+                    Party? party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.WorldID == WorldId).Value;
                     if (party != null)
                         return party;
                 }
@@ -471,22 +471,31 @@ namespace Horizon.MEDIUS.Medius
             if (request is MediusCreateGameRequest r)
             {
                 gameName = r.GameName;
-                if (client.ApplicationId == 23360)
+                gameChannel = new Channel()
                 {
-                    gameChannel = new Channel()
-                    {
-                        MaxPlayers = r.MaxPlayers,
-                        MinPlayers = r.MinPlayers,
-                        ApplicationId = r.ApplicationID,
-                        Name = gameName,
-                        Type = ChannelType.Game,
-                    };
+                    MaxPlayers = r.MaxPlayers,
+                    MinPlayers = r.MinPlayers,
+                    ApplicationId = r.ApplicationID,
+                    Name = gameName,
+                    Type = ChannelType.Game,
+                };
 
-                    await MediusClass.Manager.AddChannel(gameChannel);
-                }
+                await MediusClass.Manager.AddChannel(gameChannel);
             }
-            else if (request is MediusCreateGameRequest1 r1)
-                gameName = r1.GameName;
+            else if (request is MediusCreateGameRequest0 r0)
+            {
+                gameName = r0.GameName;
+                gameChannel = new Channel()
+                {
+                    MaxPlayers = r0.MaxPlayers,
+                    MinPlayers = r0.MinPlayers,
+                    ApplicationId = r0.ApplicationID,
+                    Name = gameName,
+                    Type = ChannelType.Game,
+                };
+
+                await MediusClass.Manager.AddChannel(gameChannel);
+            }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
@@ -524,10 +533,7 @@ namespace Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                if (client.ApplicationId == 23360)
-                    game = new Game(client, request, gameChannel, dme);
-                else
-                    game = new Game(client, request, client.CurrentChannel, dme);
+                game = new Game(client, request, gameChannel, dme, gameChannel.Id);
 
                 await AddGame(game);
 
@@ -564,8 +570,21 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
+            Channel? gameChannel = null;
             if (request is MediusCreateGameRequest1 r)
+            {
                 gameName = r.GameName;
+                gameChannel = new Channel()
+                {
+                    MaxPlayers = r.MaxPlayers,
+                    MinPlayers = r.MinPlayers,
+                    ApplicationId = r.ApplicationID,
+                    Name = gameName,
+                    Type = ChannelType.Game,
+                };
+
+                await MediusClass.Manager.AddChannel(gameChannel);
+            }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
@@ -602,7 +621,8 @@ namespace Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                Game game = new(client, request, client.CurrentChannel, dme);
+                Game game = new(client, request, gameChannel, dme, gameChannel.Id);
+
                 await AddGame(game);
 
                 // Send create game request to dme server
@@ -638,8 +658,21 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
+            Channel? gameChannel = null;
             if (matchCreateGameRequest is MediusMatchCreateGameRequest r)
+            {
                 gameName = r.GameName;
+                gameChannel = new Channel()
+                {
+                    MaxPlayers = r.MaxPlayers,
+                    MinPlayers = r.MinPlayers,
+                    ApplicationId = r.ApplicationID,
+                    Name = gameName,
+                    Type = ChannelType.Game,
+                };
+
+                await MediusClass.Manager.AddChannel(gameChannel);
+            }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
@@ -665,7 +698,7 @@ namespace Horizon.MEDIUS.Medius
                 // Create and add
                 try
                 {
-                    Game game = new(client, matchCreateGameRequest, client.CurrentChannel, null, client.WorldId)
+                    Game game = new(client, matchCreateGameRequest, gameChannel, null, gameChannel.Id)
                     {
                         MaxPlayers = matchCreateGameRequest.MaxPlayers,
                         GameHostType = matchCreateGameRequest.GameHostType,
@@ -741,7 +774,7 @@ namespace Horizon.MEDIUS.Medius
                 // Create and add
                 try
                 {
-                    Game game = new(client, matchCreateGameRequest, client.CurrentChannel, dme)
+                    Game game = new(client, matchCreateGameRequest, gameChannel, dme, gameChannel.Id)
                     {
                         MaxPlayers = matchCreateGameRequest.MaxPlayers,
                         GameHostType = matchCreateGameRequest.GameHostType,
@@ -901,7 +934,7 @@ namespace Horizon.MEDIUS.Medius
                 {
                     MessageID = request.MessageID,
                     Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                    MediusWorldID = worldId,
+                    MediusWorldID = game.MediusWorldId,
                 });
             }
             catch (Exception e)
@@ -1612,14 +1645,27 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? partyName = null;
+            Channel? partyChannel = null;
             if (request is MediusPartyCreateRequest r)
+            {
                 partyName = r.PartyName;
+                partyChannel = new Channel()
+                {
+                    MaxPlayers = r.MaxPlayers,
+                    MinPlayers = r.MinPlayers,
+                    ApplicationId = r.ApplicationID,
+                    Name = partyName,
+                    Type = ChannelType.Game, // Party is a game type.
+                };
+
+                await MediusClass.Manager.AddChannel(partyChannel);
+            }
 
             var existingParties = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.PartyIdToGame.Select(g => g.Value));
-            /*
+            
             // Ensure the name is unique
             // If the host leaves then we unreserve the name
-            if (existingGames.Any(x => x.WorldStatus != MediusWorldStatus.WorldClosed && x.WorldStatus != MediusWorldStatus.WorldInactive && x. == partyName && x.Host != null && x.Host.IsConnected))
+            if (existingParties.Any(x => x.WorldStatus != MediusWorldStatus.WorldClosed && x.WorldStatus != MediusWorldStatus.WorldInactive && x.PartyName == partyName && x.Host != null && x.Host.IsConnected))
             {
                 client.Queue(new RT_MSG_SERVER_APP()
                 {
@@ -1633,20 +1679,6 @@ namespace Horizon.MEDIUS.Medius
                 return;
             }
 
-            // Try to get next free dme server
-            // If none exist, return error to clist
-            var dme = Program.ProxyServer.GetFreeDme(client.ApplicationId);
-            if (dme == null)
-            {
-                client.Queue(new MediusCreateGameResponse()
-                {
-                    MessageID = request.MessageID,
-                    MediusWorldID = -1,
-                    StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
-                });
-                return;
-            }
-            */
             // Create and add
 
             // Try to get next free dme server
@@ -1669,7 +1701,7 @@ namespace Horizon.MEDIUS.Medius
             // Create and add
             try
             {
-                Party? party = new(client, request, client.CurrentChannel, dme);
+                Party? party = new(client, request, partyChannel, dme, partyChannel.Id);
                 await AddParty(party);
 
                 await client.JoinParty(party, party.MediusWorldId);

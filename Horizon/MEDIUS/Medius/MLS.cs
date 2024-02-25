@@ -18,7 +18,6 @@ using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using BackendProject.Horizon.RT.Cryptography.RSA;
 using System.Text;
-using BackendProject.MiscUtils;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -3317,7 +3316,7 @@ namespace Horizon.MEDIUS.Medius
                                         // Join new channel
                                         await data.ClientObject.JoinChannel(foundchannel);
 
-                                        LoggerAccessor.LogInfo($"Successfully JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogInfo($"Successfully JoinedChatWorld [{foundchannel.Id}] {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     }
                                     else
                                         LoggerAccessor.LogError($"Requested a non-existant JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
@@ -6519,17 +6518,14 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        // create client host object
-                        Tuple<bool, ClientObject> gameHostClient = new Tuple<bool, ClientObject>(false, data.ClientObject);
-
                         // perform search on queue
                         bool queueContainsClient = MAS.GameHostClientQueue.Any(tuple => tuple.Item2 == data.ClientObject);
 
                         // add host to queue
                         if (!queueContainsClient)
                         {
-                            LoggerAccessor.LogError($"QUEUING {data.ClientObject.AccountName} FOR REAUTH");
-                            MAS.GameHostClientQueue.Add(gameHostClient);
+                            LoggerAccessor.LogWarn($"QUEUING {data.ClientObject.AccountName} FOR REAUTH");
+                            MAS.GameHostClientQueue.Add(new Tuple<bool, ClientObject>(false, data.ClientObject));
                         }
 
                         if (data.ClientObject.CurrentGame != null)

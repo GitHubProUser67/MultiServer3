@@ -87,36 +87,6 @@ namespace Horizon.MUM
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
-        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject? dmeServer)
-        {
-            if (createGame is MediusCreateGameRequest r)
-                FromCreateGameRequest(r);
-            else if (createGame is MediusCreateGameRequest0 r0)
-                FromCreateGameRequest0(r0);
-            else if (createGame is MediusCreateGameRequest1 r1)
-                FromCreateGameRequest1(r1);
-            else if (createGame is MediusMatchCreateGameRequest r2)
-                FromMatchCreateGameRequest(r2);
-            else if (createGame is MediusServerCreateGameOnMeRequest r3)
-                FromCreateGameOnMeRequest(r3);
-            else if (createGame is MediusServerCreateGameOnSelfRequest r5)
-                FromCreateGameOnSelfRequest(r5);
-            else if (createGame is MediusServerCreateGameOnSelfRequest0 r6)
-                FromCreateGameOnSelfRequest0(r6);
-
-            MediusWorldId = IdCounter++;
-
-            utcTimeCreated = Utils.GetHighPrecisionUtcTime();
-            utcTimeEmpty = null;
-            DMEServer = dmeServer;
-            ChatChannel = chatChannel;
-            ChatChannel?.RegisterGame(this);
-            Host = client;
-            SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
-
-            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: Created by {client} | Host: {Host}");
-        }
-
         public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject? dmeServer, int WorldId)
         {
             if (createGame is MediusCreateGameRequest r)
@@ -388,7 +358,7 @@ namespace Horizon.MUM
                     }
                 case MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_DISCONNECT:
                     {
-                        await OnPlayerLeft(player, connectNotification);
+                        await OnPlayerLeft(player, WorldId, connectNotification);
                         break;
                     }
             }
@@ -471,9 +441,9 @@ namespace Horizon.MUM
             //client.CurrentChannel?.SendSystemMessage(client, $"Gamemode is {CustomGamemode?.FullName ?? "default"}.");
         }
 
-        protected virtual async Task OnPlayerLeft(GameClient player, MediusServerConnectNotification connectNotification)
+        protected virtual async Task OnPlayerLeft(GameClient player, string WorldId, MediusServerConnectNotification connectNotification)
         {
-            LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+            LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {WorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
             player.InGame = false;
 
@@ -486,7 +456,7 @@ namespace Horizon.MUM
 
                 // Remove from collection
                 if (player.Client.CurrentGame != null)
-                    await RemovePlayer(player.Client, player.Client.ApplicationId);
+                    await RemovePlayer(player.Client, player.Client.ApplicationId, WorldId);
 
                 // Update player object
                 await player.Client.LeaveGame(this);
@@ -495,20 +465,20 @@ namespace Horizon.MUM
             }
         }
 
-        public virtual async Task RemovePlayer(ClientObject client, int appid)
+        public virtual async Task RemovePlayer(ClientObject client, int appid, string WorldId)
         {
             LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} removed.");
 
-            if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(client.WorldId.ToString()) && !string.IsNullOrEmpty(client.AccountName))
-                _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {client.AccountName} Left: {client.CurrentGame.GameName} in world: {client.WorldId}");
+            if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !client.CurrentGame.GameName.Contains("AP|") && !string.IsNullOrEmpty(WorldId) && !string.IsNullOrEmpty(client.AccountName))
+                _ = BackendProject.Discord.CrudDiscordBot.BotSendMessage($"User {client.AccountName} Left: {client.CurrentGame.GameName} in world: {WorldId}");
 
             try
             {
                 if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !string.IsNullOrEmpty(client.AccountName))
-                    CrudRoomManager.RemoveUserFromGame(client.ApplicationId.ToString(), client.CurrentGame.GameName, client.WorldId.ToString(), client.AccountName);
+                    CrudRoomManager.RemoveUserFromGame(client.ApplicationId.ToString(), client.CurrentGame.GameName, WorldId, client.AccountName);
 
                 if (PlayerCount <= 1)
-                    CrudRoomManager.RemoveGame(client.ApplicationId.ToString(), client.WorldId.ToString(), GameName);
+                    CrudRoomManager.RemoveGame(client.ApplicationId.ToString(), WorldId, GameName);
             }
             catch (Exception)
             {

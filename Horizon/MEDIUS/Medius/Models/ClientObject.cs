@@ -670,7 +670,7 @@ namespace Horizon.MEDIUS.Medius.Models
         {
             if (CurrentGame != null)
             {
-                await CurrentGame.RemovePlayer(this, CurrentGame.ApplicationId);
+                await CurrentGame.RemovePlayer(this, CurrentGame.ApplicationId, CurrentGame.WorldID.ToString());
                 CurrentGame = null;
             }
             DmeClientId = null;
