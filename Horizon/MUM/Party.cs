@@ -53,7 +53,7 @@ namespace Horizon.MUM
         public DateTime? UtcTimeStarted => utcTimeStarted;
         public DateTime? UtcTimeEnded => utcTimeEnded;
 
-        public MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
+        public MediusWorldStatus WorldStatus = MediusWorldStatus.WorldPendingCreation;
         public bool hasHostJoined = false;
         public DateTime utcTimeCreated;
         public DateTime? utcTimeStarted;
@@ -67,7 +67,7 @@ namespace Horizon.MUM
 
         public int PlayerCount => LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
 
-        public Party(ClientObject client, IMediusRequest partyCreate, Channel? chatChannel, DMEObject dmeServer)
+        public Party(ClientObject client, IMediusRequest partyCreate, Channel? chatChannel, DMEObject dmeServer, int WorldId)
         {
             if (partyCreate is MediusPartyCreateRequest r)
                 FromPartyCreateRequest(r);
@@ -80,6 +80,7 @@ namespace Horizon.MUM
             DMEServer = dmeServer;
             ChatChannel?.RegisterParty(this);
             Host = client;
+            WorldID = WorldId;
 
             LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: Created by {client}");
         }
@@ -113,7 +114,6 @@ namespace Horizon.MUM
 
         private void FromPartyCreateRequest(MediusPartyCreateRequest partyCreate)
         {
-
             ApplicationId = partyCreate.ApplicationID;
             PartyName = partyCreate.PartyName;
             PartyPassword = partyCreate.PartyPassword;
