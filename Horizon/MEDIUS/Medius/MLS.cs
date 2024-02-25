@@ -5695,7 +5695,7 @@ namespace Horizon.MEDIUS.Medius
 
                         List<MediusLobbyWorldPlayerListResponse> lobbyWorldPlayerListResponses = new List<MediusLobbyWorldPlayerListResponse>();
 
-                        var channel = MediusClass.Manager.GetChannelByChannelId(lobbyWorldPlayerListRequest.MediusWorldID, data.ClientObject.ApplicationId);
+                        var channel = MediusClass.Manager.GetChannelByChannelId(lobbyWorldPlayerListRequest.WorldID, data.ClientObject.ApplicationId);
                         if (channel == null)
                         {
                             data.ClientObject.Queue(new MediusLobbyWorldPlayerListResponse()
@@ -7083,10 +7083,10 @@ namespace Horizon.MEDIUS.Medius
                         List<int> notSecure = new() { 10010, 10190 };
                         IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
-                        Channel? channel = MumChannelHandler.GetRemoteChannelById(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
+                        Channel? channel = MumChannelHandler.GetRemoteChannelById(joinChannelRequest.WorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
 
                         if (channel == null)
-                            channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.MediusWorldID, data.ClientObject.ApplicationId);
+                            channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.WorldID, data.ClientObject.ApplicationId);
 
                         if (channel == null)
                         {
@@ -7242,10 +7242,10 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        Channel? channel = MumChannelHandler.GetRemoteChannelById(channelInfoRequest.MediusWorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
+                        Channel? channel = MumChannelHandler.GetRemoteChannelById(channelInfoRequest.WorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
 
                         if (channel == null)
-                            channel = MediusClass.Manager.GetChannelByChannelId(channelInfoRequest.MediusWorldID, data.ClientObject.ApplicationId);
+                            channel = MediusClass.Manager.GetChannelByChannelId(channelInfoRequest.WorldID, data.ClientObject.ApplicationId);
 
                         if (channel == null)
                         {

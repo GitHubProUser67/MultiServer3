@@ -22,7 +22,7 @@ namespace BackendProject.Horizon.RT.Models
         /// <summary>
         /// World ID of the channel to get information about.
         /// </summary>
-        public int MediusWorldID;
+        public int WorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -33,7 +33,7 @@ namespace BackendProject.Horizon.RT.Models
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
 
-            MediusWorldID = reader.ReadInt32();
+            WorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -45,7 +45,7 @@ namespace BackendProject.Horizon.RT.Models
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(new byte[2]);
 
-            writer.Write(MediusWorldID);
+            writer.Write(WorldID);
         }
 
 
@@ -54,7 +54,7 @@ namespace BackendProject.Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"SessionKey: {SessionKey} " +
-                $"MediusWorldID: {MediusWorldID}";
+                $"MediusWorldID: {WorldID}";
         }
     }
 }
