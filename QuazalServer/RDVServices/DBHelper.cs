@@ -11,7 +11,7 @@ namespace QuazalServer.RDVServices
             {
                 string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{name}_*.json");
 
-                if (parts.Length == 1 && File.Exists(parts[0]))
+                if (File.Exists(parts[0])) // Unsafe, please fix.
                     return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts[0]));
             }
             
@@ -24,7 +24,7 @@ namespace QuazalServer.RDVServices
             {
                 string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"*_{PID}.json");
 
-                if (parts.Length == 1 && File.Exists(parts[0]))
+                if (File.Exists(parts[0])) // Unsafe, please fix.
                     return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts[0]));
             }
 
