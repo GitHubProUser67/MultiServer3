@@ -365,6 +365,7 @@ namespace BackendProject.MiscUtils
             {".psm", "application/octet-stream"},
             {".psp", "application/octet-stream"},
             {".pub", "application/x-mspublisher"},
+            {".pup", "application/x-ps3-update"},
             {".pwz", "application/vnd.ms-powerpoint"},
             {".qht", "text/x-html-insertion"},
             {".qhtm", "text/x-html-insertion"},
