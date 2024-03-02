@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace BackendProject.Horizon.LIBRARY.Common
+namespace Horizon.LIBRARY.Common
 {
     public static class Utils
     {

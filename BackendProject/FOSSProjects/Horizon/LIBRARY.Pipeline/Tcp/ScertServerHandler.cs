@@ -1,9 +1,9 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Groups;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Models;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
+namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertServerHandler : SimpleChannelInboundHandler<BaseScertMessage>
     {

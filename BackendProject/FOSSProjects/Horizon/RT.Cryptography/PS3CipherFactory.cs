@@ -3,7 +3,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
-namespace BackendProject.Horizon.RT.Cryptography
+namespace Horizon.RT.Cryptography
 {
     public class PS3CipherFactory : ICipherFactory
     {

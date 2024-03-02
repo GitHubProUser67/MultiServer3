@@ -1,5 +1,5 @@
 using DotNetty.Transport.Channels;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Models;
 using Horizon.MEDIUS.Medius.Models;
 
 namespace Horizon.MEDIUS.PluginArgs

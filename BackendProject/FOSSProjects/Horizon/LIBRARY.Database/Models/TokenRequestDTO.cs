@@ -1,6 +1,6 @@
-using BackendProject.Horizon.RT.Common;
+using Horizon.RT.Common;
 
-namespace BackendProject.Horizon.LIBRARY.Database.Models
+namespace Horizon.LIBRARY.Database.Models
 {
     public partial class TokenRequestDTO
     {

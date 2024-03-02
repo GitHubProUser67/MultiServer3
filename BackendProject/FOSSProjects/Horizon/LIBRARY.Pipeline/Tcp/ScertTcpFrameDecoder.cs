@@ -3,7 +3,7 @@ using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
+namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertTcpFrameDecoder : ByteToMessageDecoder
     {

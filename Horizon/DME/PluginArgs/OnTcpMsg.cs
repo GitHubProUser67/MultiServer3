@@ -1,4 +1,4 @@
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Models;
 using Horizon.DME.Models;
 
 namespace Horizon.DME.PluginArgs

@@ -9,6 +9,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
 using ArpLookup;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace BackendProject.MiscUtils
 {
@@ -218,6 +219,47 @@ namespace BackendProject.MiscUtils
 
             // If all elements are identical, return true
             return true;
+        }
+
+        /// <summary>
+        /// Check if 2 strings lists are strictly identical.
+        /// <para>Savoir si 2 listes de strings sont strictement identiques.</para>
+        /// <param name="list1">The left list.</param>
+        /// <param name="list2">The right list.</param>
+        /// </summary>
+        /// <returns>A boolean.</returns>
+        public static bool AreListsIdentical(List<string> list1, List<string> list2)
+        {
+            // If lists have different counts, they are not identical
+            if (list1.Count != list2.Count)
+                return false;
+
+            // Sort the lists to ensure elements are in the same order for comparison
+            list1.Sort();
+            list2.Sort();
+
+            // Compare each element in the lists
+
+            for (int i = 0; i < list1.Count; i++)
+            {
+                if (list1[i] != list2[i])
+                    return false;
+            }
+
+            // Lists are identical
+            return true;
+        }
+
+        /// <summary>
+        /// Verify is the string is in base64 format.
+        /// <para>Vérifie si un string est en format base64.</para>
+        /// </summary>
+        /// <param name="base64">The base64 string.</param>
+        /// <returns>A boolean.</returns>
+        public static bool IsBase64String(string base64)
+        {
+            Span<byte> buffer = new(new byte[base64.Length]);
+            return Convert.TryFromBase64String(base64, buffer, out int bytesParsed);
         }
 
         /// <summary>
@@ -888,7 +930,7 @@ namespace BackendProject.MiscUtils
         /// <param name="fallback">The fallback IP if we fail to find any results</param>
         /// <param name="RequirePing">If we want to check if domain respond to a Ping</param>
         /// <returns>A string.</returns>
-        public static string GetFirstActiveIPAddress(string hostName, string fallback, bool RequirePing = false)
+        public static string? GetFirstActiveIPAddress(string hostName, string? fallback, bool RequirePing = false)
         {
             try
             {

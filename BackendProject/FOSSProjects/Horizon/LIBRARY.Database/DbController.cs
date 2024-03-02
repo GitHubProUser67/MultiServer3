@@ -1,16 +1,17 @@
 using CustomLogger;
 using Newtonsoft.Json;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Common;
-using BackendProject.Horizon.LIBRARY.Database.Config;
-using BackendProject.Horizon.LIBRARY.Database.Models;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Common;
+using Horizon.LIBRARY.Database.Config;
+using Horizon.LIBRARY.Database.Models;
 using System.Text;
 using System.Web;
 using DotNetty.Transport.Channels;
 using System.Net;
+using BackendProject.MiscUtils;
 
-namespace BackendProject.Horizon.LIBRARY.Database
+namespace Horizon.LIBRARY.Database
 {
     public class DbController
     {
@@ -4321,7 +4322,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 result = await PostDbAsync<AuthenticationResponse>($"Account/authenticate", new AuthenticationRequest()
                 {
                     AccountName = username,
-                    Password = password
+                    Password = (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(password, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : password
                 });
             }
             catch (Exception ex)
@@ -4352,7 +4353,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4386,7 +4387,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4406,7 +4407,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
 
         private async Task<T?> GetDbAsync<T>(string route)
         {
-            T? result = default(T);
+            T? result = default;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4424,17 +4425,17 @@ namespace BackendProject.Horizon.LIBRARY.Database
                     try
                     {
                         if (!string.IsNullOrEmpty(_dbAccessToken))
-                            client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                         var response = await client.GetAsync($"{_settings.DatabaseUrl}/{route}");
 
                         // Deserialize on success
                         if (response.IsSuccessStatusCode)
-                            result = JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
+                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Decrypt(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : await response.Content.ReadAsStringAsync());
                     }
                     catch (Exception ex)
                     {
                         LoggerAccessor.LogError(ex);
-                        result = default(T);
+                        result = default;
                     }
                 }
             }
@@ -4458,7 +4459,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4492,7 +4493,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4512,7 +4513,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
 
         private async Task<T?> PostDbAsync<T>(string route, object body)
         {
-            T? result = default(T);
+            T? result = default;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4526,7 +4527,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4535,12 +4536,12 @@ namespace BackendProject.Horizon.LIBRARY.Database
 
                         // Deserialize on success
                         if (response.IsSuccessStatusCode)
-                            result = JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
+                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Decrypt(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : await response.Content.ReadAsStringAsync());
                     }
                     catch (Exception ex)
                     {
                         LoggerAccessor.LogError(ex);
-                        result = default(T);
+                        result = default;
                     }
                 }
             }
@@ -4564,7 +4565,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4598,7 +4599,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4618,7 +4619,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
 
         private async Task<T?> PutDbAsync<T>(string route, object body)
         {
-            T? result = default(T);
+            T? result = default;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4632,7 +4633,7 @@ namespace BackendProject.Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.Add("Authorization", _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4641,12 +4642,12 @@ namespace BackendProject.Horizon.LIBRARY.Database
 
                         // Deserialize on success
                         if (response.IsSuccessStatusCode)
-                            result = JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
+                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCryptoUtils.Decrypt(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCryptoUtils.AuthIV) : await response.Content.ReadAsStringAsync());
                     }
                     catch (Exception ex)
                     {
                         LoggerAccessor.LogError(ex);
-                        result = default(T);
+                        result = default;
                     }
                 }
             }

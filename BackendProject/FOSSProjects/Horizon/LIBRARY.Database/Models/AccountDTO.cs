@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.LIBRARY.Database.Models
+namespace Horizon.LIBRARY.Database.Models
 {
     public class AccountDTO
     {

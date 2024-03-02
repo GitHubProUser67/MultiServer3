@@ -1,8 +1,8 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
+using Horizon.LIBRARY.Common;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     /*
     [MediusMessage(GhsOpcode.ghs_ClientProtocolChoice)]

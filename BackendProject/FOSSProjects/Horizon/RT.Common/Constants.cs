@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Common
+namespace Horizon.RT.Common
 {
     public static class Constants
     {

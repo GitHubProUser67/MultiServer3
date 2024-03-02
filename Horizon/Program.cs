@@ -1,5 +1,5 @@
 using CustomLogger;
-using BackendProject.Horizon.LIBRARY.Database;
+using Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
 using BackendProject.MiscUtils;

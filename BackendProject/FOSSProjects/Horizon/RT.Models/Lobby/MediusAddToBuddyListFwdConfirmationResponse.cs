@@ -1,8 +1,8 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models.Misc;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.RT.Models.Misc;
+using Horizon.LIBRARY.Common.Stream;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.AddToBuddyListFwdConfirmationResponse)]
     public class MediusAddToBuddyListFwdConfirmationResponse : BaseLobbyMessage, IMediusAddToBuddyListConfirmationResponse

@@ -2,7 +2,7 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using BackendProject.Horizon.LIBRARY.Pipeline.Udp;
+using Horizon.LIBRARY.Pipeline.Udp;
 using System.Net;
 using CustomLogger;
 

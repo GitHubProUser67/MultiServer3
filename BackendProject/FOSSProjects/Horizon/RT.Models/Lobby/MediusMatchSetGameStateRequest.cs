@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     /*
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.MatchSetGameStateRequest)] // Set GameState

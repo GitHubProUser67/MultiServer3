@@ -1,5 +1,5 @@
 using CustomLogger;
-using BackendProject.Horizon.RT.Common;
+using Horizon.RT.Common;
 
 namespace Horizon.MEDIUS.Medius.Models
 {

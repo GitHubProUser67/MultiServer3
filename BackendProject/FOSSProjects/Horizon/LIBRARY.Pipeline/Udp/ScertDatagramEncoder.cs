@@ -2,9 +2,9 @@ using CustomLogger;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.LIBRARY.Common;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Udp
+namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramEncoder : MessageToMessageEncoder<ScertDatagramPacket>
     {

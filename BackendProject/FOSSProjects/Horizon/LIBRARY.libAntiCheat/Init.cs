@@ -1,10 +1,10 @@
 using CustomLogger;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.RT.Models.AntiCheat;
-using BackendProject.Horizon.LIBRARY.libAntiCheat.Models;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
+using Horizon.RT.Models.AntiCheat;
+using Horizon.LIBRARY.libAntiCheat.Models;
 
-namespace BackendProject.Horizon.LIBRARY.libAntiCheat
+namespace Horizon.LIBRARY.libAntiCheat
 {
     public class AntiCheat
     {

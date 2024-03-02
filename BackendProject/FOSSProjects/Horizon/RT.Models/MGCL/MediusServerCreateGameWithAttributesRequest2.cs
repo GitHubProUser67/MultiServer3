@@ -1,7 +1,7 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
 
-namespace BackendProject.Horizon.RT.Models.MGCL
+namespace Horizon.RT.Models.MGCL
 {
     [MediusMessage(NetMessageClass.MessageClassLobbyReport, MediusMGCLMessageIds.ServerCreateGameWithAttributesRequest2)]
     public class MediusServerCreateGameWithAttributesRequest2 : BaseMGCLMessage, IMediusRequest

@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.LIBRARY.Common.Stream
+namespace Horizon.LIBRARY.Common.Stream
 {
     public interface IStreamSerializer
     {

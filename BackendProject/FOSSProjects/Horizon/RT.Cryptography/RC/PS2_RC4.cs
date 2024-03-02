@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Cryptography.RC
+namespace Horizon.RT.Cryptography.RC
 {
     /// <summary>
     /// PS2's custom RC4 implementation,

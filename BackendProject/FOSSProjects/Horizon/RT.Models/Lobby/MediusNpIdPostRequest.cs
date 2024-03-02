@@ -1,8 +1,8 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
 using System.Text;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     /// <summary>
     /// Makes a PostRequest to the Medius Lobby Server on Connect sending the SCE_NPID_MAXLEN data blob

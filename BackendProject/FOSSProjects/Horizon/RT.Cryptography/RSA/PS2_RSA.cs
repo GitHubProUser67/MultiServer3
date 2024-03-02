@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Math;
 
-namespace BackendProject.Horizon.RT.Cryptography.RSA
+namespace Horizon.RT.Cryptography.RSA
 {
     [JsonConverter(typeof(RSAConverter))]
     public class PS2_RSA : ICipher

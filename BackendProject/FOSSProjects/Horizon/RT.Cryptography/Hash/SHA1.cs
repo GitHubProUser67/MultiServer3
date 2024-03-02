@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Crypto.Digests;
 
-namespace BackendProject.Horizon.RT.Cryptography.Hash
+namespace Horizon.RT.Cryptography.Hash
 {
     public static class SHA1
     {

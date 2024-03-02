@@ -1,7 +1,7 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.LadderPosition_ExtraInfo)]
     public class MediusLadderPosition_ExtraInfoRequest : BaseLobbyMessage, IMediusRequest

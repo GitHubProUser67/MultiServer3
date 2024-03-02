@@ -3,11 +3,11 @@ using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Cryptography;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Common;
+using Horizon.RT.Cryptography;
+using Horizon.RT.Models;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Udp
+namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramDecoder : MessageToMessageDecoder<DatagramPacket>
     {

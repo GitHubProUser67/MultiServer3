@@ -1,9 +1,9 @@
 using Org.BouncyCastle.Math;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common;
+using Horizon.LIBRARY.Common.Stream;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     [ScertMessage(RT_MSG_TYPE.RT_MSG_SERVER_HELLO)]
     public class RT_MSG_SERVER_HELLO : BaseScertMessage

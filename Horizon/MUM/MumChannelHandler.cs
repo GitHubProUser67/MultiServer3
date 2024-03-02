@@ -1,10 +1,10 @@
-﻿using BackendProject.Horizon.RT.Common;
+using Horizon.RT.Common;
 using CustomLogger;
 using Horizon.MEDIUS;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text;
+using BackendProject.MiscUtils;
 
 namespace Horizon.MUM
 {
@@ -15,7 +15,7 @@ namespace Horizon.MUM
             return JsonConvert.SerializeObject(channel, Formatting.Indented, new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                Converters = { new JsonIPConverterUtils() }
             });
         }
 
@@ -24,40 +24,18 @@ namespace Horizon.MUM
             return JsonConvert.DeserializeXmlNode(JsonConvert.SerializeObject(channel, new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                Converters = { new JsonIPConverterUtils() }
             }), "Channel")?.OuterXml ?? "<Channel></Channel>";
         }
 
-        public static string? JsonSerializeChannelsList(bool encrypt)
+        public static string? JsonSerializeChannelsList()
         {
-            if (encrypt)
-                return "<Secure>" + BackendProject.CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), Formatting.Indented, new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                }), Convert.FromBase64String(HorizonServerConfiguration.MediusAPIKey), MumUtils.ConfigIV) + "</Secure>";
-            else
-                return JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), Formatting.Indented, new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                });
+            return WebCryptoUtils.Encrypt(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true);
         }
 
-        public static string? XMLSerializeChannelsList(bool encrypt)
+        public static string? XMLSerializeChannelsList()
         {
-            if (encrypt)
-                return "<Secure>" + BackendProject.CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(HorizonServerConfiguration.MediusAPIKey), MumUtils.ConfigIV) + "</Secure>";
-            else
-                return JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ChannelsList", JToken.Parse(JsonConvert.SerializeObject(MediusClass.Manager.GetAllChannels(), new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                    Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>";
+            return WebCryptoUtils.Encrypt(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true, true);
         }
 
         public static string GetCRC32ChannelsList()
@@ -68,7 +46,7 @@ namespace Horizon.MUM
 
             foreach (Channel channel in MediusClass.Manager.GetAllChannels())
             {
-                XMLData += $"<CRC32 name=\"{channel.Name}\">{new BackendProject.MiscUtils.Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
+                XMLData += $"<CRC32 name=\"{channel.Name}\">{new Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
             }
 
             return XMLData + "</Root>";
@@ -125,7 +103,7 @@ namespace Horizon.MUM
                             return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverterUtils() }
                             })?.FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
                     }
                 }
@@ -158,7 +136,7 @@ namespace Horizon.MUM
                             return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverterUtils() }
                             })?.FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
                     }
                 }
@@ -191,7 +169,7 @@ namespace Horizon.MUM
                             return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverterUtils() }
                             })?.Where(channel => channel.ApplicationId == Appid).OrderBy(channel => channel.PlayerCount).FirstOrDefault();
                     }
                 }
@@ -227,7 +205,7 @@ namespace Horizon.MUM
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -284,7 +262,7 @@ namespace Horizon.MUM
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -336,7 +314,7 @@ namespace Horizon.MUM
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new BackendProject.MiscUtils.JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverterUtils() }
                             });
 
                             if (ConvertedChannelsLists != null)

@@ -1,7 +1,7 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     /// <summary>
     ///  Response to grant or deny game creation on this MGCL host. The confirmation maps to MGCL_ERROR_CODE.
