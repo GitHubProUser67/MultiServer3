@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using NLua;
 using System.Text;
-using System.Xml.Linq;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -46,14 +45,14 @@ namespace BackendProject.WebAPIs.OHS
                         {
                             writekey = InData[..8];
                             InData = InData[8..]; // We remove the writekey.
-                            returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
+                            returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", EscapeForLua(InData)));
                         }
                     }
                     else
                     {
                         writekey = dataforohs[..8];
                         dataforohs = dataforohs[8..]; // We remove the writekey.
-                        returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
+                        returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", EscapeForLua(dataforohs)));
                     }
 
                     if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
@@ -95,10 +94,10 @@ namespace BackendProject.WebAPIs.OHS
                     {
                         string InData = dataforohs[8..]; // We remove the hash.
                         if (VerifyHash(InData, dataforohs[..8]))
-                            returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", InData));
+                            returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", EscapeForLua(InData)));
                     }
                     else
-                        returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", dataforohs));
+                        returnValues = ExecuteLuaScript(jamindecrypt.Replace("PUT_FORMATEDJAMINVALUE_HERE", EscapeForLua(dataforohs)));
 
                     if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
                     {
@@ -265,19 +264,49 @@ namespace BackendProject.WebAPIs.OHS
 
                     // If the script returns no values, return an empty object array
                     if (returnValues == null || returnValues.Length == 0)
-                        returnValues = new object[0];
+                        returnValues = Array.Empty<object>();
                 }
                 catch (Exception ex)
                 {
                     // Handle any exceptions that might occur during script execution
                     LoggerAccessor.LogError("[ExecuteLuaScript] - Error executing Lua script: " + ex);
-                    returnValues = new object[0];
+                    returnValues = Array.Empty<object>();
                 }
 
                 lua.Close();
             }
 
             return returnValues;
+        }
+
+        private static string EscapeForLua(string input)
+        {
+            StringBuilder builder = new();
+            foreach (char c in input)
+            {
+                switch (c)
+                {
+                    case '"':
+                        builder.Append("\\\"");
+                        break;
+                    case '\\':
+                        builder.Append("\\\\");
+                        break;
+                    case '\n':
+                        builder.Append("\\n");
+                        break;
+                    case '\r':
+                        builder.Append("\\r");
+                        break;
+                    case '\t':
+                        builder.Append("\\t");
+                        break;
+                    default:
+                        builder.Append(c);
+                        break;
+                }
+            }
+            return builder.ToString();
         }
     }
 }
