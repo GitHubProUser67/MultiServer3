@@ -3,6 +3,7 @@ using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using BackendProject.WebAPIs;
 using BackendProject.WebAPIs.HOMECORE;
+using BackendProject.WebAPIs.LOOT;
 using BackendProject.WebAPIs.NDREAMS;
 using BackendProject.WebAPIs.OHS;
 using BackendProject.WebAPIs.PREMIUMAGENCY;
@@ -12,6 +13,7 @@ using BackendProject.WebTools;
 using CustomLogger;
 using HttpMultipartParser;
 using Newtonsoft.Json;
+using System.Collections.Specialized;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -396,6 +398,33 @@ namespace HTTPSecureServerLite
                     else
                     {
                         res = $"<ohs>{res}</ohs>";
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.ContentType = "application/xml;charset=UTF-8";
+                        statusCode = HttpStatusCode.OK;
+                    }
+                    ctx.Response.StatusCode = (int)statusCode;
+                    sent = await ctx.Response.Send(res);
+                }
+                else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com")
+                {
+                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
+
+                    NameValueCollection QueryElements = ctx.Request.Query.Elements;
+                    Dictionary<string, string> QueryElementsList = new();
+
+                    foreach (string? k in QueryElements.AllKeys)
+                    {
+                        QueryElements.Add(k, QueryElements[k]);
+                    }
+
+                    string? res = new LOOTClass(ctx.Request.Method.ToString(), absolutepath).ProcessRequest(QueryElementsList, ctx.Request.DataAsBytes, ctx.Request.ContentType);
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        ctx.Response.ContentType = "text/plain";
+                        statusCode = HttpStatusCode.InternalServerError;
+                    }
+                    else
+                    {
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         ctx.Response.ContentType = "application/xml;charset=UTF-8";
                         statusCode = HttpStatusCode.OK;

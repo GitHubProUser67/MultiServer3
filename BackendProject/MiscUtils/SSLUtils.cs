@@ -110,6 +110,7 @@ namespace BackendProject.MiscUtils
             "mmgproject0001.com",
             "massmedia.com",
             "alpha.lootgear.com",
+            "server.lootgear.com",
             "prd.destinations.scea.com",
             "root.pshomecasino.com",
             "homeec.scej-nbs.jp",
@@ -138,7 +139,8 @@ namespace BackendProject.MiscUtils
             "community.eu.playstation.com",
             "img.game.co.uk",
             "downloads.game.net",
-            "example.com"
+            "example.com",
+            "thebissos.com"
         };
 
         /// <summary>

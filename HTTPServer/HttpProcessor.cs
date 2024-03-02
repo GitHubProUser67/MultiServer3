@@ -20,6 +20,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using BackendProject.WebAPIs.HOMECORE;
+using BackendProject.WebAPIs.LOOT;
 
 namespace HTTPServer
 {
@@ -250,6 +251,27 @@ namespace HTTPServer
                                                     response = HttpBuilder.OK();
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com" && request.Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
+
+                                                string? res = null;
+                                                LOOTClass loot = new(request.Method, absolutepath);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = loot.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = loot.ProcessRequest(request.QueryParameters);
+
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
                                             }
                                             else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp" || Host == "scej-home.playstation.net" || Host == "homeec.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
                                             {

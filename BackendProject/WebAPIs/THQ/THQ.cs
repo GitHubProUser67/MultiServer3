@@ -77,7 +77,7 @@ namespace BackendProject.WebAPIs.THQ
                         }
 
                         // Convert the modified data to a string
-                        string psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", "");
+                        string psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
                         if (id == psnname)
                         {
