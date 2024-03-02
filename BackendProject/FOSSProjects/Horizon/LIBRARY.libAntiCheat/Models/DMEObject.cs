@@ -1,8 +1,8 @@
 using CustomLogger;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Models;
 using System.Net;
 
-namespace BackendProject.Horizon.LIBRARY.libAntiCheat.Models
+namespace Horizon.LIBRARY.libAntiCheat.Models
 {
     public class DMEObject : ClientObject
     {

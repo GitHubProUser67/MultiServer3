@@ -1,18 +1,18 @@
 using CustomLogger;
 using Newtonsoft.Json;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using BackendProject.Horizon.LIBRARY.libAntiCheat;
+using Horizon.LIBRARY.libAntiCheat;
 using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
 using Horizon.HTTPSERVICE;
-using BackendProject.Horizon.LIBRARY.Database.Models;
+using Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 using Horizon.MUM;
 
@@ -40,7 +40,7 @@ namespace Horizon.MEDIUS
         public static MPS ProxyServer = new();
 
         public static AntiCheat AntiCheatPlugin = new();
-        public static BackendProject.Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
+        public static Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
 
         public static Dictionary<string, string> MUMLocalServersAccessList = new();
 
@@ -529,7 +529,7 @@ namespace Horizon.MEDIUS
                 Settings.NATIp = "natservice.pdonline.scea.com";
 
             // Update default rsa key
-            BackendProject.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());

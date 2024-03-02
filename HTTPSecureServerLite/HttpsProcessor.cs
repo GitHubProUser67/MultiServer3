@@ -136,7 +136,7 @@ namespace HTTPSecureServerLite
 
                 _Server.Start();
                 IsStarted = true;
-                LoggerAccessor.LogInfo("HTTPS Server initiated...");
+                LoggerAccessor.LogInfo($"HTTPS Server initiated on port: {port}...");
             }
         }
 
@@ -173,7 +173,7 @@ namespace HTTPSecureServerLite
                                 SuplementalMessage = " Located at " + parts[0] + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
                         }
 
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}");
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 
                         absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
                         statusCode = HttpStatusCode.Continue;
@@ -640,19 +640,6 @@ namespace HTTPSecureServerLite
                                     sent = await ctx.Response.Send(WebPlayer.HtmlPage);
                                     WebPlayer = null;
                                     break;
-                                case "/!GetMediaList":
-                                case "/!GetMediaList/":
-                                    statusCode = HttpStatusCode.OK;
-                                    ctx.Response.StatusCode = (int)statusCode;
-                                    ctx.Response.ContentType = "application/json";
-                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                    {
-                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                        sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder, "mp4"))));
-                                    }
-                                    else
-                                        sent = await ctx.Response.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPSServerConfiguration.HTTPSStaticFolder, "mp4"));
-                                    break;
                                 case "/!DLNADiscovery/":
                                     if (IsIPAllowed(clientip))
                                     {
@@ -754,6 +741,29 @@ namespace HTTPSecureServerLite
                                                 ctx.Response.StatusCode = (int)statusCode;
                                                 ctx.Response.ContentType = "application/json";
                                                 sent = await ctx.Response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}"));
+                                            }
+                                        }
+                                        else if (ctx.Request.RetrieveQueryValue("m3u") == "on")
+                                        {
+                                            string? m3ufile = StaticFileSystemUtils.GetM3UStreamFromDirectory(filePath[..^1], $"https://example.com{absolutepath[..^1]}");
+                                            if (!string.IsNullOrEmpty(m3ufile))
+                                            {
+                                                statusCode = HttpStatusCode.OK;
+                                                ctx.Response.StatusCode = (int)statusCode;
+                                                ctx.Response.ContentType = "audio/x-mpegurl";
+                                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                                {
+                                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                    sent = await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(m3ufile)));
+                                                }
+                                                else
+                                                    sent = await ctx.Response.Send(m3ufile);
+                                            }
+                                            else
+                                            {
+                                                statusCode = HttpStatusCode.NoContent;
+                                                ctx.Response.StatusCode = (int)statusCode;
+                                                sent = await ctx.Response.Send();
                                             }
                                         }
                                         else

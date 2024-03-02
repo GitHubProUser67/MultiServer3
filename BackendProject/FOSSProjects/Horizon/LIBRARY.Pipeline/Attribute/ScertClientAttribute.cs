@@ -1,8 +1,8 @@
-using BackendProject.Horizon.RT.Cryptography;
-using BackendProject.Horizon.RT.Cryptography.RSA;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Cryptography;
+using Horizon.RT.Cryptography.RSA;
+using Horizon.RT.Models;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Attribute
+namespace Horizon.LIBRARY.Pipeline.Attribute
 {
     public class ScertClientAttribute
     {

@@ -1,8 +1,8 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Common;
 
-namespace BackendProject.Horizon.LIBRARY.libAntiCheat.Models
+namespace Horizon.LIBRARY.libAntiCheat.Models
 {
     public enum ChannelType
     {

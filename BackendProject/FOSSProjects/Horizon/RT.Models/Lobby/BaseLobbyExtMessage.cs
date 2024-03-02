@@ -1,6 +1,6 @@
-using BackendProject.Horizon.RT.Common;
+using Horizon.RT.Common;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     public abstract class BaseLobbyExtMessage : BaseMediusMessage
     {

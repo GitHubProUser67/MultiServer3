@@ -2,10 +2,10 @@ using CustomLogger;
 using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Tcp
+namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertDecoder : MessageToMessageDecoder<IByteBuffer>
     {

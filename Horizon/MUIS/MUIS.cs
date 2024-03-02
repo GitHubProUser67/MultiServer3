@@ -4,10 +4,10 @@ using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Cryptography;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Pipeline.Tcp;
+using Horizon.RT.Common;
+using Horizon.RT.Cryptography;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
@@ -190,7 +190,7 @@ namespace Horizon.MUIS
         protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (scertClient.CipherService != null)
             {
                 scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;

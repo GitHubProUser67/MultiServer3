@@ -1,14 +1,14 @@
 using CustomLogger;
 using Newtonsoft.Json;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Common;
 using Horizon.DME.Config;
 using Horizon.DME.Models;
 using System.Diagnostics;
 using System.Net;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
-using BackendProject.Horizon.LIBRARY.Database.Models;
+using Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 
 namespace Horizon.DME
@@ -253,7 +253,7 @@ namespace Horizon.DME
             }
 
             // Update default rsa key
-            BackendProject.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
 
             if (Settings.DefaultKey != null)
                 GlobalAuthPublic = new RSA_KEY(Settings.DefaultKey.N.ToByteArrayUnsigned().Reverse().ToArray());

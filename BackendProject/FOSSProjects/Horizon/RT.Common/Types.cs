@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Common
+namespace Horizon.RT.Common
 {
     #region RT_MSG
     public enum RT_MSG_TYPE : byte

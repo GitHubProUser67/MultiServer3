@@ -148,7 +148,7 @@ namespace TycoonServer
 
                 _Server.Start();
                 IsStarted = true;
-                LoggerAccessor.LogInfo("Tycoon Server initiated...");
+                LoggerAccessor.LogInfo($"Tycoon Server initiated on port: {port}...");
             }
         }
 

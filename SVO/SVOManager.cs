@@ -1,5 +1,5 @@
 using CustomLogger;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.LIBRARY.Common;
 
 namespace SVO
 {

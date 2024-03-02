@@ -1,4 +1,4 @@
-﻿using BackendProject.MiscUtils;
+using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Net;
 using System.Text;
@@ -60,21 +60,12 @@ namespace Horizon.MUM
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                         string? query = ctx.Request.Query.Querystring;
-                        string? base64json = null;
+                        ctx.Response.ContentType = "text/xml; charset=UTF-8";
 
                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                         {
                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                            if (!string.IsNullOrEmpty(query) && query.Contains("ApiKey=") && query[7..] == HorizonServerConfiguration.MediusAPIKey)
-                            {
-                                ctx.Response.ContentType = "application/json; charset=UTF-8";
-                                base64json = MumChannelHandler.JsonSerializeChannelsList(false);
-                            }
-                            else
-                            {
-                                ctx.Response.ContentType = "text/xml; charset=UTF-8";
-                                base64json = MumChannelHandler.JsonSerializeChannelsList(true);
-                            }
+                            string? base64json = MumChannelHandler.JsonSerializeChannelsList();
 
                             if (!string.IsNullOrEmpty(base64json))
                                 await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(base64json)));
@@ -82,20 +73,7 @@ namespace Horizon.MUM
                                 await ctx.Response.Send();
                         }
                         else
-                        {
-                            if (!string.IsNullOrEmpty(query) && query.Contains("ApiKey=") && query[7..] == HorizonServerConfiguration.MediusAPIKey)
-                            {
-                                ctx.Response.ContentType = "application/json; charset=UTF-8";
-                                base64json = MumChannelHandler.JsonSerializeChannelsList(false);
-                            }
-                            else
-                            {
-                                ctx.Response.ContentType = "text/xml; charset=UTF-8";
-                                base64json = MumChannelHandler.JsonSerializeChannelsList(true);
-                            }
-
-                            await ctx.Response.Send(base64json);
-                        }
+                            await ctx.Response.Send(MumChannelHandler.JsonSerializeChannelsList());
                     }
                 });
 
@@ -114,15 +92,11 @@ namespace Horizon.MUM
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
                         string? query = ctx.Request.Query.Querystring;
-                        string? base64xml = null;
 
                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                         {
                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                            if (!string.IsNullOrEmpty(query) && query.Contains("ApiKey=") && query[7..] == HorizonServerConfiguration.MediusAPIKey)
-                                base64xml = MumChannelHandler.XMLSerializeChannelsList(false);
-                            else
-                                base64xml = MumChannelHandler.XMLSerializeChannelsList(true);
+                            string? base64xml = MumChannelHandler.XMLSerializeChannelsList();
 
                             if (!string.IsNullOrEmpty(base64xml))
                                 await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(base64xml)));
@@ -130,14 +104,7 @@ namespace Horizon.MUM
                                 await ctx.Response.Send();
                         }
                         else
-                        {
-                            if (!string.IsNullOrEmpty(query) && query.Contains("ApiKey=") && query[7..] == HorizonServerConfiguration.MediusAPIKey)
-                                base64xml = MumChannelHandler.XMLSerializeChannelsList(false);
-                            else
-                                base64xml = MumChannelHandler.XMLSerializeChannelsList(true);
-
-                            await ctx.Response.Send(base64xml);
-                        }
+                            await ctx.Response.Send(MumChannelHandler.XMLSerializeChannelsList());
                     }
                 });
 

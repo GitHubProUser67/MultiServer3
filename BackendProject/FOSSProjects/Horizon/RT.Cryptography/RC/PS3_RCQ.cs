@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Cryptography.RC
+namespace Horizon.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
     {

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace BackendProject.Horizon.LIBRARY.Common.Stream
+namespace Horizon.LIBRARY.Common.Stream
 {
     public class MessageReader : BinaryReader
     {

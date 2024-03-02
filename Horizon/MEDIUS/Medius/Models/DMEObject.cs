@@ -1,6 +1,6 @@
 using CustomLogger;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
 using System.Net;
 
 namespace Horizon.MEDIUS.Medius.Models

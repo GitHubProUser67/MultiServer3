@@ -3,14 +3,14 @@ using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Pipeline.Udp;
+using Horizon.RT.Common;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Pipeline.Udp;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.DME.PluginArgs;
-using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
+using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.PluginManager;
 
 namespace Horizon.DME
@@ -71,9 +71,9 @@ namespace Horizon.DME
                 OnChannelActive = channel =>
                 {
                     // get scert client
-                    if (!channel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                        channel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-                    var scertClient = channel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+                    if (!channel.HasAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                        channel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+                    var scertClient = channel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
                     //scertClient.CipherService.GetCipher(CipherContext.RC_CLIENT_SESSION);
 

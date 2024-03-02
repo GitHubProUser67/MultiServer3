@@ -1,6 +1,6 @@
 using CustomLogger;
 
-namespace BackendProject.Horizon.RT.Cryptography
+namespace Horizon.RT.Cryptography
 {
     public class CipherService
     {

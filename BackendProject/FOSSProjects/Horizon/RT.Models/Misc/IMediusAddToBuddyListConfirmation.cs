@@ -1,6 +1,6 @@
-using BackendProject.Horizon.RT.Common;
+using Horizon.RT.Common;
 
-namespace BackendProject.Horizon.RT.Models.Misc
+namespace Horizon.RT.Models.Misc
 {
     public interface IMediusAddToBuddyListConfirmationRequest
     {

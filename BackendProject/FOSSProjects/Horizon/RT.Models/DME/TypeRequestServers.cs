@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Models.DME
+namespace Horizon.RT.Models.DME
 {
     internal class TypeRequestServers
     {

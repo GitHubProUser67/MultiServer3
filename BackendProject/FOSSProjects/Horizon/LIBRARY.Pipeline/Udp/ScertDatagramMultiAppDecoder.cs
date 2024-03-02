@@ -1,9 +1,9 @@
 using CustomLogger;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Models;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Udp
+namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramMultiAppDecoder : MessageToMessageDecoder<ScertDatagramPacket>
     {

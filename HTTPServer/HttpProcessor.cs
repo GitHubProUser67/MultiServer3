@@ -366,13 +366,6 @@ namespace HTTPServer
                                                                         };
                                                                 }
                                                                 break;
-                                                            case "/!GetMediaList":
-                                                            case "/!GetMediaList/":
-                                                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                                    response = HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder, "mp4"))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
-                                                                else
-                                                                    response = HttpResponse.Send(FileStructureToJson.GetMediaFilesAsJson(HTTPServerConfiguration.HTTPStaticFolder, "mp4"), "application/json");
-                                                                break;
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");

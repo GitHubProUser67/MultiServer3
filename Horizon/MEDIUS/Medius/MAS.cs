@@ -1,16 +1,16 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Cryptography;
-using BackendProject.Horizon.RT.Cryptography.RSA;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Common;
+using Horizon.RT.Cryptography;
+using Horizon.RT.Cryptography.RSA;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.PluginManager;
 using System.Net;
-using BackendProject.Horizon.LIBRARY.Database.Models;
+using Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 using Horizon.MUM;
 using Newtonsoft.Json.Linq;
@@ -43,7 +43,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
@@ -253,7 +253,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
                 return;
 

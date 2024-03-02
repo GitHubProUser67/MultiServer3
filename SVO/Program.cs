@@ -2,7 +2,7 @@ using SVO;
 using CustomLogger;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
-using BackendProject.Horizon.LIBRARY.Database;
+using Horizon.LIBRARY.Database;
 using System.Runtime;
 using System.Net;
 using BackendProject.MiscUtils;

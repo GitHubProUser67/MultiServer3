@@ -1,7 +1,7 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     /// <summary>
     /// Response to Medius Servers with the status of a particular world and whether it is allowed to be connected to this host

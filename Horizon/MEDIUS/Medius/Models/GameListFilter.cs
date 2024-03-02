@@ -1,4 +1,4 @@
-using BackendProject.Horizon.RT.Common;
+using Horizon.RT.Common;
 using Horizon.MUM;
 
 namespace Horizon.MEDIUS.Medius.Models

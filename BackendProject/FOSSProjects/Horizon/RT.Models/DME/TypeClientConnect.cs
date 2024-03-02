@@ -1,8 +1,8 @@
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+using Horizon.LIBRARY.Common.Stream;
 using System.Net;
 
-namespace BackendProject.Horizon.RT.Models
+namespace Horizon.RT.Models
 {
     [MediusMessage(NetMessageClass.MessageClassDME, MediusDmeMessageIds.ClientConnect)]
     public class TypeClientConnect : BaseDMEMessage

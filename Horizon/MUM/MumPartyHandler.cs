@@ -1,4 +1,4 @@
-﻿namespace Horizon.MUM
+namespace Horizon.MUM
 {
     public class MumPartyHandler
     {

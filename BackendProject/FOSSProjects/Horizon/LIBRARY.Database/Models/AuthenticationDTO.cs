@@ -1,9 +1,8 @@
-namespace BackendProject.Horizon.LIBRARY.Database.Models
+namespace Horizon.LIBRARY.Database.Models
 {
     public class AuthenticationRequest
     {
         public string? AccountName { get; set; }
-
         public string? Password { get; set; }
     }
 

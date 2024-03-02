@@ -1,7 +1,7 @@
 using DotNetty.Common.Utilities;
-using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
+using Horizon.LIBRARY.Pipeline.Attribute;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline
+namespace Horizon.LIBRARY.Pipeline
 {
     public static class Constants
     {

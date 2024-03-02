@@ -1,4 +1,4 @@
-namespace BackendProject.Horizon.RT.Cryptography
+namespace Horizon.RT.Cryptography
 {
     /// <summary>
     /// The highest 3 bits of the hash.

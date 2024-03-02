@@ -1,7 +1,7 @@
-using BackendProject.Horizon.RT.Models;
+using Horizon.RT.Models;
 using System.Net;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Udp
+namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramPacket
     {

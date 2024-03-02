@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Math;
 
-namespace BackendProject.Horizon.RT.Cryptography.RSA
+namespace Horizon.RT.Cryptography.RSA
 {
     public class PS3_RSA : PS2_RSA
     {

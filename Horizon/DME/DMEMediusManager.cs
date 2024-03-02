@@ -2,15 +2,15 @@ using CustomLogger;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
-using BackendProject.Horizon.RT.Common;
-using BackendProject.Horizon.RT.Cryptography;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Pipeline.Tcp;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Common;
+using Horizon.RT.Cryptography;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Pipeline.Tcp;
+using Horizon.LIBRARY.Common;
 using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
-using BackendProject.Horizon.LIBRARY.Pipeline.Attribute;
+using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.MEDIUS;
 
 namespace Horizon.DME
@@ -268,9 +268,9 @@ namespace Horizon.DME
 
             _mpsState = MPSConnectionState.CONNECTED;
 
-            if (_mpsChannel != null && !_mpsChannel.HasAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                _mpsChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = _mpsChannel?.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (_mpsChannel != null && !_mpsChannel.HasAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                _mpsChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = _mpsChannel?.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (scertClient != null)
             {
                 scertClient.RsaAuthKey = DmeClass.Settings.MPS.Key;
@@ -299,7 +299,7 @@ namespace Horizon.DME
         private async Task ProcessMessage(BaseScertMessage message, IChannel serverChannel)
         {
             // Get ScertClient data
-            var scertClient = serverChannel.GetAttribute(BackendProject.Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = serverChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
             switch (message)
             {

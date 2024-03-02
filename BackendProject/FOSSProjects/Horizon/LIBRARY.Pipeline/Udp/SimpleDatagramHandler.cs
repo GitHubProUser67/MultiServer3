@@ -2,7 +2,7 @@ using CustomLogger;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Udp
+namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class SimpleDatagramHandler : SimpleChannelInboundHandler<DatagramPacket>
     {

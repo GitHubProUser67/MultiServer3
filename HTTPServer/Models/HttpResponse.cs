@@ -14,6 +14,7 @@ namespace HTTPServer.Models
         OK = 200,
         Created = 201,
         Accepted = 202,
+        No_Content = 204,
         Partial_Content = 206,
         MovedPermanently = 301,
         Found = 302,

@@ -1,5 +1,5 @@
 using Org.BouncyCastle.Math;
-using BackendProject.Horizon.RT.Cryptography.RSA;
+using Horizon.RT.Cryptography.RSA;
 using BackendProject.MiscUtils;
 
 namespace Horizon.DME.Config

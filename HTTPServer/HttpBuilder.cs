@@ -59,6 +59,14 @@ namespace HTTPServer
             };
         }
 
+        public static HttpResponse NoContent()
+        {
+            return new HttpResponse(false)
+            {
+                HttpStatusCode = HttpStatusCode.No_Content,
+            };
+        }
+
         public static HttpResponse NotFound()
         {
             return new HttpResponse(false)

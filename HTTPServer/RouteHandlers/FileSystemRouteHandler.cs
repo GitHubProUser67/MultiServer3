@@ -144,6 +144,19 @@ namespace HTTPServer.RouteHandlers
                 else
                     return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest), "application/json");
             }
+            else if (request.QueryParameters != null && request.QueryParameters.TryGetValue("m3u", out queryparam) && queryparam == "on")
+            {
+                string? m3ufile = StaticFileSystemUtils.GetM3UStreamFromDirectory(local_path[..^1], httpdirectoryrequest);
+                if (!string.IsNullOrEmpty(m3ufile))
+                {
+                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                        return HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                    else
+                        return HttpResponse.Send(m3ufile, "audio/x-mpegurl");
+                }
+                else
+                    return HttpBuilder.NoContent();
+            }
             else
             {
                 foreach (string indexFile in HTTPUtils.DefaultDocuments)

@@ -1,12 +1,12 @@
 using CustomLogger;
 using Newtonsoft.Json;
-using BackendProject.Horizon.RT.Models;
-using BackendProject.Horizon.LIBRARY.Common;
+using Horizon.RT.Models;
+using Horizon.LIBRARY.Common;
 using Horizon.MUIS.Config;
 using Horizon.PluginManager;
 using System.Net;
 using Horizon.HTTPSERVICE;
-using BackendProject.Horizon.LIBRARY.Database.Models;
+using Horizon.LIBRARY.Database.Models;
 using BackendProject.MiscUtils;
 
 namespace Horizon.MUIS
@@ -1011,7 +1011,7 @@ namespace Horizon.MUIS
             }
 
             // Update default rsa key
-            BackendProject.Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
+            Horizon.LIBRARY.Pipeline.Attribute.ScertClientAttribute.DefaultRsaAuthKey = Settings.DefaultKey;
         }
 
         private static void RefreshServerIp()

@@ -1,4 +1,4 @@
-﻿using BackendProject.MiscUtils;
+using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Net;
 using System.Text;

@@ -1,7 +1,7 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
 
-namespace BackendProject.Horizon.LIBRARY.Pipeline.Udp
+namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramHandler : SimpleChannelInboundHandler<ScertDatagramPacket>
     {
