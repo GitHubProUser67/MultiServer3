@@ -104,30 +104,14 @@ namespace BackendProject.WebAPIs.OHS
                     }
 
                     if (value != null)
-                    {
-                        if (JToken.FromObject(value).Type == JTokenType.String)
-                            // Handle string type
-                            output = "\"" + JToken.FromObject(value).ToString() + "\"";
-                        else if (JToken.FromObject(value).Type == JTokenType.Integer)
-                            // Handle integer type
-                            output = JToken.FromObject(value).ToString();
-                        else if (JToken.FromObject(value).Type == JTokenType.Float)
-                            // Handle integer type
-                            output = JToken.FromObject(value).ToString();
-                        else if (JToken.FromObject(value).Type == JTokenType.Array)
-                            // Handle array type
-                            output = JaminProcessor.ConvertToLuaTable(JToken.FromObject(value), false);
-                        else if (JToken.FromObject(value).Type == JTokenType.Boolean)
-                            // Handle boolean type
-                            output = JToken.FromObject(value).ToObject<bool>() ? "true" : "false";
-                    }
+                        output = JaminProcessor.JsonValueToLuaValue(JToken.FromObject(value));
+
                     /*
                     // Process the data and add it to the JSON file
                     string jsonData = dataforohs; //JaminProcessor.JaminFormat(dataforohs, game);
                     WriteToJsonFile(jsonData, Path.Combine(directoryPath, "Global.json"));
                     LoggerAccessor.LogInfo("Successfully added items as globalitems!!");
                     */
-
                 }
             }
             catch (Exception ex)
@@ -188,7 +172,7 @@ namespace BackendProject.WebAPIs.OHS
 
                     //if (string.IsNullOrEmpty(filedata))
 
-                    output = "{ " + JaminProcessor.ConvertToLuaTable(JToken.Parse(filedata), true) + " }";
+                    output = "{ " + JaminProcessor.ConvertJTokenToLuaTable(JToken.Parse(filedata), true) + " }";
                     LoggerAccessor.LogWarn($"[UserInventory] GetGlobalItems - {output}");
                 }
                 else
@@ -310,14 +294,14 @@ namespace BackendProject.WebAPIs.OHS
                                         output = JToken.FromObject(invItemsToChange).ToString();
                                     else if (JToken.FromObject(invItemsToChange).Type == JTokenType.Array)
                                         // Handle array type
-                                        output = JaminProcessor.ConvertToLuaTable(JToken.FromObject(invItemsToChange), false);
+                                        output = JaminProcessor.ConvertJTokenToLuaTable(JToken.FromObject(invItemsToChange), false);
                                     else if (JToken.FromObject(invItemsToChange).Type == JTokenType.Boolean)
                                         // Handle boolean type
                                         output = JToken.FromObject(invItemsToChange).ToObject<bool>() ? "true" : "false";
                                 }
 
 
-                                string datafrominventory = JaminProcessor.ConvertToLuaTable(JToken.Parse(invFileData), false);
+                                string datafrominventory = JaminProcessor.ConvertJTokenToLuaTable(JToken.Parse(invFileData), false);
 
                                 output = datafrominventory;
 
@@ -334,7 +318,7 @@ namespace BackendProject.WebAPIs.OHS
 
                                 string invCh = (string)invItemsToChange;
 
-                                string datafrominventory = JaminProcessor.ConvertToLuaTable(JArray.Parse(invCh), false);
+                                string datafrominventory = JaminProcessor.ConvertJTokenToLuaTable(JArray.Parse(invCh), false);
 
                                 output = datafrominventory;
                                 fs.Close();
@@ -424,7 +408,7 @@ namespace BackendProject.WebAPIs.OHS
 
                                             if (inventorydata != null)
                                             {
-                                                string datafrominventory = JaminProcessor.ConvertToLuaTable(JObject.Parse(inventorydata), false);
+                                                string datafrominventory = JaminProcessor.ConvertJTokenToLuaTable(JObject.Parse(inventorydata), false);
 
                                                 if (resultBuilder.Length == 0)
                                                     resultBuilder.Append($"{{ [\"{key}\"] = {datafrominventory}");

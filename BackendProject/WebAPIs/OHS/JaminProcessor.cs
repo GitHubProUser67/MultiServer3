@@ -153,7 +153,7 @@ namespace BackendProject.WebAPIs.OHS
         }
 
         // Function to convert a JToken to a Lua table-like string
-        public static string ConvertToLuaTable(JToken token, bool nested, string? propertyName = null)
+        public static string ConvertJTokenToLuaTable(JToken token, bool nested, string? propertyName = null)
         {
             int arrayIndex = 1;
 
@@ -177,7 +177,7 @@ namespace BackendProject.WebAPIs.OHS
                             resultBuilder.Append($"[\"{property.Name}\"] = {{ ");
                             foreach (JToken arrayItem in property.Value)
                             {
-                                resultBuilder.Append($"{ConvertToLuaTable(arrayItem, true)}");
+                                resultBuilder.Append($"{ConvertJTokenToLuaTable(arrayItem, true)}");
                                 if (arrayIndex < property.Value.Count())
                                     resultBuilder.Append(", ");
                                 arrayIndex++;
@@ -187,9 +187,9 @@ namespace BackendProject.WebAPIs.OHS
                         }
                         else if (property.Value.Type == JTokenType.Object)
                             // Handle nested object type
-                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertToLuaTable(property.Value, true, property.Name)}, ");
+                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertJTokenToLuaTable(property.Value, true, property.Name)}, ");
                         else
-                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertToLuaTable(property.Value, true)}, ");
+                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertJTokenToLuaTable(property.Value, true)}, ");
                     }
 
                     if (resultBuilder.Length > 2)
@@ -224,7 +224,7 @@ namespace BackendProject.WebAPIs.OHS
                             resultBuilder.Append($"{{ ");
                             foreach (JToken arrayItem in property.Value)
                             {
-                                resultBuilder.Append($"{ConvertToLuaTable(arrayItem, true)}");
+                                resultBuilder.Append($"{ConvertJTokenToLuaTable(arrayItem, true)}");
                                 if (arrayIndex < property.Value.Count())
                                     resultBuilder.Append(", ");
                                 arrayIndex++;
@@ -234,9 +234,9 @@ namespace BackendProject.WebAPIs.OHS
                         }
                         else if (property.Value.Type == JTokenType.Object)
                             // Handle nested object type
-                            resultBuilder.Append($"{ConvertToLuaTable(property.Value, true, property.Name)}, ");
+                            resultBuilder.Append($"{ConvertJTokenToLuaTable(property.Value, true, property.Name)}, ");
                         else
-                            resultBuilder.Append($"{ConvertToLuaTable(property.Value, true)}, ");
+                            resultBuilder.Append($"{ConvertJTokenToLuaTable(property.Value, true)}, ");
                     }
 
                     if (resultBuilder.Length > 2)
@@ -248,6 +248,35 @@ namespace BackendProject.WebAPIs.OHS
                     return $"\"{token.Value<string>()}\"";
                 else
                     return token.ToString(); // For other value types, use their raw string representation
+            }
+        }
+
+        public static string ConvertJObjectStringToLuaTable(JObject jsonObj)
+        {
+            string luaTableString = "{";
+            foreach (JProperty? property in jsonObj.Properties())
+            {
+                luaTableString += $"[\"{property.Name}\"] = {JsonValueToLuaValue(property.Value)}, ";
+            }
+            // Remove the trailing comma and space
+            if (jsonObj.Properties().Any())
+                luaTableString = luaTableString.Remove(luaTableString.Length - 2);
+            luaTableString += "}";
+            return luaTableString;
+        }
+
+        public static string JsonValueToLuaValue(JToken token)
+        {
+            switch (token.Type)
+            {
+                case JTokenType.String:
+                    return $"\"{token}\"";
+                case JTokenType.Object:
+                    return ConvertJObjectStringToLuaTable(JObject.Parse(token.ToString()));
+                case JTokenType.Array:
+                    return ConvertJTokenToLuaTable(token, false);
+                default:
+                    return token.ToString().ToLower();
             }
         }
 

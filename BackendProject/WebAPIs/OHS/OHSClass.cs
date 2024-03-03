@@ -1,5 +1,4 @@
-﻿using System.Runtime.Intrinsics.X86;
-using System.Security;
+﻿using System.Security;
 using System.Text.RegularExpressions;
 
 namespace BackendProject.WebAPIs.OHS
