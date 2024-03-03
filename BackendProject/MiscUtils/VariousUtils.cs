@@ -129,23 +129,46 @@ namespace BackendProject.MiscUtils
         /// <returns>A complex object.</returns>
         public static object? GetValueFromJToken(JToken jToken, string propertyName)
         {
-            JToken? valueToken = jToken[propertyName];
-
-            if (valueToken != null)
+            try
             {
-                if (valueToken.Type == JTokenType.Object || valueToken.Type == JTokenType.Array)
-                    return valueToken.ToObject<object>();
-                else if (valueToken.Type == JTokenType.Integer)
-                    return valueToken.ToObject<int>();
-                else if (valueToken.Type == JTokenType.String)
-                    return valueToken.ToObject<string>();
-                else if (valueToken.Type == JTokenType.Boolean)
-                    return valueToken.ToObject<bool>();
-                else if (valueToken.Type == JTokenType.Float)
-                    return valueToken.ToObject<float>();
+                JToken? valueToken = jToken[propertyName];
+
+                if (valueToken != null)
+                {
+                    if (valueToken.Type == JTokenType.Object || valueToken.Type == JTokenType.Array)
+                        return valueToken.ToObject<object>();
+                    else if (valueToken.Type == JTokenType.Integer)
+                        return valueToken.ToObject<int>();
+                    else if (valueToken.Type == JTokenType.String)
+                        return valueToken.ToObject<string>();
+                    else if (valueToken.Type == JTokenType.Boolean)
+                        return valueToken.ToObject<bool>();
+                    else if (valueToken.Type == JTokenType.Float)
+                        return valueToken.ToObject<float>();
+                }
+            }
+            catch (Exception)
+            {
+                // Not Important.
             }
 
             return null;
+        }
+
+        public static Dictionary<object, object> ExtractKeyValues(string jsonString, string nameProperty)
+        {
+            var jsonObject = JObject.Parse(jsonString);
+            var result = new Dictionary<object, object>();
+
+            if (jsonObject.TryGetValue(nameProperty, out var dataToken) && dataToken is JObject dataObject)
+            {
+                foreach (var property in dataObject.Properties())
+                {
+                    result.Add(property.Name, property.Value);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>

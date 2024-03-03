@@ -37,11 +37,20 @@ namespace BackendProject.WebAPIs.OHS
             {
                 JToken Token = JToken.Parse(dataforohs);
 
-                key = VariousUtils.GetValueFromJToken(Token, "key");
+                object? user = VariousUtils.GetValueFromJToken(Token, "user");
 
                 object? value = VariousUtils.GetValueFromJToken(Token, "value");
 
-                object? user = VariousUtils.GetValueFromJToken(Token, "user");
+                key = VariousUtils.GetValueFromJToken(Token, "key");
+
+                if (value == null && key == null) // Special object (seen in sodium 2)
+                {
+                    KeyValuePair<object, object> firstKeyValuePair = VariousUtils.ExtractKeyValues(Token.ToString(), "data").FirstOrDefault(); // Maybe there can be more?
+
+                    key = firstKeyValuePair.Key;
+
+                    value = firstKeyValuePair.Value;
+                }
 
                 try
                 {
