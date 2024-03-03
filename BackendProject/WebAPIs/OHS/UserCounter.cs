@@ -88,10 +88,8 @@ namespace BackendProject.WebAPIs.OHS
                         }
                     }
 
-                    if (value != null && JToken.FromObject(value).Type == JTokenType.Integer)
-                        // Handle integer type
-                        output = JToken.FromObject(value).ToString();
-
+                    if (value != null)
+                        output = JaminProcessor.JsonValueToLuaValue(JToken.FromObject(value));
                 }
                 catch (Exception ex)
                 {
@@ -286,7 +284,7 @@ namespace BackendProject.WebAPIs.OHS
                             // Check if the "key" property exists and if it is an object
                             if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 // Convert the JToken to a Lua table-like string
-                                output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                         }
                     }
                 }
@@ -362,7 +360,7 @@ namespace BackendProject.WebAPIs.OHS
                                 // Check if the "key" property exists
                                 if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
 
                         }
@@ -438,7 +436,7 @@ namespace BackendProject.WebAPIs.OHS
                             // Check if the "Key" property exists and if it is an object
                             if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 // Convert the JToken to a Lua table-like string
-                                output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                         }
                     }
                 }

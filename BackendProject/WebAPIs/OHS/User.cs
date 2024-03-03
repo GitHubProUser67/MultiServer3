@@ -6,8 +6,6 @@ using static BackendProject.WebAPIs.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
 using BackendProject.MiscUtils;
-using BackendProject.WeBAPIs.VEEMEE;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BackendProject.WebAPIs.OHS
 {
@@ -149,23 +147,7 @@ namespace BackendProject.WebAPIs.OHS
                     }
 
                     if (value != null)
-                    {
-                        if (JToken.FromObject(value).Type == JTokenType.String)
-                            // Handle string type
-                            output = "\"" + JToken.FromObject(value).ToString() + "\"";
-                        else if (JToken.FromObject(value).Type == JTokenType.Integer)
-                            // Handle integer type
-                            output = JToken.FromObject(value).ToString();
-                        else if (JToken.FromObject(value).Type == JTokenType.Float)
-                            // Handle integer type
-                            output = JToken.FromObject(value).ToString();
-                        else if (JToken.FromObject(value).Type == JTokenType.Array)
-                            // Handle array type
-                            output = JaminProcessor.ConvertToLuaTable(JToken.FromObject(value), false);
-                        else if (JToken.FromObject(value).Type == JTokenType.Boolean)
-                            // Handle boolean type
-                            output = JToken.FromObject(value).ToObject<bool>() ? "true" : "false";
-                    }
+                        output = JaminProcessor.JsonValueToLuaValue(JToken.FromObject(value));
                 }
             }
             catch (Exception ex)
@@ -240,7 +222,7 @@ namespace BackendProject.WebAPIs.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
                     }
@@ -258,7 +240,7 @@ namespace BackendProject.WebAPIs.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
                     }
@@ -345,7 +327,7 @@ namespace BackendProject.WebAPIs.OHS
                                     {
 
                                         // Convert the JToken to a Lua table-like string
-                                        output = JaminProcessor.ConvertToLuaTable(ohsKeyValue, false);
+                                        output = JaminProcessor.ConvertJTokenToLuaTable(ohsKeyValue, false);
                                     }
 
                                     LoggerAccessor.LogWarn($"output user/get {output}");
@@ -368,7 +350,7 @@ namespace BackendProject.WebAPIs.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
                         else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
@@ -458,7 +440,7 @@ namespace BackendProject.WebAPIs.OHS
                                     // Check if the "key" property exists and if it is an object
                                     if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
                                         // Convert the JToken to a Lua table-like string
-                                        output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                        output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                                 }
 
                             }
@@ -478,7 +460,7 @@ namespace BackendProject.WebAPIs.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
 
