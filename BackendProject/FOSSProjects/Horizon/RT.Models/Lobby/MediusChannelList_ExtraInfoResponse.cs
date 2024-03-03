@@ -26,9 +26,7 @@ namespace Horizon.RT.Models
         public string? LobbyName; // LOBBYNAME_MAXLEN
         public bool EndOfList;
 
-        public List<int> channelListResponse0 = new List<int>() { };
-
-        public List<int> channelListResponse1 = new List<int>() { 10202, 10304, 10550, 10724 };
+        public List<int> channelList1pre108Response = new() { 10202, 10304, 10550, 10724, 10683, 10684 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -53,14 +51,7 @@ namespace Horizon.RT.Models
             GenericField1 = reader.ReadUInt32();
 
             // Check pre-108 games that use channelList1
-            if (reader.MediusVersion == 108 && channelListResponse1.Contains(reader.AppId))
-            {
-                GenericField2 = reader.ReadUInt32();
-                GenericField3 = reader.ReadUInt32();
-                GenericField4 = reader.ReadUInt32();
-                GenericFieldLevel = reader.Read<MediusWorldGenericFieldLevelType>();
-            }
-            else if (reader.MediusVersion > 108) // Default generally for newer mediustitles
+            if (reader.MediusVersion > 108 || channelList1pre108Response.Contains(reader.AppId))
             {
                 GenericField2 = reader.ReadUInt32();
                 GenericField3 = reader.ReadUInt32();
@@ -94,16 +85,8 @@ namespace Horizon.RT.Models
             writer.Write(SecurityLevel);
             writer.Write(GenericField1);
 
-            // CAREFULL, SOME GAMES MIGHT WANT THIS EXCLUDED
-
-            if (writer.MediusVersion == 108 && channelListResponse1.Contains(writer.AppId))
-            {
-                writer.Write(GenericField2);
-                writer.Write(GenericField3);
-                writer.Write(GenericField4);
-                writer.Write(GenericFieldLevel);
-            }
-            else if (writer.MediusVersion > 108)
+            // Check pre-108 games that use channelList1
+            if (writer.MediusVersion > 108 || channelList1pre108Response.Contains(writer.AppId))
             {
                 writer.Write(GenericField2);
                 writer.Write(GenericField3);

@@ -3301,15 +3301,22 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    Channel? foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
-                                        data.ClientObject.ApplicationId,
-                                        ChannelType.Lobby,
-                                        data.ClientObject.FilterMask1,
-                                        data.ClientObject.FilterMask2,
-                                        data.ClientObject.FilterMask3,
-                                        data.ClientObject.FilterMask4,
-                                        data.ClientObject.FilterMaskLevel
-                                    );
+                                    List<int> nonFilteredChatChannelList = new() { 10683, 10684 }; // Old medius seems to work like MAS and join default channel?
+
+                                    Channel? foundchannel = null;
+
+                                    if (nonFilteredChatChannelList.Contains(data.ClientObject.ApplicationId))
+                                        foundchannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId);
+                                    else
+                                        foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
+                                            data.ClientObject.ApplicationId,
+                                            ChannelType.Lobby,
+                                            data.ClientObject.FilterMask1,
+                                            data.ClientObject.FilterMask2,
+                                            data.ClientObject.FilterMask3,
+                                            data.ClientObject.FilterMask4,
+                                            data.ClientObject.FilterMaskLevel
+                                            );
 
                                     if (foundchannel != null)
                                     {
