@@ -251,15 +251,10 @@ namespace BackendProject.WebAPIs.OHS
                 LoggerAccessor.LogError($"[User] - Json Format Error - {ex}");
             }
 
-            if (output == string.Empty)
-                output = "{ }";
-
-            LoggerAccessor.LogWarn($"JSON OUTPUT: {output}");
-
             if (!string.IsNullOrEmpty(batchparams))
             {
                 if (string.IsNullOrEmpty(output))
-                    return null;
+                    return "{ }";
                 else
                     return output;
             }
@@ -307,8 +302,8 @@ namespace BackendProject.WebAPIs.OHS
                     if (!global)
                     {
                         // Getting the value of the "user" field
-                        string ohsUserName = (string?)jsonObject["user"];
-                        string ohsKey = (string?)jsonObject["key"];
+                        string? ohsUserName = (string?)jsonObject["user"];
+                        string? ohsKey = (string?)jsonObject["key"];
 
                         if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
                         {
@@ -322,17 +317,10 @@ namespace BackendProject.WebAPIs.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
-
                                     if (keyValueToken.ToObject<JObject>().TryGetValue(ohsKey, out JToken? ohsKeyValue))
-                                    {
-
                                         // Convert the JToken to a Lua table-like string
                                         output = JaminProcessor.ConvertJTokenToLuaTable(ohsKeyValue, false);
-                                    }
-
-                                    LoggerAccessor.LogWarn($"output user/get {output}");
                                 }
-
                             }
                         }
                     }
@@ -369,13 +357,10 @@ namespace BackendProject.WebAPIs.OHS
                 LoggerAccessor.LogError($"[User] - Json Format Error - {ex}");
             }
 
-            if (output == string.Empty)
-                output = "{ }";
-
             if (!string.IsNullOrEmpty(batchparams))
             {
                 if (string.IsNullOrEmpty(output))
-                    return null;
+                    return "{ }";
                 else
                     return output;
             }

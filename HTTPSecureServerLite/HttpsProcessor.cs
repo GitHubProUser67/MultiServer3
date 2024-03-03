@@ -1677,30 +1677,40 @@ namespace HTTPSecureServerLite
 
                         string domain = split[0].Trim();
 
-                        // Check if the domain has been processed before
-                        if (!processedDomains.Contains(domain))
+                        lock (processedDomains)
                         {
-                            processedDomains.Add(domain);
+                            // Check if the domain has been processed before
+                            if (!processedDomains.Contains(domain))
+                            {
+                                processedDomains.Add(domain);
 
-                            if (domain.Contains('*'))
-                            {
-                                // Escape all possible URI characters conflicting with Regex
-                                domain = domain.Replace(".", "\\.");
-                                domain = domain.Replace("$", "\\$");
-                                domain = domain.Replace("[", "\\[");
-                                domain = domain.Replace("]", "\\]");
-                                domain = domain.Replace("(", "\\(");
-                                domain = domain.Replace(")", "\\)");
-                                domain = domain.Replace("+", "\\+");
-                                domain = domain.Replace("?", "\\?");
-                                // Replace "*" characters with ".*" which means any number of any character for Regexp
-                                domain = domain.Replace("*", ".*");
-                                StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                            }
-                            else
-                            {
-                                DicRules.Add(domain, dns);
-                                DicRules.Add("www." + domain, dns);
+                                if (domain.Contains('*'))
+                                {
+                                    // Escape all possible URI characters conflicting with Regex
+                                    domain = domain.Replace(".", "\\.");
+                                    domain = domain.Replace("$", "\\$");
+                                    domain = domain.Replace("[", "\\[");
+                                    domain = domain.Replace("]", "\\]");
+                                    domain = domain.Replace("(", "\\(");
+                                    domain = domain.Replace(")", "\\)");
+                                    domain = domain.Replace("+", "\\+");
+                                    domain = domain.Replace("?", "\\?");
+                                    // Replace "*" characters with ".*" which means any number of any character for Regexp
+                                    domain = domain.Replace("*", ".*");
+
+                                    lock (StarRules)
+                                    {
+                                        StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
+                                    }
+                                }
+                                else
+                                {
+                                    lock (DicRules)
+                                    {
+                                        DicRules.Add(domain, dns);
+                                        DicRules.Add("www." + domain, dns);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1722,10 +1732,13 @@ namespace HTTPSecureServerLite
                 // Split the line by tab character
                 string[] parts = line.Split('\t');
 
-                // Check if the line has enough parts and the primary entry is not empty
-                if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
-                    // Add the hostname to the list
-                    hostnames.Add(parts[1].Trim());
+                lock (hostnames)
+                {
+                    // Check if the line has enough parts and the primary entry is not empty
+                    if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
+                        // Add the hostname to the list
+                        hostnames.Add(parts[1].Trim());
+                }
             });
 
             DnsSettings dns = new();
@@ -1762,8 +1775,13 @@ namespace HTTPSecureServerLite
                                     dns.Address = IpFromConfig;
                                 else
                                     dns.Address = VariousUtils.GetLocalIPAddress().ToString();
-                                DicRules.Add(hostname, dns);
-                                DicRules.Add("www." + hostname, dns);
+
+                                lock (DicRules)
+                                {
+                                    DicRules.Add(hostname, dns);
+                                    DicRules.Add("www." + hostname, dns);
+                                }
+
                                 break;
                             }
                         }
