@@ -301,12 +301,12 @@ namespace Horizon.MUM
         public virtual int ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
         {
             // Ensure reassignedGame Old MediusWorldID matches current Game
-            if (reassignGameMediusWorldID.OldMediusWorldID != WorldID)
+            if (reassignGameMediusWorldID.OldMediusWorldID != MediusWorldId)
                 return 0;
 
-            WorldID = reassignGameMediusWorldID.NewMediusWorldID;
+            MediusWorldId = reassignGameMediusWorldID.NewMediusWorldID;
 
-            return WorldID;
+            return MediusWorldId;
         }
 
         public string GetActivePlayerList()

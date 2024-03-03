@@ -421,7 +421,7 @@ namespace Horizon.DME
                         {
                             if (createGameWithAttributesRequest.MessageID != null)
                             {
-                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients);
+                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, (int)createGameWithAttributesRequest.MediusWorldUID);
                                 _worlds.Add(world);
 
                                 Enqueue(new MediusServerCreateGameWithAttributesResponse()
@@ -443,30 +443,11 @@ namespace Horizon.DME
                     {
                         World? world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
                         if (world == null)
-                        {
-                            if (ApplicationId == 20371 || ApplicationId == 20374)
+                            Enqueue(new MediusServerJoinGameResponse()
                             {
-                                World worldHome = new(this, ApplicationId, 256);
-                                _worlds.Add(worldHome);
-
-                                Enqueue(await worldHome.OnJoinGameRequest(joinGameRequest));
-                            }
-                            else if (ApplicationId == 22920)
-                            {
-                                World worldParty = new(this, ApplicationId, 64);
-                                _worlds.Add(worldParty);
-
-                                Enqueue(await worldParty.OnJoinGameRequest(joinGameRequest));
-                            }
-                            else
-                            {
-                                Enqueue(new MediusServerJoinGameResponse()
-                                {
-                                    MessageID = joinGameRequest.MessageID,
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
-                                });
-                            }
-                        }
+                                MessageID = joinGameRequest.MessageID,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
+                            });
                         else
                             Enqueue(await world.OnJoinGameRequest(joinGameRequest));
                         break;
