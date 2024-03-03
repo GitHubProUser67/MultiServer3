@@ -1636,7 +1636,8 @@ namespace HTTPSecureServerLite
             {
                 HashSet<string> processedDomains = new();
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                Parallel.ForEach(rules, s => {
+                foreach (var s in rules)
+                {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
 
@@ -1677,44 +1678,35 @@ namespace HTTPSecureServerLite
 
                         string domain = split[0].Trim();
 
-                        lock (processedDomains)
+                        // Check if the domain has been processed before
+                        if (!processedDomains.Contains(domain))
                         {
-                            // Check if the domain has been processed before
-                            if (!processedDomains.Contains(domain))
+                            processedDomains.Add(domain);
+
+                            if (domain.Contains('*'))
                             {
-                                processedDomains.Add(domain);
+                                // Escape all possible URI characters conflicting with Regex
+                                domain = domain.Replace(".", "\\.");
+                                domain = domain.Replace("$", "\\$");
+                                domain = domain.Replace("[", "\\[");
+                                domain = domain.Replace("]", "\\]");
+                                domain = domain.Replace("(", "\\(");
+                                domain = domain.Replace(")", "\\)");
+                                domain = domain.Replace("+", "\\+");
+                                domain = domain.Replace("?", "\\?");
+                                // Replace "*" characters with ".*" which means any number of any character for Regexp
+                                domain = domain.Replace("*", ".*");
 
-                                if (domain.Contains('*'))
-                                {
-                                    // Escape all possible URI characters conflicting with Regex
-                                    domain = domain.Replace(".", "\\.");
-                                    domain = domain.Replace("$", "\\$");
-                                    domain = domain.Replace("[", "\\[");
-                                    domain = domain.Replace("]", "\\]");
-                                    domain = domain.Replace("(", "\\(");
-                                    domain = domain.Replace(")", "\\)");
-                                    domain = domain.Replace("+", "\\+");
-                                    domain = domain.Replace("?", "\\?");
-                                    // Replace "*" characters with ".*" which means any number of any character for Regexp
-                                    domain = domain.Replace("*", ".*");
-
-                                    lock (StarRules)
-                                    {
-                                        StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                                    }
-                                }
-                                else
-                                {
-                                    lock (DicRules)
-                                    {
-                                        DicRules.Add(domain, dns);
-                                        DicRules.Add("www." + domain, dns);
-                                    }
-                                }
+                                StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
+                            }
+                            else
+                            {
+                                DicRules.Add(domain, dns);
+                                DicRules.Add("www." + domain, dns);
                             }
                         }
                     }
-                });
+                }
             }
 
             LoggerAccessor.LogInfo("[HTTPS_DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
@@ -1728,23 +1720,21 @@ namespace HTTPSecureServerLite
             // Define a list to store extracted hostnames
             List<string> hostnames = new();
 
-            Parallel.ForEach(lines, line => {
+            foreach (var line in lines)
+            {
                 // Split the line by tab character
                 string[] parts = line.Split('\t');
 
-                lock (hostnames)
-                {
-                    // Check if the line has enough parts and the primary entry is not empty
-                    if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
-                        // Add the hostname to the list
-                        hostnames.Add(parts[1].Trim());
-                }
-            });
+                // Check if the line has enough parts and the primary entry is not empty
+                if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
+                    // Add the hostname to the list
+                    hostnames.Add(parts[1].Trim());
+            }
 
             DnsSettings dns = new();
 
-            // Iterate through the extracted hostnames and search for corresponding .dns files
-            Parallel.ForEach(hostnames, hostname => {
+            foreach (var hostname in hostnames)
+            {
                 string dnsFilePath = Path.GetDirectoryName(Filename) + $"/{hostname}.dns";
 
                 // Check if the .dns file exists
@@ -1776,18 +1766,15 @@ namespace HTTPSecureServerLite
                                 else
                                     dns.Address = VariousUtils.GetLocalIPAddress().ToString();
 
-                                lock (DicRules)
-                                {
-                                    DicRules.Add(hostname, dns);
-                                    DicRules.Add("www." + hostname, dns);
-                                }
+                                DicRules.Add(hostname, dns);
+                                DicRules.Add("www." + hostname, dns);
 
                                 break;
                             }
                         }
                     }
                 }
-            });
+            }
 
             return DicRules;
         }
