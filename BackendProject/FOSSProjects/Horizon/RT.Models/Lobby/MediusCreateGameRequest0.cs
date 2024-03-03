@@ -9,7 +9,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.CreateGameRequest0)]
     public class MediusCreateGameRequest0 : BaseLobbyMessage, IMediusRequest
     {
-
         public override byte PacketType => (byte)MediusLobbyMessageIds.CreateGameRequest0;
 
         public MessageId MessageID { get; set; }

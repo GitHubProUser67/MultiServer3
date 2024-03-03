@@ -18,27 +18,13 @@ namespace Horizon.DME.Models
 
         private static ConcurrentDictionary<int, World> _idToWorld = new ConcurrentDictionary<int, World>();
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new ConcurrentDictionary<int, bool>();
-        private static int _idCounter = 0;
         private static object _lock = new object();
 
-        private void RegisterWorld()
+        private void RegisterWorld(int WorldId)
         {
-            int totalIdsCounted = 0;
-            while (totalIdsCounted < MAX_WORLDS && _idToWorld.ContainsKey(_idCounter))
-            {
-                _idCounter = (_idCounter + 1) % MAX_WORLDS;
-                ++totalIdsCounted;
-            }
-
-            if (totalIdsCounted == MAX_WORLDS)
-            {
-                LoggerAccessor.LogError("Max worlds reached!");
-                return;
-            }
-
-            WorldId = _idCounter++;
-            _idToWorld.TryAdd(WorldId, this);
-            LoggerAccessor.LogInfo($"Registered world with id {WorldId}");
+            this.WorldId = WorldId;
+            _idToWorld.TryAdd(this.WorldId, this);
+            LoggerAccessor.LogInfo($"Registered world with id {this.WorldId}");
         }
 
         private void FreeWorld()
@@ -93,7 +79,7 @@ namespace Horizon.DME.Models
 
         public DMEMediusManager? Manager { get; } = null;
         
-        public World(DMEMediusManager manager, int appId, int maxPlayers)
+        public World(DMEMediusManager manager, int appId, int maxPlayers, int WorldId)
         {
             Manager = manager;
             ApplicationId = appId;
@@ -102,7 +88,7 @@ namespace Horizon.DME.Models
             for (int i = 0; i < MAX_CLIENTS_PER_WORLD; ++i)
                 _pIdIsUsed.TryAdd(i, false);
 
-            RegisterWorld();
+            RegisterWorld(WorldId);
             MaxPlayers = maxPlayers;
         }
 
