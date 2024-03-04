@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace BackendProject.HomeTools.UnBAR
 {
-    public class LegacyMapper
+    public partial class LegacyMapper
     {
         // Declare a global list to store file paths
         private readonly List<string> filePathList = new();
@@ -20,7 +20,7 @@ namespace BackendProject.HomeTools.UnBAR
 
                 if (string.IsNullOrEmpty(prefix))
                 {
-                    Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(foldertomap);
+                    Match match = UUIDRegex().Match(foldertomap);
                     if (match.Success)
                         prefix = $"objects/{match.Groups[0].Value}/";
                     File.WriteAllText(foldertomap + "/ObjectXMLBruteforce.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
@@ -868,5 +868,8 @@ namespace BackendProject.HomeTools.UnBAR
             });
             return mappedListList;
         }
+
+        [GeneratedRegex("[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}")]
+        private static partial Regex UUIDRegex();
     }
 }

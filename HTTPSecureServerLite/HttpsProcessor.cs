@@ -13,6 +13,7 @@ using BackendProject.WebTools;
 using CustomLogger;
 using HttpMultipartParser;
 using Newtonsoft.Json;
+using PSHostsFile;
 using System.Collections.Specialized;
 using System.Net;
 using System.Net.Security;
@@ -25,7 +26,7 @@ using WatsonWebserver.Lite;
 
 namespace HTTPSecureServerLite
 {
-    public class HttpsProcessor
+    public partial class HttpsProcessor
     {
         private static Dictionary<string, DnsSettings>? DicRules = null;
         private static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
@@ -56,7 +57,7 @@ namespace HTTPSecureServerLite
 
         private static bool IsIPAllowed(string ipAddress)
         {
-            if ((HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress))
+            if (HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress)
                 || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost"
                 || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress().ToString().ToLower()
                 || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress(true).ToString().ToLower())
@@ -118,7 +119,7 @@ namespace HTTPSecureServerLite
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
-                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/objects/D2CDD8B2-DE444593-A64C68CB-0B5EDE23/{id}.xml", async (HttpContextBase ctx) =>
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/objects/D2CDD8B2-DE444593-A64C68CB-0B5EDE23/{id}.xml", async (ctx) =>
                 {
                     string? QuizID = ctx.Request.Url.Parameters["id"];
 
@@ -522,7 +523,7 @@ namespace HTTPSecureServerLite
                                                 {
                                                     if (arparuleaddr != null)
                                                     {
-                                                        if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                                        if (arparuleaddr.AddressFamily == AddressFamily.InterNetwork)
                                                         {
                                                             // Split the IP address into octets
                                                             string[] octets = arparuleaddr.ToString().Split('.');
@@ -1040,7 +1041,7 @@ namespace HTTPSecureServerLite
                                             {
                                                 if (arparuleaddr != null)
                                                 {
-                                                    if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                                    if (arparuleaddr.AddressFamily == AddressFamily.InterNetwork)
                                                     {
                                                         // Split the IP address into octets
                                                         string[] octets = arparuleaddr.ToString().Split('.');
@@ -1636,7 +1637,7 @@ namespace HTTPSecureServerLite
             {
                 HashSet<string> processedDomains = new();
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (var s in rules)
+                foreach (string s in rules)
                 {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
@@ -1657,16 +1658,7 @@ namespace HTTPSecureServerLite
                             case "redirect":
                                 dns.Mode = HandleMode.Redirect;
                                 string IpFromConfig = split[2].Trim();
-                                if (Regex.IsMatch(IpFromConfig, @"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,7}:$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|"
-                                                                + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
+                                if (IpRegex().IsMatch(IpFromConfig))
                                     dns.Address = IpFromConfig;
                                 else
                                     dns.Address = VariousUtils.GetLocalIPAddress().ToString();
@@ -1709,6 +1701,25 @@ namespace HTTPSecureServerLite
                 }
             }
 
+            foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
+            {
+                string domain = hostsEntry.Hostname;
+
+                DnsSettings dns = new()
+                {
+                    Mode = HandleMode.Redirect,
+                    Address = hostsEntry.Address
+                };
+
+                // Check if the domain has been processed before
+                if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
+                {
+                    // Hosts entry should not support wildcard in theory, so only DicRules.
+                    DicRules.Add(domain, dns);
+                    DicRules.Add("www." + domain, dns);
+                }
+            }
+
             LoggerAccessor.LogInfo("[HTTPS_DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
@@ -1720,7 +1731,7 @@ namespace HTTPSecureServerLite
             // Define a list to store extracted hostnames
             List<string> hostnames = new();
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 // Split the line by tab character
                 string[] parts = line.Split('\t');
@@ -1733,7 +1744,7 @@ namespace HTTPSecureServerLite
 
             DnsSettings dns = new();
 
-            foreach (var hostname in hostnames)
+            foreach (string hostname in hostnames)
             {
                 string dnsFilePath = Path.GetDirectoryName(Filename) + $"/{hostname}.dns";
 
@@ -1747,21 +1758,12 @@ namespace HTTPSecureServerLite
                         if (line.StartsWith("\t\tA"))
                         {
                             // Extract the IP address using a regular expression
-                            Match match = Regex.Match(line, @"A\s+(\S+)");
+                            Match match = SimpleDNSRegex().Match(line);
                             if (match.Success)
                             {
                                 dns.Mode = HandleMode.Redirect;
                                 string IpFromConfig = match.Groups[1].Value;
-                                if (Regex.IsMatch(IpFromConfig, @"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,7}:$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|"
-                                                                + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
+                                if (IpRegex().IsMatch(IpFromConfig))
                                     dns.Address = IpFromConfig;
                                 else
                                     dns.Address = VariousUtils.GetLocalIPAddress().ToString();
@@ -1796,5 +1798,11 @@ namespace HTTPSecureServerLite
             Allow,
             Redirect
         }
+
+        [GeneratedRegex("^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,7}:$|^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|^:((:[0-9a-fA-F]{0,4}){0,6})?$")]
+        private static partial Regex IpRegex();
+
+        [GeneratedRegex("A\\s+(\\S+)")]
+        private static partial Regex SimpleDNSRegex();
     }
 }

@@ -1,5 +1,6 @@
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using BackendProject.MiscUtils;
 
 namespace Horizon.RT.Models
 {
@@ -41,6 +42,8 @@ namespace Horizon.RT.Models
                 writer.Write(UNK0);
             writer.Write(AppId);
             writer.Write(Key);
+            writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
+            writer.Write(AccessToken, Constants.NET_ACCESS_KEY_LEN);
         }
 
         public override string ToString()
