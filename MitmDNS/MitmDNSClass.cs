@@ -1,5 +1,7 @@
 using BackendProject.MiscUtils;
 using CustomLogger;
+using PSHostsFile;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -7,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace MitmDNS
 {
-    public class MitmDNSClass
+    public partial class MitmDNSClass
     {
         public static Dictionary<string, DnsSettings>? DicRules = null;
         public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
@@ -63,7 +65,7 @@ namespace MitmDNS
             {
                 HashSet<string> processedDomains = new();
                 string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (var s in rules)
+                foreach (string s in rules)
                 {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
@@ -84,16 +86,7 @@ namespace MitmDNS
                             case "redirect":
                                 dns.Mode = HandleMode.Redirect;
                                 string IpFromConfig = split[2].Trim();
-                                if (Regex.IsMatch(IpFromConfig, @"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,7}:$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|"
-                                                                + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
+                                if (IpRegex().IsMatch(IpFromConfig))
                                     dns.Address = IpFromConfig;
                                 else
                                     dns.Address = VariousUtils.GetLocalIPAddress().ToString();
@@ -136,6 +129,25 @@ namespace MitmDNS
                 }
             }
 
+            foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
+            {
+                string domain = hostsEntry.Hostname;
+
+                DnsSettings dns = new()
+                {
+                    Mode = HandleMode.Redirect,
+                    Address = hostsEntry.Address
+                };
+
+                // Check if the domain has been processed before
+                if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
+                {
+                    // Hosts entry should not support wildcard in theory, so only DicRules.
+                    DicRules.Add(domain, dns);
+                    DicRules.Add("www." + domain, dns);
+                }
+            }
+
             LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
@@ -147,7 +159,7 @@ namespace MitmDNS
             // Define a list to store extracted hostnames
             List<string> hostnames = new();
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 // Split the line by tab character
                 string[] parts = line.Split('\t');
@@ -160,7 +172,7 @@ namespace MitmDNS
 
             DnsSettings dns = new();
 
-            foreach (var hostname in hostnames)
+            foreach (string hostname in hostnames)
             {
                 string dnsFilePath = Path.GetDirectoryName(Filename) + $"/{hostname}.dns";
 
@@ -174,21 +186,12 @@ namespace MitmDNS
                         if (line.StartsWith("\t\tA"))
                         {
                             // Extract the IP address using a regular expression
-                            Match match = Regex.Match(line, @"A\s+(\S+)");
+                            Match match = SimpleDNSRegex().Match(line);
                             if (match.Success)
                             {
                                 dns.Mode = HandleMode.Redirect;
                                 string IpFromConfig = match.Groups[1].Value;
-                                if (Regex.IsMatch(IpFromConfig, @"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,7}:$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|"
-                                                                + @"^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|"
-                                                                + @"^:((:[0-9a-fA-F]{0,4}){0,6})?$"))
+                                if (IpRegex().IsMatch(IpFromConfig))
                                     dns.Address = IpFromConfig;
                                 else
                                     dns.Address = VariousUtils.GetLocalIPAddress().ToString();
@@ -210,5 +213,11 @@ namespace MitmDNS
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }
+
+        [GeneratedRegex("^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,7}:$|^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|^:((:[0-9a-fA-F]{0,4}){0,6})?$")]
+        private static partial Regex IpRegex();
+
+        [GeneratedRegex("A\\s+(\\S+)")]
+        private static partial Regex SimpleDNSRegex();
     }
 }

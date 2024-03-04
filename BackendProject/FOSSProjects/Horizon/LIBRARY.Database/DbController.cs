@@ -22,6 +22,7 @@ namespace Horizon.LIBRARY.Database
         private int _simulatedClanMessageIdCounter = 1;
         private int _simulatedClanInvitationIdCounter = 1;
         private readonly int[] SimulatedAppIdList = new int[] {
+            120,
             10683,
             10684,
             11354,
@@ -704,6 +705,34 @@ namespace Horizon.LIBRARY.Database
 
             return result;
         }
+
+        /// <summary>
+        /// Gets whether the Account Name is Mac Banned
+        /// </summary>
+        /// <param name="accountName">Account name to query.</param>
+        public async Task<bool> GetIsAccountNameMacBanned(string accountName, int appId)
+        {
+            bool result = false;
+
+            try
+            {
+                if (_settings.SimulatedMode)
+                    result = false;
+                else
+                {
+                    accountName = HttpUtility.UrlEncode(accountName);
+                    string route = $"Account/getAccountNameMacIsBanned?AccountName={accountName}&AppId={appId}";
+                    result = await GetDbAsync<bool>(route);
+                }
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError(e);
+            }
+
+            return result;
+        }
+
 
         /// <summary>
         /// Posts the given machine id to the database account with the given account id.

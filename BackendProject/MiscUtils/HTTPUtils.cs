@@ -1,4 +1,5 @@
 ﻿using ComponentAce.Compression.Libs.zlib;
+using System.Buffers;
 using System.Collections.Specialized;
 using System.IO.Compression;
 using System.Net;
@@ -9,7 +10,7 @@ using System.Web;
 
 namespace BackendProject.MiscUtils
 {
-    public class HTTPUtils
+    public partial class HTTPUtils
     {
         public static readonly Dictionary<string, string> mimeTypes = new(StringComparer.InvariantCultureIgnoreCase)
         {
@@ -17,7 +18,7 @@ namespace BackendProject.MiscUtils
 
             // combination of values from Windows 7 Registry and 
             // from C:\Windows\System32\inetsrv\config\applicationHost.config
-            // some added, including .7z , .dat and .mkv
+            // some added, including .7z , .dat, .pup and .mkv
             {".323", "text/h323"},
             {".3g2", "video/3gpp2"},
             {".3gp", "video/3gpp"},
@@ -586,7 +587,7 @@ namespace BackendProject.MiscUtils
         public static readonly Dictionary<string, byte[]> PathernDictionary = new()
         {
             // Add more entries as needed
-            { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } },
+            { "text/html", "<!DOCTYPE "u8.ToArray() },
             { "video/mp4", new byte[] { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70 } }
         };
 
@@ -621,9 +622,7 @@ namespace BackendProject.MiscUtils
                 if (!extension.StartsWith("."))
                     extension = "." + extension;
 
-                string? mime;
-
-                return mimeTypes.TryGetValue(extension, out mime) ? mime : "application/octet-stream";
+                return mimeTypes.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
             }
         }
 
@@ -632,11 +631,7 @@ namespace BackendProject.MiscUtils
             if (string.IsNullOrEmpty(mimeType))
                 return null;
             else
-            {
-                string? extension;
-
-                return mimeTypes.TryGetValue(mimeType, out extension) ? extension : null;
-            }
+                return mimeTypes.TryGetValue(mimeType, out string? extension) ? extension : null;
         }
 
         public static byte[] RemoveUnwantedPHPHeaders(byte[] phpOutputBytes)
@@ -726,7 +721,7 @@ namespace BackendProject.MiscUtils
                 return string.Empty;
 
             // Match the input string with the pattern
-            Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
+            Match match = DirtyProxyRegex().Match(referer);
 
             // Check if the pattern is matched
             if (match.Success)
@@ -783,20 +778,23 @@ namespace BackendProject.MiscUtils
 
         public static HugeMemoryStream InflateStream(Stream input)
         {
-            using (HugeMemoryStream ms = new())
+            using HugeMemoryStream ms = new();
+            using ZOutputStream stream2 = new(ms, 9, true);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(65536); // Given buffer size
+            try
             {
-                using (ZOutputStream stream2 = new(ms, 9, true))
+                int read = 0;
+                while ((read = input.Read(buffer)) > 0)
                 {
-                    Span<byte> buffer = new byte[32768];
-                    int read = 0;
-                    while ((read = input.Read(buffer)) > 0)
-                    {
-                        stream2.Write(buffer.ToArray(), 0, read);
-                    }
-                    stream2.finish();
-                    ms.Position = 0;
-                    return ms;
+                    stream2.Write(buffer, 0, read); // Write directly from buffer
                 }
+                stream2.finish();
+                ms.Position = 0;
+                return ms;
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer); // Return buffer to pool
             }
         }
 
@@ -850,5 +848,8 @@ namespace BackendProject.MiscUtils
             }
             return addr;
         }
+
+        [GeneratedRegex("^(.*?http://.*?http://)([^/]+)(.*)$")]
+        private static partial Regex DirtyProxyRegex();
     }
 }
