@@ -291,13 +291,10 @@ namespace SSFWServer
                                 if (postbuffer != null)
                                 {
                                     Directory.CreateDirectory(directoryPath);
-
                                     switch (GetHeaderValue(Headers, "Content-type"))
                                     {
                                         case "image/jpeg":
-                                            {
-                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", postbuffer);
-                                            }
+                                            File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", postbuffer);
                                             break;
                                         case "application/json":
                                             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", postbuffer);
