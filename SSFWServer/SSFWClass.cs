@@ -321,9 +321,7 @@ namespace SSFWServer
                                 if (putbuffer != null)
                                 {
                                     Directory.CreateDirectory(directoryPath);
-
-                                    if(!Directory.Exists(savaDataAvatarFilePath))
-                                        Directory.CreateDirectory(savaDataAvatarFilePath);
+                                    Directory.CreateDirectory(savaDataAvatarFilePath);
 
                                     switch (GetHeaderValue(Headers, "Content-type"))
                                     {
