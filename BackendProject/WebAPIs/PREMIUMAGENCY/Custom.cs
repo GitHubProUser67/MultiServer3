@@ -10,12 +10,22 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
         public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
             string? output = null;
+
+            LoggerAccessor.LogInfo($"setUserEventCustom POSTDATA: \n{PostData}");
+
             switch (eventId)
             {
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml"))
                         output = File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml");
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - SetUserEventCustom sent for MikuLiveEvent {eventId}!");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom sent for MikuLiveEvent {eventId}!");
+
+
+                    break;
+                case "81":
+                    //WhiteDay2010 doesn't care about setUserEventCustom, so we send a placebo response!
+                    output = "<xml></xml>";
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom sent for WhiteDay2010 {eventId}!");
 
 
                     break;
@@ -42,6 +52,11 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml"))
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom sent for LOCAL MikuLiveEvent {eventId}!");
+                    break;
+                case "81":
+                    if (File.Exists($"{workpath}/eventController/WhiteDay2010/getUserEventCustom.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/WhiteDay2010/getUserEventCustom.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom sent for PUBLIC WhiteDay2010 {eventId}!");
                     break;
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml"))

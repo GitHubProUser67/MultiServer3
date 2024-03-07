@@ -27,6 +27,15 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                          "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
                          "<status type=\"int\">0</status>\r\n" +
                          "</xml>";
+                case "81":
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent sent for Public WhiteDay2010 {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                         "<status type=\"int\">1</status>\r\n" +
+                         "</xml>";
                 case "92":
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent sent for PUBLIC MikuLiveJukebox {eventId}!");
                     return "<xml>\r\n\t" +
@@ -78,6 +87,15 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                          "</xml>";
                 case "76":
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent sent for LOCAL MikuLiveEvent {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n" +
+                         "<status type=\"int\">1</status>\r\n" +
+                         "</xml>";
+                case "81":
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent sent for PUBLIC WhiteDay2010 {eventId}!");
                     return "<xml>\r\n\t" +
                          "<result type=\"int\">1</result>\r\n\t" +
                          "<description type=\"text\">Success</description>\r\n\t" +
