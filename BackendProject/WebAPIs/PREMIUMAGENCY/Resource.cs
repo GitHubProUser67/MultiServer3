@@ -43,6 +43,14 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                         }
                         break;
 
+                    case "whiteday_ev_2010":
+                        {
+                            if (File.Exists($"{workpath}/eventController/WhiteDay2010/{resKey}.xml"))
+                                return File.ReadAllText($"{workpath}/eventController/WhiteDay2010/{resKey}.xml");
+
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                        }
+                        break;
                     case "concert_complete_judge":
                         {
                             if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
@@ -249,7 +257,7 @@ namespace BackendProject.WebAPIs.PREMIUMAGENCY
                                    "\r\n\t<description type=\"text\">Failed</description>" +
                                    "\r\n\t<error_no type=\"int\">303</error_no>" +
                                    "\r\n\t<error_message type=\"text\">No Resource Found</error_message>" +
-                                   $"\r\n\r\n\t<key type=\"text\">{resKey}</key>" +
+                                   $"\r\n\t<key type=\"text\">{resKey}</key>" +
                                    "\r\n\t<seq type=\"int\">2</seq>" +
                                    "\r\n\t<resource type=\"int\">1</resource>" +
                                    "\r\n\t<data></data>" +
