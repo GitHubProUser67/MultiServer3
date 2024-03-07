@@ -103,6 +103,7 @@ namespace SSFWServer
 
                     // Process the request based on the HTTP method
                     string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath[1..]);
+                    string savaDataAvatarFilePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, "SaveDataService/avatar/cprod/");
 
                     switch (request.Method)
                     {
@@ -184,10 +185,23 @@ namespace SSFWServer
                                 }
                                 else
                                 {
-                                    LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Requested a non-exisant file - {filePath}");
+                                    LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Requested a non-existant file - {filePath}");
                                     Response.Clear();
                                     Response.SetBegin(404);
                                     Response.SetBody();
+                                }
+                            }
+                            else if (string.IsNullOrEmpty(sessionid)) {
+
+                                LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Requested image with no sessionId - {filePath}");
+                                if (File.Exists(filePath))
+                                {
+                                    byte[]? res = FileHelper.ReadAllBytes(filePath, legacykey);
+
+                                    if (res != null)
+                                        Response.MakeGetResponse(res, "image/jpg");
+                                    else
+                                        Response.MakeErrorResponse();
                                 }
                             }
                             else
@@ -307,10 +321,15 @@ namespace SSFWServer
                                 if (putbuffer != null)
                                 {
                                     Directory.CreateDirectory(directoryPath);
+                                    Directory.CreateDirectory(savaDataAvatarFilePath);
+
                                     switch (GetHeaderValue(Headers, "Content-type"))
                                     {
                                         case "image/jpeg":
-                                            File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer);
+                                            {
+                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer);
+                                                File.WriteAllBytes($"{savaDataAvatarFilePath}{TrimVersionAndName(SSFWUserSessionManager.GetUsernameBySessionId(sessionid))}.jpg", putbuffer);
+                                            }
                                             break;
                                         case "application/json":
                                             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
@@ -402,6 +421,43 @@ namespace SSFWServer
 
             return Response;
         }
+
+        #region HandleAvatarPFPUserName
+        static string TrimVersionAndName(string fileName)
+        {
+            int lastHIndex = fileName.LastIndexOf('H');
+
+            if (lastHIndex != -1)
+            {
+                // Find the start index of the continuous sequence of 'H' characters
+                int startIndexOfHSequence = FindStartIndexOfHSequence(fileName, lastHIndex);
+
+                // Extract the substring up to (but not including) the start of 'H' sequence
+                return fileName.Substring(0, startIndexOfHSequence);
+            }
+            else
+            {
+                // If 'H' is not found, return the original string
+                return fileName;
+            }
+        }
+
+        static int FindStartIndexOfHSequence(string fileName, int lastHIndex)
+        {
+            // Iterate backward from lastHIndex to find the start of 'H' sequence
+            for (int i = lastHIndex - 1; i >= 0; i--)
+            {
+                if (fileName[i] != 'H')
+                {
+                    // Return the index of the character following the 'H' sequence
+                    return i + 1;
+                }
+            }
+
+            // If the loop completes without finding a non-'H' character, return 0
+            return 0;
+        }
+        #endregion
 
         private bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
