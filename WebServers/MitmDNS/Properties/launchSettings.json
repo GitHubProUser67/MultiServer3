@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MitmDNS": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

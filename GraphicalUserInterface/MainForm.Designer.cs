@@ -1,4 +1,4 @@
-﻿namespace GraphicalUserInterface
+namespace GraphicalUserInterface
 {
     partial class MainForm
     {
