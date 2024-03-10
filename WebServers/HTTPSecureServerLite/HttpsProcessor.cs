@@ -494,7 +494,11 @@ namespace HTTPSecureServerLite
                         ctx.Response.StatusCode = (int)statusCode;
                         sent = await ctx.Response.Send(res);
                     }
-                    else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp" || Host == "scej-home.playstation.net" || Host == "homeec.scej-nbs.jp") && ctx.Request.ContentType.StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
+                    else if ((Host == "test.playstationhome.jp" ||
+                                                Host == "playstationhome.jp" ||
+                                                Host == "scej-home.playstation.net" ||
+                                                Host == "homeec.scej-nbs.jp" ||
+                                                Host == "homeecqa.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
