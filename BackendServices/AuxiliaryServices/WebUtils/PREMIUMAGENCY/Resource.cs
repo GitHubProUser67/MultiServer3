@@ -126,6 +126,37 @@ namespace WebUtils.PREMIUMAGENCY
                             }
                         }
                         break;
+                    case "j_liargame2_reward":
+                        {
+                            Directory.CreateDirectory(j_liargame2Path);
+                            string filePath = $"{j_liargame2Path}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+
+                    case "j_liargame2_data":
+                        {
+                            Directory.CreateDirectory(j_liargame2Path);
+                            string filePath = $"{j_liargame2Path}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
                     #endregion
 
                     #region Liargame2 Demo ver
