@@ -9,8 +9,6 @@ namespace WebUtils.PREMIUMAGENCY
     {
         public static string? getInformationBoardSchedulePOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
-            LoggerAccessor.LogInfo($"InfoBoardSchedule: POSTDATA: {Encoding.UTF8.GetString(PostData)}");
-            
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
             string? lounge = string.Empty;
             using (MemoryStream ms = new(PostData))
@@ -18,6 +16,8 @@ namespace WebUtils.PREMIUMAGENCY
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 
                 lounge = data.GetParameterValue("lounge");
+                string lang = data.GetParameterValue("lang");
+                string regcd = data.GetParameterValue("regcd");
 
                 ms.Flush();
             }
@@ -26,25 +26,22 @@ namespace WebUtils.PREMIUMAGENCY
             {
                 case "HomeSquare":
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - HomeSquare lounge found for InfoBoardSchedule: {lounge}");
-
                         if (File.Exists($"{workpath}/eventController/InfoBoards/Schedule/{lounge}.xml"))
                             return File.ReadAllText($"{workpath}/eventController/InfoBoards/Schedule/{lounge}.xml");
-
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - InfoBoard Schedule found for lounge {lounge}!");
-                        return null;
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - {lounge} lounge found for InfoBoardSchedule");
+                        break;
                     }
 
                 default:
                     {
-                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unsupported scene lounge found for InfoBoardSchedule: {lounge}");
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unsupported scene lounge {lounge} found for InfoBoardSchedule");
                         return null;
                     }
 
                     
             }
             
-
+            return null;
         }
 
 

@@ -332,7 +332,11 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
                                             }
-                                            else if ((Host == "test.playstationhome.jp" || Host == "playstationhome.jp" || Host == "scej-home.playstation.net" || Host == "homeec.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
+                                            else if ((Host == "test.playstationhome.jp" ||
+                                                Host == "playstationhome.jp" ||
+                                                Host == "scej-home.playstation.net" ||
+                                                Host == "homeec.scej-nbs.jp" ||
+                                                Host == "homeecqa.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/") && absolutepath.EndsWith(".do"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 

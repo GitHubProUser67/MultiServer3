@@ -24,233 +24,569 @@ namespace WebUtils.PREMIUMAGENCY
 
                 LoggerAccessor.LogInfo($"Attempting to locate resource with key {resKey}");
 
-                switch(resKey)
+                #region EventController Paths
+
+                string homecafeEnquetePath = $"{workpath}/eventController/hc_Enquete";
+                string homecafeGalleryPath = $"{workpath}/eventController/hc_gallery";
+                string homecafeShopPath = $"{workpath}/eventController/hc_Shop";
+                string homecafePlanPath = $"{workpath}/eventController/hc_plan";
+
+                string idolMasterPath = $"{workpath}/eventController/iDOLM@ASTERs";
+                string j_liargame2Path = $"{workpath}/eventController/j_liargame2";
+                string j_liargame2demoPath = $"{workpath}/eventController/j_liargame2demo";
+
+                string july2009infoboard = $"{workpath}/eventController/infoboard/09";
+                string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent";
+                string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox";
+                string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium";
+                string shoeikingdomPath = $"{workpath}/eventController/shoeikingdom";
+                string WhiteDay2010 = $"{workpath}/eventController/WhiteDay2010";
+
+                #endregion
+
+                switch (resKey)
                 {
+                    #region SonyAquarium
+                    case "SonyAquarium_Blog":
+                        {
+                            Directory.CreateDirectory(SonyAquariumPath);
+                            string filePath = $"{SonyAquariumPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            } else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    case "SonyAquarium_Config":
+                        {
+                            Directory.CreateDirectory(SonyAquariumPath);
+                            string filePath = $"{SonyAquariumPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
+
+                    #region j_LiarGame2
+                    case "j_liargame2_screen":
+                        {
+                            Directory.CreateDirectory(j_liargame2Path);
+                            string filePath = $"{j_liargame2Path}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    case "j_liargame2_event":
+                        {
+                            Directory.CreateDirectory(j_liargame2Path);
+                            string filePath = $"{j_liargame2Path}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    case "j_liargame2_schedule":
+                        {
+                            Directory.CreateDirectory(j_liargame2Path);
+                            string filePath = $"{j_liargame2Path}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
+
+                    #region Liargame2 Demo ver
+                    case "j_liargame2demo_screen":
+                        {
+                            Directory.CreateDirectory(j_liargame2demoPath);
+                            string filePath = $"{j_liargame2demoPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
+
+                    #region theater_ev
                     case "theater_ev_setting":
                         {
-                            if (File.Exists($"{workpath}/eventController/shoeikingdom/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/shoeikingdom/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(shoeikingdomPath);
+                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
+                    #endregion
+
+                    #region InfoBoards
+
                     case "jul2009":
                         {
-                            if (File.Exists($"{workpath}/eventController/infoboard/09/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/infoboard/09/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(july2009infoboard);
+                            string filePath = $"{july2009infoboard}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
 
+                    #endregion
+
+                    #region WhiteDay2010
                     case "whiteday_ev_2010":
                         {
-                            if (File.Exists($"{workpath}/eventController/WhiteDay2010/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/WhiteDay2010/{resKey}.xml");
+                            Directory.CreateDirectory(WhiteDay2010);
+                            string filePath = $"{WhiteDay2010}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
 
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
                         }
                         break;
+                    #endregion
+
+                    #region MikuLiveEvent
                     case "concert_complete_judge":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_play_image":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_play_info":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_play_sound":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_wait_image":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_wait_info":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_wait_sound":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "concert_diva_image":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveEvent);
+                            string filePath = $"{MikuLiveEvent}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
-                    //HomeCafe Questionaire
+                    #endregion
+
+                    #region HomeCafe Questionaire
                     case "hc_Enquete_enable":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeEnquetePath);
+                            string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "hc_Enquete_id":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeEnquetePath);
+                            string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "hc_Enquete_reward":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeEnquetePath);
+                            string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "hc_Enquete":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeEnquetePath);
+                            string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "hc_Enquete_screen":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_Enquete/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_Enquete/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeEnquetePath);
+                            string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
-                    //hc_gallery
+                    #endregion
+
+                    #region hc_gallery
                     case "hc_gallery_main":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_gallery/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_gallery/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeGalleryPath);
+                            string filePath = $"{homecafeGalleryPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "hc_gallery_skysetting":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_gallery/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_gallery/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeGalleryPath);
+                            string filePath = $"{homecafeGalleryPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
-                    //Event Item Shop
+                    #endregion
+
+                    #region Homecafe Event Item Shop
                     case "hc_shop":
                         {
-                            if (File.Exists($"{workpath}/eventController/hc_shop/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/hc_shop/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeShopPath);
+                            string filePath = $"{homecafeShopPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
-                    //RollyCafe1F
+                    #endregion
+
+                    #region RollyCafe1F Plan
                     case "hc_plan":
                         {
-                            if (File.Exists($"{workpath}/eventController/RollyCafe1F/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafeEnquetePath);
+                            string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "hc_plan_error":
                         {
-                            if (File.Exists($"{workpath}/eventController/RollyCafe1F/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(homecafePlanPath);
+                            string filePath = $"{homecafePlanPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
-                    //Miku Music Survey
+                    #endregion
+
+                    #region MikuMusicSurvey
                     case "miku_jukebox_mp4":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveJukeboxPath);
+                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "miku_jukebox1_mp4":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveJukeboxPath);
+                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "miku_jukebox1_board":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveJukeboxPath);
+                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "miku_jukebox1_info":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveJukeboxPath);
+                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
                     case "miku_jukebox1_time":
                         {
-                            if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(MikuLiveJukeboxPath);
+                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
+                    #endregion
+
+                    #region IdolMasters
                     case "liveevent_idolmaster":
                         {
-                            if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/{resKey}.xml"))
-                                return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/{resKey}.xml");
-
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            Directory.CreateDirectory(idolMasterPath);
+                            string filePath = $"{idolMasterPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
                         }
                         break;
+                    #endregion
+
                     default:
                         {
-                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Resource is missing with resource key {resKey}!");
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Resource key {resKey} is unrecognized!\nPlease contact the developers!");
 
                             return "<xml>" +
                                    "\r\n\t<result type=\"int\">0</result>" +
