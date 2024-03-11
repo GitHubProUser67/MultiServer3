@@ -842,8 +842,7 @@ namespace Horizon.MEDIUS.Medius
             NetAddressList gameNetAddressList = new();
             int worldId = -1;
 
-            string p2pHostAddress = ((IPEndPoint)channel.RemoteAddress).Address.ToString();
-            string p2pHostAddressRemoved = p2pHostAddress.Remove(0, 7);
+            string p2pHostAddressRemoved = ((IPEndPoint)channel.RemoteAddress).Address.ToString().Remove(0, 7);
 
             if (request is MediusServerCreateGameOnMeRequest r)
             {
@@ -920,26 +919,22 @@ namespace Horizon.MEDIUS.Medius
                 await MediusClass.Manager.AddChannel(gameChannel);
             }
 
-            // We make sure a game with the same name not already exist, if so, we tell client about.
-            if (client.CurrentChannel != null)
-            {
-                foreach (Channel SubChannel in client.CurrentChannel.LocalChannels)
-                {
-                    if (SubChannel.GameCount > 0 && SubChannel._games.Any(game => game.GameName == gameName))
-                    {
-                        client.Queue(new RT_MSG_SERVER_APP()
-                        {
-                            Message = new MediusServerCreateGameOnMeResponse()
-                            {
-                                MessageID = request.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_GAME_NAME_EXISTS,
-                                MediusWorldID = -1,
-                            }
-                        });
+            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
-                        return;
+            // Ensure the name is unique
+            // If the host leaves then we unreserve the name
+            if (existingGames.Any(x => x.WorldStatus != MediusWorldStatus.WorldClosed && x.WorldStatus != MediusWorldStatus.WorldInactive && x.GameName == gameName && x.Host != null && x.Host.IsConnected))
+            {
+                client.Queue(new RT_MSG_SERVER_APP()
+                {
+                    Message = new MediusCreateGameResponse()
+                    {
+                        MessageID = request.MessageID,
+                        MediusWorldID = -1,
+                        StatusCode = MediusCallbackStatus.MediusGameNameExists
                     }
-                }
+                });
+                return;
             }
 
             if (gameChannel != null)
