@@ -28,6 +28,8 @@ namespace Horizon.DME.Models
                 return;
             }
 
+            this.WorldId = WorldId;
+
             _idToWorld.TryAdd(WorldId, this);
             LoggerAccessor.LogInfo($"Registered world with id {WorldId}");
         }
