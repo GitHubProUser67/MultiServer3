@@ -459,15 +459,30 @@ namespace Horizon.DME
                     }
                 case MediusServerJoinGameRequest joinGameRequest:
                     {
-                        World? world = _worlds.FirstOrDefault(x => x.WorldId == joinGameRequest.ConnectInfo.WorldID);
-                        if (world == null)
+                        if (uint.TryParse(joinGameRequest.MessageID.Value.Split('-')[0], out uint gameOrPartyId))
+                        {
+                            World? world = _worlds.FirstOrDefault(x => x.WorldId == gameOrPartyId);
+                            if (world == null)
+                                Enqueue(new MediusServerJoinGameResponse()
+                                {
+                                    MessageID = joinGameRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
+                                });
+                            else
+                                Enqueue(await world.OnJoinGameRequest(joinGameRequest));
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogWarn("[MPSClient] - joinGameRequest received an invalid MessageID, ignoring request...");
+
                             Enqueue(new MediusServerJoinGameResponse()
                             {
                                 MessageID = joinGameRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_DME_ERROR,
                             });
-                        else
-                            Enqueue(await world.OnJoinGameRequest(joinGameRequest));
+
+                            break;
+                        }
                         break;
                     }
                 case MediusServerEndGameRequest endGameRequest:
