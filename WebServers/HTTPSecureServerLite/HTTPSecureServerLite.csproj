@@ -17,12 +17,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.0-Preview.1" />
-    <PackageReference Include="PSHostsFile" Version="3.0.5" />
     <PackageReference Include="Watson.Lite" Version="6.1.7" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebUtils\WebUtils.csproj" />
+    <ProjectReference Include="..\..\BackendServices\PSHostsFile\PSHostsFile.csproj" />
   </ItemGroup>
  
   <Target Name="CopyFolderToBuildDirectory" AfterTargets="Build">
