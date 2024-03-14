@@ -148,6 +148,15 @@ namespace WebUtils.PREMIUMAGENCY
                          "<error_message type=\"text\">None</error_message>\r\n" +
                          "<status type=\"int\">1</status>\r\n" +
                          "</xml>";
+                case "342":
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent sent for PUBLIC Spring2013 {eventId}!");
+                    return "<xml>\r\n\t" +
+                         "<result type=\"int\">1</result>\r\n\t" +
+                         "<description type=\"text\">Success</description>\r\n\t" +
+                         "<error_no type=\"int\">0</error_no>\r\n\t" +
+                         "<error_message type=\"text\">None</error_message>\r\n" +
+                         "<status type=\"int\">0</status>\r\n" +
+                         "</xml>";
                 case "347":
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent sent for PUBLIC SonyAquarium {eventId}!");
                     return "<xml>\r\n\t" +
