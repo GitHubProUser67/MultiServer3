@@ -25,6 +25,8 @@ namespace WebUtils.PREMIUMAGENCY
                 LoggerAccessor.LogInfo($"Attempting to locate resource with key {resKey}");
 
                 #region EventController Paths
+                string basaraCollabEventPath = $"{workpath}/eventController/collabo_iln";
+
 
                 string homecafeEnquetePath = $"{workpath}/eventController/hc_Enquete";
                 string homecafeGalleryPath = $"{workpath}/eventController/hc_gallery";
@@ -40,7 +42,8 @@ namespace WebUtils.PREMIUMAGENCY
                 string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox";
                 string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium";
                 string shoeikingdomPath = $"{workpath}/eventController/shoeikingdom";
-                string WhiteDay2010 = $"{workpath}/eventController/WhiteDay2010";
+                string Spring2009 = $"{workpath}/eventController/Spring/2009";
+                string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010";
 
                 #endregion
 
@@ -213,6 +216,27 @@ namespace WebUtils.PREMIUMAGENCY
                         }
                         break;
 
+                    #endregion
+
+
+                    #region Spring Events
+
+                    case "spring2009":
+                        {
+                            Directory.CreateDirectory(Spring2009);
+                            string filePath = $"{Spring2009}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
                     #endregion
 
                     #region WhiteDay2010

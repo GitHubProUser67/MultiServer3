@@ -40,6 +40,10 @@ namespace WebUtils.PREMIUMAGENCY
                 case "POST":
                     switch (absolutepath)
                     {
+                        case "/eventController/":
+                            return RootHandler.eventControllerRootHandler(PostData, ContentType, workpath);
+                        case "/eventController/getResource.do":
+                            return Resource.getResourcePOST(PostData, ContentType, workpath);
                         case "/eventController/checkEvent.do":
                             return Event.checkEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/entryEvent.do":
@@ -48,10 +52,10 @@ namespace WebUtils.PREMIUMAGENCY
                             return Event.clearEventRequestPOST(PostData, ContentType, eventId);
                         case "/eventController/getEventTrigger.do":
                             return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
+                        case "/eventController/getEventTriggerEx.do":
+                            return Trigger.getEventTriggerExRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/confirmEventTrigger.do":
                             return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
-                        case "/eventController/getResource.do":
-                            return Resource.getResourcePOST(PostData, ContentType, workpath);
                         case "/eventController/setUserEventCustom.do":
                             return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/getUserEventCustom.do":
