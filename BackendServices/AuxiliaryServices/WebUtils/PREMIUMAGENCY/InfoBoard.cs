@@ -22,13 +22,27 @@ namespace WebUtils.PREMIUMAGENCY
                 ms.Flush();
             }
 
+            #region InfoBoard Paths
+
+            string infoBoardSchedulePath = $"{workpath}/eventController/InfoBoards/Schedule";
+
+            #endregion
+
             switch (lounge)
             {
                 case "HomeSquare":
                     {
-                        if (File.Exists($"{workpath}/eventController/InfoBoards/Schedule/{lounge}.xml"))
-                            return File.ReadAllText($"{workpath}/eventController/InfoBoards/Schedule/{lounge}.xml");
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - {lounge} lounge found for InfoBoardSchedule");
+                        Directory.CreateDirectory(infoBoardSchedulePath);
+                        string filePath = $"{infoBoardSchedulePath}/{lounge}.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - InfoBoardSchedule for {lounge} found and sent!");
+                            return File.ReadAllText(filePath);
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find InfoBoardSchedule {lounge} with expected path {filePath}!");
+                        }
                         break;
                     }
 
