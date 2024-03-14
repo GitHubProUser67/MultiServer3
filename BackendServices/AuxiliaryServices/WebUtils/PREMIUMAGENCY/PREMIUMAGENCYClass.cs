@@ -40,8 +40,6 @@ namespace WebUtils.PREMIUMAGENCY
                 case "POST":
                     switch (absolutepath)
                     {
-                        case "/eventController/":
-                            return RootHandler.eventControllerRootHandler(PostData, ContentType, workpath);
                         case "/eventController/getResource.do":
                             return Resource.getResourcePOST(PostData, ContentType, workpath);
                         case "/eventController/checkEvent.do":

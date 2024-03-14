@@ -237,6 +237,24 @@ namespace WebUtils.PREMIUMAGENCY
 
                         }
                         break;
+
+
+                    case "spring2013":
+                        {
+                            Directory.CreateDirectory(Spring2013);
+                            string filePath = $"{Spring2013}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
                     #endregion
 
                     #region WhiteDay2010
