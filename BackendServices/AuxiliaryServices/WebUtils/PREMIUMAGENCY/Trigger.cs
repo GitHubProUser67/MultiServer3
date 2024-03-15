@@ -1,4 +1,6 @@
+using BackendProject.MiscUtils;
 using CustomLogger;
+using HttpMultipartParser;
 using System.Text;
 
 namespace WebUtils.PREMIUMAGENCY
@@ -7,6 +9,7 @@ namespace WebUtils.PREMIUMAGENCY
     {
         public static string? getEventTriggerRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
+
             switch (eventId)
             {
                 #region MikuLiveJack
@@ -73,7 +76,41 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/getEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC RollyCafe1F {eventId}!");
                     break;
+                default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
+                        return null;
+                    }
+            }
 
+            return null;
+        }
+
+        public static string? getEventTriggerExRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        {
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+            if (boundary != null && PostData != null)
+            {
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+
+
+                    string today = data.GetParameterValue("tday");
+
+
+                    ms.Flush();
+                }
+            }
+
+            switch (eventId)
+            {
+                case "342":
+                    if (File.Exists($"{workpath}/eventController/Spring/2013/getEventTriggerEx.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Spring/2013/getEventTriggerEx.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for POST evid PUBLIC Spring2013 {eventId}!");
+                    break;
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
