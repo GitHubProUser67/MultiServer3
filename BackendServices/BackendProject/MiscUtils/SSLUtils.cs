@@ -140,7 +140,8 @@ namespace BackendProject.MiscUtils
             "img.game.co.uk",
             "downloads.game.net",
             "example.com",
-            "thebissos.com"
+            "thebissos.com",
+            "public-ubiservices.ubi.com"
         };
 
         /// <summary>

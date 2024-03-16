@@ -9,7 +9,7 @@ public static class QuazalServerConfiguration
     public static string ServerPublicBindAddress { get; set; } = VariousUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
-    public static bool UsePublicIP { get; set; } = true;
+    public static bool UsePublicIP { get; set; } = false;
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;

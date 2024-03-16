@@ -160,17 +160,18 @@ namespace WebUtils.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, string> SCBLACKLISTPS3Response = new()
+        private readonly static Dictionary<string, Tuple<string, string?>> SCBLACKLISTPS3Response = new()
         {
-            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod08.ubisoft.com;port=61131;serviceid=UPxxxx-MYGAME"},
-            { "SandboxUrlWS",                   @"pdc-vm-rdv08.ubisoft.com:61131"},
-            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
-            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
-            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
-            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
-            { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
-            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
-            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+            { "punch_DetectUrls",               new Tuple<string, string?>(@"lb-prod-mm-detect01.ubisoft.com:11020", "lb-prod-mm-detect02.ubisoft.com:11020")},
+            { "SandboxUrlPS3",                  new Tuple<string, string?>(@"prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61131;serviceid=UPxxxx-MYGAME", null)},
+            { "SandboxUrlWS",                   new Tuple<string, string?>(@"ne1-z3-as-rdv03.ubisoft.com:61131", null)},
+            { "uplay_DownloadServiceUrl",       new Tuple<string, string?>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url=", null)},
+            { "uplay_DynContentBaseUrl",        new Tuple<string, string?>(@"http://static8.cdn.ubi.com/u/Uplay/", null)},
+            { "uplay_DynContentSecureBaseUrl",  new Tuple<string, string?>(@"http://static8.cdn.ubi.com/", null)},
+            { "uplay_LinkappBaseUrl",           new Tuple<string, string?>(@"http://static8.cdn.ubi.com/private/Uplay/Packages/linkapp/3.0.0-rc/", null)},
+            { "uplay_MovieBaseUrl",             new Tuple<string, string?>(@"http://static8.cdn.ubi.com/u/Uplay/", null)},
+            { "uplay_PackageBaseUrl",           new Tuple<string, string?>(@"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/", null)},
+            { "uplay_WebServiceBaseUrl",        new Tuple<string, string?>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/", null)},
         };
 
         public static string GetOnlineConfigPSN(string? onlineConfigID)
@@ -245,7 +246,7 @@ namespace WebUtils.UBISOFT.OnlineConfigService
                         list.Add(new OnlineConfigEntry
                         {
                             Name = v.Key,
-                            Values = new[] { v.Value }
+                            Values = (v.Value.Item2 != null) ? new[] { v.Value.Item1, v.Value.Item2 } : new[] { v.Value.Item1 }
                         });
                     }
                     break;
