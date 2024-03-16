@@ -139,19 +139,23 @@ namespace YourNamespace
                 case ArchiveTypeSetting.CORE_SHARC:
                     RadioButtonArchiveCreatorCORE_SHARC.IsChecked = true;
                     break;
+                // Added setting for creating config sharcs
+                case ArchiveTypeSetting.CONFIG_SHARC:
+                    RadioButtonArchiveCreatorCONFIG_SHARC.IsChecked = true;
+                    break;
 
             };
             switch (_settings.ArchivePackerSettingRem)
             {
                 case ArchivePackerSetting.NORM:
-                    CheckBoxArchivePackerSLOW.IsChecked = false;
-                    CheckBoxArchivePackerCORE.IsChecked = false;
+                    CheckBoxArchiveMapperFAST.IsChecked = false;
+                    CheckBoxArchiveMapperCORE.IsChecked = false;
                     break;
-                case ArchivePackerSetting.SLOW:
-                    CheckBoxArchivePackerSLOW.IsChecked = true;
+                case ArchivePackerSetting.FAST:
+                    CheckBoxArchiveMapperFAST.IsChecked = true;
                     break;
                 case ArchivePackerSetting.CORE:
-                    CheckBoxArchivePackerCORE.IsChecked = true;
+                    CheckBoxArchiveMapperCORE.IsChecked = true;
                     break;
 
             };
@@ -349,6 +353,15 @@ namespace YourNamespace
             if (_settings != null)
             {
                 _settings.ArchiveTypeSettingRem = ArchiveTypeSetting.CORE_SHARC;
+                SettingsManager.SaveSettings(_settings);
+            }
+        }
+
+        private void RadioButtonArchiveCreatorCONFIG_SHARC_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_settings != null)
+            {
+                _settings.ArchiveTypeSettingRem = ArchiveTypeSetting.CONFIG_SHARC;
                 SettingsManager.SaveSettings(_settings);
             }
         }
@@ -631,7 +644,7 @@ namespace YourNamespace
                 LogDebugInfo($"Archive Creation: Starting creation for {itemsPaths.Length} items");
                 bool archiveCreationSuccess = await CreateArchiveAsync(itemsPaths, _settings.ArchiveTypeSettingRem);
 
-                string message = archiveCreationSuccess ? "Success: Archives Created (Simulated)" : "Archive Creation Failed";
+                string message = archiveCreationSuccess ? "Success: Archives Created" : "Archive Creation Failed";
                 TemporaryMessageHelper.ShowTemporaryMessage(ArchiveCreatorDragAreaText, message, 2000);
 
                 LogDebugInfo($"Archive Creation: Result - {message}");
@@ -745,27 +758,27 @@ namespace YourNamespace
             TemporaryMessageHelper.ShowTemporaryMessage(ArchiveCreatorDragAreaText, message, 2000);
         }
 
-        private void CheckBoxArchivePackerSLOW_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperFAST_Checked(object sender, RoutedEventArgs e)
         {
             if (_settings != null)
             {
-                _settings.ArchivePackerSettingRem = ArchivePackerSetting.SLOW;
+                _settings.ArchivePackerSettingRem = ArchivePackerSetting.FAST;
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the CORE CheckBox if it's checked
-            CheckBoxArchivePackerCORE.IsChecked = false;
+            CheckBoxArchiveMapperCORE.IsChecked = false;
         }
 
-        private void CheckBoxArchivePackerSLOW_Unchecked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperFAST_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (_settings != null && !CheckBoxArchivePackerCORE.IsChecked.Value)
+            if (_settings != null && !CheckBoxArchiveMapperCORE.IsChecked.Value)
             {
                 _settings.ArchivePackerSettingRem = ArchivePackerSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
             }
         }
 
-        private void CheckBoxArchivePackerCORE_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperCORE_Checked(object sender, RoutedEventArgs e)
         {
             if (_settings != null)
             {
@@ -773,12 +786,12 @@ namespace YourNamespace
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the SLOW CheckBox if it's checked
-            CheckBoxArchivePackerSLOW.IsChecked = false;
+            CheckBoxArchiveMapperFAST.IsChecked = false;
         }
 
-        private void CheckBoxArchivePackerCORE_Unchecked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperCORE_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (_settings != null && !CheckBoxArchivePackerSLOW.IsChecked.Value)
+            if (_settings != null && !CheckBoxArchiveMapperFAST.IsChecked.Value)
             {
                 _settings.ArchivePackerSettingRem = ArchivePackerSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
@@ -828,6 +841,9 @@ namespace YourNamespace
                             break;
                         case ArchiveTypeSetting.SDAT_SHARC:
                             sdat = true;
+                            bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            break;
+                        case ArchiveTypeSetting.CONFIG_SHARC:
                             bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
                             break;
                     }
@@ -903,6 +919,9 @@ namespace YourNamespace
                             sdat = true;
                             bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
                             break;
+                        case ArchiveTypeSetting.CONFIG_SHARC:
+                            bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            break;
                     }
 
                     bararchive.AllowWhitespaceInFilenames = true;
@@ -954,9 +973,9 @@ namespace YourNamespace
             }
 
             // Log the completion and result of the archive creation process
-            LogDebugInfo("Archive Creation: Archive Creation Process not implemnted yet - Simulated Success for now");
+            LogDebugInfo("Archive Creation: Archive Creation Process Success");
 
-            return Task.FromResult(true); // Simulate success for now
+            return Task.FromResult(true); 
         }
 
 
