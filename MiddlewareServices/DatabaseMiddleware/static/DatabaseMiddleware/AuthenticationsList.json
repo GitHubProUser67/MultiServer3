@@ -1,0 +1,14 @@
+[
+  {
+    "User": {
+      "AccountId": 0,
+      "AccountName": "medius_database",
+      "Password": "medius_database",
+      "Roles": [
+        "database"
+      ]
+    },
+    "Token": "98846a32f32e46e791cc4f95b305d569",
+    "Expiration": null
+  }
+]

@@ -57,6 +57,51 @@ namespace BackendProject.MiscUtils
                 return Encoding.UTF8.GetBytes(result);
         }
 
+        public static string? EncryptNoPreserve(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)
+        {
+            string? result = null;
+
+            if (xmlbody)
+                result = CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ServerResult", JToken.Parse(JsonConvert.SerializeObject(ObjectToEncrypt, new JsonSerializerSettings
+                {
+                    Converters = { new JsonIPConverterUtils() }
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+            else
+                result = CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
+                {
+                    Converters = { new JsonIPConverterUtils() }
+                }), Convert.FromBase64String(AccessKey), IV);
+
+            if (!string.IsNullOrEmpty(result) && xmlsecuretags)
+                result = "<Secure>" + result + "</Secure>";
+
+            return result;
+        }
+
+        public static byte[]? EncryptNoPreserveToByteArray(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)
+        {
+            string? result = null;
+
+            if (xmlbody)
+                result = CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ServerResult", JToken.Parse(JsonConvert.SerializeObject(ObjectToEncrypt, new JsonSerializerSettings
+                {
+                    Converters = { new JsonIPConverterUtils() }
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+            else
+                result = CryptoUtils.AESCTR256EncryptDecrypt.InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
+                {
+                    Converters = { new JsonIPConverterUtils() }
+                }), Convert.FromBase64String(AccessKey), IV);
+
+            if (!string.IsNullOrEmpty(result) && xmlsecuretags)
+                result = "<Secure>" + result + "</Secure>";
+
+            if (string.IsNullOrEmpty(result))
+                return null;
+            else
+                return Encoding.UTF8.GetBytes(result);
+        }
+
         public static string? Decrypt(string StringToDecrypt, string AccessKey, byte[] IV)
         {
             return Encoding.UTF8.GetString(CryptoUtils.AESCTR256EncryptDecrypt

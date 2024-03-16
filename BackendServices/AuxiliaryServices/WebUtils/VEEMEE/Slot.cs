@@ -6,6 +6,54 @@ namespace WebUtils.VEEMEE
 {
     public class Slot
     {
+        public static string? GetObjectSpace(byte[]? PostData, string? ContentType)
+        {
+            string scene_id = string.Empty;
+            string region = string.Empty;
+            string instance_id = string.Empty;
+            string psn_id = string.Empty;
+            string object_id = string.Empty;
+            string session_key = string.Empty;
+            string space_name = string.Empty;
+            string hex = string.Empty;
+            string __salt = string.Empty;
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+            if (boundary != null && PostData != null)
+            {
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    scene_id = data.GetParameterValue("scene_id");
+
+                    scene_id = data.GetParameterValue("scene_id");
+
+                    region = data.GetParameterValue("region");
+
+                    instance_id = data.GetParameterValue("instance_id");
+
+                    psn_id = data.GetParameterValue("psn_id");
+
+                    object_id = data.GetParameterValue("object_id");
+
+                    session_key = data.GetParameterValue("session_key");
+
+                    space_name = data.GetParameterValue("space_name");
+
+                    hex = data.GetParameterValue("hex");
+
+                    __salt = data.GetParameterValue("__salt");
+
+                    ms.Flush();
+                }
+
+                return Processor.sign($"{{\"space\":1}}");
+            }
+
+            return null;
+        }
+
         public static string? GetObjectSlot(byte[]? PostData, string? ContentType)
         {
             int max_slot = 0;
@@ -159,7 +207,7 @@ namespace WebUtils.VEEMEE
 
     public static class SlotManager
     {
-        private static Dictionary<string, Dictionary<int, string>> instanceData = new Dictionary<string, Dictionary<int, string>>();
+        private static Dictionary<string, Dictionary<int, string>> instanceData = new();
 
         public static string UpdateSlot(string instance_id, int slot_num, string psn_id, bool removemode, int max_slot = 0)
         {

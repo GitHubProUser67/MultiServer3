@@ -6,9 +6,11 @@ namespace QuazalServer.QNetZ
 	{
 		public static uint RVCIDCounter = 0xBB98E;
 
-		public static readonly List<PlayerInfo> Players = new();
+        private static object lockObject = new();
 
-		public static PlayerInfo? GetPlayerInfoByPID(uint pid)
+        public static readonly List<PlayerInfo> Players = new();
+
+        public static PlayerInfo? GetPlayerInfoByPID(uint pid)
 		{
 			foreach (PlayerInfo pl in Players)
 			{
@@ -60,17 +62,20 @@ namespace QuazalServer.QNetZ
 
 		public static void DropPlayers()
 		{
-			Players.RemoveAll(plInfo => { 
-				if (plInfo.Client?.State == QClient.StateType.Dropped &&
-					(DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
-				{
-					plInfo.OnDropped();
-					LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - auto-dropping player: {plInfo.Name}");
+			lock (lockObject) // Prevents the same action being done multiple times if the loop is very tight.
+			{
+                Players.RemoveAll(plInfo => {
+                    if (plInfo.Client?.State == QClient.StateType.Dropped &&
+                        (DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
+                    {
+                        plInfo.OnDropped();
+                        LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - auto-dropping player: {plInfo.Name}");
 
-					return true;
-				}
-				return false;
-			});
+                        return true;
+                    }
+                    return false;
+                });
+            }
 		}
 
         public static uint GenerateUniqueUint(string input)

@@ -130,6 +130,7 @@ pdc-lb-rdv-prod04.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod05.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod06.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod07.ubisoft.com,Redirect,IP
+api-ubiservices.ubi.com,Redirect,IP
 wsuplay.ubi.com,Redirect,IP
 static8.cdn.ubi.com,Redirect,IP
 master10.doublefusion.com,Redirect,IP

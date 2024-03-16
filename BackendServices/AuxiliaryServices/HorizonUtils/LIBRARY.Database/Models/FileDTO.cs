@@ -10,10 +10,10 @@ namespace Horizon.LIBRARY.Database.Models
         public int CreationTimeStamp { get; set; }
         public int OwnerID { get; set; }
         public int GroupID { get; set; }
-        public ushort OwnerPermissionRWX { get; set; }
-        public ushort GroupPermissionRWX { get; set; }
-        public ushort GlobalPermissionRWX { get; set; }
-        public ushort ServerOperationID { get; set; }
+        public uint OwnerPermissionRWX { get; set; }
+        public uint GroupPermissionRWX { get; set; }
+        public uint GlobalPermissionRWX { get; set; }
+        public uint ServerOperationID { get; set; }
         public FileAttributesDTO? fileAttributesDTO { get; set; }
         public FileMetaDataDTO? fileMetaDataDTO { get; set; }
         public DateTime CreateDt { get; set; }

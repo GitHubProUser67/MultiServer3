@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CS0067: The event 'MainWindow.ColorPropertyChanged' is never used
+dotnet_diagnostic.CS0067.severity = none

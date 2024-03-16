@@ -65,6 +65,8 @@ namespace WebUtils.VEEMEE
                             return (Data.ParkChallenges(apiPath), null);
                         case "/data/parkTasks.php":
                             return (Data.ParkTasks(apiPath), null);
+                        case "/slot-management/getobjectspace.php":
+                            return (Slot.GetObjectSpace(PostData, ContentType), null);
                         case "/slot-management/getobjectslot.php":
                             return (Slot.GetObjectSlot(PostData, ContentType), null);
                         case "/slot-management/remove.php":

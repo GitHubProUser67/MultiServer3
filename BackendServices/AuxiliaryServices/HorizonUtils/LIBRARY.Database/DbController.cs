@@ -4,6 +4,7 @@ using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Database.Config;
+using Horizon.LIBRARY.Database.Entities;
 using Horizon.LIBRARY.Database.Models;
 using System.Text;
 using System.Web;
