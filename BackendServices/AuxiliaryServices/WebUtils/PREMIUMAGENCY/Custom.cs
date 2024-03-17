@@ -61,6 +61,11 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom sent for PUBLIC MikuLiveEvent {eventId}!");
                     break;
+                case "210":
+                    if (File.Exists($"{workpath}/eventController/collabo_iln/getUserEventCustom.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/collabo_iln/getUserEventCustom.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom sent for PUBLIC Basara {eventId}!");
+                    break;
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetUserEventCustom unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");

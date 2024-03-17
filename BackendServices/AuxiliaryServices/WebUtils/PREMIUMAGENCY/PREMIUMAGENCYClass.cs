@@ -64,7 +64,6 @@ namespace WebUtils.PREMIUMAGENCY
                             return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
                         default:
                             {
-                                string toTrim = "/eventController/";
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
                             }
                             break;
