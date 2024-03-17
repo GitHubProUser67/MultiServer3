@@ -45,6 +45,7 @@ namespace WebUtils.PREMIUMAGENCY
                         case "/eventController/checkEvent.do":
                             return Event.checkEventRequestPOST(PostData, ContentType, eventId, workpath);
                         case "/eventController/entryEvent.do":
+                            return Event.entryEventRequestPOST(PostData, ContentType, eventId, workpath);
                         case "/eventController/clearEvent.do":
                             return Event.clearEventRequestPOST(PostData, ContentType, eventId, workpath);
                         case "/eventController/getEventTrigger.do":
