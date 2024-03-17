@@ -3616,7 +3616,7 @@ namespace Horizon.LIBRARY.Database
 
             try
             {
-                if (_settings.SimulatedMode == true)
+                if (_settings.SimulatedMode)
                 {
                     return new ChannelDTO[]
                     {

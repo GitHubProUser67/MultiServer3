@@ -27,7 +27,7 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// List of account ids that are allowed to login. When EnableAccountWhitelist is set to true.
         /// </summary>
-        public int[] AccountIdWhitelist { get; private set; } = new int[0];
+        public int[] AccountIdWhitelist { get; private set; } = Array.Empty<int>();
 
         /// <summary>
         /// Regular expression whitelist filter for most text inputs. If you only want to accept numbers you'd enter (\d)+ for example.
@@ -62,7 +62,7 @@ namespace Horizon.MEDIUS.Config
         /// <summary>
         /// When true, server will encrypt all messages.
         /// </summary>
-        public bool EnableEncryption { get; private set; } = false;
+        public bool EnableEncryption { get; private set; } = true;
 
         /// <summary>
         /// When true, will enable medius file services and will allow messages like MediusCreateFile, MediusUploadFile, MediusDownloadFile, MediusFileListFiles

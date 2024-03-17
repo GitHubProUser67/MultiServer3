@@ -5507,7 +5507,7 @@ namespace Horizon.MEDIUS.Medius
                             // Make last end of list
                             if (gameList.Length > 0)
                             {
-                                gameList[gameList.Length - 1].EndOfList = true;
+                                gameList[^1].EndOfList = true;
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5524,38 +5524,74 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            var gameList = MediusClass.Manager.GetGameList(
-                            data.ClientObject.ApplicationId,
-                            gameList_ExtraInfoRequest0.PageID,
-                            gameList_ExtraInfoRequest0.PageSize,
-                            data.ClientObject.GameListFilters)
-                            .Select(x => new MediusGameList_ExtraInfoResponse0()
-                            {
-                                MessageID = gameList_ExtraInfoRequest0.MessageID,
-                                StatusCode = MediusCallbackStatus.MediusSuccess,
+                            MediusGameList_ExtraInfoResponse0[]? gameList = null;
 
-                                GameHostType = x.GameHostType,
-                                GameLevel = x.GameLevel,
-                                GameName = x.GameName,
-                                GameStats = x.GameStats,
-                                GenericField1 = x.GenericField1,
-                                GenericField2 = x.GenericField2,
-                                GenericField3 = x.GenericField3,
-                                MaxPlayers = (ushort)x.MaxPlayers,
-                                MediusWorldID = x.MediusWorldId,
-                                MinPlayers = (ushort)x.MinPlayers,
-                                PlayerCount = (ushort)x.PlayerCount,
-                                PlayerSkillLevel = x.PlayerSkillLevel,
-                                RulesSet = x.RulesSet,
-                                SecurityLevel = (string.IsNullOrEmpty(x.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD),
-                                WorldStatus = x.WorldStatus,
-                                EndOfList = false
-                            }).ToArray();
+                            if (data.ApplicationId == 10683 || data.ApplicationId == 10684) // UYA needs at least one matching filter.
+                            {
+                                gameList = MediusClass.Manager.GetGameListOnAnyMatchingFilter(
+                                data.ClientObject.ApplicationId,
+                                gameList_ExtraInfoRequest0.PageID,
+                                gameList_ExtraInfoRequest0.PageSize,
+                                data.ClientObject.GameListFilters)
+                                .Select(x => new MediusGameList_ExtraInfoResponse0()
+                                {
+                                    MessageID = gameList_ExtraInfoRequest0.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+
+                                    GameHostType = x.GameHostType,
+                                    GameLevel = x.GameLevel,
+                                    GameName = x.GameName,
+                                    GameStats = x.GameStats,
+                                    GenericField1 = x.GenericField1,
+                                    GenericField2 = x.GenericField2,
+                                    GenericField3 = x.GenericField3,
+                                    MaxPlayers = (ushort)x.MaxPlayers,
+                                    MediusWorldID = x.MediusWorldId,
+                                    MinPlayers = (ushort)x.MinPlayers,
+                                    PlayerCount = (ushort)x.PlayerCount,
+                                    PlayerSkillLevel = x.PlayerSkillLevel,
+                                    RulesSet = x.RulesSet,
+                                    SecurityLevel = (string.IsNullOrEmpty(x.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD),
+                                    WorldStatus = x.WorldStatus,
+                                    EndOfList = false
+                                }).ToArray();
+                            }
+                            else
+                            {
+                                gameList = MediusClass.Manager.GetGameList(
+                                data.ClientObject.ApplicationId,
+                                gameList_ExtraInfoRequest0.PageID,
+                                gameList_ExtraInfoRequest0.PageSize,
+                                data.ClientObject.GameListFilters)
+                                .Select(x => new MediusGameList_ExtraInfoResponse0()
+                                {
+                                    MessageID = gameList_ExtraInfoRequest0.MessageID,
+                                    StatusCode = MediusCallbackStatus.MediusSuccess,
+
+                                    GameHostType = x.GameHostType,
+                                    GameLevel = x.GameLevel,
+                                    GameName = x.GameName,
+                                    GameStats = x.GameStats,
+                                    GenericField1 = x.GenericField1,
+                                    GenericField2 = x.GenericField2,
+                                    GenericField3 = x.GenericField3,
+                                    MaxPlayers = (ushort)x.MaxPlayers,
+                                    MediusWorldID = x.MediusWorldId,
+                                    MinPlayers = (ushort)x.MinPlayers,
+                                    PlayerCount = (ushort)x.PlayerCount,
+                                    PlayerSkillLevel = x.PlayerSkillLevel,
+                                    RulesSet = x.RulesSet,
+                                    SecurityLevel = (string.IsNullOrEmpty(x.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD),
+                                    WorldStatus = x.WorldStatus,
+                                    EndOfList = false
+                                }).ToArray();
+                            }
+                            
 
                             // Make last end of list
                             if (gameList.Length > 0)
                             {
-                                gameList[gameList.Length - 1].EndOfList = true;
+                                gameList[^1].EndOfList = true;
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);

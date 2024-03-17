@@ -394,9 +394,7 @@ namespace Horizon.DME
                         // start udp server
                         data.ClientObject.BeginUdp();
 
-                        if (scertClient.IsPS3Client)
-                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
-                        else if (scertClient.MediusVersion > 108)
+                        if (scertClient.MediusVersion > 108 || scertClient.IsPS3Client)
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         else if (data.ClientObject.DmeWorld != null)
                         {
@@ -516,7 +514,7 @@ namespace Horizon.DME
                             }, clientChannel);
 
                         //MSPR doesn't need this packet sent
-                        if (scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 24180))
+                        if ((scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 24180)) || data.ApplicationId == 10683 || data.ApplicationId == 10684)
                         {
                             Queue(new RT_MSG_SERVER_APP()
                             {

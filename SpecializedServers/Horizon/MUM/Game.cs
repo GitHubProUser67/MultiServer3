@@ -429,7 +429,7 @@ namespace Horizon.MUM
             if (LocalClients.Any(x => x.Client == client))
                 return;
 
-            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added with sessionkey {client.SessionKey}.");
 
             LocalClients.Add(new GameClient()
             {
