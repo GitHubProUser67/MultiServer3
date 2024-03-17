@@ -161,9 +161,7 @@ namespace Horizon.DME.Models
         {
             SessionKey = sessionKey;
 
-            //this.DmeId = dmeId;
-            //this.DmeWorld = dmeWorld;
-            this.AggTimeMs = DmeClass.GetAppSettingsOrDefault(ApplicationId).DefaultClientWorldAggTime;
+            AggTimeMs = DmeClass.GetAppSettingsOrDefault(ApplicationId).DefaultClientWorldAggTime;
 
             // Generate new token
             byte[] tokenBuf = new byte[12];

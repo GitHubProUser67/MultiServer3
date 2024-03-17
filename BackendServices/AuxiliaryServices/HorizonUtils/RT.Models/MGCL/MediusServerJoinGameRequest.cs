@@ -6,7 +6,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobbyReport, MediusMGCLMessageIds.ServerJoinGameRequest)]
     public class MediusServerJoinGameRequest : BaseMGCLMessage, IMediusRequest
     {
-
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerJoinGameRequest;
 
         public MessageId MessageID { get; set; }

@@ -24,7 +24,7 @@ namespace Horizon.RT.Models
         /// </summary>
         public long MaxPlayers;
 
-        public List<int> approvedMaxPlayersAppIds = new List<int>() { 20371, 20374, 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
+        public List<int> approvedMaxPlayersAppIds = new() { 20371, 20374, 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -56,7 +56,7 @@ namespace Horizon.RT.Models
 
             if (writer.MediusVersion == 113 && approvedMaxPlayersAppIds.Contains(writer.AppId))
             {
-                LoggerAccessor.LogInfo($"[MediusJoinGameResponse] - Setting MaxPlayers for {writer.AppId.ToString()}");
+                LoggerAccessor.LogInfo($"[MediusJoinGameResponse] - Setting MaxPlayers for {writer.AppId}");
                 writer.Write(MaxPlayers);
             }
         }

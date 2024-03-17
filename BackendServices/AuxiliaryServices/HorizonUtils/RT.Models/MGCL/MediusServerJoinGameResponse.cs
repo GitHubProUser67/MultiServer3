@@ -6,7 +6,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobbyReport, MediusMGCLMessageIds.ServerJoinGameResponse)]
     public class MediusServerJoinGameResponse : BaseMGCLMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerJoinGameResponse;
 
         public bool IsSuccess => Confirmation >= 0;
@@ -26,10 +25,7 @@ namespace Horizon.RT.Models
             AccessKey = reader.ReadString(Constants.MGCL_ACCESSKEY_MAXLEN);
             reader.ReadBytes(1);
             pubKey = reader.Read<RSA_KEY>();
-            if(DmeClientIndex != 0)
-            {
-                DmeClientIndex = reader.ReadInt32();
-            }
+            DmeClientIndex = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -41,10 +37,7 @@ namespace Horizon.RT.Models
             writer.Write(AccessKey, Constants.MGCL_ACCESSKEY_MAXLEN);
             writer.Write(new byte[1]);
             writer.Write(pubKey ?? RSA_KEY.Empty);
-            if(DmeClientIndex != 0)
-            {
-                writer.Write(DmeClientIndex);
-            }
+            writer.Write(DmeClientIndex);
         }
 
         public override string ToString()

@@ -46,7 +46,7 @@ namespace Horizon.DME.Models
             {
                 for (index = 0; index < _pIdIsUsed.Count; ++index)
                 {
-                    if (_pIdIsUsed.TryGetValue(index, out var isUsed) && !isUsed)
+                    if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
                     {
                         _pIdIsUsed[index] = true;
                         return true;
@@ -380,7 +380,7 @@ namespace Horizon.DME.Models
             // If world is full then fail
             if (Clients.Count >= MAX_CLIENTS_PER_WORLD)
             {
-                LoggerAccessor.LogWarn($"[DMEWorld] - Player attempted to join world {this} but there is no room!");
+                LoggerAccessor.LogWarn($"[DMEWorld] - Player attempted to join world {this} but world is full!");
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,
@@ -388,7 +388,7 @@ namespace Horizon.DME.Models
                 };
             }
 
-            if (TryRegisterNewClientIndex(out var newClientIndex))
+            if (TryRegisterNewClientIndex(out int newClientIndex))
             {
                 if (!Clients.TryAdd(newClientIndex, newClient = new ClientObject(request.ConnectInfo.SessionKey, this, newClientIndex)))
                 {
@@ -400,9 +400,7 @@ namespace Horizon.DME.Models
                     };
                 }
                 else
-                {
                     newClient.OnDestroyed += (client) => { UnregisterClientIndex(client.DmeId); };
-                }
             }
             else
             {

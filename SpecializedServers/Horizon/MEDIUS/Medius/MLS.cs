@@ -3301,7 +3301,7 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    List<int> nonFilteredChatChannelList = new() { 10683, 10684 }; // Old medius seems to work like MAS and join default channel?
+                                    List<int> nonFilteredChatChannelList = new() { 10683, 10684, 24000 }; // Ratchet Up Your Arsenal (Original and HD) seems to work like MAS and join default channel?
 
                                     Channel? foundchannel = null;
 
@@ -7251,8 +7251,7 @@ namespace Horizon.MEDIUS.Medius
 
                         Channel? channel = MumChannelHandler.GetRemoteChannelById(channelInfoRequest.WorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
 
-                        if (channel == null)
-                            channel = MediusClass.Manager.GetChannelByChannelId(channelInfoRequest.WorldID, data.ClientObject.ApplicationId);
+                        channel ??= MediusClass.Manager.GetChannelByChannelId(channelInfoRequest.WorldID, data.ClientObject.ApplicationId);
 
                         if (channel == null)
                         {

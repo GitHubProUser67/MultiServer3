@@ -365,13 +365,19 @@ namespace Horizon.DME
             return MPSManagers.Select(x => x.Value.GetClientByAppId(appId)).FirstOrDefault(x => x != null);
         }
 
-        public static ClientObject? GetMPSClientByAccessToken(string accessToken)
+        public static ClientObject? GetMPSClientByAccessToken(string? accessToken)
         {
+            if (string.IsNullOrEmpty(accessToken))
+                return null;
+
             return MPSManagers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
         }
 
-        public static ClientObject? GetMPSClientBySessionKey(string sessionKey)
+        public static ClientObject? GetMPSClientBySessionKey(string? sessionKey)
         {
+            if (string.IsNullOrEmpty(sessionKey))
+                return null;
+
             return MPSManagers.Select(x => x.Value.GetClientBySessionKey(sessionKey)).FirstOrDefault(x => x != null);
         }
 

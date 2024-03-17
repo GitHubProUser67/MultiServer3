@@ -454,7 +454,8 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                 },
                                                 Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
-                                            }
+                                            },
+                                            MaxPlayers = game.MaxPlayers
                                         });
                                     }
                                     else if (game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer &&
@@ -485,7 +486,8 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                 },
                                                 Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
-                                            }
+                                            },
+                                            MaxPlayers = game.MaxPlayers
                                         });
                                     }
 
@@ -529,7 +531,8 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                 },
                                                 Type = NetConnectionType.NetConnectionTypePeerToPeerUDP
-                                            }
+                                            },
+                                            MaxPlayers = game.MaxPlayers
                                         });
                                     }
 
@@ -581,13 +584,14 @@ namespace Horizon.MEDIUS.Medius
                                                 AddressList = new NetAddressList()
                                                 {
                                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                                {
-                                                        new NetAddress() { Address = ((DMEObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((DMEObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                                        new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
-                                                }
+                                                    {
+                                                            new NetAddress() { Address = ((DMEObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((DMEObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                                            new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
+                                                    }
                                                 },
                                                 Type = NetConnectionType.NetConnectionTypeClientServerTCPAuxUDP
-                                            }
+                                            },
+                                            MaxPlayers = game.MaxPlayers
                                         });
                                     }
 
