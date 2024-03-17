@@ -28,6 +28,7 @@ using System.IO.Compression;
 using HomeTools.ChannelID;
 using NautilusXP2024;
 using CustomLogger;
+using SharpCompress.Archives;
 
 namespace YourNamespace
 {
@@ -139,19 +140,23 @@ namespace YourNamespace
                 case ArchiveTypeSetting.CORE_SHARC:
                     RadioButtonArchiveCreatorCORE_SHARC.IsChecked = true;
                     break;
+                // Added setting for creating config sharcs
+                case ArchiveTypeSetting.CONFIG_SHARC:
+                    RadioButtonArchiveCreatorCONFIG_SHARC.IsChecked = true;
+                    break;
 
             };
             switch (_settings.ArchivePackerSettingRem)
             {
                 case ArchivePackerSetting.NORM:
-                    CheckBoxArchivePackerSLOW.IsChecked = false;
-                    CheckBoxArchivePackerCORE.IsChecked = false;
+                    CheckBoxArchiveMapperFAST.IsChecked = false;
+                    CheckBoxArchiveMapperCORE.IsChecked = false;
                     break;
-                case ArchivePackerSetting.SLOW:
-                    CheckBoxArchivePackerSLOW.IsChecked = true;
+                case ArchivePackerSetting.FAST:
+                    CheckBoxArchiveMapperFAST.IsChecked = true;
                     break;
                 case ArchivePackerSetting.CORE:
-                    CheckBoxArchivePackerCORE.IsChecked = true;
+                    CheckBoxArchiveMapperCORE.IsChecked = true;
                     break;
 
             };
@@ -349,6 +354,15 @@ namespace YourNamespace
             if (_settings != null)
             {
                 _settings.ArchiveTypeSettingRem = ArchiveTypeSetting.CORE_SHARC;
+                SettingsManager.SaveSettings(_settings);
+            }
+        }
+
+        private void RadioButtonArchiveCreatorCONFIG_SHARC_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_settings != null)
+            {
+                _settings.ArchiveTypeSettingRem = ArchiveTypeSetting.CONFIG_SHARC;
                 SettingsManager.SaveSettings(_settings);
             }
         }
@@ -631,7 +645,7 @@ namespace YourNamespace
                 LogDebugInfo($"Archive Creation: Starting creation for {itemsPaths.Length} items");
                 bool archiveCreationSuccess = await CreateArchiveAsync(itemsPaths, _settings.ArchiveTypeSettingRem);
 
-                string message = archiveCreationSuccess ? "Success: Archives Created (Simulated)" : "Archive Creation Failed";
+                string message = archiveCreationSuccess ? "Success: Archives Created" : "Archive Creation Failed";
                 TemporaryMessageHelper.ShowTemporaryMessage(ArchiveCreatorDragAreaText, message, 2000);
 
                 LogDebugInfo($"Archive Creation: Result - {message}");
@@ -657,9 +671,18 @@ namespace YourNamespace
 
                 foreach (var item in droppedItems)
                 {
-                    if (Directory.Exists(item) || (File.Exists(item) && Path.GetExtension(item).ToLowerInvariant() == ".zip"))
+                    LogDebugInfo($"Processing item: {item}");
+
+                    if (Directory.Exists(item))
+                    {
+                        string itemWithTrailingSlash = item.EndsWith(Path.DirectorySeparatorChar.ToString()) ? item : item + Path.DirectorySeparatorChar;
+                        itemsToAdd.Add(itemWithTrailingSlash);
+                        LogDebugInfo($"Directory added with trailing slash: {itemWithTrailingSlash}");
+                    }
+                    else if (File.Exists(item) && Path.GetExtension(item).ToLowerInvariant() == ".zip")
                     {
                         itemsToAdd.Add(item);
+                        LogDebugInfo($"ZIP file added: {item}");
                     }
                 }
 
@@ -698,6 +721,7 @@ namespace YourNamespace
                 TemporaryMessageHelper.ShowTemporaryMessage(ArchiveCreatorDragAreaText, "Drag and Drop operation failed - No Data Present.", 2000);
             }
         }
+
 
 
         private void ClickToBrowseArchiveCreatorHandler(object sender, RoutedEventArgs e)
@@ -745,27 +769,27 @@ namespace YourNamespace
             TemporaryMessageHelper.ShowTemporaryMessage(ArchiveCreatorDragAreaText, message, 2000);
         }
 
-        private void CheckBoxArchivePackerSLOW_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperFAST_Checked(object sender, RoutedEventArgs e)
         {
             if (_settings != null)
             {
-                _settings.ArchivePackerSettingRem = ArchivePackerSetting.SLOW;
+                _settings.ArchivePackerSettingRem = ArchivePackerSetting.FAST;
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the CORE CheckBox if it's checked
-            CheckBoxArchivePackerCORE.IsChecked = false;
+            CheckBoxArchiveMapperCORE.IsChecked = false;
         }
 
-        private void CheckBoxArchivePackerSLOW_Unchecked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperFAST_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (_settings != null && !CheckBoxArchivePackerCORE.IsChecked.Value)
+            if (_settings != null && !CheckBoxArchiveMapperCORE.IsChecked.Value)
             {
                 _settings.ArchivePackerSettingRem = ArchivePackerSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
             }
         }
 
-        private void CheckBoxArchivePackerCORE_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperCORE_Checked(object sender, RoutedEventArgs e)
         {
             if (_settings != null)
             {
@@ -773,12 +797,12 @@ namespace YourNamespace
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the SLOW CheckBox if it's checked
-            CheckBoxArchivePackerSLOW.IsChecked = false;
+            CheckBoxArchiveMapperFAST.IsChecked = false;
         }
 
-        private void CheckBoxArchivePackerCORE_Unchecked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperCORE_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (_settings != null && !CheckBoxArchivePackerSLOW.IsChecked.Value)
+            if (_settings != null && !CheckBoxArchiveMapperFAST.IsChecked.Value)
             {
                 _settings.ArchivePackerSettingRem = ArchivePackerSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
@@ -792,18 +816,22 @@ namespace YourNamespace
         private Task<bool> CreateArchiveAsync(string[] itemPaths, ArchiveTypeSetting type)
         {
             // Here you would log the start of the archive creation process
-            LogDebugInfo($"Archive Creation: Beginning Archive Creation for {itemPaths.Length} items");
+            LogDebugInfo($"Archive Creation: Beginning Archive Creation for {itemPaths.Length} items with type {type}.");
 
             int i = 0;
 
             foreach (string itemPath in itemPaths)
             {
+                LogDebugInfo($"Archive Creation: Processing item {i + 1}: {itemPath}");
                 if (itemPath.ToLower().EndsWith(".zip"))
                 {
+
                     string filename = Path.GetFileNameWithoutExtension(itemPath);
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Extracting ZIP: {filename}");
 
                     // Combine the temporary folder path with the unique folder name
                     string temppath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Temporary extraction path: {temppath}");
 
                     UncompressFile(itemPath, temppath);
 
@@ -811,24 +839,36 @@ namespace YourNamespace
                     IEnumerable<string> enumerable = Directory.EnumerateFiles(temppath, "*.*", SearchOption.AllDirectories);
                     BARArchive? bararchive = null;
 
+                    // Declare the fileExtension variable
+                    string fileExtension = "";
+
                     switch (_settings.ArchiveTypeSettingRem)
                     {
                         case ArchiveTypeSetting.BAR:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            fileExtension = ".BAR"; // Set file extension
                             break;
                         case ArchiveTypeSetting.BAR_S:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            fileExtension = ".bar"; // Set file extension
                             break;
                         case ArchiveTypeSetting.SDAT:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             sdat = true;
+                            fileExtension = ".sdat";  // Set file extension
                             break;
                         case ArchiveTypeSetting.CORE_SHARC:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            fileExtension = ".SHARC"; // Set file extension
                             break;
                         case ArchiveTypeSetting.SDAT_SHARC:
                             sdat = true;
-                            bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            fileExtension = ".sdat"; // Set file extension
+                            break;
+                        case ArchiveTypeSetting.CONFIG_SHARC:
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            fileExtension = ".sharc"; // Set file extension
                             break;
                     }
 
@@ -836,14 +876,18 @@ namespace YourNamespace
 
                     foreach (string path in enumerable)
                     {
-                        bararchive.AddFile(Path.Combine(temppath, path));
+                        var fullPath = Path.Combine(temppath, path);
+                        bararchive.AddFile(fullPath);
+                        LogDebugInfo($"Archive Creation: Processing item {i + 1}: Added file to archive: {fullPath}");
                     }
 
                     // Get the name of the directory
                     string directoryName = new DirectoryInfo(temppath).Name;
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Processing directory: {directoryName}");
 
                     // Create a text file to write the paths to
                     StreamWriter writer = new(temppath + @"/files.txt");
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Creating file list text file at: {temppath}files.txt");
 
                     // Get all files in the directory and its immediate subdirectories
                     string[] files = Directory.GetFiles(temppath, "*.*", SearchOption.AllDirectories);
@@ -851,9 +895,12 @@ namespace YourNamespace
                     // Loop through the files and write their paths to the text file
                     foreach (string file in files)
                     {
-                        string relativePath = string.Concat("file=\"", file.Replace(temppath, string.Empty).AsSpan(1), "\"");
+                        string relativePath = $"file=\"{file.Replace(temppath, "").TrimStart(Path.DirectorySeparatorChar)}\"";
                         writer.WriteLine(relativePath.Replace(@"\", "/"));
+                        LogDebugInfo($"Archive Creation: Processing item {i + 1}: Writing file path to text: {relativePath.Replace(@"\", "/")}");
                     }
+
+                    LogDebugInfo("Archive Creation: Completed writing file paths to text file.");
 
                     writer.Close();
 
@@ -867,14 +914,19 @@ namespace YourNamespace
 
                     if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC"))
                     {
+                        LogDebugInfo($"Archive Creation: Starting SDAT encryption for SHARC file: {filename}.SHARC");
                         RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC");
+                        LogDebugInfo($"Archive Creation: SDAT encryption completed and original SHARC file deleted for: {filename}.SHARC");
                     }
                     else if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR"))
                     {
+                        LogDebugInfo($"Archive Creation: Starting SDAT encryption for BAR file: {filename}.BAR");
                         RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR");
+                        LogDebugInfo($"Archive Creation: SDAT encryption completed and original BAR file deleted for: {filename}.BAR");
                     }
+
                 }
                 else
                 {
@@ -884,39 +936,55 @@ namespace YourNamespace
                     IEnumerable<string> enumerable = Directory.EnumerateFiles(itemPath, "*.*", SearchOption.AllDirectories);
                     BARArchive? bararchive = null;
 
+                    string fileExtension = "";
+
                     switch (_settings.ArchiveTypeSettingRem)
                     {
                         case ArchiveTypeSetting.BAR:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            fileExtension = ".BAR"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.BAR_S:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            fileExtension = ".bar"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.SDAT:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             sdat = true;
+                            fileExtension = ".sdat"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.CORE_SHARC:
-                            bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            fileExtension = ".SHARC"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.SDAT_SHARC:
                             sdat = true;
-                            bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", _settings.BarSdatSharcOutputDirectory, filename), itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            fileExtension = ".sdat"; // Set the file extension
+                            break;
+                        case ArchiveTypeSetting.CONFIG_SHARC:
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            fileExtension = ".sharc"; // Set the file extension
                             break;
                     }
+
 
                     bararchive.AllowWhitespaceInFilenames = true;
 
                     foreach (string path in enumerable)
                     {
-                        bararchive.AddFile(Path.Combine(itemPath, path));
+                        var fullPath = Path.Combine(itemPath, path);
+                        bararchive.AddFile(fullPath);
+                        LogDebugInfo($"Archive Creation: Processing item {i + 1}: Added file to archive from directory: {fullPath}");
                     }
 
                     // Get the name of the directory
                     string directoryName = new DirectoryInfo(itemPath).Name;
+                    LogDebugInfo($"Archive Creation: Processing item { i + 1}: Processing directory into archive: {directoryName}");
 
                     // Create a text file to write the paths to
                     StreamWriter writer = new(itemPath + @"/files.txt");
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Creating list of files at: {itemPath}files.txt for archive manifest.");
 
                     // Get all files in the directory and its immediate subdirectories
                     string[] files = Directory.GetFiles(itemPath, "*.*", SearchOption.AllDirectories);
@@ -924,39 +992,49 @@ namespace YourNamespace
                     // Loop through the files and write their paths to the text file
                     foreach (string file in files)
                     {
-                        string relativePath = string.Concat("file=\"", file.Replace(itemPath, string.Empty).AsSpan(1), "\"");
+                        string relativePath = $"file=\"{file.Replace(itemPath, "").TrimStart(Path.DirectorySeparatorChar)}\"";
                         writer.WriteLine(relativePath.Replace(@"\", "/"));
+                        LogDebugInfo($"Archive Creation: Processing item {i + 1}: Logging file path for archive manifest: {relativePath.Replace(@"\", "/")}");
                     }
 
                     writer.Close();
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: File list for archive manifest completed and file closed.");
 
                     bararchive.AddFile(itemPath + @"/files.txt");
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Added file list to archive: {itemPath}files.txt");
 
                     bararchive.CreateManifest();
+                    LogDebugInfo("Archive Creation: Manifest created for archive.");
 
                     bararchive.Save();
 
                     bararchive = null;
+                    LogDebugInfo($"Archive Creation: New Archive Saved at: {_settings.BarSdatSharcOutputDirectory}\\{filename}{fileExtension}.");
 
                     if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC"))
                     {
                         RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC");
+                        LogDebugInfo($"Archive Creation: SDAT encryption completed and original SHARC file deleted for: {filename}.SHARC");
                     }
                     else if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR"))
                     {
                         RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR");
+                        LogDebugInfo($"Archive Creation: SDAT encryption completed and original BAR file deleted for: {filename}.BAR");
                     }
+
+                    LogDebugInfo("Archive Creation: Completed processing item for archive creation.");
+
                 }
 
                 i++;
             }
 
             // Log the completion and result of the archive creation process
-            LogDebugInfo("Archive Creation: Archive Creation Process not implemnted yet - Simulated Success for now");
+            LogDebugInfo("Archive Creation: Process Success");
 
-            return Task.FromResult(true); // Simulate success for now
+            return Task.FromResult(true); 
         }
 
 
