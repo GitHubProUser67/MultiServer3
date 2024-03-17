@@ -10,6 +10,8 @@ namespace WebUtils.PREMIUMAGENCY
         public static string? getEventTriggerRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
 
+
+
             switch (eventId)
             {
                 #region MikuLiveJack
@@ -40,6 +42,7 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/PrinnyJack/getEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/PrinnyJack/getEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Prinny {eventId}!");
+                    break;
                 //MikuLiveEvent
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getEventTrigger.xml"))
@@ -162,6 +165,8 @@ namespace WebUtils.PREMIUMAGENCY
 
 
 
+
+
             switch (eventId)
             {
                 case "124":
@@ -208,6 +213,7 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/PrinnyJack/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/PrinnyJack/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Prinny {eventId}!");
+                    break;
                 //MikuLiveEvent
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/confirmEventTrigger.xml"))
