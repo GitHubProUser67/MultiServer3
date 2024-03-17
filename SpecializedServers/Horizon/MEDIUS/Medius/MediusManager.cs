@@ -440,6 +440,18 @@ namespace Horizon.MEDIUS.Medius
                             .Take(pageSize);
         }
 
+        public IEnumerable<Game> GetGameListOnAnyMatchingFilter(int appId, int pageIndex, int pageSize, IEnumerable<GameListFilter> filters)
+        {
+            var appIdsInGroup = GetAppIdsInGroup(appId);
+
+            return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
+                            .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
+                            .Where(x => (x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging) &&
+                                        (filters.Count() == 0 || filters.Any(y => y.IsMatch(x))))
+                            .Skip((pageIndex - 1) * pageSize)
+                            .Take(pageSize);
+        }
+
         public IEnumerable<Game> GetGameListAppId(int appId, int pageIndex, int pageSize)
         {
             var appIdsInGroup = GetAppIdsInGroup(appId);
@@ -447,13 +459,6 @@ namespace Horizon.MEDIUS.Medius
             return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
                             .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
                             .Where(x => x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging)
-                            .Skip((pageIndex - 1) * pageSize)
-                            .Take(pageSize);
-        }
-
-        public IEnumerable<Game> GetGameListInLocalChannel(Channel channel, int pageIndex, int pageSize)
-        {
-            return channel._games.Where(x => x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging)
                             .Skip((pageIndex - 1) * pageSize)
                             .Take(pageSize);
         }
@@ -1182,7 +1187,7 @@ namespace Horizon.MEDIUS.Medius
                 // Else send normal Connection type to DME
                 else
                 {
-                    if (client.MediusVersion > 108 && client.ApplicationId != 10994)
+                    if ((client.MediusVersion > 108 && client.ApplicationId != 10994) || client.ApplicationId == 10683 || client.ApplicationId == 10684)
                     {
                         dme.Queue(new MediusServerJoinGameRequest()
                         {
