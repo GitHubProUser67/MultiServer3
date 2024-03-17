@@ -150,7 +150,7 @@
         <Style x:Key="ModernRadioButtonStyle" TargetType="RadioButton">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="0,0,0,0"/>
-            <Setter Property="Margin" Value="-10,0,10,0"/>
+            <Setter Property="Margin" Value="-10,0,5,0"/>
             <Setter Property="Background" Value="#383838"/>
             <Setter Property="BorderBrush" Value="#000000"/>
             <Setter Property="BorderThickness" Value="1.5"/>
@@ -162,7 +162,7 @@
                         <Grid HorizontalAlignment="{TemplateBinding HorizontalAlignment}" 
                       VerticalAlignment="{TemplateBinding VerticalAlignment}">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="45"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Border x:Name="RadioButtonBorder" Width="26" Height="26" CornerRadius="13" 
@@ -448,6 +448,12 @@
             <Setter Property="Padding" Value="0,3,0,0"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
+        <Style x:Key="ArchiveFormatTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Margin" Value="0,10,5,10"/>
+            <Setter Property="Padding" Value="0,3,0,0"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
         <Style x:Key="Toggle1TextBlockStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Margin" Value="5,10,5,10"/>
@@ -577,7 +583,7 @@
 
                 <!-- TAB 1 BAR SHARC SDAT Archive packer unpacker-->
                 <TabItem Header="BAR / SDAT / SHARC" Tag="ArchiveTool">
-                    <StackPanel Background="#333333">
+                    <StackPanel Background="#333333" HorizontalAlignment="Right" Width="1200">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -597,17 +603,19 @@
                                 
 
                                 <!-- Radio Buttons -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,0,0,0">
-                                    <TextBlock Text="BAR:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,0,0">
+                                    <TextBlock Text="BAR:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
                                     <RadioButton x:Name="RadioButtonArchiveCreatorBAR" GroupName="ArchiveType" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorBAR_Checked"/>
-                                    <TextBlock Text="BAR (Secure):" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="BAR (Secure):" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
                                     <RadioButton x:Name="RadioButtonArchiveCreatorBAR_S" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorBAR_S_Checked"/>
-                                    <TextBlock Text="SDAT:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="SDAT:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
                                     <RadioButton x:Name="RadioButtonArchiveCreatorSDAT" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorSDAT_Checked"/>
-                                    <TextBlock Text="SDAT SHARC:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="SDAT SHARC:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
                                     <RadioButton x:Name="RadioButtonArchiveCreatorSDAT_SHARC" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorSDAT_SHARC_Checked"/>
-                                    <TextBlock Text="CORE SHARC:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="CORE SHARC:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
                                     <RadioButton x:Name="RadioButtonArchiveCreatorCORE_SHARC" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorCORE_SHARC_Checked"/>
+                                    <TextBlock Text="Config SHARC:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorCONFIG_SHARC" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorCONFIG_SHARC_Checked"/>
                                 </StackPanel>
 
                                 <!-- Buttons -->
@@ -633,10 +641,10 @@
 
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,0,0,0">
-                                    <TextBlock Text="Bruteforce UUID (Slow):" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="CheckBoxArchivePackerSLOW" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchivePackerSLOW_Unchecked" Checked="CheckBoxArchivePackerSLOW_Checked"/>
-                                    <TextBlock Text="Coredata Mode:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="CheckBoxArchivePackerCORE" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchivePackerCORE_Unchecked" Checked="CheckBoxArchivePackerCORE_Checked"/>
+                                    <TextBlock Text="Fast Map (No UUID Needed):" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperFAST" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchiveMapperFAST_Unchecked" Checked="CheckBoxArchiveMapperFAST_Checked"/>
+                                    <TextBlock Text="Coredata Mode:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperCORE" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchiveMapperCORE_Unchecked" Checked="CheckBoxArchiveMapperCORE_Checked"/>
                                 </StackPanel>
 
                                 <!-- Buttons -->

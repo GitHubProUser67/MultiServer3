@@ -13,7 +13,8 @@
         BAR_S,
         SDAT,
         SDAT_SHARC,
-        CORE_SHARC
+        CORE_SHARC,
+        CONFIG_SHARC
     }
 
     public enum RememberLastTabUsed
@@ -34,7 +35,7 @@
     public enum ArchivePackerSetting
     {
         NORM,
-        SLOW,
+        FAST,
         CORE
     }
 
