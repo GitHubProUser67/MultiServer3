@@ -25,7 +25,7 @@ namespace NautilusXP2024
         public OverwriteBehavior FileOverwriteBehavior { get; set; }
         public SaveDebugLog SaveDebugLogToggle { get; set; }
         public ArchiveTypeSetting ArchiveTypeSettingRem { get; set; }
-        public ArchivePackerSetting ArchivePackerSettingRem { get; set; }
+        public ArchiveMapperSetting ArchiveMapperSettingRem { get; set; }
         public RememberLastTabUsed LastTabUsed { get; set; }
 
         // Constructor to initialize default values
@@ -47,7 +47,7 @@ namespace NautilusXP2024
             FileOverwriteBehavior = OverwriteBehavior.Skip;
             SaveDebugLogToggle = SaveDebugLog.True;
             ArchiveTypeSettingRem = ArchiveTypeSetting.SDAT;
-            ArchivePackerSettingRem = ArchivePackerSetting.NORM;
+            ArchiveMapperSettingRem = ArchiveMapperSetting.NORM;
             LastTabUsed = RememberLastTabUsed.ArchiveTool;
         }
     }
