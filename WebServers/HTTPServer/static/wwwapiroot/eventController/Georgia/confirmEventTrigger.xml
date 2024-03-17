@@ -1,0 +1,27 @@
+<xml>
+<result type="int">1</result>
+<description type="text">Success</description>
+<error_no type="int">0</error_no>
+<error_message type="text">None</error_message>
+<trigger_count type="int">200</trigger_count>
+<is_active type="bool">true</is_active>
+<trigger_id type="int">1</trigger_id>
+
+<start_year type="int">2024</start_year>
+<start_month type="int">2</start_month>
+<start_day type="int">17</start_day>
+<start_hour type="int">04</start_hour>
+<start_minutes type="int">12</start_minutes>
+<start_second type="int">00</start_second>
+
+<end_year type="int">2024</end_year>
+<end_month type="int">11</end_month>
+<end_day type="int">27</end_day>
+<end_hour type="int">00</end_hour>
+<end_minutes type="int">30</end_minutes>
+<end_second type="int">0</end_second>
+
+<trigger_flag type="int">1</trigger_flag>
+<!-- Trigger Flag 1 Coke Machine
+     Trigger Flag 2 Coming Soon-->
+</xml>
