@@ -25,15 +25,24 @@ namespace WebUtils.PREMIUMAGENCY
                 LoggerAccessor.LogInfo($"Attempting to locate resource with key {resKey}");
 
                 #region EventController Paths
+                string avatarfx = $"{workpath}/eventController/hs/avatarfx";
                 string basaraCollabEventPath = $"{workpath}/eventController/collabo_iln";
 
+                string DemoAsset_Settings130222 = $"{workpath}/eventController/hs/DemoAssets/130222";
+                string GundamPath = $"{workpath}/eventController/Gundam";
+                string listenerfx = $"{workpath}/eventController/hs/listnerfx";
 
+                
                 string homecafeEnquetePath = $"{workpath}/eventController/hc_Enquete";
                 string homecafeGalleryPath = $"{workpath}/eventController/hc_gallery";
                 string homecafeShopPath = $"{workpath}/eventController/hc_Shop";
                 string homecafePlanPath = $"{workpath}/eventController/hc_plan";
 
+                string hs_commu_ev_cfg_130222 = $"{workpath}/eventController/hs/CommEvent/130222";
+                string hs_userinfo_cfg = $"{workpath}/eventController/hs/UserInfo";
+
                 string idolMasterPath = $"{workpath}/eventController/iDOLM@ASTERs";
+
                 string j_liargame2Path = $"{workpath}/eventController/j_liargame2";
                 string j_liargame2demoPath = $"{workpath}/eventController/j_liargame2demo";
 
@@ -41,10 +50,13 @@ namespace WebUtils.PREMIUMAGENCY
                 string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent";
                 string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox";
                 string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium";
-                string shoeikingdomPath = $"{workpath}/eventController/shoeikingdom";
+                string shoeikingdomPath = $"{workpath}/eventController/ShoeiKingdom";
+
                 string Spring2009 = $"{workpath}/eventController/Spring/2009";
                 string Spring2013 = $"{workpath}/eventController/Spring/2013";
+
                 string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010";
+                string WhiteDay2013 = $"{workpath}/eventController/WhiteDay/2013";
 
                 #endregion
 
@@ -59,7 +71,8 @@ namespace WebUtils.PREMIUMAGENCY
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
                                 return File.ReadAllText(filePath);
-                            } else
+                            }
+                            else
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
                             }
@@ -79,6 +92,102 @@ namespace WebUtils.PREMIUMAGENCY
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
                             }
+                        }
+                        break;
+                    #endregion
+
+
+                    #region avatarfx
+                    case "avatarfx":
+                        {
+                            Directory.CreateDirectory(avatarfx);
+                            string filePath = $"{avatarfx}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    #endregion
+
+                    #region CommunicationEvents
+                    case "hs_commu_ev_cfg_130222":
+                        {
+                            Directory.CreateDirectory(hs_commu_ev_cfg_130222);
+                            string filePath = $"{hs_commu_ev_cfg_130222}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    #endregion
+
+                    #region hs_userinfo_cfg  (?)
+                    case "hs_userinfo_cfg":
+                        {
+                            Directory.CreateDirectory(hs_userinfo_cfg);
+                            string filePath = $"{hs_userinfo_cfg}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    #endregion
+
+                    #region listenerfx
+                    case "listenerfx":
+                        {
+                            Directory.CreateDirectory(listenerfx);
+                            string filePath = $"{listenerfx}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    #endregion
+
+                    #region DemoAssets
+                    case "DemoAsset_Settings130222":
+                        {
+                            Directory.CreateDirectory(DemoAsset_Settings130222);
+                            string filePath = $"{DemoAsset_Settings130222}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
                         }
                         break;
                     #endregion
@@ -181,6 +290,41 @@ namespace WebUtils.PREMIUMAGENCY
                         break;
                     #endregion
 
+                    #region Basara
+                    case "collabo_iln_def_scr":
+                        {
+                            Directory.CreateDirectory(basaraCollabEventPath);
+                            string filePath = $"{basaraCollabEventPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+
+                    case "collabo_iln":
+                        {
+                            Directory.CreateDirectory(basaraCollabEventPath);
+                            string filePath = $"{basaraCollabEventPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+
+                    #endregion
+
                     #region theater_ev
                     case "theater_ev_setting":
                         {
@@ -199,8 +343,25 @@ namespace WebUtils.PREMIUMAGENCY
                         break;
                     #endregion
 
-                    #region InfoBoards
+                    #region Gundam
+                    case "jhome_square_gundam_time":
+                        {
+                            Directory.CreateDirectory(GundamPath);
+                            string filePath = $"{GundamPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
 
+                    #region InfoBoards
                     case "jul2009":
                         {
                             Directory.CreateDirectory(july2009infoboard);
@@ -695,7 +856,7 @@ namespace WebUtils.PREMIUMAGENCY
                     ms.Flush();
                 }
 
-                switch(eventId)
+                switch (eventId)
                 {
                     default:
                         {
