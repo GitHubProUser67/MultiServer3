@@ -1085,7 +1085,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 //Program.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
 
-                var dme = game.DMEServer;
+                DMEObject? dme = game.DMEServer;
 
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GAME_HOST_TYPE == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
