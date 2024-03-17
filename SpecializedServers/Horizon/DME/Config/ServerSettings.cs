@@ -101,7 +101,7 @@ namespace Horizon.DME.Config
         /// limit the clients per world to guarantee the server can support some defined 
         /// number of worlds.
         ///</summary>
-        public short MaxClientsPerWorld = 32; //			# (DEFAULT: 32)
+        public short MaxClientsPerWorld = 256; //			# (DEFAULT 2.10: 32 - DEFAULT: 256)
     }
 
     public class MASSettings
