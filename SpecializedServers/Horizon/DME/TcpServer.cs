@@ -38,8 +38,8 @@ namespace Horizon.DME
             public int ApplicationId { get; set; } = 0;
             public bool Ignore { get; set; } = false;
             public ClientObject? ClientObject { get; set; } = null;
-            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
-            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new ConcurrentQueue<BaseScertMessage>();
+            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
+            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
             public DateTime TimeConnected { get; set; } = Utils.GetHighPrecisionUtcTime();
 
 
@@ -49,9 +49,9 @@ namespace Horizon.DME
             public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
-        protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new ConcurrentQueue<IChannel>();
-        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new ConcurrentDictionary<string, ChannelData>();
-        protected ConcurrentDictionary<uint, ClientObject> _scertIdToClient = new ConcurrentDictionary<uint, ClientObject>();
+        protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new();
+        protected ConcurrentDictionary<string, ChannelData> _channelDatas = new();
+        protected ConcurrentDictionary<uint, ClientObject> _scertIdToClient = new();
 
         /// <summary>
         /// Start the Dme Tcp Server.
@@ -301,7 +301,7 @@ namespace Horizon.DME
         protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
@@ -341,12 +341,12 @@ namespace Horizon.DME
                         */
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
-                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcpAuxUdp.AccessToken ?? string.Empty);
+                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
 
                         if (data.ClientObject == null)
                         {
                             LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
-                            data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcpAuxUdp.SessionKey ?? string.Empty);
+                            data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
                             if (data.ClientObject != null)
                             {
                                 LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
@@ -369,8 +369,10 @@ namespace Horizon.DME
                                 LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
                                 //var clients = Program.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
                                 //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                                ClientObject clientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey ?? string.Empty);
-                                clientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
+                                ClientObject clientObject = new(clientConnectTcpAuxUdp.SessionKey ?? string.Empty)
+                                {
+                                    ApplicationId = clientConnectTcpAuxUdp.AppId
+                                };
                                 data.ClientObject = clientObject;
                             }
                         }
@@ -430,8 +432,10 @@ namespace Horizon.DME
                                 LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
                                 //var clients = DmeClass.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
                                 //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                                ClientObject clientObject = new(clientConnectTcp.SessionKey ?? string.Empty);
-                                clientObject.ApplicationId = clientConnectTcp.AppId;
+                                ClientObject clientObject = new(clientConnectTcp.SessionKey ?? string.Empty)
+                                {
+                                    ApplicationId = clientConnectTcp.AppId
+                                };
                                 data.ClientObject = clientObject;
                             }
                         }
@@ -545,7 +549,7 @@ namespace Horizon.DME
                 case RT_MSG_CLIENT_SET_AGG_TIME setAggTime:
                     {
                         LoggerAccessor.LogInfo($"rt_msg_server_process_client_set_agg_time_msg: new agg time = {setAggTime.AggTime}");
-                        List<int> preClientObject = new List<int> { 10952, 10954, 10130 };
+                        List<int> preClientObject = new() { 10952, 10954, 10130 };
 
                         if (data.ClientObject != null && preClientObject.Contains(scertClient.ApplicationID))
                             data.ClientObject.AggTimeMs = setAggTime.AggTime; //Else we don't set AggTime here YET, the client object isn't created! for Pre-108 clients
