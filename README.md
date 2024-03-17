@@ -1,4 +1,4 @@
-# Multiserver 2
+# Multiserver 3
 A Unified Server Software.
 
-![multiserver2xplogo](https://github.com/GitHubProUser67/PSMultiServer/assets/127040195/cf083125-f6a7-411f-a191-170012605988)
+![MutiServer3](https://github.com/GitHubProUser67/MultiServer2/assets/127040195/0282df7d-f5f2-444d-9982-ea11cac5d8b5)
