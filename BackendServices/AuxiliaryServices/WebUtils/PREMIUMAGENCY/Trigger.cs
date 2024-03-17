@@ -76,6 +76,16 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/getEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC RollyCafe1F {eventId}!");
                     break;
+                case "111":
+                    if (File.Exists($"{workpath}/eventController/Georgia/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Georgia/getEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Georgia {eventId}!");
+                    break;
+                case "93":
+                    if (File.Exists($"{workpath}/eventController/PrinnyJack/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/PrinnyJack/getEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Prinny {eventId}!");
+                    break;
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
@@ -210,6 +220,16 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/RollyCafe1F/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/RollyCafe1F/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC RollyCafe1F {eventId}!");
+                    break;
+                case "111":
+                    if (File.Exists($"{workpath}/eventController/Georgia/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Georgia/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Georgia {eventId}!");
+                    break;
+                case "93":
+                    if (File.Exists($"{workpath}/eventController/PrinnyJack/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/PrinnyJack/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Prinny {eventId}!");
                     break;
                 default:
                     {
