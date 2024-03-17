@@ -45,6 +45,7 @@ namespace WebUtils.PREMIUMAGENCY
                 string Spring2009 = $"{workpath}/eventController/Spring/2009";
                 string Spring2013 = $"{workpath}/eventController/Spring/2013";
                 string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010";
+                string GundamPath = $"{workpath}/eventController/Gundam";
 
                 #endregion
 
@@ -59,7 +60,8 @@ namespace WebUtils.PREMIUMAGENCY
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
                                 return File.ReadAllText(filePath);
-                            } else
+                            }
+                            else
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
                             }
@@ -199,8 +201,25 @@ namespace WebUtils.PREMIUMAGENCY
                         break;
                     #endregion
 
-                    #region InfoBoards
+                    #region Gundam
+                    case "jhome_square_gundam_time":
+                        {
+                            Directory.CreateDirectory(GundamPath);
+                            string filePath = $"{GundamPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
 
+                    #region InfoBoards
                     case "jul2009":
                         {
                             Directory.CreateDirectory(july2009infoboard);
@@ -695,7 +714,7 @@ namespace WebUtils.PREMIUMAGENCY
                     ms.Flush();
                 }
 
-                switch(eventId)
+                switch (eventId)
                 {
                     default:
                         {
