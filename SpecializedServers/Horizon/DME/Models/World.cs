@@ -24,20 +24,20 @@ namespace Horizon.DME.Models
         {
             if (WorldId >= MAX_WORLDS || _idToWorld.Count() >= MAX_WORLDS)
             {
-                LoggerAccessor.LogError("Max worlds reached!");
+                LoggerAccessor.LogError("[DMEWorld] - Max worlds reached or requested WorldId higher than allowed value in DME config!");
                 return;
             }
 
             this.WorldId = WorldId;
 
             _idToWorld.TryAdd(WorldId, this);
-            LoggerAccessor.LogInfo($"Registered world with id {WorldId}");
+            LoggerAccessor.LogInfo($"[DMEWorld] - Registered world with id {WorldId}");
         }
 
         private void FreeWorld()
         {
             _idToWorld.TryRemove(WorldId, out _);
-            LoggerAccessor.LogInfo($"Unregistered world with id {WorldId}");
+            LoggerAccessor.LogInfo($"[DMEWorld] - Unregistered world with id {WorldId}");
         }
 
         private bool TryRegisterNewClientIndex(out int index)
@@ -88,6 +88,12 @@ namespace Horizon.DME.Models
         
         public World(MPSClient manager, int appId, int maxPlayers, uint WorldId)
         {
+            if (maxPlayers > MAX_CLIENTS_PER_WORLD)
+            {
+                LoggerAccessor.LogError("[DMEWorld] - maxPlayers from request is higher than MaxClientsPerWorld allowed in DME config, world will not be created!");
+                return;
+            }
+
             Manager = manager;
             ApplicationId = appId;
 
@@ -153,7 +159,7 @@ namespace Horizon.DME.Models
             {
                 if (!Destroyed)
                 {
-                    LoggerAccessor.LogInfo($"{this} destroyed.");
+                    LoggerAccessor.LogInfo($"[DMEWorld] - {this} destroyed.");
                     await Stop();
                 }
 
@@ -323,7 +329,7 @@ namespace Horizon.DME.Models
                 if (player.DmeId == SessionMaster)
                 {
                     SessionMaster++;
-                    LoggerAccessor.LogWarn($"Session master migrated to client {SessionMaster}");
+                    LoggerAccessor.LogWarn($"[DMEWorld] - Session master migrated to client {SessionMaster}");
                 }
             }
 
@@ -374,7 +380,7 @@ namespace Horizon.DME.Models
             // If world is full then fail
             if (Clients.Count >= MAX_CLIENTS_PER_WORLD)
             {
-                LoggerAccessor.LogWarn($"Player attempted to join world {this} but there is no room!");
+                LoggerAccessor.LogWarn($"[DMEWorld] - Player attempted to join world {this} but there is no room!");
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,
