@@ -32,7 +32,7 @@
         SHAChecker
     }
 
-    public enum ArchivePackerSetting
+    public enum ArchiveMapperSetting
     {
         NORM,
         FAST,

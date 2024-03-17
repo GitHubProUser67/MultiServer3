@@ -146,16 +146,16 @@ namespace YourNamespace
                     break;
 
             };
-            switch (_settings.ArchivePackerSettingRem)
+            switch (_settings.ArchiveMapperSettingRem)
             {
-                case ArchivePackerSetting.NORM:
+                case ArchiveMapperSetting.NORM:
                     CheckBoxArchiveMapperFAST.IsChecked = false;
                     CheckBoxArchiveMapperCORE.IsChecked = false;
                     break;
-                case ArchivePackerSetting.FAST:
+                case ArchiveMapperSetting.FAST:
                     CheckBoxArchiveMapperFAST.IsChecked = true;
                     break;
-                case ArchivePackerSetting.CORE:
+                case ArchiveMapperSetting.CORE:
                     CheckBoxArchiveMapperCORE.IsChecked = true;
                     break;
 
@@ -773,7 +773,7 @@ namespace YourNamespace
         {
             if (_settings != null)
             {
-                _settings.ArchivePackerSettingRem = ArchivePackerSetting.FAST;
+                _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.FAST;
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the CORE CheckBox if it's checked
@@ -784,7 +784,7 @@ namespace YourNamespace
         {
             if (_settings != null && !CheckBoxArchiveMapperCORE.IsChecked.Value)
             {
-                _settings.ArchivePackerSettingRem = ArchivePackerSetting.NORM;
+                _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
             }
         }
@@ -793,7 +793,7 @@ namespace YourNamespace
         {
             if (_settings != null)
             {
-                _settings.ArchivePackerSettingRem = ArchivePackerSetting.CORE;
+                _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.CORE;
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the SLOW CheckBox if it's checked
@@ -804,7 +804,7 @@ namespace YourNamespace
         {
             if (_settings != null && !CheckBoxArchiveMapperFAST.IsChecked.Value)
             {
-                _settings.ArchivePackerSettingRem = ArchivePackerSetting.NORM;
+                _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
             }
         }
