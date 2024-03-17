@@ -23,6 +23,8 @@ namespace CustomLogger
             {
 
             }
+			
+            Directory.CreateDirectory(Directory.GetCurrentDirectory() + $"/logs");
 
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 
@@ -30,7 +32,7 @@ namespace CustomLogger
             {
                 builder.AddSimpleConsole(options => { options.SingleLine = true; });
 
-                builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/{project}.log", new FileLoggerOptions()
+                builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/logs/{project}.log", new FileLoggerOptions()
                 {
                     Append = false,
                     FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
