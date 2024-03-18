@@ -259,6 +259,35 @@ namespace WebUtils.PREMIUMAGENCY
                              $"<status type=\"int\">0</status>\r\n" +
                              "</xml>";
                     }
+                case "86":
+                    string homeSquareRollyFilePath = $"{workpath}/eventController/MusicSurvey/Rolly/checkEvent.xml";
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent found sent for PUBLIC Rolly Music Survey {eventId}!");
+
+                    if (File.Exists(homeSquareRollyFilePath))
+{
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC Rolly Music Survey {eventId}!");
+                        string res = File.ReadAllText(homeSquareRollyFilePath);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC Rolly Music Survey {eventId}!\nExpected path {homeSquareRollyFilePath}");
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
                 default:
                     {
                         LoggerAccessor.LogError($"CheckEvent unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
@@ -507,6 +536,35 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {SonyAquariumPath}");
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+                case "86":
+                    string homeSquareRollyFilePathEntry = $"{workPath}/eventController/MusicSurvey/Rolly/EntryEvent.xml";
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent found sent for PUBLIC Rolly Music Survey {eventId}!");
+
+                    if (File.Exists(homeSquareRollyFilePathEntry))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for PUBLIC Rolly Music Survey {eventId}!");
+                        string res = File.ReadAllText(homeSquareRollyFilePathEntry);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC Rolly Music Survey {eventId}!\nExpected path {homeSquareRollyFilePathEntry}");
 
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
