@@ -41,7 +41,7 @@ namespace WebUtils.PREMIUMAGENCY
                         }
                         else
                         {
-                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find InfoBoardSchedule {lounge} with expected path {filePath}!");
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find InfoBoardSchedule {lounge}\nExpected path {filePath}!");
                         }
                         break;
                     }
