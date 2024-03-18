@@ -88,7 +88,6 @@ namespace WebUtils.PREMIUMAGENCY
                             "<update_second type=\"int\">0</update_second>\r\n" +
                             "</xml>";
                     }
-                    break;
                 case "76":
                     string mikuLiveEventFilePathLocal = $"{workpath}/eventController/MikuLiveEvent/localgetUserEventCustom.xml";
                     if (File.Exists(mikuLiveEventFilePathLocal))
@@ -157,7 +156,6 @@ namespace WebUtils.PREMIUMAGENCY
                             "<update_second type=\"int\">0</update_second>\r\n" +
                             "</xml>";
                     }
-                    break;
                 case "95":
                     string mikuLiveEventFilePathPublic = $"{workpath}/eventController/MikuLiveEvent/getUserEventCustom.xml";
                     if (File.Exists(mikuLiveEventFilePathPublic))
