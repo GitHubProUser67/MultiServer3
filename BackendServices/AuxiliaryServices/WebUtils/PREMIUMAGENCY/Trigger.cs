@@ -113,6 +113,16 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/j_liargame2/getEventTriggerCALL.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
                     break;
+                case "80":
+                    if (File.Exists($"{workpath}/eventController/MusicSurvey/Rolly/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/RollyMusicSurvey/getEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Rolly Music Survey {eventId}!");
+                    break;
+                case "346":
+                    if (File.Exists($"{workpath}/eventController/AquariumStatue/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/AquariumStatue/getEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Sony Aquarium Statue {eventId}!");
+                    break;
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
@@ -321,6 +331,16 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/Macross/VF25/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/Macross/VF25/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for evid PUBLIC Macross VF25 HS {eventId}!");
+                    break;
+                case "80":
+                    if (File.Exists($"{workpath}/eventController/MusicSurvey/Rolly/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MusicSurvey/Rolly/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Rolly Music Survey {eventId}!");
+                    break;
+                case "346":
+                    if (File.Exists($"{workpath}/eventController/AquariumStatue/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/AquariumStatue/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Sony Aquarium Statue {eventId}!");
                     break;
                 default:
                     {

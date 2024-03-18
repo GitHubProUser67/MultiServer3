@@ -6,5 +6,6 @@
 <key type="text">jhome_square_gundam_time</key>
 <seq type="int">2</seq>
 <resource type="int">1</resource>
-<data type="text"></data>
+<data type="text">202404172330</data>
+<!--Date Format = YYYYMMDDHHMMSS-->
 </xml>

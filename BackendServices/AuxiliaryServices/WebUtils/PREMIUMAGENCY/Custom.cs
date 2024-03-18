@@ -224,6 +224,40 @@ namespace WebUtils.PREMIUMAGENCY
                             "<update_second type=\"int\">0</update_second>\r\n" +
                             "</xml>";
                     }
+                case "86":
+                    string rollyMusicSurveyFilePath = $"{workpath}/eventController/MusicSurvey/Rolly/getUserEventCustom.xml";
+                    if (File.Exists(rollyMusicSurveyFilePath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FOUND for PUBLIC Rolly Music Survey {eventId}!");
+                        string res = File.ReadAllText(rollyMusicSurveyFilePath);
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                             $"{res}" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FALLBACK sent for PUBLIC Rolly Music Survey {eventId}!\nExpected path {rollyMusicSurveyFilePath}");
+
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
+                            "<field_name type=\"text\">playrecord</field_name>\r\n" +
+                            "<field_value type=\"int\">0</field_value>\r\n" +
+                            "<update_year type=\"int\">2024</update_year>\r\n" +
+                            "<update_month type=\"int\">02</update_month>\r\n" +
+                            "<update_day type=\"int\">03</update_day>\r\n" +
+                            "<update_hour type=\"int\">12</update_hour>\r\n" +
+                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            "</xml>";
+                    }
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetUserEventCustom unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");

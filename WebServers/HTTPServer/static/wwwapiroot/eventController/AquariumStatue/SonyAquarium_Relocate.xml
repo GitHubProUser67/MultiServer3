@@ -1,0 +1,13 @@
+<xml>
+<result type="int">1</result>
+<description type="text">Success</description>
+<error_no type="int">0</error_no>
+<error_message type="text">None</error_message>
+<key type="text">SonyAquarium_Relocate</key>
+<resource>
+<seq type="int">1</seq>
+<data type="text">msg_public="Sony Aquarium is now open!"</data>
+</resource>
+<!-- msg_public for Trigger flag 2
+     msg_ready for Trigger flag 1 -->
+</xml>

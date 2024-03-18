@@ -57,7 +57,7 @@ namespace WebUtils.PREMIUMAGENCY
 
                 string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010";
                 string WhiteDay2013 = $"{workpath}/eventController/WhiteDay/2013";
-
+                string HSAquariumStatuePath = $"{workpath}/eventController/AquariumStatue";
                 #endregion
 
                 switch (resKey)
@@ -578,7 +578,24 @@ namespace WebUtils.PREMIUMAGENCY
 
                     #endregion
 
-
+                    #region Sony Aquarium Home Square
+                    case "SonyAquarium_Relocate":
+                        {
+                            Directory.CreateDirectory(HSAquariumStatuePath);
+                            string filePath = $"{HSAquariumStatuePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                return File.ReadAllText(filePath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
+  
                     #region Spring Events
 
                     case "spring2009":
