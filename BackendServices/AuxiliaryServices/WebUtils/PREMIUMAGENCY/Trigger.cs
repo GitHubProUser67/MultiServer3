@@ -40,6 +40,7 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/PrinnyJack/getEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/PrinnyJack/getEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Prinny {eventId}!");
+                    break;
                 //MikuLiveEvent
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/getEventTrigger.xml"))
@@ -112,6 +113,16 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/j_liargame2/getEventTriggerCALL.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
                     break;
+                case "80":
+                    if (File.Exists($"{workpath}/eventController/MusicSurvey/Rolly/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/RollyMusicSurvey/getEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Rolly Music Survey {eventId}!");
+                    break;
+                case "346":
+                    if (File.Exists($"{workpath}/eventController/AquariumStatue/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/AquariumStatue/getEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Sony Aquarium Statue {eventId}!");
+                    break;
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
@@ -130,9 +141,6 @@ namespace WebUtils.PREMIUMAGENCY
                 using (MemoryStream ms = new(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
-
-
-
                     string today = data.GetParameterValue("tday");
 
 
@@ -143,25 +151,56 @@ namespace WebUtils.PREMIUMAGENCY
             switch (eventId)
             {
                 case "342":
-                    if (File.Exists($"{workpath}/eventController/Spring/2013/getEventTriggerEx.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/Spring/2013/getEventTriggerEx.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for POST evid PUBLIC Spring2013 {eventId}!");
-                    break;
+                    string Spring2013 = $"{workpath}/eventController/Spring/2013/getEventTriggerEx.xml";
+                    if (File.Exists(Spring2013))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for GetEventTriggerEx POST evid PUBLIC Spring2013 {eventId}!");
+                        string res = File.ReadAllText(Spring2013);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK GetEventTriggerEx POST evid PUBLIC Spring2013 {eventId}!\nExpected path {Spring2013}");
+
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n" +
+                            "<trigger_count type=\"int\">200</trigger_count>\r\n" +
+                            "<is_active type=\"bool\">true</is_active>\r\n" +
+                            "<trigger_id type=\"int\">1</trigger_id>\r\n\r\n" +
+                            "<start_year type=\"int\">2023</start_year>\r\n" +
+                            "<start_month type=\"int\">09</start_month>\r\n" +
+                            "<start_day type=\"int\">12</start_day>\r\n" +
+                            "<start_hour type=\"int\">07</start_hour>\r\n" +
+                            "<start_minutes type=\"int\">30</start_minutes>\r\n" +
+                            "<start_second type=\"int\">0</start_second>\r\n\r\n" +
+                            "<end_year type=\"int\">2024</end_year>\r\n" +
+                            "<end_month type=\"int\">09</end_month>\r\n" +
+                            "<end_day type=\"int\">17</end_day>\r\n" +
+                            "<end_hour type=\"int\">00</end_hour>\r\n" +
+                            "<end_minutes type=\"int\">30</end_minutes>\r\n" +
+                            "<end_second type=\"int\">0</end_second>\r\n\r\n" +
+                            "<trigger_flag type=\"int\">1</trigger_flag>\r\n\r\n" +
+                            "</xml>";
+                    }
                 default:
                     {
-                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTriggerEx unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
                         return null;
                     }
             }
-
-            return null;
         }
 
         public static string? confirmEventTriggerRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
-
-
-
             switch (eventId)
             {
                 case "124":
@@ -208,6 +247,7 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/PrinnyJack/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/PrinnyJack/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Prinny {eventId}!");
+                    break;
                 //MikuLiveEvent
                 case "95":
                     if (File.Exists($"{workpath}/eventController/MikuLiveEvent/confirmEventTrigger.xml"))
@@ -291,6 +331,16 @@ namespace WebUtils.PREMIUMAGENCY
                     if (File.Exists($"{workpath}/eventController/Macross/VF25/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/Macross/VF25/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for evid PUBLIC Macross VF25 HS {eventId}!");
+                    break;
+                case "80":
+                    if (File.Exists($"{workpath}/eventController/MusicSurvey/Rolly/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MusicSurvey/Rolly/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Rolly Music Survey {eventId}!");
+                    break;
+                case "346":
+                    if (File.Exists($"{workpath}/eventController/AquariumStatue/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/AquariumStatue/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Sony Aquarium Statue {eventId}!");
                     break;
                 default:
                     {

@@ -43,11 +43,11 @@ namespace WebUtils.PREMIUMAGENCY
                         case "/eventController/getResource.do":
                             return Resource.getResourcePOST(PostData, ContentType, workpath);
                         case "/eventController/checkEvent.do":
-                            return Event.checkEventRequestPOST(PostData, ContentType, eventId);
+                            return Event.checkEventRequestPOST(PostData, ContentType, eventId, workpath);
                         case "/eventController/entryEvent.do":
-                            return Event.entryEventRequestPOST(PostData, ContentType, eventId);
+                            return Event.entryEventRequestPOST(PostData, ContentType, eventId, workpath);
                         case "/eventController/clearEvent.do":
-                            return Event.clearEventRequestPOST(PostData, ContentType, eventId);
+                            return Event.clearEventRequestPOST(PostData, ContentType, eventId, workpath);
                         case "/eventController/getEventTrigger.do":
                             return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/getEventTriggerEx.do":

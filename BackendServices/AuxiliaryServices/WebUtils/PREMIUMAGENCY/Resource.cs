@@ -57,7 +57,7 @@ namespace WebUtils.PREMIUMAGENCY
 
                 string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010";
                 string WhiteDay2013 = $"{workpath}/eventController/WhiteDay/2013";
-
+                string HSAquariumStatuePath = $"{workpath}/eventController/AquariumStatue";
                 #endregion
 
                 switch (resKey)
@@ -70,7 +70,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -86,7 +97,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -105,7 +127,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -124,7 +157,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -143,7 +187,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -162,7 +217,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -181,7 +247,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -200,7 +277,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -216,7 +304,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -231,7 +330,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -246,7 +356,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -262,7 +383,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -280,7 +412,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -298,7 +441,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -314,7 +468,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -333,7 +498,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -351,7 +527,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -369,7 +556,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -380,7 +578,35 @@ namespace WebUtils.PREMIUMAGENCY
 
                     #endregion
 
+                    #region Sony Aquarium Home Square
+                    case "SonyAquarium_Relocate":
+                        {
+                            Directory.CreateDirectory(HSAquariumStatuePath);
+                            string filePath = $"{HSAquariumStatuePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
 
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
+  
                     #region Spring Events
 
                     case "spring2009":
@@ -390,7 +616,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -408,7 +645,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -427,7 +675,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -446,7 +705,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -461,7 +731,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -476,7 +757,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -491,7 +783,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -506,7 +809,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -521,7 +835,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -536,7 +861,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -551,7 +887,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -569,7 +916,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -584,7 +942,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -599,7 +968,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -614,7 +994,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -629,7 +1020,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -647,7 +1049,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -662,7 +1075,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -680,7 +1104,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -698,7 +1133,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -713,7 +1159,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -731,7 +1188,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -746,7 +1214,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -761,7 +1240,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -776,7 +1266,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -791,7 +1292,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -809,7 +1321,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -823,16 +1346,17 @@ namespace WebUtils.PREMIUMAGENCY
                         {
                             LoggerAccessor.LogError($"[PREMIUMAGENCY] - Resource key {resKey} is unrecognized!\nPlease contact the developers!");
 
-                            return "<xml>" +
-                                   "\r\n\t<result type=\"int\">0</result>" +
-                                   "\r\n\t<description type=\"text\">Failed</description>" +
-                                   "\r\n\t<error_no type=\"int\">303</error_no>" +
-                                   "\r\n\t<error_message type=\"text\">No Resource Found</error_message>" +
-                                   $"\r\n\t<key type=\"text\">{resKey}</key>" +
-                                   "\r\n\t<seq type=\"int\">2</seq>" +
-                                   "\r\n\t<resource type=\"int\">1</resource>" +
-                                   "\r\n\t<data></data>" +
-                                   "\r\n</xml>";
+                            return "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">Success</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                "<key type=\"text\"></key>\r\n" +
+                                "<resource>\r\n" +
+                                "<seq type=\"int\">1</seq>\r\n" +
+                                "<data type=\"text\"></data>\r\n" +
+                                "</resource>\r\n" +
+                                "</xml>";
                         }
                 }
             }
