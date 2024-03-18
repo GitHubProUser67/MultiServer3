@@ -43,8 +43,8 @@ namespace NautilusXP2024
             InfToolOutputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output", "INF");
             CacheOutputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output", "Cache");
             CpuPercentage = 50;
-            ThemeColor = "#FFAC00CA"; // Default color as a string
-            FileOverwriteBehavior = OverwriteBehavior.Skip;
+            ThemeColor = "#FF00FF27"; // Default color as a string
+            FileOverwriteBehavior = OverwriteBehavior.Rename;
             SaveDebugLogToggle = SaveDebugLog.True;
             ArchiveTypeSettingRem = ArchiveTypeSetting.SDAT;
             ArchiveMapperSettingRem = ArchiveMapperSetting.NORM;

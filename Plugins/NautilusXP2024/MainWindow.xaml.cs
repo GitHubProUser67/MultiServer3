@@ -2914,6 +2914,7 @@ namespace YourNamespace
         private bool isNewTask = true; // Flag to check if a new task has started
         private string unluac122Path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "unluac122.jar");
         private string unluac2023Path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "unluac_2023_12_24.jar");
+        private string unluacNETPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "unluac.exe");
 
 
         private string currentUnluacJarPath = "";
@@ -2930,6 +2931,11 @@ namespace YourNamespace
             currentUnluacJarPath = unluac2023Path;
         }
 
+        private void LUACDecompilerRadioButtonUnluacNET_Checked(object sender, RoutedEventArgs e)
+        {
+            currentUnluacJarPath = unluacNETPath;
+        }
+
         // Modified LUACDecompilerExecuteButtonClick method
         private async void LUACDecompilerExecuteButtonClick(object sender, RoutedEventArgs e)
         {
@@ -2938,7 +2944,7 @@ namespace YourNamespace
             TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, "Initializing...", 3000);
 
             string unluacJarPath = currentUnluacJarPath;
-            if (!File.Exists(unluacJarPath))
+            if (!File.Exists(unluacJarPath) && !unluacJarPath.Equals(unluacNETPath))
             {
                 LogDebugInfo($"LUAC Decompilation to LUA: Error: {unluacJarPath} was not found.");
                 TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, $"Error: {unluacJarPath} was not found.", 3000);
@@ -2964,9 +2970,12 @@ namespace YourNamespace
 
                 foreach (string file in filePaths)
                 {
-                    TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, $"Decompiling {Path.GetFileName(file)}...", 2000);
+                    TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, $"Decompiling {Path.GetFileName(file)}...", 10000);
 
-                    var (isSuccess, message) = await DecompileLuacFileAsync(file, unluacJarPath);
+                    var (isSuccess, message) = unluacJarPath.Equals(unluacNETPath) ?
+                        await DecompileLuacFileWithExeAsync(file, unluacJarPath) :
+                        await DecompileLuacFileAsync(file, unluacJarPath);
+
                     AppendTextToLUACDecompilerTextBox(message);
 
                     if (isSuccess)
@@ -2979,14 +2988,102 @@ namespace YourNamespace
                     }
                 }
 
-                string summaryMessage = $"{successCount} file(s) decompiled successfully, {failureCount} file(s) failed to decompile.";
+                string summaryMessage = $"-- {successCount} file(s) decompiled successfully, {failureCount} file(s) failed to decompile.";
+                AppendTextToLUACDecompilerTextBox(summaryMessage);
                 LogDebugInfo($"LUAC Decompilation to LUA: {summaryMessage}");
-                TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, summaryMessage, 3000);
+                TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, summaryMessage, 6000);
             }
             else
             {
                 LogDebugInfo("LUAC Decompilation to LUA: No input files were provided for decompilation.");
                 TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, "No LUAC files listed for decompilation.", 3000);
+            }
+        }
+
+
+        private async Task<(bool isSuccess, string message)> DecompileLuacFileWithExeAsync(string inputFile, string unluacExePath)
+        {
+            LogDebugInfo($"LUAC Decompilation: Starting decompilation for {inputFile}");
+
+            string baseOutputFileName = Path.Combine(_settings.LuaOutputDirectory, Path.GetFileNameWithoutExtension(inputFile) + ".lua");
+            string outputFileName = baseOutputFileName;
+            bool renamed = false;
+
+            switch (_settings.FileOverwriteBehavior)
+            {
+                case OverwriteBehavior.Rename:
+                    int counter = 1;
+                    while (File.Exists(outputFileName))
+                    {
+                        outputFileName = Path.Combine(_settings.LuaOutputDirectory, $"{Path.GetFileNameWithoutExtension(inputFile)}_{counter:D2}.lua");
+                        counter++;
+                        renamed = true;
+                    }
+                    break;
+                case OverwriteBehavior.Skip:
+                    if (File.Exists(outputFileName))
+                    {
+                        LogDebugInfo($"LUAC Decompilation: Skipping '{inputFile}' because '{outputFileName}' already exists.");
+                        return (false, $"-- Decompiling: {Path.GetFileName(inputFile)}... Skipped '{outputFileName}' already exists.");
+                    }
+                    break;
+                case OverwriteBehavior.Overwrite:
+                default:
+                    break;
+            }
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = unluacExePath,
+                Arguments = $"\"{inputFile}\" \"{outputFileName}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                using (Process process = new Process { StartInfo = startInfo })
+                {
+                    process.Start();
+                    bool exited = await Task.Run(() => process.WaitForExit(3000)); // 3-second timeout
+
+                    if (!exited)
+                    {
+                        process.Kill();
+                        LogDebugInfo($"LUAC Decompilation: Timeout occurred for {inputFile}");
+                        return (false, $"--- ERROR: Decompilation timed out for '{Path.GetFileName(inputFile)}'.");
+                    }
+
+                    string output = await process.StandardOutput.ReadToEndAsync();
+                    string error = await process.StandardError.ReadToEndAsync();
+
+                    if (process.ExitCode == 0)
+                    {
+                        // Check if the output file exists
+                        if (File.Exists(outputFileName))
+                        {
+                            LogDebugInfo($"LUAC Decompilation: Successfully decompiled {inputFile} to {outputFileName}");
+                            return (true, $"-- Success: Decompiled '{Path.GetFileName(inputFile)}' to '{outputFileName}'" + (renamed ? " (Renamed)." : "."));
+                        }
+                        else
+                        {
+                            LogDebugInfo($"LUAC Decompilation: Output file '{outputFileName}' not found after decompilation for {inputFile}");
+                            return (false, $"--- ERROR: Output file '{outputFileName}' not found after decompilation.");
+                        }
+                    }
+                    else
+                    {
+                        LogDebugInfo($"LUAC Decompilation: Decompilation failed for {inputFile}");
+                        return (false, $"--- ERROR: Decompiling '{Path.GetFileName(inputFile)}' failed. Error: {error}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"LUAC Decompilation: Exception occurred for {inputFile}: {ex.Message}");
+                return (false, $"--- ERROR: Exception while decompiling '{Path.GetFileName(inputFile)}'. Exception: {ex.Message}");
             }
         }
 
@@ -6190,5 +6287,7 @@ namespace YourNamespace
         {
 
         }
+
+       
     }
 }
