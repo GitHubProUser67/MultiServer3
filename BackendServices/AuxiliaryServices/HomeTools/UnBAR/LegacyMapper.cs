@@ -40,7 +40,7 @@ namespace HomeTools.UnBAR
                 int i = 0;
                 foreach (string sourceFile in strings)
                 {
-                    LoggerAccessor.DrawTextProgressBar($"[Mapper] - Scanning: {sourceFile}", i, strings.Count() - 1);
+                    // LoggerAccessor.DrawTextProgressBar($"[Mapper] - Scanning: {sourceFile}", i, strings.Count() - 1); // Commented since other logs can polute this.
                     mappedListList.AddRange(ScanForString(sourceFile));
                     i++;
                 }
