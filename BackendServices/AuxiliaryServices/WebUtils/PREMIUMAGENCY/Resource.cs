@@ -78,9 +78,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -107,9 +105,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -139,9 +135,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -171,9 +165,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -203,9 +195,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -235,9 +225,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -267,9 +255,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -299,9 +285,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -328,9 +312,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -356,9 +338,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -384,9 +364,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -413,9 +391,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -444,9 +420,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -475,9 +449,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -504,9 +476,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -536,9 +506,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -567,9 +535,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -598,9 +564,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -632,9 +596,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -663,9 +625,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -695,9 +655,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -727,9 +685,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -755,9 +711,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -783,9 +737,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -811,9 +763,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -839,9 +789,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -867,9 +815,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -895,9 +841,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -923,9 +867,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -954,9 +896,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -982,9 +922,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1010,9 +948,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1038,9 +974,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1066,9 +1000,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1097,9 +1029,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1125,9 +1055,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1148,7 +1076,18 @@ namespace WebUtils.PREMIUMAGENCY
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                return File.ReadAllText(filePath);
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
                             }
                             else
                             {
@@ -1174,9 +1113,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1202,9 +1139,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1233,9 +1168,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1261,9 +1194,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1289,9 +1220,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1317,9 +1246,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1345,9 +1272,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
@@ -1376,9 +1301,7 @@ namespace WebUtils.PREMIUMAGENCY
                                     "<error_no type=\"int\">0</error_no>\r\n" +
                                     "<error_message type=\"text\">None</error_message>\r\n" +
                                     $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    "<resource>\r\n" +
                                     $"{res}\r\n" +
-                                    "</resource>\r\n" +
                                     "</xml>";
 
                                 return resourceXML;
