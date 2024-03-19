@@ -924,10 +924,12 @@
 
 
                                 <!-- Radio Buttons -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,0,0,0">
-                                    <TextBlock Text="Unluac v1.22 (Generally Better):" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" IsEnabled="True" VerticalAlignment="Center"/>
-                                    <RadioButton x:Name="LUACDecompilerRadioButtonUnluac122" GroupName="UnluacVersion" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluac122_Checked" />
-                                    <TextBlock Text="Unluac Dec 2023:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,0,0,0" Width="461">
+                                    <TextBlock Text="Unluac.NET (Best):" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" IsEnabled="True" Margin="7,10" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="LUACDecompilerRadioButtonUnluacNET" GroupName="UnluacVersion" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluacNET_Checked" />
+                                    <TextBlock Text="Unluac JAR v1.22:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" IsEnabled="True" Margin="7,10" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="LUACDecompilerRadioButtonUnluac122" GroupName="UnluacVersion" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluac122_Checked" />
+                                    <TextBlock Text="Unluac Dec 2023 JAR:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" Margin="7,10" VerticalAlignment="Center"/>
                                     <RadioButton x:Name="LUACDecompilerRadioButtonUnluac2023" GroupName="UnluacVersion" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluac2023_Checked" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -943,7 +945,7 @@
                 </TabItem>
 
                 <!-- Tab 6: Cache Tool -->
-                <TabItem Header="Cache" Tag="CacheTool">
+                <TabItem Header="Cache Disabled" Tag="CacheTool" IsEnabled="False" Visibility="Collapsed">
                     <StackPanel Background="#333333" >
                         <Grid>
                             <Grid.ColumnDefinitions>
