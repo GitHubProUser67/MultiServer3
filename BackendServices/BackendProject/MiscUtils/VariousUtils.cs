@@ -1124,6 +1124,17 @@ namespace BackendProject.MiscUtils
             return $"{pstring}/1.0 UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
         }
 
+        public static string GetCPUArchitecture()
+        {
+            string? processorArchitecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+
+            if (!string.IsNullOrEmpty(processorArchitecture))
+                return processorArchitecture + ((processorArchitecture == "AMD64") ? string.Empty : (Environment.Is64BitProcess ? "_64" : "_32"));
+
+            // Unsupported architecture or unable to determine
+            return "Unknown";
+        }
+
         /// <summary>
         /// Get the MAC of the Netowrk IP.
         /// </summary>

@@ -73,6 +73,7 @@ namespace HTTPServer.RouteHandlers
                     }
                 }
             }
+
             if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                 response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                 {
@@ -85,13 +86,43 @@ namespace HTTPServer.RouteHandlers
                 };
             response.Headers.Add("Accept-Ranges", "bytes");
             response.Headers.Add("Content-Type", ContentType);
-            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+
+            long fileSize = new FileInfo(local_path).Length;
+
+            if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale && fileSize <= 2147483648) // 2gb limit.
             {
-                response.Headers.Add("Content-Encoding", "deflate");
-                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{new Crc32Utils().Get(Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????")):X}")?.Result;
+
+                if (UpscalledOrOriginalData != null)
+                {
+                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && UpscalledOrOriginalData.Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                    {
+                        response.Headers.Add("Content-Encoding", "deflate");
+                        response.ContentStream = HTTPUtils.InflateStream(new MemoryStream(UpscalledOrOriginalData));
+                    }
+                    else
+                        response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
+                }
+                else
+                {
+                    response.Dispose();
+
+                    return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                    {
+                        HttpStatusCode = HttpStatusCode.InternalServerError
+                    };
+                }
             }
             else
-                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            {
+                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && fileSize <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                {
+                    response.Headers.Add("Content-Encoding", "deflate");
+                    response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                }
+                else
+                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            }
 
             return response;
         }

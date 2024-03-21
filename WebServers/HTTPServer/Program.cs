@@ -22,6 +22,7 @@ public static class HTTPServerConfiguration
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool EnablePUTMethod { get; set; } = false;
+    public static bool EnableImageUpscale { get; set; } = false;
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
     public static string DiscordChannelID { get; set; } = string.Empty;
@@ -69,6 +70,7 @@ public static class HTTPServerConfiguration
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
             EnablePUTMethod = config.enable_put_method;
+            EnableImageUpscale = config.enable_image_upscale;
             EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray PortsArray = config.Ports;
             // Deserialize Ports if it exists
