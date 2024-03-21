@@ -1,4 +1,7 @@
+using BackendProject.MiscUtils;
 using CustomLogger;
+using HttpMultipartParser;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace WebUtils.PREMIUMAGENCY
@@ -8,46 +11,120 @@ namespace WebUtils.PREMIUMAGENCY
         public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
             string? output = null;
+            string nid = string.Empty;
 
-            LoggerAccessor.LogInfo($"setUserEventCustom POSTDATA: \n{PostData}");
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+
+            using (MemoryStream ms = new(PostData))
+            {
+                var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                nid = data.GetParameterValue("nid");
+
+                ms.Flush();
+            }
 
             switch (eventId)
             {
-                case "95":
-                    string mikuLiveEventFilePathPublic = $"{workpath}/eventController/MikuLiveEvent/setUserEventCustom.xml";
-                    if (File.Exists(mikuLiveEventFilePathPublic))
+                case "92":
+                    string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox/Custom";
+                    Directory.CreateDirectory(MikuLiveJukeboxPath);
+                    string fullPath = MikuLiveJukeboxPath + $"/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache";
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), fullPath);
+                    if (File.Exists(MikuLiveJukeboxPath))
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC MikuLiveEvent {eventId}!");
-                        string res = File.ReadAllText(mikuLiveEventFilePathPublic);
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC MikuLiveJukebox {eventId}!");
 
                         return "<xml>\r\n" +
                              "<result type=\"int\">1</result>\r\n" +
                              "<description type=\"text\">Success</description>\r\n" +
                              "<error_no type=\"int\">0</error_no>\r\n" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n" +
-                             $"{res}" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC MikuLiveJukebox {eventId}!\nExpected path {MikuLiveJukeboxPath}");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                case "95":
+                    string mikuLiveEventFilePathPublic = $"{workpath}/eventController/MikuLiveEvent/Custom";
+                    Directory.CreateDirectory(mikuLiveEventFilePathPublic);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData),  $"{mikuLiveEventFilePathPublic}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    if (File.Exists(mikuLiveEventFilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC MikuLiveEvent {eventId}!");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
                              "</xml>";
                     }
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC MikuLiveEvent {eventId}!\nExpected path {mikuLiveEventFilePathPublic}");
 
-                        return ""; // For Rewards
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
                     }
                 case "81":
-                    //WhiteDay2010 doesn't care about setUserEventCustom, so we send a placebo response!
-                    output = "<xml></xml>";
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom sent for WhiteDay2010 {eventId}!");
+                    return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                case "300":
+                    string j_liargame2Path = $"{workpath}/eventController/j_liargame2/Custom";
+                    Directory.CreateDirectory(j_liargame2Path);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{j_liargame2Path}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    if (File.Exists(j_liargame2Path))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC LiarGame2 {eventId}!");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {j_liargame2Path}");
 
-                    break;
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
                 default:
                     {
-                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - SetUserEventCustom unhandled for eventId {eventId}");
-                        return null;
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - SetUserEventCustom unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">303</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">1</error_no>\r\n" +
+                             "<error_message type=\"text\">SetUserEventCustom unhandled for eventId!</error_message>\r\n" +
+                             "</xml>";
                     }
             }
 
-            return output;
         }
 
         public static string? getUserEventCustomRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
@@ -268,13 +345,83 @@ namespace WebUtils.PREMIUMAGENCY
 
         public static string? getUserEventCustomRequestListPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
         {
+
+            string nid = string.Empty;
+
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+
+            using (MemoryStream ms = new(PostData))
+            {
+                var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                nid = data.GetParameterValue("nid");
+
+                ms.Flush();
+            }
+
             switch (eventId)
             {
                 case "92":
-                    if (File.Exists($"{workpath}/eventController/MikeLiveJukebox/getUserEventCustomList.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/MikeLiveJukebox/getUserEventCustomList.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for PUBLIC MikeLiveJukebox {eventId}!");
-                    break;
+                    string mikuLiveJukeBoxFilePathPublic = $"{workpath}/eventController/MikuLiveJukebox/Custom/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache";
+                    // ANSWER FILE EXISTS, SO THEY CAN NOT USE QUESTIONAIRE/VOTE!
+                    if (File.Exists(mikuLiveJukeBoxFilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList FOUND for PUBLIC MikeLiveJukebox {eventId}!");
+                        List<(string, string)> formData = PREMIUMAGENCYClass.ReadFormDataFromFile(mikuLiveJukeBoxFilePathPublic);
+
+                        string votedToday = formData.Find(x => x.Item1 == "cfval").Item2;
+
+                        return "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">answer_record</field_name>\r\n" +
+                            $"<field_value type=\"text\">{votedToday}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">datetime</field_name>\r\n" +
+                            $"<field_value type=\"text\">{DateTime.Now.ToString("yyyy")}d{DateTime.Now.ToString("MM")}d{DateTime.Now.ToString("dd")}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList FALLBACK sent for PUBLIC MikeLiveJukebox {eventId}!\nExpected path {mikuLiveJukeBoxFilePathPublic}");
+
+                        return "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">answer_record</field_name>\r\n" +
+                            "<field_value type=\"text\">0</field_value>\r\n" + 
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">datetime</field_name>\r\n" +
+                            $"<field_value type=\"text\">{DateTime.Now.ToString("yyyy")}d{DateTime.Now.ToString("MM")}d{DateTime.Now.ToString("dd")}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n";
+                    }
                 case "119":
                     if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/qagetUserEventCustomList.xml"))
                         return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/qagetUserEventCustomList.xml");
