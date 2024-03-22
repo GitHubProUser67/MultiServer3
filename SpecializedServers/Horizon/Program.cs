@@ -42,7 +42,46 @@ public static class HorizonServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the horizon.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the horizon.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("medius", new JObject(
+                    new JProperty("enabled", EnableMedius),
+                    new JProperty("config", MEDIUSConfig)
+                )),
+                new JProperty("dme", new JObject(
+                    new JProperty("enabled", EnableDME),
+                    new JProperty("config", DMEConfig)
+                )),
+                new JProperty("muis", new JObject(
+                    new JProperty("enabled", EnableMuis),
+                    new JProperty("config", MUISConfig)
+                )),
+                new JProperty("nat", new JObject(
+                    new JProperty("enabled", EnableNAT),
+                    new JProperty("config", NATConfig)
+                )),
+                new JProperty("bwps", new JObject(
+                    new JProperty("enabled", EnableBWPS),
+                    new JProperty("config", BWPSConfig)
+                )),
+                new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("player_api_static_path", PlayerAPIStaticPath),
+                new JProperty("medius_api_key", MediusAPIKey),
+                new JProperty("plugins_folder", PluginsFolder),
+                new JProperty("database", DatabaseConfig),
+                new JProperty("home_version_beta_hdk", HomeVersionBetaHDK),
+                new JProperty("home_version_retail", HomeVersionRetail),
+                new JProperty("discord_bot_token", DiscordBotToken),
+                new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("discord_plugin", new JObject(
+                    new JProperty("enabled", EnableDiscordPlugin)
+                ))
+            ).ToString());
+
             return;
         }
 

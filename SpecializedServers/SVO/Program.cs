@@ -43,7 +43,21 @@ public static class SVOServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the svo.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the svo.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("static_folder", SVOStaticFolder),
+                new JProperty("https_bypass", SVOHTTPSBypass),
+                new JProperty("database", DatabaseConfig),
+                new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("pshome_rpcs3workaround", PSHomeRPCS3Workaround),
+                new JProperty("MOTD", MOTD),
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
+            ).ToString());
+
             return;
         }
 

@@ -44,7 +44,41 @@ public static class HTTPServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the http.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the http.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("php", new JObject(
+                    new JProperty("redirect_url", PHPRedirectUrl),
+                    new JProperty("version", PHPVersion),
+                    new JProperty("static_folder", PHPStaticFolder),
+                    new JProperty("debug_errors", PHPDebugErrors)
+                )),
+                new JProperty("api_static_folder", APIStaticFolder),
+                new JProperty("http_static_folder", HTTPStaticFolder),
+                new JProperty("http_temp_folder", HTTPTempFolder),
+                new JProperty("converters_folder", ConvertersFolder),
+                new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
+                new JProperty("default_plugins_port", DefaultPluginsPort),
+                new JProperty("buffer_size", BufferSize),
+                new JProperty("http_version", HttpVersion),
+                new JProperty("plugin_params", PluginParams),
+                new JProperty("plugins_folder", PluginsFolder),
+                new JProperty("discord_bot_token", DiscordBotToken),
+                new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("enable_put_method", EnablePUTMethod),
+                new JProperty("enable_image_upscale", EnableImageUpscale),
+                new JProperty("discord_plugin", new JObject(
+                    new JProperty("enabled", EnableDiscordPlugin)
+                )),
+                new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
+                new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
+                new JProperty("AllowedIPs", new JArray(AllowedIPs ?? new List<string> { }))
+            ).ToString());
+
             return;
         }
 

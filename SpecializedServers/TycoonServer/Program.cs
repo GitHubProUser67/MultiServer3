@@ -20,7 +20,16 @@ public static class TycoonServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the tycoon.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the tycoon.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("tycoon_static_folder", TycoonStaticFolder),
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
+            ).ToString());
+
             return;
         }
 

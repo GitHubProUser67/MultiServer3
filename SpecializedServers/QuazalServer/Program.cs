@@ -61,7 +61,39 @@ public static class QuazalServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the quazal.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the quazal.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("server_bind_address", ServerBindAddress),
+                new JProperty("server_public_bind_address", ServerPublicBindAddress),
+                new JProperty("ednet_bind_address_override", EdNetBindAddressOverride),
+                new JProperty("quazal_static_folder", QuazalStaticFolder),
+                new JProperty("server_public_ip", UsePublicIP),
+                new JProperty("discord_bot_token", DiscordBotToken),
+                new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("discord_plugin", new JObject(
+                    new JProperty("enabled", EnableDiscordPlugin)
+                )),
+                new JProperty("backend_servers_list", new JArray(
+                    from item in BackendServersList
+                    select new JObject(
+                        new JProperty("item1", item.Item1),
+                        new JProperty("item2", item.Item2)
+                    )
+                )),
+                new JProperty("rendezvous_servers_list", new JArray(
+                    from item in RendezVousServersList
+                    select new JObject(
+                        new JProperty("item1", item.Item1),
+                        new JProperty("item2", item.Item2),
+                        new JProperty("item3", item.Item3)
+                    )
+                ))
+            ).ToString());
+
             return;
         }
 
