@@ -20,7 +20,17 @@ public static class MitmDNSServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the dns.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the dns.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("online_routes_config", DNSOnlineConfig),
+                new JProperty("routes_config", DNSConfig),
+                new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests)
+            ).ToString());
+
             return;
         }
 

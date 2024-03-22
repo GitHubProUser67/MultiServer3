@@ -28,7 +28,26 @@ public static class SSFWServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the ssfw.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the ssfw.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("minibase", SSFWMinibase),
+                new JProperty("legacyKey", SSFWLegacyKey),
+                new JProperty("cross_save", SSFWCrossSave),
+                new JProperty("static_folder", SSFWStaticFolder),
+                new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("scenelist_file", ScenelistFile),
+                new JProperty("discord_bot_token", DiscordBotToken),
+                new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("discord_plugin", new JObject(
+                    new JProperty("enabled", EnableDiscordPlugin)
+                )),
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
+            ).ToString());
+
             return;
         }
 
