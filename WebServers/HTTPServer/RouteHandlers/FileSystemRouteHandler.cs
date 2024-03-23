@@ -58,7 +58,6 @@ namespace HTTPServer.RouteHandlers
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
         {
             HttpResponse? response = null;
-            string? encoding = request.GetHeaderValue("Accept-Encoding");
 
             string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
             if (ContentType == "application/octet-stream")
@@ -94,15 +93,7 @@ namespace HTTPServer.RouteHandlers
                 byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{new Crc32Utils().Get(Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????")):X}")?.Result;
 
                 if (UpscalledOrOriginalData != null)
-                {
-                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && UpscalledOrOriginalData.Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
-                    {
-                        response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPUtils.InflateStream(new MemoryStream(UpscalledOrOriginalData));
-                    }
-                    else
-                        response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
-                }
+                    response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
                 else
                 {
                     response.Dispose();
@@ -114,35 +105,19 @@ namespace HTTPServer.RouteHandlers
                 }
             }
             else
-            {
-                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && fileSize <= 80000000) // We must be reasonable on the file-size here (80 Mb).
-                {
-                    response.Headers.Add("Content-Encoding", "deflate");
-                    response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                }
-                else
-                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            }
+                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
         }
 
         public static HttpResponse Handle_LocalFile_Download(HttpRequest request, string local_path)
         {
-            string? encoding = request.GetHeaderValue("Accept-Encoding");
-
             HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive")
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
-             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
-            {
-                response.Headers.Add("Content-Encoding", "deflate");
-                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-            }
-            else
-                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
         }
