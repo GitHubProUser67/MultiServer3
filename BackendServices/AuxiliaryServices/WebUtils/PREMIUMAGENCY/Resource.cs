@@ -48,7 +48,7 @@ namespace WebUtils.PREMIUMAGENCY
 
                 string july2009infoboard = $"{workpath}/eventController/infoboard/09";
                 string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent";
-                string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox";
+                string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox/Resources";
                 string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium";
                 string shoeikingdomPath = $"{workpath}/eventController/ShoeiKingdom";
 
@@ -179,7 +179,7 @@ namespace WebUtils.PREMIUMAGENCY
                         break;
                     #endregion
 
-                    #region hs_userinfo_cfg  (?)
+                    #region hs_userinfo_cfg
                     case "hs_userinfo_cfg":
                         {
                             Directory.CreateDirectory(hs_userinfo_cfg);
@@ -1184,7 +1184,7 @@ namespace WebUtils.PREMIUMAGENCY
                     case "miku_jukebox_mp4":
                         {
                             Directory.CreateDirectory(MikuLiveJukeboxPath);
-                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            string filePath = $"{MikuLiveJukeboxPath}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -1210,7 +1210,7 @@ namespace WebUtils.PREMIUMAGENCY
                     case "miku_jukebox1_mp4":
                         {
                             Directory.CreateDirectory(MikuLiveJukeboxPath);
-                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            string filePath = $"{MikuLiveJukeboxPath}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -1236,7 +1236,7 @@ namespace WebUtils.PREMIUMAGENCY
                     case "miku_jukebox1_board":
                         {
                             Directory.CreateDirectory(MikuLiveJukeboxPath);
-                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            string filePath = $"{MikuLiveJukeboxPath}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -1262,7 +1262,7 @@ namespace WebUtils.PREMIUMAGENCY
                     case "miku_jukebox1_info":
                         {
                             Directory.CreateDirectory(MikuLiveJukeboxPath);
-                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            string filePath = $"{MikuLiveJukeboxPath}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -1283,12 +1283,12 @@ namespace WebUtils.PREMIUMAGENCY
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
                             }
-                        }
+                        } 
                         break;
                     case "miku_jukebox1_time":
                         {
                             Directory.CreateDirectory(MikuLiveJukeboxPath);
-                            string filePath = $"{shoeikingdomPath}/{resKey}.xml";
+                            string filePath = $"{MikuLiveJukeboxPath}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");

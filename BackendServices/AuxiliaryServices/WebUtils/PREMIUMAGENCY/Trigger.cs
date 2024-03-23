@@ -32,8 +32,8 @@ namespace WebUtils.PREMIUMAGENCY
                 #endregion
                 //MikuLiveJukebox
                 case "91":
-                    if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/getEventTrigger.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/getEventTrigger.xml");
+                    if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/global/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/global/getEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC MikuLiveJukebox {eventId}!");
                     break;
                 case "93":
@@ -239,8 +239,8 @@ namespace WebUtils.PREMIUMAGENCY
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for MikuLiveJack {eventId}!");
                     break;
                 case "91":
-                    if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/confirmEventTrigger.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/confirmEventTrigger.xml");
+                    if (File.Exists($"{workpath}/eventController/MikuLiveJukebox/global/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/MikuLiveJukebox/global/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for MikuLiveJukebox {eventId}!");
                     break;
                 case "93":
@@ -318,13 +318,13 @@ namespace WebUtils.PREMIUMAGENCY
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Basara {eventId}!");
                     break;
                 case "297":
-                    if (File.Exists($"{workpath}/eventController/j_liargame2/confirmEventTrigger.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTrigger.xml");
+                    if (File.Exists($"{workpath}/eventController/j_liargame2/confirmEventTriggerPOST.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTriggerPOST.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for POST evid PUBLIC LiarGame2 {eventId}!");
                     break;
                 case "298":
-                    if (File.Exists($"{workpath}/eventController/j_liargame2/confirmEventTrigger.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTrigger.xml");
+                    if (File.Exists($"{workpath}/eventController/j_liargame2/confirmEventTriggerCALL.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTriggerCALL.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
                     break;
                 case "335":

@@ -126,7 +126,6 @@ namespace WebUtils.PREMIUMAGENCY
                     string mikuLiveEventFilePathPublic = $"{workpath}/eventController/MikuLiveEvent/checkEvent.xml";
                     if (File.Exists(mikuLiveEventFilePathPublic))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC MikuLiveEvent {eventId}!");
                         string res = File.ReadAllText(mikuLiveEventFilePathPublic);
 
@@ -155,7 +154,6 @@ namespace WebUtils.PREMIUMAGENCY
 
                     if (File.Exists(iDOLMAASTERsFilePathPublic))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC iDOL M@ASTER {eventId}!");
                         string res = File.ReadAllText(iDOLMAASTERsFilePathPublic);
                         return "<xml>\r\n\t" +
@@ -182,7 +180,6 @@ namespace WebUtils.PREMIUMAGENCY
                     string basaraCollabEventPath = $"{workpath}/eventController/collabo_iln/checkEvent.xml";
                     if (File.Exists(basaraCollabEventPath))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC Basara {eventId}!");
                         string res = File.ReadAllText(basaraCollabEventPath);
                         return "<xml>\r\n\t" +
@@ -205,11 +202,36 @@ namespace WebUtils.PREMIUMAGENCY
                              $"<status type=\"int\">0</status>\r\n" +
                              "</xml>";
                     }
+                case "300":
+                    string j_liargame2Path = $"{workpath}/eventController/j_liargame2";
+                    if (File.Exists(j_liargame2Path))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC LiarGame2 {eventId}!");
+                        string res = File.ReadAllText(j_liargame2Path);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {j_liargame2Path}");
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
                 case "342":
                     string Spring2013 = $"{workpath}/eventController/Spring/2013/checkEvent.xml";
                     if (File.Exists(Spring2013))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC Spring2013 {eventId}!");
                         string res = File.ReadAllText(Spring2013);
                         return "<xml>\r\n\t" +
@@ -236,7 +258,6 @@ namespace WebUtils.PREMIUMAGENCY
                     string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium/checkEvent.xml";
                     if (File.Exists(SonyAquariumPath))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC SonyAquarium {eventId}!");
                         string res = File.ReadAllText(SonyAquariumPath);
                         return "<xml>\r\n\t" +
@@ -483,6 +504,32 @@ else
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC Basara {eventId}!\nExpected path {basaraCollabEventPath}");
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+                case "300":
+                    string j_liargame2Path = $"{workPath}/eventController/j_liargame2";
+                    if (File.Exists(j_liargame2Path))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for PUBLIC LiarGame2 {eventId}!");
+                        string res = File.ReadAllText(j_liargame2Path);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {j_liargame2Path}");
+
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +

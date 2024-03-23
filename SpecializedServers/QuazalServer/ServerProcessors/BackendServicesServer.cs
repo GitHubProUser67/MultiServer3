@@ -11,11 +11,14 @@ namespace QuazalServer.ServerProcessors
         private readonly ConcurrentBag<bool> _shutflags = new();
         private CancellationTokenSource _cts = null!;
 
-		public void Start(List<Tuple<int, string>> PrudpInstance, uint serverPID, CancellationToken cancellationToken)
+		public void Start(List<Tuple<int, string>>? PrudpInstances, uint serverPID, CancellationToken cancellationToken)
 		{
+            if (PrudpInstances == null)
+                return;
+
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            Parallel.ForEach(PrudpInstance, tuple => { new Thread(() => HandleClient(tuple.Item1, serverPID, tuple.Item2)).Start(); });
+            Parallel.ForEach(PrudpInstances, tuple => { new Thread(() => HandleClient(tuple.Item1, serverPID, tuple.Item2)).Start(); });
         }
 
         public void StopAsync()

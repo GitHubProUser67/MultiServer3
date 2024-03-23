@@ -2,6 +2,7 @@ using BackendProject.MiscUtils;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WebUtils.PREMIUMAGENCY
 {
@@ -60,6 +61,12 @@ namespace WebUtils.PREMIUMAGENCY
                             return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, eventId);
                         case "/eventController/getUserEventCustomList.do":
                             return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, eventId);
+                        case "/eventController/getItemRankingTable.do":
+                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, eventId);
+                        case "/eventController/entryItemRankingPoints.do":
+                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, eventId);
+                        case "/eventController/getItemRankingTargetList.do":
+                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, eventId);
                         case "/eventController/getInformationBoardSchedule.do":
                             return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
                         default:
@@ -69,6 +76,7 @@ namespace WebUtils.PREMIUMAGENCY
                             break;
                     }
                     break;
+
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled Server method: {method}");
@@ -108,6 +116,66 @@ namespace WebUtils.PREMIUMAGENCY
             // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public static void WriteFormDataToFile(string formData, string filePath)
+        {
+            // Regular expression to match each key-value pair
+            Regex regex = new Regex(@"name=""([^""]+)""\s*([\s\S]*?)\s*---------");
+            MatchCollection matches = regex.Matches(formData);
+
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                foreach (Match match in matches)
+                {
+                    string key = match.Groups[1].Value.Trim();
+                    string value = match.Groups[2].Value.Trim();
+
+                    // Write key-value pair to the file
+                    writer.WriteLine($"{key}: {value}");
+                }
+            }
+        }
+
+        public static List<(string, string)> ReadFormDataFromFile(string filePath)
+        {
+            List<(string, string)> formData = new List<(string, string)>();
+
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+                string currentKey = null;
+                string currentValue = null;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.Contains(":"))
+                    {
+                        string[] parts = line.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 2)
+                        {
+                            if (currentKey != null)
+                            {
+                                formData.Add((currentKey.Trim(), currentValue.Trim()));
+                            }
+                            currentKey = parts[0].Trim();
+                            currentValue = parts[1].Trim();
+                        }
+                    }
+                    else
+                    {
+                        currentValue += "\n" + line.Trim();
+                    }
+                }
+
+                // Add the last key-value pair
+                if (currentKey != null)
+                {
+                    formData.Add((currentKey.Trim(), currentValue.Trim()));
+                }
+            }
+
+            return formData;
         }
     }
 }

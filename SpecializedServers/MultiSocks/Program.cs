@@ -21,7 +21,20 @@ public static class MultiSocksServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the MultiSocks.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the MultiSocks.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("database", DirtySocksDatabaseConfig),
+                new JProperty("discord_bot_token", DiscordBotToken),
+                new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("discord_plugin", new JObject(
+                    new JProperty("enabled", EnableDiscordPlugin)
+                ))
+            ).ToString());
+
             return;
         }
 

@@ -7,6 +7,7 @@ using WebUtils.VEEMEE.goalie_sfrgbt;
 using WebUtils.VEEMEE.gofish;
 using WebUtils.VEEMEE.olm;
 using HomeTools.AFS;
+using System.Net;
 
 public static class HTTPSServerConfiguration
 {
@@ -42,7 +43,38 @@ public static class HTTPSServerConfiguration
         // Make sure the file exists
         if (!File.Exists(configPath))
         {
-            LoggerAccessor.LogWarn("Could not find the https.json file, using server's default.");
+            LoggerAccessor.LogWarn("Could not find the https.json file, writing and using server's default.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+            // Write the JObject to a file
+            File.WriteAllText(configPath, new JObject(
+                new JProperty("online_routes_config", DNSOnlineConfig),
+                new JProperty("routes_config", DNSConfig),
+                new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
+                new JProperty("api_static_folder", APIStaticFolder),
+                new JProperty("php", new JObject(
+                    new JProperty("redirect_url", PHPRedirectUrl),
+                    new JProperty("version", PHPVersion),
+                    new JProperty("static_folder", PHPStaticFolder),
+                    new JProperty("debug_errors", PHPDebugErrors)
+                )),
+                new JProperty("https_static_folder", HTTPSStaticFolder),
+                new JProperty("https_temp_folder", HTTPSTempFolder),
+                new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
+                new JProperty("discord_bot_token", DiscordBotToken),
+                new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("enable_put_method", EnablePUTMethod),
+                new JProperty("discord_plugin", new JObject(
+                    new JProperty("enabled", EnableDiscordPlugin)
+                )),
+                new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
+                new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
+                new JProperty("AllowedIPs", new JArray(AllowedIPs ?? new List<string> { }))
+            ).ToString());
+
             return;
         }
 
