@@ -69,7 +69,7 @@ namespace HTTPServer.Extensions
                         RedirectStandardError = true,
                         UseShellExecute = false,
                         WorkingDirectory = $"{Directory.GetCurrentDirectory()}/static/converters/ImageMagick/", // Can load various config files.
-                        CreateNoWindow = false // This is a console app.
+                        CreateNoWindow = true
                     });
 
                     process?.WaitForExit();

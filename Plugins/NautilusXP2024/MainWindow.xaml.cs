@@ -76,7 +76,7 @@ namespace NautilusXP2024
 
             AFSClass.MapperHelperFolder = Directory.GetCurrentDirectory();
 
-            AFSClass.InitAFSMappedList();
+            _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
             logFlushTimer = new System.Threading.Timer(_ => FlushLogBuffer(), null, Timeout.Infinite, Timeout.Infinite);
 

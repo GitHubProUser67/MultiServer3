@@ -32,7 +32,7 @@ namespace HomeTools.UnBAR
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 WorkingDirectory = converterPath, // Can load various config files.
-                CreateNoWindow = false // This is a console app.
+                CreateNoWindow = true
             });
 
             process?.WaitForExit();
@@ -55,7 +55,7 @@ namespace HomeTools.UnBAR
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 WorkingDirectory = converterPath, // Can load various config files.
-                CreateNoWindow = false // This is a console app.
+                CreateNoWindow = true
             });
 
             process?.WaitForExit();
