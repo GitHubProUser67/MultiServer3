@@ -431,8 +431,7 @@ namespace NautilusXP2024
 
         private void Maximize_Click(object sender, RoutedEventArgs e)
         {
-            this.WindowState = this.WindowState == System.Windows.WindowState.Maximized ?
-                               System.Windows.WindowState.Normal : System.Windows.WindowState.Maximized;
+           
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
@@ -3072,7 +3071,7 @@ namespace NautilusXP2024
                     }
                 }
 
-                string summaryMessage = $"-- {successCount} file(s) decompiled successfully, {failureCount} file(s) failed to decompile.";
+                string summaryMessage = $"-- {successCount} file(s) decompiled successfully, {failureCount} file(s) failed/skipped.";
                 AppendTextToLUACDecompilerTextBox(summaryMessage);
                 LogDebugInfo($"LUAC Decompilation to LUA: {summaryMessage}");
                 TemporaryMessageHelper.ShowTemporaryMessage(LUACDecompilerDragAreaText, summaryMessage, 6000);
@@ -3107,8 +3106,8 @@ namespace NautilusXP2024
                 case OverwriteBehavior.Skip:
                     if (File.Exists(outputFileName))
                     {
-                        LogDebugInfo($"LUAC Decompilation: Skipping '{inputFile}' because '{outputFileName}' already exists.");
-                        return (false, $"-- Decompiling: {Path.GetFileName(inputFile)}... Skipped '{outputFileName}' already exists.");
+                        LogDebugInfo($"LUAC Decompilation: SKIPPED '{inputFile}' because '{outputFileName}' already exists.");
+                        return (false, $"-- SKIPPED: {Path.GetFileName(inputFile)} output already exists - See settings to change");
                     }
                     break;
                 case OverwriteBehavior.Overwrite:
@@ -5405,7 +5404,7 @@ namespace NautilusXP2024
 
         }
 
-        private void CheckBoxMLAAPatch_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxPSPLUS_Checked(object sender, RoutedEventArgs e)
         {
 
         }
@@ -5415,7 +5414,7 @@ namespace NautilusXP2024
 
         }
 
-        private void CheckBoxHTTPTSS_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxCMDConsole_Checked(object sender, RoutedEventArgs e)
         {
 
         }
@@ -5432,48 +5431,48 @@ namespace NautilusXP2024
 
         private void EbootPatcherDragDropHandler(object sender, DragEventArgs e)
         {
-            LogDebugInfo("Eboot Patcher: Drag and Drop initiated.");
+            LogDebugInfo("EBOOT Patcher: Drag and Drop initiated.");
 
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                LogDebugInfo("Eboot Patcher: Data format is FileDrop.");
+                LogDebugInfo("EBOOT Patcher: Data format is FileDrop.");
 
                 string[] droppedItems = (string[])e.Data.GetData(DataFormats.FileDrop);
                 string message = "Invalid file format.";
 
                 if (droppedItems.Length > 0)
                 {
-                    LogDebugInfo($"Eboot Patcher: Number of items dropped: {droppedItems.Length}");
+                    LogDebugInfo($"EBOOT Patcher: Number of items dropped: {droppedItems.Length}");
 
                     if (Directory.Exists(droppedItems[0]))
                     {
-                        LogDebugInfo("Eboot Patcher: Dropped item is a directory.");
+                        LogDebugInfo("EBOOT Patcher: Dropped item is a directory.");
                         message = "This tool only supports one file at a time.";
                     }
                     else if (File.Exists(droppedItems[0]))
                     {
-                        LogDebugInfo("Eboot Patcher: Dropped item is a file.");
+                        LogDebugInfo("EBOOT Patcher: Dropped item is a file.");
                         string file = droppedItems[0];
 
                         if (new[] { ".bin", ".elf", ".self" }.Contains(Path.GetExtension(file).ToLowerInvariant()))
                         {
-                            LogDebugInfo("Eboot Patcher: File format is valid.");
+                            LogDebugInfo("EBOOT Patcher: File format is valid.");
                             LoadEBOOT(file);
                             string fileName = Path.GetFileName(file);
                             string dirPath = Path.GetDirectoryName(file);
                             string shortenedPath = dirPath.Length > 17 ? "..." + dirPath.Substring(dirPath.Length - 17) : dirPath;
                             message = $"{shortenedPath}\\{fileName} Loaded";
-                            LogDebugInfo($"Eboot Patcher: {message}");
+                            LogDebugInfo($"EBOOT Patcher: {message}");
                         }
                         else
                         {
-                            LogDebugInfo("Eboot Patcher: File format is not supported.");
+                            LogDebugInfo("EBOOT Patcher: File format is not supported.");
                             message = "This tool only supports bin, elf, and self files.";
                         }
                     }
                     else
                     {
-                        LogDebugInfo("Eboot Patcher: Dropped item is neither a file nor a directory.");
+                        LogDebugInfo("EBOOT Patcher: Dropped item is neither a file nor a directory.");
                     }
                 }
 
@@ -5483,7 +5482,7 @@ namespace NautilusXP2024
             }
             else
             {
-                LogDebugInfo("Eboot Patcher: Drag and Drop data format is not FileDrop.");
+                LogDebugInfo("EBOOT Patcher: Drag and Drop data format is not FileDrop.");
             }
         }
 
@@ -5493,7 +5492,7 @@ namespace NautilusXP2024
 
         private void ClickToBrowseHandlerEbootPatcher(object sender, RoutedEventArgs e)
         {
-            LogDebugInfo("Eboot Patcher: Click to Browse EBOOT File selected - Checking...");
+            LogDebugInfo("EBOOT Patcher: Click to Browse EBOOT File selected - Checking...");
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Eboot files (*.bin;*.elf;*.self)|*.bin;*.elf;*.self",
@@ -5544,7 +5543,7 @@ namespace NautilusXP2024
             LoadedEbootAppID.Text = "";
             LoadedEbootTSSURL.Text = "";
             LoadedEbootOfflineName.Text = "";
-            LogDebugInfo("Eboot Patcher: Loading EBOOT " + ebootFilePath);
+            LogDebugInfo("EBOOT Patcher: Loading EBOOT " + ebootFilePath);
 
             // Update LoadedEbootFilePath TextBox
             LoadedEbootFilePath.Text = ebootFilePath;
@@ -5602,7 +5601,7 @@ namespace NautilusXP2024
             if (!File.Exists(scetoolPath))
             {
                 message = "scetool.exe not found. Please ensure it is installed at " + scetoolDirectory;
-                LogDebugInfo("Eboot Patcher: " + message);
+                LogDebugInfo("EBOOT Patcher: " + message);
                 Dispatcher.Invoke(() =>
                 {
                     TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, message, 2000);
@@ -5618,7 +5617,7 @@ namespace NautilusXP2024
             catch (IOException ioEx)
             {
                 message = "Failed to copy EBOOT.BIN to scetool directory: " + ioEx.Message;
-                LogDebugInfo("Eboot Patcher: " + message);
+                LogDebugInfo("EBOOT Patcher: " + message);
                 Dispatcher.Invoke(() =>
                 {
                     TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, message, 2000);
@@ -5651,7 +5650,7 @@ namespace NautilusXP2024
                 if (process.ExitCode != 0 || !string.IsNullOrEmpty(stderr))
                 {
                     message = $"scetool failed to decrypt EBOOT.BIN: {stderr}";
-                    LogDebugInfo("Eboot Patcher: " + message);
+                    LogDebugInfo("EBOOT Patcher: " + message);
                 }
                 else
                 {
@@ -5659,7 +5658,7 @@ namespace NautilusXP2024
                     if (!File.Exists(outputFilePath))
                     {
                         message = "EBOOT failed to decrypt.";
-                        LogDebugInfo("Eboot Patcher: " + message);
+                        LogDebugInfo("EBOOT Patcher: " + message);
                         Dispatcher.Invoke(() =>
                         {
                             TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, message, 2000);
@@ -5668,7 +5667,7 @@ namespace NautilusXP2024
                     }
 
                     message = $"Eboot decrypted successfully to: {outputFilePath}";
-                    LogDebugInfo("Eboot Patcher: " + message);
+                    LogDebugInfo("EBOOT Patcher: " + message);
 
                     // Move the ELF file to the temp directory
                     string finalOutputPath = Path.Combine(tempDirectory, "EBOOT.ELF");
@@ -5679,7 +5678,7 @@ namespace NautilusXP2024
                     File.Delete(copiedFilePath);
 
                     message = $"Eboot.ELF moved to: {finalOutputPath}";
-                    LogDebugInfo("Eboot Patcher: " + message);
+                    LogDebugInfo("EBOOT Patcher: " + message);
                 }
 
                 // Assuming ParseEbootInfo() is a method you want to call after processing
@@ -5699,14 +5698,14 @@ namespace NautilusXP2024
             string message;
             int displayTime = 3000; // Default to 3 seconds for the message display
 
-            LogDebugInfo("Eboot Patcher: Handling ELF file.");
-            LogDebugInfo("Eboot Patcher: Source ELF file path from TextBox: " + sourceFilePath);
+            LogDebugInfo("EBOOT Patcher: Handling ELF file.");
+            LogDebugInfo("EBOOT Patcher: Source ELF file path from TextBox: " + sourceFilePath);
 
             // Check if the source ELF file exists
             if (!File.Exists(sourceFilePath))
             {
                 message = "Failed to load ELF file: Source file does not exist.";
-                LogDebugInfo("Eboot Patcher: " + message);
+                LogDebugInfo("EBOOT Patcher: " + message);
                 Dispatcher.Invoke(() =>
                 {
                     TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, message, 2000);
@@ -5717,7 +5716,7 @@ namespace NautilusXP2024
             // Check if the temp directory exists, create if not
             if (!Directory.Exists(tempDirectory))
             {
-                LogDebugInfo("Eboot Patcher: Temp directory does not exist, creating...");
+                LogDebugInfo("EBOOT Patcher: Temp directory does not exist, creating...");
                 Directory.CreateDirectory(tempDirectory);
             }
 
@@ -5733,7 +5732,7 @@ namespace NautilusXP2024
                 File.Copy(sourceFilePath, finalOutputPath);
 
                 message = $"ELF file moved successfully to: {finalOutputPath}";
-                LogDebugInfo("Eboot Patcher: " + message);
+                LogDebugInfo("EBOOT Patcher: " + message);
 
                 // Assuming ParseEbootInfo() is a method you want to call after processing
                 ParseEbootInfo();
@@ -5741,7 +5740,7 @@ namespace NautilusXP2024
             catch (IOException ioEx)
             {
                 message = "Failed to move ELF file to temp directory: " + ioEx.Message;
-                LogDebugInfo("Eboot Patcher: " + message);
+                LogDebugInfo("EBOOT Patcher: " + message);
             }
 
             // Display the message in the GUI
@@ -5767,13 +5766,13 @@ namespace NautilusXP2024
                 else if (signatureToInfoMap.Count == 0)
                 {
                     // The JSON deserialized but the dictionary is empty
-                    LogDebugInfo("The JSON content deserialized into an empty dictionary. Check the JSON content.");
+                    LogDebugInfo("EBOOT Patcher: The JSON content deserialized into an empty dictionary. Check the JSON content.");
                 }
             }
             catch (Exception ex)
             {
                 // Log the exception details
-                LogDebugInfo($"Error loading EBOOT definitions: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error loading EBOOT definitions: {ex.Message}");
                 // Consider rethrowing the exception or handling it to prevent further execution
             }
         }
@@ -5804,7 +5803,7 @@ namespace NautilusXP2024
                         string sha1Hash = BitConverter.ToString(hashBytes).Replace("-", "");
 
                         // Log the SHA1 hash
-                        LogDebugInfo($"SHA1 Hash: {sha1Hash}");
+                        LogDebugInfo($"EBOOT Patcher: SHA1 Hash: {sha1Hash}");
 
                         // Use the SHA1 hash for identification instead of unique signature
                         UniqueSig = sha1Hash; // Assuming you want to keep using UniqueSig for compatibility
@@ -5814,7 +5813,7 @@ namespace NautilusXP2024
             }
             catch (Exception ex)
             {
-                LogDebugInfo("Error parsing EBOOT.ELF: " + ex.Message);
+                LogDebugInfo("EBOOT Patcher: Error parsing EBOOT.ELF: " + ex.Message);
             }
         }
 
@@ -5907,12 +5906,12 @@ namespace NautilusXP2024
 
                         // Determine the text based on whether the version matches
                         string displayText = ebootInfo.Version == fullMuisVersion
-                            ? $"Currently Patching: {ebootInfo.Type} {ebootInfo.Version}"
-                            : $"Currently Patching: {ebootInfo.Type} {ebootInfo.Version} (Spoofed to {fullMuisVersion})";
+                            ? $"EBOOT Loaded: {ebootInfo.Type} {ebootInfo.Version}"
+                            : $"EBOOT Loaded: {ebootInfo.Type} {ebootInfo.Version} (Spoofed to {fullMuisVersion})";
 
                         EbootPatcherDragAreaText.Text = displayText;
 
-                        foreach (var key in new[] { "TitleIdOffset", "ServiceIdOffset", "NPCommIDOffset", "TssUrlOffset", "AppIdOffset", "OfflineNameOffset", "MlaaOffset", "EulaOffset", "HttpTssOffset", "ProfFilterOffset", "DrawDistOffset" })
+                        foreach (var key in new[] { "TitleIdOffset", "ServiceIdOffset", "NPCommIDOffset", "TssUrlOffset", "AppIdOffset", "OfflineNameOffset", "PSplusOffset", "EulaOffset", "CMDConsoleOffset", "ProfFilterOffset", "DrawDistOffset" })
                         {
                             if (!ebootInfo.Offsets.ContainsKey(key))
                             {
@@ -5956,14 +5955,11 @@ namespace NautilusXP2024
                 case "OfflineNameOffset":
                     LoadedEbootOfflineName.Text = !string.IsNullOrEmpty(value) ? value : "N/A (Online Only)";
                     break;
-                case "MlaaOffset":
-                    CheckBoxMLAAPatch.IsChecked = value == "1" ? true : false; // Assuming unchecked if not "1"
+                case "PSplusOffset":
+                    CheckBoxPSPLUS.IsChecked = value == "1" ? true : false; // Assuming unchecked if not "1"
                     break;
-                case "EulaOffset":
-                    CheckBoxSkipEula.IsChecked = value == "1" ? true : false; // Assuming unchecked if not "1"
-                    break;
-                case "HttpTssOffset":
-                    CheckBoxHTTPTSS.IsChecked = value == "1" ? true : false; // Assuming unchecked if not "1"
+                case "CMDConsoleOffset":
+                    CheckBoxCMDConsole.IsChecked = value == "1" ? true : false; // Assuming unchecked if not "1"
                     break;
                 case "ProfFilterOffset":
                     CheckBoxBlockProfanity.IsChecked = value == "1" ? true : false; // Assuming unchecked if not "1"
@@ -5985,8 +5981,355 @@ namespace NautilusXP2024
             PatchMuisVersion(ebootElfPath);
             PatchTSSURL(ebootElfPath);
             PatchOfflineName(ebootElfPath);
-            // Display success or handle errors as needed
+            PatchPSPLUS(ebootElfPath);
+            PatchCMDConsole(ebootElfPath);
+            PatchProfanity(ebootElfPath);
+            PatchDrawDistance1(ebootElfPath);
+            PatchDrawDistance2(ebootElfPath);
+
+            // Check the radio button setting and act accordingly
+            if (RadioButtonEBOOTBINitem.IsChecked == true)
+            {
+                EncryptEbootWithScetool();
+            }
+            else if (RadioButtonEBOOTELFitem.IsChecked == true)
+            {
+                SaveEbootElfCopy();
+            }
+            else
+            {
+                LogDebugInfo("EBOOT Patcher: No output format selected.");
+            }
+
             TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, "Eboot patched successfully.", 2000);
+        }
+
+
+        private void EncryptEbootWithScetool()
+        {
+            string elfFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "temp", "EBOOT.ELF");
+            string scetoolDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "scetool");
+            string scetoolPath = Path.Combine(scetoolDirectory, "scetool.exe");
+
+            if (!File.Exists(scetoolPath))
+            {
+                string message = "scetool.exe not found. Please ensure it is installed at " + scetoolDirectory;
+                LogDebugInfo(message);
+                Dispatcher.Invoke(() =>
+                {
+                    TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, message, 2000);
+                });
+                return;
+            }
+
+            string arguments = $"-l 72F990788F9CFF745725F08E4C128387 --sce-type=SELF --compress-data=TRUE --skip-sections=FALSE --key-revision=04 --self-ctrl-flags=4000000000000000000000000000000000000000000000000000000000000002 --self-auth-id=1010000001000003 --self-add-shdrs=TRUE --self-vendor-id=01000002 --self-app-version=0001008600000000 --self-type=NPDRM --self-fw-version=0003004000000000 --np-license-type=FREE --np-content-id=EP9000-NPIA00005_00-HOME000000000001 --np-app-type=EXEC --np-real-fname=\"EBOOT.BIN\" --encrypt \"{elfFilePath}\" \"EBOOT.BIN\"";
+
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = scetoolPath,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                WorkingDirectory = scetoolDirectory
+            };
+
+            using (var process = Process.Start(startInfo))
+            {
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    string error = process.StandardError.ReadToEnd();
+                    LogDebugInfo($"scetool failed: {error}");
+                    return;
+                }
+            }
+
+            Dispatcher.Invoke(() =>
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "EBOOT File (*.BIN)|*.BIN",
+                    Title = "Save the EBOOT.BIN file",
+                    FileName = "EBOOT.BIN" // This sets the default file name in the dialog
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    string savePath = saveFileDialog.FileName;
+                    string binPath = Path.Combine(scetoolDirectory, "EBOOT.BIN");
+
+                    if (File.Exists(binPath))
+                    {
+                        File.Move(binPath, savePath, overwrite: true);
+                        LogDebugInfo($"EBOOT.BIN saved successfully to: {savePath}");
+                    }
+                    else
+                    {
+                        LogDebugInfo("EBOOT.BIN was not found after scetool process.");
+                    }
+                }
+            });
+        }
+
+        private void SaveEbootElfCopy()
+        {
+            string elfFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "temp", "EBOOT.ELF");
+
+            // Check if the ELF file exists
+            if (!File.Exists(elfFilePath))
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    TemporaryMessageHelper.ShowTemporaryMessage(EbootPatcherDragAreaText, "EBOOT.ELF not found for saving.", 2000);
+                });
+                return;
+            }
+
+            // Prompt the user to save the EBOOT.ELF file
+            Dispatcher.Invoke(() =>
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "ELF File (*.ELF)|*.ELF",
+                    Title = "Save the EBOOT.ELF file",
+                    FileName = "EBOOT.elf" // Pre-fill the file name
+                };
+
+                // Show the Save File Dialog. If the user clicked OK, save the file
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    string savePath = saveFileDialog.FileName;
+                    // Copy the EBOOT.ELF to the user's chosen path
+                    File.Copy(elfFilePath, savePath, overwrite: true);
+                    LogDebugInfo($"EBOOT.ELF saved successfully to: {savePath}");
+                }
+            });
+        }
+
+
+        private void PatchPSPLUS(string ebootElfPath)
+        {
+            // Prepare the byte arrays for both states
+            byte[] enabledValue = Encoding.ASCII.GetBytes("xxxxxxxxxx"); // "xxxxxxxxxx" for checkbox enabled
+            byte[] disabledValue = Encoding.ASCII.GetBytes("PSPlusOnly"); // "PSPlusOnly" for checkbox disabled
+
+            try
+            {
+                using (FileStream fs = new FileStream(ebootElfPath, FileMode.Open, FileAccess.Write))
+                {
+                    if (signatureToInfoMap.TryGetValue(UniqueSig, out var ebootInfo))
+                    {
+                        // Define the list of keys for PS Plus offsets
+                        var psPlusOffsetKeys = new List<string>
+                {
+                    "PSplusOffset",
+                    "PSplusOffset2",
+                };
+
+                        foreach (var offsetKey in psPlusOffsetKeys)
+                        {
+                            // Check if the dictionary contains the offset
+                            if (ebootInfo.Offsets.TryGetValue(offsetKey, out var offsetValue))
+                            {
+                                long offset = Convert.ToInt64(offsetValue, 16); // Convert hex string to long
+                                fs.Seek(offset, SeekOrigin.Begin);
+
+                                // Write the appropriate byte array based on the checkbox state
+                                byte[] valueToWrite = CheckBoxPSPLUS.IsChecked == true ? enabledValue : disabledValue;
+                                fs.Write(valueToWrite, 0, valueToWrite.Length);
+                            }
+                        }
+
+                        LogDebugInfo("EBOOT Patcher: PS Plus patched successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"EBOOT Patcher: Error patching PS Plus: {ex.Message}");
+            }
+        }
+
+
+        private void PatchCMDConsole(string ebootElfPath)
+        {
+            // Prepare the byte arrays for both states
+            byte[] enabledValue = Encoding.ASCII.GetBytes("xxxxxxx"); // "xxxxxxx" for checkbox enabled
+            byte[] disabledValue = Encoding.ASCII.GetBytes("**DEV**"); // "**DEV**" for checkbox disabled
+
+            try
+            {
+                using (FileStream fs = new FileStream(ebootElfPath, FileMode.Open, FileAccess.Write))
+                {
+                    if (signatureToInfoMap.TryGetValue(UniqueSig, out var ebootInfo))
+                    {
+                        // Corrected variable name for CMD Console offsets
+                        var cmdConsoleOffsetKeys = new List<string>
+                {
+                    "CMDConsoleOffset",
+                };
+
+                        foreach (var offsetKey in cmdConsoleOffsetKeys)
+                        {
+                            // Check if the dictionary contains the offset
+                            if (ebootInfo.Offsets.TryGetValue(offsetKey, out var offsetValue))
+                            {
+                                long offset = Convert.ToInt64(offsetValue, 16); // Convert hex string to long
+                                fs.Seek(offset, SeekOrigin.Begin);
+
+                                // Write the appropriate byte array based on the checkbox state
+                                byte[] valueToWrite = CheckBoxCMDConsole.IsChecked == true ? enabledValue : disabledValue;
+                                fs.Write(valueToWrite, 0, valueToWrite.Length);
+                            }
+                        }
+
+                        LogDebugInfo("EBOOT Patcher: CMD Console patched successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"EBOOT Patcher: Error patching CMD Console: {ex.Message}");
+            }
+        }
+
+
+        private void PatchProfanity(string ebootElfPath)
+        {
+            // Prepare the byte arrays for both states
+            byte[] enabledValue = Encoding.ASCII.GetBytes("xxxxxxxxxxxxxxx"); // "xxxxxxxxxxxxxxx" for checkbox enabled
+            byte[] disabledValue = Encoding.ASCII.GetBytes("ProfanityFilter"); // "ProfanityFilter" for checkbox disabled
+
+            try
+            {
+                using (FileStream fs = new FileStream(ebootElfPath, FileMode.Open, FileAccess.Write))
+                {
+                    if (signatureToInfoMap.TryGetValue(UniqueSig, out var ebootInfo))
+                    {
+                        // Corrected variable name for CMD Console offsets
+                        var ProfanityOffsetKeys = new List<string>
+                {
+                    "ProfFilterOffset",
+                };
+
+                        foreach (var offsetKey in ProfanityOffsetKeys)
+                        {
+                            // Check if the dictionary contains the offset
+                            if (ebootInfo.Offsets.TryGetValue(offsetKey, out var offsetValue))
+                            {
+                                long offset = Convert.ToInt64(offsetValue, 16); // Convert hex string to long
+                                fs.Seek(offset, SeekOrigin.Begin);
+
+                                // Write the appropriate byte array based on the checkbox state
+                                byte[] valueToWrite = CheckBoxBlockProfanity.IsChecked == true ? enabledValue : disabledValue;
+                                fs.Write(valueToWrite, 0, valueToWrite.Length);
+                            }
+                        }
+
+                        LogDebugInfo("EBOOT Patcher: Profanity patched successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"EBOOT Patcher: Error patching Profanity filter: {ex.Message}");
+            }
+        }
+
+
+
+        private void PatchDrawDistance1(string ebootElfPath)
+        {
+            // Prepare the byte arrays for both states
+            byte[] enabledValue = Encoding.ASCII.GetBytes("lod1"); // "lod1" for checkbox enabled
+            byte[] disabledValue = Encoding.ASCII.GetBytes("lod2"); // "lod2" for checkbox disabled
+
+            try
+            {
+                using (FileStream fs = new FileStream(ebootElfPath, FileMode.Open, FileAccess.Write))
+                {
+                    if (signatureToInfoMap.TryGetValue(UniqueSig, out var ebootInfo))
+                    {
+                     
+                        var DDOffsetKeys = new List<string>
+                {
+                    "DrawDistOffset",
+                    "DrawDistOffset3",
+                    "DrawDistOffset5",
+                    "DrawDistOffset7",
+                };
+
+                        foreach (var offsetKey in DDOffsetKeys)
+                        {
+                            // Check if the dictionary contains the offset
+                            if (ebootInfo.Offsets.TryGetValue(offsetKey, out var offsetValue))
+                            {
+                                long offset = Convert.ToInt64(offsetValue, 16); // Convert hex string to long
+                                fs.Seek(offset, SeekOrigin.Begin);
+
+                                // Write the appropriate byte array based on the checkbox state
+                                byte[] valueToWrite = CheckBoxDrawDistanceHack.IsChecked == true ? enabledValue : disabledValue;
+                                fs.Write(valueToWrite, 0, valueToWrite.Length);
+                            }
+                        }
+
+                        LogDebugInfo("EBOOT Patcher: PS Plus patched successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"EBOOT Patcher: Error patching PS Plus: {ex.Message}");
+            }
+        }
+
+        private void PatchDrawDistance2(string ebootElfPath)
+        {
+            // Prepare the byte arrays for both states
+            byte[] enabledValue = Encoding.ASCII.GetBytes("lod1"); // "lod1" for checkbox enabled
+            byte[] disabledValue = Encoding.ASCII.GetBytes("lod3"); // "lod3" for checkbox disabled
+
+            try
+            {
+                using (FileStream fs = new FileStream(ebootElfPath, FileMode.Open, FileAccess.Write))
+                {
+                    if (signatureToInfoMap.TryGetValue(UniqueSig, out var ebootInfo))
+                    {
+                        // Define the list of keys for PS Plus offsets
+                        var DD2OffsetKeys = new List<string>
+                {
+                    "DrawDistOffset2",
+                    "DrawDistOffset4",
+                    "DrawDistOffset6",
+                    "DrawDistOffset8",
+                };
+
+                        foreach (var offsetKey in DD2OffsetKeys)
+                        {
+                            // Check if the dictionary contains the offset
+                            if (ebootInfo.Offsets.TryGetValue(offsetKey, out var offsetValue))
+                            {
+                                long offset = Convert.ToInt64(offsetValue, 16); // Convert hex string to long
+                                fs.Seek(offset, SeekOrigin.Begin);
+
+                                // Write the appropriate byte array based on the checkbox state
+                                byte[] valueToWrite = CheckBoxDrawDistanceHack.IsChecked == true ? enabledValue : disabledValue;
+                                fs.Write(valueToWrite, 0, valueToWrite.Length);
+                            }
+                        }
+
+                        LogDebugInfo("EBOOT Patcher: PS Plus patched successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"EBOOT Patcher: Error patching PS Plus: {ex.Message}");
+            }
         }
 
 
@@ -6030,13 +6373,13 @@ namespace NautilusXP2024
                             }
                         }
 
-                        LogDebugInfo("Title ID(s) patched successfully.");
+                        LogDebugInfo("EBOOT Patcher: Title ID(s) patched successfully.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching Title ID(s): {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching Title ID(s): {ex.Message}");
             }
         }
 
@@ -6066,13 +6409,13 @@ namespace NautilusXP2024
                             fs.Write(bytesToWrite, 0, bytesToWrite.Length); // Write exactly 5 bytes
                         }
 
-                        LogDebugInfo("App ID patched successfully.");
+                        LogDebugInfo("EBOOT Patcher: App ID patched successfully.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching App ID: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching App ID: {ex.Message}");
             }
         }
 
@@ -6104,13 +6447,13 @@ namespace NautilusXP2024
                             fs.Write(bytesToWrite, 0, bytesToWrite.Length); // Write the bytes, padded/truncated as necessary
                         }
 
-                        LogDebugInfo("NPCommID patched successfully.");
+                        LogDebugInfo("EBOOT Patcher: NPCommID patched successfully.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching NPCommID: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching NPCommID: {ex.Message}");
             }
         }
 
@@ -6140,13 +6483,13 @@ namespace NautilusXP2024
                             fs.Write(bytesToWrite, 0, bytesToWrite.Length); // Write the bytes, padded as necessary
                         }
 
-                        LogDebugInfo("Service ID patched successfully.");
+                        LogDebugInfo("EBOOT Patcher: Service ID patched successfully.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching Service ID: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching Service ID: {ex.Message}");
             }
         }
 
@@ -6162,6 +6505,12 @@ namespace NautilusXP2024
             // Split the processed input into parts for MuisVersionOffset1 and MuisVersionOffset2
             string muisVersionPart1 = muisVersionInput.Substring(0, 5); // First 5 characters for MuisVersionOffset1
             string muisVersionPart2 = muisVersionInput.Substring(5, 3); // Last 3 characters for MuisVersionOffset2, includes the period
+
+            // If muisVersionPart2 starts with a period, remove it
+            if (muisVersionPart2.StartsWith("."))
+            {
+                muisVersionPart2 = muisVersionPart2.TrimStart('.');
+            }
 
             // Reflect the processed value back in the GUI
             Dispatcher.Invoke(() =>
@@ -6187,13 +6536,13 @@ namespace NautilusXP2024
                             PatchOffsetWithBytes(fs, offsetValue2, muisVersionPart2);
                         }
 
-                        LogDebugInfo("MuisVersion patched successfully.");
+                        LogDebugInfo("EBOOT Patcher: MuisVersion patched successfully.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching MuisVersion: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching MuisVersion: {ex.Message}");
             }
         }
 
@@ -6238,14 +6587,14 @@ namespace NautilusXP2024
                                 nextByte = fs.ReadByte(); // Read the next byte to check if it's null
                             }
 
-                            LogDebugInfo("TSS URL patched and padded successfully.");
+                            LogDebugInfo("EBOOT Patcher: TSS URL patched and padded successfully.");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching TSS URL: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching TSS URL: {ex.Message}");
             }
         }
 
@@ -6289,14 +6638,14 @@ namespace NautilusXP2024
                                 fs.WriteByte(0);
                             }
 
-                            LogDebugInfo("Offline name patched and textbox updated successfully.");
+                            LogDebugInfo("EBOOT Patcher: Offline name patched and textbox updated successfully.");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogDebugInfo($"Error patching Offline Name: {ex.Message}");
+                LogDebugInfo($"EBOOT Patcher: Error patching Offline Name: {ex.Message}");
             }
         }
 
@@ -6372,6 +6721,14 @@ namespace NautilusXP2024
 
         }
 
-       
+        private void CheckBoxTTYSpam_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void CheckBoxMLAA_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
