@@ -4,50 +4,71 @@ using HomeTools.Crypto;
 using BackendProject.MiscUtils;
 using BackendProject.CryptoUtils;
 using WebUtils.CDS;
+using System.Diagnostics;
 
 namespace HomeTools.UnBAR
 {
-    public class RunUnBAR
+    public static class RunUnBAR
     {
-        public async Task Run(string filePath, string outputpath, bool edat)
+        public static async Task Run(string converterPath, string filePath, string outputpath, bool edat)
         {
             if (edat)
-                await RunDecrypt(filePath, outputpath);
+                await RunDecrypt(converterPath, filePath, outputpath);
             else
-                await new RunUnBAR().RunExtract(filePath, outputpath);
+                await RunExtract(filePath, outputpath);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        public static void RunEncrypt(string filePath, string sdatfilePath, string? sdatnpdcopyfile)
+        public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath)
         {
-            try
+            using Process? process = Process.Start(new ProcessStartInfo()
             {
-                new EDAT().encryptFile(filePath, sdatfilePath, sdatnpdcopyfile);
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[RunEncrypt] - SDAT Encryption failed with exception : {ex}");
-            }
+                FileName = converterPath + "/make_npdata",
+                Arguments = $"-e \"{filePath}\" \"{sdatfilePath}\" 0 1 2 1 32 3 00",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = converterPath, // Can load various config files.
+                CreateNoWindow = false // This is a console app.
+            });
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
+            process?.WaitForExit();
+
+            int? ExitCode = process?.ExitCode;
+
+            if (ExitCode != 0)
+                LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
         }
 
-        private async Task RunDecrypt(string filePath, string outDir)
+        private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir)
         {
-            int status = new EDAT().decryptFile(filePath, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"));
+            string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
-            if (status == 0)
-                await new RunUnBAR().RunExtract(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + ".dat"), outDir);
+            using Process? process = Process.Start(new ProcessStartInfo()
+            {
+                FileName = converterPath + "/make_npdata",
+                Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = converterPath, // Can load various config files.
+                CreateNoWindow = false // This is a console app.
+            });
+
+            process?.WaitForExit();
+
+            int? ExitCode = process?.ExitCode;
+
+            if (ExitCode != 0)
+                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
             else
-                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {status}");
+                await RunExtract(datfilePath, outDir);
         }
 
-        private async Task RunExtract(string filePath, string outDir)
+        private static async Task RunExtract(string filePath, string outDir)
         {
             bool isSharc = false;
             bool isLittleEndian = false;
@@ -274,7 +295,7 @@ namespace HomeTools.UnBAR
             }
         }
 
-        public void ExtractToFileBarVersion1(byte[]? RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
+        private static void ExtractToFileBarVersion1(byte[]? RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
         {
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -401,7 +422,7 @@ namespace HomeTools.UnBAR
             tableOfContent = null;
         }
 
-        public void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
+        private static void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
         {
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             ToolsImpl? toolsImpl = new();
@@ -508,23 +529,6 @@ namespace HomeTools.UnBAR
             tableOfContent = null;
             toolsImpl = null;
         }
-
-        private static byte[]? ExtractNumOfFilesBigEndian(byte[] input)
-        {
-            if (input == null || input.Length < 20)
-            {
-                LoggerAccessor.LogError("[ExtractNumOfFiles] - Input byte array must have at least 20 bytes.");
-                return null;
-            }
-
-            // Create a new byte array to store the first 4 bytes from the last 20 bytes.
-            byte[] result = new byte[4];
-            // Copy the first 4 bytes from the last 20 bytes into the result array.
-            Array.Copy(input, input.Length - 20, result, 0, 4);
-
-            return EndianUtils.EndianSwap(result);
-        }
-
 
         private static int FindDataPosInBinary(byte[] data1, byte[] data2)
         {

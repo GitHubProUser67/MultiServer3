@@ -17,6 +17,7 @@ public static class HTTPSServerConfiguration
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPSTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
+    public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
@@ -61,6 +62,7 @@ public static class HTTPSServerConfiguration
                 )),
                 new JProperty("https_static_folder", HTTPSStaticFolder),
                 new JProperty("https_temp_folder", HTTPSTempFolder),
+                new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
                 new JProperty("discord_bot_token", DiscordBotToken),
@@ -93,6 +95,7 @@ public static class HTTPSServerConfiguration
             PHPDebugErrors = config.php.debug_errors;
             HTTPSStaticFolder = config.https_static_folder;
             HTTPSTempFolder = config.https_temp_folder;
+            ConvertersFolder = config.converters_folder;
             HTTPSCertificateFile = config.certificate_file;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DiscordBotToken = config.discord_bot_token;
