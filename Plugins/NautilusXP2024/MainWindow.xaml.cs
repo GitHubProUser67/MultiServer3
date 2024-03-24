@@ -26,11 +26,10 @@ using HomeTools.BARFramework;
 using HomeTools.UnBAR;
 using System.IO.Compression;
 using HomeTools.ChannelID;
-using NautilusXP2024;
 using CustomLogger;
-using SharpCompress.Archives;
+using HomeTools.AFS;
 
-namespace YourNamespace
+namespace NautilusXP2024
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
@@ -75,6 +74,9 @@ namespace YourNamespace
             // Update the taskbar icon with the theme color from settings
             UpdateTaskbarIconWithTint(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon.png"), themeColor);
 
+            AFSClass.MapperHelperFolder = Directory.GetCurrentDirectory();
+
+            AFSClass.InitAFSMappedList();
 
             logFlushTimer = new System.Threading.Timer(_ => FlushLogBuffer(), null, Timeout.Infinite, Timeout.Infinite);
 
@@ -915,14 +917,14 @@ namespace YourNamespace
                     if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC"))
                     {
                         LogDebugInfo($"Archive Creation: Starting SDAT encryption for SHARC file: {filename}.SHARC");
-                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
+                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original SHARC file deleted for: {filename}.SHARC");
                     }
                     else if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR"))
                     {
                         LogDebugInfo($"Archive Creation: Starting SDAT encryption for BAR file: {filename}.BAR");
-                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
+                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original BAR file deleted for: {filename}.BAR");
                     }
@@ -1013,13 +1015,13 @@ namespace YourNamespace
 
                     if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC"))
                     {
-                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
+                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original SHARC file deleted for: {filename}.SHARC");
                     }
                     else if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR"))
                     {
-                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat", null);
+                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original BAR file deleted for: {filename}.BAR");
                     }
@@ -1045,12 +1047,8 @@ namespace YourNamespace
             LogDebugInfo("Archive Unpacking: Process Initiated");
             TemporaryMessageHelper.ShowTemporaryMessage(ArchiveUnpackerDragAreaText, "Processing....", 2000);
 
-            // Check and create output directory if it doesn't exist
-            if (!Directory.Exists(_settings.MappedOutputDirectory))
-            {
-                Directory.CreateDirectory(_settings.MappedOutputDirectory);
-                LogDebugInfo($"Archive Unpacking: Output directory created at {_settings.MappedOutputDirectory}");
-            }
+            Directory.CreateDirectory(_settings.MappedOutputDirectory);
+            LogDebugInfo($"Archive Unpacking: Output directory created at {_settings.MappedOutputDirectory}");
 
             string filesToUnpack = ArchiveUnpackerTextBox.Text;
             if (!string.IsNullOrWhiteSpace(filesToUnpack))
@@ -1197,17 +1195,103 @@ namespace YourNamespace
 
 
         // Placeholder method for the unpacking process
-        private Task<bool> UnpackFilesAsync(string[] filePaths)
+        private async Task<bool> UnpackFilesAsync(string[] filePaths)
         {
             // Log the start of the unpacking process
             LogDebugInfo($"Archive Unpacking: Beginning unpacking process for {filePaths.Length} files");
 
-            // TODO: Implement the actual unpacking logic here
+            string ogfilename = string.Empty;
 
-            // Log the completion and result of the unpacking process
-            LogDebugInfo("Archive Unpacking: Unpacking Process Completed - Simulated Success for now");
+            string Outputpath = MappedOutputDirectoryTextBox.Text;
 
-            return Task.FromResult(true); // Simulate success for now
+            Directory.CreateDirectory(Outputpath);
+
+            foreach (string filePath in filePaths)
+            {
+                if (File.Exists(filePath))
+                {
+                    string filename = Path.GetFileName(filePath);
+
+                    string barfile = Outputpath + $"/{filename}";
+
+                    File.WriteAllBytes(barfile, File.ReadAllBytes(filePath));
+
+                    if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
+                    {
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false);
+                        ogfilename = filename;
+                        filename = filename[..^4];
+                    }
+                    else if (filename.ToLower().EndsWith(".sharc"))
+                    {
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false);
+                        ogfilename = filename;
+                        filename = filename[..^6];
+                    }
+                    else if (filename.ToLower().EndsWith(".sdat"))
+                    {
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, true);
+                        ogfilename = filename;
+                        filename = filename[..^5];
+                        if (File.Exists(Outputpath + "/" + filename + ".dat"))
+                            File.Delete(Outputpath + "/" + filename + ".dat");
+                    }
+                    else if (filename.ToLower().EndsWith(".zip"))
+                    {
+                        UncompressFile(barfile, Outputpath);
+                        ogfilename = filename;
+                        filename = filename[..^4];
+                    }
+                    else
+                        continue;
+
+                    if (File.Exists(barfile))
+                        File.Delete(barfile);
+
+                    LegacyMapper? map = new();
+
+                    if (Directory.Exists(Outputpath + $"/{filename}") && (ogfilename.ToLower().EndsWith(".bar") || ogfilename.ToLower().EndsWith(".sharc") || ogfilename.ToLower().EndsWith(".sdat")))
+                    {
+                        int fileCount = Directory.GetFiles(Outputpath + $"/{filename}").Length;
+
+                        if (fileCount > 0)
+                        {
+                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
+                                await AFSClass.AFSMapStart(Outputpath + $"/{filename}", ArchiveUnpackerPathTextBox.Text, string.Empty);
+                            else
+                                await map.MapperStart(Outputpath + $"/{filename}", Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
+                        }
+                    }
+                    else if (Directory.Exists(Outputpath + $"/{filename}"))
+                    {
+                        int fileCount = Directory.GetFiles(Outputpath + $"/{filename}").Length;
+
+                        if (fileCount > 0)
+                        {
+                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
+                                await AFSClass.AFSMapStart(Outputpath + $"/{filename}", ArchiveUnpackerPathTextBox.Text, string.Empty);
+                            else
+                                await map.MapperStart(Outputpath + $"/{filename}", Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
+                        }
+                    }
+                    else
+                    {
+                        int fileCount = Directory.GetFiles(Outputpath).Length;
+
+                        if (fileCount > 0)
+                        {
+                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
+                                await AFSClass.AFSMapStart(Outputpath, ArchiveUnpackerPathTextBox.Text, string.Empty);
+                            else
+                                await map.MapperStart(Outputpath, Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
+                        }
+                    }
+
+                    map = null;
+                }
+            }
+
+            return true;
         }
 
 

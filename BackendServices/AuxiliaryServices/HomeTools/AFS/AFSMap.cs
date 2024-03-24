@@ -51,7 +51,7 @@ namespace HomeTools.AFS
                             if (File.Exists(NewfilePath) && (NewfilePath.ToLower().EndsWith(".mdl") || NewfilePath.ToLower().EndsWith(".atmos")
                             || NewfilePath.ToLower().EndsWith(".efx") || NewfilePath.ToLower().EndsWith(".xml") || NewfilePath.ToLower().EndsWith(".scene")
                             || NewfilePath.ToLower().EndsWith(".map") || NewfilePath.ToLower().EndsWith(".lua") || NewfilePath.ToLower().EndsWith(".luac")
-                            || NewfilePath.ToLower().EndsWith(".unknown")))
+                            || NewfilePath.ToLower().EndsWith(".unknown") || NewfilePath.ToLower().EndsWith(".txt")))
                                 await SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath));
                         }
                     }
