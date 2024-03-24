@@ -481,7 +481,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/MakeBarSdat/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var makeres = HomeToolsInterface.MakeBarSdat(request.GetDataStream, request.GetContentType());
+                                                                    var makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
                                                                     if (makeres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
                                                                     else
@@ -493,7 +493,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/UnBar/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var unbarres = HomeToolsInterface.UnBar(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                    var unbarres = HomeToolsInterface.UnBar(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                     if (unbarres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
                                                                     else
