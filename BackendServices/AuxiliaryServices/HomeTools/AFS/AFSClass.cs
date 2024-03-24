@@ -44,10 +44,10 @@ namespace HomeTools.AFS
                 }
             }
 
-            if (BruteforceUUIDs == "on" && Directory.Exists(MapperHelperFolder) && File.Exists(MapperHelperFolder + "/UUIDList.txt"))
+            if (BruteforceUUIDs == "on" && Directory.Exists(MapperHelperFolder) && File.Exists(MapperHelperFolder + "/uuid_helper.txt"))
             {
                 // Open the file for reading
-                using StreamReader reader = new(MapperHelperFolder + "/UUIDList.txt");
+                using StreamReader reader = new(MapperHelperFolder + "/uuid_helper.txt");
                 string? line = null;
 
                 // Read and display lines from the file until the end of the file is reached
@@ -123,7 +123,7 @@ namespace HomeTools.AFS
             HashMapTasks = null;
         }
 
-        public static void ScheduledUpdate(object? state)
+        public static void InitAFSMappedList()
         {
             lock (MappedAFSHashesCache)
             {
@@ -133,7 +133,7 @@ namespace HomeTools.AFS
                     MappedAFSHashesCache.Add("4EE3523A", "\\PLACEHOLDER_S.DDS");
                     MappedAFSHashesCache.Add("696E72D6", "\\HATBUBBLE.DDS");
                     MappedAFSHashesCache.Add("D3A7AF9F", "\\__$manifest$__");
-                    MappedAFSHashesCache.Add("EDFBFAE9", "\\files.txt");
+                    MappedAFSHashesCache.Add("EDFBFAE9", "\\FILES.TXT");
                 }
             }
 
@@ -177,7 +177,11 @@ namespace HomeTools.AFS
                     });
                 }
             }
+        }
 
+        public static void ScheduledUpdate(object? state)
+        {
+            InitAFSMappedList();
         }
     }
 }

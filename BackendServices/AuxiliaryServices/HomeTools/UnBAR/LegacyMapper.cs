@@ -35,7 +35,7 @@ namespace HomeTools.UnBAR
 
                 IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl") || s.ToLower().EndsWith(".atmos")
                 || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
-                || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown"));
+                || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown") || s.ToLower().EndsWith(".txt"));
                 List<MappedList> mappedListList = new();
                 int i = 0;
                 foreach (string sourceFile in strings)
@@ -529,6 +529,11 @@ namespace HomeTools.UnBAR
                     {
                         type = ".ini",
                         pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ini"
+                    },
+                    new RegexPatterns
+                    {
+                        type = ".txt",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.txt"
                     },
                     new RegexPatterns
                     {

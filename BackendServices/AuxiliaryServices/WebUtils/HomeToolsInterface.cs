@@ -1179,6 +1179,11 @@ namespace WebUtils
             return res;
         }
 
+        public static string GenerateDynamicCacheGuid(string input)
+        {
+            return BitConverter.ToString(MD5.HashData(Encoding.UTF8.GetBytes(VariousUtils.GetCurrentDateTime() + input))).Replace("-", string.Empty);
+        }
+
         private static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)
         {
             contentStream.Position = 0;
@@ -1201,11 +1206,6 @@ namespace WebUtils
             {
                 LoggerAccessor.LogError($"[File Uncompress] - An error occurred: {ex}");
             }
-        }
-
-        private static string GenerateDynamicCacheGuid(string input)
-        {
-            return BitConverter.ToString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(VariousUtils.GetCurrentDateTime() + input))).Replace("-", string.Empty);
         }
     }
 }
