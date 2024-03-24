@@ -278,7 +278,6 @@
             </Setter>
         </Style>
 
-
         <!-- Style for the ScrollBar itself -->
         <Style TargetType="{x:Type ScrollBar}">
             <Setter Property="Background" Value="#FF333333"/>
@@ -533,6 +532,22 @@
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <Style TargetType="ToolTip" x:Key="CustomToolTipStyle">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="MaxWidth" Value="550"/>
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock TextWrapping="Wrap" Text="{Binding}"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Storyboard x:Key="FadeOutStoryboard">
             <DoubleAnimation Duration="0:0:0.2" To="0" Storyboard.TargetProperty="Opacity" />
         </Storyboard>
@@ -550,11 +565,8 @@
         <Grid Background="Transparent" Height="33" VerticalAlignment="Top" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <!-- Space for the icon -->
                 <ColumnDefinition Width="*"/>
-                <!-- Space for the title -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Space for the window control buttons -->
             </Grid.ColumnDefinitions>
 
             <!-- Icon Image -->
@@ -1124,13 +1136,12 @@
                         
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="EBOOT" Tag="EbootPatcher">
-                    <StackPanel Background="#333333" HorizontalAlignment="Center">
-                        <TextBlock Text="Home EBOOT Patcher" Foreground="White" FontWeight="Bold" FontSize="16" Height="18" Margin="0,0,0,5" Width="174"/>
-                        <Border x:Name="EBOOTPatcherDragArea" Style="{StaticResource DragAreaStyle}" Drop="EbootPatcherDragDropHandler" MouseLeftButtonUp="ClickToBrowseHandlerEbootPatcher" Height="81" Margin="0,0,0,5" Width="713">
+                <TabItem Header="EBOOT" Tag="EbootPatcher" HorizontalAlignment="Left" Width="75">
+                    <StackPanel Background="#333333" HorizontalAlignment="Center" Width="1140">
+                        <TextBlock Text="Home EBOOT Patcher" Foreground="White" FontWeight="Bold" FontSize="16" Height="18" Margin="0,0,0,10" Width="174"/>
+                        <Border x:Name="EBOOTPatcherDragArea" Style="{StaticResource DragAreaStyle}" Drop="EbootPatcherDragDropHandler" MouseLeftButtonUp="ClickToBrowseHandlerEbootPatcher" Height="81" Margin="0,0,0,15" Width="713">
                             <TextBlock x:Name="EbootPatcherDragAreaText" Text="Drag an EBOOT.BIN, .elf or .self here / Click to browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
                         </Border>
-                        <TextBlock Text="Details:" Foreground="White" FontSize="14" Height="20" Margin="0,15,0,0" Width="72"/>
                         <StackPanel Orientation="Horizontal" Width="320">
                             <Label Content="Title ID:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
                             <TextBox x:Name="LoadedEbootTitleID" MaxLength="9" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
@@ -1140,7 +1151,7 @@
                             <TextBox x:Name="LoadedEbootAppID"  MaxLength="5" Style="{StaticResource SettingsTextBoxStyle}"  Width="200"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Width="320">
-                            <Label Content="MUIS Version:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <Label Content="MUIS / SSFW:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
                             <TextBox x:Name="LoadedEbootMuisVersion"  MaxLength="8" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Width="320">
@@ -1160,62 +1171,91 @@
                             <TextBox x:Name="LoadedEbootOfflineName" MaxLength="15" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Width="320">
-                            <Label Content="Full Path:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <Label Content="Full File Path:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
                             <TextBox x:Name="LoadedEbootFilePath" IsReadOnly="True" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
                         </StackPanel>
-                        <!-- Toggle Switches Rows -->
-                        <TextBlock Text="Available Patches:" Margin="0,25,0,0" Style="{StaticResource Toggle1TextBlockStyle}" HorizontalAlignment="Center"/>
                         <!-- First Row -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="2" Width="880">
-                            <!-- MLAA Patch -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0" Width="931">
                             <StackPanel Orientation="Horizontal" >
-                                <TextBlock Text="Disable MLAA:" FontSize="14" Style="{StaticResource Toggle1TextBlockStyle}"/>
-                                <CheckBox x:Name="CheckBoxMLAAPatch" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxMLAAPatch_Checked" />
+                                <TextBlock Text="Enable Dev Debug Menu on Retail:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxCMDConsole" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxCMDConsole_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Retail EBOOTS block the Dev Debug sub menu from showing when you press Select. This patch removes that block, allowing for a limited developer command console to work on retail." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
                             </StackPanel>
-                            <!-- SKIP EULA -->
                             <StackPanel Orientation="Horizontal" >
-                                <TextBlock Text="Skip EULA:" Style="{StaticResource Toggle1TextBlockStyle}"/>
-                                <CheckBox x:Name="CheckBoxSkipEula" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxSkipEula_Checked"/>
+                                <TextBlock Text="Disable Local Profanity Filter:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxBlockProfanity" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxBlockProfanity_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Disables the game's built-in profanity filter to allow prohibited text in user communication. This only applies to the user with the patched EBOOT so does not affect what other other players see." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
                             </StackPanel>
-                            <!-- HTTP TSS -->
                             <StackPanel Orientation="Horizontal" >
-                                <TextBlock Text="Enable Command Console:" Style="{StaticResource Toggle1TextBlockStyle}"/>
-                                <CheckBox x:Name="CheckBoxHTTPTSS" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxHTTPTSS_Checked"/>
+                                <TextBlock Text="Avatar Draw Distance Mod:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxDrawDistanceHack" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxDrawDistanceHack_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Forces Avatars to always use the games highest quality LOD1 models, This removes the 'pop in' effect seen when moving closer to other player as the models are swapped." MaxWidth="400" Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
                             </StackPanel>
-                            <!-- BLOCK PROF-->
                             <StackPanel Orientation="Horizontal" >
-                                <TextBlock Text="Disable Profanity Filter:" Style="{StaticResource Toggle1TextBlockStyle}"/>
-                                <CheckBox x:Name="CheckBoxBlockProfanity" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxBlockProfanity_Checked"/>
-                            </StackPanel>
-                            <!-- DD HACK -->
-                            <StackPanel Orientation="Horizontal" >
-                                <TextBlock Text="Draw Distance Mod:" Style="{StaticResource Toggle1TextBlockStyle}"/>
-                                <CheckBox x:Name="CheckBoxDrawDistanceHack" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxDrawDistanceHack_Checked" />
+                                <TextBlock Text="Enable PS+ Content (For PS3):" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxPSPLUS" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxPSPLUS_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Enables most of the PS Homes PS+ content on accounts without PS+. Note: Newer RPCS3 has these features enabled by default so this is only needed for PS3." MaxWidth="340" Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
                             </StackPanel>
                         </StackPanel>
+
+                        <!-- Second Row - Work in progress - not enabled yet-->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  IsEnabled="False" Visibility="Collapsed" Margin="2" Width="709">
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Disable MLAA (For RPCS3):" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxMLAA" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxMLAA_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Disables Morphological Anti-Aliasing (MLAA), which fixes major graphic glitches when using the RPCS3 emulator. It's not recommended to use this patch on PS3 as it lowers the graphics quailty." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Disable TTY Spam (For RPCS3):" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxTTYSpam" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxTTYSpam_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="For Dev versions, This prevents excessive NPMatching2 TTY (teletypewriter) messages from cluttering the RPCS3 console, which improves log readability and may increase stability." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Patch app_home to dev_hdd0:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxCMDConsolfe" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxCMDConsole_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="For Dev versions only. Patches app_home paths so they point to dev_hdd0, this allows Dev commands such as dumpbar, loadnav etc to work without DEX or Target Manager" MaxWidth="340" Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                        </StackPanel>
+
                         <TextBlock Text="Output as:" Margin="0,20,0,0" Style="{StaticResource Toggle1TextBlockStyle}" HorizontalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <!-- Radio Buttons -->
                             <StackPanel Orientation="Horizontal" Margin="2">
-                                <TextBlock Text="EBOOT.BIN:" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
-                                <RadioButton GroupName="EBOOTOutputFormat" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTBIN"/>
+                                <TextBlock Text="EBOOT.BIN:" Foreground="White" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <RadioButton x:Name="RadioButtonEBOOTBINitem" GroupName="EBOOTOutputFormat" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTBIN"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="2">
-                                <TextBlock Text="EBOOT.ELF:" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
-                                <RadioButton GroupName="EBOOTOutputFormat" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTELF"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="2">
-                                <TextBlock Text="HomeDeveloper.self:" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
-                                <RadioButton GroupName="EBOOTOutputFormat" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTHDSELF"/>
+                                <TextBlock Text="EBOOT.ELF:" Foreground="White" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <RadioButton x:Name="RadioButtonEBOOTELFitem" GroupName="EBOOTOutputFormat" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTELF"/>
                             </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0" VerticalAlignment="Center" >
                             <Button x:Name="PatchButton" Content="Patch" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="PatchButton_Click"/>
                             <Button x:Name="ClearebootButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}"/>
                         </StackPanel>
                     </StackPanel>
                 </TabItem>
-
 
                 <!-- Tab 10 SHA1 Checker -->
                 <TabItem Header="SHA1 Check" Tag="SHAChecker" >
@@ -1231,7 +1271,7 @@
 
                         <!-- Toggle Switch -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="Decrypt ODC / SDC / XML First" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Show SHA1 for Decrypted file where applicable:  " Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center"/>
                             <CheckBox x:Name="SHA1CheckerDecryptCheckBox" Style="{StaticResource ModernToggleSwitchStyle}" />
                         </StackPanel>
 
@@ -1246,8 +1286,6 @@
                     </StackPanel>
                 </TabItem>
                
-
-
                 <TabItem Header="Settings" Tag="SettngsTab" VerticalAlignment="Top">
 
                     <TabItem.Resources>
