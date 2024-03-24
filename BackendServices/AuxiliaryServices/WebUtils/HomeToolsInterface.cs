@@ -10,13 +10,12 @@ using HttpMultipartParser;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
-using BackendProject.FileHelper;
 
 namespace WebUtils
 {
     public class HomeToolsInterface
     {
-        public static (byte[]?, string)? MakeBarSdat(Stream? PostData, string? ContentType)
+        public static (byte[]?, string)? MakeBarSdat(string converterPath, Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
             List<(byte[]?, string)?> TasksResult = new();
@@ -183,7 +182,57 @@ namespace WebUtils
 
                         bararchive = null;
 
-                        if (mode == "bar")
+                        if (mode == "sdat")
+                        {
+                            if (version2 == "on")
+                                RunUnBAR.RunEncrypt(converterPath, rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat");
+                            else
+                                RunUnBAR.RunEncrypt(converterPath, rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat");
+
+                            using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
+                            {
+                                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create);
+                                // Add the first file to the archive
+                                ZipArchiveEntry entry1 = archive.CreateEntry($"{filename.ToLower()}.sdat");
+                                using (Stream entryStream = entry1.Open())
+                                {
+                                    using (FileStream fileStream = new(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
+                                    {
+                                        fileStream.CopyTo(entryStream);
+                                        fileStream.Flush();
+                                    }
+                                    entryStream.Flush();
+                                }
+
+                                if (version2 == "on")
+                                {
+                                    // Add the second file to the archive
+                                    ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
+                                    using Stream entryStream = entry2.Open();
+                                    using (FileStream fileStream = new(rebardir + $"/{filename}.sharc.map", FileMode.Open))
+                                    {
+                                        fileStream.CopyTo(entryStream);
+                                        fileStream.Flush();
+                                    }
+                                    entryStream.Flush();
+                                }
+                                else
+                                {
+                                    // Add the second file to the archive
+                                    ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
+                                    using Stream entryStream = entry2.Open();
+                                    using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
+                                    {
+                                        fileStream.CopyTo(entryStream);
+                                        fileStream.Flush();
+                                    }
+                                    entryStream.Flush();
+                                }
+                            }
+
+                            TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
+                        }
+                        else
                         {
                             using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                             {
@@ -244,106 +293,6 @@ namespace WebUtils
 
                             TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
                         }
-                        else if (mode == "sdatnpd" && File.Exists(Directory.GetCurrentDirectory() + "/static/model.sdat"))
-                        {
-                            if (version2 == "on")
-                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat", Directory.GetCurrentDirectory() + "/static/model.sdat");
-                            else
-                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", Directory.GetCurrentDirectory() + "/static/model.sdat");
-
-                            using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
-                            {
-                                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create);
-                                // Add the first file to the archive
-                                ZipArchiveEntry entry1 = archive.CreateEntry($"{filename.ToLower()}.sdat");
-                                using (Stream entryStream = entry1.Open())
-                                {
-                                    using (FileStream fileStream = new(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
-                                    {
-                                        fileStream.CopyTo(entryStream);
-                                        fileStream.Flush();
-                                    }
-                                    entryStream.Flush();
-                                }
-
-                                if (version2 == "on")
-                                {
-                                    // Add the second file to the archive
-                                    ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
-                                    using Stream entryStream = entry2.Open();
-                                    using (FileStream fileStream = new(rebardir + $"/{filename}.sharc.map", FileMode.Open))
-                                    {
-                                        fileStream.CopyTo(entryStream);
-                                        fileStream.Flush();
-                                    }
-                                    entryStream.Flush();
-                                }
-                                else
-                                {
-                                    // Add the second file to the archive
-                                    ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
-                                    using Stream entryStream = entry2.Open();
-                                    using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
-                                    {
-                                        fileStream.CopyTo(entryStream);
-                                        fileStream.Flush();
-                                    }
-                                    entryStream.Flush();
-                                }
-                            }
-
-                            TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
-                        }
-                        else
-                        {
-                            if (version2 == "on")
-                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat", null);
-                            else
-                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", null);
-
-                            using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
-                            {
-                                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create);
-                                // Add the first file to the archive
-                                ZipArchiveEntry entry1 = archive.CreateEntry($"{filename.ToLower()}.sdat");
-                                using (Stream entryStream = entry1.Open())
-                                {
-                                    using (FileStream fileStream = new(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
-                                    {
-                                        fileStream.CopyTo(entryStream);
-                                        fileStream.Flush();
-                                    }
-                                    entryStream.Flush();
-                                }
-
-                                if (version2 == "on")
-                                {
-                                    // Add the second file to the archive
-                                    ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
-                                    using Stream entryStream = entry2.Open();
-                                    using (FileStream fileStream = new(rebardir + $"/{filename}.sharc.map", FileMode.Open))
-                                    {
-                                        fileStream.CopyTo(entryStream);
-                                        fileStream.Flush();
-                                    }
-                                    entryStream.Flush();
-                                }
-                                else
-                                {
-                                    // Add the second file to the archive
-                                    ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
-                                    using Stream entryStream = entry2.Open();
-                                    using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
-                                    {
-                                        fileStream.CopyTo(entryStream);
-                                        fileStream.Flush();
-                                    }
-                                    entryStream.Flush();
-                                }
-                            }
-
-                            TasksResult.Add((File.ReadAllBytes(rebardir + $"/{filename}_Rebar.zip"), $"{filename}_Rebar.zip"));
-                        }
 
                         if (Directory.Exists(tempdir))
                             Directory.Delete(tempdir, true);
@@ -385,7 +334,7 @@ namespace WebUtils
             return output;
         }
 
-        public static async Task<(byte[]?, string)?> UnBar(Stream? PostData, string? ContentType, string HelperStaticFolder)
+        public static async Task<(byte[]?, string)?> UnBar(string converterPath, Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
             (byte[]?, string)? output = null;
             List<(byte[]?, string)?> TasksResult = new();
@@ -460,23 +409,21 @@ namespace WebUtils
 
                         File.WriteAllBytes(barfile, buffer);
 
-                        RunUnBAR? unbar = new();
-
                         if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
                         {
-                            await unbar.Run(barfile, unbardir, false);
+                            await RunUnBAR.Run(converterPath, barfile, unbardir, false);
                             ogfilename = filename;
                             filename = filename[..^4].ToUpper();
                         }
                         else if (filename.ToLower().EndsWith(".sharc"))
                         {
-                            await unbar.Run(barfile, unbardir, false);
+                            await RunUnBAR.Run(converterPath, barfile, unbardir, false);
                             ogfilename = filename;
                             filename = filename[..^6].ToUpper();
                         }
                         else if (filename.ToLower().EndsWith(".sdat"))
                         {
-                            await unbar.Run(barfile, unbardir, true);
+                            await RunUnBAR.Run(converterPath, barfile, unbardir, true);
                             ogfilename = filename;
                             filename = filename[..^5].ToUpper();
                         }
@@ -486,8 +433,15 @@ namespace WebUtils
                             ogfilename = filename;
                             filename = filename[..^4].ToUpper();
                         }
+                        else
+                        {
+                            if (Directory.Exists(tempdir))
+                                Directory.Delete(tempdir, true);
 
-                        unbar = null;
+                            i++;
+                            filedata.Flush();
+                            continue;
+                        }
 
                         LegacyMapper? map = new();
 

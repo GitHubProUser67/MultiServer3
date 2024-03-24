@@ -481,7 +481,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/MakeBarSdat/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var makeres = HomeToolsInterface.MakeBarSdat(request.GetDataStream, request.GetContentType());
+                                                                    var makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
                                                                     if (makeres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
                                                                     else
@@ -493,7 +493,7 @@ namespace HTTPServer
                                                             case "/!HomeTools/UnBar/":
                                                                 if (IsIPAllowed(clientip))
                                                                 {
-                                                                    var unbarres = HomeToolsInterface.UnBar(request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                    var unbarres = HomeToolsInterface.UnBar(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
                                                                     if (unbarres != null)
                                                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
                                                                     else
@@ -912,212 +912,43 @@ namespace HTTPServer
 
             HttpResponse? response = null;
 
-            using (FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using FileStream fs = new(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            long startByte = -1;
+            long endByte = -1;
+            try
             {
-                long startByte = -1;
-                long endByte = -1;
-                try
+                long filesize = fs.Length;
+                string HeaderString = request.GetHeaderValue("Range").Replace("bytes=", string.Empty);
+                if (HeaderString.Contains(','))
                 {
-                    long filesize = fs.Length;
-                    string HeaderString = request.GetHeaderValue("Range").Replace("bytes=", string.Empty);
-                    if (HeaderString.Contains(','))
+                    using HugeMemoryStream ms = new();
+                    int buffersize = HTTPServerConfiguration.BufferSize;
+                    Span<byte> Separator = new byte[] { 0x0D, 0x0A };
+                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    if (ContentType == "application/octet-stream")
                     {
-                        using HugeMemoryStream ms = new();
-                        int buffersize = HTTPServerConfiguration.BufferSize;
-                        Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
-                        if (ContentType == "application/octet-stream")
+                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
+                        foreach (var entry in HTTPUtils.PathernDictionary)
                         {
-                            byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
-                            foreach (var entry in HTTPUtils.PathernDictionary)
+                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
                             {
-                                if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                                {
-                                    ContentType = entry.Key;
-                                    break;
-                                }
+                                ContentType = entry.Key;
+                                break;
                             }
                         }
-                        // Split the ranges based on the comma (',') separator
-                        foreach (string RangeSelect in HeaderString.Split(','))
-                        {
-                            ms.Write(Separator);
-                            ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator").AsSpan());
-                            ms.Write(Separator);
-                            ms.Write(Encoding.UTF8.GetBytes($"Content-Type: {ContentType}").AsSpan());
-                            ms.Write(Separator);
-                            fs.Position = 0;
-                            startByte = -1;
-                            endByte = -1;
-                            string[] range = RangeSelect.Split('-');
-                            if (range[0].Trim().Length > 0) _ = long.TryParse(range[0], out startByte);
-                            if (range[1].Trim().Length > 0) _ = long.TryParse(range[1], out endByte);
-                            if (endByte == -1) endByte = filesize;
-                            else if (endByte != filesize) endByte++;
-                            if (startByte == -1)
-                            {
-                                startByte = filesize - endByte;
-                                endByte = filesize;
-                            }
-                            if (endByte > filesize) // Curl test showed this behaviour.
-                                endByte = filesize;
-                            if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
-                            {
-                                string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
-                                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
-                                    "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
-                                    "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
-                                    "        <head>\r\n" +
-                                    "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
-                                    "        </head>\r\n" +
-                                    "        <body>\r\n" +
-                                    "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
-                                    "        </body>\r\n" +
-                                    "</html>";
-
-                                ms.Flush();
-                                ms.Close();
-                                response = new(request.GetHeaderValue("Connection") == "keep-alive")
-                                {
-                                    HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
-                                };
-                                response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
-                                response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                                if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
-                                {
-                                    response.Headers.Add("Content-Encoding", "gzip");
-                                    response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
-                                }
-                                else
-                                    response.ContentAsUTF8 = payload;
-                                goto shortcut; // Do we really have the choice?
-                            }
-                            else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
-                            {
-                                ms.Flush();
-                                ms.Close();
-                                if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                                    response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                                    {
-                                        HttpStatusCode = Models.HttpStatusCode.OK
-                                    };
-                                else
-                                    response = new(request.GetHeaderValue("Connection") == "keep-alive")
-                                    {
-                                        HttpStatusCode = Models.HttpStatusCode.OK
-                                    };
-                                response.Headers.Add("Accept-Ranges", "bytes");
-                                response.Headers.Add("Content-Type", ContentType);
-                                if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
-                                {
-                                    response.Headers.Add("Content-Encoding", "deflate");
-                                    response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                                }
-                                else
-                                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                                goto shortcut; // Do we really have the choice?
-                            }
-                            else
-                            {
-                                int bytesRead = 0;
-                                long TotalBytes = endByte - startByte - 1;
-                                long totalBytesCopied = 0;
-                                byte[] buffer = new byte[rangebuffersize];
-                                fs.Position = startByte;
-                                ms.Write(Encoding.UTF8.GetBytes("Content-Range: " + string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize)).AsSpan());
-                                ms.Write(Separator);
-                                ms.Write(Separator);
-                                while (totalBytesCopied < TotalBytes && (bytesRead = fs.Read(buffer, 0, rangebuffersize)) > 0)
-                                {
-                                    int bytesToWrite = (int)Math.Min(TotalBytes - totalBytesCopied, bytesRead);
-                                    ms.Write(buffer, 0, bytesToWrite);
-                                    totalBytesCopied += bytesToWrite;
-                                }
-                            }
-                        }
-                        ms.Write(Separator);
-                        ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
-                        ms.Write(Separator);
-                        ms.Position = 0;
-                        if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                            {
-                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
-                            };
-                        else
-                            response = new(true)
-                            {
-                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
-                            };
-                        response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
-                        response.Headers.Add("Accept-Ranges", "bytes");
-                        response.Headers.Add("Access-Control-Allow-Origin", "*");
-                        response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
-
-                        string? encoding = null;
-
-                        if (!response.Headers.ContainsKey("Content-Length"))
-                        {
-                            if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
-                            {
-
-                            }
-                            else
-                                response.Headers.Add("Content-Length", ms.Length.ToString());
-                        }
-
-                        WriteLineToStream(stream, response.ToHeader());
-
-                        stream.Flush();
-
-                        long totalBytes = ms.Length;
-                        long bytesLeft = totalBytes;
-
-                        if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                            buffersize = 500000;
-
-                        HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
-                        while (bytesLeft > 0)
-                        {
-                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                            int n = ms.Read(buffer);
-
-                            ctwire.Write(buffer);
-
-                            bytesLeft -= n;
-                        }
-
-                        ctwire.WriteTerminator();
-
-                        ctwire.Flush();
-
-                        ms.Flush();
-                        ms.Close();
-
-                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-
-                        try
-                        {
-                            response?.ContentStream?.Close();
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            // ContentStream has been disposed already.
-                        }
-
-                        response?.Dispose();
-
-                        fs.Flush();
-                        fs.Close();
-
-                        return;
                     }
-                    else
+                    // Split the ranges based on the comma (',') separator
+                    foreach (string RangeSelect in HeaderString.Split(','))
                     {
-                        string[] range = HeaderString.Split('-');
+                        ms.Write(Separator);
+                        ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator").AsSpan());
+                        ms.Write(Separator);
+                        ms.Write(Encoding.UTF8.GetBytes($"Content-Type: {ContentType}").AsSpan());
+                        ms.Write(Separator);
+                        fs.Position = 0;
+                        startByte = -1;
+                        endByte = -1;
+                        string[] range = RangeSelect.Split('-');
                         if (range[0].Trim().Length > 0) _ = long.TryParse(range[0], out startByte);
                         if (range[1].Trim().Length > 0) _ = long.TryParse(range[1], out endByte);
                         if (endByte == -1) endByte = filesize;
@@ -1127,291 +958,446 @@ namespace HTTPServer
                             startByte = filesize - endByte;
                             endByte = filesize;
                         }
-                    }
-                    if (endByte > filesize) // Curl test showed this behaviour.
-                        endByte = filesize;
-                    if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
-                    {
-                        string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
-                            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
-                            "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
-                            "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
-                            "        <head>\r\n" +
-                            "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
-                            "        </head>\r\n" +
-                            "        <body>\r\n" +
-                            "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
-                            "        </body>\r\n" +
-                            "</html>";
+                        if (endByte > filesize) // Curl test showed this behaviour.
+                            endByte = filesize;
+                        if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
+                        {
+                            string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                                "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                                "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                                "        <head>\r\n" +
+                                "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                                "        </head>\r\n" +
+                                "        <body>\r\n" +
+                                "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                                "        </body>\r\n" +
+                                "</html>";
 
-                        response = new(request.GetHeaderValue("Connection") == "keep-alive")
-                        {
-                            HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
-                        };
-                        response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
-                        response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                        if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
-                        {
-                            response.Headers.Add("Content-Encoding", "gzip");
-                            response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
-                        }
-                        else
-                            response.ContentAsUTF8 = payload;
-                    }
-                    else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
-                    {
-                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
-                        if (ContentType == "application/octet-stream")
-                        {
-                            byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
-                            foreach (var entry in HTTPUtils.PathernDictionary)
-                            {
-                                if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                                {
-                                    ContentType = entry.Key;
-                                    break;
-                                }
-                            }
-                        }
-                        if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                            {
-                                HttpStatusCode = Models.HttpStatusCode.OK
-                            };
-                        else
+                            ms.Flush();
+                            ms.Close();
                             response = new(request.GetHeaderValue("Connection") == "keep-alive")
                             {
-                                HttpStatusCode = Models.HttpStatusCode.OK
+                                HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
                             };
-                        response.Headers.Add("Accept-Ranges", "bytes");
-                        response.Headers.Add("Content-Type", ContentType);
-                        if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && new FileInfo(local_path).Length <= 80000000) // We must be reasonable on the file-size here (80 Mb).
+                            response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                            response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                            {
+                                response.Headers.Add("Content-Encoding", "gzip");
+                                response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
+                            }
+                            else
+                                response.ContentAsUTF8 = payload;
+                            goto shortcut; // Do we really have the choice?
+                        }
+                        else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                         {
-                            response.Headers.Add("Content-Encoding", "deflate");
-                            response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                            ms.Flush();
+                            ms.Close();
+                            if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                                response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                                {
+                                    HttpStatusCode = Models.HttpStatusCode.OK
+                                };
+                            else
+                                response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                                {
+                                    HttpStatusCode = Models.HttpStatusCode.OK
+                                };
+                            response.Headers.Add("Accept-Ranges", "bytes");
+                            response.Headers.Add("Content-Type", ContentType);
+                            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            goto shortcut; // Do we really have the choice?
                         }
                         else
-                            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        {
+                            int bytesRead = 0;
+                            long TotalBytes = endByte - startByte - 1;
+                            long totalBytesCopied = 0;
+                            byte[] buffer = new byte[rangebuffersize];
+                            fs.Position = startByte;
+                            ms.Write(Encoding.UTF8.GetBytes("Content-Range: " + string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize)).AsSpan());
+                            ms.Write(Separator);
+                            ms.Write(Separator);
+                            while (totalBytesCopied < TotalBytes && (bytesRead = fs.Read(buffer, 0, rangebuffersize)) > 0)
+                            {
+                                int bytesToWrite = (int)Math.Min(TotalBytes - totalBytesCopied, bytesRead);
+                                ms.Write(buffer, 0, bytesToWrite);
+                                totalBytesCopied += bytesToWrite;
+                            }
+                        }
+                    }
+                    ms.Write(Separator);
+                    ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
+                    ms.Write(Separator);
+                    ms.Position = 0;
+                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                        response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                        };
+                    else
+                        response = new(true)
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                        };
+                    response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
+                    response.Headers.Add("Accept-Ranges", "bytes");
+                    response.Headers.Add("Access-Control-Allow-Origin", "*");
+                    response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                    string? encoding = null;
+
+                    if (!response.Headers.ContainsKey("Content-Length"))
+                    {
+                        if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                        {
+
+                        }
+                        else
+                            response.Headers.Add("Content-Length", ms.Length.ToString());
+                    }
+
+                    WriteLineToStream(stream, response.ToHeader());
+
+                    stream.Flush();
+
+                    long totalBytes = ms.Length;
+                    long bytesLeft = totalBytes;
+
+                    if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                        buffersize = 500000;
+
+                    HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
+
+                    while (bytesLeft > 0)
+                    {
+                        Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                        int n = ms.Read(buffer);
+
+                        ctwire.Write(buffer);
+
+                        bytesLeft -= n;
+                    }
+
+                    ctwire.WriteTerminator();
+
+                    ctwire.Flush();
+
+                    ms.Flush();
+                    ms.Close();
+
+                    LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+
+                    try
+                    {
+                        response?.ContentStream?.Close();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // ContentStream has been disposed already.
+                    }
+
+                    response?.Dispose();
+
+                    fs.Flush();
+                    fs.Close();
+
+                    return;
+                }
+                else
+                {
+                    string[] range = HeaderString.Split('-');
+                    if (range[0].Trim().Length > 0) _ = long.TryParse(range[0], out startByte);
+                    if (range[1].Trim().Length > 0) _ = long.TryParse(range[1], out endByte);
+                    if (endByte == -1) endByte = filesize;
+                    else if (endByte != filesize) endByte++;
+                    if (startByte == -1)
+                    {
+                        startByte = filesize - endByte;
+                        endByte = filesize;
+                    }
+                }
+                if (endByte > filesize) // Curl test showed this behaviour.
+                    endByte = filesize;
+                if (startByte >= filesize && endByte == filesize) // Curl test showed this behaviour.
+                {
+                    string payload = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n" +
+                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\r\n" +
+                        "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n" +
+                        "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
+                        "        <head>\r\n" +
+                        "                <title>416 - Requested Range Not Satisfiable</title>\r\n" +
+                        "        </head>\r\n" +
+                        "        <body>\r\n" +
+                        "                <h1>416 - Requested Range Not Satisfiable</h1>\r\n" +
+                        "        </body>\r\n" +
+                        "</html>";
+
+                    response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                    {
+                        HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                    };
+                    response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                    response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                    {
+                        response.Headers.Add("Content-Encoding", "gzip");
+                        response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
                     }
                     else
+                        response.ContentAsUTF8 = payload;
+                }
+                else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
+                {
+                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    if (ContentType == "application/octet-stream")
                     {
-                        long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
-                        fs.Position = startByte;
-						
-                        string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
-                        if (ContentType == "application/octet-stream")
+                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
+                        foreach (var entry in HTTPUtils.PathernDictionary)
                         {
-                            foreach (var entry in HTTPUtils.PathernDictionary)
+                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
                             {
-                                if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
-                                {
-                                    ContentType = entry.Key;
-                                    break;
-                                }
+                                ContentType = entry.Key;
+                                break;
                             }
                         }
-                        if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                    }
+                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                        response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.OK
+                        };
+                    else
+                        response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.OK
+                        };
+                    response.Headers.Add("Accept-Ranges", "bytes");
+                    response.Headers.Add("Content-Type", ContentType);
+                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                }
+                else
+                {
+                    long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
+                    fs.Position = startByte;
+
+                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    if (ContentType == "application/octet-stream")
+                    {
+                        foreach (var entry in HTTPUtils.PathernDictionary)
+                        {
+                            if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
                             {
-                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
-                            };
+                                ContentType = entry.Key;
+                                break;
+                            }
+                        }
+                    }
+                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                        response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                        };
+                    else
+                        response = new(true)
+                        {
+                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                        };
+                    response.Headers.Add("Content-Type", ContentType);
+                    response.Headers.Add("Accept-Ranges", "bytes");
+                    response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
+                    response.Headers.Add("Access-Control-Allow-Origin", "*");
+                    response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                    int buffersize = HTTPServerConfiguration.BufferSize;
+
+                    string? encoding = null;
+
+                    if (!response.Headers.ContainsKey("Content-Length"))
+                    {
+                        if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
+                        {
+
+                        }
                         else
-                            response = new(true)
-                            {
-                                HttpStatusCode = Models.HttpStatusCode.Partial_Content
-                            };
-                        response.Headers.Add("Content-Type", ContentType);
-                        response.Headers.Add("Accept-Ranges", "bytes");
-                        response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
-                        response.Headers.Add("Access-Control-Allow-Origin", "*");
-                        response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                        response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
-
-                        int buffersize = HTTPServerConfiguration.BufferSize;
-
-                        string? encoding = null;
-
-                        if (!response.Headers.ContainsKey("Content-Length"))
-                        {
-                            if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
-                            {
-
-                            }
-                            else
-                                response.Headers.Add("Content-Length", TotalBytes.ToString());
-                        }
-
-                        WriteLineToStream(stream, response.ToHeader());
-
-                        stream.Flush();
-
-                        long bytesLeft = TotalBytes;
-
-                        if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                            buffersize = 500000;
-
-                        HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
-                        while (bytesLeft > 0)
-                        {
-                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                            int n = fs.Read(buffer);
-
-                            ctwire.Write(buffer);
-
-                            bytesLeft -= n;
-                        }
-
-                        ctwire.WriteTerminator();
-
-                        ctwire.Flush();
-
-                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-
-                        try
-                        {
-                            response?.ContentStream?.Close();
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            // ContentStream has been disposed already.
-                        }
-
-                        response?.Dispose();
-
-                        fs.Flush();
-                        fs.Close();
-
-                        return;
+                            response.Headers.Add("Content-Length", TotalBytes.ToString());
                     }
 
-                    shortcut: // Necessary evil.
+                    WriteLineToStream(stream, response.ToHeader());
 
-                    if (response != null && request != null)
+                    stream.Flush();
+
+                    long bytesLeft = TotalBytes;
+
+                    if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                        buffersize = 500000;
+
+                    HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
+
+                    while (bytesLeft > 0)
                     {
-                        if (response.ContentStream == null)
-                            response.ContentAsUTF8 = string.Empty;
+                        Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                        int n = fs.Read(buffer);
 
-                        if (response.ContentStream != null) // Safety.
+                        ctwire.Write(buffer);
+
+                        bytesLeft -= n;
+                    }
+
+                    ctwire.WriteTerminator();
+
+                    ctwire.Flush();
+
+                    LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+
+                    try
+                    {
+                        response?.ContentStream?.Close();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // ContentStream has been disposed already.
+                    }
+
+                    response?.Dispose();
+
+                    fs.Flush();
+                    fs.Close();
+
+                    return;
+                }
+
+            shortcut: // Necessary evil.
+
+                if (response != null && request != null)
+                {
+                    if (response.ContentStream == null)
+                        response.ContentAsUTF8 = string.Empty;
+
+                    if (response.ContentStream != null) // Safety.
+                    {
+                        string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
+
+                        if (request.Headers.ContainsKey("If-Modified-Since") && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
                         {
-                            string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
+                            response.Headers.Clear();
 
-                            if (request.Headers.ContainsKey("If-Modified-Since") && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
+                            response.Headers.Add("ETag", EtagMD5);
+
+                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+                        }
+                        else if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
+                        {
+                            response.Headers.Clear();
+
+                            response.Headers.Add("ETag", EtagMD5);
+
+                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+                        }
+                        else
+                        {
+                            int buffersize = HTTPServerConfiguration.BufferSize;
+                            string? encoding = null;
+
+                            response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.Headers.Add("ETag", EtagMD5);
+                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
+
+                            if (!response.Headers.ContainsKey("Content-Length"))
                             {
-                                response.Headers.Clear();
-
-                                response.Headers.Add("ETag", EtagMD5);
-
-                                response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
-
-                                WriteLineToStream(stream, response.ToHeader());
-
-                                stream.Flush();
-                            }
-                            else if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
-                            {
-                                response.Headers.Clear();
-
-                                response.Headers.Add("ETag", EtagMD5);
-
-                                response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
-
-                                WriteLineToStream(stream, response.ToHeader());
-
-                                stream.Flush();
-                            }
-                            else
-                            {
-                                int buffersize = HTTPServerConfiguration.BufferSize;
-                                string? encoding = null;
-
-                                response.Headers.Add("Access-Control-Allow-Origin", "*");
-                                response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.Headers.Add("ETag", EtagMD5);
-                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
-
-                                if (!response.Headers.ContainsKey("Content-Length"))
+                                if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
                                 {
-                                    if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
-                                    {
 
-                                    }
-                                    else
-                                        response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
                                 }
-
-                                WriteLineToStream(stream, response.ToHeader());
-
-                                stream.Flush();
-
-                                long totalBytes = response.ContentStream.Length;
-                                long bytesLeft = totalBytes;
-
-                                if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                                    buffersize = 500000;
-
-                                HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
-                                while (bytesLeft > 0)
-                                {
-                                    Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                                    int n = response.ContentStream.Read(buffer);
-
-                                    ctwire.Write(buffer);
-
-                                    bytesLeft -= n;
-                                }
-
-                                ctwire.WriteTerminator();
-
-                                ctwire.Flush();
-
-                            }
-
-                            if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content
-                                        || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently || response.HttpStatusCode == Models.HttpStatusCode.Not_Modified)
-                                LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                            else
-                            {
-                                if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
-                                    LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
-                                else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
-                                    LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                                 else
-                                    LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                                    response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
                             }
+
+                            WriteLineToStream(stream, response.ToHeader());
+
+                            stream.Flush();
+
+                            long totalBytes = response.ContentStream.Length;
+                            long bytesLeft = totalBytes;
+
+                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                                buffersize = 500000;
+
+                            HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
+
+                            while (bytesLeft > 0)
+                            {
+                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                int n = response.ContentStream.Read(buffer);
+
+                                ctwire.Write(buffer);
+
+                                bytesLeft -= n;
+                            }
+
+                            ctwire.WriteTerminator();
+
+                            ctwire.Flush();
+
                         }
+
+                        if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content
+                                    || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently || response.HttpStatusCode == Models.HttpStatusCode.Not_Modified)
+                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                         else
-                            response = null; // If null, simply not respond to client.
+                        {
+                            if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
+                                LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
+                            else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                                LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                            else
+                                LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        }
                     }
+                    else
+                        response = null; // If null, simply not respond to client.
                 }
-                catch (IOException ex)
-                {
-                    if (ex.InnerException is SocketException socketException &&
-                        socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
-                        LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream - IO-Socket thrown an exception : {ex}");
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream thrown an assertion : {ex}");
-                }
-
-                try
-                {
-                    response?.ContentStream?.Close();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // ContentStream has been disposed already.
-                }
-
-                response?.Dispose();
-
-                fs.Flush();
-                fs.Close();
             }
+            catch (IOException ex)
+            {
+                if (ex.InnerException is SocketException socketException &&
+                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
+                    LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream - IO-Socket thrown an exception : {ex}");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream thrown an assertion : {ex}");
+            }
+
+            try
+            {
+                response?.ContentStream?.Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                // ContentStream has been disposed already.
+            }
+
+            response?.Dispose();
+
+            fs.Flush();
+            fs.Close();
         }
 
         private static void WriteLineToStream(Stream stream, string text)

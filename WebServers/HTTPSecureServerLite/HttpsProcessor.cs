@@ -1207,7 +1207,7 @@ namespace HTTPSecureServerLite
                                     case "/!HomeTools/MakeBarSdat/":
                                         if (IsIPAllowed(clientip))
                                         {
-                                            var makeres = HomeToolsInterface.MakeBarSdat(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                            var makeres = HomeToolsInterface.MakeBarSdat(HTTPSServerConfiguration.ConvertersFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
                                             if (makeres != null)
                                             {
                                                 statusCode = HttpStatusCode.OK;
@@ -1236,7 +1236,7 @@ namespace HTTPSecureServerLite
                                     case "/!HomeTools/UnBar/":
                                         if (IsIPAllowed(clientip))
                                         {
-                                            var unbarres = await HomeToolsInterface.UnBar(new MemoryStream(request.DataAsBytes), request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder);
+                                            var unbarres = await HomeToolsInterface.UnBar(HTTPSServerConfiguration.ConvertersFolder, new MemoryStream(request.DataAsBytes), request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder);
                                             if (unbarres != null)
                                             {
                                                 statusCode = HttpStatusCode.OK;
@@ -1661,35 +1661,15 @@ namespace HTTPSecureServerLite
         {
             bool sent = false;
 
-            long contentLen = new FileInfo(filePath).Length;
+            using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+            ctx.Response.ContentType = contentType;
+            ctx.Response.StatusCode = 200;
+            sent = ctx.Response.Send(new FileInfo(filePath).Length, fs).Result;
 
-            string? acceptencoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
-
-            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && contentLen <= 80000000) // We must be reasonable on the file-size here (80 Mb).
-            {
-                using Stream st = HTTPUtils.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                ctx.Response.ContentType = contentType;
-                ctx.Response.StatusCode = 200;
-                sent = ctx.Response.Send(st.Length, st).Result;
-
-                st.Flush();
-                st.Close();
-            }
-            else
-            {
-                using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                ctx.Response.ContentType = contentType;
-                ctx.Response.StatusCode = 200;
-                sent = ctx.Response.Send(contentLen, fs).Result;
-
-                fs.Flush();
-                fs.Close();
-            }
+            fs.Flush();
+            fs.Close();
 
             return sent;
         }

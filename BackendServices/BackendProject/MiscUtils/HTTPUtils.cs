@@ -1,6 +1,7 @@
 using ComponentAce.Compression.Libs.zlib;
 using System.Buffers;
 using System.Collections.Specialized;
+using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
@@ -783,26 +784,25 @@ namespace BackendProject.MiscUtils
             return byteoutput;
         }
 
-        public static HugeMemoryStream InflateStream(Stream input)
+        public static MemoryStream InflateStream(Stream input)
         {
-            using HugeMemoryStream ms = new();
-            using ZOutputStream stream2 = new(ms, 9, true);
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(65536); // Given buffer size
-            try
+            MemoryStream outMemoryStream = new();
+            ZOutputStream outZStream = new(outMemoryStream, 9, true);
+            CopyStream(input, outZStream, 1048576);
+            outZStream.finish();
+            outMemoryStream.Position = 0;
+            return outMemoryStream;
+        }
+
+        public static void CopyStream(Stream input, Stream output, int BufferSize)
+        {
+            int len = 0;
+            byte[] buffer = new byte[BufferSize];
+            while ((len = input.Read(buffer, 0, BufferSize)) > 0)
             {
-                int read = 0;
-                while ((read = input.Read(buffer)) > 0)
-                {
-                    stream2.Write(buffer, 0, read); // Write directly from buffer
-                }
-                stream2.finish();
-                ms.Position = 0;
-                return ms;
+                output.Write(buffer, 0, len);
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer); // Return buffer to pool
-            }
+            output.Flush();
         }
 
         public static byte[]? MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
