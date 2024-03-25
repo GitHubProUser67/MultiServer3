@@ -281,13 +281,38 @@ namespace WebUtils.PREMIUMAGENCY
                              "</xml>";
                     }
                 case "86":
-                    string homeSquareRollyFilePath = $"{workpath}/eventController/MusicSurvey/Rolly/checkEvent.xml";
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent found sent for PUBLIC Rolly Music Survey {eventId}!");
+                    string T037JPHS = $"{workpath}/eventController/ItemRankings/hs/T037/checkEvent.xml";
+                    if (File.Exists(T037JPHS))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC T037 Home Square {eventId}!");
+                        string res = File.ReadAllText(T037JPHS);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC T037 Home Square {eventId}!\nExpected path {T037JPHS}");
 
-                    if (File.Exists(homeSquareRollyFilePath))
-{
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC Rolly Music Survey {eventId}!");
-                        string res = File.ReadAllText(homeSquareRollyFilePath);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+                case "80":
+                    string RollyJukeboxPath = $"{workpath}/eventController/RollyJukebox/checkEvent.xml";
+
+                    if (File.Exists(RollyJukeboxPath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC RollyJukebox {eventId}!");
+                        string res = File.ReadAllText(RollyJukeboxPath);
 
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
@@ -297,10 +322,9 @@ namespace WebUtils.PREMIUMAGENCY
                              $"{res}\r\n" +
                              "</xml>";
                     }
-else
+                    else
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC Rolly Music Survey {eventId}!\nExpected path {homeSquareRollyFilePath}");
-
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC RollyJukebox {eventId}!\nExpected path {RollyJukeboxPath}");
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -593,13 +617,12 @@ else
                              "</xml>";
                     }
                 case "86":
-                    string homeSquareRollyFilePathEntry = $"{workPath}/eventController/MusicSurvey/Rolly/EntryEvent.xml";
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent found sent for PUBLIC Rolly Music Survey {eventId}!");
+                    string HomeSquareT037 = $"{workPath}/eventController/ItemRankings/hs/T037/entryEvent.xml";
 
-                    if (File.Exists(homeSquareRollyFilePathEntry))
+                    if (File.Exists(HomeSquareT037))
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for PUBLIC Rolly Music Survey {eventId}!");
-                        string res = File.ReadAllText(homeSquareRollyFilePathEntry);
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for PUBLIC HomeSquareT037 {eventId}!");
+                        string res = File.ReadAllText(HomeSquareT037);
 
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
@@ -611,8 +634,7 @@ else
                     }
                     else
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC Rolly Music Survey {eventId}!\nExpected path {homeSquareRollyFilePathEntry}");
-
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC HomeSquareT037 {eventId}!\nExpected path {HomeSquareT037}");
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
