@@ -28,6 +28,9 @@ using System.IO.Compression;
 using HomeTools.ChannelID;
 using CustomLogger;
 using HomeTools.AFS;
+using System.Collections.Concurrent;
+using System.Globalization;
+
 
 namespace NautilusXP2024
 {
@@ -152,13 +155,13 @@ namespace NautilusXP2024
             {
                 case ArchiveMapperSetting.NORM:
                     CheckBoxArchiveMapperFAST.IsChecked = false;
-                    CheckBoxArchiveMapperCORE.IsChecked = false;
+                   
                     break;
                 case ArchiveMapperSetting.FAST:
                     CheckBoxArchiveMapperFAST.IsChecked = true;
                     break;
-                case ArchiveMapperSetting.CORE:
-                    CheckBoxArchiveMapperCORE.IsChecked = true;
+                case ArchiveMapperSetting.EXP:
+                    CheckBoxArchiveMapperEXP.IsChecked = true;
                     break;
 
             };
@@ -778,30 +781,32 @@ namespace NautilusXP2024
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the CORE CheckBox if it's checked
-            CheckBoxArchiveMapperCORE.IsChecked = false;
+           
+            CheckBoxArchiveMapperEXP.IsChecked = false;
         }
 
         private void CheckBoxArchiveMapperFAST_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (_settings != null && !CheckBoxArchiveMapperCORE.IsChecked.Value)
+           
             {
                 _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.NORM;
                 SettingsManager.SaveSettings(_settings);
             }
         }
 
-        private void CheckBoxArchiveMapperCORE_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperEXP_Checked(object sender, RoutedEventArgs e)
         {
             if (_settings != null)
             {
-                _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.CORE;
+                _settings.ArchiveMapperSettingRem = ArchiveMapperSetting.EXP;
                 SettingsManager.SaveSettings(_settings);
             }
             // Uncheck the SLOW CheckBox if it's checked
             CheckBoxArchiveMapperFAST.IsChecked = false;
+           
         }
 
-        private void CheckBoxArchiveMapperCORE_Unchecked(object sender, RoutedEventArgs e)
+        private void CheckBoxArchiveMapperEXP_Unchecked(object sender, RoutedEventArgs e)
         {
             if (_settings != null && !CheckBoxArchiveMapperFAST.IsChecked.Value)
             {
@@ -1057,7 +1062,7 @@ namespace NautilusXP2024
                 LogDebugInfo($"Archive Unpacking: Starting unpacking for {filePaths.Length} files");
                 bool unpackingSuccess = await UnpackFilesAsync(filePaths);
 
-                string message = unpackingSuccess ? $"Success: {filePaths.Length} Files Unpacked (Simulated)" : "Unpacking Failed";
+                string message = unpackingSuccess ? $"Success: {filePaths.Length} Files Unpacked" : "Unpacking Failed";
                 TemporaryMessageHelper.ShowTemporaryMessage(ArchiveUnpackerDragAreaText, message, 2000);
 
                 LogDebugInfo($"Archive Unpacking: Result - {message}");
@@ -1203,6 +1208,7 @@ namespace NautilusXP2024
 
             string Outputpath = MappedOutputDirectoryTextBox.Text;
 
+            // Ensure the output directory exists
             Directory.CreateDirectory(Outputpath);
 
             foreach (string filePath in filePaths)
@@ -1211,87 +1217,521 @@ namespace NautilusXP2024
                 {
                     string filename = Path.GetFileName(filePath);
 
-                    string barfile = Outputpath + $"/{filename}";
-
-                    File.WriteAllBytes(barfile, File.ReadAllBytes(filePath));
-
+                    // Determine the action based on file extension
                     if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
                     {
+                        string barfile = Outputpath + $"/{filename}";
+                        // Copy the file to the output directory for processing
+                        File.WriteAllBytes(barfile, File.ReadAllBytes(filePath));
                         await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false);
                         ogfilename = filename;
                         filename = filename[..^4];
+                        // Delete the copied file after processing
+                        if (File.Exists(barfile))
+                            File.Delete(barfile);
                     }
                     else if (filename.ToLower().EndsWith(".sharc"))
                     {
+                        string barfile = Outputpath + $"/{filename}";
+                        File.WriteAllBytes(barfile, File.ReadAllBytes(filePath));
                         await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false);
                         ogfilename = filename;
                         filename = filename[..^6];
+                        if (File.Exists(barfile))
+                            File.Delete(barfile);
                     }
                     else if (filename.ToLower().EndsWith(".sdat"))
                     {
-                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, true);
+                        // Directly use the original path without copying the file
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), filePath, Outputpath, true);
                         ogfilename = filename;
                         filename = filename[..^5];
-                        if (File.Exists(Outputpath + "/" + filename + ".dat"))
-                            File.Delete(Outputpath + "/" + filename + ".dat");
                     }
                     else if (filename.ToLower().EndsWith(".zip"))
                     {
+                        string barfile = Outputpath + $"/{filename}";
                         UncompressFile(barfile, Outputpath);
                         ogfilename = filename;
                         filename = filename[..^4];
+                        if (File.Exists(barfile))
+                            File.Delete(barfile);
                     }
                     else
+                    {
+                        // Skip the file if it doesn't match any known types
                         continue;
-
-                    if (File.Exists(barfile))
-                        File.Delete(barfile);
-
-                    LegacyMapper? map = new();
-
-                    if (Directory.Exists(Outputpath + $"/{filename}") && (ogfilename.ToLower().EndsWith(".bar") || ogfilename.ToLower().EndsWith(".sharc") || ogfilename.ToLower().EndsWith(".sdat")))
-                    {
-                        int fileCount = Directory.GetFiles(Outputpath + $"/{filename}").Length;
-
-                        if (fileCount > 0)
-                        {
-                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
-                                await AFSClass.AFSMapStart(Outputpath + $"/{filename}", ArchiveUnpackerPathTextBox.Text, string.Empty);
-                            else
-                                await map.MapperStart(Outputpath + $"/{filename}", Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
-                        }
-                    }
-                    else if (Directory.Exists(Outputpath + $"/{filename}"))
-                    {
-                        int fileCount = Directory.GetFiles(Outputpath + $"/{filename}").Length;
-
-                        if (fileCount > 0)
-                        {
-                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
-                                await AFSClass.AFSMapStart(Outputpath + $"/{filename}", ArchiveUnpackerPathTextBox.Text, string.Empty);
-                            else
-                                await map.MapperStart(Outputpath + $"/{filename}", Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
-                        }
-                    }
-                    else
-                    {
-                        int fileCount = Directory.GetFiles(Outputpath).Length;
-
-                        if (fileCount > 0)
-                        {
-                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
-                                await AFSClass.AFSMapStart(Outputpath, ArchiveUnpackerPathTextBox.Text, string.Empty);
-                            else
-                                await map.MapperStart(Outputpath, Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
-                        }
                     }
 
-                    map = null;
+                    // Determine if the directory exists and has files for mapping
+                    string directoryToMap = Directory.Exists(Outputpath + $"/{filename}") ? Outputpath + $"/{filename}" : Outputpath;
+                    int fileCount = Directory.GetFiles(directoryToMap).Length;
+
+                    if (fileCount > 0)
+                    {
+                        // Check if the CheckBoxArchiveMapperEXP is checked for experimental mapping
+                        if (CheckBoxArchiveMapperEXP.IsChecked == true)
+                        {
+                            await ExperimentalMapperAsync(directoryToMap, ogfilename);
+                        }
+                        else
+                        {
+                            // Proceed with standard mapping logic
+                            if (CheckBoxArchiveMapperFAST.IsChecked == true)
+                                await AFSClass.AFSMapStart(directoryToMap, ArchiveUnpackerPathTextBox.Text, string.Empty);
+                            else
+                            {
+                                LegacyMapper? map = new();
+                                await map.MapperStart(directoryToMap, Directory.GetCurrentDirectory(), ArchiveUnpackerPathTextBox.Text, string.Empty);
+                                map = null;
+                            }
+                        }
+                    }
                 }
             }
 
             return true;
         }
+
+
+        private async Task ExperimentalMapperAsync(string directoryPath, string ogfilename)
+        {
+
+            var uuidMappings = LoadUUIDMappings();
+            DeleteDatFilesInMappedOutputDirectory();
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ArchiveUnpackerDragAreaText.Text = $"MAPPING {ogfilename}.. Please Wait...";
+                ArchiveUnpackerTextBox.AppendText($"\n\nARCHIVE UNPACKER: Extracted {ogfilename} Successfully\n");
+                ArchiveUnpackerTextBox.AppendText($"ARCHIVE UNPACKER: Mapping {ogfilename} Please Wait...");
+                ArchiveUnpackerTextBox.ScrollToEnd();
+            });
+
+
+            var allFiles = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories);
+
+            var pathsFound = await ScanFilesAsync(allFiles);
+
+            var pathHashes = new Dictionary<int, string>();
+            foreach (var path in pathsFound.Keys)
+            {
+                int hash = ComputeAFSHash(path.ToLower());
+                if (!pathHashes.ContainsKey(hash))
+                {
+                    pathHashes.Add(hash, path.ToUpper());
+
+                }
+            }
+
+            foreach (var fullPath in allFiles)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fullPath).ToUpper(); // Convert to uppercase
+
+                if (fileNameWithoutExtension != null)
+                {
+                    if (int.TryParse(fileNameWithoutExtension, System.Globalization.NumberStyles.HexNumber, null, out int fileHash))
+                    {
+                        if (pathHashes.TryGetValue(fileHash, out var matchingPath))
+                        {
+                            var newFileName = matchingPath.Replace('/', Path.DirectorySeparatorChar);
+                            var newFilePath = Path.Combine(directoryPath, newFileName);
+
+                            try
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+                                File.Move(fullPath, newFilePath, true);
+
+                            }
+                            catch (Exception ex)
+                            {
+                                LogDebugInfo($"Error renaming file from {fullPath} to {newFilePath}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+            }
+
+            await RenameLeftoverFilesAsync(directoryPath);
+
+            await CheckAndHandleUnmappedFiles(directoryPath, pathsFound.Keys.ToList(), uuidMappings);
+
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ArchiveUnpackerTextBox.AppendText($"\nARCHIVE UNPACKER: SUCCESS {ogfilename} Mapped fully!");
+                ArchiveUnpackerTextBox.ScrollToEnd();
+                ArchiveUnpackerDragAreaText.Text = $"SUCCESS {ogfilename} Mapped Fully!";
+            });
+        }
+
+
+        private async Task CheckAndHandleUnmappedFiles(string directoryPath, List<string> paths, Dictionary<int, string> uuidMappings)
+        {
+            
+            string uuidPrefixFound = string.Empty; // To track if a UUID prefix is found
+            List<string> modifiedPaths = new List<string>(); // To store modified paths
+
+            // Define the pattern for unmapped files
+            string pattern = @"^[A-F0-9]{8}(\..+)?$";
+            var unmappedFiles = Directory.EnumerateFiles(directoryPath, "*", SearchOption.TopDirectoryOnly)
+                                          .Where(file => Regex.IsMatch(Path.GetFileNameWithoutExtension(file).ToUpper(), pattern));
+
+            foreach (var file in unmappedFiles)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file).ToUpper();
+                if (int.TryParse(fileNameWithoutExtension, System.Globalization.NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int fileHash) && uuidMappings.TryGetValue(fileHash, out var uuidPath))
+                {
+                    // Log and create directory based on UUID for unmapped files
+                    
+                    var targetDirectoryPath = Path.Combine(directoryPath, uuidPath.TrimStart('/'));
+                    Directory.CreateDirectory(targetDirectoryPath);
+                    
+
+                    // Capture the UUID prefix when found
+                    uuidPrefixFound = uuidPath;
+                    break; // Stop processing further unmapped files once a UUID is found
+                }
+                else
+                {
+                   
+                }
+            }
+
+            // If a UUID prefix is found, prepare and log modified paths
+            if (!string.IsNullOrEmpty(uuidPrefixFound))
+            {
+                foreach (var path in paths)
+                {
+                    string modifiedPath = $"{uuidPrefixFound}{path}";
+                    modifiedPaths.Add(modifiedPath); // Add modified path to list
+                   
+                }
+
+                // Call the function to process and rename files based on modified paths
+                await ProcessAndRenameFilesWithModifiedPaths(directoryPath, modifiedPaths);
+
+                // If a UUID prefix was found, try to rename the output directory
+                if (!string.IsNullOrEmpty(uuidPrefixFound))
+                {
+                    // Extract UUID from the found prefix
+                    var uuidMatch = Regex.Match(uuidPrefixFound, @"OBJECTS[\\\/]([A-F0-9]{8}-[A-F0-9]{8}-[A-F0-9]{8}-[A-F0-9]{8})[\\\/]?");
+
+                    if (uuidMatch.Success)
+                    {
+                        string uuid = uuidMatch.Groups[1].Value;
+                        RenameOutputDirectory(directoryPath, uuid);
+                    }
+                }
+            }
+        }
+
+        private async Task ProcessAndRenameFilesWithModifiedPaths(string directoryPath, List<string> modifiedPaths)
+        {
+            // Dictionary to hold the hash and new path mapping
+            var hashToPathMapping = new Dictionary<int, string>();
+
+            // Compute hash for each modified path and add to dictionary
+            foreach (var path in modifiedPaths)
+            {
+                int hash = ComputeAFSHash(path);
+                if (!hashToPathMapping.ContainsKey(hash))
+                {
+                    hashToPathMapping[hash] = path.ToUpper();  // Convert path to uppercase before adding
+                }
+            }
+
+            // Now attempt to rename files based on the hash mapping
+            var allFiles = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories);
+            foreach (var file in allFiles)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file).ToUpper();
+                if (int.TryParse(fileNameWithoutExtension, System.Globalization.NumberStyles.HexNumber, null, out int fileHash) && hashToPathMapping.TryGetValue(fileHash, out var newPath))
+                {
+                    // Generate full path for the new location of this file, ensure it's uppercase
+                    var newFilePath = Path.Combine(directoryPath, newPath.Replace('/', Path.DirectorySeparatorChar)).ToUpper(); // Ensure new file path is uppercase
+
+                    try
+                    {
+                        // Ensure the directory for the new path exists (Note: Directories are case-insensitive in Windows but case-sensitive in UNIX-based systems)
+                        Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+
+                        // Rename the file to its new path (now in uppercase)
+                        File.Move(file, newFilePath, overwrite: true);
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        LogDebugInfo($"Error renaming file {file} based on modified path hash: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private void RenameOutputDirectory(string directoryPath, string uuid)
+        {
+            var parentDirectory = Directory.GetParent(directoryPath).FullName;
+            var newDirectoryName = directoryPath.Replace("object", uuid);
+            var newDirectoryPath = Path.Combine(parentDirectory, newDirectoryName);
+
+            // Check if directory already exists to avoid exceptions
+            if (!Directory.Exists(newDirectoryPath))
+            {
+                Directory.Move(directoryPath, newDirectoryPath);
+                LogDebugInfo($"Renamed output directory: {directoryPath} to {newDirectoryPath}");
+            }
+            else
+            {
+                LogDebugInfo($"Could not rename the directory as {newDirectoryPath} already exists.");
+            }
+        }
+
+
+
+        private Dictionary<int, string> LoadUUIDMappings()
+        {
+            string uuidHelperFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "uuid_helper.txt");
+            var uuidMappings = new Dictionary<int, string>();
+
+            if (File.Exists(uuidHelperFilePath))
+            {
+                foreach (var line in File.ReadAllLines(uuidHelperFilePath))
+                {
+                    var parts = line.Split(':');
+                    if (parts.Length == 2)
+                    {
+                        if (int.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out int hash))
+                        {
+                            uuidMappings[hash] = $"OBJECTS/{parts[1].Trim()}/";
+                        }
+                    }
+                }
+            }
+            else
+            {
+                LogDebugInfo("UUID helper file not found.");
+            }
+
+            return uuidMappings;
+        }
+
+
+
+       
+       private void DeleteDatFilesInMappedOutputDirectory()
+        {
+            // Assuming _settings.MappedOutputDirectory holds the path to the target directory
+            string outputDirectoryPath = _settings.MappedOutputDirectory;
+            if (string.IsNullOrWhiteSpace(outputDirectoryPath))
+            {
+                LogDebugInfo("Mapped output directory path is not set.");
+                return;
+            }
+
+           
+            try
+            {
+                var datFiles = Directory.EnumerateFiles(outputDirectoryPath, "*.dat", SearchOption.TopDirectoryOnly);
+                foreach (var file in datFiles)
+                {
+                    File.Delete(file);
+                    LogDebugInfo($"Deleted .dat file: {file}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"Error deleting .dat files in mapped output directory: {ex.Message}");
+            }
+
+           
+            try
+            {
+                var mapFiles = Directory.EnumerateFiles(outputDirectoryPath, "*.map", SearchOption.AllDirectories);
+                foreach (var file in mapFiles)
+                {
+                    File.Delete(file);
+                    LogDebugInfo($"Deleted .map file: {file}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebugInfo($"Error deleting .map files in mapped output directory: {ex.Message}");
+            }
+        }
+
+        private bool CheckForUnmappedFiles(string directoryPath)
+        {
+            string pattern = @"^[A-F0-9]{8}(\..+)?$"; // Pattern for unmapped files
+            var unmappedFiles = Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories)
+                                         .Where(file => Regex.IsMatch(Path.GetFileNameWithoutExtension(file).ToUpper(), pattern));
+
+            return unmappedFiles.Any(); // Returns true if any unmapped files exist
+        }
+
+
+        private async Task RenameLeftoverFilesAsync(string directoryPath)
+        {
+            string helperFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scene_file_mapper_helper.txt");
+
+            if (!File.Exists(helperFilePath))
+            {
+                LogDebugInfo("Helper file not found.");
+                return;
+            }
+
+            var fileMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var line in File.ReadAllLines(helperFilePath))
+            {
+                var parts = line.Split(new[] { ':' }, 2);
+                if (parts.Length == 2)
+                {
+                    string hashPart = parts[0].Trim();
+                    string pathPart = parts[1].Trim().Replace('/', '\\'); // Ensure using backslashes
+                    fileMappings[hashPart] = pathPart;
+                }
+            }
+
+            var filesInRootDirectory = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.TopDirectoryOnly);
+
+            foreach (var filePath in filesInRootDirectory)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                if (fileMappings.TryGetValue(fileName.ToUpper(), out var newRelativePath))
+                {
+                    // Ensure that newRelativePath doesn't start with a directory separator
+                    newRelativePath = newRelativePath.TrimStart('\\');
+                    var newFilePath = Path.Combine(directoryPath, newRelativePath);
+
+                    // Log the new file path to check for issues
+                    
+
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(newFilePath));
+                        File.Move(filePath, newFilePath);
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        LogDebugInfo($"Error renaming file from {filePath} to {newFilePath}: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private async Task<ConcurrentDictionary<string, bool>> ScanFilesAsync(IEnumerable<string> filePaths)
+        {
+            var options = new ParallelOptions { MaxDegreeOfParallelism = 12 };
+            var pathsFound = new ConcurrentDictionary<string, bool>();
+
+            string[] extensions = {
+        ".mdl", ".dds", ".repertoire_circuit", ".luac", ".lua", ".xml", ".efx", ".effect", ".ttf", ".hkx",
+        ".probe", ".ocean", ".skn", ".ani", ".mp3", ".atmos", ".png", ".bin", ".raw", ".ini", ".enemy",
+        ".ui-setup", ".cam-def", ".level-setup", ".node-def", ".spline-def", ".tmx", ".json", ".atgi", ".bank",
+        ".bnk", ".agf", ".jpg", ".mp4", ".dat", ".svml", ".oel", ".wav", ".gui-setup", ".tga",
+        ".rig", ".txt", ".cdata", ".atmos"
+    };
+            string extensionsPattern = string.Join("|", extensions.Select(Regex.Escape));
+
+            string combinedPattern = $@"([\\/\x22\]][^\n\r:*\?""<>|\s]+?({extensionsPattern}))";
+
+            await Task.Run(() =>
+            {
+                Parallel.ForEach(filePaths, options, filePath =>
+                {
+                    try
+                    {
+                        if (File.Exists(filePath))
+                        {
+                            var fileContent = File.ReadAllBytes(filePath);
+                            var contentString = Encoding.Default.GetString(fileContent);
+                            contentString = Regex.Replace(contentString, "[\x00-\x05\x1E\xCB]", "\"");
+
+
+
+                            var matches = Regex.Matches(contentString, combinedPattern, RegexOptions.IgnoreCase);
+
+                            foreach (Match match in matches)
+                            {
+                                var matchedPath = TransformPath(match.Value);
+                                CheckAndAddSpecialCases(matchedPath, pathsFound);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exceptions as needed
+                    }
+                });
+            });
+
+            return pathsFound;
+        }
+
+
+
+        private void CheckAndAddSpecialCases(string matchedPath, ConcurrentDictionary<string, bool> pathsFound)
+        {
+           
+
+            pathsFound.TryAdd(matchedPath, true);
+            string[] staticFiles = { "localisation.xml", "resources.xml", "object.xml", "editor.oxml", "catalogueentry.xml", "maker.png", "large.png", "small.png", "object.odc" };
+            foreach (var staticFile in staticFiles)
+            {
+                pathsFound.TryAdd(staticFile, true);
+            }
+
+            if (matchedPath.EndsWith(".atmos", StringComparison.OrdinalIgnoreCase))
+            {
+                var cdataPath = matchedPath.Replace(".atmos", ".cdata");
+                pathsFound.TryAdd(cdataPath, true);
+            }
+            if (matchedPath.EndsWith(".probe", StringComparison.OrdinalIgnoreCase))
+            {
+                string[] replacements = { ".ocean", ".scene", ".sdc" };
+                foreach (var replacement in replacements)
+                {
+                    var newPath = matchedPath.Replace(".probe", replacement);
+                    pathsFound.TryAdd(newPath, true);
+                }
+            }
+        }
+
+
+        private string TransformPath(string matchedPath)
+        {
+            
+            char[] charsToTrim = { '\x01', '\x02', '\x03', '\x04', '\x22', '\x23', '\x5D', '\x2F', '\x5C' };
+            matchedPath = matchedPath.TrimStart(charsToTrim);
+            matchedPath = Regex.Replace(matchedPath, "(file:///resource_root/build/)|(file://resource_root/build/)|(resource_root/build/)", "", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            matchedPath = Regex.Replace(matchedPath, @"(?<=\b)(NATGParticles|TATGParticles|xenvironments|Tenvironments)", m => m.Value.Substring(1), RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            matchedPath = matchedPath.Replace("/", "\\");
+            return matchedPath;
+        }
+
+        private int ComputeAFSHash(string text)
+        {
+            string normalizedText;
+            if (text.StartsWith("0X", StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedText = text.Substring(2);
+            }
+            else
+            {
+                normalizedText = text;
+            }
+
+            normalizedText = normalizedText
+                .Replace(Path.DirectorySeparatorChar, '/')
+                .ToLower();
+
+            int hash = 0;
+            foreach (char ch in normalizedText)
+                hash = hash * 37 + ch;
+
+            return hash;
+        }
+
 
 
 
@@ -4487,13 +4927,32 @@ namespace NautilusXP2024
         {
             string inputPath = Path2HashInputTextBox.Text;
             int hash = BarHash(inputPath);
-            Path2HashOutputTextBox.Text = hash.ToString("X8"); // Convert to hexadecimal string
+            Path2HashOutputTextBox.Text = hash.ToString("X8").ToUpper();
+
+            if (!string.IsNullOrWhiteSpace(Path2HashOutputExtraTextBox.Text))
+            {
+                var paths = Path2HashOutputExtraTextBox.Text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                Path2HashOutputExtraTextBox.Clear();
+
+                foreach (var path in paths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path))
+                    {
+                        string modifiedPath = path.Contains(":") ? path.Substring(path.IndexOf(":") + 1) : path;
+                        int pathHash = BarHash(modifiedPath);
+                        Path2HashOutputExtraTextBox.AppendText($"{pathHash.ToString("X8").ToUpper()}:{modifiedPath.ToUpper()}\n");
+                    }
+                }
+            }
         }
 
         public static int BarHash(string path)
         {
+            
+            path = path.Replace('\\', '/').ToLower();
+
             int crc = 0;
-            foreach (char c in path.ToLower())
+            foreach (char c in path)
             {
                 crc *= 0x25;
                 crc += c;
@@ -4510,6 +4969,109 @@ namespace NautilusXP2024
             LogDebugInfo("Path to Hash: List Cleared");
         }
 
+        private bool isAddToMapperButtonClickedOnce = false;
+
+        // Field to keep track of the button click count.
+        private int addToMapperButtonClickCount = 0;
+
+        private async void AddToMapperButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Handle the first click.
+            if (addToMapperButtonClickCount == 0)
+            {
+                Path2HashDragAreaText.Text = "Add these paths to the mapper helper? Click again to confirm";
+                addToMapperButtonClickCount++;
+                return;
+            }
+            // Handle the second click.
+            else if (addToMapperButtonClickCount == 1)
+            {
+                Path2HashDragAreaText.Text = "Adding too many useless paths here could slow down mapping, Are you sure?";
+                addToMapperButtonClickCount++;
+                return;
+            }
+
+            // Handle the third click - Proceed with adding paths.
+            if (addToMapperButtonClickCount >= 2)
+            {
+                string helperFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scene_file_mapper_helper.txt");
+                HashSet<string> existingPaths = new HashSet<string>();
+
+                if (File.Exists(helperFilePath))
+                {
+                    // Read existing content and remove trailing new lines
+                    var existingContent = File.ReadAllText(helperFilePath).TrimEnd('\r', '\n');
+                    using (var writer = new StreamWriter(helperFilePath, false)) // Overwrite to remove trailing new lines
+                    {
+                        writer.Write(existingContent);
+                        if (!string.IsNullOrEmpty(existingContent))
+                        {
+                            // Ensure there's a new line after existing content if it's not empty
+                            writer.WriteLine();
+                        }
+
+                        // Process paths from text boxes
+                        var uniquePaths = new HashSet<string>();
+                        ProcessTextBoxForUniquePaths(Path2HashOutputExtraTextBox.Text, existingPaths, uniquePaths);
+                        ProcessTextBoxForUniquePaths(Path2HashInputTextBox.Text, existingPaths, uniquePaths, true);
+
+                        foreach (var path in uniquePaths)
+                        {
+                            if (!string.IsNullOrWhiteSpace(path))
+                            {
+                                int hash = BarHash(path);
+                                string hashString = hash.ToString("X8").ToUpper();
+                                if (hashString != "00000000")
+                                {
+                                    writer.WriteLine($"{hashString}:{path.ToUpper()}");
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // File doesn't exist, create new file and add paths
+                    using (var writer = new StreamWriter(helperFilePath))
+                    {
+                        var uniquePaths = new HashSet<string>();
+                        ProcessTextBoxForUniquePaths(Path2HashOutputExtraTextBox.Text, existingPaths, uniquePaths);
+                        ProcessTextBoxForUniquePaths(Path2HashInputTextBox.Text, existingPaths, uniquePaths, true);
+
+                        foreach (var path in uniquePaths)
+                        {
+                            if (string.IsNullOrWhiteSpace(path)) continue;
+                            int hash = BarHash(path);
+                            writer.WriteLine($"{hash.ToString("X8").ToUpper()}:{path.ToUpper()}");
+                        }
+                    }
+                }
+
+                // After adding paths, update the text and use a delay to revert the message.
+                Path2HashDragAreaText.Text = "Paths added to scene_file_mapper_helper.txt";
+                await Task.Delay(1000); // Wait for one second
+                Path2HashDragAreaText.Text = "Drag a folder or TXT/XML here to hash all paths";
+
+
+            }
+        }
+
+
+
+        private void ProcessTextBoxForUniquePaths(string textBoxContent, HashSet<string> existingPaths, HashSet<string> uniquePaths, bool isInput = false)
+        {
+            var lines = textBoxContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            foreach (var line in lines)
+            {
+                string path = isInput ? line : line.Contains(":") ? line.Split(':')[1] : line;
+                path = path.Trim();
+                if (!existingPaths.Contains(path.ToUpper()) && !uniquePaths.Contains(path.ToUpper()) && !string.IsNullOrWhiteSpace(path))
+                {
+                    uniquePaths.Add(path.ToUpper());
+                }
+            }
+        }
+
 
         private void Path2HashTabItem_Drop(object sender, DragEventArgs e)
         {
@@ -4517,25 +5079,53 @@ namespace NautilusXP2024
             {
                 string[] droppedObjects = (string[])e.Data.GetData(DataFormats.FileDrop);
                 StringBuilder outputText = new StringBuilder();
+                HashSet<string> uniquePaths = new HashSet<string>();
 
                 foreach (string droppedObject in droppedObjects)
                 {
                     if (Directory.Exists(droppedObject))
                     {
-                        // Process each file in the directory
+                        // Process each file in the directory and add to uniquePaths
                         IEnumerable<string> fileEntries = Directory.EnumerateFiles(droppedObject, "*", SearchOption.AllDirectories);
                         foreach (string fullFileName in fileEntries)
                         {
-                            string relativePath = fullFileName.Substring(droppedObject.Length + 1); // +1 to remove the leading backslash
-                            int hash = BarHash(relativePath);
-                            outputText.AppendLine($"Hash: {hash:X8} - File: {relativePath}");
+                            string relativePath = fullFileName.Substring(droppedObject.Length + 1).ToUpper(); // +1 to remove the leading backslash and convert to uppercase
+                            uniquePaths.Add(relativePath);
                         }
                     }
+                    else if (File.Exists(droppedObject))
+                    {
+                        // Check if the file is of a specific type
+                        var extension = Path.GetExtension(droppedObject).ToLower();
+                        if (extension == ".txt" || extension == ".xml")
+                        {
+                            // Search within the file for paths
+                            var fileContent = File.ReadAllText(droppedObject);
+                            Regex regex = new Regex("\"([^\"]*\\.scene)\"");
+                            var matches = regex.Matches(fileContent);
+
+                            foreach (Match match in matches)
+                            {
+                                // Extract the path from the match, convert to uppercase, and add to uniquePaths
+                                string path = match.Groups[1].Value.ToUpper();
+                                uniquePaths.Add(path);
+                            }
+                        }
+                    }
+                }
+
+                // Process unique paths, hash them, and format the output in uppercase
+                foreach (string path in uniquePaths)
+                {
+                    int hash = BarHash(path);
+                    outputText.AppendLine($"{hash:X8}:{path}");
                 }
 
                 Path2HashOutputExtraTextBox.Text = outputText.ToString();
             }
         }
+
+
 
         private void TabItem_DragOver(object sender, DragEventArgs e)
         {
@@ -6730,5 +7320,7 @@ namespace NautilusXP2024
         {
 
         }
+
+
     }
 }
