@@ -252,6 +252,7 @@ namespace WebUtils.PREMIUMAGENCY
 
 
             string MikuLiveJukeboxPath = $"{workPath}/eventController/MikuLiveJukebox";
+            string T037HomeSquare = $"{workPath}/eventController/ItemRankings/hs/T037";
             #endregion
 
             switch (eventId)
@@ -275,6 +276,34 @@ namespace WebUtils.PREMIUMAGENCY
                         else
                         {
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetItemRankingTable FALLBACK sent for PUBLIC MikuLiveJukebox {eventId}!\nExpected path {MikuLiveJukeboxPath}");
+
+                            return "<xml>\r\n\t" +
+                                 "<result type=\"int\">1</result>\r\n\t" +
+                                 "<description type=\"text\">Success</description>\r\n\t" +
+                                 "<error_no type=\"int\">0</error_no>\r\n\t" +
+                                 "<error_message type=\"text\">None</error_message>\r\n\t" +
+                                 "</xml>";
+                        }
+                    }
+                case "86":
+                    {
+                        Directory.CreateDirectory(T037HomeSquare);
+                        string filePath = $"{T037HomeSquare}/getItemRankingTargetList.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetItemRankingTable FOUND for PUBLIC T037HomeSquare {eventId}!");
+                            string res = File.ReadAllText(filePath);
+                            return "<xml>\r\n\t" +
+                                 "<result type=\"int\">1</result>\r\n\t" +
+                                 "<description type=\"text\">Success</description>\r\n\t" +
+                                 "<error_no type=\"int\">0</error_no>\r\n\t" +
+                                 "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                                 $"{res}\r\n" +
+                                 "</xml>";
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetItemRankingTable FALLBACK sent for PUBLIC T037HomeSquare {eventId}!\nExpected path {T037HomeSquare}");
 
                             return "<xml>\r\n\t" +
                                  "<result type=\"int\">1</result>\r\n\t" +

@@ -114,8 +114,8 @@ namespace WebUtils.PREMIUMAGENCY
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
                     break;
                 case "80":
-                    if (File.Exists($"{workpath}/eventController/MusicSurvey/Rolly/getEventTrigger.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/RollyMusicSurvey/getEventTrigger.xml");
+                    if (File.Exists($"{workpath}/eventController/RollyJukebox/global/getEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/RollyJukebox/global/getEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC Rolly Music Survey {eventId}!");
                     break;
                 case "346":
@@ -333,8 +333,8 @@ namespace WebUtils.PREMIUMAGENCY
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for evid PUBLIC Macross VF25 HS {eventId}!");
                     break;
                 case "80":
-                    if (File.Exists($"{workpath}/eventController/MusicSurvey/Rolly/confirmEventTrigger.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/MusicSurvey/Rolly/confirmEventTrigger.xml");
+                    if (File.Exists($"{workpath}/eventController/RollyJukebox/global/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/RollyJukebox/global/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Rolly Music Survey {eventId}!");
                     break;
                 case "346":

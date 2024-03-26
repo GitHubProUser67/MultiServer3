@@ -113,6 +113,56 @@ namespace WebUtils.PREMIUMAGENCY
                              "<error_message type=\"text\">None</error_message>\r\n" +
                              "</xml>";
                     }
+                case "86":
+                    string T037HomeSquare = $"{workpath}/eventController/ItemRankings/hs/T037";
+                    Directory.CreateDirectory(T037HomeSquare);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{T037HomeSquare}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    if (File.Exists(T037HomeSquare))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC T037HomeSquare {eventId}!");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC T037HomeSquare {eventId}!\nExpected path {T037HomeSquare}");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                case "347":
+                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/";
+                    Directory.CreateDirectory(SonyAquarium);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{SonyAquarium}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    if (File.Exists(SonyAquarium))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC SonyAquarium {eventId}!");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {SonyAquarium}");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - SetUserEventCustom unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
@@ -406,6 +456,66 @@ namespace WebUtils.PREMIUMAGENCY
                             "<field_list>\r\n" +
                             "<field_name type=\"text\">answer_record</field_name>\r\n" +
                             "<field_value type=\"text\">0</field_value>\r\n" + 
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">datetime</field_name>\r\n" +
+                            $"<field_value type=\"text\">{DateTime.Now.ToString("yyyy")}d{DateTime.Now.ToString("MM")}d{DateTime.Now.ToString("dd")}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n";
+                    }
+                case "86":
+                    string T037HomeSquare = $"{workpath}/eventController/ItemRankings/hs/T037/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache";
+                    // ANSWER FILE EXISTS, SO THEY CAN NOT USE QUESTIONAIRE/VOTE!
+                    if (File.Exists(T037HomeSquare))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList FOUND for PUBLIC MikeLiveJukebox {eventId}!");
+                        List<(string, string)> formData = PREMIUMAGENCYClass.ReadFormDataFromFile(T037HomeSquare);
+
+                        string votedToday = formData.Find(x => x.Item1 == "cfval").Item2;
+
+                        return "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">answer_record</field_name>\r\n" +
+                            $"<field_value type=\"text\">{votedToday}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">datetime</field_name>\r\n" +
+                            $"<field_value type=\"text\">{DateTime.Now.ToString("yyyy")}d{DateTime.Now.ToString("MM")}d{DateTime.Now.ToString("dd")}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList FALLBACK sent for PUBLIC MikeLiveJukebox {eventId}!\nExpected path {T037HomeSquare}");
+
+                        return "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">answer_record</field_name>\r\n" +
+                            "<field_value type=\"text\">0</field_value>\r\n" +
                             $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
                             $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
                             $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +

@@ -49,6 +49,7 @@ namespace WebUtils.PREMIUMAGENCY
                 string july2009infoboard = $"{workpath}/eventController/infoboard/09";
                 string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent";
                 string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox/Resources";
+                string RollyJukeboxPath = $"{workpath}/eventController/RollyJukebox/Resources";
                 string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium";
                 string shoeikingdomPath = $"{workpath}/eventController/ShoeiKingdom";
 
@@ -91,6 +92,32 @@ namespace WebUtils.PREMIUMAGENCY
                         }
                         break;
                     case "SonyAquarium_Config":
+                        {
+                            Directory.CreateDirectory(SonyAquariumPath);
+                            string filePath = $"{SonyAquariumPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    case "SonyAquarium_VideoConfig":
                         {
                             Directory.CreateDirectory(SonyAquariumPath);
                             string filePath = $"{SonyAquariumPath}/{resKey}.xml";
@@ -1341,6 +1368,114 @@ namespace WebUtils.PREMIUMAGENCY
                         }
                         break;
                     #endregion
+
+                    #region Rolly Jukebox
+                    case "rolly_jukebox1_mp4":
+                        {
+                            Directory.CreateDirectory(RollyJukeboxPath);
+                            string filePath = $"{RollyJukeboxPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    case "rolly_jukebox1_info":
+                        {
+                            Directory.CreateDirectory(RollyJukeboxPath);
+                            string filePath = $"{RollyJukeboxPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    case "rolly_jukebox1_board":
+                        {
+                            Directory.CreateDirectory(RollyJukeboxPath);
+                            string filePath = $"{RollyJukeboxPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    case "rolly_jukebox1_time":
+                        {
+                            Directory.CreateDirectory(RollyJukeboxPath);
+                            string filePath = $"{RollyJukeboxPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
+
 
                     default:
                         {
