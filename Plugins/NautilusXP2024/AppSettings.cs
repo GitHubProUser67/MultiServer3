@@ -46,7 +46,7 @@ namespace NautilusXP2024
             FileOverwriteBehavior = OverwriteBehavior.Rename;
             SaveDebugLogToggle = SaveDebugLog.True;
             ArchiveTypeSettingRem = ArchiveTypeSetting.SDAT;
-            ArchiveMapperSettingRem = ArchiveMapperSetting.NORM;
+            ArchiveMapperSettingRem = ArchiveMapperSetting.EXP;
             LastTabUsed = RememberLastTabUsed.ArchiveTool;
         }
     }

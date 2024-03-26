@@ -430,6 +430,21 @@
             <Setter Property="AcceptsReturn" Value="True"/>
             <Setter Property="TextWrapping" Value="NoWrap"/>
         </Style>
+        <Style x:Key="FileList2TextBoxStyle" TargetType="TextBox">
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="BorderBrush" Value="white"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="IsReadOnly" Value="False"/>
+            <Setter Property="Height" Value="290"/>
+            <Setter Property="Width" Value="540"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+        </Style>
         <Style x:Key="TitleBarButtonHoverStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -652,11 +667,11 @@
                                 </StackPanel>
 
 
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,0,0,0">
-                                    <TextBlock Text="Fast Map (No UUID Needed):" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0" Width="460">
+                                    <TextBlock Text="AFS Mapper (No UUID Needed):" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="CheckBoxArchiveMapperFAST" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchiveMapperFAST_Unchecked" Checked="CheckBoxArchiveMapperFAST_Checked"/>
-                                    <TextBlock Text="Coredata Mode:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="CheckBoxArchiveMapperCORE" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchiveMapperCORE_Unchecked" Checked="CheckBoxArchiveMapperCORE_Checked"/>
+                                    <TextBlock Text="ExperiMENTAL Mapper (No UUID Needed):" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperEXP" Style="{StaticResource ModernToggleSwitchStyle}" Unchecked="CheckBoxArchiveMapperEXP_Unchecked" Checked="CheckBoxArchiveMapperEXP_Checked"/>
                                 </StackPanel>
 
                                 <!-- Buttons -->
@@ -1110,7 +1125,7 @@
                     <StackPanel>
                         <TextBlock Text="Path to Hash Tool" Margin="10" Style="{StaticResource ToolTitleTextBlockStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" />
                         <Border x:Name="Path2HashPatcherDragArea" Style="{StaticResource DragAreaStyle}" Drop="Path2HashTabItem_Drop" Height="81" Margin="0,0,0,5" Width="713">
-                            <TextBlock x:Name="Path2HashDragAreaText" Text="Drag a folder here to hash all paths" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                            <TextBlock x:Name="Path2HashDragAreaText" Text="Drag a folder or TXT/XML here to hash all paths" Style="{StaticResource DragAreaTextBlockStyle}"/>
                         </Border>
                         <Border Background="#333333" Padding="10" AllowDrop="True" Drop="Path2HashTabItem_Drop">
                             <Grid>
@@ -1120,15 +1135,16 @@
                                     <!-- Long Text Entry Box -->
                                     <TextBox x:Name="Path2HashInputTextBox" Style="{StaticResource SmallTextBoxStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" Width="650" />
                                     <!-- Hash Button -->
-                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" Width="260">
                                 <Button Content="Hash" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" Click="Path2HashButton_Click"/>
                                         <Button x:Name="Path2HashClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="Path2HashClearListHandler"/>
+                                        <Button Content="Add to Mapper" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" Click="AddToMapperButton_Click" Width="124"/>
                                     </StackPanel>
                     <!-- Short Text Output Box -->
                                     <TextBox x:Name="Path2HashOutputTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="90" />
                                 </StackPanel>
                                 <StackPanel AllowDrop="True" Drop="Path2HashTabItem_Drop">
-                                    <TextBox x:Name="Path2HashOutputExtraTextBox" Style="{StaticResource FileListTextBoxStyle}" Margin="0,130,0,0" Height="330" Width="600" />
+                                    <TextBox x:Name="Path2HashOutputExtraTextBox" Style="{StaticResource FileList2TextBoxStyle}" Margin="0,130,0,0" Height="330" Width="600" />
                                 </StackPanel>
                             </Grid>
                            

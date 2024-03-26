@@ -36,7 +36,8 @@
     {
         NORM,
         FAST,
-        CORE
+        CORE,
+        EXP
     }
 
     public enum SaveDebugLog
