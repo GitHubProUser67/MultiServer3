@@ -9,6 +9,7 @@
 	<DockerfileRunArguments>-p 10058:10058 -p 10060:10060 -p 10061:10061 -p 10062:10062</DockerfileRunArguments>
 	<ApplicationIcon>SVO.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonUtils\HorizonUtils.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="static\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
   </ItemGroup>
 
 </Project>

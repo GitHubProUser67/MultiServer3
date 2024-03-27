@@ -4,9 +4,8 @@ using DatabaseMiddleware.Controllers.Horizon;
 using DatabaseMiddleware.Models;
 using Horizon.LIBRARY.Database.Models;
 using Newtonsoft.Json;
-using System.Collections.Concurrent;
 using System.Net;
-using System.Text.RegularExpressions;
+using System.Net.Http.Headers;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
@@ -149,6 +148,22 @@ namespace DatabaseMiddleware.HTTPEngine
                                                     break;
                                             }
                                             keys = null;
+                                        }
+                                        break;
+                                    case "Logs":
+                                        if (Roles.Contains("database"))
+                                        {
+                                            Logs? logs = new();
+                                            switch (command)
+                                            {
+                                                case "submitLog":
+                                                    Extractedclass = await logs.submitLog(await GetClassFromString<LogDTO>(PostData) ?? new LogDTO());
+                                                    break;
+                                                default:
+                                                    LoggerAccessor.LogWarn($"[POST_API] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                                    break;
+                                            }
+                                            logs = null;
                                         }
                                         break;
                                     default:

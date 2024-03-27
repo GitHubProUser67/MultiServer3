@@ -50,8 +50,7 @@ namespace QuazalServer.QNetZ
 		{
 			// create protocol client
 			QClient? qclient = GetQClientByEndPointAndSignature(from, p.m_uiSignature);
-			if (qclient == null)
-                qclient = NewQClient(from);
+			qclient ??= NewQClient(from);
 
             LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] Got SYN packet");
 			qclient.SeqCounterOut = 0;
@@ -59,11 +58,11 @@ namespace QuazalServer.QNetZ
 			p.m_uiConnectionSignature = qclient.IDrecv;
 
 			return MakeACK(p, qclient);
-		}
+        }
 
 		private QPacket ProcessCONNECT(QClient client, QPacket p)
 		{
-			client.IDsend = p.m_uiConnectionSignature;
+            client.IDsend = p.m_uiConnectionSignature;
 			client.State = QClient.StateType.Active;
 
 			LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] Got CONNECT packet");
@@ -171,7 +170,7 @@ namespace QuazalServer.QNetZ
 
 		public QPacket MakeACK(QPacket p, QClient client)
 		{
-            QPacket np = new(AccessKey, p.toBuffer(AccessKey))
+            return new QPacket(AccessKey, p.toBuffer(AccessKey))
             {
                 flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_ACK, QPacket.PACKETFLAG.FLAG_HAS_SIZE },
 
@@ -181,8 +180,7 @@ namespace QuazalServer.QNetZ
                 payload = Array.Empty<byte>(),
                 payloadSize = 0
             };
-            return np;
-		}
+        }
 
 		public void SendACK(QPacket p, QClient client)
 		{
@@ -249,25 +247,23 @@ namespace QuazalServer.QNetZ
 			{
                 QPacket packetIn = new(AccessKey, data);
 				{
-					using (MemoryStream m = new(data))
-					{
-                        byte[] buff = new byte[(int)packetIn.realSize];
-                        m.Read(buff, 0, buff.Length);
+                    using MemoryStream m = new(data);
+                    byte[] buff = new byte[(int)packetIn.realSize];
+                    m.Read(buff, 0, buff.Length);
 
-                        StringBuilder sb = new();
+                    StringBuilder sb = new();
 
-                        foreach (byte b in data)
-                            sb.Append(b.ToString("X2") + " ");
+                    foreach (byte b in data)
+                        sb.Append(b.ToString("X2") + " ");
 
-                        LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{VariousUtils.ByteArrayToHexString(buff)}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{VariousUtils.ByteArrayToHexString(buff)}");
 
-                        LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
-                        LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
-                        LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringDetailed()}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringDetailed()}");
 
-                        m.Flush();
-                    }
-				}
+                    m.Flush();
+                }
 
 				QPacket? reply = null;
 				QClient? client = null;
@@ -282,7 +278,7 @@ namespace QuazalServer.QNetZ
                 switch (packetIn.type)
 				{
 					case QPacket.PACKETTYPE.SYN:
-						reply = ProcessSYN(packetIn, from);
+                        reply = ProcessSYN(packetIn, from);
 						break;
 					case QPacket.PACKETTYPE.CONNECT:
 						if (client != null && packetIn.flags != null && !packetIn.flags.Contains(QPacket.PACKETFLAG.FLAG_ACK))
@@ -310,7 +306,7 @@ namespace QuazalServer.QNetZ
 							}
 
 							// force resend?
-							var cache = GetCachedResponseByRequestPacket(packetIn);
+							QReliableResponse? cache = GetCachedResponseByRequestPacket(packetIn);
 							if (cache != null)
 							{
 								SendACK(packetIn, client);

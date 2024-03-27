@@ -9,7 +9,6 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
 using ArpLookup;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace BackendProject.MiscUtils
 {

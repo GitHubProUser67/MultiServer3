@@ -156,43 +156,41 @@ namespace BackendProject.MiscUtils
             new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create())
-            {
-                rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
+            using RSA rsa = RSA.Create();
+            rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
-                // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+            // Create a certificate request with the RSA key pair
+            CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
-                // Configure the certificate as CA.
-                request.CertificateExtensions.Add(
-                   new X509BasicConstraintsExtension(true, true, 12, true));
+            // Configure the certificate as CA.
+            request.CertificateExtensions.Add(
+               new X509BasicConstraintsExtension(true, true, 12, true));
 
-                // Configure the certificate for Digital Signature and Key Encipherment.
-                request.CertificateExtensions.Add(
-                    new X509KeyUsageExtension(
-                        X509KeyUsageFlags.KeyCertSign,
-                        true));
+            // Configure the certificate for Digital Signature and Key Encipherment.
+            request.CertificateExtensions.Add(
+                new X509KeyUsageExtension(
+                    X509KeyUsageFlags.KeyCertSign,
+                    true));
 
-                X509Certificate2 SelfSignedCertificate = request.Create(
-                    request.SubjectName,
-                    new RsaPkcs1SignatureGenerator(rsa),
-                    new(new DateTime(1980, 1, 1), TimeSpan.Zero),
-                    new(new DateTime(7980, 1, 1), TimeSpan.Zero),
-                    certSerialNumber).CopyWithPrivateKey(rsa);
+            X509Certificate2 SelfSignedCertificate = request.Create(
+                request.SubjectName,
+                new RsaPkcs1SignatureGenerator(rsa),
+                new(new DateTime(1980, 1, 1), TimeSpan.Zero),
+                new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                certSerialNumber).CopyWithPrivateKey(rsa);
 
-                // Export the private key.
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca_privkey.pem",
-                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
+            // Export the private key.
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca_privkey.pem",
+                PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
-                // Export the certificate.
-                string crt = Convert.ToBase64String(SelfSignedCertificate.Export(X509ContentType.Cert), Base64FormattingOptions.InsertLineBreaks);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.pem", CRT_HEADER + crt + CRT_FOOTER);
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.cer", CRT_HEADER + crt + CRT_FOOTER); // For Windows MMC.
+            // Export the certificate.
+            string crt = Convert.ToBase64String(SelfSignedCertificate.Export(X509ContentType.Cert), Base64FormattingOptions.InsertLineBreaks);
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.pem", CRT_HEADER + crt + CRT_FOOTER);
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_rootca.cer", CRT_HEADER + crt + CRT_FOOTER); // For Windows MMC.
 
-                rsa.Clear();
+            rsa.Clear();
 
-                return SelfSignedCertificate;
-            }
+            return SelfSignedCertificate;
         }
 
         /// <summary>
@@ -208,75 +206,74 @@ namespace BackendProject.MiscUtils
             new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create())
-            {
-                rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
+            using RSA rsa = RSA.Create();
+            rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
-                // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+            // Create a certificate request with the RSA key pair
+            CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
-                // Set additional properties of the certificate
-                request.CertificateExtensions.Add(
-                    new X509BasicConstraintsExtension(false, false, 0, true));
+            // Set additional properties of the certificate
+            request.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(false, false, 0, true));
 
-                // Enhanced key usages
-                request.CertificateExtensions.Add(
-                    new X509EnhancedKeyUsageExtension(
-                        new OidCollection {
+            // Enhanced key usages
+            request.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(
+                    new OidCollection {
                             new Oid("1.3.6.1.5.5.7.3.2"), // TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.1"), // TLS Server auth
                             new Oid("1.3.6.1.5.5.7.3.4"), // Non-TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.5")  // Non-TLS Server auth
-                        },
-                        true));
+                    },
+                    true));
 
-                // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
-                SubjectAlternativeNameBuilder sanBuilder = new();
-                sanBuilder.AddDnsName("*.net");
-                sanBuilder.AddDnsName("*.com");
-                sanBuilder.AddDnsName("*.fr");
-                sanBuilder.AddDnsName("*.it");
-                sanBuilder.AddDnsName("*.en");
-                sanBuilder.AddDnsName("*.online");
-                if (DnsList != null) // Yep... some clients do not allow wildcard domains.
+            // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
+            SubjectAlternativeNameBuilder sanBuilder = new();
+            sanBuilder.AddDnsName("*.net");
+            sanBuilder.AddDnsName("*.com");
+            sanBuilder.AddDnsName("*.fr");
+            sanBuilder.AddDnsName("*.it");
+            sanBuilder.AddDnsName("*.en");
+            sanBuilder.AddDnsName("*.de");
+            sanBuilder.AddDnsName("*.ru");
+            sanBuilder.AddDnsName("*.online");
+            if (DnsList != null) // Yep... some clients do not allow wildcard domains.
+            {
+                foreach (string str in DnsList)
                 {
-                    foreach (string str in DnsList)
-                    {
-                        sanBuilder.AddDnsName(str);
-                    }
+                    sanBuilder.AddDnsName(str);
                 }
-                sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
-                sanBuilder.AddEmailAddress("MultiServer@gmail.com");
-                request.CertificateExtensions.Add(sanBuilder.Build());
-
-                string certPassword = "qwerty"; // Set a password to protect the private key
-
-                File.WriteAllBytes(FileName, request.Create(
-                    issuerCertificate,
-                    new(new DateTime(1980, 1, 1), TimeSpan.Zero),
-                    new(new DateTime(7980, 1, 1), TimeSpan.Zero),
-                    certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx, certPassword));
-
-                // Export the private key.
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_privkey.pem",
-                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
-
-                // Export the public key.
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem",
-                    PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
-
-                Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(FileName, certPassword);
-
-                StringBuilder CertPem = new();
-                PemWriter CSRPemWriter = new(new StringWriter(CertPem));
-                CSRPemWriter.WriteObject(x509cert);
-                CSRPemWriter.Writer.Flush();
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.pem", CertPem.ToString());
-
-                rsa.Clear();
-
-                return CertPem.ToString();
             }
+            sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
+            sanBuilder.AddEmailAddress("MultiServer@gmail.com");
+            request.CertificateExtensions.Add(sanBuilder.Build());
+
+            string certPassword = "qwerty"; // Set a password to protect the private key
+
+            File.WriteAllBytes(FileName, request.Create(
+                issuerCertificate,
+                new(new DateTime(1980, 1, 1), TimeSpan.Zero),
+                new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx, certPassword));
+
+            // Export the private key.
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_privkey.pem",
+                PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
+
+            // Export the public key.
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem",
+                PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
+
+            StringBuilder CertPem = new();
+            PemWriter CSRPemWriter = new(new StringWriter(CertPem));
+            CSRPemWriter.WriteObject(ImportCertFromPfx(FileName, certPassword));
+            CSRPemWriter.Writer.Flush();
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.pem", CertPem.ToString());
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.cer", CertPem.ToString()); // For Windows MMC.
+
+            rsa.Clear();
+
+            return CertPem.ToString();
         }
 
         /// <summary>
@@ -288,83 +285,82 @@ namespace BackendProject.MiscUtils
         public static string CreateSelfSignedCert(string FileName)
         {
             // Generate a new RSA key pair
-            using (RSA rsa = RSA.Create(1024))
-            {
-                rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
+            using RSA rsa = RSA.Create(1024);
+            rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
-                // Create a certificate request with the RSA key pair
-                CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
+            // Create a certificate request with the RSA key pair
+            CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
-                // Set additional properties of the certificate
-                request.CertificateExtensions.Add(
-                    new X509BasicConstraintsExtension(false, false, 0, true));
+            // Set additional properties of the certificate
+            request.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(false, false, 0, true));
 
-                // Enhanced key usages
-                request.CertificateExtensions.Add(
-                    new X509EnhancedKeyUsageExtension(
-                        new OidCollection {
+            // Enhanced key usages
+            request.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(
+                    new OidCollection {
                             new Oid("1.3.6.1.5.5.7.3.2"), // TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.1"), // TLS Server auth
                             new Oid("1.3.6.1.5.5.7.3.4"), // Non-TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.5")  // Non-TLS Server auth
-                        },
-                        true));
+                    },
+                    true));
 
-                // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
-                SubjectAlternativeNameBuilder sanBuilder = new();
-                sanBuilder.AddDnsName("*.net");
-                sanBuilder.AddDnsName("*.com");
-                sanBuilder.AddDnsName("*.fr");
-                sanBuilder.AddDnsName("*.it");
-                sanBuilder.AddDnsName("*.en");
-                sanBuilder.AddDnsName("*.online");
-                if (DnsList != null) // Yep... some clients do not allow wildcard domains.
+            // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
+            SubjectAlternativeNameBuilder sanBuilder = new();
+            sanBuilder.AddDnsName("*.net");
+            sanBuilder.AddDnsName("*.com");
+            sanBuilder.AddDnsName("*.fr");
+            sanBuilder.AddDnsName("*.it");
+            sanBuilder.AddDnsName("*.en");
+            sanBuilder.AddDnsName("*.de");
+            sanBuilder.AddDnsName("*.ru");
+            sanBuilder.AddDnsName("*.online");
+            if (DnsList != null) // Yep... some clients do not allow wildcard domains.
+            {
+                foreach (string str in DnsList)
                 {
-                    foreach (string str in DnsList)
-                    {
-                        sanBuilder.AddDnsName(str);
-                    }
+                    sanBuilder.AddDnsName(str);
                 }
-                sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
-                sanBuilder.AddEmailAddress("MultiServer@gmail.com");
-                request.CertificateExtensions.Add(sanBuilder.Build());
+            }
+            sanBuilder.AddIpAddress(IPAddress.Parse("0.0.0.0"));
+            sanBuilder.AddEmailAddress("MultiServer@gmail.com");
+            request.CertificateExtensions.Add(sanBuilder.Build());
 
-                // Create a self-signed certificate from the certificate request
-                X509Certificate2 certificate = request.Create(
-                    request.SubjectName,
-                    new RsaPkcs1SignatureGenerator(rsa),
-                    new(new DateTime(1980, 1, 1), TimeSpan.Zero),
-                    new(new DateTime(7980, 1, 1), TimeSpan.Zero),
-                    new byte[] { 0x00, 0x01, 0x00, 0x00,
+            // Create a self-signed certificate from the certificate request
+            X509Certificate2 certificate = request.Create(
+                request.SubjectName,
+                new RsaPkcs1SignatureGenerator(rsa),
+                new(new DateTime(1980, 1, 1), TimeSpan.Zero),
+                new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                new byte[] { 0x00, 0x01, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00 }); // This byte array specifies SSLv2 compatibility
 
-                X509Certificate2 SelfSignedCertificate = certificate.CopyWithPrivateKey(rsa);
+            X509Certificate2 SelfSignedCertificate = certificate.CopyWithPrivateKey(rsa);
 
-                string certPassword = "qwerty"; // Set a password to protect the private key
-                File.WriteAllBytes(FileName, SelfSignedCertificate.Export(X509ContentType.Pfx, certPassword));
+            string certPassword = "qwerty"; // Set a password to protect the private key
+            File.WriteAllBytes(FileName, SelfSignedCertificate.Export(X509ContentType.Pfx, certPassword));
 
-                // Export the private key.
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_key.pem",
-                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
+            // Export the private key.
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_key.pem",
+                PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
-                // Export the public key.
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem",
-                    PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
+            // Export the public key.
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}_pubkey.pem",
+                PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
 
-                Org.BouncyCastle.X509.X509Certificate x509cert = ImportCertFromPfx(FileName, certPassword);
+            StringBuilder CertPem = new();
+            PemWriter CSRPemWriter = new(new StringWriter(CertPem));
+            CSRPemWriter.WriteObject(ImportCertFromPfx(FileName, certPassword));
+            CSRPemWriter.Writer.Flush();
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.pem", CertPem.ToString());
+            File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.cer", CertPem.ToString()); // For Windows MMC.
 
-                StringBuilder CertPem = new();
-                PemWriter CSRPemWriter = new(new StringWriter(CertPem));
-                CSRPemWriter.WriteObject(x509cert);
-                CSRPemWriter.Writer.Flush();
-                File.WriteAllText(Path.GetDirectoryName(FileName) + $"/{Path.GetFileNameWithoutExtension(FileName)}.pem", CertPem.ToString());
+            rsa.Clear();
 
-                rsa.Clear();
-
-                return CertPem.ToString();
-            }
+            return CertPem.ToString();
         }
 
         /// <summary>
@@ -458,7 +454,7 @@ namespace BackendProject.MiscUtils
 
         /// <summary>
         /// Converts a pem to a byte array.
-        /// <para>Transforme un certificate PEM en tableua de bytes.</para>
+        /// <para>Transforme un certificate PEM en tableau de bytes.</para>
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="pem">The PEM cert.</param>

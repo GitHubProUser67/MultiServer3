@@ -90,6 +90,25 @@ namespace BackendProject.MiscUtils
             return null;
         }
 
+        public static string? GetISOCodeFromIP(IPAddress IPAddr)
+        {
+            // Format as follows -> Country-IsInEuropeanUnion.
+            if (Instance != null && Instance.Reader != null)
+            {
+                try
+                {
+                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse? countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
+                        return countryresponse.Country.IsoCode;
+                }
+                catch (Exception)
+                {
+                    // Not Important.
+                }
+            }
+
+            return null;
+        }
+
         public static GeoIPUtils Instance
         {
             get

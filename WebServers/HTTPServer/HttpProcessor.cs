@@ -21,6 +21,8 @@ using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using WebUtils.HOMECORE;
 using WebUtils.LOOT;
+using System.Buffers;
+using WebUtils.UBISOFT.HERMES_API;
 
 namespace HTTPServer
 {
@@ -89,11 +91,11 @@ namespace HTTPServer
                         {
                             HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString());
 
-                            if (request != null && !string.IsNullOrEmpty(request.Url) && !request.GetHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
+                            if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
                                 HttpResponse? response = null;
 
-                                string Host = request.GetHeaderValue("Host");
+                                string Host = request.RetrieveHeaderValue("Host");
 
                                 string SuplementalMessage = string.Empty;
                                 string? GeoCodeString = GeoIPUtils.GetGeoCodeFromIP(IPAddress.Parse(clientip));
@@ -110,7 +112,7 @@ namespace HTTPServer
 
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {request.Url}");
 
-                                string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.GetHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
+                                string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
 
                                 if (HTTPServerConfiguration.RedirectRules != null)
                                 {
@@ -252,8 +254,22 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    var res = new VEEMEEClass(request.Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
+                                                    (string?, string?) res = new VEEMEEClass(request.Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
                                                     postdata.Flush();
+
+                                                    if (string.IsNullOrEmpty(res.Item1))
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
+                                                    {
+                                                        if (!string.IsNullOrEmpty(res.Item2))
+                                                            response = HttpResponse.Send(res.Item1, res.Item2);
+                                                        else
+                                                            response = HttpResponse.Send(res.Item1, "text/plain");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    (string?, string?) res = new VEEMEEClass(request.Method, absolutepath).ProcessRequest(null, request.GetContentType(), absolutepath);
 
                                                     if (string.IsNullOrEmpty(res.Item1))
                                                         response = HttpBuilder.InternalServerError();
@@ -353,9 +369,93 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
+                                            if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
+
+                                                string Authorization = request.RetrieveHeaderValue("Authorization");
+
+                                                if (!string.IsNullOrEmpty(Authorization))
+                                                {
+                                                    // TODO, verify ticket data for every platforms.
+
+                                                    if (Authorization.StartsWith("psn t=") && VariousUtils.IsBase64String(Authorization))
+                                                    {
+                                                        byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
+
+                                                        // Extract the desired portion of the binary data
+                                                        byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                                        // Copy it
+                                                        Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
+
+                                                        // Convert 0x00 bytes to 0x48 so FileSystem can support it
+                                                        for (int i = 0; i < extractedData.Length; i++)
+                                                        {
+                                                            if (extractedData[i] == 0x00)
+                                                                extractedData[i] = 0x48;
+                                                        }
+
+                                                        if (VariousUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                                            LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                                                        else
+                                                            LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                                    }
+                                                    else if (Authorization.StartsWith("Ubi_v1 t="))
+                                                    {
+                                                        // Our JWT token is fake for now.
+                                                    }
+
+                                                    if (request.GetDataStream != null)
+                                                    {
+                                                        using MemoryStream postdata = new();
+                                                        request.GetDataStream.CopyTo(postdata);
+                                                        (string?, string?) res = new HERMESClass(request.Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
+                                                            .ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                        postdata.Flush();
+
+                                                        if (string.IsNullOrEmpty(res.Item1))
+                                                            response = HttpBuilder.InternalServerError();
+                                                        else
+                                                        {
+                                                            if (!string.IsNullOrEmpty(res.Item2))
+                                                                response = HttpResponse.Send(res.Item1, res.Item2);
+                                                            else
+                                                                response = HttpResponse.Send(res.Item1, "text/plain");
+
+                                                            response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                                            response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
+
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        (string?, string?) res = new HERMESClass(request.Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
+                                                            .ProcessRequest(null, request.GetContentType());
+
+                                                        if (string.IsNullOrEmpty(res.Item1))
+                                                            response = HttpBuilder.InternalServerError();
+                                                        else
+                                                        {
+                                                            if (!string.IsNullOrEmpty(res.Item2))
+                                                                response = HttpResponse.Send(res.Item1, res.Item2);
+                                                            else
+                                                                response = HttpResponse.Send(res.Item1, "text/plain");
+
+                                                            response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                                            response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
+
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                    response = HttpBuilder.NotAllowed();
+                                            }
                                             else
                                             {
-                                                string? encoding = request.GetHeaderValue("Accept-Encoding");
+                                                string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
                                                 switch (request.Method)
                                                 {
@@ -411,7 +511,7 @@ namespace HTTPServer
                                                                 break;
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
-                                                                if (request.GetHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
+                                                                if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
                                                                     response = HttpBuilder.NotAllowed();
                                                                 else
                                                                 {
@@ -423,7 +523,7 @@ namespace HTTPServer
                                                                             response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
                                                                                 Models.HttpStatusCode.OK);
                                                                         else
-                                                                            response = new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                                                                            response = new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                                                             {
                                                                                 HttpStatusCode = Models.HttpStatusCode.OK,
                                                                                 ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
@@ -432,7 +532,7 @@ namespace HTTPServer
                                                                             };
                                                                     }
                                                                     else
-                                                                        response = new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                                                                        response = new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                                                         {
                                                                             HttpStatusCode = Models.HttpStatusCode.OK,
                                                                             ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
@@ -658,7 +758,7 @@ namespace HTTPServer
                                                         {
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
-                                                                if (request.GetHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
+                                                                if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
                                                                     response = HttpBuilder.NotAllowed();
                                                                 else
                                                                 {
@@ -669,7 +769,7 @@ namespace HTTPServer
                                                                         if (vid != null && vid.Available && vid.VideoStream != null)
                                                                         {
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
-                                                                            response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                                                                            response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                                                             {
                                                                                 HttpStatusCode = Models.HttpStatusCode.OK
                                                                             };
@@ -908,7 +1008,7 @@ namespace HTTPServer
 
             const int rangebuffersize = 32768;
 
-            string? acceptencoding = request.GetHeaderValue("Accept-Encoding");
+            string? acceptencoding = request.RetrieveHeaderValue("Accept-Encoding");
 
             HttpResponse? response = null;
 
@@ -918,7 +1018,7 @@ namespace HTTPServer
             try
             {
                 long filesize = fs.Length;
-                string HeaderString = request.GetHeaderValue("Range").Replace("bytes=", string.Empty);
+                string HeaderString = request.RetrieveHeaderValue("Range").Replace("bytes=", string.Empty);
                 if (HeaderString.Contains(','))
                 {
                     using HugeMemoryStream ms = new();
@@ -976,7 +1076,7 @@ namespace HTTPServer
 
                             ms.Flush();
                             ms.Close();
-                            response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                            response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                             {
                                 HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
                             };
@@ -995,13 +1095,13 @@ namespace HTTPServer
                         {
                             ms.Flush();
                             ms.Close();
-                            if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                                response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                            if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                                response = new(request.RetrieveHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                                 {
                                     HttpStatusCode = Models.HttpStatusCode.OK
                                 };
                             else
-                                response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                                response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = Models.HttpStatusCode.OK
                                 };
@@ -1032,7 +1132,7 @@ namespace HTTPServer
                     ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                     ms.Write(Separator);
                     ms.Position = 0;
-                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                    if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                         response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                         {
                             HttpStatusCode = Models.HttpStatusCode.Partial_Content
@@ -1137,7 +1237,7 @@ namespace HTTPServer
                         "        </body>\r\n" +
                         "</html>";
 
-                    response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                    response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                     {
                         HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
                     };
@@ -1166,13 +1266,13 @@ namespace HTTPServer
                             }
                         }
                     }
-                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                        response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                    if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                        response = new(request.RetrieveHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                         {
                             HttpStatusCode = Models.HttpStatusCode.OK
                         };
                     else
-                        response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                        response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                         {
                             HttpStatusCode = Models.HttpStatusCode.OK
                         };
@@ -1197,7 +1297,7 @@ namespace HTTPServer
                             }
                         }
                     }
-                    if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                    if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                         response = new(true, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                         {
                             HttpStatusCode = Models.HttpStatusCode.Partial_Content

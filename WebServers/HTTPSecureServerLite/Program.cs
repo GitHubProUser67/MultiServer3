@@ -75,7 +75,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
                 new JProperty("AllowedIPs", new JArray(AllowedIPs ?? new List<string> { }))
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

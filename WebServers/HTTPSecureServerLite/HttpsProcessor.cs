@@ -20,6 +20,7 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
+using WebUtils.UBISOFT.HERMES_API;
 
 namespace HTTPSecureServerLite
 {
@@ -518,6 +519,70 @@ namespace HTTPSecureServerLite
                         }
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
+                    }
+                    else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
+                    {
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
+
+                        string Authorization = request.RetrieveHeaderValue("Authorization");
+
+                        if (!string.IsNullOrEmpty(Authorization))
+                        {
+                            // TODO, verify ticket data for every platforms.
+
+                            if (Authorization.StartsWith("psn t=") && VariousUtils.IsBase64String(Authorization))
+                            {
+                                byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
+
+                                // Extract the desired portion of the binary data
+                                byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                // Copy it
+                                Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
+
+                                // Convert 0x00 bytes to 0x48 so FileSystem can support it
+                                for (int i = 0; i < extractedData.Length; i++)
+                                {
+                                    if (extractedData[i] == 0x00)
+                                        extractedData[i] = 0x48;
+                                }
+
+                                if (VariousUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                    LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                                else
+                                    LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                            }
+                            else if (Authorization.StartsWith("Ubi_v1 t="))
+                            {
+                                // Our JWT token is fake for now.
+                            }
+
+                            (string?, string?) res = new HERMESClass(request.Method.ToString(), absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                    request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPSServerConfiguration.APIStaticFolder)
+                                .ProcessRequest(request.DataAsBytes, request.ContentType);
+                            if (string.IsNullOrEmpty(res.Item1))
+                                statusCode = HttpStatusCode.InternalServerError;
+                            else
+                            {
+                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
+                                statusCode = HttpStatusCode.OK;
+                            }
+                            response.StatusCode = (int)statusCode;
+                            if (!string.IsNullOrEmpty(res.Item2))
+                                response.ContentType = res.Item2;
+                            else
+                                response.ContentType = "text/plain";
+                            sent = await response.Send(res.Item1);
+                        }
+                        else
+                        {
+                            statusCode = HttpStatusCode.Forbidden;
+                            response.StatusCode = (int)statusCode;
+                            response.ContentType = "text/plain";
+                            sent = await response.Send();
+                        }
                     }
                     else
                     {

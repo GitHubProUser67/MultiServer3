@@ -123,6 +123,7 @@ ps3burnout08.ea.com,Redirect,IP
 tdulive.quazal.net,Redirect,IP
 gos.ea.com,Redirect,IP
 prod.homemq.online.scee.com,Redirect,IP
+lb-rdv-as-prod01.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod01.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod02.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod03.ubisoft.com,Redirect,IP

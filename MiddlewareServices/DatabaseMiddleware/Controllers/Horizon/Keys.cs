@@ -2,7 +2,6 @@
 using Horizon.LIBRARY.Database.Entities;
 using Horizon.LIBRARY.Database.Models;
 using System.Data.Entity;
-using System.Runtime.InteropServices;
 using AppIdDTO = Horizon.LIBRARY.Database.Models.AppIdDTO;
 
 namespace DatabaseMiddleware.Controllers.Horizon
@@ -18,19 +17,16 @@ namespace DatabaseMiddleware.Controllers.Horizon
 
         public Task<List<AppIdDTO>> getAppIds()
         {
-            List<DimAppIds>? app_ids = null;
             List<DimAppGroups>? app_groups = null;
             List<AppIdDTO> results = new();
 
-            app_ids = (from app_id in db?.DimAppIds
-                            select app_id).ToList();
             app_groups = (from app_group in db?.DimAppGroups
                                select app_group).ToList();
 
-            var groupings = app_ids.GroupBy(x => x.GroupId);
-            foreach (var grouping in groupings)
+            foreach (var grouping in (from app_id in db?.DimAppIds
+                                      select app_id).ToList().GroupBy(x => x.GroupId))
             {
-                var group = app_groups.FirstOrDefault(x => x.GroupId == grouping.Key);
+                DimAppGroups? group = app_groups.FirstOrDefault(x => x.GroupId == grouping.Key);
 
                 if (group == null)
                     results.AddRange(grouping.Select(x => new AppIdDTO() { Name = x.AppName, AppIds = new List<int>() { x.AppId } }));
@@ -52,7 +48,7 @@ namespace DatabaseMiddleware.Controllers.Horizon
         {
             foreach (var setting in settings)
             {
-                var existingSetting = db?.ServerSettings?.Find(appId, setting.Key);
+                ServerSetting? existingSetting = db?.ServerSettings?.Find(appId, setting.Key);
                 if (existingSetting == null)
                 {
                     existingSetting = new ServerSetting() { AppId = appId, Name = setting.Key, Value = setting.Value };
@@ -65,10 +61,9 @@ namespace DatabaseMiddleware.Controllers.Horizon
             db?.SaveChanges();
         }
 
-        public async Task<dynamic?> getEULA(int policyType, int appId, int? eulaId, DateTime? fromDt, DateTime? toDt)
+        public Task<dynamic?> getEULA(int policyType, int appId, int? eulaId, DateTime? fromDt, DateTime? toDt)
         {
             dynamic? eula = null;
-            DateTime now = DateTime.UtcNow;
 
             if (policyType == 0)
             {
@@ -101,32 +96,30 @@ namespace DatabaseMiddleware.Controllers.Horizon
                 eula = (from e in db?.DimEula
                         where e.FromDt <= fromDt
                         && e.AppId == appId
-                        && (e.ToDt == null || e.ToDt >= now)
+                        && (e.ToDt == null || e.ToDt >= DateTime.UtcNow)
                         select e).FirstOrDefault();
             }
-            else
-                return null;
 
-            return eula;
+            return Task.FromResult(eula);
         }
 
-        public async Task<dynamic?> deleteEULA(int id)
+        public Task<dynamic?> deleteEULA(int id)
         {
-            var eula = db?.DimEula?.FirstOrDefault(x => x.Id == id);
+            DimEula? eula = db?.DimEula?.FirstOrDefault(x => x.Id == id);
             if (eula == null)
-                return null;
+                return Task.FromResult<dynamic?>(null);
 
             db?.DimEula?.Remove(eula);
             db?.SaveChanges();
 
-            return "EULA Deleted";
+            return Task.FromResult<dynamic?>("EULA Deleted");
         }
 
-        public async Task<dynamic?> updateEULA(ChangeEulaDTO request)
+        public Task<dynamic?> updateEULA(ChangeEulaDTO request)
         {
-            var eula = db?.DimEula?.FirstOrDefault(x => x.Id == request.Id);
+            DimEula? eula = db?.DimEula?.FirstOrDefault(x => x.Id == request.Id);
             if (eula == null)
-                return null;
+                return Task.FromResult<dynamic?>(null);
 
             db?.DimEula?.Attach(eula);
             db.Entry(eula).State = EntityState.Modified;
@@ -140,12 +133,12 @@ namespace DatabaseMiddleware.Controllers.Horizon
 
             db?.SaveChanges();
 
-            return "EULA Changed";
+            return Task.FromResult<dynamic?>("EULA Changed");
         }
 
-        public async Task<dynamic> postEULA(AddEulaDTO request)
+        public Task<dynamic> postEULA(AddEulaDTO request)
         {
-            var eula = new DimEula()
+            db?.DimEula?.Add(new DimEula()
             {
                 EulaTitle = request.EulaTitle,
                 EulaBody = request.EulaBody,
@@ -153,18 +146,15 @@ namespace DatabaseMiddleware.Controllers.Horizon
                 ToDt = request.ToDt,
                 CreateDt = DateTime.UtcNow,
                 AppId = request.AppId,
-            };
-
-            db?.DimEula?.Add(eula);
+            });
             db?.SaveChanges();
 
-            return "EULA Added";
+            return Task.FromResult<dynamic>("EULA Added");
         }
 
-        public async Task<dynamic?> getAnnouncements(int? accouncementId, int? appId, DateTime? fromDt, DateTime? toDt, int AppId)
+        public Task<dynamic?> getAnnouncements(int? accouncementId, int? appId, DateTime? fromDt, DateTime? toDt, int AppId)
         {
             dynamic? announcement = null;
-            DateTime now = DateTime.UtcNow;
             if (accouncementId != null)
             {
                 announcement = (from a in db?.DimAnnouncements
@@ -182,47 +172,42 @@ namespace DatabaseMiddleware.Controllers.Horizon
             {
                 announcement = (from a in db?.DimAnnouncements
                                 where a.AppId == AppId && a.FromDt <= fromDt
-                        && (a.ToDt == null || a.ToDt >= now)
+                        && (a.ToDt == null || a.ToDt >= DateTime.UtcNow)
                                 select a).FirstOrDefault();
             }
-            else
-                return null;
 
-            return announcement;
+            return Task.FromResult<dynamic?>(announcement);
         }
 
-        public async Task<dynamic> getAnnouncementsList(int AppId, DateTime? Dt, int TakeSize = 10)
+        public Task<dynamic?> getAnnouncementsList(int AppId, DateTime? Dt, int TakeSize = 10)
         {
-            dynamic? announcements = null;
             if (Dt == null)
                 Dt = DateTime.UtcNow;
-            DateTime now = DateTime.UtcNow;
-            announcements = (from a in db?.DimAnnouncements
-                             orderby a.FromDt descending
-                             where a.AppId == AppId && a.FromDt <= Dt
-                     && (a.ToDt == null || a.ToDt >= Dt)
-                             select a).Take(TakeSize).ToList();
 
-            return announcements;
+            return Task.FromResult<dynamic?>((from a in db?.DimAnnouncements
+                                              orderby a.FromDt descending
+                                              where a.AppId == AppId && a.FromDt <= Dt
+                                      && (a.ToDt == null || a.ToDt >= Dt)
+                                              select a).Take(TakeSize).ToList());
         }
 
-        public async Task<dynamic?> deleteAnnouncement(int id)
+        public Task<dynamic?> deleteAnnouncement(int id)
         {
-            var announcement = db?.DimAnnouncements?.FirstOrDefault(x => x.Id == id);
+            DimAnnouncements? announcement = db?.DimAnnouncements?.FirstOrDefault(x => x.Id == id);
             if (announcement == null)
-                return null;
+                return Task.FromResult<dynamic?>(null);
 
             db?.DimAnnouncements?.Remove(announcement);
             db?.SaveChanges();
 
-            return "Announcement Deleted";
+            return Task.FromResult<dynamic?>("Announcement Deleted");
         }
 
-        public async Task<dynamic?> updateAnnouncement(ChangeAnnouncementDTO request)
+        public Task<dynamic?> updateAnnouncement(ChangeAnnouncementDTO request)
         {
-            var announcement = db?.DimAnnouncements?.FirstOrDefault(x => x.Id == request.Id);
+            DimAnnouncements? announcement = db?.DimAnnouncements?.FirstOrDefault(x => x.Id == request.Id);
             if (announcement == null)
-                return null;
+                return Task.FromResult<dynamic?>(null);
 
             db?.DimAnnouncements?.Attach(announcement);
             db.Entry(announcement).State = EntityState.Modified;
@@ -236,12 +221,12 @@ namespace DatabaseMiddleware.Controllers.Horizon
 
             db?.SaveChanges();
 
-            return "Announcement Changed";
+            return Task.FromResult<dynamic?>("Announcement Changed");
         }
 
-        public async Task<dynamic> postAnnouncement(AddAnnouncementDTO request)
+        public Task<dynamic> postAnnouncement(AddAnnouncementDTO request)
         {
-            var announcement = new DimAnnouncements()
+            db?.DimAnnouncements?.Add(new DimAnnouncements()
             {
                 AnnouncementTitle = request.AnnouncementTitle,
                 AnnouncementBody = request.AnnouncementBody,
@@ -249,17 +234,15 @@ namespace DatabaseMiddleware.Controllers.Horizon
                 ToDt = request.ToDt,
                 CreateDt = DateTime.UtcNow,
                 AppId = request.AppId,
-            };
-
-            db?.DimAnnouncements?.Add(announcement);
+            });
             db?.SaveChanges();
 
-            return "Announcement Added";
+            return Task.FromResult<dynamic>("Announcement Added");
         }
 
-        public async Task<dynamic> postMaintenanceFlag(MaintenanceDTO request)
+        public Task<dynamic> postMaintenanceFlag(MaintenanceDTO request)
         {
-            var existingData = db?.ServerFlags?.Where(acs => acs.ServerFlag == "maintenance_mode").FirstOrDefault();
+            ServerFlags? existingData = db?.ServerFlags?.Where(acs => acs.ServerFlag == "maintenance_mode").FirstOrDefault();
             if (existingData != null)
             {
                 existingData.Value = request.IsActive.ToString();
@@ -270,56 +253,50 @@ namespace DatabaseMiddleware.Controllers.Horizon
             }
             else
             {
-                var flag = new ServerFlags()
+                db?.ServerFlags?.Add(new ServerFlags()
                 {
                     ServerFlag = "maintenance_mode",
                     FromDt = request.FromDt,
                     ToDt = request.ToDt,
                     Value = request.IsActive.ToString()
-                };
-                db?.ServerFlags?.Add(flag);
+                });
             }
             db?.SaveChanges();
 
-            return "Maintenance Flag Added";
+            return Task.FromResult<dynamic>("Maintenance Flag Added");
         }
 
-        public async Task<dynamic> getServerFlags()
+        public Task<dynamic> getServerFlags()
         {
-            var flags = (from sg in db?.ServerFlags
-                         select sg).ToList();
-
-            return new ServerFlagsDTO()
+            return Task.FromResult<dynamic>(new ServerFlagsDTO()
             {
-                MaintenanceMode = flags.Where(f => f.ServerFlag == "maintenance_mode").Select(f => new MaintenanceDTO()
+                MaintenanceMode = (from sg in db?.ServerFlags
+                                   select sg).ToList().Where(f => f.ServerFlag == "maintenance_mode").Select(f => new MaintenanceDTO()
                 {
                     IsActive = bool.Parse(f.Value),
                     FromDt = f.FromDt,
                     ToDt = f.ToDt
                 }).FirstOrDefault(),
-            };
+            });
         }
 
-        public async Task<dynamic?> getLocations()
+        public Task<dynamic?> getLocations()
         {
-            var locations = db?.Locations?.ToList();
-
-            return locations;
+            return Task.FromResult<dynamic?>(db?.Locations?.ToList());
         }
 
-        public async Task<dynamic?> getLocations(int appId)
+        public Task<dynamic?> getLocations(int appId)
         {
-            var app_id_group = (from a in db?.DimAppIds
+            int? app_id_group = (from a in db?.DimAppIds
                                 where a.AppId == appId
                                 select a.GroupId).FirstOrDefault();
 
-            var app_ids_in_group = (from a in db?.DimAppIds
+            List<int> app_ids_in_group = (from a in db?.DimAppIds
                                     where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == appId
                                     select a.AppId).ToList();
 
-            var locations = db?.Locations?.Where(x => app_ids_in_group.Contains(x.AppId)).ToList();
-
-            return locations?.GroupBy(x => x.Id).Select(x => x.FirstOrDefault());
+            return Task.FromResult<dynamic?>(db?.Locations?.Where(x => app_ids_in_group.Contains(x.AppId))
+                .ToList()?.GroupBy(x => x.Id).Select(x => x.FirstOrDefault()));
         }
     }
 }
