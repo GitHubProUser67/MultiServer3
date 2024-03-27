@@ -56,7 +56,7 @@ public static class SVOServerConfiguration
                 new JProperty("pshome_rpcs3workaround", PSHomeRPCS3Workaround),
                 new JProperty("MOTD", MOTD),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

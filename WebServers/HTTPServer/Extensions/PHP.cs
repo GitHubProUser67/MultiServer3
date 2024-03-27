@@ -63,17 +63,17 @@ namespace HTTPServer.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("QUERY_STRING", queryString);
                 proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", request.GetContentType());
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", request.Method);
-                proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", request.GetHeaderValue("User-Agent"));
+                proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", request.RetrieveHeaderValue("User-Agent"));
                 proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", VariousUtils.GetPublicIPAddress());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
-                proc.StartInfo.EnvironmentVariables.Add("REFERER", request.GetHeaderValue("Referer"));
+                proc.StartInfo.EnvironmentVariables.Add("REFERER", request.RetrieveHeaderValue("Referer"));
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{request.Url}");
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", request.GetHeaderValue("Cookie"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", request.GetHeaderValue("Accept"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", request.GetHeaderValue("Accept-Charset"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_ENCODING", request.GetHeaderValue("Accept-Encoding"));
-                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_LANGUAGE", request.GetHeaderValue("Accept-Language"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", request.RetrieveHeaderValue("Cookie"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", request.RetrieveHeaderValue("Accept"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", request.RetrieveHeaderValue("Accept-Charset"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_ENCODING", request.RetrieveHeaderValue("Accept-Encoding"));
+                proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_LANGUAGE", request.RetrieveHeaderValue("Accept-Language"));
                 proc.StartInfo.EnvironmentVariables.Add("TMPDIR", tempPath);
                 proc.StartInfo.EnvironmentVariables.Add("TEMP", tempPath);
 

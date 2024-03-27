@@ -29,7 +29,7 @@ public static class MitmDNSServerConfiguration
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests)
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

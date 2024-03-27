@@ -8,8 +8,9 @@
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 10000:10000</DockerfileRunArguments>
 	<ApplicationIcon>DatabaseMiddleware.ico</ApplicationIcon>
-	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<InvariantGlobalization>false</InvariantGlobalization>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,11 +28,10 @@
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonUtils\HorizonUtils.csproj" />
   </ItemGroup>
 
-  <Target Name="CopyFolderToBuildDirectory" AfterTargets="Build">
-    <ItemGroup>
-      <SourceFolder Include="$(SolutionDir)\MiddlewareServices\DatabaseMiddleware\static\**\*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(SourceFolder)" DestinationFolder="$(TargetDir)\static\%(RecursiveDir)" />
-  </Target>
+  <ItemGroup>
+    <Content Include="static\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
+  </ItemGroup>
 
 </Project>

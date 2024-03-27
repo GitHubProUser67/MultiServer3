@@ -22,7 +22,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                         {
                             if (File.Exists(HTTPServerConfiguration.HTTPStaticFolder + indexFile))
                             {
-                                string? encoding = request.GetHeaderValue("Accept-Encoding");
+                                string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
                                 if (indexFile.Contains(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                                 {
@@ -58,7 +58,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                             }
                         }
 
-                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                        return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
@@ -71,7 +71,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "POST",
                     Host = "master10.doublefusion.com",
                     Callable = (HttpRequest request) => {
-                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                        return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
@@ -123,7 +123,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                             }
                         }
 
-                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                        return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                 {
                                     HttpStatusCode = HttpStatusCode.Not_Found,
                                     ContentAsUTF8 = string.Empty
@@ -143,7 +143,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                 return HttpResponse.Send(UFCResult, "text/xml");
                         }
 
-                        return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                        return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                             {
                                 HttpStatusCode = HttpStatusCode.InternalServerError,
                                 ContentAsUTF8 = string.Empty
@@ -169,7 +169,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                 if (!string.IsNullOrEmpty(xmlContent))
                                    devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
                             });
-                            string? encoding = request.GetHeaderValue("Accept-Encoding");
+                            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                 return HttpResponse.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))), "application/json;charset=UTF-8", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                             else

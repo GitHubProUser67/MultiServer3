@@ -33,7 +33,7 @@ namespace HTTPServer.Models
             return string.Format("{0} - {1}", Method, Url);
         }
 
-        public string GetHeaderValue(string headeruri)
+        public string RetrieveHeaderValue(string headeruri)
         {
             if (Headers.ContainsKey(headeruri))
                 return Headers[headeruri];

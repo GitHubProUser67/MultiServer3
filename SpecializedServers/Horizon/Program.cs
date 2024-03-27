@@ -80,7 +80,7 @@ public static class HorizonServerConfiguration
                 new JProperty("discord_plugin", new JObject(
                     new JProperty("enabled", EnableDiscordPlugin)
                 ))
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

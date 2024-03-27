@@ -1,5 +1,6 @@
 namespace BackendProject.MiscUtils
 {
+    // This class removes the 2gb limit of the classic MemoryStream (but might consume more ram).
     public class HugeMemoryStream : Stream
     {
         #region Fields
@@ -28,10 +29,10 @@ namespace BackendProject.MiscUtils
             Position = 0;
         }
 
-        public HugeMemoryStream(Stream st, int BufferSize)
+        public HugeMemoryStream(Stream st, long BufferSize)
         {
             int bytesRead = 0;
-            byte[] buffer = new byte[BufferSize]; // 4KB buffer, you can adjust this based on your needs
+            byte[] buffer = new byte[BufferSize];
 
             // Read from source and write to destination in chunks
             while ((bytesRead = st.Read(buffer, 0, buffer.Length)) > 0)

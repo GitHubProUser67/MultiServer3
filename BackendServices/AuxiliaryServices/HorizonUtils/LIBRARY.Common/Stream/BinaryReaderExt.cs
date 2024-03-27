@@ -5,21 +5,32 @@ namespace Horizon.LIBRARY.Common.Stream
 {
     public static class BinaryReaderExt
     {
-
-        public static T Read<T>(this BinaryReader reader)
+        public static T? Read<T>(this BinaryReader reader)
         {
+            //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
+            if (reader.BaseStream.Length == 0)
+                return default;
+
             var result = reader.ReadObject(typeof(T));
 
-            return result == null ? default(T) : (T)result;
+            return result == null ? default : (T)result;
         }
 
         public static IPAddress ReadIPAddress(this BinaryReader reader)
         {
+            //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
+            if (reader.BaseStream.Length == 0)
+                return IPAddress.None;
+
             return IPAddress.Parse(reader.ReadString(16));
         }
 
         public static string ReadString(this BinaryReader reader, int length)
         {
+            //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
+            if (reader.BaseStream.Length == 0)
+                return string.Empty;
+
             byte[] buffer = reader.ReadBytes(length);
             int i = 0;
             for (i = 0; i < buffer.Length; ++i)
@@ -32,12 +43,16 @@ namespace Horizon.LIBRARY.Common.Stream
                 return string.Empty;
         }
 
-        public static object ReadObject(this BinaryReader reader, Type type)
+        public static object? ReadObject(this BinaryReader reader, Type type)
         {
+            //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
+            if (reader.BaseStream.Length == 0)
+                return null;
+
             if (type.GetInterface("IStreamSerializer") != null)
             {
-                var result = (IStreamSerializer)Activator.CreateInstance(type);
-                result.Deserialize(reader);
+                var result = (IStreamSerializer?)Activator.CreateInstance(type);
+                result?.Deserialize(reader);
                 return result;
             }
             else if (type.IsEnum)
@@ -74,11 +89,19 @@ namespace Horizon.LIBRARY.Common.Stream
 
         public static byte[] ReadRest(this BinaryReader reader)
         {
+            //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
+            if (reader.BaseStream.Length == 0)
+                return Array.Empty<byte>();
+
             return reader.ReadBytes((int)(reader.BaseStream.Length - reader.BaseStream.Position));
         }
 
         public static string ReadRestAsString(this BinaryReader reader)
         {
+            //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
+            if (reader.BaseStream.Length == 0)
+                return string.Empty;
+
             return reader.ReadString((int)(reader.BaseStream.Length - reader.BaseStream.Position));
         }
     }

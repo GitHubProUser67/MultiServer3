@@ -28,6 +28,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(62128, "cYoqGd4f"), // AC3PRIVMULTPS3
                         Tuple.Create(61130, "h0rszqTw"), // AC2PS3
                         Tuple.Create(61132, "lON6yKGp"), // SCBLACKLISTPS3
+                        //Tuple.Create(61134, "Watch_Dogs"), // WATCHDOGSPS3 : TODO, doesn't work, figure out sandbox key.
                         Tuple.Create(60001, "ridfebb9"), // RB3
                         Tuple.Create(21032, "8dtRv2oj"), // GRO
                         Tuple.Create(30561, "os4R9pEiy") // GHOSTBUSTERSPS3
@@ -47,6 +48,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(62127, 62128, "cYoqGd4f"), // AC3PRIVMULTPS3
                         Tuple.Create(61129, 61130, "h0rszqTw"), // AC2PS3
                         Tuple.Create(61131, 61132, "lON6yKGp"), // SCBLACKLISTPS3
+                        //Tuple.Create(61133, 61134, "Watch_Dogs"), // WATCHDOGSPS3 : TODO, doesn't work, figure out sandbox key.
                         Tuple.Create(30560, 30561, "os4R9pEiy") // GHOSTBUSTERSPS3
                     };
 
@@ -92,7 +94,7 @@ public static class QuazalServerConfiguration
                         new JProperty("item3", item.Item3)
                     )
                 ))
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

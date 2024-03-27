@@ -23,7 +23,7 @@ namespace HTTPServer.RouteHandlers
         {
             if (File.Exists(local_path))
             {
-                HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
@@ -73,13 +73,13 @@ namespace HTTPServer.RouteHandlers
                 }
             }
 
-            if (request.GetHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                response = new(request.GetHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+            if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                response = new(request.RetrieveHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
             else
-                response = new(request.GetHeaderValue("Connection") == "keep-alive")
+                response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
@@ -98,7 +98,7 @@ namespace HTTPServer.RouteHandlers
                 {
                     response.Dispose();
 
-                    return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                    return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                     {
                         HttpStatusCode = HttpStatusCode.InternalServerError
                     };
@@ -112,7 +112,7 @@ namespace HTTPServer.RouteHandlers
 
         public static HttpResponse Handle_LocalFile_Download(HttpRequest request, string local_path)
         {
-            HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive")
+            HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
@@ -124,7 +124,7 @@ namespace HTTPServer.RouteHandlers
 
         public static HttpResponse Handle_ByteSubmit_Download(HttpRequest request, byte[]? Data, string FileName)
         {
-            HttpResponse response = new(request.GetHeaderValue("Connection") == "keep-alive");
+            HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive");
             if (Data != null)
             {
                 response.HttpStatusCode = HttpStatusCode.OK;
@@ -140,7 +140,7 @@ namespace HTTPServer.RouteHandlers
         private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest, string clientip, string? clientport)
         {
             string? queryparam = null;
-            string? encoding = request.GetHeaderValue("Accept-Encoding");
+            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
             if (request.QueryParameters != null && request.QueryParameters.TryGetValue("directory", out queryparam) && queryparam == "on")
             {
@@ -201,7 +201,7 @@ namespace HTTPServer.RouteHandlers
                     }
                 }
 
-                return new HttpResponse(request.GetHeaderValue("Connection") == "keep-alive")
+                return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
                 {
                     HttpStatusCode = HttpStatusCode.Not_Found,
                     ContentAsUTF8 = string.Empty

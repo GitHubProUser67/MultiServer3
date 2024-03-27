@@ -28,7 +28,7 @@ public static class TycoonServerConfiguration
             File.WriteAllText(configPath, new JObject(
                 new JProperty("tycoon_static_folder", TycoonStaticFolder),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

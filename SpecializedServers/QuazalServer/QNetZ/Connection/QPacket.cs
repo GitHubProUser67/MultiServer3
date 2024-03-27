@@ -257,8 +257,8 @@ namespace QuazalServer.QNetZ
             switch (proto)
 			{
 				case 3:
-					if (AccessKey == "0xE3")
-						return 0xE3;
+					if (AccessKey.Length == 4 && AccessKey.Contains("0x") && byte.TryParse(AccessKey, out byte Protocol))
+						return Protocol;
 					else
                         return (byte)Encoding.ASCII.GetBytes(AccessKey).Sum(b => b);
                 case 1:
@@ -295,12 +295,10 @@ namespace QuazalServer.QNetZ
 			else
 				tmp4 = (byte)(setting + data[pos]);
 
-			var result = (byte)((byte)(tmp >> 24) +
-						 (byte)(tmp >> 16) +
-						 (byte)(tmp >> 8) +
-						 (byte)tmp + tmp2 + tmp3 + tmp4);
-
-			return result;
+			return (byte)((byte)(tmp >> 24) +
+                   (byte)(tmp >> 16) +
+                   (byte)(tmp >> 8) +
+                   (byte)tmp + tmp2 + tmp3 + tmp4);
 		}
 
 		private void ExtractFlags()

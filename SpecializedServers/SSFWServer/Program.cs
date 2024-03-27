@@ -46,7 +46,7 @@ public static class SSFWServerConfiguration
                     new JProperty("enabled", EnableDiscordPlugin)
                 )),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString());
+            ).ToString().Replace("/", "\\\\"));
 
             return;
         }

@@ -9,6 +9,7 @@
 	<DockerfileRunArguments>-p 8080:8080 -p 10443:10443</DockerfileRunArguments>
 	<ApplicationIcon>SSFW.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,12 @@
   <ItemGroup>
 	<ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebUtils\WebUtils.csproj" />
 	<ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="static\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
   </ItemGroup>
 
 </Project>
