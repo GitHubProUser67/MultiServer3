@@ -58,6 +58,7 @@ namespace HTTPServer.RouteHandlers
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
         {
             HttpResponse? response = null;
+            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
             string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
             if (ContentType == "application/octet-stream")
@@ -105,31 +106,73 @@ namespace HTTPServer.RouteHandlers
                 }
             }
             else
-                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            {
+                long FileLength = new FileInfo(local_path).Length;
+
+                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && FileLength <= 8000000)
+                {
+                    response.Headers.Add("Content-Encoding", "gzip");
+                    response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                }
+                else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && FileLength <= 8000000)
+                {
+                    response.Headers.Add("Content-Encoding", "deflate");
+                    response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                }
+                else
+                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            }
 
             return response;
         }
 
         public static HttpResponse Handle_LocalFile_Download(HttpRequest request, string local_path)
         {
+            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
+
             HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
-            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            long FileLength = new FileInfo(local_path).Length;
+
+            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && FileLength <= 8000000)
+            {
+                response.Headers.Add("Content-Encoding", "gzip");
+                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+            }
+            else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && FileLength <= 8000000)
+            {
+                response.Headers.Add("Content-Encoding", "deflate");
+                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+            }
+            else
+                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
         }
 
         public static HttpResponse Handle_ByteSubmit_Download(HttpRequest request, byte[]? Data, string FileName)
         {
+            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
+
             HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive");
+
             if (Data != null)
             {
                 response.HttpStatusCode = HttpStatusCode.OK;
                 response.Headers["Content-disposition"] = $"attachment; filename={FileName}";
-                response.ContentStream = new MemoryStream(Data);
+
+                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && Data.Length <= 8000000)
+                {
+                    response.Headers.Add("Content-Encoding", "gzip");
+                    response.ContentStream = new MemoryStream(HTTPUtils.Compress(Data));
+                }
+                else
+                    response.ContentStream = new MemoryStream(Data);
             }
             else
                 response.HttpStatusCode = HttpStatusCode.InternalServerError;

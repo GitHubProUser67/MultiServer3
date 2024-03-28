@@ -1,5 +1,4 @@
 // Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
-using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using WebUtils;
 using WebUtils.OHS;
@@ -1107,7 +1106,22 @@ namespace HTTPServer
                                 };
                             response.Headers.Add("Accept-Ranges", "bytes");
                             response.Headers.Add("Content-Type", ContentType);
-                            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+                            long FileLength = new FileInfo(local_path).Length;
+
+                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                            {
+                                response.Headers.Add("Content-Encoding", "gzip");
+                                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            }
+                            else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
+                            {
+                                response.Headers.Add("Content-Encoding", "deflate");
+                                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            }
+                            else
+                                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
                             goto shortcut; // Do we really have the choice?
                         }
                         else
@@ -1278,7 +1292,21 @@ namespace HTTPServer
                         };
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Content-Type", ContentType);
-                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+                    long FileLength = new FileInfo(local_path).Length;
+
+                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                    {
+                        response.Headers.Add("Content-Encoding", "gzip");
+                        response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                    }
+                    else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
+                    {
+                        response.Headers.Add("Content-Encoding", "deflate");
+                        response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                    }
+                    else
+                        response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 }
                 else
                 {
@@ -1585,31 +1613,26 @@ namespace HTTPServer
                 PORT = clientport
             };
 
-            if (headers.ContainsKey("Content-Length"))
+            if (headers.TryGetValue("Content-Length", out string? value))
             {
-                int bytesLeft = Convert.ToInt32(headers["Content-Length"]); // No more than 2gb
+                long bytesLeft = Convert.ToInt64(value);
 
-                using MemoryStream contentStream = new();
+                if (bytesLeft <= 2147483648)
+                    req.Data = new MemoryStream();
+                else
+                    req.Data = new HugeMemoryStream();
+
                 while (bytesLeft > 0)
                 {
                     Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
                     int n = inputStream.Read(buffer);
 
-                    contentStream.Write(buffer);
+                    req.Data.Write(buffer);
 
                     bytesLeft -= n;
                 }
 
-                contentStream.Position = 0;
-
-                if (req.Data == null)
-                {
-                    req.Data = new MemoryStream();
-                    contentStream.CopyTo(req.Data);
-                    req.Data.Position = 0;
-                }
-
-                contentStream.Flush();
+                req.Data.Position = 0;
             }
 
             return req;

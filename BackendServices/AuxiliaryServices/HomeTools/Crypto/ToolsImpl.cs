@@ -1,5 +1,4 @@
 using CustomLogger;
-using System.Security.Cryptography;
 using System.Text;
 using ComponentAce.Compression.Libs.zlib;
 using BackendProject.MiscUtils;
@@ -85,25 +84,6 @@ namespace HomeTools.Crypto
         public static readonly byte[] TicketListV0IV = new byte[] { 0x30, 0x4B, 0x10, 0x3D, 0x46, 0x77, 0xAD, 0x84 };
 
         public static readonly byte[] TicketListV1IV = new byte[] { 0xc7, 0x96, 0x79, 0xe5, 0x79, 0x99, 0x9f, 0xbf };
-
-        public string ValidateSha1(byte[] data)
-        {
-            byte[] hashBytes = SHA1.HashData(data);
-            StringBuilder sb = new();
-
-            foreach (byte b in hashBytes)
-            {
-                sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
-            }
-
-            return sb.ToString().ToUpper();
-        }
-
-        public byte[] ValidateBytesSha1(byte[] data)
-        {
-            using SHA1 sha1 = SHA1.Create();
-            return sha1.ComputeHash(data);
-        }
 
         public ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
         {

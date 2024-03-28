@@ -5,7 +5,7 @@ using DatabaseMiddleware.Models;
 using Horizon.LIBRARY.Database.Models;
 using Newtonsoft.Json;
 using System.Net;
-using System.Net.Http.Headers;
+using System.Security.Policy;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
@@ -58,55 +58,117 @@ namespace DatabaseMiddleware.HTTPEngine
                 _Server = new WatsonWebserver.Lite.Extensions.HostBuilderExtension.HostBuilder(ip, port, false, DefaultRoute)
                     .MapAuthenticationRoute(AuthorizeConnection)
                     .MapPreRoutingRoute(PreRoutingHandler)
-                    .MapStaticRoute(HttpMethod.POST, "/Account/authenticate", async (ctx) =>
+                    .MapParameteRoute(HttpMethod.POST, "/Account/{command}", async (ctx) =>
                     {
-                        if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
-                            ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                        else
+                        HttpRequestBase request = ctx.Request;
+                        HttpResponseBase response = ctx.Response;
+
+                        try
                         {
-                            string? AuthToken = null;
-                            MiddlewareUser? user = null;
-                            AuthenticationRequest? req = await GetClassFromString<AuthenticationRequest>(ctx.Request.DataAsString);
+                            string? command = request.Url.Parameters["command"];
 
-                            if (req != null)
+                            if (command == "authenticate")
                             {
-                                if (!string.IsNullOrEmpty(req.Password) && VariousUtils.IsBase64String(req.Password))
+                                if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                else
                                 {
-                                    char[] charsToRemove = { '\"' };
-                                    req.Password = new string(WebCryptoUtils.Decrypt(req.Password, DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV)?.Where(c => !charsToRemove.Contains(c)).ToArray());
-                                }
+                                    string? AuthToken = null;
+                                    MiddlewareUser? user = null;
+                                    AuthenticationRequest? req = await GetClassFromString<AuthenticationRequest>(request.DataAsString);
 
-                                if (!string.IsNullOrEmpty(req.Password) && !string.IsNullOrEmpty(req.AccountName))
-                                {
-                                    user = AuthenticationChannel.GetUserByUsername(req.AccountName);
-                                    if (user != null && user.Password == req.Password)
-                                        AuthToken = AuthenticationChannel.GetTokenById(user.AccountId);
-                                    else if (user == null)
+                                    if (req != null)
                                     {
-                                        Authentication auth = new(new MiddlewareUser(AuthenticationChannel.GetNextAvailableId(), req.AccountName, req.Password));
-                                        AuthenticationChannel.AddAuthentificationData(auth);
-                                        AuthToken = auth.Token;
-                                        user = auth.User;
-                                    }
-                                }
-                            }
+                                        if (!string.IsNullOrEmpty(req.Password) && VariousUtils.IsBase64String(req.Password))
+                                        {
+                                            char[] charsToRemove = { '\"' };
+                                            req.Password = new string(WebCryptoUtils.Decrypt(req.Password, DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV)?.Where(c => !charsToRemove.Contains(c)).ToArray());
+                                        }
 
-                            if (!string.IsNullOrEmpty(AuthToken) && user != null)
-                            {
-                                ctx.Response.ChunkedTransfer = true;
-                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                ctx.Response.ContentType = "application/json";
-                                await ctx.Response.SendFinalChunk(WebCryptoUtils.EncryptToByteArray(new AuthenticationResponse()
-                                { AccountId = user.AccountId, AccountName = user.AccountName, Token = AuthToken, Roles = user.Roles }
-                                , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
-                                return;
+                                        if (!string.IsNullOrEmpty(req.Password) && !string.IsNullOrEmpty(req.AccountName))
+                                        {
+                                            user = AuthenticationChannel.GetUserByUsername(req.AccountName);
+                                            if (user != null && user.Password == req.Password)
+                                                AuthToken = AuthenticationChannel.GetTokenById(user.AccountId);
+                                            else if (user == null)
+                                            {
+                                                Authentication auth = new(new MiddlewareUser(AuthenticationChannel.GetNextAvailableId(), req.AccountName, req.Password));
+                                                AuthenticationChannel.AddAuthentificationData(auth);
+                                                AuthToken = auth.Token;
+                                                user = auth.User;
+                                            }
+                                        }
+                                    }
+
+                                    if (!string.IsNullOrEmpty(AuthToken) && user != null)
+                                    {
+                                        response.ChunkedTransfer = true;
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.ContentType = "application/json";
+                                        await response.SendFinalChunk(WebCryptoUtils.EncryptToByteArray(new AuthenticationResponse()
+                                        { AccountId = user.AccountId, AccountName = user.AccountName, Token = AuthToken, Roles = user.Roles }
+                                        , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                        return;
+                                    }
+                                    else
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                }
                             }
                             else
-                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            {
+                                await AuthorizeConnection(ctx);
+
+                                if (!response.ResponseSent) // Allowed if no response sent already.
+                                {
+                                    List<string>? Roles = JsonConvert.DeserializeObject<List<string>>(request.Headers["MiddlewareRoles"] ?? "[]");
+
+                                    if (string.IsNullOrEmpty(command) || Roles == null)
+                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                    else
+                                    {
+                                        object? Extractedclass = null;
+                                        string PostData = ctx.Request.DataAsString;
+
+                                        LoggerAccessor.LogInfo($"[ACCOUNT_API] - Account was requested with Command:{command}");
+
+                                        if (Roles.Contains("database"))
+                                        {
+                                            switch (command)
+                                            {
+                                                default:
+                                                    LoggerAccessor.LogWarn($"[ACCOUNT_API] - Account - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                                    break;
+                                            }
+                                        }
+
+                                        if (Extractedclass != null)
+                                        {
+#if DEBUG
+                                            LoggerAccessor.LogInfo($"[ACCOUNT_API] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
+#endif
+                                            response.ChunkedTransfer = true;
+                                            response.StatusCode = (int)HttpStatusCode.OK;
+                                            response.ContentType = "application/json";
+                                            await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
+                                            , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                            return;
+                                        }
+                                        else
+                                            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                    }
+                                }
+                                else
+                                    return;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            LoggerAccessor.LogError($"[ACCOUNT_POST] - Thrown an exception:{ex}");
                         }
 
-                        ctx.Response.ContentType = "text/plain";
-                        await ctx.Response.Send();
+                        response.ContentType = "text/plain";
+                        await response.Send();
                     })
                     .MapParameteRoute(HttpMethod.POST, "/api/{table}/{command}", async (ctx) =>
                     {
@@ -126,7 +188,7 @@ namespace DatabaseMiddleware.HTTPEngine
                                 object? Extractedclass = null;
                                 string PostData = ctx.Request.DataAsString;
 
-                                LoggerAccessor.LogInfo($"[POST_API] - Table:{table} was requested with Command:{command}");
+                                LoggerAccessor.LogInfo($"[API_POST] - Table:{table} was requested with Command:{command}");
 
                                 switch (table)
                                 {
@@ -144,7 +206,7 @@ namespace DatabaseMiddleware.HTTPEngine
                                                     }
                                                     break;
                                                 default:
-                                                    LoggerAccessor.LogWarn($"[POST_API] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                                    LoggerAccessor.LogWarn($"[API_POST] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
                                                     break;
                                             }
                                             keys = null;
@@ -160,21 +222,21 @@ namespace DatabaseMiddleware.HTTPEngine
                                                     Extractedclass = await logs.submitLog(await GetClassFromString<LogDTO>(PostData) ?? new LogDTO());
                                                     break;
                                                 default:
-                                                    LoggerAccessor.LogWarn($"[POST_API] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                                    LoggerAccessor.LogWarn($"[API_POST] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
                                                     break;
                                             }
                                             logs = null;
                                         }
                                         break;
                                     default:
-                                        LoggerAccessor.LogWarn($"[POST_API] - Unknown Table was requested:{table} - Please report this on GITHUB if it's unexpected.");
+                                        LoggerAccessor.LogWarn($"[API_POST] - Unknown Table was requested:{table} - Please report this on GITHUB if it's unexpected.");
                                         break;
                                 }
 
                                 if (Extractedclass != null)
                                 {
 #if DEBUG
-                                    LoggerAccessor.LogInfo($"[POST_API] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
+                                    LoggerAccessor.LogInfo($"[API_POST] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
 #endif
                                     response.ChunkedTransfer = true;
                                     response.StatusCode = (int)HttpStatusCode.OK;
@@ -213,7 +275,7 @@ namespace DatabaseMiddleware.HTTPEngine
                             {
                                 object? Extractedclass = null;
 
-                                LoggerAccessor.LogInfo($"[GET_API] - Table:{table} was requested with Command:{command}");
+                                LoggerAccessor.LogInfo($"[API_GET] - Table:{table} was requested with Command:{command}");
 
                                 switch (table)
                                 {
@@ -251,21 +313,57 @@ namespace DatabaseMiddleware.HTTPEngine
                                                     Extractedclass = await keys.getServerFlags();
                                                     break;
                                                 default:
-                                                    LoggerAccessor.LogWarn($"[GET_API] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                                    LoggerAccessor.LogWarn($"[API_GET] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
                                                     break;
                                             }
                                             keys = null;
                                         }
                                         break;
+                                    case "World":
+                                        if (Roles.Contains("database"))
+                                        {
+                                            World? World = new();
+                                            switch (command)
+                                            {
+                                                case "getChannels":
+                                                    Extractedclass = await World.getChannels();
+                                                    break;
+                                                case "getLocations":
+                                                    Extractedclass = await World.getLocations();
+                                                    break;
+                                                default:
+                                                    if (command.Contains('/'))
+                                                    {
+                                                        string[] parts = command.Split('/');
+
+                                                        if (parts.Length == 2)
+                                                        {
+                                                            switch (parts[0])
+                                                            {
+                                                                case "getLocations":
+                                                                    Extractedclass = await World.getLocations(int.Parse(parts[1]));
+                                                                    break;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (Extractedclass == null)
+                                                        LoggerAccessor.LogWarn($"[API_GET] - Table:{table} - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+
+                                                    break;
+                                            }
+                                            World = null;
+                                        }
+                                        break;
                                     default:
-                                        LoggerAccessor.LogWarn($"[GET_API] - Unknown Table was requested:{table} - Please report this on GITHUB if it's unexpected.");
+                                        LoggerAccessor.LogWarn($"[API_GET] - Unknown Table was requested:{table} - Please report this on GITHUB if it's unexpected.");
                                         break;
                                 }
 
                                 if (Extractedclass != null)
                                 {
 #if DEBUG
-                                    LoggerAccessor.LogInfo($"[GET_API] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
+                                    LoggerAccessor.LogInfo($"[API_GET] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
 #endif
 
                                     response.ChunkedTransfer = true;
@@ -284,6 +382,150 @@ namespace DatabaseMiddleware.HTTPEngine
                         {
                             response.StatusCode = (int)HttpStatusCode.InternalServerError;
                             LoggerAccessor.LogError($"[API_GET] - Thrown an exception:{ex}");
+                        }
+
+                        response.ContentType = "text/plain";
+                        await response.Send();
+                    }, true)
+                    .MapParameteRoute(HttpMethod.POST, "/FileServices/{command}", async (ctx) =>
+                    {
+                        HttpRequestBase request = ctx.Request;
+                        HttpResponseBase response = ctx.Response;
+
+                        try
+                        {
+                            string? command = request.Url.Parameters["command"];
+                            List<string>? Roles = JsonConvert.DeserializeObject<List<string>>(request.Headers["MiddlewareRoles"] ?? "[]");
+
+                            if (string.IsNullOrEmpty(command) || Roles == null)
+                                response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            else
+                            {
+                                object? Extractedclass = null;
+                                string PostData = ctx.Request.DataAsString;
+
+                                LoggerAccessor.LogInfo($"[FILESERVICES_API_POST] - FileServices was requested with Command:{command}");
+
+                                if (Roles.Contains("database"))
+                                {
+                                    FileServices? files = new();
+                                    switch (command)
+                                    {
+                                        case "addFile":
+                                            if (request.QuerystringExists("AppId") && request.QuerystringExists("File"))
+                                                Extractedclass = await files.addFile(await GetClassFromString<FileDTO>(PostData) ?? new FileDTO { });
+                                            break;
+                                        case "deleteFile":
+                                            Extractedclass = await files.deleteFile(await GetClassFromString<FileDTO>(PostData) ?? new FileDTO { });
+                                            break;
+                                        case "updateFileAttributes":
+                                            if (request.QuerystringExists("File"))
+                                                Extractedclass = await files.updateFileAttributes(await GetClassFromString<FileAttributesDTO>(PostData) ?? new FileAttributesDTO { });
+                                            break;
+                                        case "updateFileMetaData":
+                                            if (request.QuerystringExists("AppId"))
+                                                Extractedclass = await files.updateFileMetaData(await GetClassFromString<FileMetaDataDTO>(PostData) ?? new FileMetaDataDTO { });
+                                            break;
+                                        default:
+                                            LoggerAccessor.LogWarn($"[FILESERVICES_API_POST] - FileServices - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                            break;
+                                    }
+                                    files = null;
+                                }
+
+                                if (Extractedclass != null)
+                                {
+#if DEBUG
+                                    LoggerAccessor.LogInfo($"[FILESERVICES_API_POST] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
+#endif
+                                    response.ChunkedTransfer = true;
+                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.ContentType = "application/json";
+                                    await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                    return;
+                                }
+                                else
+                                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            LoggerAccessor.LogError($"[FILESERVICES_API_POST] - Thrown an exception:{ex}");
+                        }
+
+                        response.ContentType = "text/plain";
+                        await response.Send();
+                    }, true)
+                    .MapParameteRoute(HttpMethod.GET, "/FileServices/{command}", async (ctx) =>
+                    {
+                        HttpRequestBase request = ctx.Request;
+                        HttpResponseBase response = ctx.Response;
+
+                        try
+                        {
+                            string? command = request.Url.Parameters["command"];
+                            List<string>? Roles = JsonConvert.DeserializeObject<List<string>>(request.Headers["MiddlewareRoles"] ?? "[]");
+
+                            if (string.IsNullOrEmpty(command) || Roles == null)
+                                response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            else
+                            {
+                                object? Extractedclass = null;
+
+                                LoggerAccessor.LogInfo($"[FILESERVICES_API_GET] - FileServices was requested with Command:{command}");
+
+                                if (Roles.Contains("database"))
+                                {
+                                    FileServices? files = new();
+                                    switch (command)
+                                    {
+                                        case "getFileList":
+                                            if (request.QuerystringExists("AppId") && request.QuerystringExists("FileNameBeginsWith") && request.QuerystringExists("OwnerByID"))
+                                                Extractedclass = await files.getFileList(int.Parse(request.RetrieveQueryValue("AppId")), request.RetrieveQueryValue("FileNameBeginsWith"), int.Parse(request.RetrieveQueryValue("OwnerByID")));
+                                            break;
+                                        case "getFileListExt":
+                                            if (request.QuerystringExists("AppId") && request.QuerystringExists("FileNameBeginsWith") && request.QuerystringExists("OwnerByID") && request.QuerystringExists("metaKey") && request.QuerystringExists("metaValue"))
+                                                Extractedclass = await files.getFileListExt(int.Parse(request.RetrieveQueryValue("AppId")), request.RetrieveQueryValue("FileNameBeginsWith"), int.Parse(request.RetrieveQueryValue("OwnerByID")), request.RetrieveQueryValue("metaKey"));
+                                            break;
+                                        case "getFileAttributes":
+                                            if (request.QuerystringExists("AppId") && request.QuerystringExists("File"))
+                                                Extractedclass = await files.getFileAttributes(await GetClassFromString<FileDTO>(request.RetrieveQueryValue("File")) ?? new FileDTO { });
+                                            break;
+                                        case "getFileMetaData":
+                                            if (request.QuerystringExists("appId") && request.QuerystringExists("FileName") && request.QuerystringExists("Key"))
+                                                Extractedclass = await files.getFileMetaData(int.Parse(request.RetrieveQueryValue("appId")), request.RetrieveQueryValue("FileName"), request.RetrieveQueryValue("Key"));
+                                            break;
+                                        default:
+                                            LoggerAccessor.LogWarn($"[FILESERVICES_API_POST] - FileServices - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                            break;
+                                    }
+                                    files = null;
+                                }
+
+                                if (Extractedclass != null)
+                                {
+#if DEBUG
+                                    LoggerAccessor.LogInfo($"[FILESERVICES_API_GET] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
+#endif
+
+                                    response.ChunkedTransfer = true;
+                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.ContentType = "application/json";
+                                    await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                    return;
+                                }
+                                else
+                                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            LoggerAccessor.LogError($"[FILESERVICES_API_GET] - Thrown an exception:{ex}");
                         }
 
                         response.ContentType = "text/plain";

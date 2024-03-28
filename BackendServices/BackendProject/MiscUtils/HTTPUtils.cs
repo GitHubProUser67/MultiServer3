@@ -1,7 +1,5 @@
 using ComponentAce.Compression.Libs.zlib;
-using System.Buffers;
 using System.Collections.Specialized;
-using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
@@ -771,7 +769,7 @@ namespace BackendProject.MiscUtils
 
             using (MemoryStream output = new())
             {
-                using (GZipStream gzipStream = new(output, CompressionLevel.SmallestSize, leaveOpen: false))
+                using (GZipStream gzipStream = new(output, CompressionLevel.Fastest, false))
                 {
                     gzipStream.Write(input, 0, input.Length);
                     gzipStream.Flush();
@@ -784,14 +782,48 @@ namespace BackendProject.MiscUtils
             return byteoutput;
         }
 
-        public static MemoryStream InflateStream(Stream input)
+        public static Stream CompressStream(Stream input, bool LargeChunkMode)
         {
-            MemoryStream outMemoryStream = new();
-            ZOutputStream outZStream = new(outMemoryStream, 9, true);
-            CopyStream(input, outZStream, 1048576);
-            outZStream.finish();
-            outMemoryStream.Position = 0;
-            return outMemoryStream;
+            if (input.Length > 2147483648)
+            {
+                HugeMemoryStream outMemoryStream = new();
+                GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
+                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                outZStream.Flush();
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+            else
+            {
+                MemoryStream outMemoryStream = new();
+                GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
+                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                outZStream.Flush();
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+        }
+
+        public static Stream InflateStream(Stream input, bool LargeChunkMode)
+        {
+            if (input.Length > 2147483648)
+            {
+                HugeMemoryStream outMemoryStream = new();
+                ZOutputStream outZStream = new(outMemoryStream, 1, true);
+                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                outZStream.finish();
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+            else
+            {
+                MemoryStream outMemoryStream = new();
+                ZOutputStream outZStream = new(outMemoryStream, 1, true);
+                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                outZStream.finish();
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
         }
 
         public static void CopyStream(Stream input, Stream output, int BufferSize)

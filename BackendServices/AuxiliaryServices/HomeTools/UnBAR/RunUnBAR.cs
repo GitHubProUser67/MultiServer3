@@ -5,6 +5,8 @@ using BackendProject.MiscUtils;
 using BackendProject.CryptoUtils;
 using WebUtils.CDS;
 using System.Diagnostics;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace HomeTools.UnBAR
 {
@@ -253,17 +255,16 @@ namespace HomeTools.UnBAR
                                         ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
                                     {
-                                        using (MemoryStream memoryStream = new(FileData))
-                                        {
-                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
-                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
-                                            memoryStream.Flush();
-                                        }
+                                        using MemoryStream memoryStream = new(FileData);
+                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
+                                            FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
+                                        memoryStream.Flush();
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    LoggerAccessor.LogWarn(ex.ToString());
+                                    LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
+
                                     if (archive.GetHeader().Version == 512)
                                         ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
@@ -334,7 +335,6 @@ namespace HomeTools.UnBAR
 #endif
                             byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
 
-                            // If you want to ensure little-endian byte order explicitly, you can reverse the array
                             if (BitConverter.IsLittleEndian)
                                 Array.Reverse(SignatureIV);
 
@@ -357,9 +357,16 @@ namespace HomeTools.UnBAR
                                 // Copy the content after the first 28 bytes to the new array
                                 Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
-                                string sha1 = toolsImpl.ValidateSha1(FileBytes);
+                                StringBuilder sb = new();
 
-                                if (sha1 == verificationsha1[..^8]) // We strip the original file Compression size.
+                                foreach (byte b in SHA1.HashData(data))
+                                {
+                                    sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
+                                }
+
+                                string SHA1HexString = sb.ToString();
+
+                                if (SHA1HexString.Equals(verificationsha1[..^8], StringComparison.CurrentCultureIgnoreCase)) // We strip the original file Compression size.
                                 {
                                     toolsImpl.IncrementIVBytes(SignatureIV, 3);
 
@@ -389,7 +396,7 @@ namespace HomeTools.UnBAR
                                 }
                                 else
                                 {
-                                    LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {sha1}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                    LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
                                     fileStream.Write(data, 0, data.Length);
                                     fileStream.Close();
                                 }
@@ -440,9 +447,6 @@ namespace HomeTools.UnBAR
                 LoggerAccessor.LogInfo($"Key - {VariousUtils.ByteArrayToHexString(Key)}");
                 LoggerAccessor.LogInfo($"IV - {VariousUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
-                // Why we not use the ICSharp version, it turns out, there is 2 variant of edgezlib. ICSharp mostly handle the older type.
-                // While packing sharc, original script used the zlib1.dll, which we have in c# equivalent, so we use it.
-                // Weird issues can happen when decompressing some files if not using this version.
 
                 byte[]? FileBytes = null;
 
@@ -456,69 +460,63 @@ namespace HomeTools.UnBAR
                     FileBytes = data;
                 }
 
-                using (MemoryStream memoryStream = new(FileBytes))
+                using MemoryStream memoryStream = new(FileBytes);
+                string registeredExtension = string.Empty;
+
+                try
                 {
-                    string registeredExtension = string.Empty;
-
-                    try
-                    {
-                        registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
-                    }
-                    catch (Exception)
-                    {
-                        registeredExtension = ".unknown";
-                    }
-
-                    if (path == string.Empty)
-                        path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
-
-                    string? outdirectory = Path.GetDirectoryName(path);
-                    if (!string.IsNullOrEmpty(outdirectory))
-                    {
-                        Directory.CreateDirectory(outdirectory);
-
-                        using (FileStream fileStream = File.Open(path, (FileMode)2))
-                        {
-                            fileStream.Write(FileBytes, 0, FileBytes.Length);
-                            fileStream.Close();
-                        }
-                    }
-
-                    memoryStream.Flush();
+                    registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
                 }
+                catch (Exception)
+                {
+                    registeredExtension = ".unknown";
+                }
+
+                if (path == string.Empty)
+                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
+
+                string? outdirectory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(outdirectory))
+                {
+                    Directory.CreateDirectory(outdirectory);
+
+                    using FileStream fileStream = File.Open(path, (FileMode)2);
+                    fileStream.Write(FileBytes, 0, FileBytes.Length);
+                    fileStream.Close();
+                }
+
+                memoryStream.Flush();
             }
             else
             {
-                using (MemoryStream memoryStream = new(data))
+                using MemoryStream memoryStream = new(data);
+                string registeredExtension = string.Empty;
+
+                try
                 {
-                    string registeredExtension = string.Empty;
-
-                    try
-                    {
-                        registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
-                    }
-                    catch (Exception)
-                    {
-                        registeredExtension = ".unknown";
-                    }
-
-                    if (path == string.Empty)
-                        path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
-
-                    string? outdirectory = Path.GetDirectoryName(path);
-                    if (!string.IsNullOrEmpty(outdirectory))
-                    {
-                        Directory.CreateDirectory(outdirectory);
-
-                        using (FileStream fileStream = File.Open(path, (FileMode)2))
-                        {
-                            fileStream.Write(data, 0, data.Length);
-                            fileStream.Close();
-                        }
-                    }
-
-                    memoryStream.Flush();
+                    registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
                 }
+                catch (Exception)
+                {
+                    registeredExtension = ".unknown";
+                }
+
+                if (path == string.Empty)
+                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
+
+                string? outdirectory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(outdirectory))
+                {
+                    Directory.CreateDirectory(outdirectory);
+
+                    using (FileStream fileStream = File.Open(path, (FileMode)2))
+                    {
+                        fileStream.Write(data, 0, data.Length);
+                        fileStream.Close();
+                    }
+                }
+
+                memoryStream.Flush();
             }
 #if DEBUG
             LoggerAccessor.LogInfo("Extracted file {0}", new object[1]
@@ -530,8 +528,11 @@ namespace HomeTools.UnBAR
             toolsImpl = null;
         }
 
-        private static int FindDataPosInBinary(byte[] data1, byte[] data2)
+        private static int FindDataPosInBinary(byte[]? data1, byte[] data2)
         {
+            if (data1 == null)
+                return -1;
+
             for (int i = 0; i < data1.Length - data2.Length + 1; i++)
             {
                 bool found = true;

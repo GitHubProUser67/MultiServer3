@@ -3158,7 +3158,6 @@ namespace Horizon.LIBRARY.Database
 
                         LoggerAccessor.LogWarn($"FileNameBeginsWith: {FileNameBeginsWith} OwnerByID: {OwnerByID}");
                         result = await GetDbAsync<List<FileDTO>>($"FileServices/getFileList?AppId={appId}&FileNameBeginsWith={FileNameBeginsWith}&OwnerByID={OwnerByID}");
-
                     }
                 }
             }

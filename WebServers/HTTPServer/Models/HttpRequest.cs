@@ -35,18 +35,18 @@ namespace HTTPServer.Models
 
         public string RetrieveHeaderValue(string headeruri)
         {
-            if (Headers.ContainsKey(headeruri))
-                return Headers[headeruri];
+            if (Headers.TryGetValue(headeruri, out string? value))
+                return value;
 
             return string.Empty; // Make things simpler instead of null.
         }
 
         public string GetContentType()
         {
-            if (Headers.ContainsKey("Content-Type"))
-                return Headers["Content-Type"];
-            else if (Headers.ContainsKey("Content-type"))
-                return Headers["Content-type"];
+            if (Headers.TryGetValue("Content-Type", out string? value))
+                return value;
+            else if (Headers.TryGetValue("Content-type", out string? value1))
+                return value1;
 
             return string.Empty;
         }
