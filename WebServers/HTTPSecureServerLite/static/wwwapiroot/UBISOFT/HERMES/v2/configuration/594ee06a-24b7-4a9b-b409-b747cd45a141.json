@@ -100,6 +100,11 @@
         ],
         "gatewayResources": [
             {
+                "url": "http://useast1-{env}api-ubiservices.ubi.com/{version}/profiles/connections",
+                "name": "all_connections",
+                "version": 1
+            },
+            {
                 "url": "http://{env}api-ubiservices.ubi.com/{version}/profiles/entities",
                 "name": "all_profiles/entities",
                 "version": 1
@@ -183,11 +188,6 @@
                 "url": "wss://{env}api-ws-ubiservices.ubi.com",
                 "name": "websocket/server",
                 "version": 1
-            },
-            {
-                "url": "http://useast1-{env}api-ubiservices.ubi.com/{version}/profiles/connections",
-                "name": "all_connections",
-                "version": 1
             }
         ],
         "storm": {
@@ -239,6 +239,14 @@
                 "name": "PackageBaseUrl"
             },
             {
+                "url": "10ac40b3e2244f56a4505bd059ca80a8",
+                "name": "RendezVous1.4_OCID"
+            },
+            {
+                "url": "651dcf78d1aa408ca30db64da5be4dc9",
+                "name": "RendezVous1.4_OCID_JAP"
+            },
+            {
                 "url": "http://{env}uplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/",
                 "name": "WebServiceBaseUrl"
             }
@@ -246,8 +254,8 @@
         "platformConfig": {
             "uplayGameCode": "WD",
             "applicationId": "594ee06a-24b7-4a9b-b409-b747cd45a141",
-            "spaceId": "defc296c-d93e-46ae-83cb-73e49a602994",
-            "platform": "PS3",
+            "spaceId": "c3a2a2c0-8365-4942-862b-f9d27a97c00d",
+            "platform": "ps3",
             "environment": "prod"
         },
         "legacyUrls": [
@@ -258,6 +266,10 @@
             {
                 "url": "http://{env}signupservice.ubi.com/PublicSignupService.svc/REST/",
                 "name": "signup"
+            },
+            {
+                "url": "http://{env}signupservice.ubi.com/PublicOnlineUserService.svc/REST/",
+                "name": "signup_login"
             },
             {
                 "url": "http://{env}wspuplay-ext.ubi.com/UplayServices/ShareServices/GameClientServices.svc/REST/JSON/",
@@ -276,22 +288,22 @@
             {
                 "name": "WDOGS_PS3_LNCH_A_DLC",
                 "friendlyName": "main_dlc",
-                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133"
+                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133;serviceid=UPxxxx-MYGAME"
             },
             {
                 "name": "WDOGS_PS3_LNCH_A_MASTER",
                 "friendlyName": "watch_dogs_final_1",
-                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133"
+                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133;serviceid=UPxxxx-MYGAME"
             },
             {
                 "name": "WDOGS_PS3_LNCH_A_PATCH_1",
                 "friendlyName": "watch_dogs_final_2",
-                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133"
+                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133;serviceid=UPxxxx-MYGAME"
             },
             {
-                "name": "wdogs_PS3_lnch_a_ws",
+                "name": "wdogs_ps3_lnch_a_ws",
                 "friendlyName": "wdogs_ps3_lnch_a_ws",
-                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133"
+                "url": "prudp:/address=ne1-z3-as-rdv03.ubisoft.com;port=61135"
             },
             {
                 "name": "ws_wdogs_companion_lnch_a",
@@ -302,11 +314,6 @@
                 "name": "ws_wdogs_ps3_lnch_a_keys",
                 "friendlyName": "keys_ws",
                 "url": "http://lb-rdv-prod.ubi.com/WDOGS_PS3_LNCH_A"
-            },
-            {
-                "name": "WDOGS_PS3_LNCH_A",
-                "friendlyName": "WDOGS_PS3_LNCH_A",
-                "url": "prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61133"
             }
         ],
         "events": {
@@ -599,6 +606,36 @@
                 }
             ]
         },
+        "resources": [
+            {
+                "name": "events",
+                "value": null
+            },
+            {
+                "name": "profiles",
+                "value": null
+            },
+            {
+                "name": "profiles/entities",
+                "value": null
+            },
+            {
+                "name": "profiles/presence",
+                "value": null
+            },
+            {
+                "name": "profiles2",
+                "value": null
+            },
+            {
+                "name": "spaces/entities",
+                "value": null
+            },
+            {
+                "name": "websocket/server",
+                "value": null
+            }
+        ],
         "punch": {
             "detectUrl1": "lb-ne1z-prod-mpe-detect01.ubisoft.com:11000",
             "detectUrl2": "lb-ne1z-prod-mpe-detect02.ubisoft.com:11000",
@@ -631,6 +668,14 @@
             {
                 "url": "http://static8.ubi.com/private/{env}/u/Uplay/Packages/1.5-Share-rc/",
                 "name": "PackageBaseUrl"
+            },
+            {
+                "url": "10ac40b3e2244f56a4505bd059ca80a8",
+                "name": "RendezVous1.4_OCID"
+            },
+            {
+                "url": "651dcf78d1aa408ca30db64da5be4dc9",
+                "name": "RendezVous1.4_OCID_JAP"
             },
             {
                 "url": "http://{env}uplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/",
