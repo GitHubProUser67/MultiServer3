@@ -31,11 +31,11 @@ namespace WebUtils.UBISOFT.HERMES_API.v1
                             nameOnPlatform = request.nameOnPlatform,
                             profileId = clientGUID,
                             sessionId = Guid.NewGuid().ToString(),
-                            spaceId = "defc296c-d93e-46ae-83cb-73e49a602994",
+                            spaceId = "c3a2a2c0-8365-4942-862b-f9d27a97c00d",
                             ticket = FakeJWTToken,
                             userId = clientGUID,
                             username = request.nameOnPlatform,
-                            platformType = "PS3"
+                            platformType = "ps3"
                         }), "application/json; charset=utf-8");
                     case "9c4a1757-422b-458f-b4d2-5e623c911ba6": // WatchDogs PC
                         return (JsonConvert.SerializeObject(new V2SessionsResponse() // YEP, needs v2 resp for v1 req... :=)
