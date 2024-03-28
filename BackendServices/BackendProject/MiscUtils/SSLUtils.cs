@@ -106,6 +106,8 @@ namespace BackendProject.MiscUtils
             "scea-home.playstation.net",
             "update-prod.pfs.online.scee.com",
             "cprod.homeserverservices.online.scee.com",
+            "collector.gr.online.scea.com",
+            "content.gr.online.scea.com",
             "wipeout2048.online.scee.com",
             "mmgproject0001.com",
             "massmedia.com",
