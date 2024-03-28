@@ -6,6 +6,7 @@ using System.Collections;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 using System.Xml;
 using WebUtils.CDS;
 
@@ -995,8 +996,8 @@ namespace HomeTools.BARFramework
                     if (FileBytes != null)
                     {
                         byte[]? SignatureHeader = new byte[24];
-                        byte[] SHA1 = toolsImpl.ValidateBytesSha1(FileBytes);
-                        Buffer.BlockCopy(SHA1, 0, tocentry.RawData, 4, SHA1.Length);
+                        byte[] SHA1Data = SHA1.HashData(FileBytes);
+                        Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
                         SignatureHeader = blowfish.EncryptionProxyInit(SignatureHeader, OriginalSigntureIV);

@@ -12,8 +12,6 @@ namespace HTTPServer
 
 		private readonly Stream inner;
 		private readonly bool UseChunkedTransfer;
-		//private bool UseCompressedTransfer;
-		//private string UseCompressionAlgorithm;
 
 		/// <summary>
 		/// Initialize this HttpResponseContentStream instance.
@@ -24,7 +22,6 @@ namespace HTTPServer
 		{
             this.inner = inner;
             this.UseChunkedTransfer = UseChunkedTransfer;
-            //todo: add compression support (and compression + chunked).
         }
 
         public override void Flush()

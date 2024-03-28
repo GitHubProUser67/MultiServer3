@@ -169,38 +169,32 @@ namespace HomeTools.BARFramework
         public byte[] GetData(ArchiveFlags flags)
         {
             byte[]? array2 = null;
+
             try
             {
-                try
-                {
-                    byte[]? array = CompressionFactory.Decompress(this, Compression, flags);
+                byte[]? array = CompressionFactory.Decompress(this, Compression, flags);
 
-                    // Encrypted content uses the compressed size as a reference.
-                    if (Compression == CompressionMethod.Encrypted && array != null && array.Length > (long)(ulong)m_compressedSize)
-                    {
-                        array2 = new byte[m_compressedSize];
-                        Array.Copy(array, array2, (long)(ulong)m_compressedSize);
-                    }
-                    else if (Compression != CompressionMethod.Encrypted && array != null && array.Length > (long)(ulong)m_size)
-                    {
-                        array2 = new byte[m_size];
-                        Array.Copy(array, array2, (long)(ulong)m_size);
-                    }
-                    else
-                        array2 = array;
-                }
-                catch (Exception)
+                if (Compression == CompressionMethod.Encrypted && array != null && array.Length > (long)(ulong)m_compressedSize)
                 {
-                    // Coredata.sharc file was not done right, so some entries are pure non-sense
-                    // (EdgeZlib while plaintext...)
-
-                    array2 = RawData;
+                    array2 = new byte[m_compressedSize];
+                    Array.Copy(array, array2, (long)(ulong)m_compressedSize);
                 }
+                else if (Compression != CompressionMethod.Encrypted && array != null && array.Length > (long)(ulong)m_size)
+                {
+                    array2 = new byte[m_size];
+                    Array.Copy(array, array2, (long)(ulong)m_size);
+                }
+                else
+                    array2 = array;
             }
             catch (Exception)
             {
-                array2 = null;
+                // Coredata.sharc file was not done right, so some entries are pure non-sense
+                // (EdgeZlib while plaintext...)
+
+                array2 = RawData;
             }
+
             return array2 ?? Array.Empty<byte>();
         }
 

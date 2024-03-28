@@ -292,53 +292,26 @@ namespace HTTPSecureServerLite
                                 if (indexFile.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder))
                                 {
                                     var CollectPHP = Extensions.PHP.ProcessPHPPage(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
-                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                    statusCode = HttpStatusCode.OK;
+                                    if (CollectPHP.Item2 != null)
                                     {
-                                        statusCode = HttpStatusCode.OK;
-                                        if (CollectPHP.Item2 != null)
+                                        foreach (var innerArray in CollectPHP.Item2)
                                         {
-                                            foreach (var innerArray in CollectPHP.Item2)
+                                            // Ensure the inner array has at least two elements
+                                            if (innerArray.Length >= 2)
                                             {
-                                                // Ensure the inner array has at least two elements
-                                                if (innerArray.Length >= 2)
-                                                {
-                                                    // Extract two values from the inner array
-                                                    string value1 = innerArray[0];
-                                                    string value2 = innerArray[1];
-                                                    response.Headers.Add(value1, value2);
-                                                }
+                                                // Extract two values from the inner array
+                                                string value1 = innerArray[0];
+                                                string value2 = innerArray[1];
+                                                response.Headers.Add(value1, value2);
                                             }
                                         }
-                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                        response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                        response.Headers.Add("Content-Encoding", "gzip");
-                                        response.StatusCode = (int)statusCode;
-                                        response.ContentType = "text/html";
-                                        sent = await response.Send(HTTPUtils.Compress(CollectPHP.Item1));
                                     }
-                                    else
-                                    {
-                                        statusCode = HttpStatusCode.OK;
-                                        if (CollectPHP.Item2 != null)
-                                        {
-                                            foreach (var innerArray in CollectPHP.Item2)
-                                            {
-                                                // Ensure the inner array has at least two elements
-                                                if (innerArray.Length >= 2)
-                                                {
-                                                    // Extract two values from the inner array
-                                                    string value1 = innerArray[0];
-                                                    string value2 = innerArray[1];
-                                                    response.Headers.Add(value1, value2);
-                                                }
-                                            }
-                                        }
-                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                        response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                        response.StatusCode = (int)statusCode;
-                                        response.ContentType = "text/html";
-                                        sent = await response.Send(CollectPHP.Item1);
-                                    }
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/html";
+                                    sent = await response.Send(CollectPHP.Item1);
                                 }
                                 else
                                 {
@@ -354,25 +327,12 @@ namespace HTTPSecureServerLite
 
                                     if (buffer != null)
                                     {
-                                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                            response.Headers.Add("Content-Encoding", "gzip");
-                                            response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                            sent = await response.Send(HTTPUtils.Compress(buffer));
-                                        }
-                                        else
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
-                                            response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
-                                            sent = await response.Send(buffer);
-                                        }
+                                        statusCode = HttpStatusCode.OK;
+                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
+                                        response.StatusCode = (int)statusCode;
+                                        response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
+                                        sent = await response.Send(buffer);
                                     }
                                     else
                                     {
@@ -820,13 +780,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                             response.StatusCode = (int)statusCode;
                                             response.ContentType = "application/json;charset=UTF-8";
-                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                            {
-                                                response.Headers.Add("Content-Encoding", "gzip");
-                                                sent = await response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(devices, Formatting.Indented))));
-                                            }
-                                            else
-                                                sent = await response.Send(JsonConvert.SerializeObject(devices, Formatting.Indented));
+                                            sent = await response.Send(JsonConvert.SerializeObject(devices, Formatting.Indented));
                                         }
                                         else
                                         {
@@ -875,35 +829,11 @@ namespace HTTPSecureServerLite
                                         {
                                             if (request.RetrieveQueryValue("directory") == "on")
                                             {
-                                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                {
-                                                    byte[]? buffer = HTTPUtils.Compress(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}")));
-
-                                                    if (buffer != null)
-                                                    {
-                                                        statusCode = HttpStatusCode.OK;
-                                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                        response.Headers.Add("Content-Encoding", "gzip");
-                                                        response.StatusCode = (int)statusCode;
-                                                        response.ContentType = "application/json";
-                                                        sent = await response.Send(buffer);
-                                                    }
-                                                    else
-                                                    {
-                                                        statusCode = HttpStatusCode.InternalServerError;
-                                                        response.StatusCode = (int)statusCode;
-                                                        response.ContentType = "text/plain";
-                                                        sent = await response.Send();
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    statusCode = HttpStatusCode.OK;
-                                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                    response.StatusCode = (int)statusCode;
-                                                    response.ContentType = "application/json";
-                                                    sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}"));
-                                                }
+                                                statusCode = HttpStatusCode.OK;
+                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                response.StatusCode = (int)statusCode;
+                                                response.ContentType = "application/json";
+                                                sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}"));
                                             }
                                             else if (request.RetrieveQueryValue("m3u") == "on")
                                             {
@@ -913,13 +843,7 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.OK;
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "audio/x-mpegurl";
-                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                    {
-                                                        response.Headers.Add("Content-Encoding", "gzip");
-                                                        sent = await response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(m3ufile)));
-                                                    }
-                                                    else
-                                                        sent = await response.Send(m3ufile);
+                                                    sent = await response.Send(m3ufile);
                                                 }
                                                 else
                                                 {
@@ -941,53 +865,26 @@ namespace HTTPSecureServerLite
                                                         if (indexFile.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder))
                                                         {
                                                             var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath + indexFile, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
-                                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                                            statusCode = HttpStatusCode.OK;
+                                                            if (CollectPHP.Item2 != null)
                                                             {
-                                                                statusCode = HttpStatusCode.OK;
-                                                                if (CollectPHP.Item2 != null)
+                                                                foreach (var innerArray in CollectPHP.Item2)
                                                                 {
-                                                                    foreach (var innerArray in CollectPHP.Item2)
+                                                                    // Ensure the inner array has at least two elements
+                                                                    if (innerArray.Length >= 2)
                                                                     {
-                                                                        // Ensure the inner array has at least two elements
-                                                                        if (innerArray.Length >= 2)
-                                                                        {
-                                                                            // Extract two values from the inner array
-                                                                            string value1 = innerArray[0];
-                                                                            string value2 = innerArray[1];
-                                                                            response.Headers.Add(value1, value2);
-                                                                        }
+                                                                        // Extract two values from the inner array
+                                                                        string value1 = innerArray[0];
+                                                                        string value2 = innerArray[1];
+                                                                        response.Headers.Add(value1, value2);
                                                                     }
                                                                 }
-                                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
-                                                                response.Headers.Add("Content-Encoding", "gzip");
-                                                                response.StatusCode = (int)statusCode;
-                                                                response.ContentType = "text/html";
-                                                                sent = await response.Send(HTTPUtils.Compress(CollectPHP.Item1));
                                                             }
-                                                            else
-                                                            {
-                                                                statusCode = HttpStatusCode.OK;
-                                                                if (CollectPHP.Item2 != null)
-                                                                {
-                                                                    foreach (var innerArray in CollectPHP.Item2)
-                                                                    {
-                                                                        // Ensure the inner array has at least two elements
-                                                                        if (innerArray.Length >= 2)
-                                                                        {
-                                                                            // Extract two values from the inner array
-                                                                            string value1 = innerArray[0];
-                                                                            string value2 = innerArray[1];
-                                                                            response.Headers.Add(value1, value2);
-                                                                        }
-                                                                    }
-                                                                }
-                                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
-                                                                response.StatusCode = (int)statusCode;
-                                                                response.ContentType = "text/html";
-                                                                sent = await response.Send(CollectPHP.Item1);
-                                                            }
+                                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
+                                                            response.StatusCode = (int)statusCode;
+                                                            response.ContentType = "text/html";
+                                                            sent = await response.Send(CollectPHP.Item1);
                                                         }
                                                         else
                                                         {
@@ -1003,25 +900,12 @@ namespace HTTPSecureServerLite
 
                                                             if (buffer != null)
                                                             {
-                                                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
-                                                                {
-                                                                    statusCode = HttpStatusCode.OK;
-                                                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
-                                                                    response.Headers.Add("Content-Encoding", "gzip");
-                                                                    response.StatusCode = (int)statusCode;
-                                                                    response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
-                                                                    sent = await response.Send(HTTPUtils.Compress(buffer));
-                                                                }
-                                                                else
-                                                                {
-                                                                    statusCode = HttpStatusCode.OK;
-                                                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
-                                                                    response.StatusCode = (int)statusCode;
-                                                                    response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
-                                                                    sent = await response.Send(buffer);
-                                                                }
+                                                                statusCode = HttpStatusCode.OK;
+                                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
+                                                                response.StatusCode = (int)statusCode;
+                                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
+                                                                sent = await response.Send(buffer);
                                                             }
                                                             else
                                                             {
@@ -1057,53 +941,26 @@ namespace HTTPSecureServerLite
                                         else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                         {
                                             var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
-                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                            statusCode = HttpStatusCode.OK;
+                                            if (CollectPHP.Item2 != null)
                                             {
-                                                statusCode = HttpStatusCode.OK;
-                                                if (CollectPHP.Item2 != null)
+                                                foreach (var innerArray in CollectPHP.Item2)
                                                 {
-                                                    foreach (var innerArray in CollectPHP.Item2)
+                                                    // Ensure the inner array has at least two elements
+                                                    if (innerArray.Length >= 2)
                                                     {
-                                                        // Ensure the inner array has at least two elements
-                                                        if (innerArray.Length >= 2)
-                                                        {
-                                                            // Extract two values from the inner array
-                                                            string value1 = innerArray[0];
-                                                            string value2 = innerArray[1];
-                                                            response.Headers.Add(value1, value2);
-                                                        }
+                                                        // Extract two values from the inner array
+                                                        string value1 = innerArray[0];
+                                                        string value2 = innerArray[1];
+                                                        response.Headers.Add(value1, value2);
                                                     }
                                                 }
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                response.Headers.Add("Content-Encoding", "gzip");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/html";
-                                                sent = await response.Send(HTTPUtils.Compress(CollectPHP.Item1));
                                             }
-                                            else
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                if (CollectPHP.Item2 != null)
-                                                {
-                                                    foreach (var innerArray in CollectPHP.Item2)
-                                                    {
-                                                        // Ensure the inner array has at least two elements
-                                                        if (innerArray.Length >= 2)
-                                                        {
-                                                            // Extract two values from the inner array
-                                                            string value1 = innerArray[0];
-                                                            string value2 = innerArray[1];
-                                                            response.Headers.Add(value1, value2);
-                                                        }
-                                                    }
-                                                }
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/html";
-                                                sent = await response.Send(CollectPHP.Item1);
-                                            }
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = "text/html";
+                                            sent = await response.Send(CollectPHP.Item1);
                                         }
                                         else
                                         {
@@ -1129,7 +986,7 @@ namespace HTTPSecureServerLite
                                                             }
                                                         }
                                                     }
-                                                    sent = SendFile(ctx, filePath, ContentType);
+                                                    sent = await SendFile(ctx, filePath, ContentType);
                                                 }
                                                 else
                                                 {
@@ -1540,44 +1397,22 @@ namespace HTTPSecureServerLite
                                         else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                         {
                                             (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
-                                            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
+                                            statusCode = HttpStatusCode.OK;
+                                            if (CollectPHP.Item2 != null)
                                             {
-                                                statusCode = HttpStatusCode.OK;
-                                                if (CollectPHP.Item2 != null)
+                                                foreach (string[] innerArray in CollectPHP.Item2)
                                                 {
-                                                    foreach (string[] innerArray in CollectPHP.Item2)
-                                                    {
-                                                        // Ensure the inner array has at least two elements
-                                                        if (innerArray.Length >= 2)
-                                                            response.Headers.Add(innerArray[0], innerArray[1]);
-                                                    }
+                                                    // Ensure the inner array has at least two elements
+                                                    if (innerArray.Length >= 2)
+                                                        // Extract two values from the inner array
+                                                        response.Headers.Add(innerArray[0], innerArray[1]);
                                                 }
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                response.Headers.Add("Content-Encoding", "gzip");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/html";
-                                                sent = await response.Send(HTTPUtils.Compress(CollectPHP.Item1));
                                             }
-                                            else
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                if (CollectPHP.Item2 != null)
-                                                {
-                                                    foreach (string[] innerArray in CollectPHP.Item2)
-                                                    {
-                                                        // Ensure the inner array has at least two elements
-                                                        if (innerArray.Length >= 2)
-                                                            // Extract two values from the inner array
-                                                            response.Headers.Add(innerArray[0], innerArray[1]);
-                                                    }
-                                                }
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/html";
-                                                sent = await response.Send(CollectPHP.Item1);
-                                            }
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = "text/html";
+                                            sent = await response.Send(CollectPHP.Item1);
                                         }
                                         else
                                         {
@@ -1722,7 +1557,7 @@ namespace HTTPSecureServerLite
 #endif
         }
 
-        private static bool SendFile(HttpContextBase ctx, string filePath, string contentType)
+        private static async Task<bool> SendFile(HttpContextBase ctx, string filePath, string contentType)
         {
             bool sent = false;
 
@@ -1731,7 +1566,7 @@ namespace HTTPSecureServerLite
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
             ctx.Response.ContentType = contentType;
             ctx.Response.StatusCode = 200;
-            sent = ctx.Response.Send(new FileInfo(filePath).Length, fs).Result;
+            sent = await ctx.Response.Send(new FileInfo(filePath).Length, fs);
 
             fs.Flush();
             fs.Close();

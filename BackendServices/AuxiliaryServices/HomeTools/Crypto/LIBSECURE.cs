@@ -33,7 +33,7 @@ namespace HomeTools.Crypto
                 return returnbytes;
             }
             else
-                LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBuffer - Invalid FileBytes, KeyByes or IV!");
+                LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBlock - Invalid BlkBytes, KeyByes or IV!");
 
             return null;
         }
