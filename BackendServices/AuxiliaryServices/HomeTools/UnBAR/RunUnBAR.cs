@@ -359,14 +359,14 @@ namespace HomeTools.UnBAR
 
                                 StringBuilder sb = new();
 
-                                foreach (byte b in SHA1.HashData(data))
+                                foreach (byte b in SHA1.HashData(FileBytes))
                                 {
                                     sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
                                 }
 
-                                string SHA1HexString = sb.ToString();
+                                string SHA1HexString = sb.ToString().ToUpper();
 
-                                if (SHA1HexString.Equals(verificationsha1[..^8], StringComparison.CurrentCultureIgnoreCase)) // We strip the original file Compression size.
+                                if (SHA1HexString == verificationsha1[..^8]) // We strip the original file Compression size.
                                 {
                                     toolsImpl.IncrementIVBytes(SignatureIV, 3);
 
@@ -396,7 +396,7 @@ namespace HomeTools.UnBAR
                                 }
                                 else
                                 {
-                                    LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {verificationsha1.Substring(0, verificationsha1.Length - 8)}), Aborting decryption.");
+                                    LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {verificationsha1[..^8]}), Aborting decryption.");
                                     fileStream.Write(data, 0, data.Length);
                                     fileStream.Close();
                                 }
