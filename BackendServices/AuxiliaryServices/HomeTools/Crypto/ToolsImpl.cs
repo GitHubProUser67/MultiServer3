@@ -194,8 +194,11 @@ namespace HomeTools.Crypto
                 byte[]? taskResult = libsecure.InitiateLibsecureXTEACTRBlock(block, Key, IV) ?? null;
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
+                if (taskResult.Length < blockSize)
+                    Buffer.BlockCopy(taskResult, 0, output, inputIndex, taskResult.Length);
+                else
+                    Buffer.BlockCopy(taskResult, 0, output, inputIndex, blockSize);
                 toolsimpl.IncrementIVBytes(IV, 1);
-                Buffer.BlockCopy(taskResult, 0, output, inputIndex, blockSize);
                 inputIndex += blockSize;
             }
 
@@ -240,7 +243,7 @@ namespace HomeTools.Crypto
 
         public byte[]? Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
         {
-            if (IVA != null && IVA.Length >= blockSize && (blockSize == 16 || blockSize == 8))
+            if (IVA.Length >= blockSize)
             {
                 StringBuilder? hexStr = new();
                 LIBSECURE? libsecure = new();
@@ -253,7 +256,7 @@ namespace HomeTools.Crypto
                     Array.Copy(IVA, i - blockSize, ivBlk, 0, ivBlk.Length);
 
                     byte[] block = new byte[blockSize];
-                    int blockLength = Math.Min(blockSize, fileBytes.Length - (i - 8)); // Determine the block length, considering remaining bytes.
+                    int blockLength = Math.Min(blockSize, fileBytes.Length - (i - blockSize)); // Determine the block length, considering remaining bytes.
                     Array.Copy(fileBytes, i - blockSize, block, 0, blockLength);
 
                     // If the block length is less than blockSize, pad with ISO97971 bytes.

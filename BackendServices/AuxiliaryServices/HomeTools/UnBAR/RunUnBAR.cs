@@ -457,6 +457,7 @@ namespace HomeTools.UnBAR
                 catch (Exception ex)
                 {
                     LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing XTEA Proxy encrypted content - {ex}");
+
                     FileBytes = data;
                 }
 
