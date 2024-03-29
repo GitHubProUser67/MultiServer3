@@ -9,28 +9,29 @@ namespace HomeTools.Crypto
 {
     internal class LIBSECURE
     {
+        // TODO: Is fine most of the time, but at some rare occasions might be wrong on padding.
         public byte[]? InitiateLibsecureXTEACTRBlock(byte[] BlkBytes, byte[] KeyBytes, byte[] m_iv)
         {
             if (KeyBytes.Length == 16 && m_iv.Length == 8 && BlkBytes.Length <= 8)
             {
-                byte[] returnbytes = new byte[BlkBytes.Length];
+                byte[] nulledBytes = new byte[BlkBytes.Length];
 
                 // Create the cipher
-                IBufferedCipher? cipher = CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/NOPADDING");
-
-                BlkBytes = BlkBytes.Length != 8 ? BlkBytes.Concat(new byte[8 - BlkBytes.Length]).ToArray() : BlkBytes; // Pad to 8 Zero bytes.
+                IBufferedCipher? cipher = (nulledBytes.Length != 8) ? CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/ZEROBYTEPADDING") : CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/NOPADDING");
 
                 cipher.Init(true, new ParametersWithIV(new KeyParameter(EndianUtils.EndianSwap(KeyBytes)), EndianUtils.EndianSwap(m_iv))); // Bouncy Castle not like padding in decrypt mode with custom data.
 
                 // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(BlkBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(EndianUtils.EndianSwap(BlkBytes), 0, BlkBytes.Length, ciphertextBytes, 0);
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(EndianUtils.EndianSwap(nulledBytes), 0, nulledBytes.Length, ciphertextBytes, 0);
                 cipher.DoFinal(ciphertextBytes, ciphertextLength);
 
                 cipher = null;
 
-                Buffer.BlockCopy(EndianUtils.EndianSwap(ciphertextBytes), 0, returnbytes, 0, returnbytes.Length);
-                return returnbytes;
+                if (ciphertextBytes.Length > 8)
+                    return new ToolsImpl().Crypt_Decrypt(BlkBytes, EndianUtils.EndianSwap(ciphertextBytes).Take(8).ToArray(), 8);
+                else
+                    return new ToolsImpl().Crypt_Decrypt(BlkBytes, EndianUtils.EndianSwap(ciphertextBytes), ciphertextBytes.Length);
             }
             else
                 LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBlock - Invalid BlkBytes, KeyByes or IV!");
@@ -42,7 +43,45 @@ namespace HomeTools.Crypto
         {
             StringBuilder? CryptoBytes = new();
 
-            if (blocksize == 8)
+            if (blocksize == 2)
+            {
+                for (int i = 1; i != 0; --i)
+                {
+                    string BlockIV = IV[..1];
+                    string CipherBlock = block[..1];
+                    IV = IV[1..];
+                    block = block[1..];
+                    try
+                    {
+                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
+                            ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                    }
+                }
+            }
+            else if (blocksize == 4)
+            {
+                for (int i = 2; i != 0; --i)
+                {
+                    string BlockIV = IV[..2];
+                    string CipherBlock = block[..2];
+                    IV = IV[2..];
+                    block = block[2..];
+                    try
+                    {
+                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
+                            ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                    }
+                }
+            }
+            else if (blocksize == 8)
             {
                 for (int i = 4; i != 0; --i)
                 {
@@ -63,7 +102,7 @@ namespace HomeTools.Crypto
             }
             else if (blocksize == 16)
             {
-                for (int i = 4; i != 0; --i)
+                for (int i = 8; i != 0; --i)
                 {
                     string BlockIV = IV[..8];
                     string CipherBlock = block[..8];
