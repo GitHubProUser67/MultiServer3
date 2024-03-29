@@ -9,17 +9,16 @@ namespace HomeTools.Crypto
 {
     internal class LIBSECURE
     {
-        // TODO: Is fine most of the time, but at some rare occasions might be wrong on padding.
         public byte[]? InitiateLibsecureXTEACTRBlock(byte[] BlkBytes, byte[] KeyBytes, byte[] m_iv)
         {
             if (KeyBytes.Length == 16 && m_iv.Length == 8 && BlkBytes.Length <= 8)
             {
-                byte[] nulledBytes = new byte[BlkBytes.Length];
+                byte[] nulledBytes = new byte[8];
 
                 // Create the cipher
-                IBufferedCipher? cipher = (nulledBytes.Length != 8) ? CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/ZEROBYTEPADDING") : CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/NOPADDING");
+                IBufferedCipher? cipher = CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/NOPADDING");
 
-                cipher.Init(true, new ParametersWithIV(new KeyParameter(EndianUtils.EndianSwap(KeyBytes)), EndianUtils.EndianSwap(m_iv))); // Bouncy Castle not like padding in decrypt mode with custom data.
+                cipher.Init(false, new ParametersWithIV(new KeyParameter(EndianUtils.EndianSwap(KeyBytes)), EndianUtils.EndianSwap(m_iv))); // Bouncy Castle not like padding in decrypt mode with custom data.
 
                 // Encrypt the plaintext
                 byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
@@ -28,10 +27,7 @@ namespace HomeTools.Crypto
 
                 cipher = null;
 
-                if (ciphertextBytes.Length > 8)
-                    return new ToolsImpl().Crypt_Decrypt(BlkBytes, EndianUtils.EndianSwap(ciphertextBytes).Take(8).ToArray(), 8);
-                else
-                    return new ToolsImpl().Crypt_Decrypt(BlkBytes, EndianUtils.EndianSwap(ciphertextBytes), ciphertextBytes.Length);
+                return new ToolsImpl().Crypt_Decrypt(BlkBytes, EndianUtils.EndianSwap(ciphertextBytes), 8);
             }
             else
                 LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBlock - Invalid BlkBytes, KeyByes or IV!");
