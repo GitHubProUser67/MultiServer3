@@ -448,17 +448,28 @@ namespace HomeTools.UnBAR
                 LoggerAccessor.LogInfo($"IV - {VariousUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
-                byte[]? FileBytes = null;
+                byte[]? FileBytes = toolsImpl.ProcessLibsecureXTEABlocks(data, Key, tableOfContent.IV);
 
                 try
                 {
-                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(toolsImpl.ProcessLibsecureXTEABlocks(data, Key, tableOfContent.IV));
+                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing XTEA Proxy encrypted content - {ex}");
+                    // Explanation, some files requires ICSharp handling for decompression, this is an expected behaviour.
 
-                    FileBytes = data;
+                    LoggerAccessor.LogWarn($"[RunUnBar] - ComponentAce failed to decompress file, switching to ICSharp engine...");
+
+                    try
+                    {
+                        FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing XTEA Proxy encrypted content - {ex}");
+
+                        FileBytes = data;
+                    }
                 }
 
                 using MemoryStream memoryStream = new(FileBytes);

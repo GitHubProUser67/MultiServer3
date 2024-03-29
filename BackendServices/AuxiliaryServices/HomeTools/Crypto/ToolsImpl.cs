@@ -1,6 +1,8 @@
 using CustomLogger;
 using System.Text;
 using ComponentAce.Compression.Libs.zlib;
+using ICSharpCode.SharpZipLib.Zip.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using BackendProject.MiscUtils;
 
 namespace HomeTools.Crypto
@@ -100,6 +102,47 @@ namespace HomeTools.Crypto
                 if (increment == 0)
                     break; // No more overflow, we're done
             }
+        }
+
+        public byte[] ICSharpEdgeZlibDecompress(byte[] inData)
+        {
+            MemoryStream memoryStream = new();
+            MemoryStream memoryStream2 = new(inData);
+            byte[] array = new byte[ChunkHeader.SizeOf];
+            while (memoryStream2.Position < memoryStream2.Length)
+            {
+                memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
+                array = EndianUtils.EndianSwap(array);
+                ChunkHeader header = ChunkHeader.FromBytes(array);
+                int compressedSize = header.CompressedSize;
+                byte[] array2 = new byte[compressedSize];
+                memoryStream2.Read(array2, 0, compressedSize);
+                byte[] array3 = ICSharpDecompressEdgeZlibChunk(array2, header);
+                memoryStream.Write(array3, 0, array3.Length);
+            }
+            memoryStream2.Close();
+            memoryStream.Close();
+            return memoryStream.ToArray();
+        }
+
+        private byte[] ICSharpDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
+        {
+            if (header.CompressedSize == header.SourceSize)
+                return inData;
+            MemoryStream baseInputStream = new(inData);
+            Inflater inf = new(true);
+            InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+            MemoryStream memoryStream = new();
+            byte[] array = new byte[4096];
+            for (; ; )
+            {
+                int num = inflaterInputStream.Read(array, 0, array.Length);
+                if (num <= 0)
+                    break;
+                memoryStream.Write(array, 0, num);
+            }
+            inflaterInputStream.Close();
+            return memoryStream.ToArray();
         }
 
         public byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
@@ -253,17 +296,21 @@ namespace HomeTools.Crypto
                 while (i <= IVA.Length)
                 {
                     byte[] ivBlk = new byte[blockSize];
-                    Array.Copy(IVA, i - blockSize, ivBlk, 0, ivBlk.Length);
+                    Array.Copy(IVA, i - blockSize, ivBlk, 0, blockSize);
+
+                    int BytesToFill = 0;
 
                     byte[] block = new byte[blockSize];
-                    int blockLength = Math.Min(blockSize, fileBytes.Length - (i - blockSize)); // Determine the block length, considering remaining bytes.
-                    Array.Copy(fileBytes, i - blockSize, block, 0, blockLength);
-
-                    // If the block length is less than blockSize, pad with ISO97971 bytes.
-                    if (blockLength < blockSize)
+                    if (fileBytes.Length < blockSize)
                     {
-                        int BytesToFill = blockSize - blockLength;
+                        BytesToFill = blockSize - fileBytes.Length;
+                        Array.Copy(fileBytes, i - blockSize, block, 0, fileBytes.Length);
+                    }
+                    else
+                        Array.Copy(fileBytes, i - blockSize, block, 0, blockSize);
 
+                    if (BytesToFill != 0)
+                    {
                         byte[] ISO97971 = new byte[BytesToFill];
 
                         for (int j = 0; j < BytesToFill; j++)
@@ -276,7 +323,7 @@ namespace HomeTools.Crypto
                                 ISO97971[j] = 0x00;
                         }
 
-                        Array.Copy(ISO97971, 0, block, blockLength, ISO97971.Length); // Copy the ISO97971 padding at the beginning
+                        Array.Copy(ISO97971, 0, block, fileBytes.Length, ISO97971.Length); // Copy the ISO97971 padding at the beginning
 
                         string hexresult = libsecure.MemXOR(VariousUtils.ByteArrayToHexString(ivBlk), VariousUtils.ByteArrayToHexString(block), blockSize);
                         hexStr.Append(hexresult[..^(BytesToFill * 2)]); // Pemdas rule necessary, and we double size because we work with bytes in a string.
