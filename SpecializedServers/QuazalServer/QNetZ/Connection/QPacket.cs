@@ -1,3 +1,6 @@
+using BackendProject.MiscUtils;
+using System.Data;
+using System.Numerics;
 using System.Text;
 
 namespace QuazalServer.QNetZ
@@ -86,25 +89,46 @@ namespace QuazalServer.QNetZ
 		public byte m_byPartNumber;
 		public ushort payloadSize;
 		public byte[]? payload;
-		public byte checkSum;
+		public byte[]? checkSum;
 		public bool usesCompression = true;
 		public uint realSize;
 		public uint Port;
+		private bool NewerCheckum;
 
-		public QPacket()
-		{
+        public QPacket(string AccessKey)
+        {
+            switch (AccessKey)
+            {
+                case "ex5LYTJ0":
+                    NewerCheckum = true;
+                    break;
 
-		}
+            }
+        }
 
-		public QPacket(string AccessKey, byte[] data) 
+        public QPacket(string AccessKey, byte[] data)
 			: this(AccessKey, new MemoryStream(data))
 		{
+			switch (AccessKey)
+			{
+				case "ex5LYTJ0":
+					NewerCheckum = true;
+					break;
 
+            }
 		}
 
 		public QPacket(string AccessKey, Stream stream)
 		{
-			m_oSourceVPort = new VPort(Helper.ReadU8(stream));
+            switch (AccessKey)
+            {
+                case "ex5LYTJ0":
+                    NewerCheckum = true;
+                    break;
+
+            }
+
+            m_oSourceVPort = new VPort(Helper.ReadU8(stream));
 			m_oDestinationVPort = new VPort(Helper.ReadU8(stream));
 			m_byPacketTypeFlags = Helper.ReadU8(stream);
 			type = (PACKETTYPE)(m_byPacketTypeFlags & 0x7);
@@ -125,7 +149,7 @@ namespace QuazalServer.QNetZ
 			if (flags.Contains(PACKETFLAG.FLAG_HAS_SIZE))
 				payloadSize = Helper.ReadU16(stream);
 			else
-				payloadSize = (ushort)(stream.Length - stream.Position - 1);
+				payloadSize = (ushort)(stream.Length - stream.Position - (NewerCheckum ? 4 : 1));
 
 			MemoryStream pl = new();
 
@@ -137,7 +161,7 @@ namespace QuazalServer.QNetZ
 
 			if (payload != null && payload.Length > 0 && type != PACKETTYPE.SYN && m_oSourceVPort.type != STREAMTYPE.NAT)
 			{
-                if (m_oSourceVPort.type == STREAMTYPE.RVSecure && AccessKey != "hg7j1") // TDU PS2 Beta has no encryption at all!
+				if (m_oSourceVPort.type == STREAMTYPE.RVSecure && AccessKey != "hg7j1") // TDU PS2 Beta has no encryption at all!
 					payload = Helper.Decrypt(Constants.KeyDATA, payload);
 
 				usesCompression = payload[0] != 0;
@@ -154,10 +178,11 @@ namespace QuazalServer.QNetZ
 					m2.Write(payload, 1, payload.Length - 1);
 					payload = m2.ToArray();
 				}
+
 				payloadSize = (ushort)payload.Length;
 			}
 
-			checkSum = Helper.ReadU8(stream);
+			checkSum = NewerCheckum ? new byte[4] { Helper.ReadU8(stream), Helper.ReadU8(stream), Helper.ReadU8(stream), Helper.ReadU8(stream) } : new byte[1] { Helper.ReadU8(stream) };
 			realSize = (uint)stream.Position;
 		}
 
@@ -190,7 +215,7 @@ namespace QuazalServer.QNetZ
 				}
 
 				if (m_oSourceVPort?.type == STREAMTYPE.RVSecure && AccessKey != "hg7j1") // TDU PS2 Beta has no encryption at all!
-                    tmpPayload = Helper.Encrypt(Constants.KeyDATA, tmpPayload);
+					tmpPayload = Helper.Encrypt(Constants.KeyDATA, tmpPayload);
 			}
 
 			return tmpPayload;
@@ -203,17 +228,17 @@ namespace QuazalServer.QNetZ
 
 			if (flags != null)
 			{
-                foreach (PACKETFLAG flag in flags)
-                    typeFlag |= (byte)((byte)flag << 3);
-            }
+				foreach (PACKETFLAG flag in flags)
+					typeFlag |= (byte)((byte)flag << 3);
+			}
 
 			// write
 			MemoryStream m = new();
 			if (m_oSourceVPort != null)
-                Helper.WriteU8(m, m_oSourceVPort.toByte());
+				Helper.WriteU8(m, m_oSourceVPort.toByte());
 			if (m_oDestinationVPort != null)
-                Helper.WriteU8(m, m_oDestinationVPort.toByte());
-            Helper.WriteU8(m, typeFlag);
+				Helper.WriteU8(m, m_oDestinationVPort.toByte());
+			Helper.WriteU8(m, typeFlag);
 			Helper.WriteU8(m, m_bySessionID);
 			Helper.WriteU32(m, m_uiSignature);
 			Helper.WriteU16(m, uiSeqId);
@@ -229,46 +254,65 @@ namespace QuazalServer.QNetZ
 
 			if (processedPayload != null)
 			{
-                if (flags != null && flags.Contains(PACKETFLAG.FLAG_HAS_SIZE))
-                    Helper.WriteU16(m, (ushort)processedPayload.Length);
+				if (flags != null && flags.Contains(PACKETFLAG.FLAG_HAS_SIZE))
+					Helper.WriteU16(m, (ushort)processedPayload.Length);
 
-                m.Write(processedPayload, 0, processedPayload.Length);
+				m.Write(processedPayload, 0, processedPayload.Length);
 
-                return AddCheckSum(m.ToArray(), AccessKey);
-            }
+				return AddCheckSum(m.ToArray(), AccessKey);
+			}
 
 			return Array.Empty<byte>();
-        }
+		}
 
 		private byte[] AddCheckSum(byte[] buff, string AccessKey)
 		{
-			byte[] result = new byte[buff.Length + 1];
+			try
+			{
+                byte[] result = new byte[buff.Length + (NewerCheckum ? 4 : 1)];
 
-			for (int i = 0; i < buff.Length; i++)
-				result[i] = buff[i];
+                for (int i = 0; i < buff.Length; i++)
+                    result[i] = buff[i];
 
-			result[buff.Length] = checkSum = MakeChecksum(buff, AccessKey);
+                if (NewerCheckum)
+                {
+                    checkSum = MakeChecksum4(buff, AccessKey);
+                    Buffer.BlockCopy(checkSum, 0, result, result.Length - 4, 4);
+                }
+                else
+                {
+                    checkSum = new byte[1] { MakeChecksum(buff, AccessKey) };
+                    result[buff.Length] = checkSum[0];
+                }
 
-			return result;
+                return result;
+            }
+			catch (Exception ex)
+			{
+				CustomLogger.LoggerAccessor.LogError($"[QPacket] - AddCheckSum failed with exception:{ex}");
+			}
+
+
+			return buff;
 		}
 
 		private static byte GetProtocolSetting(byte proto, string AccessKey)
 		{
-            switch (proto)
+			switch (proto)
 			{
 				case 3:
 					if (AccessKey.Length == 4 && AccessKey.Contains("0x") && byte.TryParse(AccessKey, out byte Protocol))
 						return Protocol;
 					else
-                        return (byte)Encoding.ASCII.GetBytes(AccessKey).Sum(b => b);
-                case 1:
+						return (byte)Encoding.ASCII.GetBytes(AccessKey).Sum(b => b);
+				case 1:
 				case 5:
 				default:
 					return 0;
 			}
 		}
 
-		public static byte MakeChecksum(byte[] data, string AccessKey, byte setting = 0xFF)
+		private static byte MakeChecksum(byte[] data, string AccessKey, byte setting = 0xFF)
 		{
 			if (setting == 0xFF)
 				setting = GetProtocolSetting((byte)(data[0] >> 4), AccessKey);
@@ -296,12 +340,61 @@ namespace QuazalServer.QNetZ
 				tmp4 = (byte)(setting + data[pos]);
 
 			return (byte)((byte)(tmp >> 24) +
-                   (byte)(tmp >> 16) +
-                   (byte)(tmp >> 8) +
-                   (byte)tmp + tmp2 + tmp3 + tmp4);
+				   (byte)(tmp >> 16) +
+				   (byte)(tmp >> 8) +
+				   (byte)tmp + tmp2 + tmp3 + tmp4);
 		}
 
-		private void ExtractFlags()
+		private static uint Key4(string AccessKey)
+		{
+            // Check if the access key length is multiple of 4
+            if (AccessKey.Length % 4 != 0)
+                throw new ArgumentException("Access key length must be a multiple of 4.");
+
+            uint keySum = 0;
+            for (int i = 0; i < AccessKey.Length; i += 4)
+            {
+                byte[] chunk = new byte[4];
+                for (int j = 0; j < 4; j++)
+                {
+                    chunk[j] = (byte)AccessKey[i + j];
+                }
+                keySum += BitConverter.ToUInt32(chunk, 0);
+            }
+
+			return keySum;
+        }
+
+		public static byte[] MakeChecksum4(byte[] data, string AccessKey)
+        {
+            int len = data.Length;
+            len -= len % 4;
+
+            using BinaryReader reader = new(new MemoryStream(data.Take(len).ToArray()));
+            uint dataSum = reader.ReadUInt32();
+            while (reader.BaseStream.Position < reader.BaseStream.Length)
+            {
+                dataSum += reader.ReadUInt32();
+            }
+
+            reader.Close();
+
+            // copying trailing bytes
+            byte[] trailerBytes = new byte[4];
+            for (int i = 0; i < data.Length - len; i++)
+            {
+                trailerBytes[i] = data[len + i];
+            }
+
+            byte[] Output = BitConverter.GetBytes(dataSum + Key4(AccessKey) + BitConverter.ToUInt32(trailerBytes, 0));
+
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(Output);
+
+            return Output;
+        }
+
+        private void ExtractFlags()
 		{
 			byte v = (byte)(m_byPacketTypeFlags >> 3);
 			int[] values = (int[])Enum.GetValues(typeof(PACKETFLAG));
@@ -323,7 +416,7 @@ namespace QuazalServer.QNetZ
 
 		public string ToStringDetailed()
 		{
-            StringBuilder sb = new();
+			StringBuilder sb = new();
 			sb.AppendLine(" UDPPacket {");
 			sb.AppendLine(" From:" + m_oSourceVPort);
 			sb.AppendLine(" To:" + m_oDestinationVPort);
@@ -341,11 +434,11 @@ namespace QuazalServer.QNetZ
 			sb.Append(" PayLoad:");
 			if (payload != null)
 			{
-                foreach (byte b in payload)
-                    sb.Append(b.ToString("X2") + " ");
-            }
+				foreach (byte b in payload)
+					sb.Append(b.ToString("X2") + " ");
+			}
 			sb.AppendLine();
-			sb.AppendLine(" Checksum:0x" + checkSum.ToString("X2"));
+			sb.AppendLine(" Checksum:0x" + VariousUtils.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
 			sb.AppendLine("}");
 			return sb.ToString();
 		}
