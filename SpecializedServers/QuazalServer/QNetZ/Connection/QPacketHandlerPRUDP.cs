@@ -314,8 +314,21 @@ namespace QuazalServer.QNetZ
 								break;
 							}
 
-							if (packetIn.m_oSourceVPort?.type == QPacket.STREAMTYPE.RVSecure)
-								RMC.HandlePacket(this, packetIn, client);
+							if (packetIn.m_oSourceVPort?.type == QPacket.STREAMTYPE.RVSecure) // Modern Ubisoft games uses Hermes, TODO, implement Hermes
+							{
+								switch (AccessKey)
+								{
+									case "ex5LYTJ0":
+										if (packetIn.payload != null)
+											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {VariousUtils.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
+										else
+                                            LoggerAccessor.LogWarn($"[QPakcetHandler] - Client requested a HERMES packet with no data!");
+                                        break;
+                                    default:
+                                        RMC.HandlePacket(this, packetIn, client);
+                                        break;
+								}
+							}
 
 							if (packetIn.m_oSourceVPort?.type == QPacket.STREAMTYPE.DO)
 								DO.HandlePacket(this, packetIn, client);

@@ -136,22 +136,24 @@ namespace QuazalServer.QNetZ
 
 		public static void SendRMCCall(QPacketHandlerPRUDP handler, QClient client, RMCProtocolId protoId, uint methodId, RMCPRequest requestData)
 		{
-            QPacket packet = new();
+            QPacket packet = new(handler.AccessKey)
+            {
+                m_oSourceVPort = new QPacket.VPort(0x31),
+                m_oDestinationVPort = new QPacket.VPort(0x3f),
 
-			packet.m_oSourceVPort = new QPacket.VPort(0x31);
-			packet.m_oDestinationVPort = new QPacket.VPort(0x3f);
+                type = QPacket.PACKETTYPE.DATA,
+                flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK },
+                payload = Array.Empty<byte>(),
+                m_bySessionID = client.SessionID
+            };
 
-			packet.type = QPacket.PACKETTYPE.DATA;
-			packet.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
-			packet.payload = Array.Empty<byte>();
-			packet.m_bySessionID = client.SessionID;
+            RMCPacket rmc = new()
+            {
+                proto = protoId,
+                methodID = methodId
+            };
 
-            RMCPacket rmc = new();
-
-			rmc.proto = protoId;
-			rmc.methodID = methodId;
-
-			WriteLog(client, $"Sending call { protoId }.{ methodId }", false);
+            WriteLog(client, $"Sending call { protoId }.{ methodId }", false);
 			WriteLog(client, () => "Call data:" + requestData.PayloadToString(), false);
 
 			SendRequestPacket(handler, packet, rmc, client, requestData, true, 0);
@@ -165,14 +167,16 @@ namespace QuazalServer.QNetZ
 
 			byte[] rmcResponseData = rmc.ToBuffer();
 
-			QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey));
-			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_NEED_ACK, QPacket.PACKETFLAG.FLAG_RELIABLE };
-			np.m_oSourceVPort = p.m_oDestinationVPort;
-			np.m_oDestinationVPort = p.m_oSourceVPort;
-			np.m_uiSignature = client.IDsend;
-			np.usesCompression = useCompression;
+            QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey))
+            {
+                flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_NEED_ACK, QPacket.PACKETFLAG.FLAG_RELIABLE },
+                m_oSourceVPort = p.m_oDestinationVPort,
+                m_oDestinationVPort = p.m_oSourceVPort,
+                m_uiSignature = client.IDsend,
+                usesCompression = useCompression
+            };
 
-			handler.MakeAndSend(client, p, np, rmcResponseData);
+            handler.MakeAndSend(client, p, np, rmcResponseData);
 		}
 
 		public static void SendRequestPacket(QPacketHandlerPRUDP handler, QPacket p, RMCPacket rmc, QClient client, RMCPRequest request, bool useCompression, uint error)
