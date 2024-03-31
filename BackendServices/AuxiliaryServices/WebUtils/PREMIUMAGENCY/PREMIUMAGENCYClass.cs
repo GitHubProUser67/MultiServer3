@@ -20,7 +20,7 @@ namespace WebUtils.PREMIUMAGENCY
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[]? PostData, string? ContentType)
+        public string? ProcessRequest(byte[] PostData, string ContentType)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -144,8 +144,8 @@ namespace WebUtils.PREMIUMAGENCY
             using (StreamReader reader = new StreamReader(filePath))
             {
                 string line;
-                string currentKey = null;
-                string currentValue = null;
+                string currentKey = string.Empty;
+                string currentValue = string.Empty;
 
                 while ((line = reader.ReadLine()) != null)
                 {

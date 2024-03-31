@@ -88,7 +88,7 @@ namespace HTTPServer
                     {
                         if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
-                            HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString());
+                            HttpRequest request = GetRequest(inputStream, clientip, clientport.ToString());
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {

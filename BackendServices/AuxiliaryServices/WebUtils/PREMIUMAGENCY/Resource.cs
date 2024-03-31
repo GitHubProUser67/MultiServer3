@@ -25,40 +25,45 @@ namespace WebUtils.PREMIUMAGENCY
                 LoggerAccessor.LogInfo($"Attempting to locate resource with key {resKey}");
 
                 #region EventController Paths
-                string avatarfx = $"{workpath}/eventController/hs/avatarfx";
-                string basaraCollabEventPath = $"{workpath}/eventController/collabo_iln";
+                string avatarfx = $"{workpath}/eventController/hs/avatarfx/Resources";
+                string basaraCollabEventPath = $"{workpath}/eventController/collabo_iln/Resources";
 
-                string DemoAsset_Settings130222 = $"{workpath}/eventController/hs/DemoAssets/130222";
-                string GundamPath = $"{workpath}/eventController/Gundam";
-                string listenerfx = $"{workpath}/eventController/hs/listnerfx";
+                string DemoAsset_Settings130222 = $"{workpath}/eventController/hs/DemoAssets/130222/Resources";
+                string StoreFrontGenerator_121212 = $"{workpath}/eventController/hs/StoreFrontGenerator/121212/Resources";
+                string listenerfx = $"{workpath}/eventController/hs/listnerfx/Resources";
+                string GundamPath = $"{workpath}/eventController/Gundam/Resources";
 
-                
-                string homecafeEnquetePath = $"{workpath}/eventController/hc_Enquete";
-                string homecafeGalleryPath = $"{workpath}/eventController/hc_gallery";
-                string homecafeShopPath = $"{workpath}/eventController/hc_Shop";
-                string homecafePlanPath = $"{workpath}/eventController/hc_plan";
 
-                string hs_commu_ev_cfg_130222 = $"{workpath}/eventController/hs/CommEvent/130222";
-                string hs_userinfo_cfg = $"{workpath}/eventController/hs/UserInfo";
+                string homecafeEnquetePath = $"{workpath}/eventController/hc_Enquete/Resources";
+                string homecafeGalleryPath = $"{workpath}/eventController/hc_gallery/Resources";
+                string homecafeShopPath = $"{workpath}/eventController/hc_Shop/Resources";
+                string homecafePlanPath = $"{workpath}/eventController/hc_plan/Resources";
 
-                string idolMasterPath = $"{workpath}/eventController/iDOLM@ASTERs";
+                string hs_commu_ev_cfg_130222 = $"{workpath}/eventController/hs/CommEvent/130222/Resources";
+                string hs_userinfo_cfg = $"{workpath}/eventController/hs/UserInfo/Resources";
 
-                string j_liargame2Path = $"{workpath}/eventController/j_liargame2";
-                string j_liargame2demoPath = $"{workpath}/eventController/j_liargame2demo";
 
-                string july2009infoboard = $"{workpath}/eventController/infoboard/09";
-                string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent";
-                string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox/Resources";
-                string RollyJukeboxPath = $"{workpath}/eventController/RollyJukebox/Resources";
-                string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium";
-                string shoeikingdomPath = $"{workpath}/eventController/ShoeiKingdom";
-
-                string Spring2009 = $"{workpath}/eventController/Spring/2009";
-                string Spring2013 = $"{workpath}/eventController/Spring/2013";
-
-                string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010";
-                string WhiteDay2013 = $"{workpath}/eventController/WhiteDay/2013";
                 string HSAquariumStatuePath = $"{workpath}/eventController/AquariumStatue";
+
+                string idolMasterLiveEventPath = $"{workpath}/eventController/iDOLMASTERs/LiveEvent/Resources";
+
+                string idolMasterEventShopPath = $"{workpath}/eventController/iDOLMASTERs/EventShop/Resources";
+
+                string j_liargame2Path = $"{workpath}/eventController/j_liargame2/Resources";
+                string j_liargame2demoPath = $"{workpath}/eventController/j_liargame2demo/Resources";
+
+                string july2009infoboard = $"{workpath}/eventController/infoboard/09/Resources";
+                string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent/Resources";
+                string MikuLiveJukeboxPath = $"{workpath}/eventController/MikuLiveJukebox/Resources/Resources";
+                string RollyJukeboxPath = $"{workpath}/eventController/RollyJukebox/Resources";
+                string SonyAquariumPath = $"{workpath}/eventController/SonyAquarium/Resources";
+                string shoeikingdomPath = $"{workpath}/eventController/ShoeiKingdom/Resources";
+
+                string Spring2009 = $"{workpath}/eventController/Spring/2009/Resources";
+                string Spring2013 = $"{workpath}/eventController/Spring/2013/Resources";
+
+                string WhiteDay2010 = $"{workpath}/eventController/WhiteDay/2010/Resources";
+                string WhiteDay2013 = $"{workpath}/eventController/WhiteDay/2013/Resources";
                 #endregion
 
                 switch (resKey)
@@ -143,8 +148,63 @@ namespace WebUtils.PREMIUMAGENCY
                             }
                         }
                         break;
+
+                    case "SonyAquarium_VideoScreens":
+                        {
+                            Directory.CreateDirectory(SonyAquariumPath);
+                            string filePath = $"{SonyAquariumPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
                     #endregion
 
+                    #region Sony Aquarium Home Square
+                    case "SonyAquarium_Relocate":
+                        {
+                            Directory.CreateDirectory(HSAquariumStatuePath);
+                            string filePath = $"{HSAquariumStatuePath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    #endregion
 
                     #region avatarfx
                     case "avatarfx":
@@ -271,6 +331,36 @@ namespace WebUtils.PREMIUMAGENCY
                         {
                             Directory.CreateDirectory(DemoAsset_Settings130222);
                             string filePath = $"{DemoAsset_Settings130222}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+
+                        }
+                        break;
+                    #endregion
+
+                    #region StoreFrontGenerator_121212
+                    case "StoreFrontGenerator_121212":
+                        {
+                            Directory.CreateDirectory(StoreFrontGenerator_121212);
+                            string filePath = $"{StoreFrontGenerator_121212}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -603,35 +693,6 @@ namespace WebUtils.PREMIUMAGENCY
                         }
                         break;
 
-                    #endregion
-
-                    #region Sony Aquarium Home Square
-                    case "SonyAquarium_Relocate":
-                        {
-                            Directory.CreateDirectory(HSAquariumStatuePath);
-                            string filePath = $"{HSAquariumStatuePath}/{resKey}.xml";
-                            if (File.Exists(filePath))
-                            {
-                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
-                                string res = File.ReadAllText(filePath);
-
-                                string resourceXML = "<xml>\r\n" +
-                                    "<result type=\"int\">1</result>\r\n" +
-                                    "<description type=\"text\">Success</description>\r\n" +
-                                    "<error_no type=\"int\">0</error_no>\r\n" +
-                                    "<error_message type=\"text\">None</error_message>\r\n" +
-                                    $"<key type=\"text\">{resKey}</key>\r\n" +
-                                    $"{res}\r\n" +
-                                    "</xml>";
-
-                                return resourceXML;
-                            }
-                            else
-                            {
-                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
-                            }
-                        }
-                        break;
                     #endregion
   
                     #region Spring Events
@@ -1343,8 +1404,34 @@ namespace WebUtils.PREMIUMAGENCY
                     #region IdolMasters
                     case "liveevent_idolmaster":
                         {
-                            Directory.CreateDirectory(idolMasterPath);
-                            string filePath = $"{idolMasterPath}/{resKey}.xml";
+                            Directory.CreateDirectory(idolMasterLiveEventPath);
+                            string filePath = $"{idolMasterLiveEventPath}/{resKey}.xml";
+                            if (File.Exists(filePath))
+                            {
+                                LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                                string res = File.ReadAllText(filePath);
+
+                                string resourceXML = "<xml>\r\n" +
+                                    "<result type=\"int\">1</result>\r\n" +
+                                    "<description type=\"text\">Success</description>\r\n" +
+                                    "<error_no type=\"int\">0</error_no>\r\n" +
+                                    "<error_message type=\"text\">None</error_message>\r\n" +
+                                    $"<key type=\"text\">{resKey}</key>\r\n" +
+                                    $"{res}\r\n" +
+                                    "</xml>";
+
+                                return resourceXML;
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                            }
+                        }
+                        break;
+                    case "shop_liveevent":
+                        {
+                            Directory.CreateDirectory(idolMasterEventShopPath);
+                            string filePath = $"{idolMasterEventShopPath}/{resKey}.xml";
                             if (File.Exists(filePath))
                             {
                                 LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
