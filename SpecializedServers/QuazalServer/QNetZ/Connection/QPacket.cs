@@ -352,17 +352,16 @@ namespace QuazalServer.QNetZ
                 throw new ArgumentException("Access key length must be a multiple of 4.");
 
             uint keySum = 0;
+
             for (int i = 0; i < AccessKey.Length; i += 4)
             {
-                byte[] chunk = new byte[4];
                 for (int j = 0; j < 4; j++)
                 {
-                    chunk[j] = (byte)AccessKey[i + j];
+                    keySum += (uint)AccessKey[i + j] << (j * 8);
                 }
-                keySum += BitConverter.ToUInt32(chunk, 0);
             }
 
-			return keySum;
+            return keySum;
         }
 
 		public static byte[] MakeChecksum4(byte[] data, string AccessKey)

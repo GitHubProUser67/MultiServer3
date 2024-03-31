@@ -40,6 +40,24 @@ namespace BackendProject.MiscUtils
         }
 
         /// <summary>
+        /// Reverse the endianess of a given ulong.
+        /// <para>change l'endianess d'un ulong.</para>
+        /// </summary>
+        /// <param name="dataIn">The ulong to endian-swap.</param>
+        /// <returns>A ulong.</returns>
+        public static ulong EndianSwap(ulong dataIn)
+        {
+            return ((dataIn & 0x00000000000000FF) << 56) |
+               ((dataIn & 0x000000000000FF00) << 40) |
+               ((dataIn & 0x0000000000FF0000) << 24) |
+               ((dataIn & 0x00000000FF000000) << 8) |
+               ((dataIn & 0x000000FF00000000) >> 8) |
+               ((dataIn & 0x0000FF0000000000) >> 24) |
+               ((dataIn & 0x00FF000000000000) >> 40) |
+               ((dataIn & 0xFF00000000000000) >> 56);
+        }
+
+        /// <summary>
         /// Reverse the endianess of a given int.
         /// <para>change l'endianess d'un int.</para>
         /// </summary>
@@ -47,9 +65,26 @@ namespace BackendProject.MiscUtils
         /// <returns>A uint.</returns>
         public static int EndianSwap(int dataIn)
         {
+            bool LittleEndian = BitConverter.IsLittleEndian;
+
             byte[] bytes = BitConverter.GetBytes(dataIn);
-            Array.Reverse(bytes);
-            return BitConverter.ToInt32(bytes, 0);
+
+            if (LittleEndian)
+                Array.Reverse(bytes);
+
+            return BitConverter.ToInt32(!LittleEndian ? EndianSwap(bytes) : bytes, 0);
+        }
+
+        /// <summary>
+        /// Reverse the endianess of a given ushort.
+        /// <para>change l'endianess d'un ushort.</para>
+        /// </summary>
+        /// <param name="dataIn">The ushort to endian-swap.</param>
+        /// <returns>A ushort.</returns>
+        public static ushort EndianSwap(ushort dataIn)
+        {
+            // Use bitwise operations to swap the bytes
+            return (ushort)(dataIn >> 8 | (dataIn & 0xFF) << 8);
         }
     }
 }

@@ -1,3 +1,5 @@
+using BackendProject.MiscUtils;
+
 namespace HomeTools.BARFramework
 {
     public static class Utils
@@ -12,10 +14,9 @@ namespace HomeTools.BARFramework
             return num;
         }
 
-
         public static byte[] IntToByteArray(int value)
         {
-            byte[] byteArray = BitConverter.GetBytes(value); // Endian not checked.
+            byte[] byteArray = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(value) : value); // Endian not checked.
 
             if (byteArray.Length < 4)
             {

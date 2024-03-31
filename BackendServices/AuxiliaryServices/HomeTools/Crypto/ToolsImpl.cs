@@ -253,6 +253,9 @@ namespace HomeTools.Crypto
 
         public ulong Sha1toNonce(byte[] digest)
         {
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(digest);
+
             ulong v1 = 0UL;
             if (digest != null && digest.Length >= 8)
                 v1 = BitConverter.ToUInt64(digest, 0);
@@ -352,8 +355,8 @@ namespace HomeTools.Crypto
             internal byte[] GetBytes()
             {
                 byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes(SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes(CompressedSize), 0, array, 0, 2);
+                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.EndianSwap(SourceSize) : SourceSize), 0, array, 2, 2);
+                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.EndianSwap(CompressedSize): CompressedSize), 0, array, 0, 2);
                 return array;
             }
 
@@ -374,6 +377,10 @@ namespace HomeTools.Crypto
                     array = new byte[4];
                     Array.Copy(inData, array, 4);
                 }
+
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(array);
+
                 result.SourceSize = BitConverter.ToUInt16(array, 2);
                 result.CompressedSize = BitConverter.ToUInt16(array, 0);
                 return result;

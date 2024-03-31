@@ -1,5 +1,6 @@
 using HomeTools.Crypto;
 using CustomLogger;
+using BackendProject.MiscUtils;
 
 namespace WebUtils.CDS
 {
@@ -10,7 +11,7 @@ namespace WebUtils.CDS
             byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
                 return new BlowfishCTREncryptDecrypt().InitiateCTRBuffer(buffer,
-                    BitConverter.GetBytes(new ToolsImpl().Sha1toNonce(digest))); // Always big endian, so GetBytes() is fine as is.
+                    BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(new ToolsImpl().Sha1toNonce(digest)) : new ToolsImpl().Sha1toNonce(digest))); // Always big endian, so GetBytes() is fine as is.
 
             return null;
         }
