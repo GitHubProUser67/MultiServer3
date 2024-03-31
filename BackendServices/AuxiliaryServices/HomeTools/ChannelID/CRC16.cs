@@ -1,3 +1,5 @@
+using BackendProject.MiscUtils;
+
 namespace HomeTools.ChannelID
 {
     public class CRC16
@@ -50,15 +52,7 @@ namespace HomeTools.ChannelID
                 crc16 = (ushort)(crc16 << 8 ^ HomeccittCrc16Table[crc16 >> 8 ^ bytes[byteIndex++]]);
             }
 
-            crc16 = SwapEndian(crc16); // Home expect big endian data.
-
-            return crc16;
-        }
-
-        public static ushort SwapEndian(ushort value)
-        {
-            // Use bitwise operations to swap the bytes
-            return (ushort)(value >> 8 | (value & 0xFF) << 8);
+            return EndianUtils.EndianSwap(crc16); // Home expect big endian data.
         }
     }
 }

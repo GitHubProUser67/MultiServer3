@@ -146,6 +146,9 @@ namespace HomeTools.UnBAR
                                 else
                                     Buffer.BlockCopy(EndianUtils.EndianSwap(SharcHeader), SharcHeader.Length - 20, NumOfFiles, 0, NumOfFiles.Length);
 
+                                if (!BitConverter.IsLittleEndian)
+                                    Array.Reverse(NumOfFiles);
+
                                 byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
 
                                 Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
