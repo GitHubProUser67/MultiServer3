@@ -4,7 +4,6 @@ using QuazalServer.QNetZ.Connection;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.DDL.Models;
-using System.Text;
 
 namespace QuazalServer.RDVServices.Services
 {

@@ -259,13 +259,13 @@ namespace QuazalServer.QNetZ
 
 				m.Write(processedPayload, 0, processedPayload.Length);
 
-				return AddCheckSum(m.ToArray(), AccessKey);
+				return AddCheckSum(m.ToArray(), AccessKey, NewerCheckum, ref checkSum);
 			}
 
 			return Array.Empty<byte>();
 		}
 
-		private byte[] AddCheckSum(byte[] buff, string AccessKey)
+		public static byte[] AddCheckSum(byte[] buff, string AccessKey, bool NewerCheckum, ref byte[]? checkSum)
 		{
 			try
 			{
