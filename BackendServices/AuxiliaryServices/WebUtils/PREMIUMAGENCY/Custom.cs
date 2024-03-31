@@ -8,9 +8,8 @@ namespace WebUtils.PREMIUMAGENCY
 {
     public class Custom
     {
-        public static string? setUserEventCustomPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        public static string? setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
-            string? output = null;
             string nid = string.Empty;
 
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
@@ -88,31 +87,6 @@ namespace WebUtils.PREMIUMAGENCY
                              "<error_no type=\"int\">0</error_no>\r\n" +
                              "<error_message type=\"text\">None</error_message>\r\n" +
                              "</xml>";
-                case "300":
-                    string j_liargame2Path = $"{workpath}/eventController/j_liargame2/Custom";
-                    Directory.CreateDirectory(j_liargame2Path);
-                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{j_liargame2Path}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
-                    if (File.Exists(j_liargame2Path))
-                    {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC LiarGame2 {eventId}!");
-                        return "<xml>\r\n" +
-                             "<result type=\"int\">1</result>\r\n" +
-                             "<description type=\"text\">Success</description>\r\n" +
-                             "<error_no type=\"int\">0</error_no>\r\n" +
-                             "<error_message type=\"text\">None</error_message>\r\n" +
-                             "</xml>";
-                    }
-                    else
-                    {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {j_liargame2Path}");
-
-                        return "<xml>\r\n" +
-                             "<result type=\"int\">1</result>\r\n" +
-                             "<description type=\"text\">Success</description>\r\n" +
-                             "<error_no type=\"int\">0</error_no>\r\n" +
-                             "<error_message type=\"text\">None</error_message>\r\n" +
-                             "</xml>";
-                    }
                 case "86":
                     string T037HomeSquare = $"{workpath}/eventController/ItemRankings/hs/T037";
                     Directory.CreateDirectory(T037HomeSquare);
@@ -138,10 +112,61 @@ namespace WebUtils.PREMIUMAGENCY
                              "<error_message type=\"text\">None</error_message>\r\n" +
                              "</xml>";
                     }
+
+                case "148":
+                    string idolMasters = $"{workpath}/eventController/idolMasters/Custom";
+                    Directory.CreateDirectory(idolMasters);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{idolMasters}/{nid}.cache");
+                    if (File.Exists(idolMasters))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC idolMasters {eventId}!");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC idolMasters {eventId}!\nExpected path {idolMasters}");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                case "300":
+                    string j_liargame2Path = $"{workpath}/eventController/j_liargame2/Custom";
+                    Directory.CreateDirectory(j_liargame2Path);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{j_liargame2Path}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    if (File.Exists(j_liargame2Path))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC LiarGame2 {eventId}!");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {j_liargame2Path}");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
                 case "347":
                     string SonyAquarium = $"{workpath}/eventController/SonyAquarium/";
                     Directory.CreateDirectory(SonyAquarium);
-                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{SonyAquarium}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{SonyAquarium}/{nid}.cache");
                     if (File.Exists(SonyAquarium))
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC SonyAquarium {eventId}!");
@@ -177,7 +202,7 @@ namespace WebUtils.PREMIUMAGENCY
 
         }
 
-        public static string? getUserEventCustomRequestPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        public static string? getUserEventCustomRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
             switch (eventId)
             {
@@ -393,7 +418,7 @@ namespace WebUtils.PREMIUMAGENCY
             }
         }
 
-        public static string? getUserEventCustomRequestListPOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        public static string? getUserEventCustomRequestListPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
 
             string nid = string.Empty;
@@ -533,19 +558,19 @@ namespace WebUtils.PREMIUMAGENCY
                             "</field_list>\r\n";
                     }
                 case "119":
-                    if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/qagetUserEventCustomList.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/qagetUserEventCustomList.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for QA iDOLM@ASTERs {eventId}!");
+                    if (File.Exists($"{workpath}/eventController/iDOLMASTERs/qagetUserEventCustomList.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/iDOLMASTERs/qagetUserEventCustomList.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for QA iDOLMASTERs {eventId}!");
                     break;
                 case "148":
-                    if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/getUserEventCustomList.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/getUserEventCustomList.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for PUBLIC iDOLM@ASTERs {eventId}!");
+                    if (File.Exists($"{workpath}/eventController/iDOLMASTERs/getUserEventCustomList.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/iDOLMASTERs/getUserEventCustomList.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for PUBLIC iDOLMASTERs {eventId}!");
                     break;
                 case "157":
-                    if (File.Exists($"{workpath}/eventController/iDOLM@ASTERs/localgetUserEventCustomList.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/iDOLM@ASTERs/localgetUserEventCustomList.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for LOCAL iDOLM@ASTERs {eventId}!");
+                    if (File.Exists($"{workpath}/eventController/iDOLMASTERs/localgetUserEventCustomList.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/iDOLMASTERs/localgetUserEventCustomList.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList sent for LOCAL iDOLMASTERs {eventId}!");
                     break;
                 default:
                     {
