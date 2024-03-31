@@ -109,7 +109,7 @@ public static class QuazalServerConfiguration
             ServerBindAddress = config.server_bind_address;
             ServerPublicBindAddress = config.server_public_bind_address;
             EdNetBindAddressOverride = config.ednet_bind_address_override;
-            QuazalStaticFolder = config.server_static_folder;
+            QuazalStaticFolder = config.quazal_static_folder;
             UsePublicIP = config.server_public_ip;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;

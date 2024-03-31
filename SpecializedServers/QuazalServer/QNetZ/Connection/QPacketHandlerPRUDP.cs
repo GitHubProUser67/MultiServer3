@@ -168,7 +168,7 @@ namespace QuazalServer.QNetZ
             LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {VariousUtils.ByteArrayToHexString(data)}");
 		}
 
-		public QPacket MakeACK(QPacket p, QClient client)
+        public QPacket MakeACK(QPacket p, QClient client)
 		{
             return new QPacket(AccessKey, p.toBuffer(AccessKey))
             {

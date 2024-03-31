@@ -23,6 +23,7 @@
 ;   This will redirect Example.com, Example.net and test.Example.com to the Localhost address
 
 ; Additional entries
+acvd-ps3ww-cdn.fromsoftware.jp,Redirect,IP
 secure.cprodts.homeps3.online.scee.com,Redirect,IP
 secure.cprod.homeps3.online.scee.com,Redirect,IP
 muis.cprod.homeps3.online.scee.com,Redirect,IP

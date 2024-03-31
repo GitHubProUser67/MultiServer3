@@ -1,3 +1,4 @@
+using BackendProject.MiscUtils;
 using CustomLogger;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Factory;
@@ -97,10 +98,17 @@ namespace QuazalServer.QNetZ
                                 rmcResult.Response,
                                 rmcResult.Compression, rmcResult.Error);
                     }
-					else
+                    else if (typeof((byte[], bool)).IsAssignableFrom(returnValue.GetType()))
 					{
+						(byte[], bool) TupleData = ((byte[], bool))returnValue;
+                        SendResponseByteArrayPayload(handler, rmcContext.Packet, rmcContext.Client, TupleData.Item1, TupleData.Item2);
+                    }
+                    else if (typeof(byte[]).IsAssignableFrom(returnValue.GetType()))
+                        SendResponseByteArrayPayload(handler, rmcContext.Packet, rmcContext.Client, (byte[])returnValue, false);
+                    else
+                    {
 						// TODO: try to cast and create RMCPResponseDDL???
-						LoggerAccessor.LogError("something other than RMCResult is cannot be sent yet");
+						LoggerAccessor.LogError("The data type returned by the RMC method is not handled yet!");
 						return;
 					}
 				}
@@ -179,7 +187,21 @@ namespace QuazalServer.QNetZ
             handler.MakeAndSend(client, p, np, rmcResponseData);
 		}
 
-		public static void SendRequestPacket(QPacketHandlerPRUDP handler, QPacket p, RMCPacket rmc, QClient client, RMCPRequest request, bool useCompression, uint error)
+        private static void SendResponseByteArrayPayload(QPacketHandlerPRUDP handler, QPacket p, QClient client, byte[] data, bool useCompression)
+        {
+            QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey))
+            {
+                flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_NEED_ACK, QPacket.PACKETFLAG.FLAG_RELIABLE },
+                m_oSourceVPort = p.m_oDestinationVPort,
+                m_oDestinationVPort = p.m_oSourceVPort,
+                m_uiSignature = client.IDsend,
+                usesCompression = useCompression
+            };
+
+            handler.MakeAndSend(client, p, np, data);
+        }
+
+        private static void SendRequestPacket(QPacketHandlerPRUDP handler, QPacket p, RMCPacket rmc, QClient client, RMCPRequest request, bool useCompression, uint error)
 		{
 			rmc.isRequest = true;
 			rmc.request = request;
@@ -188,12 +210,14 @@ namespace QuazalServer.QNetZ
 
 			byte[] rmcRequestData = rmc.ToBuffer();
 
-			QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey));
-			np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
-			np.m_uiSignature = client.IDsend;
-			np.usesCompression = useCompression;
+            QPacket np = new(handler.AccessKey, p.toBuffer(handler.AccessKey))
+            {
+                flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK },
+                m_uiSignature = client.IDsend,
+                usesCompression = useCompression
+            };
 
-			handler.MakeAndSend(client, p, np, rmcRequestData);
+            handler.MakeAndSend(client, p, np, rmcRequestData);
 		}
 
 		private static void WriteLog(QClient client, Func<string> resolve, bool err)

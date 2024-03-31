@@ -22,6 +22,7 @@ using WebUtils.HOMECORE;
 using WebUtils.LOOT;
 using System.Buffers;
 using WebUtils.UBISOFT.HERMES_API;
+using WebUtils.FROMSOFTWARE;
 
 namespace HTTPServer
 {
@@ -367,6 +368,23 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && request.Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
+
+                                                (byte[]?, string?, string[][]?) res = new();
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new FROMSOFTWAREClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
                                             }
                                             if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
                                             {

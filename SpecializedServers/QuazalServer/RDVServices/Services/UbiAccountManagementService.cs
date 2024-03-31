@@ -49,7 +49,59 @@ namespace QuazalServer.RDVServices.Services
 						if (playerInfo.Name == "Tracking")
                             return Result(new { account = UbisoftDatabase.AccountDatabase.GetTrackingAccount(), exist = true });
 						else
-                            return Result(new { account = playerInfo.Name, exist = false });
+						{
+							if (Context.Handler.AccessKey == "QusaPha9") // Workaround for UplayV2 freeze in RPCS3.
+                                return Result(new
+                                {
+                                    account = new UbiAccount()
+                                    {
+                                        m_ubi_account_id = WebUtils.SSFW.GuidGenerator.SSFWGenerateGuid(playerInfo.AccountId, playerInfo.Name),
+                                        m_username = playerInfo.Name,
+                                        m_password = string.Empty,
+                                        m_first_name = playerInfo.Name,
+                                        m_last_name = playerInfo.Name,
+                                        m_country_code = "KZ",
+                                        m_email = "whatever@dontcare.com",
+                                        m_preferred_language = "en",
+                                        m_gender = 0,
+                                        m_opt_in = true,
+                                        m_third_party_opt_in = true,
+                                        m_status = new UbiAccountStatus()
+                                        {
+                                            m_basic_status = 2,
+                                            m_missing_required_informations = false,
+                                            m_pending_deactivation = false,
+                                            m_recovering_password = true
+                                        },
+                                        m_external_accounts = new List<ExternalAccount>()
+                                        {
+                                            new ExternalAccount()
+                                            {
+                                                m_account_type = 11,
+                                                m_id = "loh",
+                                                m_username = "aabb0"
+                                            },
+                                            new ExternalAccount()
+                                            {
+                                                m_account_type = 25,
+                                                m_id = "pidr",
+                                                m_username = "aabb1"
+                                            },
+                                            new ExternalAccount()
+                                            {
+                                                m_account_type = 31,
+                                                m_id = "whatev",
+                                                m_username = "aabb2"
+                                            }
+
+                                        },
+                                        m_date_of_birth = new DateTime(1990, 11, 1)
+                                    },
+                                    exist = true
+                                });
+                            else
+                                return Result(new { account = playerInfo.Name, exist = false });
+                        }
                     }
                 }
             }
