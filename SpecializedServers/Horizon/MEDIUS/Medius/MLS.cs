@@ -3230,7 +3230,6 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-
                             await HorizonServerConfiguration.Database.GetAccountById(playerInfoRequest.AccountID).ContinueWith((r) =>
                             {
                                 if (r.IsCompletedSuccessfully && r.Result != null)
@@ -3293,7 +3292,7 @@ namespace Horizon.MEDIUS.Medius
 
                         switch (updateUserState.UserAction)
                         {
-                            //108
+                            // 108
                             case MediusUserAction.KeepAlive:
                                 {
                                     data.ClientObject.KeepAliveUntilNextConnection();
@@ -3301,14 +3300,7 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    List<int> nonFilteredChatChannelList = new() { 10683, 10684, 24000 }; // Ratchet Up Your Arsenal (Original and HD) seems to work like MAS and join default channel?
-
-                                    Channel? foundchannel = null;
-
-                                    if (nonFilteredChatChannelList.Contains(data.ClientObject.ApplicationId))
-                                        foundchannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId);
-                                    else
-                                        foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
+                                    Channel? foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
                                             data.ClientObject.ApplicationId,
                                             ChannelType.Lobby,
                                             data.ClientObject.FilterMask1,
@@ -3317,6 +3309,8 @@ namespace Horizon.MEDIUS.Medius
                                             data.ClientObject.FilterMask4,
                                             data.ClientObject.FilterMaskLevel
                                             );
+
+                                    foundchannel ??= MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId); // If filtered result not found, put in default channel.
 
                                     if (foundchannel != null)
                                     {
@@ -3331,17 +3325,27 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.LeftGameWorld:
                                 {
-                                    await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
+                                    if (data.ClientObject.CurrentGame != null)
+                                    {
+                                        await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
+                                        LoggerAccessor.LogInfo($"Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    }
+                                    else
+                                        LoggerAccessor.LogWarn($"LeftGameWorld but client wasn't in a Game! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
 
-                                    LoggerAccessor.LogInfo($"Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
                                     break;
                                 }
                             case MediusUserAction.LeftPartyWorld:
                                 {
-                                    await data.ClientObject.LeaveParty(data.ClientObject.CurrentParty);
+                                    if (data.ClientObject.CurrentParty != null)
+                                    {
+                                        await data.ClientObject.LeaveParty(data.ClientObject.CurrentParty);
+                                        LoggerAccessor.LogInfo($"Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    }
+                                    else
+                                        LoggerAccessor.LogWarn($"LeftPartyWorld but client wasn't in a Party! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
 
-                                    LoggerAccessor.LogInfo($"Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                             default:
