@@ -7,7 +7,7 @@ namespace QuazalServer.RDVServices
 {
 	public static class GameSessions
 	{
-		public static readonly List<GameSessionData> SessionList = new List<GameSessionData>();
+		public static readonly List<GameSessionData> SessionList = new();
 
 		// NOTE: returns true when session is no longer valid
 		public static bool RemovePlayerFromSession(GameSessionData session, uint principalId)
