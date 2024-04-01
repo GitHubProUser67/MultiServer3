@@ -406,6 +406,12 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTriggerCALL.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
                     break;
+
+                case "331":
+                    if (File.Exists($"{workpath}/eventController/Macross/EventShop/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Macross/EventShop/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Macross Campaign on-site Sales Office {eventId}!");
+                    break;
                 case "332":
                     if (File.Exists($"{workpath}/eventController/Macross/SSF/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/Macross/SSF/confirmEventTrigger.xml");

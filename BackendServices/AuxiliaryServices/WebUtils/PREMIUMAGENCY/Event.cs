@@ -342,7 +342,6 @@ namespace WebUtils.PREMIUMAGENCY
                     string SonyAquariumConfigPath = $"{workpath}/eventController/SonyAquarium/Config/checkEvent.xml";
                     if (File.Exists(SonyAquariumConfigPath))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC SonyAquarium {eventId}!");
                         string res = File.ReadAllText(SonyAquariumConfigPath);
                         return "<xml>\r\n\t" +
@@ -369,7 +368,6 @@ namespace WebUtils.PREMIUMAGENCY
                     string SonyAquariumVideoConfigPath = $"{workpath}/eventController/SonyAquarium/VideoConfig/checkEvent.xml";
                     if (File.Exists(SonyAquariumVideoConfigPath))
                     {
-
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC SonyAquarium {eventId}!");
                         string res = File.ReadAllText(SonyAquariumVideoConfigPath);
                         return "<xml>\r\n\t" +
@@ -383,7 +381,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {SonyAquariumVideoConfigPath}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -409,7 +406,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC T037 Home Square {eventId}!\nExpected path {T037JPHS}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -420,7 +416,6 @@ namespace WebUtils.PREMIUMAGENCY
                     }
                 case "80":
                     string RollyJukeboxPath = $"{workpath}/eventController/RollyJukebox/checkEvent.xml";
-
                     if (File.Exists(RollyJukeboxPath))
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC RollyJukebox {eventId}!");
@@ -458,6 +453,33 @@ namespace WebUtils.PREMIUMAGENCY
 
             switch (eventId)
             {
+                case "63":
+                    string mikuLiveEventFilePathQA = $"{workPath}/eventController/MikuLiveEvent/qaentryEvent.xml";
+                    if (File.Exists(mikuLiveEventFilePathQA))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for QA MikuLiveEvent {eventId}!");
+                        string res = File.ReadAllText(mikuLiveEventFilePathQA);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for QA MikuLiveEvent {eventId}!\nExpected path {mikuLiveEventFilePathQA}");
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
                 case "76":
                     string mikuLiveEventFilePathLocal = $"{workPath}/eventController/MikuLiveEvent/localEntryEvent.xml";
 
@@ -477,34 +499,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for LOCAL MikuLiveEvent {eventId}!\nExpected path {mikuLiveEventFilePathLocal}");
-
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
-                             $"<status type=\"int\">0</status>\r\n" +
-                             "</xml>";
-                    }
-                case "63":
-                    string mikuLiveEventFilePathQA = $"{workPath}/eventController/MikuLiveEvent/qaentryEvent.xml";
-
-                    if (File.Exists(mikuLiveEventFilePathQA))
-                    {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for QA MikuLiveEvent {eventId}!");
-                        string res = File.ReadAllText(mikuLiveEventFilePathQA);
-
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
-                             $"{res}\r\n" +
-                             "</xml>";
-                    }
-                    else
-                    {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for QA MikuLiveEvent {eventId}!\nExpected path {mikuLiveEventFilePathQA}");
 
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
