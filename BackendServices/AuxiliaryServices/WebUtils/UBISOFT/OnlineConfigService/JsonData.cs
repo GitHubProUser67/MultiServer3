@@ -160,6 +160,20 @@ namespace WebUtils.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
+
+        private readonly static Dictionary<string, string> BeyondGoodAndEvilHDPS3Response = new()
+        {
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod08.ubisoft.com;port=61137;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv08.ubisoft.com:61137"},
+            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
+            { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
+            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
+
         private readonly static Dictionary<string, Tuple<string, string?>> SCBLACKLISTPS3Response = new()
         {
             { "punch_DetectUrls",               new Tuple<string, string?>(@"lb-prod-mm-detect01.ubisoft.com:11020", "lb-prod-mm-detect02.ubisoft.com:11020")},
@@ -247,6 +261,16 @@ namespace WebUtils.UBISOFT.OnlineConfigService
                         {
                             Name = v.Key,
                             Values = (v.Value.Item2 != null) ? new[] { v.Value.Item1, v.Value.Item2 } : new[] { v.Value.Item1 }
+                        });
+                    }
+                    break;
+                case "295583213fd84aa6a79291455f558402":
+                    foreach (var v in BeyondGoodAndEvilHDPS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
                         });
                     }
                     break;

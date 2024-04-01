@@ -21,13 +21,15 @@ namespace QuazalServer.RDVServices.Services
 		{
             List<PersistentInfo> fileList = new();
 
-			if (!string.IsNullOrEmpty(stringSearch) && stringSearch == "*")
+			if (!string.IsNullOrEmpty(stringSearch))
 			{
                 if (stringSearch == "*")
                 {
                     foreach (string name in FileList.Skip(indexStart).Take(numElements))
                     {
                         string path = Path.Combine(QuazalServerConfiguration.QuazalStaticFolder + "/StaticFiles", name);
+
+                        Console.WriteLine(path);
 
                         if (!File.Exists(path))
                             continue;

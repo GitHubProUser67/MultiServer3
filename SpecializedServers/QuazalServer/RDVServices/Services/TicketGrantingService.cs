@@ -160,7 +160,7 @@ namespace QuazalServer.RDVServices.Services
                 else if (Context.Handler.AccessKey == "QusaPha9" || Context.Handler.AccessKey == "cYoqGd4f" 
                     || Context.Handler.AccessKey == "OLjNg84Gh" || Context.Handler.AccessKey == "ridfebb9" 
                     || Context.Handler.AccessKey == "q1UFc45UwoyI" || Context.Handler.AccessKey == "h0rszqTw"
-                    || Context.Handler.AccessKey == "os4R9pEiy" || Context.Handler.AccessKey == "lON6yKGp") // Console login not uses Quazal storage, they use a given account to log-in.
+                    || Context.Handler.AccessKey == "os4R9pEiy" || Context.Handler.AccessKey == "lON6yKGp" || Context.Handler.AccessKey == "4TeVtJ7V") // Console login not uses Quazal storage, they use a given account to log-in.
                 {
                     if (iswii.Success) // WII uses a master account.
                     {
@@ -425,8 +425,11 @@ namespace QuazalServer.RDVServices.Services
             return Hash(password, HashIterations);
         }
 
-        public static bool Verify(string password, string base64Hash)
+        public static bool Verify(string password, string? base64Hash)
         {
+            if (string.IsNullOrEmpty(base64Hash))
+                return false;
+
             // Get hash bytes
             var hashBytes = Convert.FromHexString(base64Hash);
 

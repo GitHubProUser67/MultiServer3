@@ -7,21 +7,6 @@ namespace Horizon.LIBRARY.Common
         private static Stopwatch _swTicker = Stopwatch.StartNew();
         private static long _swTickerInitialTicks = DateTime.UtcNow.Ticks;
 
-        public static byte[] ReverseEndian(byte[] ba)
-        {
-            byte[] ret = new byte[ba.Length];
-            for (int i = 0; i < ba.Length; i += 4)
-            {
-                int max = i + 3;
-                if (max >= ba.Length)
-                    max = ba.Length - 1;
-
-                for (int x = max; x >= i; x--)
-                    ret[i + (max - x)] = ba[x];
-            }
-            return ret;
-        }
-
         public static byte[] FromString(string str)
         {
             byte[] buffer = new byte[str.Length / 2];

@@ -9,7 +9,7 @@ namespace QuazalServer.RDVServices.DDL.Models
 
     public class SonyNPTicket
     {
-        public uint unk { get; set; }
+        public uint uiTicketSize { get; set; }
         public qBuffer? ticket { get; set; }
     }
 

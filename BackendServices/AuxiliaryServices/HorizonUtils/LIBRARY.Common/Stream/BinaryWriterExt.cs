@@ -53,18 +53,18 @@ namespace Horizon.LIBRARY.Common.Stream
                 writer.Write(value);
         }
 
-        public static void Write<T>(this BinaryWriter writer, T value)
+        public static void Write<T>(this BinaryWriter writer, T? value)
         {
             writer.WriteObject(value, typeof(T));
         }
 
-        public static void WriteObject(this BinaryWriter writer, object value, Type type)
+        public static void WriteObject(this BinaryWriter writer, object? value, Type type)
         {
             if (value == null || type == null)
                 return;
 
-            if (value is IStreamSerializer)
-                (value as IStreamSerializer).Serialize(writer);
+            if (value is IStreamSerializer serializer)
+                serializer.Serialize(writer);
             else if (type.IsEnum)
                 writer.WriteObject(value, type.GetEnumUnderlyingType());
             else if (type == typeof(bool))

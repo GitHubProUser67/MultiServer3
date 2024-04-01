@@ -23,6 +23,7 @@
 ;   This will redirect Example.com, Example.net and test.Example.com to the Localhost address
 
 ; Additional entries
+acvd-ps3ww-cdn.fromsoftware.jp,Redirect,IP
 secure.cprodts.homeps3.online.scee.com,Redirect,IP
 secure.cprod.homeps3.online.scee.com,Redirect,IP
 muis.cprod.homeps3.online.scee.com,Redirect,IP
@@ -124,6 +125,14 @@ tdulive.quazal.net,Redirect,IP
 gos.ea.com,Redirect,IP
 prod.homemq.online.scee.com,Redirect,IP
 lb-rdv-as-prod01.ubisoft.com,Redirect,IP
+pdc-vm-rdv01.ubisoft.com,Redirect,IP
+pdc-vm-rdv02.ubisoft.com,Redirect,IP
+pdc-vm-rdv03.ubisoft.com,Redirect,IP
+pdc-vm-rdv04.ubisoft.com,Redirect,IP
+pdc-vm-rdv05.ubisoft.com,Redirect,IP
+pdc-vm-rdv06.ubisoft.com,Redirect,IP
+pdc-vm-rdv07.ubisoft.com,Redirect,IP
+pdc-vm-rdv08.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod01.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod02.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod03.ubisoft.com,Redirect,IP
@@ -131,6 +140,7 @@ pdc-lb-rdv-prod04.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod05.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod06.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod07.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod08.ubisoft.com,Redirect,IP
 ne1-z3-as-rdv03.ubisoft.com,Redirect,IP
 lb-rdv-prod.ubi.com,Redirect,IP
 api-ubiservices.ubi.com,Redirect,IP

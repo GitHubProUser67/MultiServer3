@@ -26,9 +26,11 @@ namespace Horizon.MEDIUS.Medius.Models
         #region Peer to Peer
         public DMEObject(MediusServerCreateGameOnSelfRequest request)
         {
+            string? IP = request.AddressList.AddressList?[0].Address;
             ApplicationId = request.ApplicationID;
             WorldId = request.WorldID;
-            SetIp(request.AddressList.AddressList[0].Address);
+            if (!string.IsNullOrEmpty(IP))
+                SetIp(IP);
 
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();
@@ -41,9 +43,11 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public DMEObject(MediusServerCreateGameOnSelfRequest0 request)
         {
+            string? IP = request.AddressList.AddressList?[0].Address;
             ApplicationId = request.ApplicationID;
             WorldId = request.WorldID;
-            SetIp(request.AddressList.AddressList[0].Address);
+            if (!string.IsNullOrEmpty(IP))
+                SetIp(IP);
 
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();
