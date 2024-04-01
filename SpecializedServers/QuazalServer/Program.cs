@@ -28,11 +28,12 @@ public static class QuazalServerConfiguration
                         Tuple.Create(62128, "cYoqGd4f"), // AC3PRIVMULTPS3
                         Tuple.Create(61130, "h0rszqTw"), // AC2PS3
                         Tuple.Create(61132, "lON6yKGp"), // SCBLACKLISTPS3
-                        Tuple.Create(61134, "ex5LYTJ0"), // WATCHDOGSPS3 // TODO, fix checksum.
+                        Tuple.Create(61134, "ex5LYTJ0"), // WATCHDOGSPS3
+                        Tuple.Create(61138, "4TeVtJ7V"), // BGEHDPS3
                         Tuple.Create(60001, "ridfebb9"), // RB3
                         Tuple.Create(21032, "8dtRv2oj"), // GRO
                         Tuple.Create(30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
-                        Tuple.Create(61136, "pJ3Lsyc2"), // WATCHDOGSWIIU // TODO, fix checksum.
+                        Tuple.Create(61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
                     };
     public static List<Tuple<int, int, string>>? RendezVousServersList { get; set; } = new List<Tuple<int, int, string>>
                     {
@@ -49,9 +50,10 @@ public static class QuazalServerConfiguration
                         Tuple.Create(62127, 62128, "cYoqGd4f"), // AC3PRIVMULTPS3
                         Tuple.Create(61129, 61130, "h0rszqTw"), // AC2PS3
                         Tuple.Create(61131, 61132, "lON6yKGp"), // SCBLACKLISTPS3
-                        Tuple.Create(61133, 61134, "ex5LYTJ0"), // WATCHDOGSPS3 // TODO, fix checksum.
+                        Tuple.Create(61133, 61134, "ex5LYTJ0"), // WATCHDOGSPS3
+                        Tuple.Create(61137, 61138, "4TeVtJ7V"), // BGEHDPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
-                        Tuple.Create(61135, 61136, "pJ3Lsyc2"), // WATCHDOGSWIIU // TODO, fix checksum.
+                        Tuple.Create(61135, 61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
                     };
 
     /// <summary>
