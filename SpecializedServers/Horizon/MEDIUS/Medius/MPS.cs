@@ -34,9 +34,9 @@ namespace Horizon.MEDIUS.Medius
         protected override Task OnConnected(IChannel clientChannel)
         {
             // Get ScertClient data
-            if (!clientChannel.HasAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            if (!clientChannel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             scertClient.RsaAuthKey = MediusClass.Settings.MPSKey;
             scertClient.CipherService?.GenerateCipher(MediusClass.Settings.MPSKey);
 
@@ -49,7 +49,7 @@ namespace Horizon.MEDIUS.Medius
             channel = clientChannel;
 
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             bool enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
