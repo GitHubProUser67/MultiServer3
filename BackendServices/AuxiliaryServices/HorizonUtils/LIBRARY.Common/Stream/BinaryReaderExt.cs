@@ -51,7 +51,7 @@ namespace Horizon.LIBRARY.Common.Stream
 
             if (type.GetInterface("IStreamSerializer") != null)
             {
-                var result = (IStreamSerializer?)Activator.CreateInstance(type);
+                IStreamSerializer? result = (IStreamSerializer?)Activator.CreateInstance(type);
                 result?.Deserialize(reader);
                 return result;
             }
