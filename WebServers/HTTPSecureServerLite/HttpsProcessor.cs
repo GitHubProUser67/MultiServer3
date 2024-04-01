@@ -4,7 +4,7 @@ using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using WebUtils;
-using WebUtils.HOMECORE;
+using WebUtils.HPG;
 using WebUtils.LOOT;
 using WebUtils.NDREAMS;
 using WebUtils.OHS;
@@ -480,6 +480,27 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    else if ((Host == "dev.destinations.scea.com" ||
+                                                Host == "collector.gr.online.scea.com" ||
+                                                Host == "content.gr.online.scea.com") && request.Method != null)
+                    {
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HomePlatformGroup method : {absolutepath}");
+
+                        string? res = new HPGClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                        if (string.IsNullOrEmpty(res))
+                        {
+                            response.ContentType = "text/plain";
+                            statusCode = HttpStatusCode.InternalServerError;
+                        }
+                        else
+                        {
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.ContentType = "text/xml";
+                            statusCode = HttpStatusCode.OK;
+                        }
+                        response.StatusCode = (int)statusCode;
+                        sent = await response.Send(res);
+                    }
                     else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
@@ -711,24 +732,6 @@ namespace HTTPSecureServerLite
                                                 }
                                             }
                                         }
-                                        break;
-                                    case "/publisher/list/":
-                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
-
-                                        string? res = new HOMECOREClass(request.Method.ToString(), absolutepath).ProcessRequest(request.DataAsBytes, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
-                                        if (string.IsNullOrEmpty(res))
-                                        {
-                                            response.ContentType = "text/plain";
-                                            statusCode = HttpStatusCode.InternalServerError;
-                                        }
-                                        else
-                                        {
-                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            response.ContentType = "text/xml";
-                                            statusCode = HttpStatusCode.OK;
-                                        }
-                                        response.StatusCode = (int)statusCode;
-                                        sent = await response.Send(res);
                                         break;
                                     case "/robots.txt": // Get Away Google.
                                         statusCode = HttpStatusCode.OK;

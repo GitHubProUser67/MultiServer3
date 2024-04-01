@@ -18,10 +18,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
-using WebUtils.HOMECORE;
 using WebUtils.LOOT;
 using System.Buffers;
 using WebUtils.UBISOFT.HERMES_API;
+using WebUtils.HPG;
 
 namespace HTTPServer
 {
@@ -452,6 +452,25 @@ namespace HTTPServer
                                                 else
                                                     response = HttpBuilder.NotAllowed();
                                             }
+                                            else if ((Host == "dev.destinations.scea.com" ||
+                                                Host == "collector.gr.online.scea.com" ||
+                                                Host == "content.gr.online.scea.com") && request.Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HomePlatformGroup method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HPGClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
                                             else
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -461,24 +480,6 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
-                                                            case "/publisher/list/":
-                                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
-
-                                                                string? res = null;
-                                                                HOMECOREClass homecore = new(request.Method, absolutepath);
-                                                                if (request.GetDataStream != null)
-                                                                {
-                                                                    using MemoryStream postdata = new();
-                                                                    request.GetDataStream.CopyTo(postdata);
-                                                                    res = homecore.ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
-                                                                    postdata.Flush();
-                                                                }
-                                                                homecore.Dispose();
-                                                                if (string.IsNullOrEmpty(res))
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                else
-                                                                    response = HttpResponse.Send(res, "text/xml");
-                                                                break;
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;
