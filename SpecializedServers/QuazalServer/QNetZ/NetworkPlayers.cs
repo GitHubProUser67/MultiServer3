@@ -1,4 +1,6 @@
 using CustomLogger;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace QuazalServer.QNetZ
 {
@@ -80,25 +82,18 @@ namespace QuazalServer.QNetZ
 
         public static uint GenerateUniqueUint(string input)
         {
-            uint PID = (uint)input.GetHashCode();
+            // Convert input string to bytes
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
 
-            if (PID <= 1000)
-                PID += Math.Min(1001, uint.MaxValue - PID + 1); // Ensure increment doesn't exceed remaining range + 1
+            // Compute hash using MD5 algorithm
+            using MD5 md5 = MD5.Create();
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
 
-            return PID ^ CalculateXorKey(input);
-        }
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(hashBytes);
 
-        // Helper method to calculate XOR key from the input string
-        private static uint CalculateXorKey(string input)
-        {
-            uint xorKey = 0;
-
-            foreach (char c in input)
-            {
-                xorKey ^= c;
-            }
-
-            return xorKey;
+            // Take the first 4 bytes of the hash as the uint value
+            return Math.Max(BitConverter.ToUInt32(hashBytes, 0), 1000);
         }
     }
 }
