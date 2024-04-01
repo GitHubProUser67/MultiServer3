@@ -472,7 +472,7 @@ namespace Horizon.MEDIUS.Medius
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
             Game? game = null;
-            Channel? gameChannel = null;
+            Channel? gameChannel = client.CurrentChannel;
             if (request is MediusCreateGameRequest r)
             {
                 gameName = r.GameName;
