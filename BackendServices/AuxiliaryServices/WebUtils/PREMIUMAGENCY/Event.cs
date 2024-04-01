@@ -10,33 +10,6 @@ namespace WebUtils.PREMIUMAGENCY
         {
             switch (eventId)
             {
-                case "76":
-                    string mikuLiveJackFilePathLocal = $"{workpath}/eventController/MikuLiveJack/localcheckEvent.xml";
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent found sent for LOCAL MikuLiveEvent {eventId}!");
-
-                    if (File.Exists(mikuLiveJackFilePathLocal))
-                    {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for LOCAL MikuLiveEvent {eventId}!");
-                        string res = File.ReadAllText(mikuLiveJackFilePathLocal);
-
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
-                             $"{res}\r\n" +
-                             "</xml>";
-                    } else {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for LOCAL MikuLiveEvent {eventId}!\nExpected path {mikuLiveJackFilePathLocal}");
-
-                        return "<xml>\r\n\t" +
-                             "<result type=\"int\">1</result>\r\n\t" +
-                             "<description type=\"text\">Success</description>\r\n\t" +
-                             "<error_no type=\"int\">0</error_no>\r\n\t" +
-                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
-                             $"<status type=\"int\">0</status>\r\n" +
-                             "</xml>";
-                    }
                 case "63":
                     string mikuLiveJackFilePathQA = $"{workpath}/eventController/MikuLiveJack/qacheckEvent.xml";
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent found sent for QA MikuLiveEvent {eventId}!");
@@ -57,6 +30,33 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for QA MikuLiveEvent {eventId}!\nExpected path {mikuLiveJackFilePathQA}");
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+                case "76":
+                    string mikuLiveJackFilePathLocal = $"{workpath}/eventController/MikuLiveJack/localcheckEvent.xml";
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent found sent for LOCAL MikuLiveEvent {eventId}!");
+
+                    if (File.Exists(mikuLiveJackFilePathLocal))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for LOCAL MikuLiveEvent {eventId}!");
+                        string res = File.ReadAllText(mikuLiveJackFilePathLocal);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    } else {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for LOCAL MikuLiveEvent {eventId}!\nExpected path {mikuLiveJackFilePathLocal}");
 
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
@@ -87,6 +87,33 @@ namespace WebUtils.PREMIUMAGENCY
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC WhiteDay2010 {eventId}!\nExpected path {whiteDay2010FilePath}");
 
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+                case "90":
+                    string jCinemaLobbyFilePathPublic = $"{workpath}/eventController/WatchDetection/JCinemaLobby/qacheckEvent.xml";
+
+                    if (File.Exists(jCinemaLobbyFilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for QA JCinema Lobby Watching Detection {eventId}!");
+                        string res = File.ReadAllText(jCinemaLobbyFilePathPublic);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for QA JCinema Lobby Watching Detection {eventId}!\nExpected path {jCinemaLobbyFilePathPublic}");
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -141,6 +168,61 @@ namespace WebUtils.PREMIUMAGENCY
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC MikuLiveEvent {eventId}!\nExpected path {mikuLiveEventFilePathPublic}");
 
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+                case "104":
+                    string jCinemaLobbyPublicFilePathPublic = $"{workpath}/eventController/WatchDetection/JCinemaLobby/checkEvent.xml";
+
+                    if (File.Exists(jCinemaLobbyPublicFilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for QA JCinema Lobby Watching Detection {eventId}!");
+                        string res = File.ReadAllText(jCinemaLobbyPublicFilePathPublic);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for QA JCinema Lobby Watching Detection {eventId}!\nExpected path {jCinemaLobbyPublicFilePathPublic}");
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+
+                case "109":
+                    string jCinemaLobbyLocalFilePathPublic = $"{workpath}/eventController/WatchDetection/JCinemaLobby/localcheckEvent.xml";
+
+                    if (File.Exists(jCinemaLobbyLocalFilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for LOCAL JCinema Lobby Watching Detection {eventId}!");
+                        string res = File.ReadAllText(jCinemaLobbyLocalFilePathPublic);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for LOCAL JCinema Lobby Watching Detection {eventId}!\nExpected path {jCinemaLobbyLocalFilePathPublic}");
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +

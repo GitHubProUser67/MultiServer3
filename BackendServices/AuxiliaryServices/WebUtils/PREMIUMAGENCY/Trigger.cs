@@ -163,6 +163,7 @@ namespace WebUtils.PREMIUMAGENCY
             return null;
         }
 
+        #region getEventTriggerEx
         public static string? getEventTriggerExRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
@@ -228,6 +229,7 @@ namespace WebUtils.PREMIUMAGENCY
                     }
             }
         }
+        #endregion
 
         public static string? confirmEventTriggerRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
@@ -300,6 +302,18 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/Rainbow/localconfirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for LOCAL Rainbow {eventId}!");
                     break;
+                #region SCEAsia Distribution
+                case "138":
+                    if (File.Exists($"{workpath}/eventController/Distribution/SCEAsia/lounge/qaconfirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Distribution/SCEAsia/lounge/qaconfirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for QA Free distribution SCEAsia area lounge MiddleFloor {eventId}!");
+                    break;
+                case "140":
+                    if (File.Exists($"{workpath}/eventController/Distribution/SCEAsia/lounge/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Distribution/SCEAsia/lounge/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Free distribution SCEAsia area lounge MiddleFloor {eventId}!");
+                    break;
+                #endregion
                 //iDOLM@ASTER
                 case "148":
                     if (File.Exists($"{workpath}/eventController/iDOLMASTERs/LiveEvent/confirmEventTrigger.xml"))
@@ -350,6 +364,11 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/collabo_iln/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for QA Basara {eventId}!");
                     break;
+                case "183":
+                    if (File.Exists($"{workpath}/eventController/Macross/SSF/localconfirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Macross/SSF/localconfirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for LOCAL Macross SS F/Fifa Relocator {eventId}!");
+                    break;
                 //Basara
                 case "192":
                     if (File.Exists($"{workpath}/eventController/collabo_iln/confirmEventTrigger.xml"))
@@ -367,6 +386,16 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/collabo_iln/confirmEventTrigger.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Basara {eventId}!");
                     break;
+                case "275":
+                    if (File.Exists($"{workpath}/eventController/Macross/SSF    /qaconfirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Macross/SSF/localconfirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for QA Macross SS F/Fifa Relocator {eventId}!");
+                    break;
+                case "282":
+                    if (File.Exists($"{workpath}/eventController/Macross/VF25/qaconfirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Macross/VF25/qaconfirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for QA Macross VF25 HS {eventId}!");
+                    break;
                 case "297":
                     if (File.Exists($"{workpath}/eventController/j_liargame2/confirmEventTriggerPOST.xml"))
                         return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTriggerPOST.xml");
@@ -377,10 +406,15 @@ namespace WebUtils.PREMIUMAGENCY
                         return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTriggerCALL.xml");
                     LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
                     break;
+                case "332":
+                    if (File.Exists($"{workpath}/eventController/Macross/SSF/confirmEventTrigger.xml"))
+                        return File.ReadAllText($"{workpath}/eventController/Macross/SSF/confirmEventTrigger.xml");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Macross SS F/Fifa Relocator {eventId}!");
+                    break;
                 case "335":
                     if (File.Exists($"{workpath}/eventController/Macross/VF25/confirmEventTrigger.xml"))
                         return File.ReadAllText($"{workpath}/eventController/Macross/VF25/confirmEventTrigger.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for evid PUBLIC Macross VF25 HS {eventId}!");
+                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC Macross VF25 HS {eventId}!");
                     break;
                 case "346":
                     if (File.Exists($"{workpath}/eventController/AquariumStatue/confirmEventTrigger.xml"))
