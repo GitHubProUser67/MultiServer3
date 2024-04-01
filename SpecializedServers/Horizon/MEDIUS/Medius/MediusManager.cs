@@ -476,31 +476,26 @@ namespace Horizon.MEDIUS.Medius
             if (request is MediusCreateGameRequest r)
             {
                 gameName = r.GameName;
-                gameChannel = new Channel()
+                if (client.ApplicationId == 23360)
                 {
-                    MaxPlayers = r.MaxPlayers,
-                    MinPlayers = r.MinPlayers,
-                    ApplicationId = r.ApplicationID,
-                    Name = gameName,
-                    Type = ChannelType.Game,
-                };
+                    gameChannel = new Channel()
+                    {
+                        MaxPlayers = r.MaxPlayers,
+                        MinPlayers = r.MinPlayers,
+                        ApplicationId = r.ApplicationID,
+                        Name = gameName,
+                        Type = ChannelType.Game,
 
-                await MediusClass.Manager.AddChannel(gameChannel);
+                    };
+
+                    await MediusClass.Manager.AddChannel(gameChannel);
+
+                    // Join new channel
+                    await client.JoinChannel(gameChannel);
+                }
             }
             else if (request is MediusCreateGameRequest0 r0)
-            {
                 gameName = r0.GameName;
-                gameChannel = new Channel()
-                {
-                    MaxPlayers = r0.MaxPlayers,
-                    MinPlayers = r0.MinPlayers,
-                    ApplicationId = r0.ApplicationID,
-                    Name = gameName,
-                    Type = ChannelType.Game,
-                };
-
-                await MediusClass.Manager.AddChannel(gameChannel);
-            }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
@@ -536,25 +531,41 @@ namespace Horizon.MEDIUS.Medius
             }
             else if (gameChannel != null)
             {
-                // Create and add game while joining master game channel.
+                // Create and add game.
                 try
                 {
-                    // Join new channel
-                    await client.JoinChannel(gameChannel);
-
-                    game = new Game(client, request, gameChannel, dme, gameChannel.Id);
-
-                    await AddGame(game);
-
-                    // Send create game request to dme server
-                    dme.Queue(new MediusServerCreateGameWithAttributesRequest()
+                    if (client.ApplicationId == 23360)
                     {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        MediusWorldUID = (uint)game.MediusWorldId,
-                        Attributes = game.Attributes,
-                        ApplicationID = client.ApplicationId,
-                        MaxClients = game.MaxPlayers
-                    });
+                        game = new Game(client, request, gameChannel, dme, gameChannel.Id);
+
+                        await AddGame(game);
+
+                        // Send create game request to dme server
+                        dme.Queue(new MediusServerCreateGameWithAttributesRequest()
+                        {
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                            MediusWorldUID = (uint)game.MediusWorldId,
+                            Attributes = game.Attributes,
+                            ApplicationID = client.ApplicationId,
+                            MaxClients = game.MaxPlayers
+                        });
+                    }
+                    else if (client.CurrentChannel != null)
+                    {
+                        game = new Game(client, request, client.CurrentChannel, dme, client.CurrentChannel.Id);
+
+                        await AddGame(game);
+
+                        // Send create game request to dme server
+                        dme.Queue(new MediusServerCreateGameWithAttributesRequest()
+                        {
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                            MediusWorldUID = (uint)game.MediusWorldId,
+                            Attributes = game.Attributes,
+                            ApplicationID = client.ApplicationId,
+                            MaxClients = game.MaxPlayers
+                        });
+                    }
 
                     return;
                 }
@@ -582,21 +593,8 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
-            Channel? gameChannel = null;
             if (request is MediusCreateGameRequest1 r)
-            {
                 gameName = r.GameName;
-                gameChannel = new Channel()
-                {
-                    MaxPlayers = r.MaxPlayers,
-                    MinPlayers = r.MinPlayers,
-                    ApplicationId = r.ApplicationID,
-                    Name = gameName,
-                    Type = ChannelType.Game,
-                };
-
-                await MediusClass.Manager.AddChannel(gameChannel);
-            }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
@@ -629,15 +627,12 @@ namespace Horizon.MEDIUS.Medius
                 });
                 return;
             }
-            else if (gameChannel != null)
+            else if (client.CurrentChannel != null)
             {
-                // Create and add game while joining master game channel.
+                // Create and add game.
                 try
                 {
-                    // Join new channel
-                    await client.JoinChannel(gameChannel);
-
-                    Game game = new(client, request, gameChannel, dme, gameChannel.Id);
+                    Game game = new(client, request, client.CurrentChannel, dme, client.CurrentChannel.Id);
 
                     await AddGame(game);
 
@@ -677,21 +672,8 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
-            Channel? gameChannel = null;
             if (matchCreateGameRequest is MediusMatchCreateGameRequest r)
-            {
                 gameName = r.GameName;
-                gameChannel = new Channel()
-                {
-                    MaxPlayers = r.MaxPlayers,
-                    MinPlayers = r.MinPlayers,
-                    ApplicationId = r.ApplicationID,
-                    Name = gameName,
-                    Type = ChannelType.Game,
-                };
-
-                await MediusClass.Manager.AddChannel(gameChannel);
-            }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
@@ -711,29 +693,77 @@ namespace Horizon.MEDIUS.Medius
                 return;
             }
 
-            // P2P Matchmaking.
-            if (matchCreateGameRequest.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer)
+            if (client.CurrentChannel != null)
             {
-                // Create and add
-                try
+                // P2P Matchmaking.
+                if (matchCreateGameRequest.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer)
                 {
-                    Game game = new(client, matchCreateGameRequest, gameChannel, null, gameChannel.Id)
+                    // Create and add
+                    try
                     {
-                        MaxPlayers = matchCreateGameRequest.MaxPlayers,
-                        GameHostType = matchCreateGameRequest.GameHostType,
-                        GameName = matchCreateGameRequest.GameName,
-                        RequestData = matchCreateGameRequest.RequestData,
-                        AppDataSize = matchCreateGameRequest.ApplicationDataSize,
-                        AppData = matchCreateGameRequest.ApplicationData
-                    };
+                        Game game = new(client, matchCreateGameRequest, client.CurrentChannel, null, client.CurrentChannel.Id)
+                        {
+                            MaxPlayers = matchCreateGameRequest.MaxPlayers,
+                            GameHostType = matchCreateGameRequest.GameHostType,
+                            GameName = matchCreateGameRequest.GameName,
+                            RequestData = matchCreateGameRequest.RequestData,
+                            AppDataSize = matchCreateGameRequest.ApplicationDataSize,
+                            AppData = matchCreateGameRequest.ApplicationData
+                        };
 
-                    await AddGame(game);
+                        await AddGame(game);
 
-                    // Try to get next free MPS server
+                        // Try to get next free MPS server
+                        // If none exist, return error to clist
+                        //var dme = MediusStarter.ProxyServer.GetFreeDme(client.ApplicationId);
+                        MPS mps = MediusClass.GetMPS();
+                        if (mps == null)
+                        {
+                            client.Queue(new MediusMatchCreateGameResponse()
+                            {
+                                MessageID = matchCreateGameRequest.MessageID,
+                                MediusWorldID = -1,
+                                StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
+                            });
+                            return;
+                        }
+
+                        mps.SendServerCreateGameWithAttributesRequestP2P(matchCreateGameRequest.MessageID.ToString(), client.AccountId, game.MediusWorldId, false, game, client);
+
+                        /*
+                        client.Queue(new MediusMatchCreateGameResponse()
+                        {
+                            MessageID = matchCreateGameRequest.MessageID,
+                            StatusCode = MediusCallbackStatus.MediusSuccess,
+                            MediusWorldID = game.Id,
+                            SystemSpecificStatusCode = 0,
+                            RequestData = matchCreateGameRequest.RequestData,
+                            ApplicationDataSize = matchCreateGameRequest.ApplicationDataSize,
+                            ApplicationData = matchCreateGameRequest.ApplicationData,
+                        });
+                        */
+                    }
+                    catch (Exception e)
+                    {
+                        // 
+                        LoggerAccessor.LogError(e);
+
+                        // Failure creating match game for some reason
+                        client.Queue(new MediusMatchCreateGameResponse()
+                        {
+                            MessageID = matchCreateGameRequest.MessageID,
+                            MediusWorldID = -1,
+                            StatusCode = MediusCallbackStatus.MediusMatchGameCreationFailed
+                        });
+                    }
+                }
+                else
+                //DME
+                {
+                    // Try to get next free dme server
                     // If none exist, return error to clist
-                    //var dme = MediusStarter.ProxyServer.GetFreeDme(client.ApplicationId);
-                    MPS mps = MediusClass.GetMPS();
-                    if (mps == null)
+                    var dme = MediusClass.ProxyServer.GetFreeDme(client.ApplicationId);
+                    if (dme == null)
                     {
                         client.Queue(new MediusMatchCreateGameResponse()
                         {
@@ -744,90 +774,45 @@ namespace Horizon.MEDIUS.Medius
                         return;
                     }
 
-                    mps.SendServerCreateGameWithAttributesRequestP2P(matchCreateGameRequest.MessageID.ToString(), client.AccountId, game.MediusWorldId, false, game, client);
-
-                    /*
-                    client.Queue(new MediusMatchCreateGameResponse()
+                    // Create and add
+                    try
                     {
-                        MessageID = matchCreateGameRequest.MessageID,
-                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                        MediusWorldID = game.Id,
-                        SystemSpecificStatusCode = 0,
-                        RequestData = matchCreateGameRequest.RequestData,
-                        ApplicationDataSize = matchCreateGameRequest.ApplicationDataSize,
-                        ApplicationData = matchCreateGameRequest.ApplicationData,
-                    });
-                    */
-                }
-                catch (Exception e)
-                {
-                    // 
-                    LoggerAccessor.LogError(e);
+                        Game game = new(client, matchCreateGameRequest, client.CurrentChannel, dme, client.CurrentChannel.Id)
+                        {
+                            MaxPlayers = matchCreateGameRequest.MaxPlayers,
+                            GameHostType = matchCreateGameRequest.GameHostType,
+                            GameName = matchCreateGameRequest.GameName
+                        };
 
-                    // Failure creating match game for some reason
-                    client.Queue(new MediusMatchCreateGameResponse()
+                        await AddGame(game);
+
+                        game.RequestData = matchCreateGameRequest.RequestData;
+                        game.AppDataSize = matchCreateGameRequest.ApplicationDataSize;
+                        game.AppData = matchCreateGameRequest.ApplicationData;
+
+                        // Send create game request to dme server
+                        dme.Queue(new MediusServerCreateGameWithAttributesRequest()
+                        {
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{matchCreateGameRequest.MessageID}-{0}"),
+                            MediusWorldUID = (uint)game.MediusWorldId,
+                            Attributes = game.Attributes,
+                            ApplicationID = client.ApplicationId,
+                            MaxClients = game.MaxPlayers
+                        });
+                    }
+                    catch (Exception e)
                     {
-                        MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = -1,
-                        StatusCode = MediusCallbackStatus.MediusMatchGameCreationFailed
-                    });
-                }
-            }
-            else
-            //DME
-            {
-                // Try to get next free dme server
-                // If none exist, return error to clist
-                var dme = MediusClass.ProxyServer.GetFreeDme(client.ApplicationId);
-                if (dme == null)
-                {
-                    client.Queue(new MediusMatchCreateGameResponse()
-                    {
-                        MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = -1,
-                        StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
-                    });
-                    return;
-                }
+                        // 
+                        LoggerAccessor.LogError(e);
 
-                // Create and add
-                try
-                {
-                    Game game = new(client, matchCreateGameRequest, gameChannel, dme, gameChannel.Id)
-                    {
-                        MaxPlayers = matchCreateGameRequest.MaxPlayers,
-                        GameHostType = matchCreateGameRequest.GameHostType,
-                        GameName = matchCreateGameRequest.GameName
-                    };
-
-                    await AddGame(game);
-
-                    game.RequestData = matchCreateGameRequest.RequestData;
-                    game.AppDataSize = matchCreateGameRequest.ApplicationDataSize;
-                    game.AppData = matchCreateGameRequest.ApplicationData;
-
-                    // Send create game request to dme server
-                    dme.Queue(new MediusServerCreateGameWithAttributesRequest()
-                    {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{matchCreateGameRequest.MessageID}-{0}"),
-                        MediusWorldUID = (uint)game.MediusWorldId,
-                        Attributes = game.Attributes,
-                        ApplicationID = client.ApplicationId,
-                        MaxClients = game.MaxPlayers
-                    });
-                }
-                catch (Exception e)
-                {
-                    // 
-                    LoggerAccessor.LogError(e);
-
-                    // Failure adding game for some reason
-                    client.Queue(new MediusMatchCreateGameResponse()
-                    {
-                        MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = -1,
-                        StatusCode = MediusCallbackStatus.MediusMatchGameCreationFailed
-                    });
+                        // Failure adding game for some reason
+                        client.Queue(new MediusMatchCreateGameResponse()
+                        {
+                            MessageID = matchCreateGameRequest.MessageID,
+                            MediusWorldID = -1,
+                            StatusCode = MediusCallbackStatus.MediusMatchGameCreationFailed
+                        });
+                    }
                 }
             }
         }
@@ -843,7 +828,6 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
-            Channel? gameChannel = null;
             NetAddressList gameNetAddressList = new();
             int worldId = -1;
 
@@ -874,54 +858,18 @@ namespace Horizon.MEDIUS.Medius
                     gameNetAddressList = r.AddressList;
 
                 worldId = r.WorldID;
-
-                gameChannel = new Channel()
-                {
-                    MaxPlayers = r.MaxClients,
-                    MinPlayers = r.MinClients,
-                    ApplicationId = r.ApplicationID,
-                    Name = gameName,
-                    Id = worldId,
-                    Type = ChannelType.Game,
-                };
-
-                await MediusClass.Manager.AddChannel(gameChannel);
             }
             else if (request is MediusServerCreateGameOnSelfRequest r1)
             {
                 gameName = r1.GameName;
                 gameNetAddressList = r1.AddressList;
                 worldId = r1.WorldID;
-
-                gameChannel = new Channel()
-                {
-                    MaxPlayers = r1.MaxClients,
-                    MinPlayers = r1.MinClients,
-                    ApplicationId = r1.ApplicationID,
-                    Name = gameName,
-                    Id = worldId,
-                    Type = ChannelType.Game,
-                };
-
-                await MediusClass.Manager.AddChannel(gameChannel);
             }
             else if (request is MediusServerCreateGameOnSelfRequest0 r2)
             {
                 gameName = r2.GameName;
                 gameNetAddressList = r2.AddressList;
                 worldId = r2.WorldID;
-
-                gameChannel = new Channel()
-                {
-                    MaxPlayers = r2.MaxClients,
-                    MinPlayers = r2.MinClients,
-                    ApplicationId = r2.ApplicationID,
-                    Name = gameName,
-                    Id = worldId,
-                    Type = ChannelType.Game,
-                };
-
-                await MediusClass.Manager.AddChannel(gameChannel);
             }
 
             var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
@@ -942,15 +890,12 @@ namespace Horizon.MEDIUS.Medius
                 return;
             }
 
-            if (gameChannel != null)
+            if (client.CurrentChannel != null)
             {
-                // Create and add game while joining master game channel.
+                // Create and add game.
                 try
                 {
-                    // Join new channel
-                    await client.JoinChannel(gameChannel);
-
-                    Game game = new(client, request, gameChannel, dme, gameChannel.Id)
+                    Game game = new(client, request, client.CurrentChannel, dme, client.CurrentChannel.Id)
                     {
                         //Set game host type to PeerToPeer for those speci
                         GameHostType = MediusGameHostType.MediusGameHostPeerToPeer,
