@@ -425,8 +425,11 @@ namespace QuazalServer.RDVServices.Services
             return Hash(password, HashIterations);
         }
 
-        public static bool Verify(string password, string base64Hash)
+        public static bool Verify(string password, string? base64Hash)
         {
+            if (string.IsNullOrEmpty(base64Hash))
+                return false;
+
             // Get hash bytes
             var hashBytes = Convert.FromHexString(base64Hash);
 

@@ -7,11 +7,12 @@ namespace PSHostsFile.CmdLets
     {
         [Parameter(Mandatory = true, HelpMessage = @"The hostname to be removed from c:\windows\system32\drivers\etc\hosts", 
             ValueFromPipeline = true, ValueFromRemainingArguments = true)]
-        public string HostName;
+        public string? HostName;
 
         protected override void EndProcessing()
         {
-            HostsFile.Remove(HostName);
+            if (!string.IsNullOrEmpty(HostName))
+                HostsFile.Remove(HostName);
         }
     }
 }

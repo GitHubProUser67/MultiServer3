@@ -17,7 +17,7 @@ namespace PSHostsFile.CmdLets
         [Parameter(Mandatory = false,
             ValueFromPipeline = true,
             HelpMessage = "Pair of hostname, address")] //, ValidateCount(2,2)]
-        public object InputObject
+        public object? InputObject
         {
             get { return _input; }
             set { _input = value; }
