@@ -425,9 +425,9 @@ namespace WebUtils.PREMIUMAGENCY
                     }
 
                 case "347":
-                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/";
+                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/{nid}.cache";
                     Directory.CreateDirectory(SonyAquarium);
-                    var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquarium}/{nid}.cache");
+                    var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquarium}");
 
                     string sonyAquariumSaveDataCFVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfval").Item2;
 
