@@ -89,7 +89,7 @@ namespace HTTPServer
                     {
                         if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
-                            HttpRequest request = GetRequest(inputStream, clientip, clientport.ToString());
+                            HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString());
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
@@ -397,7 +397,7 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
                                             }
-                                            if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
+                                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
 

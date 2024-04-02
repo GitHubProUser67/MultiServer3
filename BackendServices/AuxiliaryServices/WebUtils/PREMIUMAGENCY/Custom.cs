@@ -426,10 +426,12 @@ namespace WebUtils.PREMIUMAGENCY
 
                 case "347":
                     string SonyAquarium = $"{workpath}/eventController/SonyAquarium/{nid}.cache";
-                    Directory.CreateDirectory(SonyAquarium);
                     var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquarium}");
 
+                    string sonyAquariumSaveDataCFName = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnam").Item2;
                     string sonyAquariumSaveDataCFVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfval").Item2;
+                    string sonyAquariumSaveDataCFNumberVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnumber").Item2;
+                    string sonyAquariumSaveDataCFFlagVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfflag").Item2;
 
                     if (File.Exists(SonyAquarium))
                     {
@@ -440,8 +442,10 @@ namespace WebUtils.PREMIUMAGENCY
                             "    <error_no type=\"int\">0</error_no>\r\n" +
                             "    <error_message type=\"text\">None</error_message>rn\r\n" +
                             "    <field_list>\r\n\t\t" +
-                            "       <field_name type=\"text\">savedata</field_name>\r\n\t\t" +
-                            $"      <field_value type=\"int\">{sonyAquariumSaveDataCFVal}</field_value>\r\n\t\t" +
+                            $"      <field_name type=\"text\">{sonyAquariumSaveDataCFName}</field_name>\r\n\t\t" +
+                            $"      <field_value type=\"text\">{sonyAquariumSaveDataCFVal}</field_value>\r\n\t\t" +
+                            $"      <field_number type=\"int\">{sonyAquariumSaveDataCFNumberVal}</field_number>\r\n\t\t" +
+                            $"      <field_flag type=\"text\">{sonyAquariumSaveDataCFFlagVal}</field_flag>\r\n\t\t" +
                             $"      <update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
                             $"      <update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
                             $"      <update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
@@ -460,13 +464,15 @@ namespace WebUtils.PREMIUMAGENCY
                             "    <error_no type=\"int\">0</error_no>\r\n" +
                             "    <error_message type=\"text\">None</error_message>rn\r\n" +
                             "    <field_list>\r\n\t\t" +
-                            "<field_name type=\"text\">savedata</field_name>\r\n\t\t" +
-                            "<field_value type=\"int\">0</field_value>\r\n\t\t" +
-                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
-                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
-                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
-                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
-                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            $"      <field_name type=\"text\">savedata</field_name>\r\n\t\t" +
+                            $"      <field_value type=\"text\">0</field_value>\r\n\t\t" +
+                            $"      <field_number type=\"int\">0</field_value>\r\n\t\t" +
+                            $"      <field_flag type=\"text\">0</field_value>\r\n\t\t" +
+                            $"      <update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"      <update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"      <update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"      <update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"      <update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</field_list>\r\n" +
                             "</xml>";
                     }
