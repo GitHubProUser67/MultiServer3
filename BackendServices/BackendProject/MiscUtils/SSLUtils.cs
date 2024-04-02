@@ -143,7 +143,9 @@ namespace BackendProject.MiscUtils
             "downloads.game.net",
             "example.com",
             "thebissos.com",
-            "public-ubiservices.ubi.com"
+            "public-ubiservices.ubi.com",
+			"secure.cdevb.homeps3.online.scee.com",
+			"www.konami.com"
         };
 
         /// <summary>
