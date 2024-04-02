@@ -196,6 +196,17 @@ namespace HTTPServer
 
                                 response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
+                                List<string> HPDDomains = new List<string>() { "dev.destinations.scea.com",
+                                    "prd.destinations.scea.com",
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
+
                                 if (response == null)
                                 {
                                     switch (Host)
@@ -470,9 +481,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpBuilder.NotAllowed();
                                             }
-                                            else if ((Host == "dev.destinations.scea.com" ||
-                                                Host == "collector.gr.online.scea.com" ||
-                                                Host == "content.gr.online.scea.com") && request.Method != null)
+
+                                            #region PlayStation Home Platform Group
+                                            else if (HPDDomains.Contains(Host) && request.Method != null)
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HomePlatformGroup method : {absolutepath}");
 
@@ -489,6 +500,8 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
+                                            #endregion
+
                                             else
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");

@@ -21,6 +21,7 @@ using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using WebUtils.UBISOFT.HERMES_API;
+using System.Linq;
 
 namespace HTTPSecureServerLite
 {
@@ -166,6 +167,21 @@ namespace HTTPSecureServerLite
 #endif
 
             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+
+            #region HomePlatformGroup Domains
+
+            List<string> HPDDomains = new List<string>() { "dev.destinations.scea.com",
+                "prd.destinations.scea.com",
+                "collector.gr.online.scea.com",
+                "collector-nonprod.gr.online.scea.com",
+                "content.gr.online.scea.com",
+                "content-nonprod.gr.online.scea.com",
+                "holdemeu.destinations.scea.com",
+                "holdemna.destinations.scea.com",
+                "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+            };
+
+            #endregion
 
             if (statusCode == HttpStatusCode.Continue)
             {
@@ -480,9 +496,7 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
-                    else if ((Host == "dev.destinations.scea.com" ||
-                                                Host == "collector.gr.online.scea.com" ||
-                                                Host == "content.gr.online.scea.com") && request.Method != null)
+                    else if (HPDDomains.Contains(Host) && request.Method != null)
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HomePlatformGroup method : {absolutepath}");
 
@@ -733,12 +747,14 @@ namespace HTTPSecureServerLite
                                             }
                                         }
                                         break;
-                                    case "/robots.txt": // Get Away Google.
+                                    #region Get Away Google!
+                                    case "/robots.txt": 
                                         statusCode = HttpStatusCode.OK;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
                                         sent = await response.Send("User-agent: *\nDisallow: / ");
                                         break;
+                                    #endregion
                                     case "/!player":
                                     case "/!player/":
                                         // We want to check if the router allows external IPs first.

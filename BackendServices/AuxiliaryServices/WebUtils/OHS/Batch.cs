@@ -67,6 +67,9 @@ namespace WebUtils.OHS
                                     case "global/getall/":
                                         resultfromcommand = User.Get_All(PostData, ContentType, directorypath + $"/{project}/", data, true, game);
                                         break;
+                                    case "global/gets/":
+                                        resultfromcommand = User.Gets(PostData, ContentType, directorypath + $"/{project}/", data, true, game);
+                                        break;
                                     case "global/get/":
                                         resultfromcommand = User.Get(PostData, ContentType, directorypath + $"/{project}/", data, true, game);
                                         break;
