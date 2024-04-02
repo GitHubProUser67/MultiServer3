@@ -18,10 +18,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
-using WebUtils.HOMECORE;
 using WebUtils.LOOT;
 using System.Buffers;
 using WebUtils.UBISOFT.HERMES_API;
+using WebUtils.HPG;
 using WebUtils.FROMSOFTWARE;
 
 namespace HTTPServer
@@ -89,7 +89,7 @@ namespace HTTPServer
                     {
                         if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
-                            HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString());
+                            HttpRequest request = GetRequest(inputStream, clientip, clientport.ToString());
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
@@ -195,6 +195,17 @@ namespace HTTPServer
                                 }
 
                                 response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
+
+                                List<string> HPDDomains = new List<string>() { "dev.destinations.scea.com",
+                                    "prd.destinations.scea.com",
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
 
                                 if (response == null)
                                 {
@@ -470,6 +481,27 @@ namespace HTTPServer
                                                 else
                                                     response = HttpBuilder.NotAllowed();
                                             }
+
+                                            #region PlayStation Home Platform Group
+                                            else if (HPDDomains.Contains(Host) && request.Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HomePlatformGroup method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HPGClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
                                             else
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -479,24 +511,6 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
-                                                            case "/publisher/list/":
-                                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
-
-                                                                string? res = null;
-                                                                HOMECOREClass homecore = new(request.Method, absolutepath);
-                                                                if (request.GetDataStream != null)
-                                                                {
-                                                                    using MemoryStream postdata = new();
-                                                                    request.GetDataStream.CopyTo(postdata);
-                                                                    res = homecore.ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
-                                                                    postdata.Flush();
-                                                                }
-                                                                homecore.Dispose();
-                                                                if (string.IsNullOrEmpty(res))
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                else
-                                                                    response = HttpResponse.Send(res, "text/xml");
-                                                                break;
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;

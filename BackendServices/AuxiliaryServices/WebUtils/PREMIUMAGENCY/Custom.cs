@@ -14,7 +14,6 @@ namespace WebUtils.PREMIUMAGENCY
 
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-
             using (MemoryStream ms = new(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
@@ -204,6 +203,20 @@ namespace WebUtils.PREMIUMAGENCY
 
         public static string? getUserEventCustomRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
+
+            string nid = string.Empty;
+
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+            using (MemoryStream ms = new(PostData))
+            {
+                var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                nid = data.GetParameterValue("nid");
+
+                ms.Flush();
+            }
+
             switch (eventId)
             {
                 case "63":
@@ -233,11 +246,11 @@ namespace WebUtils.PREMIUMAGENCY
                             "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
                             "<field_name type=\"text\">playrecord</field_name>\r\n" +
                             "<field_value type=\"int\">0</field_value>\r\n" +
-                            "<update_year type=\"int\">2024</update_year>\r\n" +
-                            "<update_month type=\"int\">02</update_month>\r\n" +
-                            "<update_day type=\"int\">03</update_day>\r\n" +
-                            "<update_hour type=\"int\">12</update_hour>\r\n" +
-                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</xml>";
                     }
                 case "76":
@@ -267,11 +280,11 @@ namespace WebUtils.PREMIUMAGENCY
                             "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
                             "<field_name type=\"text\">playrecord</field_name>\r\n" +
                             "<field_value type=\"int\">0</field_value>\r\n" +
-                            "<update_year type=\"int\">2024</update_year>\r\n" +
-                            "<update_month type=\"int\">02</update_month>\r\n" +
-                            "<update_day type=\"int\">03</update_day>\r\n" +
-                            "<update_hour type=\"int\">12</update_hour>\r\n" +
-                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</xml>";
                     }
                 case "81":
@@ -301,11 +314,11 @@ namespace WebUtils.PREMIUMAGENCY
                             "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
                             "<field_name type=\"text\">playrecord</field_name>\r\n" +
                             "<field_value type=\"int\">0</field_value>\r\n" +
-                            "<update_year type=\"int\">2024</update_year>\r\n" +
-                            "<update_month type=\"int\">02</update_month>\r\n" +
-                            "<update_day type=\"int\">03</update_day>\r\n" +
-                            "<update_hour type=\"int\">12</update_hour>\r\n" +
-                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</xml>";
                     }
                 case "95":
@@ -335,11 +348,11 @@ namespace WebUtils.PREMIUMAGENCY
                             "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
                             "<field_name type=\"text\">playrecord</field_name>\r\n" +
                             "<field_value type=\"int\">0</field_value>\r\n" +
-                            "<update_year type=\"int\">2024</update_year>\r\n" +
-                            "<update_month type=\"int\">02</update_month>\r\n" +
-                            "<update_day type=\"int\">03</update_day>\r\n" +
-                            "<update_hour type=\"int\">12</update_hour>\r\n" +
-                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</xml>";
                     }
                 case "210":
@@ -369,11 +382,11 @@ namespace WebUtils.PREMIUMAGENCY
                             "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
                             "<field_name type=\"text\">playrecord</field_name>\r\n" +
                             "<field_value type=\"int\">0</field_value>\r\n" +
-                            "<update_year type=\"int\">2024</update_year>\r\n" +
-                            "<update_month type=\"int\">02</update_month>\r\n" +
-                            "<update_day type=\"int\">03</update_day>\r\n" +
-                            "<update_hour type=\"int\">12</update_hour>\r\n" +
-                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</xml>";
                     }
                 case "86":
@@ -403,11 +416,58 @@ namespace WebUtils.PREMIUMAGENCY
                             "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
                             "<field_name type=\"text\">playrecord</field_name>\r\n" +
                             "<field_value type=\"int\">0</field_value>\r\n" +
-                            "<update_year type=\"int\">2024</update_year>\r\n" +
-                            "<update_month type=\"int\">02</update_month>\r\n" +
-                            "<update_day type=\"int\">03</update_day>\r\n" +
-                            "<update_hour type=\"int\">12</update_hour>\r\n" +
-                            "<update_second type=\"int\">0</update_second>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</xml>";
+                    }
+
+                case "347":
+                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/";
+                    Directory.CreateDirectory(SonyAquarium);
+                    var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquarium}/{nid}.cache");
+
+                    string sonyAquariumSaveDataCFVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfval").Item2;
+
+                    if (File.Exists(SonyAquarium))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FOUND for PUBLIC SonyAquarium {eventId}!");
+                        return "<xml>\r\n\t" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "    <description type=\"text\">Success</description>\r\n" +
+                            "    <error_no type=\"int\">0</error_no>\r\n" +
+                            "    <error_message type=\"text\">None</error_message>rn\r\n" +
+                            "    <field_list>\r\n\t\t" +
+                            "       <field_name type=\"text\">savedata</field_name>\r\n\t\t" +
+                            $"      <field_value type=\"int\">{sonyAquariumSaveDataCFVal}</field_value>\r\n\t\t" +
+                            $"      <update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"      <update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"      <update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"      <update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"      <update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "   </field_list>\r\n" +
+                            "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {sonyAquariumCacheSaveData}");
+
+                        return "<xml>\r\n\t" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "    <description type=\"text\">Success</description>\r\n" +
+                            "    <error_no type=\"int\">0</error_no>\r\n" +
+                            "    <error_message type=\"text\">None</error_message>rn\r\n" +
+                            "    <field_list>\r\n\t\t" +
+                            "<field_name type=\"text\">savedata</field_name>\r\n\t\t" +
+                            "<field_value type=\"int\">0</field_value>\r\n\t\t" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n" +
                             "</xml>";
                     }
                 default:

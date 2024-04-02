@@ -405,11 +405,12 @@ namespace WebUtils.OHS
                     // Parsing the JSON string
                     JObject? jsonObject = JObject.Parse(dataforohs);
 
+                    // Getting the value of the "user" field
+                    dataforohs = (string?)jsonObject["user"];
+                    string[] keys = jsonObject["keys"].ToObject<string[]>();
+
                     if (!global)
                     {
-                        // Getting the value of the "user" field
-                        dataforohs = (string?)jsonObject["user"];
-                        string[] keys = jsonObject["keys"].ToObject<string[]>();
 
                         if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
@@ -442,10 +443,8 @@ namespace WebUtils.OHS
                                 // Parse the JSON string to a JObject
                                 jsonObject = JObject.Parse(globaldata);
 
-                                // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                    // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                string response = ConcatenateValues(jsonObject, keys);
+                                output = response;
                             }
                         }
 
@@ -642,5 +641,25 @@ namespace WebUtils.OHS
                 }
             }
         }
+
+        static string ConcatenateValues(JObject jsonObject, string[] keysRequested)
+        {
+            string response = "";
+            foreach (string key in keysRequested)
+            {
+                if (jsonObject.ContainsKey(key))
+                {
+                    // Check if the "key" property exists and if it is an object
+                    if (jsonObject.TryGetValue("keys", out JToken? keyValueToken))
+                        response += JaminProcessor.ConvertJTokenToLuaTable(jsonObject[key].ToString(), false);
+                }
+                else
+                {
+                    // Don't write response '//response += "Key '" + key + "' not found ";
+                }
+            }
+            return response.Trim();
+        }
     }
+
 }
