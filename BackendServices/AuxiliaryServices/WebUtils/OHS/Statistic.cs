@@ -45,5 +45,46 @@ namespace WebUtils.OHS
             else
                 return JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", 0);
         }
+
+
+        public static string? Tracker(byte[] PostData, string ContentType)
+        {
+            string? dataforohs = null;
+
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+            if (boundary != null)
+            {
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                    try
+                    {
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                    }
+                    catch (Exception)
+                    {
+                        // Not Important.
+                    }
+                    try
+                    {
+                        //dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogWarn($"[OHS] : Client issued Heatmap Tracker with an unknown body format, report this to GITHUB: {ex}");
+                    }
+                    ms.Flush();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(dataforohs))
+            {
+                LoggerAccessor.LogInfo($"[OHS] : Client issued Heatmap Tracker - {dataforohs}");
+                return JaminProcessor.JaminFormat("{ [\"status\"] = \"success\" }", 0);
+            }
+            else
+                return JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", 0);
+        }
     }
 }

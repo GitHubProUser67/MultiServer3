@@ -425,16 +425,17 @@ namespace WebUtils.PREMIUMAGENCY
                     }
 
                 case "347":
-                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/{nid}.cache";
-                    var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquarium}");
-
-                    string sonyAquariumSaveDataCFName = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnam").Item2;
-                    string sonyAquariumSaveDataCFVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfval").Item2;
-                    string sonyAquariumSaveDataCFNumberVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnumber").Item2;
-                    string sonyAquariumSaveDataCFFlagVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfflag").Item2;
+                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/Config/cache/{nid}.cache";
 
                     if (File.Exists(SonyAquarium))
                     {
+                        var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquarium}");
+
+                        string sonyAquariumSaveDataCFName = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnam").Item2;
+                        string sonyAquariumSaveDataCFVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfval").Item2;
+                        string sonyAquariumSaveDataCFNumberVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnumber").Item2;
+                        string sonyAquariumSaveDataCFFlagVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfflag").Item2;
+
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FOUND for PUBLIC SonyAquarium {eventId}!");
                         return "<xml>\r\n\t" +
                             "<result type=\"int\">1</result>\r\n" +
@@ -456,7 +457,7 @@ namespace WebUtils.PREMIUMAGENCY
                     }
                     else
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {sonyAquariumCacheSaveData}");
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {SonyAquarium}");
 
                         return "<xml>\r\n\t" +
                             "<result type=\"int\">1</result>\r\n" +
@@ -466,8 +467,62 @@ namespace WebUtils.PREMIUMAGENCY
                             "    <field_list>\r\n\t\t" +
                             $"      <field_name type=\"text\">savedata</field_name>\r\n\t\t" +
                             $"      <field_value type=\"text\">0</field_value>\r\n\t\t" +
-                            $"      <field_number type=\"int\">0</field_value>\r\n\t\t" +
-                            $"      <field_flag type=\"text\">0</field_value>\r\n\t\t" +
+                            $"      <field_number type=\"int\">0</field_number>\r\n\t\t" +
+                            $"      <field_flag type=\"text\">0</field_flag>\r\n\t\t" +
+                            $"      <update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"      <update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"      <update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"      <update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"      <update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n" +
+                            "</xml>";
+                    }
+
+                case "349":
+                    string SonyAquariumVieoConfig = $"{workpath}/eventController/SonyAquarium/VideoConfig/cache/{nid}.cache";
+
+                    if (File.Exists(SonyAquariumVieoConfig))
+                    {
+                        var sonyAquariumCacheSaveData = PREMIUMAGENCYClass.ReadFormDataFromFile($"{SonyAquariumVieoConfig}");
+
+                        string sonyAquariumSaveDataCFName = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnam").Item2;
+                        string sonyAquariumSaveDataCFVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfval").Item2;
+                        string sonyAquariumSaveDataCFNumberVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfnumber").Item2;
+                        string sonyAquariumSaveDataCFFlagVal = sonyAquariumCacheSaveData.Find(x => x.Item1 == "cfflag").Item2;
+
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FOUND for PUBLIC SonyAquarium {eventId}!");
+                        return "<xml>\r\n\t" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "    <description type=\"text\">Success</description>\r\n" +
+                            "    <error_no type=\"int\">0</error_no>\r\n" +
+                            "    <error_message type=\"text\">None</error_message>rn\r\n" +
+                            "    <field_list>\r\n\t\t" +
+                            $"      <field_name type=\"text\">{sonyAquariumSaveDataCFName}</field_name>\r\n\t\t" +
+                            $"      <field_value type=\"text\">{sonyAquariumSaveDataCFVal}</field_value>\r\n\t\t" +
+                            $"      <field_number type=\"int\">{sonyAquariumSaveDataCFNumberVal}</field_number>\r\n\t\t" +
+                            $"      <field_flag type=\"text\">{sonyAquariumSaveDataCFFlagVal}</field_flag>\r\n\t\t" +
+                            $"      <update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"      <update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"      <update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"      <update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"      <update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "   </field_list>\r\n" +
+                            "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {SonyAquariumVieoConfig}");
+
+                        return "<xml>\r\n\t" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "    <description type=\"text\">Success</description>\r\n" +
+                            "    <error_no type=\"int\">0</error_no>\r\n" +
+                            "    <error_message type=\"text\">None</error_message>rn\r\n" +
+                            "    <field_list>\r\n\t\t" +
+                            $"      <field_name type=\"text\">view</field_name>\r\n\t\t" +
+                            $"      <field_value type=\"text\">0</field_value>\r\n\t\t" +
+                            $"      <field_number type=\"int\">0</field_number>\r\n\t\t" +
+                            $"      <field_flag type=\"text\">0</field_flag>\r\n\t\t" +
                             $"      <update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
                             $"      <update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
                             $"      <update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +

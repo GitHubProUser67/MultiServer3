@@ -170,12 +170,15 @@ namespace HTTPSecureServerLite
 
             #region HomePlatformGroup Domains
 
-            List<string> HPDDomains = new List<string>() { "dev.destinations.scea.com",
+            List<string> HPDDomains = new List<string>() {
+                "dev.destinations.scea.com",
                 "prd.destinations.scea.com",
                 "collector.gr.online.scea.com",
                 "collector-nonprod.gr.online.scea.com",
+                "collector-dev.gr.online.scea.com",
                 "content.gr.online.scea.com",
                 "content-nonprod.gr.online.scea.com",
+                "content-dev.gr.online.scea.com",
                 "holdemeu.destinations.scea.com",
                 "holdemna.destinations.scea.com",
                 "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
