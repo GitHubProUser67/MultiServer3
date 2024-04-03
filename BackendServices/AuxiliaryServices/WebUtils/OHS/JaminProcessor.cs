@@ -121,7 +121,6 @@ namespace WebUtils.OHS
         {
             try
             {
-                LoggerAccessor.LogDebug($"JAMINFORMAT INPUT: {dataforohs}");
                 // Execute the Lua script and get the result
                 object[] returnValues = ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", dataforohs));
 
@@ -267,17 +266,13 @@ namespace WebUtils.OHS
 
         public static string JsonValueToLuaValue(JToken token)
         {
-            switch (token.Type)
+            return token.Type switch
             {
-                case JTokenType.String:
-                    return $"\"{token}\"";
-                case JTokenType.Object:
-                    return ConvertJObjectStringToLuaTable(JObject.Parse(token.ToString()));
-                case JTokenType.Array:
-                    return ConvertJTokenToLuaTable(token, false);
-                default:
-                    return token.ToString().ToLower();
-            }
+                JTokenType.String => $"\"{token}\"",
+                JTokenType.Object => ConvertJObjectStringToLuaTable(JObject.Parse(token.ToString())),
+                JTokenType.Array => ConvertJTokenToLuaTable(token, false),
+                _ => token.ToString().ToLower(),
+            };
         }
 
         public static object[] ExecuteLuaScript(string luaScript)

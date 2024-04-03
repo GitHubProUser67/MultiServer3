@@ -334,7 +334,7 @@ namespace Horizon.MUM
             }
 
             // Auto close when everyone leaves or if host fails to connect after timeout time
-            if (!utcTimeEmpty.HasValue && LocalClients.Count(x => x.InGame) == 0 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+            if (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame) && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
             {
                 LoggerAccessor.LogWarn("AUTO CLOSING WORLD");
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
@@ -425,6 +425,12 @@ namespace Horizon.MUM
 
         public virtual void AddPlayer(ClientObject client)
         {
+            if (client.DmeClientId == null)
+            {
+                LoggerAccessor.LogError($"Game {MediusWorldId}: {GameName}: {client} DmeId is null! Skipping...");
+                return;
+            }
+
             // Don't add again
             if (LocalClients.Any(x => x.Client == client))
                 return;
@@ -434,7 +440,7 @@ namespace Horizon.MUM
             LocalClients.Add(new GameClient()
             {
                 Client = client,
-                DmeId = client.DmeClientId ?? -1
+                DmeId = (int)client.DmeClientId
             });
 
             // Inform the client of any custom game mode
@@ -451,17 +457,10 @@ namespace Horizon.MUM
             {
                 // Update player object
                 await player.Client.LeaveGame(this);
-                if (ChatChannel != null)
-                    await player.Client.LeaveChannel(ChatChannel);
 
                 // Remove from collection
                 if (player.Client.CurrentGame != null)
                     await RemovePlayer(player.Client, player.Client.ApplicationId, WorldId);
-
-                // Update player object
-                await player.Client.LeaveGame(this);
-                if (ChatChannel != null)
-                    await player.Client.LeaveChannel(ChatChannel);
             }
         }
 
