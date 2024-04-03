@@ -32,7 +32,7 @@ namespace WebUtils.OHS
                 {
                     dataforohs = EncryptDecrypt.Decrypt(EncryptDecrypt.UnEscape(dataforohs), game);
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[OHS] - Decrypted Data : {dataforohs}");
+                    LoggerAccessor.LogInfo($"[OHS] - JaminProcessor Decrypted Data : {dataforohs}");
 #endif
                 }
 
@@ -59,7 +59,7 @@ namespace WebUtils.OHS
                     {
                         string? endvalue = returnValues[0].ToString();
 #if DEBUG
-                        LoggerAccessor.LogInfo($"[OHS] - De-Assembled Data : {endvalue}");
+                        LoggerAccessor.LogInfo($"[OHS] - JaminProcessor De-Assembled Data : {endvalue}");
 #endif
                         return (writekey, endvalue);
                     }
@@ -67,7 +67,7 @@ namespace WebUtils.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminDeFormat failed - {ex}");
+                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminProcessor function JaminDeFormat failed - {ex}");
             }
 
             return ("11111111", null);
@@ -84,7 +84,7 @@ namespace WebUtils.OHS
                 {
                     dataforohs = EncryptDecrypt.Decrypt(EncryptDecrypt.UnEscape(dataforohs), game);
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[OHS] - Decrypted Data : {dataforohs}");
+                    LoggerAccessor.LogInfo($"[OHS] - JaminProcessor Decrypted Data : {dataforohs}");
 #endif
                 }
 
@@ -103,7 +103,7 @@ namespace WebUtils.OHS
                     {
                         string? endvalue = returnValues[0].ToString();
 #if DEBUG
-                        LoggerAccessor.LogInfo($"[OHS] - De-Assembled Data : {endvalue}");
+                        LoggerAccessor.LogInfo($"[OHS] - JaminProcessor De-Assembled Data : {endvalue}");
 #endif
                         return endvalue;
                     }
@@ -111,7 +111,7 @@ namespace WebUtils.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminDeFormat failed - {ex}");
+                LoggerAccessor.LogWarn($"[OHS] - JaminProcessor function JaminDeFormat failed - {ex}");
             }
 
             return null;
@@ -121,6 +121,9 @@ namespace WebUtils.OHS
         {
             try
             {
+#if DEBUG
+                LoggerAccessor.LogInfo($"[OHS] - JaminProcessor Input Data: {dataforohs}");
+#endif
                 // Execute the Lua script and get the result
                 object[] returnValues = ExecuteLuaScript(jaminencrypt.Replace("PUT_TABLEINPUT_HERE", dataforohs));
 
@@ -129,13 +132,13 @@ namespace WebUtils.OHS
                 if (!string.IsNullOrEmpty(LuaReturn))
                 {
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[OHS] - Assembled Data : {LuaReturn}");
+                    LoggerAccessor.LogInfo($"[OHS] - JaminProcessor Assembled Data : {LuaReturn}");
 #endif
                     if (game != 0)
                     {
                         string? cipheredoutput = EncryptDecrypt.Encrypt(LuaReturn, new Random().Next(1, 95 * 95), game);
 #if DEBUG
-                        LoggerAccessor.LogInfo($"[OHS] - Encrypted Data : {cipheredoutput}");
+                        LoggerAccessor.LogInfo($"[OHS] - JaminProcessor Encrypted Data : {cipheredoutput}");
 #endif
                         return cipheredoutput;
                     }
@@ -145,7 +148,7 @@ namespace WebUtils.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminFormat failed - {ex}");
+                LoggerAccessor.LogWarn($"[JaminProcessor] - JaminProcessor function JaminFormat failed - {ex}");
             }
 
             return null;
@@ -266,13 +269,17 @@ namespace WebUtils.OHS
 
         public static string JsonValueToLuaValue(JToken token)
         {
-            return token.Type switch
+            switch (token.Type)
             {
-                JTokenType.String => $"\"{token}\"",
-                JTokenType.Object => ConvertJObjectStringToLuaTable(JObject.Parse(token.ToString())),
-                JTokenType.Array => ConvertJTokenToLuaTable(token, false),
-                _ => token.ToString().ToLower(),
-            };
+                case JTokenType.String:
+                    return $"\"{token}\"";
+                case JTokenType.Object:
+                    return ConvertJObjectStringToLuaTable(JObject.Parse(token.ToString()));
+                case JTokenType.Array:
+                    return ConvertJTokenToLuaTable(token, false);
+                default:
+                    return token.ToString().ToLower();
+            }
         }
 
         public static object[] ExecuteLuaScript(string luaScript)

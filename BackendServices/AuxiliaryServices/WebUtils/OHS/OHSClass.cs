@@ -12,7 +12,7 @@ namespace WebUtils.OHS
             "/usercounter/getall/", "usercounter/getmany/", "/usercounter/get/",
             "/userinventory/addglobalitems/", "/userinventory/getglobalitems/",
             "/userinventory/getuserinventory/", "/leaderboard/requestbyusers/", "/leaderboard/requestbyrank/",
-            "/leaderboard/update/", "/leaderboard/updatessameentry/", "/statistic/set/"};
+            "/leaderboard/update/", "/leaderboard/updatessameentry/", "/statistic/set/", "/heatmap/tracker/"};
         private string absolutepath;
         private string method;
         private int game;
@@ -89,6 +89,8 @@ namespace WebUtils.OHS
                             res = Leaderboard.Leaderboard_UpdatesSameEntry(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[23]))
                             res = Statistic.Set(PostData, ContentType);
+                        else if (absolutepath.Contains(Commands[24]))
+                            res = Statistic.Tracker(PostData, ContentType);
                     }
                     break;
                 default:

@@ -120,62 +120,80 @@ namespace WebUtils.PREMIUMAGENCY
 
         public static void WriteFormDataToFile(string formData, string filePath)
         {
-            // Regular expression to match each key-value pair
-            Regex regex = new Regex(@"name=""([^""]+)""\s*([\s\S]*?)\s*---------");
-            MatchCollection matches = regex.Matches(formData);
-
-            using (StreamWriter writer = new StreamWriter(filePath))
+            try
             {
-                foreach (Match match in matches)
-                {
-                    string key = match.Groups[1].Value.Trim();
-                    string value = match.Groups[2].Value.Trim();
+                // Regular expression to match each key-value pair
+                Regex regex = new Regex(@"name=""([^""]+)""\s*([\s\S]*?)\s*---------");
+                MatchCollection matches = regex.Matches(formData);
 
-                    // Write key-value pair to the file
-                    writer.WriteLine($"{key}: {value}");
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    foreach (Match match in matches)
+                    {
+                        string key = match.Groups[1].Value.Trim();
+                        string value = match.Groups[2].Value.Trim();
+
+                        // Write key-value pair to the file
+                        writer.WriteLine($"{key}: {value}");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"Fatal exception occured in WriteFormDataToFile with exception:\n", ex);
             }
         }
 
-        public static List<(string, string)> ReadFormDataFromFile(string filePath)
+        public static List<(string, string)>? ReadFormDataFromFile(string filePath)
         {
-            List<(string, string)> formData = new List<(string, string)>();
-
-            using (StreamReader reader = new StreamReader(filePath))
+            try
             {
-                string line;
-                string currentKey = string.Empty;
-                string currentValue = string.Empty;
 
-                while ((line = reader.ReadLine()) != null)
+                List<(string, string)> formData = new List<(string, string)>();
+
+                using (StreamReader reader = new StreamReader(filePath))
                 {
-                    if (line.Contains(":"))
+                    string line;
+                    string currentKey = string.Empty;
+                    string currentValue = string.Empty;
+
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        string[] parts = line.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length == 2)
+                        if (line.Contains(":"))
                         {
-                            if (currentKey != null)
+                            string[] parts = line.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
                             {
-                                formData.Add((currentKey.Trim(), currentValue.Trim()));
+                                if (currentKey != null)
+                                {
+                                    formData.Add((currentKey.Trim(), currentValue.Trim()));
+                                }
+                                currentKey = parts[0].Trim();
+                                currentValue = parts[1].Trim();
                             }
-                            currentKey = parts[0].Trim();
-                            currentValue = parts[1].Trim();
+                        }
+                        else
+                        {
+                            currentValue += "\n" + line.Trim();
                         }
                     }
-                    else
+
+                    // Add the last key-value pair
+                    if (currentKey != null)
                     {
-                        currentValue += "\n" + line.Trim();
+                        formData.Add((currentKey.Trim(), currentValue.Trim()));
                     }
                 }
 
-                // Add the last key-value pair
-                if (currentKey != null)
-                {
-                    formData.Add((currentKey.Trim(), currentValue.Trim()));
-                }
+                return formData;
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"Fatal exception occured in ReadFormDataFromFile with exception:\n", ex);
+                return null;
             }
 
-            return formData;
+
         }
     }
 }

@@ -175,9 +175,7 @@ namespace WebUtils.PREMIUMAGENCY
                             }
                         }
                         break;
-                    #endregion
 
-                    #region Sony Aquarium Home Square
                     case "SonyAquarium_Relocate":
                         {
                             Directory.CreateDirectory(HSAquariumStatuePath);

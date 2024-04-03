@@ -6,6 +6,7 @@ using static WebUtils.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
 using BackendProject.MiscUtils;
+using System.Linq;
 
 namespace WebUtils.OHS
 {
@@ -317,9 +318,9 @@ namespace WebUtils.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
-                                    if (keyValueToken.ToObject<JObject>().TryGetValue(ohsKey, out JToken? ohsKeyValue))
-                                        // Convert the JToken to a Lua table-like string
-                                        output = JaminProcessor.ConvertJTokenToLuaTable(ohsKeyValue, false);
+                                    string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    //We lower them for True/False edgecase, otherwise Jamin will not return them!
+                                    output = outputOriginal.ToLower();
                                 }
                             }
                         }
@@ -419,12 +420,12 @@ namespace WebUtils.OHS
                             if (!string.IsNullOrEmpty(userprofile))
                             {
                                 // Parse the JSON string to a JObject
-                                jsonObject = JObject.Parse(userprofile);
+                                JObject userProfile = JObject.Parse(userprofile);
 
                                 foreach (var key in keys)
                                 {
                                     // Check if the "key" property exists and if it is an object
-                                    if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
+                                    if (userProfile.TryGetValue(key, out JToken? keyValueToken))
                                         // Convert the JToken to a Lua table-like string
                                         output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                                 }
@@ -443,10 +444,14 @@ namespace WebUtils.OHS
                                 // Parse the JSON string to a JObject
                                 jsonObject = JObject.Parse(globaldata);
 
-                                string response = ConcatenateValues(jsonObject, keys);
-                                output = response;
+                                // Check if the "key" property exists and if it is an object
+                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken))
+                                    // Convert the JToken to a Lua table-like string
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
+                        else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
+                            output = "{[\"heatmap_samples_to_send\"] = 1, [\"heatmap_sample_period\"] = 5}";
 
                     }
                 }
