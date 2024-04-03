@@ -5184,7 +5184,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        if (!data.ClientObject.IsInGame)
+                        if (data.ClientObject.CurrentGame == null || !data.ClientObject.IsInGame)
                         {
                             LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {reassignGameMediusWorldID} without being in a game.");
                             break;

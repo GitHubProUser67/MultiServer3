@@ -1622,21 +1622,8 @@ namespace Horizon.MEDIUS.Medius
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? partyName = null;
-            Channel? partyChannel = null;
             if (request is MediusPartyCreateRequest r)
-            {
                 partyName = r.PartyName;
-                partyChannel = new Channel()
-                {
-                    MaxPlayers = r.MaxPlayers,
-                    MinPlayers = r.MinPlayers,
-                    ApplicationId = r.ApplicationID,
-                    Name = partyName,
-                    Type = ChannelType.Game, // Party is a game type.
-                };
-
-                await MediusClass.Manager.AddChannel(partyChannel);
-            }
 
             var existingParties = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.PartyIdToGame.Select(g => g.Value));
             
@@ -1672,15 +1659,12 @@ namespace Horizon.MEDIUS.Medius
                 });
                 return;
             }
-            else if (partyChannel != null)
+            else if (client.CurrentChannel != null)
             {
-                // Create and add while joining party game channel
+                // Create and add party.
                 try
                 {
-                    // Join new channel
-                    await client.JoinChannel(partyChannel);
-
-                    Party? party = new(client, request, partyChannel, dme, partyChannel.Id);
+                    Party? party = new(client, request, client.CurrentChannel, dme, client.CurrentChannel.Id);
                     await AddParty(party);
 
                     await client.JoinParty(party, party.MediusWorldId);

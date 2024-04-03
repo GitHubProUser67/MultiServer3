@@ -193,6 +193,12 @@ namespace Horizon.MUM
 
         public virtual void AddPlayer(ClientObject client)
         {
+            if (client.DmeClientId == null)
+            {
+                LoggerAccessor.LogError($"Party {MediusWorldId}: {PartyName}: {client} DmeId is null! Skipping...");
+                return;
+            }
+
             // Don't add again
             if (LocalClients.Any(x => x.Client == client))
                 return;
@@ -202,7 +208,7 @@ namespace Horizon.MUM
             LocalClients.Add(new PartyClient()
             {
                 Client = client,
-                DmeId = client.DmeClientId ?? -1
+                DmeId = (int)client.DmeClientId
             });
 
             // Inform the client of any custom game mode
@@ -219,7 +225,6 @@ namespace Horizon.MUM
             {
                 // Update player object
                 await player.Client.LeaveParty(this);
-                // player.Client.LeaveChannel(ChatChannel);
 
                 // Remove from collection
                 RemovePlayer(player.Client);
