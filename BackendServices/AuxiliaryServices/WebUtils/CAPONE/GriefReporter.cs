@@ -5,11 +5,11 @@ using HttpMultipartParser;
 using static Community.CsharpSqlite.Sqlite3;
 using Newtonsoft.Json.Linq;
 
-namespace WebUtils.HPG
+namespace WebUtils.CAPONE
 {
     public class GriefReporter
     {
-        public static string? caponeContentStoreUpload(byte[]? PostData, string? ContentType, string workPath)
+        public static string? caponeContentStoreUpload(byte[] PostData, string? ContentType, string workPath)
         {
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
@@ -34,17 +34,17 @@ namespace WebUtils.HPG
                             // Save the file with name.
                             string filePath = Path.Combine(workPath, fileName);
 
-                            LoggerAccessor.LogInfo($"[HPG] - Writing evidence file {fileName} to {filePath}!");
+                            LoggerAccessor.LogInfo($"[CAPONE] - Writing evidence file {fileName} to {filePath}!");
 
                             // Save the file content.
                             using (FileStream fs = new FileStream(filePath, FileMode.Create))
                             {
                                 fs.Write(Encoding.UTF8.GetBytes(Convert.ToString(part.Data)), 0, Convert.ToInt32(part.Data.Length));
-                                LoggerAccessor.LogInfo($"[HPG] GriefReporter - Written evidence file {fileName} to {filePath}!");
+                                LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - Written evidence file {fileName} to {filePath}!");
                             }
                         }
                     }
-                    LoggerAccessor.LogInfo($"[HPG] GriefReporter - GriefReport evidence receieved and written to contentStore!");
+                    LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - GriefReport evidence receieved and written to contentStore!");
 
                     ms.Flush();
                     return "";
@@ -59,19 +59,18 @@ namespace WebUtils.HPG
 
         }
 
-        public static string? caponeReportCollectorSubmit(byte[]? PostData, string? ContentType, string workPath)
+        public static string? caponeReportCollectorSubmit(byte[] PostData, string? ContentType, string workPath)
         {
             using (MemoryStream ms = new(PostData))
             {
                 string fileName = string.Empty;
 
-                JToken Token = JToken.Parse(Encoding.UTF8.GetString(PostData));
+                JObject jObject = JObject.Parse(Encoding.UTF8.GetString(PostData)); 
 
-                string? dataURL = (string?)VariousUtils.GetValueFromJToken(Token, "dataLocation");
-                string pathTrim = dataURL.Substring(42).Replace("?countryCode=us", "");
-                string finalPath = Path.Combine(workPath, pathTrim);
+                Uri dataURL = (Uri)VariousUtils.GetValueFromJToken(jObject, "dataLocation");
+                string finalPath = Path.Combine(workPath, dataURL.AbsolutePath);
 
-                LoggerAccessor.LogWarn($"[HPG] GriefReporter - Path check {finalPath}");
+                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - Path check {finalPath}");
 
                 try
                 {
@@ -80,15 +79,15 @@ namespace WebUtils.HPG
                     // Save the file with name.
                     string filePath = Path.Combine(finalPath, fileName);
 
-                    LoggerAccessor.LogInfo($"[HPG] GriefReporter - Writing JSON Summary {fileName} to {filePath}!");
+                    LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - Writing JSON Summary {fileName} to {filePath}!");
 
                     // Save the file content.
                     using (FileStream fs = new FileStream(filePath, FileMode.Create))
                     {
                         fs.Write(Encoding.UTF8.GetBytes(Convert.ToString(PostData)), 0, Convert.ToInt32(PostData.Length));
-                        LoggerAccessor.LogInfo($"[HPG] GriefReporter - Written JSON {fileName} to {filePath}!");
+                        LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - Written JSON {fileName} to {filePath}!");
                     }
-                    LoggerAccessor.LogInfo($"[HPG] GriefReporter - GriefReport JSON receieved and written to contentStore!");
+                    LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - GriefReport JSON receieved and written to contentStore!");
 
                     ms.Flush();
                     return "";

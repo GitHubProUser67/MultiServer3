@@ -1,14 +1,14 @@
 
-namespace WebUtils.HPG
+namespace WebUtils.CAPONE
 {
-    public class HPGClass : IDisposable
+    public class CAPONEClass : IDisposable
     {
         private string workPath;
         private string absolutePath;
         private string method;
         private bool disposedValue;
 
-        public HPGClass(string method, string absolutePath, string workPath)
+        public CAPONEClass(string method, string absolutePath, string workPath)
         {
             this.workPath = workPath;
             this.absolutePath = absolutePath;
