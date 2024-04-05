@@ -4,7 +4,6 @@ using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using WebUtils;
-using WebUtils.HPG;
 using WebUtils.LOOT;
 using WebUtils.NDREAMS;
 using WebUtils.OHS;
@@ -21,7 +20,8 @@ using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using WebUtils.UBISOFT.HERMES_API;
-using System.Linq;
+using WebUtils.CAPONE;
+using WebUtils.CDM;
 
 namespace HTTPSecureServerLite
 {
@@ -168,21 +168,24 @@ namespace HTTPSecureServerLite
 
             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
 
-            #region HomePlatformGroup Domains
+            #region Domains
 
             List<string> HPDDomains = new List<string>() {
-                "dev.destinations.scea.com",
-                "prd.destinations.scea.com",
-                "collector.gr.online.scea.com",
-                "collector-nonprod.gr.online.scea.com",
-                "collector-dev.gr.online.scea.com",
-                "content.gr.online.scea.com",
-                "content-nonprod.gr.online.scea.com",
-                "content-dev.gr.online.scea.com",
-                "holdemeu.destinations.scea.com",
-                "holdemna.destinations.scea.com",
-                "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
-            };
+                                    "dev.destinations.scea.com",
+                                    "prd.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
+
+            List<string> CAPONEDomains = new List<string>() {
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "collector-dev.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "content-dev.gr.online.scea.com",
+                                };
 
             #endregion
 
@@ -375,6 +378,8 @@ namespace HTTPSecureServerLite
                             sent = await response.Send();
                         }
                     }
+
+                    #region VEEMEE API
                     else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
@@ -394,6 +399,9 @@ namespace HTTPSecureServerLite
                             response.ContentType = "text/plain";
                         sent = await response.Send(res.Item1);
                     }
+                    #endregion
+
+                    #region nDreams API
                     else if (Host == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
@@ -413,6 +421,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region Hellfire Games API
                     else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
@@ -429,7 +440,14 @@ namespace HTTPSecureServerLite
                         response.ContentType = "text/plain";
                         sent = await response.Send(res);
                     }
-                    else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
+                    #endregion
+
+                    #region Outso OHS API
+                    else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
+                                                absolutepath.EndsWith("/") ||
+                                                absolutepath.Contains("/ohs") ||
+                                                absolutepath.Contains("/statistic/") ||
+                                                absolutepath.Contains("/Konami/" ))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
@@ -449,6 +467,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region LOOT API
                     else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com")
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
@@ -476,6 +497,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region PREMIUMAGENCY API
                     else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
                                                 Host == "scej-home.playstation.net" ||
@@ -499,25 +523,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
-                    else if (HPDDomains.Contains(Host) && request.Method != null)
-                    {
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HomePlatformGroup method : {absolutepath}");
+                    #endregion
 
-                        string? res = new HPGClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
-                        if (string.IsNullOrEmpty(res))
-                        {
-                            response.ContentType = "text/plain";
-                            statusCode = HttpStatusCode.InternalServerError;
-                        }
-                        else
-                        {
-                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.ContentType = "text/xml";
-                            statusCode = HttpStatusCode.OK;
-                        }
-                        response.StatusCode = (int)statusCode;
-                        sent = await response.Send(res);
-                    }
+                    #region UBISOFT API
                     else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
@@ -582,6 +590,52 @@ namespace HTTPSecureServerLite
                             sent = await response.Send();
                         }
                     }
+                    #endregion
+
+                    #region CentralDispatchManager API
+                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                    {
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
+
+                        string? res = new CDMClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                        if (string.IsNullOrEmpty(res))
+                        {
+                            response.ContentType = "text/plain";
+                            statusCode = HttpStatusCode.InternalServerError;
+                        }
+                        else
+                        {
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.ContentType = "text/xml";
+                            statusCode = HttpStatusCode.OK;
+                        }
+                        response.StatusCode = (int)statusCode;
+                        sent = await response.Send(res);
+                    }
+                    #endregion
+
+                    #region CAPONE GriefReporter API
+                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                    {
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+
+                        string? res = new CAPONEClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                        if (string.IsNullOrEmpty(res))
+                        {
+                            response.ContentType = "text/plain";
+                            statusCode = HttpStatusCode.InternalServerError;
+                        }
+                        else
+                        {
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.ContentType = "text/xml";
+                            statusCode = HttpStatusCode.OK;
+                        }
+                        response.StatusCode = (int)statusCode;
+                        sent = await response.Send(res);
+                    }
+                    #endregion
+
                     else
                     {
                         string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
