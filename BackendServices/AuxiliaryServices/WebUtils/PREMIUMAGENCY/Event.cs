@@ -1,5 +1,4 @@
 using CustomLogger;
-using HttpMultipartParser;
 using System.Text;
 
 namespace WebUtils.PREMIUMAGENCY
@@ -249,7 +248,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC iDOLM@STER {eventId}!\nExpected path {iDOLMAASTERsFilePathPublic}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -302,7 +300,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {j_liargame2Path}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -328,7 +325,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC Spring2013 {eventId}!\nExpected path {Spring2013}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
@@ -355,7 +351,6 @@ namespace WebUtils.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC SonyAquarium {eventId}!\nExpected path {SonyAquariumConfigPath}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
