@@ -14,7 +14,7 @@ namespace WebUtils.OHS
             string? dataforohs = null;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -66,6 +66,9 @@ namespace WebUtils.OHS
                                         break;
                                     case "global/getall/":
                                         resultfromcommand = User.Get_All(PostData, ContentType, directorypath + $"/{project}/", data, true, game);
+                                        break;
+                                    case "global/gets/":
+                                        resultfromcommand = User.Gets(PostData, ContentType, directorypath + $"/{project}/", data, true, game);
                                         break;
                                     case "global/get/":
                                         resultfromcommand = User.Get(PostData, ContentType, directorypath + $"/{project}/", data, true, game);

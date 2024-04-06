@@ -21,7 +21,7 @@ namespace WebUtils.OHS
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     try
                     {
@@ -150,7 +150,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -213,7 +213,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -362,7 +362,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {

@@ -1,33 +1,51 @@
-namespace WebUtils.HOMECORE
+
+namespace WebUtils.CAPONE
 {
-    public class HOMECOREClass : IDisposable
+    public class CAPONEClass : IDisposable
     {
-        private string absolutepath;
+        private string workPath;
+        private string absolutePath;
         private string method;
         private bool disposedValue;
 
-        public HOMECOREClass(string method, string absolutepath)
+        public CAPONEClass(string method, string absolutePath, string workPath)
         {
-            this.absolutepath = absolutepath;
+            this.workPath = workPath;
+            this.absolutePath = absolutePath;
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string? ContentType, string directoryPath)
+        public string? ProcessRequest(byte[] PostData, string ContentType, string directoryPath)
         {
-            if (string.IsNullOrEmpty(absolutepath) || string.IsNullOrEmpty(directoryPath))
+            if (string.IsNullOrEmpty(absolutePath) || string.IsNullOrEmpty(directoryPath))
                 return null;
 
-            string? res = null;
+            string res = string.Empty;
 
             Directory.CreateDirectory(directoryPath);
 
             switch (method)
             {
                 case "GET":
-                    switch (absolutepath)
+                    switch (absolutePath)
                     {
                         case "/publisher/list/":
                             return "<xml><status>success</status></xml>"; // TODO: emulate the publishers system.
+                    }
+                    break;
+                case "POST":
+                    switch (absolutePath)
+                    {
+                        case "/capone/reportCollector/submit/":
+                            {
+                                string output = GriefReporter.caponeReportCollectorSubmit(PostData, ContentType, directoryPath);
+                                return output;
+                            }
+                        case "/capone/contentStore/10/":
+                            {
+                                string output = GriefReporter.caponeContentStoreUpload(PostData, ContentType, directoryPath);
+                                return output;
+                            }
                     }
                     break;
                 default:
@@ -43,7 +61,7 @@ namespace WebUtils.HOMECORE
             {
                 if (disposing)
                 {
-                    absolutepath = string.Empty;
+                    absolutePath = string.Empty;
                     method = string.Empty;
                 }
 

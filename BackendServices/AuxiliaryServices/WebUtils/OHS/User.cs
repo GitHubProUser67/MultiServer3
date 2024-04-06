@@ -6,6 +6,7 @@ using static WebUtils.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
 using BackendProject.MiscUtils;
+using System.Linq;
 
 namespace WebUtils.OHS
 {
@@ -20,7 +21,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -183,7 +184,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -278,7 +279,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -317,9 +318,9 @@ namespace WebUtils.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
-                                    if (keyValueToken.ToObject<JObject>().TryGetValue(ohsKey, out JToken? ohsKeyValue))
-                                        // Convert the JToken to a Lua table-like string
-                                        output = JaminProcessor.ConvertJTokenToLuaTable(ohsKeyValue, false);
+                                    string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    //We lower them for True/False edgecase, otherwise Jamin will not return them!
+                                    output = outputOriginal.ToLower();
                                 }
                             }
                         }
@@ -384,7 +385,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -405,11 +406,12 @@ namespace WebUtils.OHS
                     // Parsing the JSON string
                     JObject? jsonObject = JObject.Parse(dataforohs);
 
+                    // Getting the value of the "user" field
+                    dataforohs = (string?)jsonObject["user"];
+                    string[] keys = jsonObject["keys"].ToObject<string[]>();
+
                     if (!global)
                     {
-                        // Getting the value of the "user" field
-                        dataforohs = (string?)jsonObject["user"];
-                        string[] keys = jsonObject["keys"].ToObject<string[]>();
 
                         if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
@@ -418,12 +420,12 @@ namespace WebUtils.OHS
                             if (!string.IsNullOrEmpty(userprofile))
                             {
                                 // Parse the JSON string to a JObject
-                                jsonObject = JObject.Parse(userprofile);
+                                JObject userProfile = JObject.Parse(userprofile);
 
                                 foreach (var key in keys)
                                 {
                                     // Check if the "key" property exists and if it is an object
-                                    if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
+                                    if (userProfile.TryGetValue(key, out JToken? keyValueToken))
                                         // Convert the JToken to a Lua table-like string
                                         output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                                 }
@@ -443,11 +445,13 @@ namespace WebUtils.OHS
                                 jsonObject = JObject.Parse(globaldata);
 
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken))
                                     // Convert the JToken to a Lua table-like string
                                     output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
+                        else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
+                            output = "{[\"heatmap_samples_to_send\"] = 1, [\"heatmap_sample_period\"] = 5}";
 
                     }
                 }
@@ -483,7 +487,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -539,7 +543,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -642,5 +646,25 @@ namespace WebUtils.OHS
                 }
             }
         }
+
+        static string ConcatenateValues(JObject jsonObject, string[] keysRequested)
+        {
+            string response = "";
+            foreach (string key in keysRequested)
+            {
+                if (jsonObject.ContainsKey(key))
+                {
+                    // Check if the "key" property exists and if it is an object
+                    if (jsonObject.TryGetValue("keys", out JToken? keyValueToken))
+                        response += JaminProcessor.ConvertJTokenToLuaTable(jsonObject[key].ToString(), false);
+                }
+                else
+                {
+                    // Don't write response '//response += "Key '" + key + "' not found ";
+                }
+            }
+            return response.Trim();
+        }
     }
+
 }

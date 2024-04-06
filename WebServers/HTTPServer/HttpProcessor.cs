@@ -18,11 +18,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
-using WebUtils.HOMECORE;
 using WebUtils.LOOT;
 using System.Buffers;
 using WebUtils.UBISOFT.HERMES_API;
 using WebUtils.FROMSOFTWARE;
+using WebUtils.CAPONE;
+using WebUtils.CDM;
 
 namespace HTTPServer
 {
@@ -198,12 +199,36 @@ namespace HTTPServer
 
                                 response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
+                                List<string> HPDDomains = new List<string>() { 
+									"dev.destinations.scea.com",
+                                    "prd.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
+
+                                List<string> CAPONEDomains = new List<string>() {
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "collector-dev.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "content-dev.gr.online.scea.com",
+                                };
+
                                 if (response == null)
                                 {
                                     switch (Host)
                                     {
                                         default:
-                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && request.GetDataStream != null && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
+
+                                            #region Outso OHS API
+                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
+                                                request.GetDataStream != null &&
+                                                absolutepath.EndsWith("/") ||
+                                                absolutepath.Contains("/ohs") ||
+                                                absolutepath.Contains("/statistic/") ||
+                                                absolutepath.Contains("/Konami/" ))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
@@ -232,6 +257,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                             }
+                                            #endregion
+
+                                            #region Outso OUWF Debug API
                                             else if (Host == "ouwf.outso-srv1.com" && request.GetDataStream != null && !string.IsNullOrEmpty(Method) && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
@@ -248,6 +276,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
+                                            #endregion
+
+                                            #region VEEMEE API
                                             else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && Method != null && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
@@ -284,6 +315,9 @@ namespace HTTPServer
                                                     }
                                                 }
                                             }
+                                            #endregion
+
+                                            #region nDreams API
                                             else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
@@ -329,6 +363,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
+                                            #endregion
+
+                                            #region LOOT API
                                             else if ((Host == "server.lootgear.com" || Host == "alpha.lootgear.com") && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
@@ -350,6 +387,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
                                             }
+                                            #endregion
+
+                                            #region PREMIUMAGENCY API
                                             else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
                                                 Host == "scej-home.playstation.net" ||
@@ -371,6 +411,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
+                                            #endregion
+
+                                            #region FROMSOFTWARE API
                                             else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
@@ -388,6 +431,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
                                             }
+                                            #endregion
+
+                                            #region Ubisoft API
                                             else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
@@ -472,6 +518,48 @@ namespace HTTPServer
                                                 else
                                                     response = HttpBuilder.NotAllowed();
                                             }
+                                            #endregion
+
+                                            #region CentralDispatchManager API
+                                            else if (HPDDomains.Contains(Host) && request.Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region CAPONE GriefReporter API
+                                            else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new CAPONEClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
                                             else
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -481,24 +569,6 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
-                                                            case "/publisher/list/":
-                                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
-
-                                                                string? res = null;
-                                                                HOMECOREClass homecore = new(Method, absolutepath);
-                                                                if (request.GetDataStream != null)
-                                                                {
-                                                                    using MemoryStream postdata = new();
-                                                                    request.GetDataStream.CopyTo(postdata);
-                                                                    res = homecore.ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
-                                                                    postdata.Flush();
-                                                                }
-                                                                homecore.Dispose();
-                                                                if (string.IsNullOrEmpty(res))
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                else
-                                                                    response = HttpResponse.Send(res, "text/xml");
-                                                                break;
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;

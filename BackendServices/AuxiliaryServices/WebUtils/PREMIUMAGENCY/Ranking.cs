@@ -1,15 +1,12 @@
 using BackendProject.MiscUtils;
 using CustomLogger;
 using HttpMultipartParser;
-using Microsoft.Extensions.Logging;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace WebUtils.PREMIUMAGENCY
 {
     public class Ranking
     {
-
         public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
         {
             #region Paths

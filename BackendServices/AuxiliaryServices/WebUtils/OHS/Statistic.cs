@@ -12,7 +12,7 @@ namespace WebUtils.OHS
 
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -40,6 +40,52 @@ namespace WebUtils.OHS
             if (!string.IsNullOrEmpty(dataforohs))
             {
                 LoggerAccessor.LogInfo($"[OHS] : Client issued Statistics - {dataforohs}");
+                return JaminProcessor.JaminFormat("{ [\"status\"] = \"success\" }", 0);
+            }
+            else
+                return JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", 0);
+        }
+
+
+        public static string? Tracker(byte[] PostData, string ContentType)
+        {
+            string? dataforohs = null;
+
+            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+            if (!string.IsNullOrEmpty(boundary))
+            {
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                    try
+                    {
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                    }
+                    catch (Exception)
+                    {
+                        // Not Important.
+                    }
+
+                    try
+                    {
+#if DEBUG
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
+                        LoggerAccessor.LogInfo($"[OHS] Heatmap Teacker Data : {dataforohs}");
+#endif
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogWarn($"[OHS] : Client issued Heatmap Tracker with an unknown body format, report this to GITHUB: {ex}");
+                    }
+
+                    ms.Flush();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(dataforohs))
+            {
+                LoggerAccessor.LogInfo($"[OHS] : Client issued Heatmap Tracker - {dataforohs}");
                 return JaminProcessor.JaminFormat("{ [\"status\"] = \"success\" }", 0);
             }
             else

@@ -12,7 +12,7 @@ namespace WebUtils.VEEMEE
             string product = string.Empty;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -62,7 +62,7 @@ namespace WebUtils.VEEMEE
             string __salt = string.Empty;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -94,7 +94,7 @@ namespace WebUtils.VEEMEE
             string profile = string.Empty;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
