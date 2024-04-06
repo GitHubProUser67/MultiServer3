@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks;
+using MultiSocks.DirtySocks;
 
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class Mesg : AbstractMessage
     {

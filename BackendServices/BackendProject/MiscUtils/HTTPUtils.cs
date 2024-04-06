@@ -743,7 +743,7 @@ namespace BackendProject.MiscUtils
             NameValueCollection formData = HttpUtility.ParseQueryString(Encoding.UTF8.GetString(urlEncodedDataByte));
 
             // Convert the NameValueCollection to a dictionary for easy sorting
-            var formDataDictionary = new Dictionary<string, string>();
+            Dictionary<string, string> formDataDictionary = new();
             foreach (string? key in formData.AllKeys)
             {
                 if (key != null)
@@ -788,7 +788,7 @@ namespace BackendProject.MiscUtils
             {
                 HugeMemoryStream outMemoryStream = new();
                 GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                VariousUtils.CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.Flush();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
@@ -797,7 +797,7 @@ namespace BackendProject.MiscUtils
             {
                 MemoryStream outMemoryStream = new();
                 GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                VariousUtils.CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.Flush();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
@@ -810,7 +810,7 @@ namespace BackendProject.MiscUtils
             {
                 HugeMemoryStream outMemoryStream = new();
                 ZOutputStream outZStream = new(outMemoryStream, 1, true);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                VariousUtils.CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.finish();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
@@ -819,22 +819,11 @@ namespace BackendProject.MiscUtils
             {
                 MemoryStream outMemoryStream = new();
                 ZOutputStream outZStream = new(outMemoryStream, 1, true);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                VariousUtils.CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.finish();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
-        }
-
-        public static void CopyStream(Stream input, Stream output, int BufferSize)
-        {
-            int len = 0;
-            byte[] buffer = new byte[BufferSize];
-            while ((len = input.Read(buffer, 0, BufferSize)) > 0)
-            {
-                output.Write(buffer, 0, len);
-            }
-            output.Flush();
         }
 
         public static byte[]? MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
@@ -859,9 +848,9 @@ namespace BackendProject.MiscUtils
                 ans.AddRange(Ip.GetAddressBytes());
                 return ans.ToArray();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                CustomLogger.LoggerAccessor.LogError($"[VariousUtils] - MakeDnsResponsePacket thrown an exception: {ex}");
             }
 
             return null;

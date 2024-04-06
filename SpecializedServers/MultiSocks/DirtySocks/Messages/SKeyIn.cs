@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class SKeyIn : AbstractMessage
     {
@@ -8,7 +8,10 @@ namespace SRVEmu.DirtySocks.Messages
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
             //TODO: get actual session key
-            client.SendMessage(new SKeyOut());
+            if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
+                client.SendMessage(new SKeyOut() { SKEY = "$baadcodebaadcodebaadcodebaadcode", DP = "PS3/Burnout-Dec2007/mod" } );
+            else
+                client.SendMessage(new SKeyOut());
         }
     }
 }

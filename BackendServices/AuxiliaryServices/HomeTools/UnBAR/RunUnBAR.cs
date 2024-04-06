@@ -24,50 +24,53 @@ namespace HomeTools.UnBAR
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath)
+        public static void RunEncrypt(string filePath, string sdatfilePath)
         {
-            using Process? process = Process.Start(new ProcessStartInfo()
+            try
             {
-                FileName = converterPath + "/make_npdata",
-                Arguments = $"-e \"{filePath}\" \"{sdatfilePath}\" 0 1 2 1 32 3 00",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                WorkingDirectory = converterPath, // Can load various config files.
-                CreateNoWindow = true
-            });
+                int statuscode = new EDAT().encryptFile(filePath, sdatfilePath);
 
-            process?.WaitForExit();
-
-            int? ExitCode = process?.ExitCode;
-
-            if (ExitCode != 0)
-                LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
+                if (statuscode != 0)
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {statuscode}");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RunEncrypt] - SDAT Encryption failed with exception : {ex}");
+            }
         }
 
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
-            using Process? process = Process.Start(new ProcessStartInfo()
-            {
-                FileName = converterPath + "/make_npdata",
-                Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                WorkingDirectory = converterPath, // Can load various config files.
-                CreateNoWindow = true
-            });
+            int statuscode = new EDAT().decryptFile(sdatfilePath, datfilePath);
 
-            process?.WaitForExit();
-
-            int? ExitCode = process?.ExitCode;
-
-            if (ExitCode != 0)
-                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
-            else
+            if (statuscode == 0)
                 await RunExtract(datfilePath, outDir);
+            else
+            {
+                LoggerAccessor.LogDebug($"[RunUnBAR] - RunDecrypt failed with status code : {statuscode}, using make_npdata fallback...");
+
+                using Process? process = Process.Start(new ProcessStartInfo()
+                {
+                    FileName = converterPath + "/make_npdata",
+                    Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = converterPath, // Can load various config files.
+                    CreateNoWindow = true
+                });
+
+                process?.WaitForExit();
+
+                int? ExitCode = process?.ExitCode;
+
+                if (ExitCode != 0)
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
+                else
+                    await RunExtract(datfilePath, outDir);
+            }
         }
 
         private static async Task RunExtract(string filePath, string outDir)
@@ -306,10 +309,7 @@ namespace HomeTools.UnBAR
             if (string.IsNullOrEmpty(tableOfContent.Path))
                 path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, fileType);
             else
-            {
-                string str = tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar);
-                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, str);
-            }
+                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar));
             string? outdirectory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(outdirectory))
             {
@@ -317,18 +317,19 @@ namespace HomeTools.UnBAR
                 using (FileStream fileStream = File.Open(path, (FileMode)2))
                 {
                     byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
-                    if (tableOfContent.Compression == CompressionMethod.Encrypted && data.Length > 28 && 
+                    if (tableOfContent.Compression == CompressionMethod.Encrypted && 
                         ((data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01) || (data[0] == 0x01 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)))
                     {
-                        int dataStart = FindDataPosInBinary(RawBarData, data);
+                        int dataStart = VariousUtils.FindDataPositionInBinary(RawBarData, data);
 
                         if (dataStart != -1)
                         {
-                            BlowfishCTREncryptDecrypt? blowfish = new();
-                            ToolsImpl? toolsImpl = new();
                             uint compressedSize = tableOfContent.CompressedSize;
                             uint fileSize = tableOfContent.Size;
                             int userData = archive.BARHeader.UserData;
+                            byte[] EncryptedSignatureHeader = new byte[24];
+                            BlowfishCTREncryptDecrypt? blowfish = new();
+                            ToolsImpl? toolsImpl = new();
 #if DEBUG
                             LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
                             LoggerAccessor.LogInfo($"CompressedSize - {compressedSize}");
@@ -341,18 +342,16 @@ namespace HomeTools.UnBAR
                             if (BitConverter.IsLittleEndian)
                                 Array.Reverse(SignatureIV);
 
-                            byte[] EncryptedHeaderSHA1 = new byte[24];
-
                             // Copy the first 24 bytes from the source array to the destination array
-                            Buffer.BlockCopy(data, 4, EncryptedHeaderSHA1, 0, EncryptedHeaderSHA1.Length);
+                            Buffer.BlockCopy(data, 4, EncryptedSignatureHeader, 0, EncryptedSignatureHeader.Length);
 
-                            byte[]? DecryptedHeaderSHA1 = blowfish.EncryptionProxyInit(EncryptedHeaderSHA1, SignatureIV);
+                            byte[]? DecryptedSignatureHeader = blowfish.EncryptionProxyInit(EncryptedSignatureHeader, SignatureIV);
 
-                            if (DecryptedHeaderSHA1 != null)
+                            if (DecryptedSignatureHeader != null)
                             {
-                                string verificationsha1 = VariousUtils.ByteArrayToHexString(DecryptedHeaderSHA1);
+                                string SignatureHeaderHexString = VariousUtils.ByteArrayToHexString(DecryptedSignatureHeader);
 #if DEBUG
-                                LoggerAccessor.LogInfo($"SignatureHeader - {verificationsha1}");
+                                LoggerAccessor.LogInfo($"SignatureHeader - {SignatureHeaderHexString}");
 #endif
                                 // Create a new byte array to store the remaining content
                                 byte[]? FileBytes = new byte[data.Length - 28];
@@ -367,39 +366,59 @@ namespace HomeTools.UnBAR
                                     sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
                                 }
 
-                                string SHA1HexString = sb.ToString().ToUpper();
+                                string SHA1HexString = sb.ToString();
 
-                                if (SHA1HexString == verificationsha1[..^8]) // We strip the original file Compression size.
+                                if (string.Equals(SHA1HexString, SignatureHeaderHexString[..^8], StringComparison.CurrentCultureIgnoreCase)) // We strip the original file Compression size.
                                 {
-                                    toolsImpl.IncrementIVBytes(SignatureIV, 3);
-
-                                    FileBytes = blowfish.InitiateCTRBuffer(FileBytes, SignatureIV);
-
-                                    if (FileBytes != null)
+                                    if (tableOfContent.Size == 0) // The original Encryption Proxy seemed to only check for "lua" or "scene" file types, regardless if empty or not.
                                     {
-                                        try
-                                        {
-                                            FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing Encryption Proxy encrypted content - {ex}");
-                                            FileBytes = data;
-                                        }
-
-                                        fileStream.Write(FileBytes, 0, FileBytes.Length);
+                                        fileStream.Write(Array.Empty<byte>().AsSpan());
                                         fileStream.Close();
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file failed to decrypt, Writing original data.");
-                                        fileStream.Write(data, 0, data.Length);
-                                        fileStream.Close();
+                                        toolsImpl.IncrementIVBytes(SignatureIV, 3);
+
+                                        FileBytes = blowfish.InitiateCTRBuffer(FileBytes, SignatureIV);
+
+                                        if (FileBytes != null)
+                                        {
+                                            try
+                                            {
+                                                FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                                            }
+                                            catch
+                                            {
+                                                // Explanation, some files requires ICSharp handling for decompression, this is an expected behaviour.
+
+                                                LoggerAccessor.LogDebug($"[RunUnBar] - ComponentAce failed to decompress file, switching to ICSharp engine...");
+
+                                                try
+                                                {
+                                                    FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    LoggerAccessor.LogError($"[RunUnBar] - Errored out when processing Encryption Proxy encrypted content - {ex}");
+
+                                                    FileBytes = data;
+                                                }
+                                            }
+
+                                            fileStream.Write(FileBytes, 0, FileBytes.Length);
+                                            fileStream.Close();
+                                        }
+                                        else
+                                        {
+                                            LoggerAccessor.LogError($"[RunUnBAR] - Encrypted file failed to decrypt, Writing original data.");
+                                            fileStream.Write(data, 0, data.Length);
+                                            fileStream.Close();
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    LoggerAccessor.LogWarn($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {verificationsha1[..^8]}), Aborting decryption.");
+                                    LoggerAccessor.LogError($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {SignatureHeaderHexString[..^8]}), Aborting decryption.");
                                     fileStream.Write(data, 0, data.Length);
                                     fileStream.Close();
                                 }
@@ -438,10 +457,7 @@ namespace HomeTools.UnBAR
             ToolsImpl? toolsImpl = new();
             string path = string.Empty;
             if (!string.IsNullOrEmpty(tableOfContent.Path))
-            {
-                string str = tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar);
-                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, str);
-            }
+                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar));
             byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
             if (tableOfContent.Compression == CompressionMethod.Encrypted)
             {
@@ -457,11 +473,11 @@ namespace HomeTools.UnBAR
                 {
                     FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
                 }
-                catch (Exception)
+                catch
                 {
                     // Explanation, some files requires ICSharp handling for decompression, this is an expected behaviour.
 
-                    LoggerAccessor.LogWarn($"[RunUnBar] - ComponentAce failed to decompress file, switching to ICSharp engine...");
+                    LoggerAccessor.LogDebug($"[RunUnBar] - ComponentAce failed to decompress file, switching to ICSharp engine...");
 
                     try
                     {
@@ -482,7 +498,7 @@ namespace HomeTools.UnBAR
                 {
                     registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
                 }
-                catch (Exception)
+                catch
                 {
                     registeredExtension = ".unknown";
                 }
@@ -511,7 +527,7 @@ namespace HomeTools.UnBAR
                 {
                     registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
                 }
-                catch (Exception)
+                catch
                 {
                     registeredExtension = ".unknown";
                 }
@@ -524,11 +540,9 @@ namespace HomeTools.UnBAR
                 {
                     Directory.CreateDirectory(outdirectory);
 
-                    using (FileStream fileStream = File.Open(path, (FileMode)2))
-                    {
-                        fileStream.Write(data, 0, data.Length);
-                        fileStream.Close();
-                    }
+                    using FileStream fileStream = File.Open(path, (FileMode)2);
+                    fileStream.Write(data, 0, data.Length);
+                    fileStream.Close();
                 }
 
                 memoryStream.Flush();
@@ -541,30 +555,6 @@ namespace HomeTools.UnBAR
 #endif
             tableOfContent = null;
             toolsImpl = null;
-        }
-
-        private static int FindDataPosInBinary(byte[]? data1, byte[] data2)
-        {
-            if (data1 == null)
-                return -1;
-
-            for (int i = 0; i < data1.Length - data2.Length + 1; i++)
-            {
-                bool found = true;
-                for (int j = 0; j < data2.Length; j++)
-                {
-                    if (data1[i + j] != data2[j])
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-
-                if (found)
-                    return i;
-            }
-
-            return -1; // Data2 not found in Data1
         }
     }
 }

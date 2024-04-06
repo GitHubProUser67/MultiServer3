@@ -112,12 +112,12 @@ namespace HTTPServer.RouteHandlers
                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && FileLength <= 8000000)
                 {
                     response.Headers.Add("Content-Encoding", "gzip");
-                    response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                    response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                 }
                 else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && FileLength <= 8000000)
                 {
                     response.Headers.Add("Content-Encoding", "deflate");
-                    response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                    response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                 }
                 else
                     response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -142,12 +142,12 @@ namespace HTTPServer.RouteHandlers
             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && FileLength <= 8000000)
             {
                 response.Headers.Add("Content-Encoding", "gzip");
-                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
             }
             else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && FileLength <= 8000000)
             {
                 response.Headers.Add("Content-Encoding", "deflate");
-                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
             }
             else
                 response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

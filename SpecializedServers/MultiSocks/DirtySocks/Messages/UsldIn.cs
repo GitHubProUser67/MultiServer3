@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class UsldIn : AbstractMessage
     {
@@ -9,9 +9,9 @@ namespace SRVEmu.DirtySocks.Messages
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            client.Ping = (int)new TimeSpan(DateTime.Now.Ticks - client.PingSendTick).TotalMilliseconds;
-
             client.SendMessage(new UsldOut());
+
+            client.Ping = (int)new TimeSpan(DateTime.Now.Ticks - client.PingSendTick).TotalMilliseconds;
         }
     }
 }

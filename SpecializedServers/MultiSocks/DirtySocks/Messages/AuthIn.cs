@@ -1,7 +1,7 @@
-using SRVEmu.DirtySocks.DataStore;
+using MultiSocks.DirtySocks.DataStore;
 using System.Text.RegularExpressions;
 
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class AuthIn : AbstractMessage
     {

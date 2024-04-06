@@ -7,13 +7,12 @@ using WebUtils.VEEMEE.goalie_sfrgbt;
 using WebUtils.VEEMEE.gofish;
 using WebUtils.VEEMEE.olm;
 using HomeTools.AFS;
-using System.Net;
 
 public static class HTTPSServerConfiguration
 {
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
-    public static bool DNSAllowUnsafeRequests { get; set; } = false;
+    public static bool DNSAllowUnsafeRequests { get; set; } = true;
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPSTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";

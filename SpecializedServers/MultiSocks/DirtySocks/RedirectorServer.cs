@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Messages;
 
-namespace SRVEmu.DirtySocks
+namespace MultiSocks.DirtySocks
 {
     public class RedirectorServer : AbstractDirtySockServer
     {
@@ -14,7 +14,7 @@ namespace SRVEmu.DirtySocks
         public string RedirIP;
         public string RedirPort;
 
-        public RedirectorServer(ushort port, string targetIP, ushort targetPort, bool lowlevel) : base(port, lowlevel)
+        public RedirectorServer(ushort port, string targetIP, ushort targetPort, bool lowlevel, string? Project = null, string? SKU = null) : base(port, lowlevel, Project, SKU)
         {
             RedirIP = targetIP;
             RedirPort = targetPort.ToString();

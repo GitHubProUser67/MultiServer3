@@ -16,6 +16,7 @@ namespace HTTPServer.Models
         Accepted = 202,
         No_Content = 204,
         Partial_Content = 206,
+        MultiStatus = 207,
         MovedPermanently = 301,
         Found = 302,
         Not_Modified = 304,

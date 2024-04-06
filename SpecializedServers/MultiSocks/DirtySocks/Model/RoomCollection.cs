@@ -1,7 +1,6 @@
-using SRVEmu.DirtySocks;
-using SRVEmu.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Messages;
 
-namespace SRVEmu.DirtySocks.Model
+namespace MultiSocks.DirtySocks.Model
 {
     public class RoomCollection
     {
@@ -26,6 +25,7 @@ namespace SRVEmu.DirtySocks.Model
         {
             lock (Rooms)
             {
+                CustomLogger.LoggerAccessor.LogWarn($"[Room] - Removing Room:{room.Name}:{room.ID}.");
                 Rooms.Remove(room);
             }
         }

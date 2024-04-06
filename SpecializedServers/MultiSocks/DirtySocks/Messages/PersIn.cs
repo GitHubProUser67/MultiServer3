@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class PersIn : AbstractMessage
     {
@@ -18,15 +18,34 @@ namespace SRVEmu.DirtySocks.Messages
             user.SelectPersona(PERS);
             if (user.SelectedPersona == -1) return; //failed?
 
-            client.SendMessage(new PersOut()
+            if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
+                client.SendMessage(new PersOut()
+                {
+                    NAME = user.Username,
+                    PERS = user.PersonaName,
+                    LAST = "2018.1.1-00:00:00",
+                    PLAST = "2018.1.1-00:00:00",
+                    SINCE = "2008.1.1-00:00:00",
+                    PSINCE = "2008.1.1-00:00:00",
+                    LKEY = "000000000000000000000000000",
+                    STAT = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+                    LOC = "frFR",
+                    MA = MAC,
+                    LA = client.IP,
+                    IDLE = "50000"
+                });
+            else
             {
-                NAME = user.Username,
-                PERS = user.PersonaName,
-                MA = MAC,
-                A = client.IP
-            });
+                client.SendMessage(new PersOut()
+                {
+                    NAME = user.Username,
+                    PERS = user.PersonaName,
+                    MA = MAC,
+                    A = client.IP
+                });
 
-            user.SendPlusWho(user);
+                user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using WebUtils;
+using WebUtils.HOMECORE;
 using WebUtils.LOOT;
 using WebUtils.NDREAMS;
 using WebUtils.OHS;
@@ -20,8 +21,6 @@ using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using WebUtils.UBISOFT.HERMES_API;
-using WebUtils.CAPONE;
-using WebUtils.CDM;
 
 namespace HTTPSecureServerLite
 {
@@ -168,27 +167,6 @@ namespace HTTPSecureServerLite
 
             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
 
-            #region Domains
-
-            List<string> HPDDomains = new List<string>() {
-                                    "dev.destinations.scea.com",
-                                    "prd.destinations.scea.com",
-                                    "holdemeu.destinations.scea.com",
-                                    "holdemna.destinations.scea.com",
-                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
-                                };
-
-            List<string> CAPONEDomains = new List<string>() {
-                                    "collector.gr.online.scea.com",
-                                    "collector-nonprod.gr.online.scea.com",
-                                    "collector-dev.gr.online.scea.com",
-                                    "content.gr.online.scea.com",
-                                    "content-nonprod.gr.online.scea.com",
-                                    "content-dev.gr.online.scea.com",
-                                };
-
-            #endregion
-
             if (statusCode == HttpStatusCode.Continue)
             {
                 if (HTTPSServerConfiguration.RedirectRules != null)
@@ -321,12 +299,8 @@ namespace HTTPSecureServerLite
                                         {
                                             // Ensure the inner array has at least two elements
                                             if (innerArray.Length >= 2)
-                                            {
                                                 // Extract two values from the inner array
-                                                string value1 = innerArray[0];
-                                                string value2 = innerArray[1];
-                                                response.Headers.Add(value1, value2);
-                                            }
+                                                response.Headers.Add(innerArray[0], innerArray[1]);
                                         }
                                     }
                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -378,8 +352,6 @@ namespace HTTPSecureServerLite
                             sent = await response.Send();
                         }
                     }
-
-                    #region VEEMEE API
                     else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
@@ -399,14 +371,11 @@ namespace HTTPSecureServerLite
                             response.ContentType = "text/plain";
                         sent = await response.Send(res.Item1);
                     }
-                    #endregion
-
-                    #region nDreams API
-                    else if (Host == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
+                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
-                        string? res = new NDREAMSClass(request.Method.ToString(), absolutepath).ProcessRequest(null, request.DataAsBytes, request.ContentType);
+                        string? res = new NDREAMSClass(request.Method.ToString(), $"https://{Host}{request.Url.RawWithQuery}", absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(null, request.DataAsBytes, request.ContentType);
                         if (string.IsNullOrEmpty(res))
                         {
                             response.ContentType = "text/plain";
@@ -421,9 +390,6 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
-                    #endregion
-
-                    #region Hellfire Games API
                     else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
@@ -440,14 +406,7 @@ namespace HTTPSecureServerLite
                         response.ContentType = "text/plain";
                         sent = await response.Send(res);
                     }
-                    #endregion
-
-                    #region Outso OHS API
-                    else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
-                                                absolutepath.EndsWith("/") ||
-                                                absolutepath.Contains("/ohs") ||
-                                                absolutepath.Contains("/statistic/") ||
-                                                absolutepath.Contains("/Konami/" ))
+                    else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
@@ -467,9 +426,6 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
-                    #endregion
-
-                    #region LOOT API
                     else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com")
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
@@ -497,9 +453,6 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
-                    #endregion
-
-                    #region PREMIUMAGENCY API
                     else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
                                                 Host == "scej-home.playstation.net" ||
@@ -523,9 +476,6 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
-                    #endregion
-
-                    #region UBISOFT API
                     else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
@@ -590,52 +540,6 @@ namespace HTTPSecureServerLite
                             sent = await response.Send();
                         }
                     }
-                    #endregion
-
-                    #region CentralDispatchManager API
-                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
-                    {
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
-
-                        string? res = new CDMClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
-                        if (string.IsNullOrEmpty(res))
-                        {
-                            response.ContentType = "text/plain";
-                            statusCode = HttpStatusCode.InternalServerError;
-                        }
-                        else
-                        {
-                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.ContentType = "text/xml";
-                            statusCode = HttpStatusCode.OK;
-                        }
-                        response.StatusCode = (int)statusCode;
-                        sent = await response.Send(res);
-                    }
-                    #endregion
-
-                    #region CAPONE GriefReporter API
-                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
-                    {
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
-
-                        string? res = new CAPONEClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
-                        if (string.IsNullOrEmpty(res))
-                        {
-                            response.ContentType = "text/plain";
-                            statusCode = HttpStatusCode.InternalServerError;
-                        }
-                        else
-                        {
-                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.ContentType = "text/xml";
-                            statusCode = HttpStatusCode.OK;
-                        }
-                        response.StatusCode = (int)statusCode;
-                        sent = await response.Send(res);
-                    }
-                    #endregion
-
                     else
                     {
                         string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -693,15 +597,15 @@ namespace HTTPSecureServerLite
 
                                                 try
                                                 {
+                                                    bool treated = false;
+
                                                     byte[]? DnsReq = Convert.FromBase64String(dnsRequestBase64Url);
 
                                                     string fullname = string.Join(".", HTTPUtils.GetDnsName(DnsReq).ToArray());
 
                                                     LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
 
-                                                    string url = string.Empty;
-                                                    bool treated = false;
-
+                                                    string? url = null;
 
                                                     if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                                                     {
@@ -724,11 +628,11 @@ namespace HTTPSecureServerLite
                                                     }
                                                     else
                                                     {
-                                                        if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.ContainsKey(fullname))
+                                                        if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out SecureDNSConfigProcessor.DnsSettings value))
                                                         {
-                                                            if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                            else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = SecureDNSConfigProcessor.DicRules[fullname].Address ?? "127.0.0.1";
-                                                            else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                            if (value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
+                                                            else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                            else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
                                                             treated = true;
                                                         }
 
@@ -753,7 +657,7 @@ namespace HTTPSecureServerLite
                                                         url = VariousUtils.GetFirstActiveIPAddress(fullname, VariousUtils.GetPublicIPAddress(true));
 
                                                     IPAddress ip = IPAddress.None; // NXDOMAIN
-                                                    if (url != string.Empty && url != "NXDOMAIN")
+                                                    if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                     {
                                                         try
                                                         {
@@ -804,14 +708,30 @@ namespace HTTPSecureServerLite
                                             }
                                         }
                                         break;
-                                    #region Get Away Google!
-                                    case "/robots.txt": 
+                                    case "/publisher/list/":
+                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
+
+                                        string? res = new HOMECOREClass(request.Method.ToString(), absolutepath).ProcessRequest(request.DataAsBytes, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
+                                        if (string.IsNullOrEmpty(res))
+                                        {
+                                            response.ContentType = "text/plain";
+                                            statusCode = HttpStatusCode.InternalServerError;
+                                        }
+                                        else
+                                        {
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.ContentType = "text/xml";
+                                            statusCode = HttpStatusCode.OK;
+                                        }
+                                        response.StatusCode = (int)statusCode;
+                                        sent = await response.Send(res);
+                                        break;
+                                    case "/robots.txt": // Get Away Google.
                                         statusCode = HttpStatusCode.OK;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
                                         sent = await response.Send("User-agent: *\nDisallow: / ");
                                         break;
-                                    #endregion
                                     case "/!player":
                                     case "/!player/":
                                         // We want to check if the router allows external IPs first.
@@ -1123,11 +1043,11 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else
                                                 {
-                                                    if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.ContainsKey(fullname))
+                                                    if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out SecureDNSConfigProcessor.DnsSettings value))
                                                     {
-                                                        if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                        else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = SecureDNSConfigProcessor.DicRules[fullname].Address ?? "127.0.0.1";
-                                                        else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                        if (value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
+                                                        else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                        else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
                                                         treated = true;
                                                     }
 
@@ -1605,10 +1525,48 @@ namespace HTTPSecureServerLite
                                 sent = await response.Send();
                                 break;
                             case "PROPFIND":
-                                statusCode = HttpStatusCode.NotImplemented;
-                                response.StatusCode = (int)statusCode;
-                                response.ContentType = "text/plain";
-                                sent = await response.Send();
+                                if (File.Exists(filePath))
+                                {
+                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                    if (ContentType == "application/octet-stream")
+                                    {
+                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
+                                        foreach (var entry in HTTPUtils.PathernDictionary)
+                                        {
+                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                            {
+                                                ContentType = entry.Key;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    statusCode = HttpStatusCode.MultiStatus;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/xml";
+                                    sent = await response.Send("<?xml version=\"1.0\"?>\r\n" +
+                                        "<a:multistatus\r\n" +
+                                        $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
+                                        "  xmlns:a=\"DAV:\">\r\n" +
+                                        " <a:response>\r\n" +
+                                        $"   <a:href>https://{request.Destination.IpAddress}:{request.Destination.Port}{absolutepath}</a:href>\r\n" +
+                                        "   <a:propstat>\r\n" +
+                                        "    <a:status>HTTP/1.1 200 OK</a:status>\r\n" +
+                                        "       <a:prop>\r\n" +
+                                        $"        <a:getcontenttype>{ContentType}</a:getcontenttype>\r\n" +
+                                        $"        <a:getcontentlength b:dt=\"int\">{new FileInfo(filePath).Length}</a:getcontentlength>\r\n" +
+                                        "       </a:prop>\r\n" +
+                                        "   </a:propstat>\r\n" +
+                                        " </a:response>\r\n" +
+                                        "</a:multistatus>");
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.NotFound;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    sent = await response.Send();
+                                }
                                 break;
                             default:
                                 statusCode = HttpStatusCode.Forbidden;

@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class Addr : AbstractMessage
     {
@@ -11,6 +11,8 @@ namespace SRVEmu.DirtySocks.Messages
         {
             client.Port = PORT;
             client.IP = ADDR;
+
+            client.Ping = (int)new TimeSpan(DateTime.Now.Ticks - client.PingSendTick).TotalMilliseconds;
         }
     }
 }

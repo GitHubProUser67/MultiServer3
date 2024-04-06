@@ -7,7 +7,7 @@ public static class MitmDNSServerConfiguration
 {
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
-    public static bool DNSAllowUnsafeRequests { get; set; } = false;
+    public static bool DNSAllowUnsafeRequests { get; set; } = true;
 
     /// <summary>
     /// Tries to load the specified configuration file.

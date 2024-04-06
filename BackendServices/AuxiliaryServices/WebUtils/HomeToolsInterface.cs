@@ -185,9 +185,9 @@ namespace WebUtils
                         if (mode == "sdat")
                         {
                             if (version2 == "on")
-                                RunUnBAR.RunEncrypt(converterPath, rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat");
+                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat");
                             else
-                                RunUnBAR.RunEncrypt(converterPath, rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat");
+                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat");
 
                             using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                             {

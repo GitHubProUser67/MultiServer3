@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks.Model;
+using MultiSocks.DirtySocks.Model;
 
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class Chal : AbstractMessage
     {
@@ -62,9 +62,9 @@ namespace SRVEmu.DirtySocks.Messages
                             KIND = host.KIND,
                             COUNT = users.Count().ToString(),
 
-                            OPID = users.Select(x => x.ID.ToString()).ToArray(),
-                            OPPO = users.Select(x => x.PersonaName).ToArray(),
-                            ADDR = users.Select(x => x.Connection.IP).ToArray(),
+                            OPID = users.Select(x => x?.ID.ToString()).ToArray(),
+                            OPPO = users.Select(x => x?.PersonaName).ToArray(),
+                            ADDR = users.Select(x => x?.Connection?.IP).ToArray(),
 
                             SEED = new Random().Next().ToString(),
                             SELF = user.PersonaName

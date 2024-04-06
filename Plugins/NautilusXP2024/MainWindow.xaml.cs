@@ -921,14 +921,14 @@ namespace NautilusXP2024
                     if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC"))
                     {
                         LogDebugInfo($"Archive Creation: Starting SDAT encryption for SHARC file: {filename}.SHARC");
-                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
+                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original SHARC file deleted for: {filename}.SHARC");
                     }
                     else if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR"))
                     {
                         LogDebugInfo($"Archive Creation: Starting SDAT encryption for BAR file: {filename}.BAR");
-                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
+                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original BAR file deleted for: {filename}.BAR");
                     }
@@ -1019,13 +1019,13 @@ namespace NautilusXP2024
 
                     if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC"))
                     {
-                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
+                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.SHARC");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original SHARC file deleted for: {filename}.SHARC");
                     }
                     else if (sdat && File.Exists(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR"))
                     {
-                        RunUnBAR.RunEncrypt(Directory.GetCurrentDirectory(), _settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
+                        RunUnBAR.RunEncrypt(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR", _settings.BarSdatSharcOutputDirectory + $"/{filename}.sdat");
                         File.Delete(_settings.BarSdatSharcOutputDirectory + $"/{filename}.BAR");
                         LogDebugInfo($"Archive Creation: SDAT encryption completed and original BAR file deleted for: {filename}.BAR");
                     }

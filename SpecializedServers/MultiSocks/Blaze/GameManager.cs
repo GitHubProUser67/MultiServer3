@@ -1,6 +1,6 @@
-using SRVEmu.Blaze.PlayerData;
+using MultiSocks.Blaze.PlayerData;
 
-namespace SRVEmu.Blaze.GameManager
+namespace MultiSocks.Blaze.GameManager
 {
     public static class GameManager
     {

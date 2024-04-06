@@ -68,6 +68,24 @@ namespace BackendProject.MiscUtils
     public class VariousUtils
     {
         /// <summary>
+        /// Copies a Stream to an other..
+        /// <para>Copie d'un Stream à un autre.</para>
+        /// </summary>
+        /// <param name="input">The Stream to copy.</param>
+        /// <param name="output">the Steam to copy to.</param>
+        /// <param name="BufferSize">the buffersize for the copy.</param>
+        public static void CopyStream(Stream input, Stream output, int BufferSize)
+        {
+            int len = 0;
+            byte[] buffer = new byte[BufferSize];
+            while ((len = input.Read(buffer, 0, BufferSize)) > 0)
+            {
+                output.Write(buffer, 0, len);
+            }
+            output.Flush();
+        }
+
+        /// <summary>
         /// Add a dynamic array to a existing array structure.
         /// <para>Ajoute un objet dynamique sur une structure existante.</para>
         /// </summary>
@@ -146,7 +164,7 @@ namespace BackendProject.MiscUtils
                         return valueToken.ToObject<float>();
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Not Important.
             }
@@ -281,7 +299,7 @@ namespace BackendProject.MiscUtils
         public static bool IsBase64String(string base64)
         {
             Span<byte> buffer = new(new byte[base64.Length]);
-            return Convert.TryFromBase64String(base64, buffer, out int bytesParsed);
+            return Convert.TryFromBase64String(base64, buffer, out _);
         }
 
         /// <summary>
@@ -697,6 +715,37 @@ namespace BackendProject.MiscUtils
         }
 
         /// <summary>
+        /// Finds a matching byte array within an other byte array.
+        /// <para>Trouve un tableau de bytes correspondant dans un autre tableau de bytes.</para>
+        /// </summary>
+        /// <param name="data1">The data to search for.</param>
+        /// <param name="data2">The data to search into for the data1.</param>
+        /// <returns>A int (-1 if not found).</returns>
+        public static int FindDataPositionInBinary(byte[]? data1, byte[] data2)
+        {
+            if (data1 == null)
+                return -1;
+
+            for (int i = 0; i < data1.Length - data2.Length + 1; i++)
+            {
+                bool found = true;
+                for (int j = 0; j < data2.Length; j++)
+                {
+                    if (data1[i + j] != data2[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                    return i;
+            }
+
+            return -1; // Data2 not found in Data1
+        }
+
+        /// <summary>
         /// Adds a prefix to the file extension.
         /// <para>Ajoute un préfixe à l'extension du fichier.</para>
         /// </summary>
@@ -789,6 +838,9 @@ namespace BackendProject.MiscUtils
         /// <returns>A string.</returns>
         public static string ComputeMD5(Stream input)
         {
+            if (!input.CanSeek)
+                return string.Empty;
+
             // ComputeHash - returns byte array  
             byte[] bytes = MD5.Create().ComputeHash(input);
 
@@ -811,7 +863,7 @@ namespace BackendProject.MiscUtils
         public static string ComputeMD5(byte[] input)
         {
             // ComputeHash - returns byte array  
-            byte[] bytes = MD5.Create().ComputeHash(input);
+            byte[] bytes = MD5.HashData(input);
 
             // Convert byte array to a string   
             StringBuilder builder = new();
@@ -830,7 +882,7 @@ namespace BackendProject.MiscUtils
         public static string ComputeMD5(string input)
         {
             // ComputeHash - returns byte array  
-            byte[] bytes = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(input));
+            byte[] bytes = MD5.HashData(Encoding.UTF8.GetBytes(input));
 
             // Convert byte array to a string   
             StringBuilder builder = new();
@@ -849,7 +901,7 @@ namespace BackendProject.MiscUtils
         public static string ComputeSHA256(string input)
         {
             // ComputeHash - returns byte array  
-            byte[] bytes = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(input));
+            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
 
             // Convert byte array to a string   
             StringBuilder builder = new();
@@ -879,7 +931,7 @@ namespace BackendProject.MiscUtils
                 else
                     return result;
             }
-            catch (Exception)
+            catch
             {
                 // Not Important.
             }
@@ -895,7 +947,7 @@ namespace BackendProject.MiscUtils
                 else
                     return result;
             }
-            catch (Exception)
+            catch
             {
                 // Not Important.
             }
@@ -918,7 +970,7 @@ namespace BackendProject.MiscUtils
                 {
                     // Find the first valid interface with the desired IP version.
                     foreach (NetworkInterface? networkInterface in NetworkInterface.GetAllNetworkInterfaces()
-                        .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.ToLowerInvariant().Contains("virtual")))
+                        .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.Contains("virtual", StringComparison.InvariantCultureIgnoreCase)))
                     {
                         IPInterfaceProperties? properties = networkInterface.GetIPProperties();
 
@@ -935,7 +987,7 @@ namespace BackendProject.MiscUtils
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Not Important.
             }
@@ -974,7 +1026,7 @@ namespace BackendProject.MiscUtils
                 else
                     return Dns.GetHostEntry(hostName).AddressList.FirstOrDefault()?.ToString() ?? fallback;
             }
-            catch (Exception)
+            catch
             {
                 // Not Important.
             }
@@ -995,7 +1047,7 @@ namespace BackendProject.MiscUtils
             {
                 new TcpClient(ip, port).Close();
             }
-            catch (Exception)
+            catch
             {
                 // The port is available as connection failed.
                 return true;
@@ -1018,7 +1070,7 @@ namespace BackendProject.MiscUtils
             {
                 new UdpClient(ip, port).Close();
             }
-            catch (Exception)
+            catch
             {
                 // If an exception occurs, the port is already in use.
                 return false;

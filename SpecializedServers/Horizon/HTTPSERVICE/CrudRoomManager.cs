@@ -10,55 +10,58 @@ namespace Horizon.HTTPSERVICE
         // Update or Create a Room based on the provided parameters
         public static void UpdateOrCreateRoom(string appId, string? gameName, string? worldId, string? accountName, string? languageType, bool host)
         {
-            Room? roomToUpdate = rooms.FirstOrDefault(r => r.AppId == appId);
-
-            if (roomToUpdate == null)
+            lock (rooms)
             {
-                roomToUpdate = new Room { AppId = appId, Worlds = new List<World>() };
-                rooms.Add(roomToUpdate);
-            }
+                Room? roomToUpdate = rooms.FirstOrDefault(r => r.AppId == appId);
 
-            if (worldId != null)
-            {
-                World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
-
-                if (worldToUpdate == null && !string.IsNullOrEmpty(worldId))
+                if (roomToUpdate == null)
                 {
-                    worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
-                    roomToUpdate.Worlds?.Add(worldToUpdate);
+                    roomToUpdate = new Room { AppId = appId, Worlds = new List<World>() };
+                    rooms.Add(roomToUpdate);
                 }
 
-                GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
-
-                if (gameToUpdate == null && !string.IsNullOrEmpty(gameName))
+                if (worldId != null)
                 {
-                    gameToUpdate = new GameList { Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
-                    worldToUpdate?.GameSessions?.Add(gameToUpdate);
-                }
+                    World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
 
-                Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
-
-                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
-                {
-                    if (gameToUpdate.Name.Contains("AP|"))
+                    if (worldToUpdate == null && !string.IsNullOrEmpty(worldId))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
-                        if (playerToUpdatehashed == null)
+                        worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
+                        roomToUpdate.Worlds?.Add(worldToUpdate);
+                    }
+
+                    GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+
+                    if (gameToUpdate == null && !string.IsNullOrEmpty(gameName))
+                    {
+                        gameToUpdate = new GameList { Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
+                        worldToUpdate?.GameSessions?.Add(gameToUpdate);
+                    }
+
+                    Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
+
+                    if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
+                    {
+                        if (gameToUpdate.Name.Contains("AP|"))
                         {
-                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
+                            Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
+                            if (playerToUpdatehashed == null)
+                            {
+                                playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
+                                gameToUpdate.Clients?.Add(playerToUpdate);
+                            }
+                        }
+                        else
+                        {
+                            playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
-                    else
+                    else if (playerToUpdate != null)
                     {
-                        playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
-                        gameToUpdate.Clients?.Add(playerToUpdate);
+                        playerToUpdate.Host = host;
+                        playerToUpdate.Languages = languageType;
                     }
-                }
-                else if (playerToUpdate != null)
-                {
-                    playerToUpdate.Host = host;
-                    playerToUpdate.Languages = languageType;
                 }
             }
         }
@@ -66,22 +69,25 @@ namespace Horizon.HTTPSERVICE
         // Remove a user from a specific room based on the provided parameters
         public static void RemoveUserFromGame(string appId, string gameName, string worldId, string accountName)
         {
-            var roomToRemoveUser = rooms.FirstOrDefault(r => r.AppId == appId);
-
-            if (roomToRemoveUser != null)
+            lock (rooms)
             {
-                var WorldToRemoveUser = roomToRemoveUser.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
+                Room? roomToRemoveUser = rooms.FirstOrDefault(r => r.AppId == appId);
 
-                if (WorldToRemoveUser != null)
+                if (roomToRemoveUser != null)
                 {
-                    var GameToRemoveUser = WorldToRemoveUser.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+                    World? WorldToRemoveUser = roomToRemoveUser.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
 
-                    if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
+                    if (WorldToRemoveUser != null)
                     {
-                        if (GameToRemoveUser.Name.Contains("AP|"))
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
-                        else
-                            GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
+                        GameList? GameToRemoveUser = WorldToRemoveUser.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+
+                        if (GameToRemoveUser != null && !string.IsNullOrEmpty(GameToRemoveUser.Name))
+                        {
+                            if (GameToRemoveUser.Name.Contains("AP|"))
+                                GameToRemoveUser.Clients?.RemoveAll(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
+                            else
+                                GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
+                        }
                     }
                 }
             }
@@ -90,14 +96,17 @@ namespace Horizon.HTTPSERVICE
         // Remove a world from a specific room based on the provided parameters
         public static void RemoveWorld(string appId, string worldId)
         {
-            var roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
-
-            if (roomToRemove != null)
+            lock (rooms)
             {
-                var gameToRemove = roomToRemove.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
+                Room? roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
-                if (gameToRemove != null)
-                    roomToRemove.Worlds?.RemoveAll(w => w.WorldId == worldId);
+                if (roomToRemove != null)
+                {
+                    World? worldToRemove = roomToRemove.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
+
+                    if (worldToRemove != null)
+                        roomToRemove.Worlds?.RemoveAll(w => w.WorldId == worldId);
+                }
             }
         }
 
@@ -106,18 +115,21 @@ namespace Horizon.HTTPSERVICE
         {
             if (!string.IsNullOrEmpty(gameName))
             {
-                var roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
-
-                if (roomToRemove != null)
+                lock (rooms)
                 {
-                    var gameToRemove = roomToRemove.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
+                    Room? roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
-                    if (gameToRemove != null)
+                    if (roomToRemove != null)
                     {
-                        var worldToRemove = gameToRemove.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+                        World? worldToRemove = roomToRemove.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
 
                         if (worldToRemove != null)
-                            gameToRemove.GameSessions?.RemoveAll(w => w.Name == gameName);
+                        {
+                            GameList? gameToRemove = worldToRemove.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+
+                            if (gameToRemove != null)
+                                worldToRemove.GameSessions?.RemoveAll(w => w.Name == gameName);
+                        }
                     }
                 }
             }
@@ -126,19 +138,22 @@ namespace Horizon.HTTPSERVICE
         // Remove a Room by AppId
         public static void RemoveRoom(string appId)
         {
-            rooms.RemoveAll(r => r.AppId == appId);
+            lock (rooms)
+                rooms.RemoveAll(r => r.AppId == appId);
         }
 
         // Get a list of all Rooms
         public static List<Room> GetAllRooms()
         {
-            return rooms;
+            lock (rooms)
+                return rooms;
         }
 
         // Serialize the RoomConfig to JSON
         public static string ToJson()
         {
-            return JsonConvert.SerializeObject(rooms, Formatting.Indented);
+            lock (rooms)
+                return JsonConvert.SerializeObject(rooms, Formatting.Indented);
         }
 
         private static string XORString(string input, string? key)

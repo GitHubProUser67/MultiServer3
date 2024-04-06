@@ -49,13 +49,13 @@ namespace MitmDNS
 
         private static Span<byte> ProcRequest(byte[] data)
         {
+            bool treated = false;
+
             string fullname = string.Join(".", HTTPUtils.GetDnsName(data).ToArray());
 
             LoggerAccessor.LogInfo($"[DNS_UDP] - Host: {fullname} was Requested.");
 
             string? url = null;
-            bool treated = false;
-
 
             if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
             {

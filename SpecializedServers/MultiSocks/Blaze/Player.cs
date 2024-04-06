@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
 
-namespace SRVEmu.Blaze.PlayerData
+namespace MultiSocks.Blaze.PlayerData
 {
     public class Player
     {

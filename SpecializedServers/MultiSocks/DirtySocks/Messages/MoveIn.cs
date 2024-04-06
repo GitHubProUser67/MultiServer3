@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class MoveIn : AbstractMessage
     {
@@ -8,8 +8,6 @@ namespace SRVEmu.DirtySocks.Messages
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
-            bool remove = false;
-
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
@@ -18,8 +16,6 @@ namespace SRVEmu.DirtySocks.Messages
 
             if (user.CurrentRoom != null)
             {
-                remove = true;
-                NAME = user.CurrentRoom.Name;
                 user.CurrentRoom.Users?.RemoveUser(user);
                 user.CurrentRoom = null;
             }
@@ -27,33 +23,12 @@ namespace SRVEmu.DirtySocks.Messages
             Model.Room? room = mc.Rooms.GetRoomByName(NAME);
             if (room != null)
             {
-                if (room.Users != null)
+                if (room.Users != null && !room.Users.AddUser(user))
                 {
-                    if (remove)
-                    {
-                        room.Users.RemoveUser(user);
-                        client.SendMessage(new MoveOut()
-                        {
-                            NAME = string.Empty
-                        });
-                    }
-                    else
-                    {
-                        if (!room.Users.AddUser(user))
-                        {
-                            client.SendMessage(new MoveFull());
-                            return;
-                        }
-                        user.CurrentRoom = room;
-                    }
+                    client.SendMessage(new MoveFull());
+                    return;
                 }
-                else
-                {
-                    client.SendMessage(new MoveOut()
-                    {
-                        NAME = string.Empty
-                    });
-                }
+                user.CurrentRoom = room;
             }
             else
             {

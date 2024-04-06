@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class PlusWho : AbstractMessage
     {
@@ -19,13 +19,19 @@ namespace SRVEmu.DirtySocks.Messages
         public string? MD { get; set; }
         public string? PRES { get; set; }
         public string? RP { get; set; }
+        public string? RG { get; set; }
+        public string? RM { get; set; }
         public string S { get; set; } = string.Empty;
         public string? AT { get; set; }
         public string? C { get; set; }
+        public string? CI { get; set; }
+        public string? CT { get; set; }
         public string? US { get; set; }
+        public string? VER { get; set; }
         public string? VERS { get; set; }
         public string? X { get; set; }
         public string? R { get; set; } //room
+        public string? RGC { get; set; }
         public string? RI { get; set; } //room id
         public string RF { get; set; } = "C";
         public string RT { get; set; } = "1";

@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class SeleIn : AbstractMessage
     {
@@ -16,17 +16,36 @@ namespace SRVEmu.DirtySocks.Messages
         public string? INGAME { get; set; }
         public string? ASYNC { get; set; }
 
-
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
-            client.SendMessage(new SeleOut()
-            {
-                GAMES = GAMES,
-                ROOMS = ROOMS,
-                USERS = USERS,
-                MESGS = MESGS,
-                RANKS = RANKS
-            });
+            if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
+                client.SendMessage(new SeleOut()
+                {
+                    GAMES = GAMES,
+                    MYGAME = MYGAME,
+                    USERS = USERS,
+                    ROOMS = ROOMS,
+                    USERSETS = USERSETS,
+                    MESGS = MESGS,
+                    MESGTYPES = MESGTYPES,
+                    ASYNC = ASYNC,
+                    CTRL = "0",
+                    STATS = STATS,
+                    SLOTS = "280",
+                    INGAME = INGAME,
+                    DP = !string.IsNullOrEmpty(context.SKU) && context.SKU.Contains("PS3") ? "PS3/Burnout-Dec2007/mod" : "PC/Burnout-Dec2007/mod"
+                });
+            else
+                client.SendMessage(new SeleOut()
+                {
+                    GAMES = GAMES,
+                    ROOMS = ROOMS,
+                    USERS = USERS,
+                    MESGS = MESGS,
+                    RANKS = RANKS,
+                    MORE = "1",
+                    SLOTS = "36"
+                });
         }
     }
 }
