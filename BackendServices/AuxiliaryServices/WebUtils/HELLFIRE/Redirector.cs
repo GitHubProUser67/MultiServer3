@@ -9,7 +9,7 @@ namespace WebUtils.HELLFIRE
         {
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 using (MemoryStream ms = new(PostData))
                 {

@@ -706,7 +706,7 @@ namespace BackendProject.MiscUtils
             return true;
         }
 
-        public static string? ExtractBoundary(string? contentType)
+        public static string ExtractBoundary(string contentType)
         {
             if (!string.IsNullOrEmpty(contentType))
             {
@@ -715,7 +715,7 @@ namespace BackendProject.MiscUtils
                     return contentType[(boundaryIndex + 9)..];
             }
 
-            return null;
+            return contentType;
         }
 
         public static string ExtractDirtyProxyPath(string referer)

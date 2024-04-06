@@ -10,7 +10,7 @@ namespace WebUtils.LOOT
         {
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 using MemoryStream ms = new(PostData);
                 byte[]? ticketData = null;

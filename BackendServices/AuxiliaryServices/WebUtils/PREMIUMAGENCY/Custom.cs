@@ -201,11 +201,11 @@ namespace WebUtils.PREMIUMAGENCY
 
         }
 
-        public static string? getUserEventCustomRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string getUserEventCustomRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
             string nid = string.Empty;
 
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+            string boundary = HTTPUtils.ExtractBoundary(ContentType);
 
             using (MemoryStream ms = new(PostData))
             {

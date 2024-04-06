@@ -1164,7 +1164,6 @@ namespace WebUtils.PREMIUMAGENCY
                     }
             }
 
-            return null;
         }
 
         #region getEventTriggerEx POST
@@ -1174,7 +1173,7 @@ namespace WebUtils.PREMIUMAGENCY
             string tday = string.Empty;
 
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -1257,7 +1256,7 @@ namespace WebUtils.PREMIUMAGENCY
             string j_liargame2TriggerPath = $"{workpath}/eventController/j_liargame2/Triggers/";
             string MacrossEventShopTriggerPath = $"{workpath}/eventController/Macross/EventShop/Triggers/";
             string MacrossSSFTriggerPath = $"{workpath}/eventController/Macross/SSF/Triggers/";
-            string MacrossVF25TriggerPath = "$\"{workpath}/eventController/Macross/VF25/Triggers/";
+            string MacrossVF25TriggerPath = $"{workpath}/eventController/Macross/VF25/Triggers/";
             string MikuliveJackTriggerPath = $"{workpath}/eventController/MikuLiveJack/Triggers/";
             string MikuLiveJukeboxTriggerPath = $"{workpath}/eventController/MikuLiveJukebox/Triggers/";
             string MikuliveEventTriggerPath = $"{workpath}/eventController/MikuLiveEvent/Triggers/";

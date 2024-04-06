@@ -12,7 +12,7 @@ namespace WebUtils.OHS
 
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -53,7 +53,7 @@ namespace WebUtils.OHS
 
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -66,14 +66,19 @@ namespace WebUtils.OHS
                     {
                         // Not Important.
                     }
+
                     try
                     {
-                        //dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
+#if DEBUG
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
+                        LoggerAccessor.LogInfo($"[OHS] Heatmap Teacker Data : {dataforohs}");
+#endif
                     }
                     catch (Exception ex)
                     {
                         LoggerAccessor.LogWarn($"[OHS] : Client issued Heatmap Tracker with an unknown body format, report this to GITHUB: {ex}");
                     }
+
                     ms.Flush();
                 }
             }

@@ -9,7 +9,7 @@ namespace WebUtils.THQ
         {
             string? returnstring = null;
 
-            if (boundary != null)
+            if (!string.IsNullOrEmpty(boundary))
             {
                 // Create a memory stream to copy the content
                 using (MemoryStream copyStream = new())
