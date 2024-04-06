@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class SeleOut : AbstractMessage
     {
@@ -17,9 +17,9 @@ namespace SRVEmu.DirtySocks.Messages
         public string? MYGAME { get; set; }
         public string? PLATFORM { get; set; }
         public string? PSID { get; set; }
-        public string RANKS { get; set; } = "0";
-        public string MORE { get; set; } = "1";
-        public string SLOTS { get; set; } = "36";
+        public string? RANKS { get; set; }
+        public string? MORE { get; set; }
+        public string? SLOTS { get; set; }
         public string? STATS { get; set; }
     }
 }

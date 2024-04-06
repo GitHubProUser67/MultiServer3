@@ -1,3 +1,4 @@
+using CustomLogger;
 using WebUtils.NDREAMS.Aurora;
 using WebUtils.NDREAMS.Fubar;
 
@@ -7,12 +8,16 @@ namespace WebUtils.NDREAMS
     {
         private bool disposedValue;
         private string absolutepath;
+        private string fullurl;
+        private string apipath;
         private string method;
 
-        public NDREAMSClass(string method, string absolutepath)
+        public NDREAMSClass(string method, string fullurl, string absolutepath, string apipath)
         {
             this.absolutepath = absolutepath;
+            this.fullurl = fullurl;
             this.method = method;
+            this.apipath = apipath;
         }
 
         public string? ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
@@ -28,8 +33,13 @@ namespace WebUtils.NDREAMS
                         case "/fubar/fisi.php":
                             return fisi.fisiProcess(PostData, ContentType);
                         case "/aurora/visit.php":
-                            return visitClass.ProcessVisit(PostData, ContentType);
+                            return visitClass.ProcessVisit(PostData, ContentType, apipath);
+                        case "/aurora/MysteryItems/mystery3.php":
+                            return Mystery3.ProcessMystery3(PostData, ContentType, fullurl, apipath);
+                        case "/Teaser/beans.php":
+                            return Teaser.ProcessBeans(PostData, ContentType);
                         default:
+                            LoggerAccessor.LogWarn($"[NDREAMS] - Unknown method: {absolutepath} was requested. Please report to GITHUB");
                             break;
                     }
                     break;

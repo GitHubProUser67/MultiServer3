@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Messages;
 
-namespace SRVEmu.DirtySocks.Model
+namespace MultiSocks.DirtySocks.Model
 {
     public class RoomUserCollection : UserCollection
     {
@@ -11,7 +11,7 @@ namespace SRVEmu.DirtySocks.Model
             Room = parent;
         }
 
-        public override bool AddUser(User user)
+        public override bool AddUser(User user, string VERS = "")
         {
             lock (Users)
             {
@@ -35,7 +35,8 @@ namespace SRVEmu.DirtySocks.Model
             //send who to this user to tell them who they are
 
             PlusUser info = user.GetInfo();
-            PlusWho who = new()
+
+            user.Connection?.SendMessage(new PlusWho()
             {
                 I = info.I ?? string.Empty,
                 N = info.N,
@@ -44,9 +45,7 @@ namespace SRVEmu.DirtySocks.Model
                 X = info.X,
                 R = Room.Name,
                 RI = Room.ID.ToString()
-            };
-
-            user.Connection?.SendMessage(who);
+            });
             RefreshUser(user);
             ListToUser(user);
             Room.BroadcastPopulation();

@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class GseaIn : AbstractMessage
     {

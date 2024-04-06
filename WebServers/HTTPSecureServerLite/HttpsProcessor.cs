@@ -321,12 +321,8 @@ namespace HTTPSecureServerLite
                                         {
                                             // Ensure the inner array has at least two elements
                                             if (innerArray.Length >= 2)
-                                            {
                                                 // Extract two values from the inner array
-                                                string value1 = innerArray[0];
-                                                string value2 = innerArray[1];
-                                                response.Headers.Add(value1, value2);
-                                            }
+                                                response.Headers.Add(innerArray[0], innerArray[1]);
                                         }
                                     }
                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -402,11 +398,11 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region nDreams API
-                    else if (Host == "pshome.ndreams.net" && absolutepath.EndsWith(".php"))
+                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
-                        string? res = new NDREAMSClass(request.Method.ToString(), absolutepath).ProcessRequest(null, request.DataAsBytes, request.ContentType);
+                        string? res = new NDREAMSClass(request.Method.ToString(), $"https://{Host}{request.Url.RawWithQuery}", absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(null, request.DataAsBytes, request.ContentType);
                         if (string.IsNullOrEmpty(res))
                         {
                             response.ContentType = "text/plain";
@@ -693,15 +689,15 @@ namespace HTTPSecureServerLite
 
                                                 try
                                                 {
+                                                    bool treated = false;
+
                                                     byte[]? DnsReq = Convert.FromBase64String(dnsRequestBase64Url);
 
                                                     string fullname = string.Join(".", HTTPUtils.GetDnsName(DnsReq).ToArray());
 
                                                     LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
 
-                                                    string url = string.Empty;
-                                                    bool treated = false;
-
+                                                    string? url = null;
 
                                                     if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                                                     {
@@ -724,11 +720,11 @@ namespace HTTPSecureServerLite
                                                     }
                                                     else
                                                     {
-                                                        if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.ContainsKey(fullname))
+                                                        if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out SecureDNSConfigProcessor.DnsSettings value))
                                                         {
-                                                            if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                            else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = SecureDNSConfigProcessor.DicRules[fullname].Address ?? "127.0.0.1";
-                                                            else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                            if (value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
+                                                            else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                            else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
                                                             treated = true;
                                                         }
 
@@ -753,7 +749,7 @@ namespace HTTPSecureServerLite
                                                         url = VariousUtils.GetFirstActiveIPAddress(fullname, VariousUtils.GetPublicIPAddress(true));
 
                                                     IPAddress ip = IPAddress.None; // NXDOMAIN
-                                                    if (url != string.Empty && url != "NXDOMAIN")
+                                                    if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                     {
                                                         try
                                                         {
@@ -1123,11 +1119,11 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else
                                                 {
-                                                    if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.ContainsKey(fullname))
+                                                    if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out SecureDNSConfigProcessor.DnsSettings value))
                                                     {
-                                                        if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                        else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = SecureDNSConfigProcessor.DicRules[fullname].Address ?? "127.0.0.1";
-                                                        else if (SecureDNSConfigProcessor.DicRules[fullname].Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                        if (value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
+                                                        else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                        else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
                                                         treated = true;
                                                     }
 
@@ -1605,10 +1601,48 @@ namespace HTTPSecureServerLite
                                 sent = await response.Send();
                                 break;
                             case "PROPFIND":
-                                statusCode = HttpStatusCode.NotImplemented;
-                                response.StatusCode = (int)statusCode;
-                                response.ContentType = "text/plain";
-                                sent = await response.Send();
+                                if (File.Exists(filePath))
+                                {
+                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                    if (ContentType == "application/octet-stream")
+                                    {
+                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
+                                        foreach (var entry in HTTPUtils.PathernDictionary)
+                                        {
+                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                            {
+                                                ContentType = entry.Key;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    statusCode = HttpStatusCode.MultiStatus;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/xml";
+                                    sent = await response.Send("<?xml version=\"1.0\"?>\r\n" +
+                                        "<a:multistatus\r\n" +
+                                        $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
+                                        "  xmlns:a=\"DAV:\">\r\n" +
+                                        " <a:response>\r\n" +
+                                        $"   <a:href>https://{request.Destination.IpAddress}:{request.Destination.Port}{absolutepath}</a:href>\r\n" +
+                                        "   <a:propstat>\r\n" +
+                                        "    <a:status>HTTP/1.1 200 OK</a:status>\r\n" +
+                                        "       <a:prop>\r\n" +
+                                        $"        <a:getcontenttype>{ContentType}</a:getcontenttype>\r\n" +
+                                        $"        <a:getcontentlength b:dt=\"int\">{new FileInfo(filePath).Length}</a:getcontentlength>\r\n" +
+                                        "       </a:prop>\r\n" +
+                                        "   </a:propstat>\r\n" +
+                                        " </a:response>\r\n" +
+                                        "</a:multistatus>");
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.NotFound;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    sent = await response.Send();
+                                }
                                 break;
                             default:
                                 statusCode = HttpStatusCode.Forbidden;

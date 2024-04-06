@@ -1,8 +1,7 @@
 using System.Reflection;
 using System.Text;
-using SRVEmu.DirtySocks;
 
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public abstract class AbstractMessage
     {
@@ -81,6 +80,9 @@ namespace SRVEmu.DirtySocks.Messages
             {
                 case "LUID":
                     key = "_LUID";
+                    break;
+                case "EXticker":
+                    key = "EX-ticker";
                     break;
                 case "EXtelemetry":
                     key = "EX-telemetry";

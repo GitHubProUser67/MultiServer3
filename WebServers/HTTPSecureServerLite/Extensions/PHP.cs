@@ -49,6 +49,7 @@ namespace HTTPSecureServerLite.Extensions
                 if (postData != null)
                     proc.StartInfo.EnvironmentVariables.Add("CONTENT_LENGTH", postData.Length.ToString());
 
+                proc.StartInfo.EnvironmentVariables.Add("HTTPS", "on");
                 proc.StartInfo.EnvironmentVariables.Add("GATEWAY_INTERFACE", "CGI/1.1");
                 proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", "HTTP/1.1");
                 proc.StartInfo.EnvironmentVariables.Add("REDIRECT_STATUS", "200");
@@ -59,8 +60,10 @@ namespace HTTPSecureServerLite.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", ctx.Request.ContentType);
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", ctx.Request.Method.ToString());
                 proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", ctx.Request.Useragent);
-                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", VariousUtils.GetPublicIPAddress());
+                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", ctx.Request.Destination.IpAddress);
+                proc.StartInfo.EnvironmentVariables.Add("SERVER_PORT", ctx.Request.Destination.Port.ToString());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
+                proc.StartInfo.EnvironmentVariables.Add("REMOTE_HOST", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
                 proc.StartInfo.EnvironmentVariables.Add("REFERER", ctx.Request.RetrieveHeaderValue("Referer"));
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{ctx.Request.Url.RawWithQuery}");

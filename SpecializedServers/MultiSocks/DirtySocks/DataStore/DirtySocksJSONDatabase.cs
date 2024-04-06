@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using CustomLogger;
 
-namespace SRVEmu.DirtySocks.DataStore
+namespace MultiSocks.DirtySocks.DataStore
 {
     public class DirtySocksJSONDatabase : IDatabase
     {

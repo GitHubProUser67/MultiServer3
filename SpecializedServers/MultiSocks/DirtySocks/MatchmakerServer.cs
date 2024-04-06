@@ -1,8 +1,8 @@
-using SRVEmu.DirtySocks.DataStore;
-using SRVEmu.DirtySocks.Messages;
-using SRVEmu.DirtySocks.Model;
+using MultiSocks.DirtySocks.DataStore;
+using MultiSocks.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Model;
 
-namespace SRVEmu.DirtySocks
+namespace MultiSocks.DirtySocks
 {
     public class MatchmakerServer : AbstractDirtySockServer
     {
@@ -46,28 +46,35 @@ namespace SRVEmu.DirtySocks
                 { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
                 { "gpsc", typeof(GpscIn) }, //?
                 { "gqwk", typeof(GqwkIn) }, //Quick join.
-                { "news", typeof(News) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
+                { "news", typeof(NewsIn) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
                 { "rank", null }, //unknown. { RANK = "Unranked", TIME = 866 }
             };
 
         public UserCollection Users = new();
         public RoomCollection Rooms = new();
+        public GameCollection Games = new();
 
         private readonly Thread PingThread;
 
-        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null) : base(port, lowlevel)
+        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null) : base(port, lowlevel, Project, SKU)
         {
             Rooms.Server = this;
+
+            lock (Users)
+                Users.AddUser(new User() { Username = "@brobot24", ID = 24 }); // Admin player.
 
             PingThread = new Thread(PingLoop);
             PingThread.Start();
 
-            if (RoomToAdd != null)
+            lock (Rooms)
             {
-                foreach (var pair in RoomToAdd)
+                if (RoomToAdd != null)
                 {
-                    CustomLogger.LoggerAccessor.LogInfo($"[MatchmakerServer] - Adding Room: {pair.Item1}, With Global Availability: {pair.Item2} on Port: {port}");
-                    Rooms.AddRoom(new Room() { Name = pair.Item1, IsGlobal = pair.Item2 });
+                    foreach (var pair in RoomToAdd)
+                    {
+                        CustomLogger.LoggerAccessor.LogInfo($"[MatchmakerServer] - Adding Room: {pair.Item1}, With Global Availability: {pair.Item2} on Port: {port}");
+                        Rooms.AddRoom(new Room() { Name = pair.Item1, IsGlobal = pair.Item2 });
+                    }
                 }
             }
         }
@@ -96,7 +103,13 @@ namespace SRVEmu.DirtySocks
                 Room? room = user.CurrentRoom;
                 if (game != null)
                 {
-                    game.Users.RemoveUser(user);
+                    if (game.RemoveUserAndCheckGameValidity(user))
+                    {
+                        lock (Games)
+                        {
+                            Games.RemoveGame(game);
+                        }
+                    }
                     user.CurrentGame = null;
                 }
 
@@ -143,13 +156,40 @@ namespace SRVEmu.DirtySocks
             Users.AddUser(user2);
             client.User = user2;
 
-            client.SendMessage(new AuthOut()
-            {
-                TOS = user.TOS,
-                NAME = user.Username,
-                MAIL = user.MAIL,
-                PERSONAS = string.Join(',', user.Personas)
-            });
+            // Ideally all the infos comes from User profile and not hardcodded.
+
+            if (VERS.Contains("BURNOUT5"))
+                client.SendMessage(new AuthOut()
+                {
+                    LAST = "2018.1.1-00:00:00",
+                    TOS = user.TOS,
+                    SHARE = user.SHARE,
+                    LUID = "$00000000000003fe",
+                    NAME = user.Username,
+                    PERSONAS = string.Join(',', user.Personas),
+                    MAIL = user.MAIL,
+                    BORN = "19700101",
+                    FROM = "FR",
+                    LOC = "frFR",
+                    SPAM = "YN",
+                    SINCE = "2008.1.1-00:00:00",
+                    GFIDS = "1",
+                    ADDR = client.IP,
+                    TOKEN = "pc6r0gHSgZXe1dgwo_CegjBCn24uzUC7KVq1LJDKJ0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                });
+            else
+                client.SendMessage(new AuthOut()
+                {
+                    BORN = "19800325",
+                    GEND = "M",
+                    FROM = "US",
+                    LANG = "en",
+                    LAST = "2003.12.8 15:51:38",
+                    TOS = user.TOS,
+                    NAME = user.Username,
+                    MAIL = user.MAIL,
+                    PERSONAS = string.Join(',', user.Personas)
+                });
 
             Rooms.SendRooms(user2);
         }

@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks.Model;
+using MultiSocks.DirtySocks.Model;
 
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class Sviw : AbstractMessage
     {

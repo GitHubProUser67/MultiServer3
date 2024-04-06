@@ -1,4 +1,4 @@
-namespace SRVEmu.DirtySocks.DataStore
+namespace MultiSocks.DirtySocks.DataStore
 {
     public class DbAccount
     {

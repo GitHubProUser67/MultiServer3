@@ -1,7 +1,7 @@
 using ComponentAce.Compression.Libs.zlib;
 using System.Security.Cryptography;
 
-namespace SRVEmu.Blaze.Local_Profile
+namespace MultiSocks.Blaze.Local_Profile
 {
     public class Local_Profile
     {

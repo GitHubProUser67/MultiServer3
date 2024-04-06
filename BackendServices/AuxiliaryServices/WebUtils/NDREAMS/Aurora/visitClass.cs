@@ -1,11 +1,12 @@
 using BackendProject.MiscUtils;
 using HttpMultipartParser;
+using System.Xml;
 
 namespace WebUtils.NDREAMS.Aurora
 {
     public class visitClass
     {
-        public static string? ProcessVisit(byte[]? PostData, string? ContentType)
+        public static string? ProcessVisit(byte[]? PostData, string? ContentType, string apipath)
         {
             string friends = string.Empty;
             string name = string.Empty;
@@ -27,7 +28,54 @@ namespace WebUtils.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                return $"<xml><result><new>true</new><days>1</days><bonus>{bonus}</bonus><sessions>0</sessions><first>true</first></result></xml>";
+                string CounterInfos = "<days>0</days><sessions>1</sessions>";
+
+                string Prefix = "<new>false</new><first>false</first>";
+
+                Directory.CreateDirectory(apipath + "/NDREAMS/Aurora/Profiles");
+
+                string ProfilePath = apipath + $"/NDREAMS/Aurora/Profiles/{name}.xml";
+
+                if (File.Exists(ProfilePath))
+                {
+                    try
+                    {
+                        // Load the XML string
+                        XmlDocument xmlDoc = new();
+                        xmlDoc.Load(ProfilePath);
+
+                        // Get the <days> and <sessions> nodes
+                        XmlNode? daysNode = xmlDoc.SelectSingleNode("//days");
+                        XmlNode? sessionsNode = xmlDoc.SelectSingleNode("//sessions");
+
+                        if (daysNode != null && sessionsNode != null && int.TryParse(daysNode.InnerText, out int days) && int.TryParse(sessionsNode.InnerText, out int sessions))
+                        {
+                            // Compare file creation date with current date
+                            if (File.GetCreationTime(ProfilePath).Date != DateTime.Today)
+                            {
+                                // If the creation date is not today, increment days counter
+                                daysNode.InnerText = (days + 1).ToString();
+                            }
+
+                            sessionsNode.InnerText = (sessions + 1).ToString();
+                        }
+
+                        File.WriteAllText(ProfilePath, xmlDoc.OuterXml);
+
+                        CounterInfos = xmlDoc.OuterXml.Replace("<xml>", string.Empty).Replace("</xml>", string.Empty);
+                    }
+                    catch (Exception ex)
+                    {
+                        CustomLogger.LoggerAccessor.LogError($"[AURORA] - visit Errored out while reading profile:{ProfilePath} with exception:{ex}");
+                    }
+                }
+                else
+                {
+                    Prefix = "<new>true</new><first>true</first>";
+                    File.WriteAllText(ProfilePath, "<xml>" + CounterInfos + "</xml>");
+                }
+
+                return $"<xml><result>{Prefix}<bonus>{bonus}</bonus>{CounterInfos}</result></xml>";
             }
 
             return null;

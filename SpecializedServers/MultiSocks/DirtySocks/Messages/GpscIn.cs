@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks.Model;
+using MultiSocks.DirtySocks.Model;
 
-namespace SRVEmu.DirtySocks.Messages
+namespace MultiSocks.DirtySocks.Messages
 {
     public class GpscIn : AbstractMessage
     {
@@ -17,131 +17,91 @@ namespace SRVEmu.DirtySocks.Messages
         public string? SYSFLAGS { get; set; }
         public string? FORCE_LEAVE { get; set; }
         public string? USERPARAMS { get; set; }
+        public string? REGIONS { get; set; }
         public string USERFLAGS { get; set; } = "0";
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
-            var mc = context as MatchmakerServer;
-            if (mc == null) return;
-
-            bool remove = false;
+            if (context is not MatchmakerServer mc) return;
 
             User? user = client.User;
             if (user == null) return;
 
-            string? RoomName = NAME;
+            int? parsedMinSize = int.TryParse(MINSIZE, out int minSize) ? minSize : null;
+            int? parsedMaxSize = int.TryParse(MAXSIZE, out int maxSize) ? maxSize : null;
+            int? parsedPriv = int.TryParse(PRIV, out int priv) ? priv : null;
 
-            if (user.CurrentRoom != null)
+            // Check if any of the nullable variables are null before calling CreateGame
+            if (parsedMinSize.HasValue && parsedMaxSize.HasValue && !string.IsNullOrEmpty(CUSTFLAGS) &&
+                !string.IsNullOrEmpty(PARAMS) && !string.IsNullOrEmpty(NAME) && parsedPriv.HasValue &&
+                !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(SYSFLAGS) && !string.IsNullOrEmpty(user.Username))
             {
-                remove = true;
-                RoomName = user.CurrentRoom.Name;
-                user.CurrentRoom.Users?.RemoveUser(user);
-                user.CurrentRoom = null;
-            }
-            Room? room = mc.Rooms.GetRoomByName(RoomName);
-            if (room != null)
-            {
-                if (room.Users != null)
+                Game? game = mc.Games.GetGameByName(NAME, PASS);
+
+                game ??= mc.Games.AddGame(parsedMinSize.Value, parsedMaxSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS);
+
+                if (game != null)
                 {
-                    if (remove)
+                    if (game.Users.GetUserByName(user.Username) == null)
+                        game.Users.AddUser(user);
+
+                    if (game.Users.Count() < game.MinSize) // If we are still bellow minimum player count, we add the admin player.
+                        game.Users.AddUser(mc.Users.GetUserByName("@brobot24"));
+
+                    user.CurrentGame = game;
+
+                    client.SendMessage(new GpscOut()
                     {
-                        room.Users.RemoveUser(user);
-                        client.SendMessage(new MoveOut()
-                        {
-                            NAME = string.Empty
-                        });
-                    }
-                    else
+
+                    });
+
+                    user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+
+                    client.SendMessage(new PlusMgm()
                     {
-                        if (!room.Users.AddUser(user))
-                        {
-                            client.SendMessage(new MoveFull());
-                            return;
-                        }
-                        user.CurrentRoom = room;
-                    }
+                        IDENT = game.ID.ToString(),
+                        NAME = game.Name,
+                        ROOM = "0",
+                        MAXSIZE = game.MaxSize.ToString(),
+                        MINSIZE = game.MinSize.ToString(),
+                        COUNT = game.Users?.Count().ToString() ?? "1",
+                        PRIV = game.Priv ? "1" : "0",
+                        CUSTFLAGS = game.CustFlags,
+                        SYSFLAGS = game.SysFlags,
+                        EVGID = "0",
+                        NUMPART = "1",
+                        SEED = game.Seed,
+                        GPSHOST = user.Username,
+                        GPSREGION = "0",
+                        GAMEMODE = "0",
+                        GAMEPORT = "9673",
+                        VOIPPORT = "9683",
+                        PARTSIZE0 = game.MaxSize.ToString(),
+                        PARAMS = game.Params,
+                        OPPART0 = "0",
+                        OPFLAG0 = "0",
+                        PRES0 = "0",
+                        OPPARAM0 = "PUSMC01?????,,,-1,-1,,d",
+                        OPPO1 = user.Username,
+                        OPPART1 = "0",
+                        OPFLAG1 = game.CustFlags,
+                        PRES1 = "0",
+                        OPID1 = user.ID.ToString(),
+                        ADDR1 = user.Connection?.IP,
+                        LADDR1 = user.Connection?.IP,
+                        MADDR1 = "$000000000000",
+                        OPPARAM1 = "PUSMC01?????,,,-1,-1,,d"
+                    });
                 }
                 else
                 {
-                    client.SendMessage(new MoveOut()
-                    {
-                        NAME = string.Empty
-                    });
+                    // TODO SEND DIRTYSOCKS ERROR!
                 }
             }
             else
             {
-                mc.Rooms.AddRoom(new Room() { Name = RoomName, IsGlobal = true });
-                room = mc.Rooms.GetRoomByName(RoomName);
-                if (room != null)
-                {
-                    if (room.Users != null)
-                    {
-                        if (remove)
-                        {
-                            room.Users.RemoveUser(user);
-                            client.SendMessage(new MoveOut()
-                            {
-                                NAME = string.Empty
-                            });
-                        }
-                        else
-                        {
-                            if (!room.Users.AddUser(user))
-                            {
-                                client.SendMessage(new MoveFull());
-                                return;
-                            }
-                            user.CurrentRoom = room;
-                        }
-                    }
-                    else
-                    {
-                        client.SendMessage(new MoveOut()
-                        {
-                            NAME = string.Empty
-                        });
-                    }
-                }
+                // TODO SEND DIRTYSOCKS ERROR!
             }
-
-            client.SendMessage(new PlusAgm()
-            {
-                IDENT = user.ID.ToString(),
-                NAME = NAME,
-                HOST = user.Username,
-                PARAMS = PARAMS,
-                ROOM = user.CurrentRoom?.Name,
-                MAXSIZE = MAXSIZE,
-                MINSIZE = MINSIZE,
-                USERFLAGS = USERFLAGS,
-                SYSFLAGS = SYSFLAGS,
-                PASS = PASS,
-                PRIV = PRIV,
-                SEED = SEED,
-                CUSTFLAGS = CUSTFLAGS,
-            });
-
-            /*client.SendMessage(new PlusMgm()
-            {
-                ADDR1 = client.IP,
-                CUSTFLAGS = CUSTFLAGS,
-                GPSHOST = NAME,
-                NAME = NAME,
-                OPPO1 = NAME,
-                PARAMS = PARAMS,
-                PRIV = PRIV,
-                SEED = SEED,
-                SYSFLAGS = SYSFLAGS,
-                OPID1 = user.ID.ToString(),
-                OPFLAG1 = USERFLAGS
-            });*/
-
-            client.SendMessage(new GpscOut() // Game will disconnect if this command is not sent, perhaps a little clue.
-            {
-                GPSHOST = user.Username,
-                HOST = user.Username
-            });
         }
     }
 }

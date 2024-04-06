@@ -1,8 +1,8 @@
 using BackendProject.MiscUtils;
 using CustomLogger;
-using SRVEmu.DirtySocks.DataStore;
+using MultiSocks.DirtySocks.DataStore;
 
-namespace SRVEmu.DirtySocks
+namespace MultiSocks.DirtySocks
 {
     public class DirtySocksServer
     {
@@ -40,7 +40,7 @@ namespace SRVEmu.DirtySocks
 
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21850, VariousUtils.GetLocalIPAddress().ToString(), 21851, false);
+                RedirectorBOP_PS3 = new RedirectorServer(21850, VariousUtils.GetLocalIPAddress().ToString(), 21851, false, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -49,7 +49,7 @@ namespace SRVEmu.DirtySocks
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, VariousUtils.GetLocalIPAddress().ToString(), 21871, false);
+                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, VariousUtils.GetLocalIPAddress().ToString(), 21871, false, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -58,7 +58,7 @@ namespace SRVEmu.DirtySocks
 
             try
             {
-                BurnoutParadisePS3Matchmaker = new MatchmakerServer(21851, true);
+                BurnoutParadisePS3Matchmaker = new MatchmakerServer(21851, true, null, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -67,7 +67,7 @@ namespace SRVEmu.DirtySocks
 
             try
             {
-                BurnoutParadiseUltimateBoxMatchmaker = new MatchmakerServer(21871, true);
+                BurnoutParadiseUltimateBoxMatchmaker = new MatchmakerServer(21871, true, null, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {

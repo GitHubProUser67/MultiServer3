@@ -68,7 +68,7 @@ namespace HTTPServer
             return false;
         }
 
-        public void HandleClient(TcpClient tcpClient, int ListenerPort)
+        public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
             try
             {
@@ -90,11 +90,13 @@ namespace HTTPServer
                     {
                         if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
-                            HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString());
+                            HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
                                 HttpResponse? response = null;
+
+                                string Method = request.Method;
 
                                 string Host = request.RetrieveHeaderValue("Host");
 
@@ -152,9 +154,9 @@ namespace HTTPServer
                                                 {
                                                     // Check if the input string contains an HTTP method
 #if NET6_0
-                                                    if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && request.Method == parts[0])
+                                                    if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && Method == parts[0])
 #elif NET7_0_OR_GREATER
-                                                    if (HttpMethodRegex().Match(parts[0]).Success && request.Method == parts[0])
+                                                    if (HttpMethodRegex().Match(parts[0]).Success && Method == parts[0])
 #endif
                                                         response = HttpBuilder.Found(parts[2]);
                                                     // Check if the input string contains a status code
@@ -247,7 +249,7 @@ namespace HTTPServer
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new OHSClass(request.Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -258,7 +260,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Outso OUWF Debug API
-                                            else if (Host == "ouwf.outso-srv1.com" && request.GetDataStream != null && request.Method != null && request.GetContentType().StartsWith("multipart/form-data"))
+                                            else if (Host == "ouwf.outso-srv1.com" && request.GetDataStream != null && !string.IsNullOrEmpty(Method) && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
 
@@ -266,7 +268,7 @@ namespace HTTPServer
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new OuWFClass(request.Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new OuWFClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -277,7 +279,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region VEEMEE API
-                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && request.Method != null && absolutepath.EndsWith(".php"))
+                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && Method != null && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
 
@@ -285,7 +287,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    (string?, string?) res = new VEEMEEClass(request.Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
+                                                    (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), absolutepath);
                                                     postdata.Flush();
 
                                                     if (string.IsNullOrEmpty(res.Item1))
@@ -300,7 +302,7 @@ namespace HTTPServer
                                                 }
                                                 else
                                                 {
-                                                    (string?, string?) res = new VEEMEEClass(request.Method, absolutepath).ProcessRequest(null, request.GetContentType(), absolutepath);
+                                                    (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), absolutepath);
 
                                                     if (string.IsNullOrEmpty(res.Item1))
                                                         response = HttpBuilder.InternalServerError();
@@ -316,12 +318,12 @@ namespace HTTPServer
                                             #endregion
 
                                             #region nDreams API
-                                            else if (Host == "pshome.ndreams.net" && request.Method != null && absolutepath.EndsWith(".php"))
+                                            else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new(request.Method, absolutepath);
+                                                NDREAMSClass ndreams = new(Method, $"http://{Host}{request.Url}", absolutepath, HTTPServerConfiguration.APIStaticFolder);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -338,12 +340,12 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
-                                            else if (Host == "juggernaut-games.com" && request.Method != null && absolutepath.EndsWith(".php"))
+                                            else if (Host == "juggernaut-games.com" && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");
 
                                                 string? res = null;
-                                                JUGGERNAUTClass juggernaut = new(request.Method, absolutepath);
+                                                JUGGERNAUTClass juggernaut = new(Method, absolutepath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -364,12 +366,12 @@ namespace HTTPServer
                                             #endregion
 
                                             #region LOOT API
-                                            else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com" && request.Method != null)
+                                            else if ((Host == "server.lootgear.com" || Host == "alpha.lootgear.com") && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
 
                                                 string? res = null;
-                                                LOOTClass loot = new(request.Method, absolutepath);
+                                                LOOTClass loot = new(Method, absolutepath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -392,7 +394,7 @@ namespace HTTPServer
                                                 Host == "playstationhome.jp" ||
                                                 Host == "scej-home.playstation.net" ||
                                                 Host == "homeec.scej-nbs.jp" ||
-                                                Host == "homeecqa.scej-nbs.jp") && request.Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/"))
+                                                Host == "homeecqa.scej-nbs.jp") && Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
@@ -401,7 +403,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new PREMIUMAGENCYClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -412,7 +414,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region FROMSOFTWARE API
-                                            else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && request.Method != null)
+                                            else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
 
@@ -421,7 +423,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new FROMSOFTWAREClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new FROMSOFTWAREClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
@@ -432,7 +434,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Ubisoft API
-                                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
+                                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
 
@@ -473,7 +475,7 @@ namespace HTTPServer
                                                     {
                                                         using MemoryStream postdata = new();
                                                         request.GetDataStream.CopyTo(postdata);
-                                                        (string?, string?) res = new HERMESClass(request.Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                                        (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
                                                             request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
                                                             .ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                         postdata.Flush();
@@ -494,7 +496,7 @@ namespace HTTPServer
                                                     }
                                                     else
                                                     {
-                                                        (string?, string?) res = new HERMESClass(request.Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                                        (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
                                                             request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
                                                             .ProcessRequest(null, request.GetContentType());
 
@@ -562,7 +564,7 @@ namespace HTTPServer
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
-                                                switch (request.Method)
+                                                switch (Method)
                                                 {
                                                     case "GET":
                                                         switch (absolutepath)
@@ -582,7 +584,7 @@ namespace HTTPServer
                                                                     using TcpClient client = new(ServerIP, ListenerPort);
                                                                     client.Close();
                                                                 }
-                                                                catch (Exception) // Failed to connect, so we fallback to local IP.
+                                                                catch // Failed to connect, so we fallback to local IP.
                                                                 {
                                                                     ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
                                                                 }
@@ -603,7 +605,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     Dictionary<string, string>? QueryDic = request.QueryParameters;
-                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
+                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
                                                                     {
                                                                         WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
                                                                         if (vid != null && vid.Available)
@@ -850,7 +852,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     Dictionary<string, string>? QueryDic = request.QueryParameters;
-                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.ContainsKey("url") && !string.IsNullOrEmpty(QueryDic["url"]))
+                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
                                                                     {
                                                                         WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
                                                                         if (vid != null && vid.Available && vid.VideoStream != null)
@@ -881,7 +883,54 @@ namespace HTTPServer
                                                         response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
                                                         break;
                                                     case "PROPFIND":
-                                                        response = HttpBuilder.NotImplemented();
+                                                        if (File.Exists(filePath))
+                                                        {
+                                                            // We want to check if the router allows external IPs first.
+                                                            string ServerIP = VariousUtils.GetPublicIPAddress(true);
+                                                            try
+                                                            {
+                                                                using TcpClient client = new(ServerIP, ListenerPort);
+                                                                client.Close();
+                                                            }
+                                                            catch // Failed to connect, so we fallback to local IP.
+                                                            {
+                                                                ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                                                            }
+                                                            if (ServerIP.Length > 15)
+                                                                ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
+
+                                                            string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                            if (ContentType == "application/octet-stream")
+                                                            {
+                                                                byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
+                                                                foreach (var entry in HTTPUtils.PathernDictionary)
+                                                                {
+                                                                    if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                    {
+                                                                        ContentType = entry.Key;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            response = HttpResponse.Send("<?xml version=\"1.0\"?>\r\n" +
+                                                                "<a:multistatus\r\n" +
+                                                                $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
+                                                                "  xmlns:a=\"DAV:\">\r\n" +
+                                                                " <a:response>\r\n" +
+                                                                $"   <a:href>http://{ServerIP}:{request.ServerPort}{absolutepath}</a:href>\r\n" +
+                                                                "   <a:propstat>\r\n" +
+                                                                "    <a:status>HTTP/1.1 200 OK</a:status>\r\n" +
+                                                                "       <a:prop>\r\n" +
+                                                                $"        <a:getcontenttype>{ContentType}</a:getcontenttype>\r\n" +
+                                                                $"        <a:getcontentlength b:dt=\"int\">{new FileInfo(filePath).Length}</a:getcontentlength>\r\n" +
+                                                                "       </a:prop>\r\n" +
+                                                                "   </a:propstat>\r\n" +
+                                                                " </a:response>\r\n" +
+                                                                "</a:multistatus>", "text/xml", null, Models.HttpStatusCode.MultiStatus);
+                                                        }
+                                                        else
+                                                            response = HttpBuilder.NotFound();
                                                         break;
                                                     default:
                                                         response = HttpBuilder.NotAllowed();
@@ -948,7 +997,7 @@ namespace HTTPServer
             return data;
         }
 
-        private static void WriteResponse(Stream stream, HttpRequest? request, HttpResponse? response, string filePath)
+        private static void WriteResponse(Stream stream, HttpRequest? request, HttpResponse? response, string local_path)
         {
             try
             {
@@ -961,14 +1010,14 @@ namespace HTTPServer
                     {
                         string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
 
-                        if (request.Method == "OPTIONS")
+                        if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
                         {
                             response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
                             response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.ContainsKey("If-Modified-Since") && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(filePath).LastWriteTimeUtc)
+                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
                         {
                             response.Headers.Clear();
 
@@ -980,7 +1029,7 @@ namespace HTTPServer
 
                             stream.Flush();
                         }
-                        else if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
+                        else if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
                             response.Headers.Clear();
 
@@ -1007,8 +1056,8 @@ namespace HTTPServer
                             {
                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                 response.Headers.Add("ETag", EtagMD5);
-                                if (File.Exists(filePath))
-                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                if (File.Exists(local_path))
+                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                             }
 
                             if (!response.Headers.ContainsKey("Content-Length"))
@@ -1053,7 +1102,7 @@ namespace HTTPServer
                         else
                         {
                             if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
-                                LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", filePath, response.HttpStatusCode));
+                                LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, local_path, response.HttpStatusCode));
                             else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
                                 LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                             else
@@ -1200,12 +1249,12 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
                             {
                                 response.Headers.Add("Content-Encoding", "gzip");
-                                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                             }
                             else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
                             {
                                 response.Headers.Add("Content-Encoding", "deflate");
-                                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                             }
                             else
                                 response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1500,7 +1549,7 @@ namespace HTTPServer
                     {
                         string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
 
-                        if (request.Headers.ContainsKey("If-Modified-Since") && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
+                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
                         {
                             response.Headers.Clear();
 
@@ -1512,7 +1561,7 @@ namespace HTTPServer
 
                             stream.Flush();
                         }
-                        else if (request.Headers.ContainsKey("If-None-Match") && request.Headers["If-None-Match"] == EtagMD5)
+                        else if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
                             response.Headers.Clear();
 
@@ -1579,7 +1628,7 @@ namespace HTTPServer
                         else
                         {
                             if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
-                                LoggerAccessor.LogWarn(string.Format("{0} Requested a non-existant file -> {1}", local_path, response.HttpStatusCode));
+                                LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, local_path, response.HttpStatusCode));
                             else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
                                 LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                             else
@@ -1662,7 +1711,7 @@ namespace HTTPServer
             return null;
         }
 
-        private static HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport)
+        private static HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
         {
             string line = string.Empty;
 
@@ -1698,7 +1747,8 @@ namespace HTTPServer
                 Headers = headers,
                 Data = null,
                 IP = clientip,
-                PORT = clientport
+                Port = clientport,
+                ServerPort = ListenerPort
             };
 
             if (headers.TryGetValue("Content-Length", out string? value))

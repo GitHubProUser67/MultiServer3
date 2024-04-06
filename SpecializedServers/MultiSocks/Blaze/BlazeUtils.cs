@@ -1,4 +1,4 @@
-namespace SRVEmu.Blaze
+namespace MultiSocks.Blaze
 {
     public class BlazeUtils
     {
