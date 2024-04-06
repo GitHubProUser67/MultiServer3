@@ -18,7 +18,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -58,7 +58,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -99,7 +99,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {
@@ -173,7 +173,7 @@ namespace WebUtils.OHS
             {
                 string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                if (boundary != null)
+                if (!string.IsNullOrEmpty(boundary))
                 {
                     using (MemoryStream ms = new(PostData))
                     {

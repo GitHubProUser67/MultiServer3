@@ -1,17 +1,18 @@
 using BackendProject.MiscUtils;
 using CustomLogger;
 using HttpMultipartParser;
+using System.Text;
 
 namespace WebUtils.PREMIUMAGENCY
 {
     public class Resource
     {
-        public static string? getResourcePOST(byte[]? PostData, string? ContentType, string workpath)
+        public static string? getResourcePOST(byte[] PostData, string ContentType, string workpath)
         {
             string resKey = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+            string boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && !string.IsNullOrEmpty(Encoding.UTF8.GetString(PostData)))
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -1589,7 +1590,7 @@ namespace WebUtils.PREMIUMAGENCY
             string resKey = string.Empty;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {

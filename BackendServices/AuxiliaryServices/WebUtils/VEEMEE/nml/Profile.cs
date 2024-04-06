@@ -18,7 +18,7 @@ namespace WebUtils.VEEMEE.nml
             string product = string.Empty;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
@@ -42,7 +42,7 @@ namespace WebUtils.VEEMEE.nml
             string product = string.Empty;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-            if (boundary != null && PostData != null)
+            if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new(PostData))
                 {
