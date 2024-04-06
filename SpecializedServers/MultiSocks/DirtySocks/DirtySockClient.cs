@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using CustomLogger;
-using SRVEmu.DirtySocks.Messages;
-using SRVEmu.DirtySocks.Model;
+using MultiSocks.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Model;
 
-namespace SRVEmu.DirtySocks
+namespace MultiSocks.DirtySocks
 {
     public class DirtySockClient
     {
@@ -33,7 +33,7 @@ namespace SRVEmu.DirtySocks
         {
             Context = context;
             ClientTcp = client;
-            IP = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+            IP = ((IPEndPoint?)client.Client.RemoteEndPoint)?.Address.ToString() ?? "127.0.0.1";
 
             LoggerAccessor.LogInfo("New connection from " + IP + ".");
 
@@ -89,7 +89,7 @@ namespace SRVEmu.DirtySocks
                                         ClientTcp.Close(); // either something terrible happened or they're trying to mess with us
                                         break;
                                     }
-                                    CommandName = Encoding.ASCII.GetString(TempData).Substring(0, 4);
+                                    CommandName = Encoding.ASCII.GetString(TempData)[..4];
 
                                     TempData = new byte[size - 12];
                                     TempDatOff = 0;

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace SRVEmu.Blaze.Blaze
+namespace MultiSocks.Blaze.Blaze
 {
     public class Blaze
     {

@@ -11,33 +11,33 @@ namespace HTTPServer
     {
         #region Public Methods
 
-        public static HttpResponse OK()
+        public static HttpResponse OK(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
         }
 
-        public static HttpResponse NotImplemented()
+        public static HttpResponse NotImplemented(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.NotImplemented,
             };
         }
 
-        public static HttpResponse InternalServerError()
+        public static HttpResponse InternalServerError(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.InternalServerError,
             };
         }
 
-        public static HttpResponse MovedPermanently(string url)
+        public static HttpResponse MovedPermanently(string url, bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.MovedPermanently,
                 Headers = new Dictionary<string, string>()
@@ -47,9 +47,9 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse PermanantRedirect(string url)
+        public static HttpResponse PermanantRedirect(string url, bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.Permanent_Redirect,
                 Headers = new Dictionary<string, string>()
@@ -59,9 +59,9 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse Found(string url)
+        public static HttpResponse Found(string url, bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.Found,
                 Headers = new Dictionary<string, string>()
@@ -71,9 +71,9 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse RedirectFromApacheRules(string url, int statuscode)
+        public static HttpResponse RedirectFromApacheRules(string url, int statuscode, bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = (HttpStatusCode)statuscode,
                 Headers = new Dictionary<string, string>()
@@ -83,41 +83,41 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse NoContent()
+        public static HttpResponse NoContent(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.No_Content,
             };
         }
 
-        public static HttpResponse NotFound()
+        public static HttpResponse NotFound(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.Not_Found,
             };
         }
 
-        public static HttpResponse NotAllowed()
+        public static HttpResponse NotAllowed(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.Forbidden,
             };
         }
 
-        public static HttpResponse MethodNotAllowed()
+        public static HttpResponse MethodNotAllowed(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.MethodNotAllowed,
             };
         }
 
-        public static HttpResponse MissingParameters()
+        public static HttpResponse MissingParameters(bool KeepAlive = false)
         {
-            return new HttpResponse(false)
+            return new HttpResponse(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.Missing_parameters,
             };

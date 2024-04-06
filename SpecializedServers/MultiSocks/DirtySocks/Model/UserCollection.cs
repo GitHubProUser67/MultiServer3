@@ -1,6 +1,6 @@
-using SRVEmu.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Messages;
 
-namespace SRVEmu.DirtySocks.Model
+namespace MultiSocks.DirtySocks.Model
 {
     public class UserCollection
     {
@@ -14,8 +14,11 @@ namespace SRVEmu.DirtySocks.Model
             }
         }
 
-        public virtual bool AddUser(User user)
+        public virtual bool AddUser(User? user, string VERS = "")
         {
+            if (user == null)
+                return false;
+
             lock (Users)
             {
                 Users.Add(user);

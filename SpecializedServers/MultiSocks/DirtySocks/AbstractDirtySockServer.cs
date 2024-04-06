@@ -1,14 +1,16 @@
 using BackendProject.MiscUtils;
-using SRVEmu.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Messages;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SRVEmu.DirtySocks
+namespace MultiSocks.DirtySocks
 {
     public abstract class AbstractDirtySockServer : IDisposable
     {
         public abstract Dictionary<string, Type> NameToClass { get; }
+        public string? Project = null;
+        public string? SKU = null;
         public bool lowlevel = false;
         public int SessionID = 1;
 
@@ -17,7 +19,7 @@ namespace SRVEmu.DirtySocks
 
         private Thread ListenerThread;
 
-        public AbstractDirtySockServer(ushort port, bool lowlevel)
+        public AbstractDirtySockServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null)
         {
             this.lowlevel = lowlevel;
             Listener = new TcpListener(IPAddress.Any, port);
@@ -25,6 +27,8 @@ namespace SRVEmu.DirtySocks
 
             ListenerThread = new Thread(RunLoop);
             ListenerThread.Start();
+            this.Project = Project;
+            this.SKU = SKU;
         }
 
         private async void RunLoop()

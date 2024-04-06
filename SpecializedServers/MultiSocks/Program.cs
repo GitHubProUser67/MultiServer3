@@ -5,6 +5,7 @@ using BackendProject.MiscUtils;
 
 public static class MultiSocksServerConfiguration
 {
+    public static string ServerBindAddress { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
     public static string DirtySocksDatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
@@ -27,6 +28,7 @@ public static class MultiSocksServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
+                new JProperty("server_bind_address", ServerBindAddress),
                 new JProperty("database", DirtySocksDatabaseConfig),
                 new JProperty("discord_bot_token", DiscordBotToken),
                 new JProperty("discord_channel_id", DiscordChannelID),
@@ -43,6 +45,7 @@ public static class MultiSocksServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
+            ServerBindAddress = config.server_bind_address;
             DirtySocksDatabaseConfig = config.database;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
@@ -84,7 +87,7 @@ class Program
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(MultiSocksServerConfiguration.DiscordChannelID, MultiSocksServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new SRVEmu.DirtySocks.DirtySocksServer().Run(),
+                    () => new MultiSocks.DirtySocks.DirtySocksServer().Run(),
                     () => RefreshConfig()
                 ));
 

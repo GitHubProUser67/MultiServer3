@@ -1,7 +1,6 @@
-using SRVEmu.DirtySocks;
-using SRVEmu.DirtySocks.Messages;
+using MultiSocks.DirtySocks.Messages;
 
-namespace SRVEmu.DirtySocks.Model
+namespace MultiSocks.DirtySocks.Model
 {
     public class Room
     {
@@ -10,15 +9,23 @@ namespace SRVEmu.DirtySocks.Model
         public string? Name;
         public RoomUserCollection? Users;
         public List<Game> Games = new();
-        public bool IsGlobal; //if a room is global, it is always open
+        public bool IsGlobal; // if a room is global, it is always open
         public int Max = 24;
+        public int GameIDsCounter = 0;
 
-        public bool AllInGame; //if session initiated between two users should extend to everyone
+        public bool AllInGame; // if session initiated between two users should extend to everyone
 
         public Dictionary<string, Chal> ChallengeMap = new();
 
         public Room()
         {
+            Users = new RoomUserCollection(this);
+        }
+
+        public Room(int Max)
+        {
+            if (Max > 0)
+                this.Max = Max;
             Users = new RoomUserCollection(this);
         }
 
@@ -31,6 +38,35 @@ namespace SRVEmu.DirtySocks.Model
                 T = Users?.Count().ToString(),
                 L = Max.ToString()
             };
+        }
+
+        public Game? CreateGame(int maxSize, int minSize, string custFlags, string @params,
+                string name, bool priv, string seed, string sysFlags, string pass)
+        {
+            lock (Games)
+            {
+                if (!Games.Any(game =>
+                    game.MaxSize == maxSize &&
+                    game.MinSize == minSize &&
+                    game.CustFlags == custFlags &&
+                    game.Params == @params &&
+                    game.Name == name &&
+                    game.Priv == priv &&
+                    game.Seed == seed &&
+                    game.SysFlags == sysFlags &&
+                    game.pass == pass))
+                {
+                    Game game = new(maxSize, minSize, GameIDsCounter, custFlags, @params,
+                                    name, priv, seed, sysFlags, pass);
+                    GameIDsCounter++;
+                    Games.Add(game);
+                    return game;
+                }
+                else
+                    CustomLogger.LoggerAccessor.LogWarn("[Room] - Trying to add a game while an other with same properties exists!");
+            }
+
+            return null;
         }
 
         public void BroadcastPopulation()

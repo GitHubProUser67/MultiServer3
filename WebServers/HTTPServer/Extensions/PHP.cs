@@ -1,6 +1,7 @@
 using BackendProject.MiscUtils;
 using HTTPServer.Models;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Text;
 
 namespace HTTPServer.Extensions
@@ -9,6 +10,18 @@ namespace HTTPServer.Extensions
     {
         public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, string ip, string? port, HttpRequest request)
         {
+            // We want to check if the router allows external IPs first.
+            string ServerIP = VariousUtils.GetPublicIPAddress(true);
+            try
+            {
+                using TcpClient client = new(ServerIP, request.ServerPort);
+                client.Close();
+            }
+            catch // Failed to connect, so we fallback to local IP.
+            {
+                ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+            }
+
             if (!string.IsNullOrEmpty(request.Url) && !string.IsNullOrEmpty(port))
             {
                 int index = request.Url.IndexOf("?");
@@ -64,8 +77,10 @@ namespace HTTPServer.Extensions
                 proc.StartInfo.EnvironmentVariables.Add("CONTENT_TYPE", request.GetContentType());
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_METHOD", request.Method);
                 proc.StartInfo.EnvironmentVariables.Add("USER_AGENT", request.RetrieveHeaderValue("User-Agent"));
-                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", VariousUtils.GetPublicIPAddress());
+                proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", ServerIP);
+                proc.StartInfo.EnvironmentVariables.Add("SERVER_PORT", request.ServerPort.ToString());
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ip);
+                proc.StartInfo.EnvironmentVariables.Add("REMOTE_HOST", ip);
                 proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", port);
                 proc.StartInfo.EnvironmentVariables.Add("REFERER", request.RetrieveHeaderValue("Referer"));
                 proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ip}:{port}{request.Url}");
