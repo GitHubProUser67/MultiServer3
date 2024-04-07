@@ -26,6 +26,18 @@ namespace MultiSocks.DirtySocks.Model
             return true;
         }
 
+        public virtual bool AddUserWithRoomMesg(User? user, string VERS = "")
+        {
+            if (user == null)
+                return false;
+
+            lock (Users)
+            {
+                Users.Add(user);
+            }
+            return true;
+        }
+
         public virtual void RemoveUser(User user)
         {
             lock (Users)

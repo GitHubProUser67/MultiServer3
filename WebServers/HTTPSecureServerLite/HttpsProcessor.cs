@@ -398,7 +398,7 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region nDreams API
-                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && absolutepath.EndsWith(".php"))
+                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".php")))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 

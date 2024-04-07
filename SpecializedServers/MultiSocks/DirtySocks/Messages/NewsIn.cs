@@ -16,7 +16,7 @@ namespace MultiSocks.DirtySocks.Messages
             // Todo, send proper news data for burnout.
 
             if (NAME == "client.cfg") // TODO, do a real config file.
-                client.SendMessage(new NewsOut()
+                client.SendMessage(new BOPNewsOut()
                 {
                     NEWS_URL = ((!string.IsNullOrEmpty(context.Project) && context.Project.Contains("PSN")) || (!string.IsNullOrEmpty(context.SKU) && context.SKU.Contains("PS3")))
                    ? "\"http://gos.ea.com/easo/editorial/common/2008/news/news.jsp?lang=%s&from=%s&game=Burnout&platform=ps3\"" : "\"http://gos.ea.com/easo/editorial/common/2008/news/news.jsp?lang=%s&from=%s&game=Burnout&platform=pc\"",
@@ -35,7 +35,9 @@ namespace MultiSocks.DirtySocks.Messages
                     TOS_URL = ((!string.IsNullOrEmpty(context.Project) && context.Project.Contains("PSN")) || (!string.IsNullOrEmpty(context.SKU) && context.SKU.Contains("PS3")))
                    ? "\"http://gos.ea.com/easo/editorial/common/2008/tos/tos.jsp?lang=%s&platform=ps3&from=%s\"" : "\"http://gos.ea.com/easo/editorial/common/2008/tos/tos.jsp?lang=%s&platform=pc&from=%s\"",
                 });
-            else if (NAME == "0" || NAME == "1" || NAME == "3")
+            else if (NAME == "0")
+                client.SendMessage(new Newsnew0() { BUDDYRESOURCE = context.Project });
+            else if (NAME == "1" || NAME == "3")
                 client.SendMessage(Encoding.ASCII.GetBytes("MultiServer Driven EA Server."));
             else if (NAME == "8")
             {

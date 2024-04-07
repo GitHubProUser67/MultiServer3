@@ -1,6 +1,6 @@
 namespace MultiSocks.DirtySocks.Messages
 {
-    public class NewsOut : AbstractMessage
+    public class BOPNewsOut : AbstractMessage
     {
         public override string _Name { get => "news"; }
         public string? PEERTIMEOUT { get; set; } = "10000";

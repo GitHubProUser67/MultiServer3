@@ -318,7 +318,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region nDreams API
-                                            else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
+                                            else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && !string.IsNullOrEmpty(Method) && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".php")))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
@@ -340,6 +340,9 @@ namespace HTTPServer
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
+                                            #endregion
+
+                                            #region JUGGERNAUT API
                                             else if (Host == "juggernaut-games.com" && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");

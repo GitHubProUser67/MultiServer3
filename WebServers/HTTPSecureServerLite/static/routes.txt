@@ -121,6 +121,8 @@ bstormps3.available.gamespy.com,Redirect,IP
 bstormps3.auth.pubsvs.gamespy.com,Redirect,IP
 ps2sims04.ea.com,Redirect,IP
 tso-e.com,Redirect,IP
+ps2ssx04.ea.com,Redirect,IP
+www.ea.com,Redirect,IP
 ps3burnout08.ea.com,Redirect,IP
 tdulive.quazal.net,Redirect,IP
 gos.ea.com,Redirect,IP
