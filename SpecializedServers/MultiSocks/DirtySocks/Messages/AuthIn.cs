@@ -21,6 +21,10 @@ namespace MultiSocks.DirtySocks.Messages
         public string? PASS { get; set; }
         public string? TOS { get; set; }
         public string? MID { get; set; }
+        public string? PID { get; set; }
+        public string? HWFLAG { get; set; }
+        public string? HWMASK { get; set; }
+
         public string FROM { get; set; } = "US";
         public string LANG { get; set; } = "en";
         public string? LOC { get; set; }

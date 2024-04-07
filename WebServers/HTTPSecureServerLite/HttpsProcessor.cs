@@ -4,7 +4,6 @@ using BackendProject.FileHelper.Utils;
 using BackendProject.MiscUtils;
 using BackendProject.SSDP_DLNA;
 using WebUtils;
-using WebUtils.HOMECORE;
 using WebUtils.LOOT;
 using WebUtils.NDREAMS;
 using WebUtils.OHS;
@@ -21,6 +20,8 @@ using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using WebUtils.UBISOFT.HERMES_API;
+using WebUtils.CAPONE;
+using WebUtils.CDM;
 
 namespace HTTPSecureServerLite
 {
@@ -166,6 +167,27 @@ namespace HTTPSecureServerLite
 #endif
 
             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+
+            #region Domains
+
+            List<string> HPDDomains = new List<string>() {
+                                    "dev.destinations.scea.com",
+                                    "prd.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
+
+            List<string> CAPONEDomains = new List<string>() {
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "collector-dev.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "content-dev.gr.online.scea.com",
+                                };
+
+            #endregion
 
             if (statusCode == HttpStatusCode.Continue)
             {
@@ -352,6 +374,8 @@ namespace HTTPSecureServerLite
                             sent = await response.Send();
                         }
                     }
+
+                    #region VEEMEE API
                     else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
@@ -371,7 +395,10 @@ namespace HTTPSecureServerLite
                             response.ContentType = "text/plain";
                         sent = await response.Send(res.Item1);
                     }
-                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && absolutepath.EndsWith(".php"))
+                    #endregion
+
+                    #region nDreams API
+                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".php")))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
@@ -390,6 +417,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region Hellfire Games API
                     else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
@@ -406,7 +436,14 @@ namespace HTTPSecureServerLite
                         response.ContentType = "text/plain";
                         sent = await response.Send(res);
                     }
-                    else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") && absolutepath.EndsWith("/") && (absolutepath.Contains("/ohs") || absolutepath.Contains("/statistic/")))
+                    #endregion
+
+                    #region Outso OHS API
+                    else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
+                                                absolutepath.EndsWith("/") ||
+                                                absolutepath.Contains("/ohs") ||
+                                                absolutepath.Contains("/statistic/") ||
+                                                absolutepath.Contains("/Konami/" ))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
@@ -426,6 +463,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region LOOT API
                     else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com")
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
@@ -453,6 +493,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region PREMIUMAGENCY API
                     else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
                                                 Host == "scej-home.playstation.net" ||
@@ -476,6 +519,9 @@ namespace HTTPSecureServerLite
                         response.StatusCode = (int)statusCode;
                         sent = await response.Send(res);
                     }
+                    #endregion
+
+                    #region UBISOFT API
                     else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
@@ -540,6 +586,52 @@ namespace HTTPSecureServerLite
                             sent = await response.Send();
                         }
                     }
+                    #endregion
+
+                    #region CentralDispatchManager API
+                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                    {
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
+
+                        string? res = new CDMClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                        if (string.IsNullOrEmpty(res))
+                        {
+                            response.ContentType = "text/plain";
+                            statusCode = HttpStatusCode.InternalServerError;
+                        }
+                        else
+                        {
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.ContentType = "text/xml";
+                            statusCode = HttpStatusCode.OK;
+                        }
+                        response.StatusCode = (int)statusCode;
+                        sent = await response.Send(res);
+                    }
+                    #endregion
+
+                    #region CAPONE GriefReporter API
+                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                    {
+                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+
+                        string? res = new CAPONEClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                        if (string.IsNullOrEmpty(res))
+                        {
+                            response.ContentType = "text/plain";
+                            statusCode = HttpStatusCode.InternalServerError;
+                        }
+                        else
+                        {
+                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.ContentType = "text/xml";
+                            statusCode = HttpStatusCode.OK;
+                        }
+                        response.StatusCode = (int)statusCode;
+                        sent = await response.Send(res);
+                    }
+                    #endregion
+
                     else
                     {
                         string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -708,30 +800,14 @@ namespace HTTPSecureServerLite
                                             }
                                         }
                                         break;
-                                    case "/publisher/list/":
-                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HOMECORE method : {absolutepath}");
-
-                                        string? res = new HOMECOREClass(request.Method.ToString(), absolutepath).ProcessRequest(request.DataAsBytes, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
-                                        if (string.IsNullOrEmpty(res))
-                                        {
-                                            response.ContentType = "text/plain";
-                                            statusCode = HttpStatusCode.InternalServerError;
-                                        }
-                                        else
-                                        {
-                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            response.ContentType = "text/xml";
-                                            statusCode = HttpStatusCode.OK;
-                                        }
-                                        response.StatusCode = (int)statusCode;
-                                        sent = await response.Send(res);
-                                        break;
-                                    case "/robots.txt": // Get Away Google.
+                                    #region Get Away Google!
+                                    case "/robots.txt": 
                                         statusCode = HttpStatusCode.OK;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
                                         sent = await response.Send("User-agent: *\nDisallow: / ");
                                         break;
+                                    #endregion
                                     case "/!player":
                                     case "/!player/":
                                         // We want to check if the router allows external IPs first.

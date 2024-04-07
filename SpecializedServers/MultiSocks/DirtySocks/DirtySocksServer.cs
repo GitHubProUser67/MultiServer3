@@ -1,4 +1,3 @@
-using BackendProject.MiscUtils;
 using CustomLogger;
 using MultiSocks.DirtySocks.DataStore;
 
@@ -8,6 +7,8 @@ namespace MultiSocks.DirtySocks
     {
         public static bool IsStarted = false;
         public static IDatabase Database = new DirtySocksJSONDatabase();
+        private AbstractDirtySockServer? RedirectorSSX3_NTSC_A;
+        private AbstractDirtySockServer? RedirectorSSX3_PAL;
         private AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         private AbstractDirtySockServer? RedirectorTSBO_PAL;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
@@ -15,6 +16,7 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? BurnoutParadiseUltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
+        private AbstractDirtySockServer? SSX3Matchmaker;
 
         public Task Run()
         {
@@ -22,7 +24,25 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorTSBO_NTSC_A = new RedirectorServer(11100, VariousUtils.GetLocalIPAddress().ToString(), 11101, false);
+                RedirectorSSX3_NTSC_A = new RedirectorServer(11000, MultiSocksServerConfiguration.ServerBindAddress, 11051, false, "SSX-ER-PS2-2004", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RedirectorSSX3_NTSC_A] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                RedirectorSSX3_PAL = new RedirectorServer(11050, MultiSocksServerConfiguration.ServerBindAddress, 11051, false, "SSX-ER-PS2-2004", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RedirectorSSX3_PAL] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                RedirectorTSBO_NTSC_A = new RedirectorServer(11100, MultiSocksServerConfiguration.ServerBindAddress, 11101, false, "TSBO", "PS2");
             }
             catch (Exception ex)
             {
@@ -31,7 +51,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorTSBO_PAL = new RedirectorServer(11140, VariousUtils.GetLocalIPAddress().ToString(), 11101, false);
+                RedirectorTSBO_PAL = new RedirectorServer(11140, MultiSocksServerConfiguration.ServerBindAddress, 11101, false, "TSBO", "PS2");
             }
             catch (Exception ex)
             {
@@ -40,7 +60,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21850, VariousUtils.GetLocalIPAddress().ToString(), 21851, false, "BURNOUT5", "PS3");
+                RedirectorBOP_PS3 = new RedirectorServer(21850, MultiSocksServerConfiguration.ServerBindAddress, 21851, false, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -49,7 +69,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, VariousUtils.GetLocalIPAddress().ToString(), 21871, false, "BURNOUT5", "PS3");
+                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, MultiSocksServerConfiguration.ServerBindAddress, 21871, false, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -83,7 +103,16 @@ namespace MultiSocks.DirtySocks
                     new("Pleasantview", true),
                     new("Belladonna Cove", true),
                     new("Riverblossom Hills", true)
-                });
+                }, "TSBO", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[SimsMatchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                SSX3Matchmaker = new MatchmakerServer(11051, false, null, "SSX-ER-PS2-2004", "PS2");
             }
             catch (Exception ex)
             {

@@ -9,6 +9,9 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
 using ArpLookup;
+using System.Reflection;
+using Org.BouncyCastle.Tls.Crypto;
+using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 namespace BackendProject.MiscUtils
 {
@@ -495,6 +498,19 @@ namespace BackendProject.MiscUtils
         public static byte[] XORBytes(byte[] array1, byte[] array2)
         {
             return array1.Zip(array2, (x, y) => (byte)(x ^ y)).ToArray();
+        }
+
+        /// <summary>
+        /// Get the master secret from BouncyCastle.
+        /// <para>Obtiens le master secret de BouncyCastle.</para>
+        /// </summary>
+        /// <param name="secret">The secret.</param>
+        /// <returns>A byte array.</returns>
+        public static byte[]? ReflectMasterSecretFromBCTls(TlsSecret secret)
+        {
+            // We need to use reflection to access the master secret from BC
+            // because using Extract() destroys the key for subsequent calls
+            return (byte[]?)typeof(BcTlsSecret).GetField("m_data", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(secret);
         }
 
         /// <summary>

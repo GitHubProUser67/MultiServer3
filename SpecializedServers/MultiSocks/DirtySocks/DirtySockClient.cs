@@ -1,9 +1,13 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using BackendProject.ProtoSSLUtils;
 using CustomLogger;
 using MultiSocks.DirtySocks.Messages;
 using MultiSocks.DirtySocks.Model;
+using MultiSocks.Tls;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Tls;
 
 namespace MultiSocks.DirtySocks
 {
@@ -18,18 +22,20 @@ namespace MultiSocks.DirtySocks
         private int ExpectedBytes = -1;
         private bool InHeader;
         private TcpClient ClientTcp;
-        private NetworkStream? ClientStream;
+        private Stream? ClientStream;
         private Thread RecvThread;
         private byte[]? TempData = null;
         private int TempDatOff;
         private string CommandName = "null";
+
+        private (AsymmetricKeyParameter, Certificate) SecureKeyCert;
 
         public long PingSendTick;
         public int Ping;
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public DirtySockClient(AbstractDirtySockServer context, TcpClient client)
+        public DirtySockClient(AbstractDirtySockServer context, TcpClient client, bool secure, string CN)
         {
             Context = context;
             ClientTcp = client;
@@ -37,13 +43,92 @@ namespace MultiSocks.DirtySocks
 
             LoggerAccessor.LogInfo("New connection from " + IP + ".");
 
-            RecvThread = new Thread(RunLoop);
+            if (secure)
+                SecureKeyCert = new ProtoSSLUtils().GetCustomEaCert(CN);
+
+            RecvThread = secure ? new Thread(RunSecureLoop) : new Thread(RunLoop);
             RecvThread.Start();
         }
 
         public void Close()
         {
             ClientTcp.Close();
+        }
+
+        private void RunSecureLoop()
+        {
+            var serverProtocol = new TlsServerProtocol(ClientTcp.GetStream());
+            serverProtocol.Accept(new Ssl3TlsServer(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1));
+            ClientStream = serverProtocol.Stream;
+
+            var bytes = new byte[65536];
+
+            int len = 0;
+            try
+            {
+                while ((len = ClientStream.Read(bytes, 0, bytes.Length)) != 0)
+                {
+                    int off = 0;
+                    while (len > 0)
+                    {
+                        // got some data
+                        if (ExpectedBytes == -1)
+                        {
+                            // new packet
+                            InHeader = true;
+                            ExpectedBytes = 12; // header
+                            TempData = new byte[12];
+                            TempDatOff = 0;
+                        }
+
+                        if (TempData != null)
+                        {
+                            int copyLen = Math.Min(len, TempData.Length - TempDatOff);
+                            Array.Copy(bytes, off, TempData, TempDatOff, copyLen);
+                            off += copyLen;
+                            TempDatOff += copyLen;
+                            len -= copyLen;
+
+                            if (TempDatOff == TempData.Length)
+                            {
+                                if (InHeader)
+                                {
+                                    //header complete.
+                                    InHeader = false;
+                                    int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
+                                    if (size > MAX_SIZE)
+                                    {
+                                        ClientTcp.Close(); // either something terrible happened or they're trying to mess with us
+                                        break;
+                                    }
+                                    CommandName = Encoding.ASCII.GetString(TempData)[..4];
+
+                                    TempData = new byte[size - 12];
+                                    TempDatOff = 0;
+                                }
+                                else
+                                {
+                                    // message complete
+                                    GotMessage(CommandName, TempData);
+
+                                    TempDatOff = 0;
+                                    ExpectedBytes = -1;
+                                    TempData = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+
+            ClientStream.Dispose();
+            ClientTcp.Dispose();
+            LoggerAccessor.LogInfo($"User {IP} Disconnected.");
+            Context.RemoveClient(this);
         }
 
         private void RunLoop()

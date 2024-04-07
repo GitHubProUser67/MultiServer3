@@ -11,7 +11,7 @@ namespace MultiSocks.DirtySocks.Model
             Room = parent;
         }
 
-        public override bool AddUser(User user, string VERS = "")
+        public override bool AddUser(User? user, string VERS = "")
         {
             lock (Users)
             {
@@ -50,6 +50,81 @@ namespace MultiSocks.DirtySocks.Model
             ListToUser(user);
             Room.BroadcastPopulation();
             return true;
+        }
+
+        public override bool AddUserWithRoomMesg(User? user, string VERS = "")
+        {
+            lock (Users)
+            {
+                if (Users.Count >= Room.Max) return false;
+                base.AddUser(user);
+            }
+
+            //send move to this user
+            RoomOut move;
+            lock (Users)
+            {
+                move = new RoomOut()
+                {
+                    IDENT = Room.ID.ToString(),
+                    NAME = Room.Name,
+                    COUNT = Users.Count.ToString()
+                };
+            }
+            user.Connection?.SendMessage(move);
+
+            //send who to this user to tell them who they are
+
+            PlusUser info = user.GetInfo();
+
+            user.Connection?.SendMessage(new PlusWho()
+            {
+                I = info.I ?? string.Empty,
+                N = info.N,
+                M = info.M,
+                A = info.A ?? string.Empty,
+                X = info.X,
+                R = Room.Name,
+                RI = Room.ID.ToString()
+            });
+            RefreshUser(user);
+            ListToUser(user);
+            Room.BroadcastPopulation();
+            return true;
+        }
+
+        public void AuditRoom(User user, string VERS = "")
+        {
+            //send move to this user
+            PeekOut peek;
+            lock (Users)
+            {
+                peek = new PeekOut()
+                {
+                    IDENT = Room.ID.ToString(),
+                    NAME = Room.Name,
+                    COUNT = Users.Count.ToString()
+                };
+            }
+            user.Connection?.SendMessage(peek);
+
+            //send who to this user to tell them who they are
+
+            PlusUser info = user.GetInfo();
+
+            user.Connection?.SendMessage(new PlusWho()
+            {
+                I = info.I ?? string.Empty,
+                N = info.N,
+                M = info.M,
+                A = info.A ?? string.Empty,
+                X = info.X,
+                R = Room.Name,
+                RI = Room.ID.ToString()
+            });
+            RefreshUser(user);
+            ListToUser(user);
+            Room.BroadcastPopulation();
         }
 
         public void RefreshUser(User target)

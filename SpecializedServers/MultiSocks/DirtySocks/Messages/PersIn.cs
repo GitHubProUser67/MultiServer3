@@ -7,6 +7,8 @@ namespace MultiSocks.DirtySocks.Messages
         public string? PERS { get; set; }
         public string? MADDR { get; set; }
         public string? MAC { get; set; }
+        public string? MID { get; set; }
+        public string? PID { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

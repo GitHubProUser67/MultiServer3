@@ -17,18 +17,23 @@ namespace MultiSocks.DirtySocks
         public List<DirtySockClient> DirtySocksClients = new();
         public TcpListener Listener;
 
+        private bool secure = false;
+        private string CN = string.Empty;
         private Thread ListenerThread;
 
-        public AbstractDirtySockServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null)
+        public AbstractDirtySockServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null, bool secure = false, string CN = "")
         {
+            this.secure = secure;
             this.lowlevel = lowlevel;
+            this.CN = CN;
+            this.Project = Project;
+            this.SKU = SKU;
+
             Listener = new TcpListener(IPAddress.Any, port);
             Listener.Start();
 
             ListenerThread = new Thread(RunLoop);
             ListenerThread.Start();
-            this.Project = Project;
-            this.SKU = SKU;
         }
 
         private async void RunLoop()
@@ -41,7 +46,7 @@ namespace MultiSocks.DirtySocks
                     TcpClient client = Listener.AcceptTcpClient();
                     if (client != null)
                     {
-                        AddClient(new DirtySockClient(this, client)
+                        AddClient(new DirtySockClient(this, client, secure, CN)
                         {
                             SessionID = SessionID++
                         });

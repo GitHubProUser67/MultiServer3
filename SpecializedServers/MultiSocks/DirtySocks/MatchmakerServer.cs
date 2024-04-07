@@ -12,7 +12,7 @@ namespace MultiSocks.DirtySocks
                 { "~png", typeof(Ping) },
                 { "move", typeof(MoveIn) }, //move into a room. remove last room and broadcast "+rom" to others. broadcast "+pop" with Z=ID/Count for population update
                 { "mesg", typeof(Mesg) }, //PRIV is non-null for private. else broadcast to room. PRIV->(find client), TEXT->T, ATTR->EP, (name)->N
-                { "room", null }, //create room. NAME=name, return (room, +who, +msg, +rom to all, +usr)
+                { "room", typeof(RoomIn) }, //create room. NAME=name, return (room, +who, +msg, +rom to all, +usr)
                 { "auxi", typeof(Auxi) }, //auxiliary information. returned as X attribute in +usr and +who
                 { "auth", typeof(AuthIn) },
                 { "acct", typeof(AcctIn) },
@@ -24,7 +24,7 @@ namespace MultiSocks.DirtySocks
                 { "edit", null }, //?
                 { "fget", typeof(FgetIn) }, //?
                 { "fupd", null }, //Room equiv
-                { "peek", null }, //?
+                { "peek", typeof(PeekIn) }, //Audit room and receive infos about it, but not enter.
                 { "pers", typeof(PersIn) }, //select persona
                 { "sdta", typeof(SdtaIn) }, //?
                 { "sele", typeof(SeleIn) }, //gets info for the current server
@@ -56,7 +56,7 @@ namespace MultiSocks.DirtySocks
 
         private readonly Thread PingThread;
 
-        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null) : base(port, lowlevel, Project, SKU)
+        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null, bool secure = false, string CN = "") : base(port, lowlevel, Project, SKU, secure, CN)
         {
             Rooms.Server = this;
 

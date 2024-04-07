@@ -24,14 +24,14 @@ namespace MultiSocks.DirtySocks.Messages
             //where is this message going
             Model.Room? room = user?.CurrentRoom;
 
-            if (PRIV != null)
+            if (!string.IsNullOrEmpty(PRIV))
             {
                 if (ATTR != null && ATTR.Length > 1 && ATTR[0] == 'N')
-                    mesg.F = "EP" + ATTR.Substring(1);
+                    mesg.F = "EP" + ATTR[1..];
                 mc.SendToPersona(PRIV, mesg);
             }
-            else if (room != null)
-                room.Users?.Broadcast(mesg);
+            else
+                room?.Users?.Broadcast(mesg);
         }
     }
 }
