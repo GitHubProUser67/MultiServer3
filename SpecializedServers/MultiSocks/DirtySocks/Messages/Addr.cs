@@ -12,7 +12,10 @@ namespace MultiSocks.DirtySocks.Messages
             client.Port = PORT;
             client.IP = ADDR;
 
-            client.Ping = (int)new TimeSpan(DateTime.Now.Ticks - client.PingSendTick).TotalMilliseconds;
+            client.SendMessage(new Ping()
+            {
+
+            });
         }
     }
 }

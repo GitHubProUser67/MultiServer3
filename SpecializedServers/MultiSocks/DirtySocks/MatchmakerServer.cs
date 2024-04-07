@@ -22,7 +22,7 @@ namespace MultiSocks.DirtySocks
                 { "cper", typeof(CperIn) }, //create persona. (NAME) in, (PERS, NAME) out. where name is username.
                 { "dper", typeof(DperIn) }, //delete persona
                 { "edit", null }, //?
-                { "fget", null }, //?
+                { "fget", typeof(FgetIn) }, //?
                 { "fupd", null }, //Room equiv
                 { "peek", null }, //?
                 { "pers", typeof(PersIn) }, //select persona

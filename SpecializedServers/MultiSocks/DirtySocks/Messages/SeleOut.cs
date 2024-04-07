@@ -6,13 +6,13 @@ namespace MultiSocks.DirtySocks.Messages
         public string? DP { get; set; }
         public string? ASYNC { get; set; }
         public string? CTRL { get; set; }
-        public string GAMES { get; set; } = "1";
+        public string? GAMES { get; set; }
         public string? GFID { get; set; }
         public string? INGAME { get; set; }
-        public string ROOMS { get; set; } = "1";
-        public string USERS { get; set; } = "1";
+        public string? ROOMS { get; set; }
+        public string? USERS { get; set; }
         public string? USERSETS { get; set; }
-        public string MESGS { get; set; } = "1";
+        public string? MESGS { get; set; }
         public string? MESGTYPES { get; set; }
         public string? MYGAME { get; set; }
         public string? PLATFORM { get; set; }

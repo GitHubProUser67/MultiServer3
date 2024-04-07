@@ -49,7 +49,7 @@ namespace HomeTools.UnBAR
                 await RunExtract(datfilePath, outDir);
             else
             {
-                LoggerAccessor.LogDebug($"[RunUnBAR] - RunDecrypt failed with status code : {statuscode}, using make_npdata fallback...");
+                LoggerAccessor.LogDebug($"[RunUnBAR] - EDAT decryption failed with status code : {statuscode}, switching to make_npdata...");
 
                 using Process? process = Process.Start(new ProcessStartInfo()
                 {
@@ -372,7 +372,7 @@ namespace HomeTools.UnBAR
                                 {
                                     if (tableOfContent.Size == 0) // The original Encryption Proxy seemed to only check for "lua" or "scene" file types, regardless if empty or not.
                                     {
-                                        fileStream.Write(Array.Empty<byte>().AsSpan());
+                                        fileStream.Write(FileBytes, 0, FileBytes.Length);
                                         fileStream.Close();
                                     }
                                     else

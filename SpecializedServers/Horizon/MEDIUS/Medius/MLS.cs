@@ -3300,7 +3300,11 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    Channel? foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
+                                    Channel? foundchannel = null;
+
+                                    try
+                                    {
+                                        foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
                                             data.ClientObject.ApplicationId,
                                             ChannelType.Lobby,
                                             data.ClientObject.FilterMask1,
@@ -3309,6 +3313,11 @@ namespace Horizon.MEDIUS.Medius
                                             data.ClientObject.FilterMask4,
                                             data.ClientObject.FilterMaskLevel
                                             );
+                                    }
+                                    catch
+                                    {
+                                        // Returned no result so default fallback.
+                                    }
 
                                     foundchannel ??= MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId); // If filtered result not found, put in default channel.
 
