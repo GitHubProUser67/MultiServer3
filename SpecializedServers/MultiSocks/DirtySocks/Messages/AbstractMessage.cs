@@ -14,8 +14,10 @@ namespace MultiSocks.DirtySocks.Messages
             Type? type = GetType();
 
             bool hasN = input.IndexOf('\n') > 0;
+            bool hasSpace = input.IndexOf(' ') > 0;
             string[] pairs;
             if (hasN) pairs = input.Split('\n');
+            else if (hasSpace) pairs = input.Split(' ');
             else pairs = input.Split((char)9);
 
             foreach (string pair in pairs)

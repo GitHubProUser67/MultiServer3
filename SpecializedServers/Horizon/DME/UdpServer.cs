@@ -71,9 +71,9 @@ namespace Horizon.DME
                 OnChannelActive = channel =>
                 {
                     // get scert client
-                    if (!channel.HasAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT))
-                        channel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
-                    var scertClient = channel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+                    if (!channel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
+                        channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+                    var scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
                     //scertClient.CipherService.GetCipher(CipherContext.RC_CLIENT_SESSION);
 
