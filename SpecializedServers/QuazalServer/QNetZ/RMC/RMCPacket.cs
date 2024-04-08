@@ -55,6 +55,7 @@ namespace QuazalServer.QNetZ
                         case "h0rszqTw":
                         case "lON6yKGp":
 						case "4TeVtJ7V":
+						case "HJb8Ix1M":
                             if (proto == RMCProtocolId.SecureConnectionService)
                                 proto = RMCProtocolId.PS3SecureConnectionService;
                             break;

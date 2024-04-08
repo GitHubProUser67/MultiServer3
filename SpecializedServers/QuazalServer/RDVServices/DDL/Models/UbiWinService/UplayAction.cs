@@ -19,7 +19,6 @@ namespace QuazalServer.RDVServices.DDL.Models
 		public string? m_description { get; set; }
 		public ushort m_value { get; set; }
 		public string? m_gameCode { get; set; }
-
 		public ICollection<UplayActionPlatform> m_platforms { get; set; }
 	}
 }

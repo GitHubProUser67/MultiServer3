@@ -21,6 +21,7 @@ namespace MultiSocks.DirtySocks
 
         private int ExpectedBytes = -1;
         private bool InHeader;
+        private bool secure;
         private TcpClient ClientTcp;
         private Stream? ClientStream;
         private Thread RecvThread;
@@ -37,6 +38,7 @@ namespace MultiSocks.DirtySocks
 
         public DirtySockClient(AbstractDirtySockServer context, TcpClient client, bool secure, string CN)
         {
+            this.secure = secure;
             Context = context;
             ClientTcp = client;
             IP = ((IPEndPoint?)client.Client.RemoteEndPoint)?.Address.ToString() ?? "127.0.0.1";
@@ -46,7 +48,7 @@ namespace MultiSocks.DirtySocks
             if (secure)
                 SecureKeyCert = new ProtoSSLUtils().GetCustomEaCert(CN);
 
-            RecvThread = secure ? new Thread(RunSecureLoop) : new Thread(RunLoop);
+            RecvThread = new Thread(RunLoop);
             RecvThread.Start();
         }
 
@@ -55,88 +57,41 @@ namespace MultiSocks.DirtySocks
             ClientTcp.Close();
         }
 
-        private void RunSecureLoop()
-        {
-            var serverProtocol = new TlsServerProtocol(ClientTcp.GetStream());
-            serverProtocol.Accept(new Ssl3TlsServer(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1));
-            ClientStream = serverProtocol.Stream;
-
-            var bytes = new byte[65536];
-
-            int len = 0;
-            try
-            {
-                while ((len = ClientStream.Read(bytes, 0, bytes.Length)) != 0)
-                {
-                    int off = 0;
-                    while (len > 0)
-                    {
-                        // got some data
-                        if (ExpectedBytes == -1)
-                        {
-                            // new packet
-                            InHeader = true;
-                            ExpectedBytes = 12; // header
-                            TempData = new byte[12];
-                            TempDatOff = 0;
-                        }
-
-                        if (TempData != null)
-                        {
-                            int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            Array.Copy(bytes, off, TempData, TempDatOff, copyLen);
-                            off += copyLen;
-                            TempDatOff += copyLen;
-                            len -= copyLen;
-
-                            if (TempDatOff == TempData.Length)
-                            {
-                                if (InHeader)
-                                {
-                                    //header complete.
-                                    InHeader = false;
-                                    int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
-                                    if (size > MAX_SIZE)
-                                    {
-                                        ClientTcp.Close(); // either something terrible happened or they're trying to mess with us
-                                        break;
-                                    }
-                                    CommandName = Encoding.ASCII.GetString(TempData)[..4];
-
-                                    TempData = new byte[size - 12];
-                                    TempDatOff = 0;
-                                }
-                                else
-                                {
-                                    // message complete
-                                    GotMessage(CommandName, TempData);
-
-                                    TempDatOff = 0;
-                                    ExpectedBytes = -1;
-                                    TempData = null;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-
-            }
-
-            ClientStream.Dispose();
-            ClientTcp.Dispose();
-            LoggerAccessor.LogInfo($"User {IP} Disconnected.");
-            Context.RemoveClient(this);
-        }
-
         private void RunLoop()
         {
-            ClientStream = ClientTcp.GetStream();
-            var bytes = new byte[65536];
+            if (secure)
+            {
+                Ssl3TlsServer connTls = new(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1);
+                TlsServerProtocol serverProtocol = new(ClientTcp.GetStream());
+
+                try
+                {
+                    serverProtocol.Accept(connTls);
+                }
+                catch (Exception e)
+                {
+                    LoggerAccessor.LogError($"[DirtySocks ProtoSSL] - Failed to accept connection:{e}");
+
+                    serverProtocol.Flush();
+                    serverProtocol.Close();
+                    connTls.Cancel();
+
+                    ClientStream?.Dispose();
+                    ClientTcp.Dispose();
+                    LoggerAccessor.LogInfo($"User {IP} Disconnected.");
+                    Context.RemoveClient(this);
+
+                    return;
+                }
+
+                ClientStream = serverProtocol.Stream;
+            }
+            else
+                ClientStream = ClientTcp.GetStream();
 
             int len = 0;
+            byte[] bytes = new byte[65536];
+
             try
             {
                 while ((len = ClientStream.Read(bytes, 0, bytes.Length)) != 0)
@@ -193,12 +148,12 @@ namespace MultiSocks.DirtySocks
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
 
             }
 
-            ClientStream.Dispose();
+            ClientStream?.Dispose();
             ClientTcp.Dispose();
             LoggerAccessor.LogInfo($"User {IP} Disconnected.");
             Context.RemoveClient(this);

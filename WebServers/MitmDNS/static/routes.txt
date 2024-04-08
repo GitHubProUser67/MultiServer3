@@ -136,6 +136,7 @@ pdc-vm-rdv05.ubisoft.com,Redirect,IP
 pdc-vm-rdv06.ubisoft.com,Redirect,IP
 pdc-vm-rdv07.ubisoft.com,Redirect,IP
 pdc-vm-rdv08.ubisoft.com,Redirect,IP
+pdc-vm-rdv09.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod01.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod02.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod03.ubisoft.com,Redirect,IP
@@ -144,6 +145,7 @@ pdc-lb-rdv-prod05.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod06.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod07.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod08.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod09.ubisoft.com,Redirect,IP
 ne1-z3-as-rdv03.ubisoft.com,Redirect,IP
 lb-rdv-prod.ubi.com,Redirect,IP
 api-ubiservices.ubi.com,Redirect,IP
