@@ -8,7 +8,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string WHEN { get; set; } = DateTime.Now.ToString("yyyy.MM.dd-hh:mm:ss");
         public string WHENC { get; set; } = DateTime.Now.ToString("yyyy.MM.dd-hh:mm:ss");
         public string? NAME { get; set; }
-        public string HOST { get; set; } = "@brobot24";
+        public string? HOST { get; set; }
         public string? ROOM { get; set; }
         public string? MAXSIZE { get; set; }
         public string? MINSIZE { get; set; }
@@ -18,15 +18,15 @@ namespace MultiSocks.DirtySocks.Messages
         public string? SYSFLAGS { get; set; }
         public string? EVID { get; set; }
         public string? EVGID { get; set; }
-        public string? NUMPART { get; set; }
+        public string? PARAMS { get; set; }
         public string? SEED { get; set; }
         public string? GPSHOST { get; set; }
         public string? GPSREGION { get; set; }
         public string? GAMEMODE { get; set; }
         public string? GAMEPORT { get; set; }
         public string? VOIPPORT { get; set; }
+        public string? NUMPART { get; set; }
         public string? PARTSIZE0 { get; set; }
-        public string? PARAMS { get; set; }
         public string PARTPARAMS0 { get; set; } = string.Empty;
         public string OPPO0 { get; set; } = "@brobot24";
         public string? OPPART0 { get; set; }
@@ -37,14 +37,6 @@ namespace MultiSocks.DirtySocks.Messages
         public string LADDR0 { get; set; } = "127.0.0.1";
         public string MADDR0 { get; set; } = string.Empty;
         public string? OPPARAM0 { get; set; }
-        public string? OPPO1 { get; set; }
-        public string? OPPART1 { get; set; }
-        public string? OPFLAG1 { get; set; }
-        public string? PRES1 { get; set; }
-        public string? OPID1 { get; set; }
-        public string? ADDR1 { get; set; }
-        public string? LADDR1 { get; set; }
-        public string? MADDR1 { get; set; }
-        public string? OPPARAM1 { get; set; }
+        public Dictionary<string, string>? PLAYERSLIST { get; set; }
     }
 }
