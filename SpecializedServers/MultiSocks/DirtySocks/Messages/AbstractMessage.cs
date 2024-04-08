@@ -50,7 +50,7 @@ namespace MultiSocks.DirtySocks.Messages
             StringBuilder keyValue = new();
             foreach (PropertyInfo? prop in props)
             {
-                if (prop.PropertyType != typeof(string) && prop.PropertyType != typeof(string[]) || prop.Name[0] == '_') continue;
+                if (prop.PropertyType != typeof(string) && prop.PropertyType != typeof(string[]) && prop.PropertyType != typeof(Dictionary<string, string>) && prop.PropertyType != typeof(Dictionary<string, string[]>) || prop.Name[0] == '_') continue;
                 if (prop.PropertyType == typeof(string[]))
                 {
                     string[]? values = (string[]?)prop.GetValue(this);
@@ -59,6 +59,33 @@ namespace MultiSocks.DirtySocks.Messages
                     {
                         if (values[i] != null)
                             keyValue.Append(EncodeKV(prop.Name, values[i]));
+                    }
+                }
+                else if (prop.PropertyType == typeof(Dictionary<string, string>))
+                {
+                    Dictionary<string, string>? values = (Dictionary<string, string>?)prop.GetValue(this);
+                    if (values == null) continue;
+                    foreach (var dicprop in values)
+                    {
+                        if (dicprop.Value != null)
+                            keyValue.Append(EncodeKV(dicprop.Key, dicprop.Value));
+                    }
+                }
+                else if (prop.PropertyType == typeof(Dictionary<string, string[]>))
+                {
+                    Dictionary<string, string[]>? values = (Dictionary<string, string[]>?)prop.GetValue(this);
+                    if (values == null) continue;
+                    foreach (var dicprop in values)
+                    {
+                        string[]? value = dicprop.Value;
+                        if (value != null)
+                        {
+                            for (int i = 0; i < value.Length; i++)
+                            {
+                                if (value[i] != null)
+                                    keyValue.Append(EncodeKV(dicprop.Key, value[i]));
+                            }
+                        }
                     }
                 }
                 else

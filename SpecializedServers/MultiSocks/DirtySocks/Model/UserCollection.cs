@@ -1,16 +1,17 @@
 using MultiSocks.DirtySocks.Messages;
+using System.Collections.Concurrent;
 
 namespace MultiSocks.DirtySocks.Model
 {
     public class UserCollection
     {
-        protected List<User> Users = new();
+        protected ConcurrentQueue<User> Users = new(); // This data type follows the FIFO order, necessary for players list.
 
         public List<User> GetAll()
         {
             lock (Users)
             {
-                return new List<User>(Users);
+                return Users.ToList();
             }
         }
 
@@ -21,7 +22,7 @@ namespace MultiSocks.DirtySocks.Model
 
             lock (Users)
             {
-                Users.Add(user);
+                Users.Enqueue(user);
             }
             return true;
         }
@@ -33,7 +34,7 @@ namespace MultiSocks.DirtySocks.Model
 
             lock (Users)
             {
-                Users.Add(user);
+                Users.Enqueue(user);
             }
             return true;
         }
@@ -42,7 +43,8 @@ namespace MultiSocks.DirtySocks.Model
         {
             lock (Users)
             {
-                Users.Remove(user);
+                // Dequeue and re-enqueue all users except the one to be removed
+                Users = new ConcurrentQueue<User>(Users.Where(u => u != user));
             }
         }
 

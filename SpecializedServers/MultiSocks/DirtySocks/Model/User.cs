@@ -9,6 +9,7 @@ namespace MultiSocks.DirtySocks.Model
         public Room? CurrentRoom;
         public DirtySockClient? Connection;
         public string? Username;
+        public string Params = "PUSMC01?????,,,-1,-1,,d";
         public string[] Personas = new string[4];
         public string Auxiliary = string.Empty;
 
