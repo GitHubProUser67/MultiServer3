@@ -14,7 +14,7 @@ namespace MultiSocks.DirtySocks
         public string RedirIP;
         public string RedirPort;
 
-        public RedirectorServer(ushort port, string targetIP, ushort targetPort, bool lowlevel, string? Project = null, string? SKU = null) : base(port, lowlevel, Project, SKU)
+        public RedirectorServer(ushort port, string targetIP, ushort targetPort, bool lowlevel, string? Project = null, string? SKU = null, bool secure = false, string CN = "") : base(port, lowlevel, Project, SKU, secure, CN)
         {
             RedirIP = targetIP;
             RedirPort = targetPort.ToString();

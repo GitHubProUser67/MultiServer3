@@ -6,34 +6,38 @@ using QuazalServer.QNetZ.Interfaces;
 namespace QuazalServer.RDVServices.Services
 {
 	/// <summary>
-	/// Uplay achievements service
+	/// Ubi achievements service
 	/// </summary>
-	[RMCService(RMCProtocolId.UplayWinService)]
-	class UbiWinService : RMCServiceBase
+	[RMCService(RMCProtocolId.UbiWinService)]
+    public class UbiWinService : RMCServiceBase
 	{
 		[RMCMethod(1)]
-		public void GetActions()
+		public RMCResult GetActions(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
 		{
-			UNIMPLEMENTED();
-		}
+            var result = new List<UplayAction>();
+            return Result(result);
+        }
 
 		[RMCMethod(2)]
-		public void GetActionsCompleted()
+		public RMCResult GetActionsCompleted(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
 		{
-			UNIMPLEMENTED();
-		}
+            var result = new List<UplayAction>();
+            return Result(result);
+        }
 
 		[RMCMethod(3)]
-		public void GetActionsCount()
+        public RMCResult GetActionsCount(string platform_code, string game_code)
 		{
-			UNIMPLEMENTED();
+			int actions_count = 0;
+			return Result(new { actions_count });
 		}
 
 		[RMCMethod(4)]
-		public void GetActionsCompletedCount()
+		public RMCResult GetActionsCompletedCount(string platform_code, string game_code)
 		{
-			UNIMPLEMENTED();
-		}
+            int actions_count = 0;
+            return Result(new { actions_count });
+        }
 
 		[RMCMethod(5)]
 		public RMCResult GetRewards(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
@@ -230,22 +234,31 @@ namespace QuazalServer.RDVServices.Services
 		}
 
 		[RMCMethod(10)]
-		public void GetUserToken()
+		public RMCResult GetUserToken()
 		{
-			UNIMPLEMENTED();
-		}
+			// This is a basic JWT token, ideally it's generated from player.
+            return Result(new { token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.S9fU6h-NFl8A9G3nJAzW7hNL1sU2Rkf1DkZfnU8PXGw" });
+        }
 
 		[RMCMethod(11)]
 		public RMCResult GetVirtualCurrencyUserBalance(string platform_code)
 		{
-            return Result(new { virtual_currency_user_balance = 10 });
+            int virtual_currency_user_balance = 10;
+            return Result(new { virtual_currency_user_balance });
         }
 
 		[RMCMethod(12)]
-		public void GetSectionsByKey()
+		public RMCResult GetSectionsByKey(string culture_name, string section_key, string platform_code, string game_code)
 		{
-			UNIMPLEMENTED();
-		}
+            var actionList = new List<UplaySection>();
+            return Result(actionList);
+        }
 
-	}
+        [RMCMethod(13)]
+        public RMCResult BuyReward(string reward_code, string platform_code)
+        {
+            int virtual_currency_user_balance = 10;
+            return Result(new { virtual_currency_user_balance });
+        }
+    }
 }

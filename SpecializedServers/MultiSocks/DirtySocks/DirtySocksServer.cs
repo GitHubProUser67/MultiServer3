@@ -5,7 +5,6 @@ namespace MultiSocks.DirtySocks
 {
     public class DirtySocksServer
     {
-        public static bool IsStarted = false;
         public static IDatabase Database = new DirtySocksJSONDatabase();
         private AbstractDirtySockServer? RedirectorSSX3_NTSC_A;
         private AbstractDirtySockServer? RedirectorSSX3_PAL;
@@ -18,9 +17,11 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? SimsMatchmaker;
         private AbstractDirtySockServer? SSX3Matchmaker;
 
-        public Task Run()
+        private CancellationTokenSource? _cancellationTokenSource;
+
+        public async Task Run(CancellationToken cancellationToken)
         {
-            LoggerAccessor.LogInfo("DirtySocks Server initiated...");
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             try
             {
@@ -119,14 +120,32 @@ namespace MultiSocks.DirtySocks
                 LoggerAccessor.LogError($"[SimsMatchmaker] Failed to start! Exception: {ex}");
             }
 
-            IsStarted = true;
+            LoggerAccessor.LogInfo("DirtySocks Servers initiated...");
 
-            while (IsStarted)
-            {
+            // Wait until cancellation is requested or task completes
+            await Task.Delay(-1, _cancellationTokenSource.Token);
 
-            }
+            // Dispose all servers
+            RedirectorSSX3_NTSC_A?.Dispose();
+            RedirectorSSX3_PAL?.Dispose();
+            RedirectorTSBO_NTSC_A?.Dispose();
+            RedirectorTSBO_PAL?.Dispose();
+            RedirectorBOP_PS3?.Dispose();
+            RedirectorBOPULTIMATEBOX_PS3?.Dispose();
+            BurnoutParadisePS3Matchmaker?.Dispose();
+            BurnoutParadiseUltimateBoxMatchmaker?.Dispose();
+            SimsMatchmaker?.Dispose();
+            SSX3Matchmaker?.Dispose();
 
-            return Task.CompletedTask;
+            LoggerAccessor.LogWarn("DirtySocks Servers stopped...");
+
+            // Complete the task
+            _cancellationTokenSource.Dispose();
+        }
+
+        public void Cancel()
+        {
+            _cancellationTokenSource?.Cancel();
         }
     }
 }

@@ -87,7 +87,7 @@ class Program
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(MultiSocksServerConfiguration.DiscordChannelID, MultiSocksServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new MultiSocks.DirtySocks.DirtySocksServer().Run(),
+                    () => _ = new MultiSocks.DirtySocks.DirtySocksServer().Run(new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 
