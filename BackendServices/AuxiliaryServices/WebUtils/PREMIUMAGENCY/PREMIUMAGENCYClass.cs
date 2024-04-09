@@ -50,6 +50,39 @@ namespace WebUtils.PREMIUMAGENCY
 
             switch (method)
             {
+                case "GET":
+                    switch (absolutepath)
+                    {
+                        case "/eventController/getResource.do":
+                            return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath);
+                        case "/eventController/confirmEvent.do":
+                        //return Event.confirmEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath); //Unimplemented 
+                        case "/eventController/checkEvent.do":
+                            return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                        case "/eventController/entryEvent.do":
+                            return Event.entryEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                        case "/eventController/clearEvent.do":
+                            return Event.clearEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                        case "/eventController/setUserEventCustom.do":
+                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath);
+                        case "/eventController/getUserEventCustom.do":
+                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid);
+                        case "/eventController/getUserEventCustomList.do":
+                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid);
+                        case "/eventController/getItemRankingTable.do":
+                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath);
+                        case "/eventController/entryItemRankingPoints.do":
+                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath);
+                        case "/eventController/getItemRankingTargetList.do":
+                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath);
+                        default:
+                            {
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled {method} server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
+                            }
+                            break;
+                    }
+                    break;
+
                 case "POST":
                     switch (absolutepath)
                     {
@@ -85,11 +118,11 @@ namespace WebUtils.PREMIUMAGENCY
                             return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, evid);
                         default:
                             {
-                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
+                                LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled {method} server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
                             }
-                            break;
+                        break;
                     }
-                    break;
+                break;
 
                 default:
                     {
