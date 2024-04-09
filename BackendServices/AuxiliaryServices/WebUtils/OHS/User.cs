@@ -323,6 +323,9 @@ namespace WebUtils.OHS
                                 }
                             }
                         }
+                        else if ((string?)jsonObject["key"] == "playerpoints" && directorypath.Contains("Konami"))
+                            output = "{[\"playerpoints\"] = 0 }";
+
                     }
                     else
                     {

@@ -12,7 +12,8 @@ namespace WebUtils.OHS
             "/usercounter/getall/", "usercounter/getmany/", "/usercounter/get/",
             "/userinventory/addglobalitems/", "/userinventory/getglobalitems/",
             "/userinventory/getuserinventory/", "/leaderboard/requestbyusers/", "/leaderboard/requestbyrank/",
-            "/leaderboard/update/", "/leaderboard/updatessameentry/", "/statistic/set/", "/heatmap/tracker/"};
+            "/leaderboard/update/", "/leaderboard/updatessameentry/", 
+            "/statistic/set/", "/heatmap/tracker/", "/points/tracker/"};
         private string absolutepath;
         private string method;
         private int game;
@@ -90,7 +91,9 @@ namespace WebUtils.OHS
                         else if (absolutepath.Contains(Commands[23]))
                             res = Statistic.Set(PostData, ContentType);
                         else if (absolutepath.Contains(Commands[24]))
-                            res = Statistic.Tracker(PostData, ContentType);
+                            res = Statistic.HeatmapTracker(PostData, ContentType);
+                        else if (absolutepath.Contains(Commands[25]))
+                            res = Statistic.PointsTracker(PostData, ContentType);
                     }
                     break;
                 default:
