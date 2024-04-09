@@ -3,6 +3,7 @@ using CustomLogger;
 using HttpMultipartParser;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace WebUtils.PREMIUMAGENCY
 {
@@ -10,13 +11,15 @@ namespace WebUtils.PREMIUMAGENCY
     {
         private string workpath;
         private string absolutepath;
+        private string fulluripath;
         private string method;
         private bool disposedValue;
 
-        public PREMIUMAGENCYClass(string method, string absolutepath, string workpath)
+        public PREMIUMAGENCYClass(string method, string absolutepath, string workpath, string fulluripath)
         {
             this.workpath = workpath;
             this.absolutepath = absolutepath;
+            this.fulluripath = fulluripath;
             this.method = method;
         }
 
@@ -25,15 +28,24 @@ namespace WebUtils.PREMIUMAGENCY
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
 
-            string eventId = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-            using (MemoryStream ms = new(PostData))
+            string evid = string.Empty;
+
+            if (ContentType != "multipart/form-data")
             {
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                evid = HttpUtility.ParseQueryString(fulluripath).Get("evid");
+            }
+            else
+            {
+                string boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                eventId = data.GetParameterValue("evid");
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                ms.Flush();
+                    evid = data.GetParameterValue("evid");
+
+                    ms.Flush();
+                }
             }
 
             switch (method)
@@ -42,33 +54,35 @@ namespace WebUtils.PREMIUMAGENCY
                     switch (absolutepath)
                     {
                         case "/eventController/getResource.do":
-                            return Resource.getResourcePOST(PostData, ContentType, workpath);
+                            return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath);
+                        case "/eventController/confirmEvent.do":
+                            //return Event.confirmEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath); //Unimplemented 
                         case "/eventController/checkEvent.do":
-                            return Event.checkEventRequestPOST(PostData, ContentType, eventId, workpath);
+                            return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
                         case "/eventController/entryEvent.do":
-                            return Event.entryEventRequestPOST(PostData, ContentType, eventId, workpath);
+                            return Event.entryEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
                         case "/eventController/clearEvent.do":
-                            return Event.clearEventRequestPOST(PostData, ContentType, eventId, workpath);
+                            return Event.clearEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
                         case "/eventController/getEventTrigger.do":
-                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
+                            return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/getEventTriggerEx.do":
-                            return Trigger.getEventTriggerExRequestPOST(PostData, ContentType, workpath, eventId);
+                            return Trigger.getEventTriggerExRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/confirmEventTrigger.do":
-                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath, eventId);
+                            return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/setUserEventCustom.do":
-                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, eventId);
+                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath);
                         case "/eventController/getUserEventCustom.do":
-                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, eventId);
+                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/getUserEventCustomList.do":
-                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, eventId);
+                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/getItemRankingTable.do":
-                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, eventId);
+                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath);
                         case "/eventController/entryItemRankingPoints.do":
-                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, eventId);
+                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath);
                         case "/eventController/getItemRankingTargetList.do":
-                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, eventId);
+                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath);
                         case "/eventController/getInformationBoardSchedule.do":
-                            return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, eventId);
+                            return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, evid);
                         default:
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");

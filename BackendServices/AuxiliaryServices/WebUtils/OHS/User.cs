@@ -6,7 +6,6 @@ using static WebUtils.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
 using BackendProject.MiscUtils;
-using System.Linq;
 
 namespace WebUtils.OHS
 {
