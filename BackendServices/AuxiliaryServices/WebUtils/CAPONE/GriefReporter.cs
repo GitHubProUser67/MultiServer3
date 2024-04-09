@@ -9,7 +9,7 @@ namespace WebUtils.CAPONE
 {
     public class GriefReporter
     {
-        public static string? caponeContentStoreUpload(byte[] PostData, string? ContentType, string workPath)
+        public static string caponeContentStoreUpload(byte[] PostData, string? ContentType, string workPath)
         {
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
@@ -59,18 +59,18 @@ namespace WebUtils.CAPONE
 
         }
 
-        public static string? caponeReportCollectorSubmit(byte[] PostData, string? ContentType, string workPath)
+        public static string caponeReportCollectorSubmit(byte[] PostData, string? ContentType, string workPath)
         {
             using (MemoryStream ms = new(PostData))
             {
                 string fileName = string.Empty;
 
-                JObject jObject = JObject.Parse(Encoding.UTF8.GetString(PostData)); 
-
+                JObject jObject = JObject.Parse(Encoding.UTF8.GetString(PostData));
+                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - jObject check {jObject}");
                 Uri dataURL = (Uri)VariousUtils.GetValueFromJToken(jObject, "dataLocation");
+                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - dataURL check {dataURL}");
                 string finalPath = Path.Combine(workPath, dataURL.AbsolutePath);
-
-                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - Path check {finalPath}");
+                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - finalPath check {finalPath}");
 
                 try
                 {

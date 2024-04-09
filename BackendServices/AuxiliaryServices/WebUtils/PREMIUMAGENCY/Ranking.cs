@@ -2,13 +2,40 @@ using BackendProject.MiscUtils;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Text;
+using System.Web;
 
 namespace WebUtils.PREMIUMAGENCY
 {
     public class Ranking
     {
-        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
+        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath)
         {
+            string nid = string.Empty;
+
+            if (ContentType != "multipart/form-data")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
+
             #region Paths
 
             string homeSquareT037Path = $"{workPath}/eventController/ItemRankings/hs/T037/";
@@ -114,19 +141,32 @@ namespace WebUtils.PREMIUMAGENCY
             }
         }
 
-        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
+        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath)
         {
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
             string nid = string.Empty;
 
-            using (MemoryStream ms = new(PostData))
+            if (ContentType != "multipart/form-data")
             {
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-                nid = data.GetParameterValue("nid");
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                ms.Flush();
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
             }
 
             #region Paths
@@ -243,8 +283,34 @@ namespace WebUtils.PREMIUMAGENCY
         }
 
 
-        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
+        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath)
         {
+            string nid = string.Empty;
+
+            if (ContentType != "multipart/form-data")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
+
             #region Paths
 
 

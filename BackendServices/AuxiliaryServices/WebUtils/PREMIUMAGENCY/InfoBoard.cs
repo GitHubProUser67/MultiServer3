@@ -11,13 +11,16 @@ namespace WebUtils.PREMIUMAGENCY
         {
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
             string? lounge = string.Empty;
+            string? lang = string.Empty;
+            string? regcd = string.Empty;
+
             using (MemoryStream ms = new(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 
                 lounge = data.GetParameterValue("lounge");
-                string lang = data.GetParameterValue("lang");
-                string regcd = data.GetParameterValue("regcd");
+                lang = data.GetParameterValue("lang");
+                regcd = data.GetParameterValue("regcd");
 
                 ms.Flush();
             }
@@ -36,7 +39,7 @@ namespace WebUtils.PREMIUMAGENCY
                         string filePath = $"{infoBoardSchedulePath}/{lounge}.xml";
                         if (File.Exists(filePath))
                         {
-                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - InfoBoardSchedule for {lounge} found and sent!");
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - InfoBoardSchedule for {lounge} found with {filePath} and sent!");
                             return File.ReadAllText(filePath);
                         }
                         else

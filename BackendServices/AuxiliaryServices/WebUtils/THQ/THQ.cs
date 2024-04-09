@@ -84,8 +84,18 @@ namespace WebUtils.THQ
                             Directory.CreateDirectory($"{apiPath}/HOME_THQ/{id}/");
 
                             string ufcdata = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                                        "<UFC>1</UFC><tokens>100000</tokens><books><book value=\"1\" /><set01 value=\"1\"><card001 value=\"1\" /><fb01 value=\"Card one picked up!\" /></set01><set02 " +
-                                        "value=\"1\"><card001 value=\"2\" /><fb01 value=\"Card two picked up!\" /></set02></books>";
+                                        "<UFC>1</UFC>" +
+                                        "<tokens>100000</tokens>" +
+                                        "<books><book value=\"1\" />" +
+                                        "<set01 value=\"1\">" +
+                                        "<card001 value=\"1\" />" +
+                                        "<fb01 value=\"Card one picked up!\" />" +
+                                        "</set01>" +
+                                        "<set02 value=\"1\">" +
+                                        "<card001 value=\"2\" />" +
+                                        "<fb01 value=\"Card two picked up!\" />" +
+                                        "</set02>" +
+                                        "</books>";
 
                             switch (func)
                             {
@@ -99,8 +109,18 @@ namespace WebUtils.THQ
                                     if (File.Exists($"{apiPath}/HOME_THQ/{id}/data.xml") && func == "write" && val2 != null)
                                     {
                                         ufcdata = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                                                $"<UFC>1</UFC><tokens>{val2}</tokens><books><book value=\"1\" /><set01 value=\"1\"><card001 value=\"1\" /><fb01 value=\"Card one picked up!\" /></set01><set02 " +
-                                                $"value=\"1\"><card001 value=\"2\" /><fb01 value=\"Card two picked up!\" /></set02></books>";
+                                                $"<UFC>1</UFC>" +
+                                                $"<tokens>{val2}</tokens>" +
+                                                $"<books><book value=\"1\" />" +
+                                                $"<set01 value=\"1\">" +
+                                                $"<card001 value=\"1\" />" +
+                                                $"<fb01 value=\"Card one picked up!\" />" +
+                                                $"</set01>" +
+                                                $"<set02 value=\"1\">" +
+                                                $"<card001 value=\"2\" />" +
+                                                $"<fb01 value=\"Card two picked up!\" />" +
+                                                $"</set02>" +
+                                                $"</books>";
 
                                         File.WriteAllText($"{apiPath}/HOME_THQ/{id}/data.xml", ufcdata);
                                     }

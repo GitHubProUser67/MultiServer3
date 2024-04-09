@@ -3,25 +3,35 @@ using CustomLogger;
 using HttpMultipartParser;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 
 namespace WebUtils.PREMIUMAGENCY
 {
     public class Custom
     {
-        public static string? setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string? setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath)
         {
             string nid = string.Empty;
 
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
-
-            using (MemoryStream ms = new(PostData))
+            if (ContentType != "multipart/form-data")
             {
-                var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                nid = data.GetParameterValue("nid");
-
-                ms.Flush();
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("key");
             }
+            else
+            {
+                string boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+
 
             switch (eventId)
             {

@@ -71,7 +71,7 @@ namespace WebUtils.OHS
                     {
 #if DEBUG
                         dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
-                        LoggerAccessor.LogInfo($"[OHS] Heatmap Teacker Data : {dataforohs}");
+                        LoggerAccessor.LogInfo($"[OHS] Heatmap Tracker Data : {dataforohs}");
 #endif
                     }
                     catch (Exception ex)
