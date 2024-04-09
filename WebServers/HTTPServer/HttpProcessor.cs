@@ -233,9 +233,9 @@ namespace HTTPServer
                                                 absolutepath.EndsWith("/") ||
                                                 absolutepath.Contains("/ohs") ||
                                                 absolutepath.Contains("/statistic/") ||
-                                                absolutepath.Contains("/Konami/" ))
+                                                absolutepath.Contains("/tracker/" ))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
                                                 string? res = null;
                                                 int version = 0;
@@ -270,7 +270,7 @@ namespace HTTPServer
                                                 && !string.IsNullOrEmpty(Method) 
                                                 && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
 
                                                 string? res = null;
                                                 using (MemoryStream postdata = new())
@@ -292,7 +292,7 @@ namespace HTTPServer
                                                 !string.IsNullOrEmpty(Method) &&
                                                 absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
 
                                                 if (request.GetDataStream != null)
                                                 {
@@ -334,7 +334,7 @@ namespace HTTPServer
                                                 && !string.IsNullOrEmpty(Method) 
                                                 && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
                                                 NDREAMSClass ndreams = new(Method, $"http://{Host}{request.Url}", absolutepath, HTTPServerConfiguration.APIStaticFolder);
@@ -361,7 +361,7 @@ namespace HTTPServer
                                                 && !string.IsNullOrEmpty(Method) 
                                                 && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
 
                                                 string? res = null;
                                                 JUGGERNAUTClass juggernaut = new(Method, absolutepath);
@@ -389,7 +389,7 @@ namespace HTTPServer
                                                 || Host == "alpha.lootgear.com") 
                                                 && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
 
                                                 string? res = null;
                                                 LOOTClass loot = new(Method, absolutepath);
@@ -420,7 +420,7 @@ namespace HTTPServer
                                                 && !string.IsNullOrEmpty(Method)
                                                 && absolutepath.Contains("/eventController/"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a PREMIUMAGENCY method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -440,7 +440,7 @@ namespace HTTPServer
                                             #region FROMSOFTWARE API
                                             else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
 
                                                 (byte[]?, string?, string[][]?) res = new();
                                                 if (request.GetDataStream != null)
@@ -462,7 +462,7 @@ namespace HTTPServer
                                                 && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") 
                                                 && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
 
                                                 string Authorization = request.RetrieveHeaderValue("Authorization");
 
@@ -550,7 +550,7 @@ namespace HTTPServer
                                             else if (HPDDomains.Contains(Host) 
                                                 && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -571,7 +571,7 @@ namespace HTTPServer
                                             else if (CAPONEDomains.Contains(Host) 
                                                 && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
