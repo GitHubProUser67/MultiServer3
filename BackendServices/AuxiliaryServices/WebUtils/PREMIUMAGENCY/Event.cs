@@ -8,11 +8,11 @@ namespace WebUtils.PREMIUMAGENCY
 {
     public class Event
     {
-        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath)
+        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             }
@@ -472,11 +472,11 @@ namespace WebUtils.PREMIUMAGENCY
             }
         }
 
-        public static string? entryEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath)
+        public static string? entryEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             }
@@ -833,11 +833,11 @@ namespace WebUtils.PREMIUMAGENCY
             }
         }
 
-        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath, string fulluripath)
+        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             }
