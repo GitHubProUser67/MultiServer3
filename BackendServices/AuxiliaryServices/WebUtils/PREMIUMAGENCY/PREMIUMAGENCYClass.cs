@@ -30,7 +30,7 @@ namespace WebUtils.PREMIUMAGENCY
 
             string evid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (ContentType != null)
             {
                 evid = HttpUtility.ParseQueryString(fulluripath).Get("evid");
             }
