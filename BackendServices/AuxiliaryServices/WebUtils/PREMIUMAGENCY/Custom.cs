@@ -9,11 +9,11 @@ namespace WebUtils.PREMIUMAGENCY
 {
     public class Custom
     {
-        public static string? setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath)
+        public static string? setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("key");
             }
@@ -548,21 +548,29 @@ namespace WebUtils.PREMIUMAGENCY
             }
         }
 
-        public static string? getUserEventCustomRequestListPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string? getUserEventCustomRequestListPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath, string method)
         {
 
             string nid = string.Empty;
 
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
-
-            using (MemoryStream ms = new(PostData))
+            if(method == "GET")
             {
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            } else
+            {
 
-                nid = data.GetParameterValue("nid");
 
-                ms.Flush();
+                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
             }
 
             switch (eventId)

@@ -141,11 +141,11 @@ namespace WebUtils.PREMIUMAGENCY
             }
         }
 
-        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath)
+        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             }
@@ -283,11 +283,11 @@ namespace WebUtils.PREMIUMAGENCY
         }
 
 
-        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath)
+        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             }

@@ -54,27 +54,27 @@ namespace WebUtils.PREMIUMAGENCY
                     switch (absolutepath)
                     {
                         case "/eventController/getResource.do":
-                            return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath);
+                            return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath, method);
                         case "/eventController/confirmEvent.do":
                         //return Event.confirmEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath); //Unimplemented 
                         case "/eventController/checkEvent.do":
-                            return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                            return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/entryEvent.do":
-                            return Event.entryEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                            return Event.entryEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/clearEvent.do":
-                            return Event.clearEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                            return Event.clearEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/setUserEventCustom.do":
-                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath);
+                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getUserEventCustom.do":
                             return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/getUserEventCustomList.do":
-                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid);
+                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTable.do":
                             return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath);
                         case "/eventController/entryItemRankingPoints.do":
-                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath);
+                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTargetList.do":
-                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath);
+                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         default:
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled {method} server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
@@ -87,15 +87,15 @@ namespace WebUtils.PREMIUMAGENCY
                     switch (absolutepath)
                     {
                         case "/eventController/getResource.do":
-                            return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath);
+                            return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath, method);
                         case "/eventController/confirmEvent.do":
                             //return Event.confirmEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath); //Unimplemented 
                         case "/eventController/checkEvent.do":
-                            return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                            return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/entryEvent.do":
-                            return Event.entryEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                            return Event.entryEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/clearEvent.do":
-                            return Event.clearEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath);
+                            return Event.clearEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/getEventTrigger.do":
                             return Trigger.getEventTriggerRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/getEventTriggerEx.do":
@@ -103,17 +103,17 @@ namespace WebUtils.PREMIUMAGENCY
                         case "/eventController/confirmEventTrigger.do":
                             return Trigger.confirmEventTriggerRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/setUserEventCustom.do":
-                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath);
+                            return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getUserEventCustom.do":
                             return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid);
                         case "/eventController/getUserEventCustomList.do":
-                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid);
+                            return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTable.do":
                             return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath);
                         case "/eventController/entryItemRankingPoints.do":
-                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath);
+                            return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTargetList.do":
-                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath);
+                            return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getInformationBoardSchedule.do":
                             return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, evid);
                         default:
