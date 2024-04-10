@@ -30,7 +30,7 @@ namespace WebUtils.PREMIUMAGENCY
 
             string evid = string.Empty;
 
-            if (ContentType != null)
+            if (ContentType == null)
             {
                 evid = HttpUtility.ParseQueryString(fulluripath).Get("evid");
             }
