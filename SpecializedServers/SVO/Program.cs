@@ -45,7 +45,7 @@ public static class SVOServerConfiguration
         {
             LoggerAccessor.LogWarn("Could not find the svo.json file, writing and using server's default.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
@@ -111,11 +111,10 @@ class Program
             if (!VariousUtils.IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin");
-                if (StartAsAdmin(Process.GetCurrentProcess().MainModule.FileName))
+                if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
                     Environment.Exit(0);
             }
-
-        if (!VariousUtils.IsWindows())
+        else
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SVO");
@@ -160,11 +159,14 @@ class Program
         }
     }
 
-    private static bool StartAsAdmin(string filePath)
+    private static bool StartAsAdmin(string? filePath)
     {
+        if (string.IsNullOrEmpty(filePath))
+            return false;
+
         try
         {
-            var proc = new Process
+            new Process()
             {
                 StartInfo =
                     {
@@ -172,13 +174,11 @@ class Program
                         UseShellExecute = true,
                         Verb = "runas"
                     }
-            };
-
-            proc.Start();
+            }.Start();
 
             return true;
         }
-        catch (Exception)
+        catch
         {
             return false;
         }

@@ -57,19 +57,6 @@ namespace HTTPServer
             return false;
         }
 
-        public static bool IsIPAllowed(string ipAddress)
-        {
-            if (HTTPServerConfiguration.AllowedIPs != null 
-                && HTTPServerConfiguration.AllowedIPs.Contains(ipAddress)
-                || ipAddress == "127.0.0.1" 
-                || ipAddress.ToLower() == "localhost"
-                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress().ToString().ToLower() 
-                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress(true).ToString().ToLower())
-                return true;
-
-            return false;
-        }
-
         public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
             try
@@ -118,8 +105,6 @@ namespace HTTPServer
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {request.Url}");
 
                                 string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
-                                string fulluripath = HTTPUtils.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + request.Url;
-
 
                                 if (HTTPServerConfiguration.RedirectRules != null)
                                 {
@@ -203,7 +188,7 @@ namespace HTTPServer
 
                                 response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
-                                List<string> HPDDomains = new List<string>() { 
+                                List<string> HPDDomains = new() { 
 									"dev.destinations.scea.com",
                                     "prd.destinations.scea.com",
                                     "holdemeu.destinations.scea.com",
@@ -211,7 +196,7 @@ namespace HTTPServer
                                     "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
                                 };
 
-                                List<string> CAPONEDomains = new List<string>() {
+                                List<string> CAPONEDomains = new() {
                                     "collector.gr.online.scea.com",
                                     "collector-nonprod.gr.online.scea.com",
                                     "collector-dev.gr.online.scea.com",
@@ -227,15 +212,14 @@ namespace HTTPServer
                                         default:
 
                                             #region Outso OHS API
-                                            if ((Host == "stats.outso-srv1.com" 
-                                                || Host == "www.outso-srv1.com") &&
+                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 absolutepath.EndsWith("/") ||
                                                 absolutepath.Contains("/ohs") ||
                                                 absolutepath.Contains("/statistic/") ||
-                                                absolutepath.Contains("/tracker/" ))
+                                                absolutepath.Contains("/Konami/" ))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
                                                 string? res = null;
                                                 int version = 0;
@@ -253,7 +237,7 @@ namespace HTTPServer
                                                     version = 1;
                                                 using (MemoryStream postdata = new())
                                                 {
-                                                    request.GetDataStream.CopyTo(postdata);
+                                                    request.GetDataStream?.CopyTo(postdata);
                                                     res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
@@ -265,12 +249,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Outso OUWF Debug API
-                                            else if (Host == "ouwf.outso-srv1.com" 
-                                                && request.GetDataStream != null 
-                                                && !string.IsNullOrEmpty(Method) 
-                                                && request.GetContentType().StartsWith("multipart/form-data"))
+                                            else if (Host == "ouwf.outso-srv1.com" && request.GetDataStream != null && !string.IsNullOrEmpty(Method) && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
 
                                                 string? res = null;
                                                 using (MemoryStream postdata = new())
@@ -287,12 +268,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region VEEMEE API
-                                            else if ((Host == "away.veemee.com"
-                                                || Host == "home.veemee.com") &&
-                                                !string.IsNullOrEmpty(Method) &&
-                                                absolutepath.EndsWith(".php"))
+                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && Method != null && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
 
                                                 if (request.GetDataStream != null)
                                                 {
@@ -329,12 +307,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region nDreams API
-                                            else if ((Host == "pshome.ndreams.net" 
-                                                || Host == "www.ndreamshs.com") 
-                                                && !string.IsNullOrEmpty(Method) 
-                                                && absolutepath.EndsWith(".php"))
+                                            else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com" || Host == "www.ndreamsportal.com") && !string.IsNullOrEmpty(Method) && (absolutepath.EndsWith(".php") || absolutepath.EndsWith("/")))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
                                                 NDREAMSClass ndreams = new(Method, $"http://{Host}{request.Url}", absolutepath, HTTPServerConfiguration.APIStaticFolder);
@@ -356,12 +331,10 @@ namespace HTTPServer
                                             }
                                             #endregion
 
-                                            #region Juggernaut Games API
-                                            else if (Host == "juggernaut-games.com" 
-                                                && !string.IsNullOrEmpty(Method) 
-                                                && absolutepath.EndsWith(".php"))
+                                            #region JUGGERNAUT API
+                                            else if (Host == "juggernaut-games.com" && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");
 
                                                 string? res = null;
                                                 JUGGERNAUTClass juggernaut = new(Method, absolutepath);
@@ -385,11 +358,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region LOOT API
-                                            else if ((Host == "server.lootgear.com" 
-                                                || Host == "alpha.lootgear.com") 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if ((Host == "server.lootgear.com" || Host == "alpha.lootgear.com") && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
 
                                                 string? res = null;
                                                 LOOTClass loot = new(Method, absolutepath);
@@ -413,21 +384,18 @@ namespace HTTPServer
                                             #region PREMIUMAGENCY API
                                             else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
+                                                Host == "scej-home.playstation.net" ||
                                                 Host == "homeec.scej-nbs.jp" ||
-                                                Host == "homeecqa.scej-nbs.jp"||
-                                                Host == "homect-scej.jp" ||
-                                                Host == "qa-homect-scej.jp") 
-                                                && !string.IsNullOrEmpty(Method)
-                                                && absolutepath.Contains("/eventController/"))
+                                                Host == "homeecqa.scej-nbs.jp") && Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a PREMIUMAGENCY method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -440,7 +408,7 @@ namespace HTTPServer
                                             #region FROMSOFTWARE API
                                             else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
 
                                                 (byte[]?, string?, string[][]?) res = new();
                                                 if (request.GetDataStream != null)
@@ -458,11 +426,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Ubisoft API
-                                            else if (Host.Contains("api-ubiservices.ubi.com") 
-                                                && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
 
                                                 string Authorization = request.RetrieveHeaderValue("Authorization");
 
@@ -547,10 +513,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CentralDispatchManager API
-                                            else if (HPDDomains.Contains(Host) 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if (HPDDomains.Contains(Host) && request.Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -568,10 +533,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CAPONE GriefReporter API
-                                            else if (CAPONEDomains.Contains(Host) 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if (CAPONEDomains.Contains(Host) && request.Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -597,20 +561,12 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
-
-                                                            #region PSN Network Test
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;
-                                                            #endregion
-
-                                                            #region Get Away Google
                                                             case "/robots.txt":
                                                                 response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
                                                                 break;
-                                                            #endregion
-
-                                                            #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
                                                                 // We want to check if the router allows external IPs first.
@@ -620,9 +576,19 @@ namespace HTTPServer
                                                                     using TcpClient client = new(ServerIP, ListenerPort);
                                                                     client.Close();
                                                                 }
-                                                                catch // Failed to connect, so we fallback to local IP.
+                                                                catch // Failed to connect to public ip, so we fallback to local IP.
                                                                 {
                                                                     ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+
+                                                                    try
+                                                                    {
+                                                                        using TcpClient client = new(ServerIP, ListenerPort);
+                                                                        client.Close();
+                                                                    }
+                                                                    catch // Failed to connect to local ip, trying IPV4 only as a last resort.
+                                                                    {
+                                                                        ServerIP = VariousUtils.GetLocalIPAddress(false).ToString();
+                                                                    }
                                                                 }
                                                                 if (ServerIP.Length > 15)
                                                                     ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
@@ -634,9 +600,6 @@ namespace HTTPServer
                                                                 response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
                                                                 WebPlayer = null;
                                                                 break;
-                                                            #endregion
-
-                                                            #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -679,8 +642,6 @@ namespace HTTPServer
                                                                         };
                                                                 }
                                                                 break;
-                                                            #endregion
-
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
@@ -705,124 +666,72 @@ namespace HTTPServer
                                                     case "POST":
                                                         switch (absolutepath)
                                                         {
-
-                                                            #region PSN Network Test
                                                             case "/networktest/post_128":
                                                                 response = HttpBuilder.OK();
                                                                 break;
-                                                            #endregion
-
-                                                            #region LibSecure HomeTools
                                                             case "/!HomeTools/MakeBarSdat/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
-                                                                    if (makeres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
+                                                                if (makeres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/UnBar/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var unbarres = HomeToolsInterface.UnBar(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
-                                                                    if (unbarres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
+                                                                if (unbarres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/CDS/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var cdsres = HomeToolsInterface.CDS(request.GetDataStream, request.GetContentType());
-                                                                    if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? cdsres = HomeToolsInterface.CDS(request.GetDataStream, request.GetContentType());
+                                                                if (cdsres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/CDSBruteforce/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var cdsres = HomeToolsInterface.CDSBruteforce(request.GetDataStream, request.GetContentType());
-                                                                    if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? cdsbruteres = HomeToolsInterface.CDSBruteforce(request.GetDataStream, request.GetContentType());
+                                                                if (cdsbruteres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsbruteres.Value.Item1, cdsbruteres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/HCDBUnpack/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var cdsres = HomeToolsInterface.HCDBUnpack(request.GetDataStream, request.GetContentType());
-                                                                    if (cdsres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? hcdbres = HomeToolsInterface.HCDBUnpack(request.GetDataStream, request.GetContentType());
+                                                                if (hcdbres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, hcdbres.Value.Item1, hcdbres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/TicketList/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var ticketlistres = HomeToolsInterface.TicketList(request.GetDataStream, request.GetContentType());
-                                                                    if (ticketlistres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, ticketlistres.Value.Item1, ticketlistres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? ticketlistres = HomeToolsInterface.TicketList(request.GetDataStream, request.GetContentType());
+                                                                if (ticketlistres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, ticketlistres.Value.Item1, ticketlistres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/INF/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    var infres = HomeToolsInterface.INF(request.GetDataStream, request.GetContentType());
-                                                                    if (infres != null)
-                                                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, infres.Value.Item1, infres.Value.Item2);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                (byte[]?, string)? infres = HomeToolsInterface.INF(request.GetDataStream, request.GetContentType());
+                                                                if (infres != null)
+                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, infres.Value.Item1, infres.Value.Item2);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/ChannelID/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    string? channelres = HomeToolsInterface.ChannelID(request.GetDataStream, request.GetContentType());
-                                                                    if (!string.IsNullOrEmpty(channelres))
-                                                                        response = HttpResponse.Send(channelres);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                string? channelres = HomeToolsInterface.ChannelID(request.GetDataStream, request.GetContentType());
+                                                                if (!string.IsNullOrEmpty(channelres))
+                                                                    response = HttpResponse.Send(channelres);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
                                                             case "/!HomeTools/SceneID/":
-                                                                if (IsIPAllowed(clientip))
-                                                                {
-                                                                    string? sceneres = HomeToolsInterface.SceneID(request.GetDataStream, request.GetContentType());
-                                                                    if (!string.IsNullOrEmpty(sceneres))
-                                                                        response = HttpResponse.Send(sceneres);
-                                                                    else
-                                                                        response = HttpBuilder.InternalServerError();
-                                                                }
+                                                                string? sceneres = HomeToolsInterface.SceneID(request.GetDataStream, request.GetContentType());
+                                                                if (!string.IsNullOrEmpty(sceneres))
+                                                                    response = HttpResponse.Send(sceneres);
                                                                 else
-                                                                    response = HttpBuilder.InternalServerError(); // We are vague on the status code.
+                                                                    response = HttpBuilder.InternalServerError();
                                                                 break;
-                                                            #endregion
-
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
@@ -893,7 +802,6 @@ namespace HTTPServer
                                                     case "HEAD":
                                                         switch (absolutepath)
                                                         {
-                                                            #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -922,8 +830,6 @@ namespace HTTPServer
                                                                         response = HttpBuilder.MissingParameters();
                                                                 }
                                                                 break;
-                                                            #endregion
-
                                                             default:
                                                                 response = FileSystemRouteHandler.HandleHEAD(request, filePath);
                                                                 break;
@@ -1068,11 +974,13 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
+                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck < new FileInfo(local_path).LastWriteTimeUtc)
                         {
                             response.Headers.Clear();
 
                             response.Headers.Add("ETag", EtagMD5);
+                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("age", "1800");
 
                             response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
 
@@ -1085,6 +993,8 @@ namespace HTTPServer
                             response.Headers.Clear();
 
                             response.Headers.Add("ETag", EtagMD5);
+                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("age", "1800");
 
                             response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
 
@@ -1107,6 +1017,8 @@ namespace HTTPServer
                             {
                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                 response.Headers.Add("ETag", EtagMD5);
+                                response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                response.Headers.Add("age", "1800");
                                 if (File.Exists(local_path))
                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                             }
@@ -1600,11 +1512,13 @@ namespace HTTPServer
                     {
                         string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
 
-                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck >= new FileInfo(local_path).LastWriteTimeUtc)
+                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck < new FileInfo(local_path).LastWriteTimeUtc)
                         {
                             response.Headers.Clear();
 
                             response.Headers.Add("ETag", EtagMD5);
+                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("age", "1800");
 
                             response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
 
@@ -1617,6 +1531,8 @@ namespace HTTPServer
                             response.Headers.Clear();
 
                             response.Headers.Add("ETag", EtagMD5);
+                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("age", "1800");
 
                             response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
 
@@ -1633,6 +1549,8 @@ namespace HTTPServer
                             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", EtagMD5);
+                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("age", "1800");
                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
                             if (!response.Headers.ContainsKey("Content-Length"))

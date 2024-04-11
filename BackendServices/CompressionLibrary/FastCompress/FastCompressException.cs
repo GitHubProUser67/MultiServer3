@@ -10,7 +10,7 @@
         {
         }
 
-        public FastCompressException(string message, Exception innerException)
+        public FastCompressException(string message, Exception? innerException)
             : base(message, innerException)
         {
         }

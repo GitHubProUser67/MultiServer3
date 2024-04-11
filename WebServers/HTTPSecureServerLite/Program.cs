@@ -3,10 +3,8 @@ using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
 using BackendProject.MiscUtils;
-using WebUtils.VEEMEE.goalie_sfrgbt;
-using WebUtils.VEEMEE.gofish;
-using WebUtils.VEEMEE.olm;
 using HomeTools.AFS;
+using WebUtils.LeaderboardsService;
 
 public static class HTTPSServerConfiguration
 {
@@ -23,6 +21,7 @@ public static class HTTPSServerConfiguration
     public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
+    public static bool UseSelfSignedCertificate { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableDiscordPlugin { get; set; } = true;
     public static string DiscordBotToken { get; set; } = string.Empty;
@@ -30,7 +29,6 @@ public static class HTTPSServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
-    public static List<string>? AllowedIPs { get; set; }
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -45,7 +43,7 @@ public static class HTTPSServerConfiguration
         {
             LoggerAccessor.LogWarn("Could not find the https.json file, writing and using server's default.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
@@ -66,14 +64,14 @@ public static class HTTPSServerConfiguration
                 new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
                 new JProperty("discord_bot_token", DiscordBotToken),
                 new JProperty("discord_channel_id", DiscordChannelID),
+                new JProperty("use_self_signed_certificate", UseSelfSignedCertificate),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("discord_plugin", new JObject(
                     new JProperty("enabled", EnableDiscordPlugin)
                 )),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
-                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
-                new JProperty("AllowedIPs", new JArray(AllowedIPs ?? new List<string> { }))
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -99,6 +97,7 @@ public static class HTTPSServerConfiguration
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
             DiscordBotToken = config.discord_bot_token;
             DiscordChannelID = config.discord_channel_id;
+            UseSelfSignedCertificate = config.use_self_signed_certificate;
             EnablePUTMethod = config.enable_put_method;
             EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray PortsArray = config.Ports;
@@ -113,10 +112,6 @@ public static class HTTPSServerConfiguration
             // Deserialize BannedIPs if it exists
             if (bannedIPsArray != null)
                 BannedIPs = bannedIPsArray.ToObject<List<string>>();
-            JArray allowedIPsArray = config.AllowedIPs;
-            // Deserialize BannedIPs if it exists
-            if (allowedIPsArray != null)
-                AllowedIPs = allowedIPsArray.ToObject<List<string>>();
         }
         catch (Exception)
         {
@@ -150,28 +145,26 @@ class Program
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
-        SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile);
+        string certpath = HTTPSServerConfiguration.HTTPSCertificateFile;
+
+        SSLUtils.InitCerts(certpath);
 
         GeoIPUtils.Initialize();
 
         AFSClass.MapperHelperFolder = HTTPSServerConfiguration.HomeToolsHelperStaticFolder;
-        GSScoreBoardData.sbAPIPath = HTTPSServerConfiguration.APIStaticFolder;
-        GFScoreBoardData.gfAPIPath = HTTPSServerConfiguration.APIStaticFolder;
-        olmScoreBoardData.olmAPIPath = HTTPSServerConfiguration.APIStaticFolder;
+        LeaderboardClass.APIPath = HTTPSServerConfiguration.APIStaticFolder;
 
         _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-        _ = new Timer(GSScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-        _ = new Timer(GFScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-        _ = new Timer(olmScoreBoardData.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        _ = new Timer(LeaderboardClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         if (HTTPSServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordBotToken))
             _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPSServerConfiguration.DiscordChannelID, HTTPSServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => SecureDNSConfigProcessor.InitDNSSubsystem(),
-                    () => Parallel.ForEach(HTTPSServerConfiguration.Ports, port =>
+                    () => Parallel.ForEach(HTTPSServerConfiguration.Ports ?? new List<ushort> { }, port =>
                     {
-                        new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, "qwerty", "0.0.0.0", port).StartServer(); // 0.0.0.0 as the certificate binds to this IP
+                        new HttpsProcessor(HTTPSServerConfiguration.UseSelfSignedCertificate ? Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_selfsigned.pfx" : certpath, "qwerty", "0.0.0.0", port).StartServer(); // 0.0.0.0 as the certificate binds to this IP
                     }),
                     () => RefreshConfig()
                 ));

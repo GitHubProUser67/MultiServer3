@@ -180,6 +180,7 @@ wpc.33F8.edgecastcdn.net,Redirect,IP
 moonbase.game.co.uk,Redirect,IP
 community.eu.playstation.com,Redirect,IP
 www.ndreamshs.com,Redirect,IP
+www.ndreamsportal.com,Redirect,IP
 img.game.co.uk,Redirect,IP
 downloads.game.net,Redirect,IP 
 game.hellfiregames.com,Redirect,IP

@@ -1,5 +1,6 @@
 using System.Xml;
 using BackendProject.MiscUtils;
+using WebUtils.LeaderboardsService.VEEMEE;
 
 namespace WebUtils.VEEMEE.gofish
 {
@@ -36,8 +37,8 @@ namespace WebUtils.VEEMEE.gofish
                     try
                     {
                         GFScoreBoardData.UpdateScoreBoard(psnid, fishcount, biggestfishweight, totalfishweight, int.Parse(score));
-                        GFScoreBoardData.UpdateAllTimeScoreboardXml(apiPath); // We finalized edit, so we issue a write.
-                        GFScoreBoardData.UpdateTodayScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd"), apiPath); // We finalized edit, so we issue a write.
+                        GFScoreBoardData.UpdateAllTimeScoreboardXml(); // We finalized edit, so we issue a write.
+                        GFScoreBoardData.UpdateTodayScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {

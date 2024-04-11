@@ -22,7 +22,7 @@ public static class MitmDNSServerConfiguration
         {
             LoggerAccessor.LogWarn("Could not find the dns.json file, writing and using server's default.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
