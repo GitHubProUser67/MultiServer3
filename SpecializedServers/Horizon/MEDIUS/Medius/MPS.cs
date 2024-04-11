@@ -598,7 +598,7 @@ namespace Horizon.MEDIUS.Medius
                                     // For Legacy Medius v1.50 clients that DO NOT 
                                     // send a ServerConnectNotificationConnect when creating a game
                                     if (data.ClientObject.MediusVersion < 109 && data.ClientObject.ApplicationId != 10394)
-                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey, game.WorldID.ToString());
+                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey);
                                 }
                             }
                         }
@@ -785,7 +785,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             Game? conn = MediusClass.Manager.GetGameByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
-                                await conn.OnMediusServerConnectNotification(connectNotification, conn.WorldID.ToString());
+                                await conn.OnMediusServerConnectNotification(connectNotification);
                         }
                         else if (data.ClientObject != null)
                         {

@@ -26,16 +26,16 @@ namespace WebUtils.VEEMEE
 
             public void ProcessLogin(string username)
             {
-                if (loginCounts.ContainsKey(username))
-                    loginCounts[username]++;
+                if (loginCounts.TryGetValue(username, out int value))
+                    loginCounts[username] = ++value;
                 else
                     loginCounts.Add(username, 1);
             }
 
             public int GetLoginCount(string username)
             {
-                if (loginCounts.ContainsKey(username))
-                    return loginCounts[username];
+                if (loginCounts.TryGetValue(username, out int value))
+                    return value;
 
                 return 0;
             }

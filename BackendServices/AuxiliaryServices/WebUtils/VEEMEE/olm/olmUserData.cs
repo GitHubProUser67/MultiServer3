@@ -1,5 +1,6 @@
 using System.Xml;
 using BackendProject.MiscUtils;
+using WebUtils.LeaderboardsService.VEEMEE;
 
 namespace WebUtils.VEEMEE.olm
 {
@@ -32,8 +33,8 @@ namespace WebUtils.VEEMEE.olm
                     try
                     {
                         olmScoreBoardData.UpdateScoreBoard(psnid, throws, int.Parse(score));
-                        olmScoreBoardData.UpdateAllTimeScoreboardXml(apiPath); // We finalized edit, so we issue a write.
-                        olmScoreBoardData.UpdateWeeklyScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd"), apiPath); // We finalized edit, so we issue a write.
+                        olmScoreBoardData.UpdateAllTimeScoreboardXml(); // We finalized edit, so we issue a write.
+                        olmScoreBoardData.UpdateWeeklyScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {

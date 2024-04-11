@@ -25,14 +25,14 @@ namespace BackendProject.WebTools
                 string FFmpegArgs = string.Empty;
 
                 // Check options
-                if (!Arguments.ContainsKey("url"))
+                if (!Arguments.TryGetValue("url", out string? url))
                     throw new InvalidOperationException("Internet video address is missing.");
 
                 // Configure output file type
                 string PreferredMIME = "application/octet-stream", PreferredName = "video.avi";
-                if (Arguments.ContainsKey("f")) // (ffmpeg output format)
+                if (Arguments.TryGetValue("f", out string? argument)) // (ffmpeg output format)
                 {
-                    switch (Arguments["f"])
+                    switch (argument)
                     {
                         case "avi":
                             PreferredMIME = "video/msvideo";
@@ -83,7 +83,7 @@ namespace BackendProject.WebTools
                             break;
                         default:
                             PreferredMIME = "application/octet-stream";
-                            PreferredName = "onlinevideo." + Arguments["f"];
+                            PreferredName = "onlinevideo." + argument;
                             break;
                     }
                 }
@@ -98,10 +98,8 @@ namespace BackendProject.WebTools
                 }
 
                 // Set output file type over auto-detected (if need)
-                if (!Arguments.ContainsKey("content-type"))
-                    Arguments.Add("content-type", PreferredMIME);
-                if (!Arguments.ContainsKey("filename"))
-                    Arguments.Add("filename", PreferredName);
+                Arguments.TryAdd("content-type", PreferredMIME);
+                Arguments.TryAdd("filename", PreferredName);
 
                 // Load all parameters
                 foreach (KeyValuePair<string, string> Arg in Arguments)
@@ -282,7 +280,7 @@ namespace BackendProject.WebTools
                 ProcessStartInfo YoutubeDlStart = new()
                 {
                     FileName = $"{ConverterDir}/yt-dlp",
-                    Arguments = string.Format("\"{0}\"{1} -o -", Arguments["url"], YoutubeDlArgs),
+                    Arguments = string.Format("\"{0}\"{1} -o -", url, YoutubeDlArgs),
                     WorkingDirectory = ConverterDir,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
