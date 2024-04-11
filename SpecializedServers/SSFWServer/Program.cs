@@ -30,7 +30,7 @@ public static class SSFWServerConfiguration
         {
             LoggerAccessor.LogWarn("Could not find the ssfw.json file, writing and using server's default.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(

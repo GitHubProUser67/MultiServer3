@@ -29,7 +29,6 @@ public static class HTTPServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
-    public static List<string>? AllowedIPs { get; set; }
 
     public static List<HTTPServer.PluginManager.HTTPPlugin> plugins = HTTPServer.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
@@ -46,7 +45,7 @@ public static class HTTPServerConfiguration
         {
             LoggerAccessor.LogWarn("Could not find the http.json file, writing and using server's default.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
@@ -75,8 +74,7 @@ public static class HTTPServerConfiguration
                 )),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
-                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
-                new JProperty("AllowedIPs", new JArray(AllowedIPs ?? new List<string> { }))
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -118,10 +116,6 @@ public static class HTTPServerConfiguration
             // Deserialize BannedIPs if it exists
             if (bannedIPsArray != null)
                 BannedIPs = bannedIPsArray.ToObject<List<string>>();
-            JArray allowedIPsArray = config.AllowedIPs;
-            // Deserialize BannedIPs if it exists
-            if (allowedIPsArray != null)
-                AllowedIPs = allowedIPsArray.ToObject<List<string>>();
         }
         catch (Exception)
         {

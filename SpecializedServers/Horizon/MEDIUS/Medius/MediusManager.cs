@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using IChannel = DotNetty.Transport.Channels.IChannel;
 using Horizon.MUM;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -544,7 +545,7 @@ namespace Horizon.MEDIUS.Medius
                         dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                            MediusWorldUID = (uint)game.MediusWorldId,
+                            WorldID = (uint)game.WorldID,
                             Attributes = game.Attributes,
                             ApplicationID = client.ApplicationId,
                             MaxClients = game.MaxPlayers
@@ -560,7 +561,7 @@ namespace Horizon.MEDIUS.Medius
                         dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                            MediusWorldUID = (uint)game.MediusWorldId,
+                            WorldID = (uint)game.WorldID,
                             Attributes = game.Attributes,
                             ApplicationID = client.ApplicationId,
                             MaxClients = game.MaxPlayers
@@ -640,7 +641,7 @@ namespace Horizon.MEDIUS.Medius
                     dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        MediusWorldUID = (uint)game.MediusWorldId,
+                        WorldID = (uint)game.WorldID,
                         Attributes = game.Attributes,
                         ApplicationID = client.ApplicationId,
                         MaxClients = game.MaxPlayers
@@ -794,7 +795,7 @@ namespace Horizon.MEDIUS.Medius
                         dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{matchCreateGameRequest.MessageID}-{0}"),
-                            MediusWorldUID = (uint)game.MediusWorldId,
+                            WorldID = (uint)game.WorldID,
                             Attributes = game.Attributes,
                             ApplicationID = client.ApplicationId,
                             MaxClients = game.MaxPlayers
@@ -895,9 +896,9 @@ namespace Horizon.MEDIUS.Medius
                 // Create and add game.
                 try
                 {
-                    Game game = new(client, request, client.CurrentChannel, dme, client.CurrentChannel.Id)
+                    Game game = new(client, request, client.CurrentChannel, dme)
                     {
-                        //Set game host type to PeerToPeer for those speci
+                        // Set game host type to PeerToPeer
                         GameHostType = MediusGameHostType.MediusGameHostPeerToPeer,
                         ApplicationId = client.ApplicationId,
                         Host = client
@@ -905,7 +906,7 @@ namespace Horizon.MEDIUS.Medius
 
                     // Join game
                     await client.JoinGameP2P(game);
-                    await game.OnMediusServerCreateGameOnMeRequest(request, game.WorldID.ToString());
+                    await game.OnMediusServerCreateGameOnMeRequest(request);
 
                     await AddGame(game);
 
@@ -2058,7 +2059,23 @@ namespace Horizon.MEDIUS.Medius
 
                 // Remove channels
                 while (channelsToRemove.TryDequeue(out (QuickLookup, int) lookupAndChannelApplicationId))
+                {
+                    _ = Task.Run(() => Parallel.ForEach(lookupAndChannelApplicationId.Item1.AppIdToChannel.Values, channels => {
+                        foreach (Channel channel in channels)
+                        {
+                            try
+                            {
+                                CrudRoomManager.RemoveWorld(channel.ApplicationId.ToString(), channel.Id.ToString());
+                            }
+                            catch
+                            {
+                                // Not Important
+                            }
+                        }
+                    }));
+
                     lookupAndChannelApplicationId.Item1.AppIdToChannel.Remove(lookupAndChannelApplicationId.Item2);
+                }
             }
             catch (Exception ex)
             {
@@ -2070,7 +2087,7 @@ namespace Horizon.MEDIUS.Medius
         {
             try
             {
-                Queue<(QuickLookup, int)> gamesToRemove = new Queue<(QuickLookup, int)>();
+                Queue<(QuickLookup, int)> gamesToRemove = new();
 
                 // Tick games
                 foreach (var quickLookup in _lookupsByAppId)

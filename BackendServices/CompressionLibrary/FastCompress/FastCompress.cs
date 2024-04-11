@@ -37,7 +37,7 @@ namespace BK.Util
             gzStream.Close();
         }
 
-        private void CompressStreamP(byte[] bytesToCompress, int length, int index, ref MemoryStream[] listOfMemStream, AutoResetEvent eventToSignal)
+        private void CompressStreamP(byte[] bytesToCompress, int length, int index, ref MemoryStream?[] listOfMemStream, AutoResetEvent eventToSignal)
         {
             eventToSignal.Set();
             MemoryStream stream = new();
@@ -68,10 +68,13 @@ namespace BK.Util
                 targetFileStream = new FileStream(targetFileName, FileMode.CreateNew);
         }
 
-        private byte[] GetBytesToStore(int length)
+        private byte[]? GetBytesToStore(int? length)
         {
+            if (length == null)
+                return null;
+
             return System.Text.Encoding.ASCII.GetBytes(Convert.ToBase64String(
-                BitConverter.GetBytes(System.Net.IPAddress.HostToNetworkOrder(length))));
+                BitConverter.GetBytes(System.Net.IPAddress.HostToNetworkOrder((int)length))));
         }
 
         private int GetLengthFromBytes(byte[] intToParse)
@@ -109,13 +112,16 @@ namespace BK.Util
             {
                 compressedStream = new MemoryStream();
                 CompressStream(bufferRead, read, ref compressedStream);
-                byte[] lengthToStore = GetBytesToStore((int)compressedStream.Length);
+                byte[]? lengthToStore = GetBytesToStore((int)compressedStream.Length);
 
-                targetStream.Write(lengthToStore, 0, lengthToStore.Length);
-                byte[] compressedBytes = compressedStream.ToArray();
-                compressedStream.Close();
-                compressedStream = null;
-                targetStream.Write(compressedBytes, 0, compressedBytes.Length);
+                if (lengthToStore != null)
+                {
+                    targetStream.Write(lengthToStore, 0, lengthToStore.Length);
+                    byte[] compressedBytes = compressedStream.ToArray();
+                    compressedStream.Close();
+                    compressedStream = null;
+                    targetStream.Write(compressedBytes, 0, compressedBytes.Length);
+                }
             }
         }
 
@@ -133,7 +139,7 @@ namespace BK.Util
 
         private void CompressParallel(Stream targetStream, FileStream sourceStream)
         {
-            MemoryStream[] listOfMemStream = new MemoryStream[(int)(sourceStream.Length / sliceBytes + 1)];
+            MemoryStream?[] listOfMemStream = new MemoryStream[(int)(sourceStream.Length / sliceBytes + 1)];
 
             byte[] bufferRead = new byte[sliceBytes];
 
@@ -162,13 +168,17 @@ namespace BK.Util
 
             for (taskCounter = 0; taskCounter < tasks.Length; taskCounter++)
             {
-                byte[] lengthToStore = GetBytesToStore((int)listOfMemStream[taskCounter].Length);
+                byte[]? lengthToStore = GetBytesToStore((int?)listOfMemStream[taskCounter]?.Length);
 
-                targetStream.Write(lengthToStore, 0, lengthToStore.Length);
-                byte[] compressedBytes = listOfMemStream[taskCounter].ToArray();
-                listOfMemStream[taskCounter].Close();
-                listOfMemStream[taskCounter] = null;
-                targetStream.Write(compressedBytes, 0, compressedBytes.Length);
+                if (lengthToStore != null)
+                {
+                    targetStream.Write(lengthToStore, 0, lengthToStore.Length);
+                    byte[]? compressedBytes = listOfMemStream[taskCounter]?.ToArray();
+                    listOfMemStream[taskCounter]?.Close();
+                    listOfMemStream[taskCounter] = null;
+                    if (compressedBytes != null)
+                        targetStream.Write(compressedBytes, 0, compressedBytes.Length);
+                }
             }
 
             sourceStream.Close();
@@ -201,7 +211,7 @@ namespace BK.Util
             return Environment.TickCount - begin;
         }
 
-        private void UnCompress(byte[] buffToUnCompress, ref byte[] unCompressedBuffer)
+        private void UnCompress(byte[] buffToUnCompress, ref byte[]? unCompressedBuffer)
         {
             MemoryStream cmpStream = new(buffToUnCompress);
 
@@ -256,7 +266,8 @@ namespace BK.Util
             {
                 byte[]? retVal = null;
                 UnCompress(buffToRead, ref retVal);
-                targetStream.Write(retVal, 0, retVal.Length);
+                if (retVal != null)
+                    targetStream.Write(retVal, 0, retVal.Length);
             }
         }
 
@@ -290,7 +301,8 @@ namespace BK.Util
                     {
                         byte[]? retVal = null;
                         UnCompress(buffRead, ref retVal);
-                        targetStream.Write(retVal, 0, retVal.Length);
+                        if (retVal != null)
+                            targetStream.Write(retVal, 0, retVal.Length);
                     }
                 }
 

@@ -3,13 +3,15 @@ using HttpMultipartParser;
 
 namespace WebUtils.NDREAMS.Aurora
 {
-    public class Mystery3
+    public static class Mystery3
     {
         public static string? ProcessMystery3(byte[]? PostData, string? ContentType, string fullurl, string apipath)
         {
             string key = string.Empty;
             string func = string.Empty;
             string name = string.Empty;
+            string resdata = string.Empty;
+            string finger = string.Empty;
             DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPUtils.ExtractBoundary(ContentType);
 
@@ -26,6 +28,15 @@ namespace WebUtils.NDREAMS.Aurora
                     key = data.GetParameterValue("key");
                     func = data.GetParameterValue("func");
                     name = data.GetParameterValue("name");
+                    try
+                    {
+                        resdata = data.GetParameterValue("data");
+                        finger = data.GetParameterValue("finger");
+                    }
+                    catch
+                    {
+                        // Not Important.
+                    }
 
                     ms.Flush();
                 }
@@ -53,18 +64,44 @@ namespace WebUtils.NDREAMS.Aurora
 
                 Directory.CreateDirectory(apipath + "/NDREAMS/Aurora/Mystery3");
 
+                string ExpectedHash = string.Empty;
                 string TimestampProfilePath = apipath + $"/NDREAMS/Aurora/Mystery3/{name}.txt";
 
                 switch (func)
                 {
                     case "get":
-                        if (File.Exists(TimestampProfilePath) && new FileInfo(TimestampProfilePath).CreationTime.Date == DateTime.Today)
+                        if (File.Exists(TimestampProfilePath))
                         {
                             string timestamp = File.ReadAllText(TimestampProfilePath);
                             return $"<xml><sig>{NDREAMSServerUtils.Server_GetSignature(fullurl, name, "collect", CurrentDate)}</sig><confirm>{NDREAMSServerUtils.Server_KeyToHash(key, CurrentDate, timestamp)}</confirm><timestamp>{timestamp}</timestamp><Turns>{turns}</Turns></xml>";
                         }
                         else
                             return $"<xml><sig>{NDREAMSServerUtils.Server_GetSignature(fullurl, name, "collect", CurrentDate)}</sig><confirm>{NDREAMSServerUtils.Server_KeyToHash(key, CurrentDate, "nil")}</confirm><timestamp>nil</timestamp><Turns>{turns}</Turns></xml>";
+                    case "giveExp":
+                        ExpectedHash = NDREAMSServerUtils.Server_GetSignature(fullurl, name, "collect" + resdata, CurrentDate);
+
+                        if (finger == ExpectedHash)
+                            return $"<xml><sig>{ExpectedHash}</sig><confirm>{NDREAMSServerUtils.Server_KeyToHash(key, CurrentDate, resdata)}</confirm></xml>";
+                        else
+                            CustomLogger.LoggerAccessor.LogWarn($"[nDreams] - Mystery3: invalid fingerprint sent! Received:{finger} Expected:{ExpectedHash}");
+
+                        break;
+                    case "set":
+                        ExpectedHash = NDREAMSServerUtils.Server_GetSignature(fullurl, name, "collect" + resdata, CurrentDate);
+
+                        if (finger == ExpectedHash)
+                        {
+                            if (resdata == "nil" && File.Exists(TimestampProfilePath))
+                                File.Delete(TimestampProfilePath);
+                            else
+                                File.WriteAllText(TimestampProfilePath, resdata);
+
+                            return $"<xml><sig>{ExpectedHash}</sig><confirm>{NDREAMSServerUtils.Server_KeyToHash(key, CurrentDate, resdata)}</confirm></xml>";
+                        }
+                        else
+                            CustomLogger.LoggerAccessor.LogWarn($"[nDreams] - Mystery3: invalid fingerprint sent! Received:{finger} Expected:{ExpectedHash}");
+
+                        break;
                 }
             }
 

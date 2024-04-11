@@ -245,7 +245,7 @@ namespace Horizon.MEDIUS.Medius
                                 else
                                     partyType = int.Parse(messageParts[3]);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 // Not Important.
                             }
@@ -598,7 +598,7 @@ namespace Horizon.MEDIUS.Medius
                                     // For Legacy Medius v1.50 clients that DO NOT 
                                     // send a ServerConnectNotificationConnect when creating a game
                                     if (data.ClientObject.MediusVersion < 109 && data.ClientObject.ApplicationId != 10394)
-                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey, game.WorldID.ToString());
+                                        await game.OnMediusJoinGameResponse(rClient?.SessionKey);
                                 }
                             }
                         }
@@ -785,7 +785,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             Game? conn = MediusClass.Manager.GetGameByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
-                                await conn.OnMediusServerConnectNotification(connectNotification, conn.WorldID.ToString());
+                                await conn.OnMediusServerConnectNotification(connectNotification);
                         }
                         else if (data.ClientObject != null)
                         {
@@ -947,7 +947,7 @@ namespace Horizon.MEDIUS.Medius
                 Message = new MediusServerCreateGameWithAttributesRequest()
                 {
                     MessageID = new MessageId($"{gameId}-{acctId}-{msgId}-{1}"),
-                    MediusWorldUID = (uint)gameId,
+                    WorldID = (uint)gameId,
                     Attributes = (MediusWorldAttributesType)gameAttributes,
                     ApplicationID = clientAppId,
                     MaxClients = gameMaxPlayers

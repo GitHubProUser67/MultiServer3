@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace WebUtils.NDREAMS.Aurora
 {
-    public class Teaser
+    public static class Teaser
     {
         public static string? ProcessBeans(byte[]? PostData, string? ContentType)
         {
@@ -29,25 +29,42 @@ namespace WebUtils.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string MockedDay = "4"; // UNK what it does.
+                string ExpectedHash = Xoff_VerifyKey(territory, day);
 
-                return $"<xml><hash>{Xoff_GetSignature(day, MockedDay)}</hash><success>true</success><result><day>{MockedDay}</day></result></xml>";
+                if (key == ExpectedHash)
+                {
+                    // Get the current day of the week
+                    int MockedDay = DateTime.Today.DayOfWeek switch
+                    {
+                        DayOfWeek.Monday => 5,
+                        DayOfWeek.Tuesday => 4,
+                        DayOfWeek.Wednesday => 3,
+                        DayOfWeek.Thursday => 2,
+                        DayOfWeek.Friday => 1,
+                        _ => 0,// Default to 5 for all other cases
+                    };
+
+                    return $"<xml><success>true</success><result><day>{MockedDay}</day><hash>{Xoff_GetSignature(int.Parse(day), MockedDay)}</hash></result></xml>";
+                }
+                else
+                {
+                    string errMsg = $"[nDreams] - Teaser: invalid key sent! Received:{key} Expected:{ExpectedHash}";
+                    CustomLogger.LoggerAccessor.LogWarn(errMsg);
+                    return $"<xml><success>false</success><error>Signature Mismatch</error><extra>{errMsg}</extra><function>ProcessBeans</function></xml>";
+                }
             }
 
             return null;
         }
 
-        public static string Xoff_VerifyKey(string playerregion, string salt)
+        public static string Xoff_VerifyKey(string playerregion, string day)
         {
-            return BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes("xoff" + playerregion + string.Empty + salt + "done!"))).Replace("-", string.Empty).ToLower();
+            return BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes("xoff" + playerregion + day + "done!"))).Replace("-", string.Empty).ToLower();
         }
 
-        public static string Xoff_GetSignature(string day, string resultday)
+        public static string Xoff_GetSignature(int day, int ResultDay)
         {
-            if (int.TryParse(day, out int parsedDay))
-                return BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes(string.Format("Yum!Salted{0}", (parsedDay + 3) * 1239 - parsedDay * 6 + parsedDay) + string.Empty + resultday))).Replace("-", string.Empty).ToLower();
-            else
-                return string.Empty;
+            return BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay))).Replace("-", string.Empty).ToLower();
         }
     }
 }

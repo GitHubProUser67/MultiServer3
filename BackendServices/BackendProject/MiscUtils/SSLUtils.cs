@@ -145,7 +145,8 @@ namespace BackendProject.MiscUtils
             "thebissos.com",
             "public-ubiservices.ubi.com",
 			"secure.cdevb.homeps3.online.scee.com",
-			"www.konami.com"
+			"www.konami.com",
+            "www.ndreamsportal.com"
         };
 
         /// <summary>
