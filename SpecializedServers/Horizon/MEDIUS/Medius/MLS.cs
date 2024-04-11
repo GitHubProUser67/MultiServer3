@@ -18,6 +18,7 @@ using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using Horizon.RT.Cryptography.RSA;
 using System.Text;
+using BackendProject.MiscUtils;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -741,7 +742,10 @@ namespace Horizon.MEDIUS.Medius
                         else
                             NpId = Convert.ToChar(rawNpId);
 
-                        var searchNpIdData = BitConverter.GetBytes(NpId);
+                        byte[]? searchNpIdData = BitConverter.GetBytes(NpId);
+
+                        if (!BitConverter.IsLittleEndian)
+                            Array.Reverse(searchNpIdData);
 
                         NpIdDTO NpIdnew = new NpIdDTO
                         {
@@ -757,7 +761,7 @@ namespace Horizon.MEDIUS.Medius
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.Count > 0)
                             {
 
-                                List<MediusNpIdsGetByAccountNamesResponse> responses = new List<MediusNpIdsGetByAccountNamesResponse>();
+                                List<MediusNpIdsGetByAccountNamesResponse> responses = new();
                                 foreach (var result in r.Result)
                                 {
 
@@ -6413,7 +6417,7 @@ namespace Horizon.MEDIUS.Medius
                             Queue(new RT_MSG_SERVER_MEMORY_POKE()
                             {
                                 start_Address = 0x009E6708,
-                                Payload = BitConverter.GetBytes(0x0000000A),
+                                Payload = BitConverter.IsLittleEndian ? BitConverter.GetBytes(0x0000000A) : BitConverter.GetBytes(EndianUtils.EndianSwap(0x0000000A)),
                                 SkipEncryption = true
                             }, clientChannel);
                         }

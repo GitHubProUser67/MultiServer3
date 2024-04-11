@@ -22,10 +22,26 @@ namespace Horizon.DME.Models
 
         private void RegisterWorld(uint WorldId)
         {
-            if (WorldId >= MAX_WORLDS || _idToWorld.Count() >= MAX_WORLDS)
+            if (_idToWorld.Count > MAX_WORLDS)
             {
                 LoggerAccessor.LogError("[DMEWorld] - Max worlds reached or requested WorldId higher than allowed value in DME config!");
                 return;
+            }
+
+            if (_idToWorld.Keys.Any())
+            {
+                uint PreviousWorldId = 0;
+
+                foreach (uint FoundWorldId in _idToWorld.Keys.OrderBy(k => k))
+                {
+                    if (FoundWorldId - PreviousWorldId > 1)
+                    {
+                        WorldId = PreviousWorldId + 1; // Assigning the next available ID after the gap
+                        break;
+                    }
+
+                    PreviousWorldId = FoundWorldId;
+                }
             }
 
             this.WorldId = WorldId;
@@ -76,7 +92,7 @@ namespace Horizon.DME.Models
 
         public bool ForceDestruct { get; protected set; } = false;
 
-        public bool Destroy => ((WorldTimer.Elapsed.TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) || SelfDestructFlag) && Clients.Count == 0;
+        public bool Destroy => ((WorldTimer.Elapsed.TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) || SelfDestructFlag) && Clients.IsEmpty;
 
         public bool Destroyed { get; protected set; } = false;
 
@@ -127,9 +143,7 @@ namespace Horizon.DME.Models
             for (int i = 0; i < MAX_CLIENTS_PER_WORLD; ++i)
             {
                 if (Clients.TryGetValue(i, out ClientObject? client))
-                {
                     tasks.Add(client.HandleIncomingMessages());
-                }
             }
 
             return Task.WhenAll(tasks);

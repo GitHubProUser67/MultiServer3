@@ -123,7 +123,8 @@ internal sealed class Inflate
 			return -2;
 		}
 		wbits = w;
-		z.istate.blocks = new InfBlocks(z, (z.istate.nowrap != 0) ? null : this, 1 << w);
+		if (z.istate != null)
+			z.istate.blocks = new InfBlocks(z, (z.istate.nowrap != 0) ? null : this, 1 << w);
 		inflateReset(z);
 		return 0;
 	}

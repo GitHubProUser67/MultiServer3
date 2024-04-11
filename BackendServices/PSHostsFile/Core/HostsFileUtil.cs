@@ -18,14 +18,12 @@ namespace PSHostsFile.Core
 
         static public HostsFileEntry GetHostsFileEntry(string line)
         {
-            var result = TryGetHostsFileEntry(line);
-
-            return result == null ? throw new InvalidDataException() : result;
+            return TryGetHostsFileEntry(line) ?? throw new InvalidDataException();
         }
 
         static public HostsFileEntry? TryGetHostsFileEntry(string line)
         {
-            var match = RegexHostsEntry.Match(line);
+            Match? match = RegexHostsEntry.Match(line);
 
             if (!match.Success)
                 return null;

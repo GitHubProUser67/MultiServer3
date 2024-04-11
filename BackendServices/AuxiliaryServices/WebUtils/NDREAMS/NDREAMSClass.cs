@@ -1,3 +1,4 @@
+using BackendProject.WEBAPIs.NDREAMS.Aurora;
 using CustomLogger;
 using WebUtils.NDREAMS.Aurora;
 using WebUtils.NDREAMS.Fubar;
@@ -32,12 +33,37 @@ namespace WebUtils.NDREAMS
                     {
                         case "/fubar/fisi.php":
                             return fisi.fisiProcess(PostData, ContentType);
-                        case "/aurora/visit.php":
-                            return visitClass.ProcessVisit(PostData, ContentType, apipath);
-                        case "/aurora/MysteryItems/mystery3.php":
-                            return Mystery3.ProcessMystery3(PostData, ContentType, fullurl, apipath);
                         case "/Teaser/beans.php":
                             return Teaser.ProcessBeans(PostData, ContentType);
+                        case "/aurora/visit.php":
+                            return visit.ProcessVisit(PostData, ContentType, apipath);
+                        case "/aurora/Blimp.php":
+                            return Blimp.ProcessBlimps(PostData, ContentType);
+                        case "/aurora/almanac.php":
+                        case "/aurora/almanacWeights.php":
+                            return Almanac.ProcessAlmanac(PostData, ContentType, fullurl, apipath);
+                        case "/aurora/MysteryItems/mystery3.php":
+                            return Mystery3.ProcessMystery3(PostData, ContentType, fullurl, apipath);
+                        case "/aurora/VisitCounter2.php":
+                            return AuroraDBManager.ProcessVisitCounter2(PostData, ContentType, apipath);
+                        case "/aurora/TheEnd.php":
+                            return AuroraDBManager.ProcessTheEnd(PostData, ContentType, apipath);
+                        case "/aurora/OrbrunnerScores.php":
+                            return AuroraDBManager.ProcessOrbrunnerScores(PostData, ContentType, apipath);
+                        case "/aurora/Consumables.php":
+                            return AuroraDBManager.ProcessConsumables(PostData, ContentType, apipath);
+                        case "/aurora/PStats.php":
+                            return AuroraDBManager.ProcessPStats(PostData, ContentType);
+                        case "/aurora/ReleaseInfo.php":
+                            return AuroraDBManager.ProcessReleaseInfo(PostData, ContentType, apipath);
+                        case "/aurora/AuroraXP.php":
+                            return AuroraDBManager.ProcessAuroraXP(PostData, ContentType, apipath);
+                        case "/aurora/VRSignUp.php":
+                            return VRSignUp.ProcessVRSignUp(PostData, ContentType, apipath);
+                        case "/gateway/":
+                            return "<xml></xml>"; // Not gonna emulate this encrypted mess.
+                        case "/thecomplex/ComplexABTest.php":
+                            return AuroraDBManager.ProcessComplexABTest(PostData, ContentType);
                         default:
                             LoggerAccessor.LogWarn($"[NDREAMS] - Unknown method: {absolutepath} was requested. Please report to GITHUB");
                             break;

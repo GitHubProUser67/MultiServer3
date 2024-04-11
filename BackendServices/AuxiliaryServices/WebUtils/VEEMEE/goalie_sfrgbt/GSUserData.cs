@@ -1,5 +1,6 @@
 using System.Xml;
 using BackendProject.MiscUtils;
+using WebUtils.LeaderboardsService.VEEMEE;
 
 namespace WebUtils.VEEMEE.goalie_sfrgbt
 {
@@ -48,8 +49,8 @@ namespace WebUtils.VEEMEE.goalie_sfrgbt
                     try
                     {
                         GSScoreBoardData.UpdateScoreBoard(psnid, duration, int.Parse(goals));
-                        GSScoreBoardData.UpdateAllTimeScoreboardXml(global, apiPath); // We finalized edit, so we issue a write.
-                        GSScoreBoardData.UpdateTodayScoreboardXml(global, DateTime.Now.ToString("yyyy_MM_dd"), apiPath); // We finalized edit, so we issue a write.
+                        GSScoreBoardData.UpdateAllTimeScoreboardXml(global); // We finalized edit, so we issue a write.
+                        GSScoreBoardData.UpdateTodayScoreboardXml(global, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {

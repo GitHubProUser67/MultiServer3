@@ -13,7 +13,6 @@ using WebUtils.VEEMEE;
 using BackendProject.WebTools;
 using CustomLogger;
 using HttpMultipartParser;
-using Newtonsoft.Json;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
@@ -50,17 +49,6 @@ namespace HTTPSecureServerLite
                 ctx.Response.StatusCode = 403;
                 await ctx.Response.Send();
             }
-        }
-
-        private static bool IsIPAllowed(string ipAddress)
-        {
-            if (HTTPSServerConfiguration.AllowedIPs != null && HTTPSServerConfiguration.AllowedIPs.Contains(ipAddress)
-                || ipAddress == "127.0.0.1" || ipAddress.ToLower() == "localhost"
-                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress().ToString().ToLower()
-                || ipAddress.ToLower() == VariousUtils.GetLocalIPAddress(true).ToString().ToLower())
-                return true;
-
-            return false;
         }
 
         public void StartServer()
@@ -165,6 +153,9 @@ namespace HTTPSecureServerLite
                 string? value = request.Headers[key];
                 LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Headers : HeaderIndex -> {key} | HeaderItem -> {value}");
             }
+
+            if (!string.IsNullOrEmpty(request.ContentType) && request.ContentType.ToLower().Contains("multipart/form-data"))
+                LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Multi-Part Body : Body -> {request.DataAsString}");
 #endif
 
             response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
@@ -399,7 +390,7 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region nDreams API
-                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".php")))
+                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com" || Host == "www.ndreamsportal.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith("/")))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
@@ -592,7 +583,7 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region CentralDispatchManager API
-                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                    else if (CAPONEDomains.Contains(Host))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
 
@@ -614,7 +605,7 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region CAPONE GriefReporter API
-                    else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                    else if (CAPONEDomains.Contains(Host))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
 
@@ -836,68 +827,6 @@ namespace HTTPSecureServerLite
                                         }
                                         sent = await response.Send(WebPlayer.HtmlPage);
                                         WebPlayer = null;
-                                        break;
-                                    case "/!DLNADiscovery/":
-                                        if (IsIPAllowed(clientip))
-                                        {
-                                            statusCode = HttpStatusCode.OK;
-                                            SSDP.Start(); // Start a service as this will take a long time
-                                            Thread.Sleep(14000); // Wait for each TV/Device to reply to the broadcast
-                                            SSDP.Stop(); // Stop the service if it has not stopped already
-                                            List<DlnaDeviceInfo> devices = new();
-                                            // 2 Threads only.
-                                            Parallel.ForEach(SSDP.Servers.Split(' '), new ParallelOptions { MaxDegreeOfParallelism = 2 }, url => {
-                                                string? xmlContent = FetchDLNARemote.FetchXmlContent(url);
-                                                if (!string.IsNullOrEmpty(xmlContent))
-                                                    devices.Add(FetchDLNARemote.ParseXml(xmlContent, url));
-                                            });
-                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                            response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                            response.StatusCode = (int)statusCode;
-                                            response.ContentType = "application/json;charset=UTF-8";
-                                            sent = await response.Send(JsonConvert.SerializeObject(devices, Formatting.Indented));
-                                        }
-                                        else
-                                        {
-                                            statusCode = HttpStatusCode.Forbidden;
-                                            response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/plain";
-                                            sent = await response.Send();
-                                        }
-                                        break;
-                                    case "/!DLNAPlay/":
-                                        if (IsIPAllowed(clientip))
-                                        {
-                                            string? src = request.RetrieveQueryValue("src");
-                                            string? dst = request.RetrieveQueryValue("dst");
-                                            response.ContentType = "text/plain";
-                                            if (!string.IsNullOrEmpty(src) && !string.IsNullOrEmpty(dst))
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-                                                response.StatusCode = (int)statusCode;
-                                                DLNADevice Device = new(src);
-                                                if (Device.IsConnected())
-                                                    sent = await response.Send($"DLNA Player returned {Device.TryToPlayFile(dst)}");
-                                                else
-                                                    sent = await response.Send("Failed to send to TV");
-                                            }
-                                            else
-                                            {
-                                                statusCode = HttpStatusCode.Forbidden;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
-                                        }
-                                        else
-                                        {
-                                            statusCode = HttpStatusCode.Forbidden;
-                                            response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/plain";
-                                            sent = await response.Send();
-                                        }
                                         break;
                                     default:
                                         if (Directory.Exists(filePath) && filePath.EndsWith("/"))
@@ -1202,27 +1131,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/MakeBarSdat/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(HTTPSServerConfiguration.ConvertersFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (makeres != null)
                                         {
-                                            var makeres = HomeToolsInterface.MakeBarSdat(HTTPSServerConfiguration.ConvertersFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (makeres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={makeres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(makeres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={makeres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(makeres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1231,27 +1150,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/UnBar/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? unbarres = await HomeToolsInterface.UnBar(HTTPSServerConfiguration.ConvertersFolder, new MemoryStream(request.DataAsBytes), request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder);
+                                        if (unbarres != null)
                                         {
-                                            var unbarres = await HomeToolsInterface.UnBar(HTTPSServerConfiguration.ConvertersFolder, new MemoryStream(request.DataAsBytes), request.ContentType, HTTPSServerConfiguration.HomeToolsHelperStaticFolder);
-                                            if (unbarres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={unbarres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(unbarres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={unbarres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(unbarres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1260,27 +1169,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/CDS/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? cdsres = HomeToolsInterface.CDS(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (cdsres != null)
                                         {
-                                            var cdsres = HomeToolsInterface.CDS(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (cdsres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(cdsres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(cdsres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1289,27 +1188,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/CDSBruteforce/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? cdsbruteres = HomeToolsInterface.CDSBruteforce(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (cdsbruteres != null)
                                         {
-                                            var cdsres = HomeToolsInterface.CDSBruteforce(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (cdsres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(cdsres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={cdsbruteres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(cdsbruteres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1318,27 +1207,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/HCDBUnpack/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? hcdbres = HomeToolsInterface.HCDBUnpack(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (hcdbres != null)
                                         {
-                                            var cdsres = HomeToolsInterface.HCDBUnpack(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (cdsres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(cdsres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={hcdbres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(hcdbres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1347,27 +1226,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/TicketList/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? ticketlistres = HomeToolsInterface.TicketList(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (ticketlistres != null)
                                         {
-                                            var ticketlistres = HomeToolsInterface.TicketList(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (ticketlistres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={ticketlistres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(ticketlistres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={ticketlistres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(ticketlistres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1376,27 +1245,17 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/INF/":
-                                        if (IsIPAllowed(clientip))
+                                        (byte[]?, string)? infres = HomeToolsInterface.INF(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (infres != null)
                                         {
-                                            var infres = HomeToolsInterface.INF(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (infres != null)
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.Headers.Add("Content-disposition", $"attachment; filename={infres.Value.Item2}");
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
-                                                sent = await response.Send(infres.Value.Item1);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.Headers.Add("Content-disposition", $"attachment; filename={infres.Value.Item2}");
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            sent = await response.Send(infres.Value.Item1);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1405,26 +1264,16 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/ChannelID/":
-                                        if (IsIPAllowed(clientip))
+                                        string? channelres = HomeToolsInterface.ChannelID(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (!string.IsNullOrEmpty(channelres))
                                         {
-                                            string? channelres = HomeToolsInterface.ChannelID(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (!string.IsNullOrEmpty(channelres))
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send(channelres);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = "text/plain";
+                                            sent = await response.Send(channelres);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;
@@ -1433,26 +1282,16 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "/!HomeTools/SceneID/":
-                                        if (IsIPAllowed(clientip))
+                                        string? sceneres = HomeToolsInterface.SceneID(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                        if (!string.IsNullOrEmpty(sceneres))
                                         {
-                                            string? sceneres = HomeToolsInterface.SceneID(new MemoryStream(request.DataAsBytes), request.ContentType);
-                                            if (!string.IsNullOrEmpty(sceneres))
-                                            {
-                                                statusCode = HttpStatusCode.OK;
-                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send(sceneres);
-                                            }
-                                            else // We are vague on the status code.
-                                            {
-                                                statusCode = HttpStatusCode.InternalServerError;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            statusCode = HttpStatusCode.OK;
+                                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                            response.StatusCode = (int)statusCode;
+                                            response.ContentType = "text/plain";
+                                            sent = await response.Send(sceneres);
                                         }
-                                        else // We are vague on the status code.
+                                        else
                                         {
                                             statusCode = HttpStatusCode.InternalServerError;
                                             response.StatusCode = (int)statusCode;

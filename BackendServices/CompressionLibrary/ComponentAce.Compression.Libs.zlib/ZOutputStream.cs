@@ -28,9 +28,9 @@ public class ZOutputStream : Stream
 		}
 	}
 
-	public virtual long TotalIn => z.total_in;
+	public virtual long TotalIn => z != null ? z.total_in : 0L;
 
-	public virtual long TotalOut => z.total_out;
+	public virtual long TotalOut => z != null ? z.total_out : 0L;
 
 	public override bool CanRead => false;
 
