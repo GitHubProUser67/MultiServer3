@@ -7,12 +7,12 @@ namespace WebUtils.PREMIUMAGENCY
 {
     public class Resource
     {
-        public static string? getResourcePOST(byte[] PostData, string ContentType, string workpath, string fulluripath)
+        public static string? getResourcePOST(byte[] PostData, string ContentType, string workpath, string fulluripath, string method)
         {
             string resKey = string.Empty;
             string resSeqNum = string.Empty;
 
-            if(ContentType != "multipart/form-data") {
+            if(method == "GET") {
                 resKey = HttpUtility.ParseQueryString(fulluripath).Get("key");
                 resSeqNum = HttpUtility.ParseQueryString(fulluripath).Get("seq");
             } else

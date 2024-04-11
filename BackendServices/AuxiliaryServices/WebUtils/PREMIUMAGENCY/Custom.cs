@@ -211,7 +211,7 @@ namespace WebUtils.PREMIUMAGENCY
 
         }
 
-        public static string getUserEventCustomRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string getUserEventCustomRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId, string method)
         {
             string nid = string.Empty;
 

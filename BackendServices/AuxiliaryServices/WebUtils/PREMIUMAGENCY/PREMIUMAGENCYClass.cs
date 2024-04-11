@@ -66,11 +66,11 @@ namespace WebUtils.PREMIUMAGENCY
                         case "/eventController/setUserEventCustom.do":
                             return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getUserEventCustom.do":
-                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid);
+                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid, method);
                         case "/eventController/getUserEventCustomList.do":
                             return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTable.do":
-                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath);
+                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/entryItemRankingPoints.do":
                             return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTargetList.do":
@@ -105,11 +105,11 @@ namespace WebUtils.PREMIUMAGENCY
                         case "/eventController/setUserEventCustom.do":
                             return Custom.setUserEventCustomPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getUserEventCustom.do":
-                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid);
+                            return Custom.getUserEventCustomRequestPOST(PostData, ContentType, workpath, evid, method);
                         case "/eventController/getUserEventCustomList.do":
                             return Custom.getUserEventCustomRequestListPOST(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTable.do":
-                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath);
+                            return Ranking.getItemRankingTableHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/entryItemRankingPoints.do":
                             return Ranking.entryItemRankingPointsHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getItemRankingTargetList.do":
