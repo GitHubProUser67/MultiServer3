@@ -88,16 +88,13 @@ namespace Horizon.HTTPSERVICE
                             else
                                 GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                         }
-
-                        if (WorldToRemoveUser.GameSessions?.Count == 0)
-                            RemoveWorld(appId, worldId);
                     }
                 }
             }
         }
 
         // Remove a world from a specific room based on the provided parameters
-        public static void RemoveWorld(string appId, string worldId)
+        public static void RemoveWorld(string appId, string? worldId)
         {
             lock (rooms)
             {
@@ -133,6 +130,10 @@ namespace Horizon.HTTPSERVICE
                             if (gameToRemove != null)
                                 worldToRemove.GameSessions?.RemoveAll(w => w.Name == gameName);
                         }
+
+
+                        if (worldToRemove?.GameSessions?.Count == 0)
+                            RemoveWorld(appId, worldId);
                     }
                 }
             }
