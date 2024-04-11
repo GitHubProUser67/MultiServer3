@@ -439,8 +439,6 @@ namespace Horizon.DME
                         {
                             if (createGameWithAttributesRequest.MessageID != null && createGameWithAttributesRequest.MessageID.Value.Contains('-'))
                             {
-                                bool offseted = false;
-                                int partyType = 0;
                                 uint gameOrPartyId = 0;
                                 int accountId = 0;
                                 string msgId = string.Empty;
@@ -449,7 +447,6 @@ namespace Horizon.DME
 
                                 if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                                 {
-                                    offseted = true;
                                     gameOrPartyId = uint.Parse(messageParts[0]);
                                     accountId = -int.Parse(messageParts[2]);
                                     msgId = messageParts[3];
@@ -463,27 +460,18 @@ namespace Horizon.DME
                                     break;
                                 }
 
-                                try
+                                if (createGameWithAttributesRequest.MessageID != null)
                                 {
-                                    if (offseted)
-                                        partyType = int.Parse(messageParts[4]);
-                                    else
-                                        partyType = int.Parse(messageParts[3]);
-                                }
-                                catch
-                                {
-                                    // Not Important.
-                                }
+                                    World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, gameOrPartyId);
+                                    _worlds.Add(world);
 
-                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, gameOrPartyId);
-                                _worlds.Add(world);
-
-                                Enqueue(new MediusServerCreateGameWithAttributesResponse()
-                                {
-                                    MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{partyType}"),
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                    WorldID = (int)createGameWithAttributesRequest.WorldID,
-                                });
+                                    Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                    {
+                                        MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{0}"),
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                        WorldID = (int)createGameWithAttributesRequest.WorldID,
+                                    });
+                                }
                             }
                         }
                         catch (Exception e)
