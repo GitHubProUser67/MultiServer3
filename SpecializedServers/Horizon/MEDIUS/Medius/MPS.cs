@@ -245,7 +245,7 @@ namespace Horizon.MEDIUS.Medius
                                 else
                                     partyType = int.Parse(messageParts[3]);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 // Not Important.
                             }
