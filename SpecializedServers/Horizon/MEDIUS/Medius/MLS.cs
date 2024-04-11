@@ -6737,7 +6737,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        var channel = data.ClientObject.CurrentChannel;
+                        Channel? channel = data.ClientObject.CurrentChannel;
                         if (channel == null)
                         {
                             data.ClientObject.Queue(new MediusGetLobbyPlayerNamesResponse()
@@ -6979,9 +6979,8 @@ namespace Horizon.MEDIUS.Medius
                         // Check in MUM pool to see if it contains the channel.
                         Channel? existingChannel = MumChannelHandler.GetRemoteChannelByName(channel, data.ClientObject.IP);
 
-                        if (existingChannel == null)
-                            // Check for channel with same name
-                            existingChannel = MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
+                        // Check for channel with same name
+                        existingChannel ??= MediusClass.Manager.GetChannelByChannelName(channel.Name, channel.ApplicationId);
 
                         if (existingChannel != null)
                         {

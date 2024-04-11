@@ -245,7 +245,7 @@ namespace Horizon.MEDIUS.Medius
                                 else
                                     partyType = int.Parse(messageParts[3]);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 // Not Important.
                             }
@@ -947,7 +947,7 @@ namespace Horizon.MEDIUS.Medius
                 Message = new MediusServerCreateGameWithAttributesRequest()
                 {
                     MessageID = new MessageId($"{gameId}-{acctId}-{msgId}-{1}"),
-                    MediusWorldUID = (uint)gameId,
+                    WorldID = (uint)gameId,
                     Attributes = (MediusWorldAttributesType)gameAttributes,
                     ApplicationID = clientAppId,
                     MaxClients = gameMaxPlayers

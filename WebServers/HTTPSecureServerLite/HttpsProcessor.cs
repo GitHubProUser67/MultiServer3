@@ -103,7 +103,6 @@ namespace HTTPSecureServerLite
             HttpResponseBase response = ctx.Response;
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             string fullurl = string.Empty;
-
             string absolutepath = string.Empty;
             string Host = request.RetrieveHeaderValue("Host");
             string clientip = request.Source.IpAddress;
@@ -490,15 +489,13 @@ namespace HTTPSecureServerLite
                     #region PREMIUMAGENCY API
                     else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
+                                                Host == "scej-home.playstation.net" ||
                                                 Host == "homeec.scej-nbs.jp" ||
-                                                Host == "homeecqa.scej-nbs.jp" ||
-                                                Host == "homect-scej.jp" ||
-                                                Host == "qa-homect-scej.jp")
-                                                && absolutepath.Contains("/eventController/"))
+                                                Host == "homeecqa.scej-nbs.jp") && request.ContentType.StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
-                        string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder, fullurl).ProcessRequest(request.DataAsBytes, request.ContentType);
+                        string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
                         if (string.IsNullOrEmpty(res))
                         {
                             response.ContentType = "text/plain";
@@ -583,7 +580,7 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region CentralDispatchManager API
-                    else if (HPDDomains.Contains(Host))
+                    else if (CAPONEDomains.Contains(Host))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
 
