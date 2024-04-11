@@ -130,10 +130,6 @@ namespace Horizon.HTTPSERVICE
                             if (gameToRemove != null)
                                 worldToRemove.GameSessions?.RemoveAll(w => w.Name == gameName);
                         }
-
-
-                        if (worldToRemove?.GameSessions?.Count == 0)
-                            RemoveWorld(appId, worldId);
                     }
                 }
             }

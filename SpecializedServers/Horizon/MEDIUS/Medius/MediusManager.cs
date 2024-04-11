@@ -545,7 +545,7 @@ namespace Horizon.MEDIUS.Medius
                         dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                            MediusWorldUID = (uint)game.MediusWorldId,
+                            WorldID = (uint)game.WorldID,
                             Attributes = game.Attributes,
                             ApplicationID = client.ApplicationId,
                             MaxClients = game.MaxPlayers
@@ -561,7 +561,7 @@ namespace Horizon.MEDIUS.Medius
                         dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                            MediusWorldUID = (uint)game.MediusWorldId,
+                            WorldID = (uint)game.WorldID,
                             Attributes = game.Attributes,
                             ApplicationID = client.ApplicationId,
                             MaxClients = game.MaxPlayers
@@ -641,7 +641,7 @@ namespace Horizon.MEDIUS.Medius
                     dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        MediusWorldUID = (uint)game.MediusWorldId,
+                        WorldID = (uint)game.WorldID,
                         Attributes = game.Attributes,
                         ApplicationID = client.ApplicationId,
                         MaxClients = game.MaxPlayers
@@ -795,7 +795,7 @@ namespace Horizon.MEDIUS.Medius
                         dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{matchCreateGameRequest.MessageID}-{0}"),
-                            MediusWorldUID = (uint)game.MediusWorldId,
+                            WorldID = (uint)game.WorldID,
                             Attributes = game.Attributes,
                             ApplicationID = client.ApplicationId,
                             MaxClients = game.MaxPlayers

@@ -437,17 +437,41 @@ namespace Horizon.DME
                     {
                         try
                         {
-                            if (createGameWithAttributesRequest.MessageID != null)
+                            if (createGameWithAttributesRequest.MessageID != null && createGameWithAttributesRequest.MessageID.Value.Contains('-'))
                             {
-                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, createGameWithAttributesRequest.MediusWorldUID);
-                                _worlds.Add(world);
+                                uint gameOrPartyId = 0;
+                                int accountId = 0;
+                                string msgId = string.Empty;
 
-                                Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                string[] messageParts = createGameWithAttributesRequest.MessageID.Value.Split('-');
+
+                                if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                                 {
-                                    MessageID = createGameWithAttributesRequest.MessageID,
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                    WorldID = (int)world.WorldId
-                                });
+                                    gameOrPartyId = uint.Parse(messageParts[0]);
+                                    accountId = -int.Parse(messageParts[2]);
+                                    msgId = messageParts[3];
+                                }
+                                else if (uint.TryParse(messageParts[0], out gameOrPartyId) &&
+                                    int.TryParse(messageParts[1], out accountId))
+                                    msgId = messageParts[2];
+                                else
+                                {
+                                    LoggerAccessor.LogWarn("[MPSClient] - MediusServerCreateGameWithAttributesRequest received an invalid MessageID, ignoring request...");
+                                    break;
+                                }
+
+                                if (createGameWithAttributesRequest.MessageID != null)
+                                {
+                                    World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, gameOrPartyId);
+                                    _worlds.Add(world);
+
+                                    Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                    {
+                                        MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{0}"),
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                        WorldID = (int)createGameWithAttributesRequest.WorldID,
+                                    });
+                                }
                             }
                         }
                         catch (Exception e)
