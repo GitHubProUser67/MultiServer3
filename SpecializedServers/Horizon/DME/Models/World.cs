@@ -28,22 +28,6 @@ namespace Horizon.DME.Models
                 return;
             }
 
-            if (_idToWorld.Keys.Any())
-            {
-                uint PreviousWorldId = 0;
-
-                foreach (uint FoundWorldId in _idToWorld.Keys.OrderBy(k => k))
-                {
-                    if (FoundWorldId - PreviousWorldId > 1)
-                    {
-                        WorldId = PreviousWorldId + 1; // Assigning the next available ID after the gap
-                        break;
-                    }
-
-                    PreviousWorldId = FoundWorldId;
-                }
-            }
-
             this.WorldId = WorldId;
 
             _idToWorld.TryAdd(WorldId, this);
