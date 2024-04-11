@@ -88,9 +88,6 @@ namespace Horizon.HTTPSERVICE
                             else
                                 GameToRemoveUser.Clients?.RemoveAll(p => p.Name == accountName);
                         }
-
-                        if (WorldToRemoveUser.GameSessions?.Count == 0)
-                            RemoveWorld(appId, worldId);
                     }
                 }
             }
@@ -133,6 +130,10 @@ namespace Horizon.HTTPSERVICE
                             if (gameToRemove != null)
                                 worldToRemove.GameSessions?.RemoveAll(w => w.Name == gameName);
                         }
+
+
+                        if (worldToRemove?.GameSessions?.Count == 0)
+                            RemoveWorld(appId, worldId);
                     }
                 }
             }
