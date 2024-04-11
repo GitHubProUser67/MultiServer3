@@ -177,7 +177,7 @@ namespace WebUtils.OHS
                 }
                 else
                 {
-                    LoggerAccessor.LogError($"[UserInventory] - File Not Found in this dir: {globalinvdatastring} \nSending Default!");
+                    LoggerAccessor.LogError($"[UserInventory] GetGlobalItems - File Not Found in this dir: {globalinvdatastring} \nSending Default!");
 
                 }
             }

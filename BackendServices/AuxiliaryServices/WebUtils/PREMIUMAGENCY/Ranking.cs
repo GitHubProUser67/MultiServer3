@@ -8,11 +8,11 @@ namespace WebUtils.PREMIUMAGENCY
 {
     public class Ranking
     {
-        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath)
+        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
-            if (ContentType != "multipart/form-data")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             }
@@ -32,7 +32,7 @@ namespace WebUtils.PREMIUMAGENCY
 
             if (nid == null || eventId == null)
             {
-                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                LoggerAccessor.LogError($"[PREMIUMAGENCY] - name id {nid} or eventid {eventId} is null, this shouldn't happen!!!");
                 return null;
             }
 
@@ -165,7 +165,7 @@ namespace WebUtils.PREMIUMAGENCY
 
             if (nid == null || eventId == null)
             {
-                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                LoggerAccessor.LogError($"[PREMIUMAGENCY] - name id {nid} or eventid {eventId} is null, this shouldn't happen!!!");
                 return null;
             }
 
