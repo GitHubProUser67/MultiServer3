@@ -666,7 +666,7 @@ namespace Horizon.MUM
             // Send end game
             DMEServer?.Queue(new MediusServerEndGameRequest()
             {
-                WorldID = WorldID,
+                MediusWorldID = MediusWorldId,
                 BrutalFlag = false
             });
 

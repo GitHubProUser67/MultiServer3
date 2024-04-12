@@ -204,7 +204,7 @@ namespace Horizon.MEDIUS.Medius
             return count;
         }
 
-        public Game? GetGameByWorldId(string dmeSessionKey, int WorldId)
+        public Game? GetGameByMediusWorldId(string dmeSessionKey, int MediusWorldId)
         {
             if (string.IsNullOrEmpty(dmeSessionKey))
                 return null;
@@ -213,7 +213,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 lock (lookupByAppId.Value.GameIdToGame)
                 {
-                    Game? game = lookupByAppId.Value.GameIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.WorldID == WorldId).Value;
+                    Game? game = lookupByAppId.Value.GameIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.MediusWorldId == MediusWorldId).Value;
                     if (game != null)
                         return game;
                 }
@@ -222,13 +222,13 @@ namespace Horizon.MEDIUS.Medius
             return null;
         }
 
-        public Party? GetPartyByWorldId(string dmeSessionKey, int WorldId)
+        public Party? GetPartyByMediusWorldId(string dmeSessionKey, int MediusWorldId)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
                 lock (lookupByAppId.Value.PartyIdToGame)
                 {
-                    Party? party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.WorldID == WorldId).Value;
+                    Party? party = lookupByAppId.Value.PartyIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.MediusWorldId == MediusWorldId).Value;
                     if (party != null)
                         return party;
                 }

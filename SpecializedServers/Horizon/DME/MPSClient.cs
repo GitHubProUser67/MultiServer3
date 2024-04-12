@@ -523,7 +523,7 @@ namespace Horizon.DME
                     }
                 case MediusServerEndGameRequest endGameRequest:
                     {
-                        _worlds.FirstOrDefault(x => x.WorldId == endGameRequest.WorldID)?.OnEndGameRequest(endGameRequest);
+                        _worlds.FirstOrDefault(x => x.WorldId == endGameRequest.MediusWorldID)?.OnEndGameRequest(endGameRequest);
 
                         break;
                     }
