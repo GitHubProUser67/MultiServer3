@@ -24,7 +24,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// World ID of the game to kill.
         /// </summary>
-        public int WorldID;
+        public int MediusWorldID;
         /// <summary>
         /// Boolean, to either Kill now, or allow the game to finish and then destroy the game world.
         /// </summary>
@@ -36,7 +36,7 @@ namespace Horizon.RT.Models
 
             MessageID = reader.Read<MessageId>();
             reader.ReadBytes(3);
-            WorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadInt32();
             BrutalFlag = reader.ReadBoolean();
             reader.ReadBytes(3);
         }
@@ -47,7 +47,7 @@ namespace Horizon.RT.Models
 
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(new byte[3]);
-            writer.Write(WorldID);
+            writer.Write(MediusWorldID);
             writer.Write(BrutalFlag);
             writer.Write(new byte[3]);
         }
@@ -56,7 +56,7 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
-                $"WorldID: {WorldID} " +
+                $"WorldID: {MediusWorldID} " +
                 $"BrutalFlag: {BrutalFlag}";
         }
     }

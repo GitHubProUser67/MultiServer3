@@ -206,13 +206,13 @@ namespace Horizon.MUIS
             return count;
         }
 
-        public Game? GetGameByDmeWorldId(string dmeSessionKey, int dmeWorldId)
+        public Game? GetGameById(string dmeSessionKey, int MediusWorldId)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
                 lock (lookupByAppId.Value.GameIdToGame)
                 {
-                    var game = lookupByAppId.Value.GameIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.DMEWorldId == dmeWorldId).Value;
+                    Game? game = lookupByAppId.Value.GameIdToGame.FirstOrDefault(x => x.Value?.DMEServer?.SessionKey == dmeSessionKey && x.Value?.MediusWorldId == MediusWorldId).Value;
                     if (game != null)
                         return game;
                 }
@@ -245,7 +245,7 @@ namespace Horizon.MUIS
                 {
                     lock (quickLookup.GameIdToGame)
                     {
-                        return quickLookup.GameIdToGame.FirstOrDefault(x => x.Value.Id == gameId && appIdsInGroup.Contains(x.Value.ApplicationId)).Value;
+                        return quickLookup.GameIdToGame.FirstOrDefault(x => x.Value.MediusWorldId == gameId && appIdsInGroup.Contains(x.Value.ApplicationId)).Value;
                     }
                 }
             }
@@ -287,7 +287,7 @@ namespace Horizon.MUIS
             if (!_lookupsByAppId.TryGetValue(game.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(game.ApplicationId, quickLookup = new QuickLookup());
 
-            quickLookup.GameIdToGame.Add(game.Id, game);
+            quickLookup.GameIdToGame.Add(game.MediusWorldId, game);
             await HorizonServerConfiguration.Database.CreateGame(game.ToGameDTO());
         }
 
