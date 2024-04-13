@@ -14,8 +14,9 @@ using Horizon.MUIS.Config;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using Horizon.MEDIUS;
-using BackendProject.MiscUtils;
+
 using System.Text;
+using CyberBackendLibrary.DataTypes;
 
 namespace Horizon.MUIS
 {
@@ -262,7 +263,7 @@ namespace Horizon.MUIS
 
                             if (QueryData != null)
                             {
-                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{(clientChannel.RemoteAddress as IPEndPoint)?.Address} Has Data:{VariousUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{(clientChannel.RemoteAddress as IPEndPoint)?.Address} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
                                 switch (data.ApplicationId)
                                 {

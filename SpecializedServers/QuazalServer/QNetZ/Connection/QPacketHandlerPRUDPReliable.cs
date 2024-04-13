@@ -218,9 +218,8 @@ namespace QuazalServer.QNetZ
 				Parallel.ForEach(cache.ResponseList, crp =>
 				{
 					byte[] payload = crp.Packet.toBuffer(AccessKey);
-                    if (NettyUDP != null)
-                        _ = NettyUDP.SendAsync(cache.Endpoint, payload);
-                    else if (UDP != null)
+
+                    if (UDP != null)
                         _ = UDP.SendAsync(payload, payload.Length, cache.Endpoint);
 
                     crp.ReSendCount++;

@@ -1,4 +1,4 @@
-﻿namespace DatabaseMiddleware.Models
+namespace DatabaseMiddleware.Models
 {
     public class MiddlewareUser
     {

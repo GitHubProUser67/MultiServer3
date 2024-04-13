@@ -1,3 +1,4 @@
+using HomeTools.Crypto;
 using System.Numerics;
 
 namespace HomeTools.UnBAR

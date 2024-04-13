@@ -1,11 +1,13 @@
-﻿using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.GeoLocalization;
+using CyberBackendLibrary.Crypto;
+using CyberBackendLibrary.DataTypes;
 using CustomLogger;
 using DatabaseMiddleware.Controllers.Horizon;
 using DatabaseMiddleware.Models;
 using Horizon.LIBRARY.Database.Models;
 using Newtonsoft.Json;
 using System.Net;
-using System.Security.Policy;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
@@ -38,7 +40,7 @@ namespace DatabaseMiddleware.HTTPEngine
             }
             else if (!string.IsNullOrEmpty(Token))
             {
-                MiddlewareUser? user = AuthenticationChannel.GetUserByToken(new string(WebCryptoUtils.Decrypt(Token, DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV)?.Where(c => !charsToRemove.Contains(c)).ToArray()));
+                MiddlewareUser? user = AuthenticationChannel.GetUserByToken(new string(WebCrypto.Decrypt(Token, DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV)?.Where(c => !charsToRemove.Contains(c)).ToArray()));
                 if (user != null)
                     ctx.Request.Headers.Add("MiddlewareRoles", JsonConvert.SerializeObject(user.Roles)); // I don't like this a lot, but it's still accetable.
             }
@@ -79,10 +81,10 @@ namespace DatabaseMiddleware.HTTPEngine
 
                                     if (req != null)
                                     {
-                                        if (!string.IsNullOrEmpty(req.Password) && VariousUtils.IsBase64String(req.Password))
+                                        if (!string.IsNullOrEmpty(req.Password) && DataTypesUtils.IsBase64String(req.Password))
                                         {
                                             char[] charsToRemove = { '\"' };
-                                            req.Password = new string(WebCryptoUtils.Decrypt(req.Password, DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV)?.Where(c => !charsToRemove.Contains(c)).ToArray());
+                                            req.Password = new string(WebCrypto.Decrypt(req.Password, DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV)?.Where(c => !charsToRemove.Contains(c)).ToArray());
                                         }
 
                                         if (!string.IsNullOrEmpty(req.Password) && !string.IsNullOrEmpty(req.AccountName))
@@ -105,9 +107,9 @@ namespace DatabaseMiddleware.HTTPEngine
                                         response.ChunkedTransfer = true;
                                         response.StatusCode = (int)HttpStatusCode.OK;
                                         response.ContentType = "application/json";
-                                        await response.SendFinalChunk(WebCryptoUtils.EncryptToByteArray(new AuthenticationResponse()
+                                        await response.SendFinalChunk(WebCrypto.EncryptToByteArray(new AuthenticationResponse()
                                         { AccountId = user.AccountId, AccountName = user.AccountName, Token = AuthToken, Roles = user.Roles }
-                                        , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                        , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
                                         return;
                                     }
                                     else
@@ -149,8 +151,8 @@ namespace DatabaseMiddleware.HTTPEngine
                                             response.ChunkedTransfer = true;
                                             response.StatusCode = (int)HttpStatusCode.OK;
                                             response.ContentType = "application/json";
-                                            await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
-                                            , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                            await response.SendFinalChunk(WebCrypto.EncryptNoPreserveToByteArray(Extractedclass
+                                            , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
                                             return;
                                         }
                                         else
@@ -241,8 +243,8 @@ namespace DatabaseMiddleware.HTTPEngine
                                     response.ChunkedTransfer = true;
                                     response.StatusCode = (int)HttpStatusCode.OK;
                                     response.ContentType = "application/json";
-                                    await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
-                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                    await response.SendFinalChunk(WebCrypto.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
                                     return;
                                 }
                                 else
@@ -369,8 +371,8 @@ namespace DatabaseMiddleware.HTTPEngine
                                     response.ChunkedTransfer = true;
                                     response.StatusCode = (int)HttpStatusCode.OK;
                                     response.ContentType = "application/json";
-                                    await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
-                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                    await response.SendFinalChunk(WebCrypto.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
                                     return;
                                 }
                                 else
@@ -441,8 +443,8 @@ namespace DatabaseMiddleware.HTTPEngine
                                     response.ChunkedTransfer = true;
                                     response.StatusCode = (int)HttpStatusCode.OK;
                                     response.ContentType = "application/json";
-                                    await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
-                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                    await response.SendFinalChunk(WebCrypto.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
                                     return;
                                 }
                                 else
@@ -513,8 +515,8 @@ namespace DatabaseMiddleware.HTTPEngine
                                     response.ChunkedTransfer = true;
                                     response.StatusCode = (int)HttpStatusCode.OK;
                                     response.ContentType = "application/json";
-                                    await response.SendFinalChunk(WebCryptoUtils.EncryptNoPreserveToByteArray(Extractedclass
-                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCryptoUtils.AuthIV));
+                                    await response.SendFinalChunk(WebCrypto.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
                                     return;
                                 }
                                 else
@@ -550,7 +552,7 @@ namespace DatabaseMiddleware.HTTPEngine
                                 if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                                 {
                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                    await ctx.Response.Send(HTTPUtils.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                    await ctx.Response.Send(HTTPProcessor.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
                                 }
                                 else
                                     await ctx.Response.Send(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));
@@ -580,8 +582,8 @@ namespace DatabaseMiddleware.HTTPEngine
             string clientip = ctx.Request.Source.IpAddress;
             string clientport = ctx.Request.Source.Port.ToString();
             string SuplementalMessage = string.Empty;
-            string? GeoCodeString = GeoIPUtils.GetGeoCodeFromIP(IPAddress.Parse(clientip));
-            string fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.RawWithQuery);
+            string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+            string fullurl = HTTPProcessor.DecodeUrl(ctx.Request.Url.RawWithQuery);
 
             if (!string.IsNullOrEmpty(GeoCodeString))
             {

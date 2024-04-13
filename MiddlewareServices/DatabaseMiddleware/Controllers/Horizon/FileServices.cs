@@ -1,4 +1,4 @@
-﻿using DatabaseMiddleware.SQLiteEngine;
+using DatabaseMiddleware.SQLiteEngine;
 using Horizon.LIBRARY.Database.Models;
 using Horizon.LIBRARY.Database.Entities;
 using FileAttributes = Horizon.LIBRARY.Database.Entities.FileAttributes;

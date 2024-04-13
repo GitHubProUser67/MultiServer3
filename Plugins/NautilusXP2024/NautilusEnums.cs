@@ -1,4 +1,4 @@
-﻿namespace NautilusXP2024
+namespace NautilusXP2024
 {
     public enum OverwriteBehavior
     {

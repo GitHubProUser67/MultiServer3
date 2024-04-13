@@ -1,4 +1,4 @@
-﻿using DatabaseMiddleware.SQLiteEngine;
+using DatabaseMiddleware.SQLiteEngine;
 using Horizon.LIBRARY.Database.Entities;
 using Horizon.LIBRARY.Database.Models;
 using System.Data.Entity;

@@ -1,4 +1,3 @@
-﻿using BackendProject.MiscUtils;
 using CustomLogger;
 using System.Diagnostics;
 
@@ -46,7 +45,7 @@ namespace HTTPServer.Extensions
             {
                 string? ConvertfileName = null;
                 
-                switch (VariousUtils.GetCPUArchitecture())
+                switch (GetCPUArchitecture())
                 {
                     case "x86_32":
                         ConvertfileName = $"{Directory.GetCurrentDirectory()}/static/converters/ImageMagick/convert32";
@@ -96,6 +95,17 @@ namespace HTTPServer.Extensions
             }
 
             return null;
+        }
+
+        private static string GetCPUArchitecture()
+        {
+            string? processorArchitecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+
+            if (!string.IsNullOrEmpty(processorArchitecture))
+                return processorArchitecture + ((processorArchitecture == "AMD64") ? string.Empty : (Environment.Is64BitProcess ? "_64" : "_32"));
+
+            // Unsupported architecture or unable to determine
+            return "Unknown";
         }
     }
 }

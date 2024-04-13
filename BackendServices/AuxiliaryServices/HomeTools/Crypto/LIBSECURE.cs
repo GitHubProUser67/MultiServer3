@@ -3,7 +3,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text;
-using BackendProject.MiscUtils;
+
+using EndianTools;
+using CyberBackendLibrary.DataTypes;
 
 namespace HomeTools.Crypto
 {
@@ -49,7 +51,7 @@ namespace HomeTools.Crypto
                     block = block[1..];
                     try
                     {
-                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
+                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
                             ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                     }
                     catch (Exception ex)
@@ -68,7 +70,7 @@ namespace HomeTools.Crypto
                     block = block[2..];
                     try
                     {
-                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
+                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
                             ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                     }
                     catch (Exception ex)
@@ -87,7 +89,7 @@ namespace HomeTools.Crypto
                     block = block[4..];
                     try
                     {
-                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
+                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
                             ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                     }
                     catch (Exception ex)
@@ -106,7 +108,7 @@ namespace HomeTools.Crypto
                     block = block[8..];
                     try
                     {
-                        CryptoBytes.Append(VariousUtils.ByteArrayToHexString(VariousUtils.HexStringToByteArray(
+                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
                             (Convert.ToUInt32(BlockIV, 16) ^ Convert.ToUInt32(CipherBlock, 16)).ToString("X8"))));
                     }
                     catch (Exception ex)

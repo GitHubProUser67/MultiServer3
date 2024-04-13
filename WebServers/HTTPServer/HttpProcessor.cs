@@ -1,13 +1,14 @@
 // Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
-using BackendProject.MiscUtils;
-using WebUtils;
-using WebUtils.OHS;
-using WebUtils.OUWF;
-using WebUtils.PREMIUMAGENCY;
-using WebUtils.VEEMEE;
-using WebUtils.JUGGERNAUT;
-using WebUtils.NDREAMS;
-using BackendProject.WebTools;
+
+using WebAPIService;
+using WebAPIService.OHS;
+using WebAPIService.OUWF;
+using WebAPIService.PREMIUMAGENCY;
+using WebAPIService.VEEMEE;
+using WebAPIService.JUGGERNAUT;
+using WebAPIService.NDREAMS;
+using CyberBackendLibrary.GeoLocalization;
+using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using HTTPServer.Extensions;
@@ -18,12 +19,15 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
-using WebUtils.LOOT;
+using WebAPIService.LOOT;
 using System.Buffers;
-using WebUtils.UBISOFT.HERMES_API;
-using WebUtils.FROMSOFTWARE;
-using WebUtils.CAPONE;
-using WebUtils.CDM;
+using WebAPIService.UBISOFT.HERMES_API;
+using WebAPIService.FROMSOFTWARE;
+using WebAPIService.CAPONE;
+using WebAPIService.CDM;
+using WebAPIService.MultiMedia;
+using System.Security.Cryptography;
+using CyberBackendLibrary.DataTypes;
 
 namespace HTTPServer
 {
@@ -90,7 +94,7 @@ namespace HTTPServer
                                 string Host = request.RetrieveHeaderValue("Host");
 
                                 string SuplementalMessage = string.Empty;
-                                string? GeoCodeString = GeoIPUtils.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+                                string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
 
                                 if (!string.IsNullOrEmpty(GeoCodeString))
                                 {
@@ -104,9 +108,7 @@ namespace HTTPServer
 
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {request.Url}");
 
-                                string absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(request.Url);
-                                string fulluripath = HTTPUtils.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + request.Url;
-
+                                string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url);
 
                                 if (HTTPServerConfiguration.RedirectRules != null)
                                 {
@@ -207,13 +209,6 @@ namespace HTTPServer
                                     "content-dev.gr.online.scea.com",
                                 };
 
-                                List<string> nDreamsDomains = new()
-                                {
-                                    "pshome.ndreams.net",
-                                    "www.ndreamshs.com",
-                                    "www.ndreamsportal.com"
-                                };
-
                                 if (response == null)
                                 {
                                     switch (Host)
@@ -221,16 +216,15 @@ namespace HTTPServer
                                         default:
 
                                             #region Outso OHS API
-                                            if ((Host == "stats.outso-srv1.com" 
-                                                || Host == "www.outso-srv1.com") &&
+                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 absolutepath.EndsWith("/") ||
                                                 absolutepath.Contains("/ohs_") ||
                                                 absolutepath.Contains("/ohs/") ||
                                                 absolutepath.Contains("/statistic/") ||
-                                                absolutepath.Contains("/tracker/" ))
+                                                absolutepath.Contains("/Konami/" ))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
                                                 string? res = null;
                                                 int version = 0;
@@ -260,12 +254,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Outso OUWF Debug API
-                                            else if (Host == "ouwf.outso-srv1.com" 
-                                                && request.GetDataStream != null 
-                                                && !string.IsNullOrEmpty(Method) 
-                                                && request.GetContentType().StartsWith("multipart/form-data"))
+                                            else if (Host == "ouwf.outso-srv1.com" && request.GetDataStream != null && !string.IsNullOrEmpty(Method) && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
 
                                                 string? res = null;
                                                 using (MemoryStream postdata = new())
@@ -282,12 +273,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region VEEMEE API
-                                            else if ((Host == "away.veemee.com"
-                                                || Host == "home.veemee.com") &&
-                                                !string.IsNullOrEmpty(Method) &&
-                                                absolutepath.EndsWith(".php"))
+                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && Method != null && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
 
                                                 if (request.GetDataStream != null)
                                                 {
@@ -324,12 +312,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region nDreams API
-                                            else if (nDreamsDomains.Contains(Host)
-                                                && !string.IsNullOrEmpty(Method) 
-                                                && absolutepath.EndsWith(".php") 
-                                                || absolutepath.Contains("/gateway/"))
+                                            else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com" || Host == "www.ndreamsportal.com") && !string.IsNullOrEmpty(Method) && (absolutepath.EndsWith(".php") || absolutepath.EndsWith("/")))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
                                                 NDREAMSClass ndreams = new(Method, $"http://{Host}{request.Url}", absolutepath, HTTPServerConfiguration.APIStaticFolder);
@@ -351,12 +336,10 @@ namespace HTTPServer
                                             }
                                             #endregion
 
-                                            #region Juggernaut Games API
-                                            else if (Host == "juggernaut-games.com" 
-                                                && !string.IsNullOrEmpty(Method) 
-                                                && absolutepath.EndsWith(".php"))
+                                            #region JUGGERNAUT API
+                                            else if (Host == "juggernaut-games.com" && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");
 
                                                 string? res = null;
                                                 JUGGERNAUTClass juggernaut = new(Method, absolutepath);
@@ -380,11 +363,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region LOOT API
-                                            else if ((Host == "server.lootgear.com" 
-                                                || Host == "alpha.lootgear.com") 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if ((Host == "server.lootgear.com" || Host == "alpha.lootgear.com") && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
 
                                                 string? res = null;
                                                 LOOTClass loot = new(Method, absolutepath);
@@ -408,21 +389,18 @@ namespace HTTPServer
                                             #region PREMIUMAGENCY API
                                             else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
+                                                Host == "scej-home.playstation.net" ||
                                                 Host == "homeec.scej-nbs.jp" ||
-                                                Host == "homeecqa.scej-nbs.jp" ||
-                                                Host == "homect-scej.jp" ||
-                                                Host == "qa-homect-scej.jp") 
-                                                && !string.IsNullOrEmpty(Method)
-                                                && absolutepath.Contains("/eventController/"))
+                                                Host == "homeecqa.scej-nbs.jp") && Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a PREMIUMAGENCY method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -435,7 +413,7 @@ namespace HTTPServer
                                             #region FROMSOFTWARE API
                                             else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
 
                                                 (byte[]?, string?, string[][]?) res = new();
                                                 if (request.GetDataStream != null)
@@ -453,11 +431,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Ubisoft API
-                                            else if (Host.Contains("api-ubiservices.ubi.com") 
-                                                && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
 
                                                 string Authorization = request.RetrieveHeaderValue("Authorization");
 
@@ -465,7 +441,7 @@ namespace HTTPServer
                                                 {
                                                     // TODO, verify ticket data for every platforms.
 
-                                                    if (Authorization.StartsWith("psn t=") && VariousUtils.IsBase64String(Authorization))
+                                                    if (Authorization.StartsWith("psn t=") && DataTypesUtils.IsBase64String(Authorization))
                                                     {
                                                         byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
 
@@ -482,7 +458,7 @@ namespace HTTPServer
                                                                 extractedData[i] = 0x48;
                                                         }
 
-                                                        if (VariousUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                                        if (DataTypesUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                                         else
                                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -497,7 +473,7 @@ namespace HTTPServer
                                                         using MemoryStream postdata = new();
                                                         request.GetDataStream.CopyTo(postdata);
                                                         (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
                                                             .ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                         postdata.Flush();
 
@@ -518,7 +494,7 @@ namespace HTTPServer
                                                     else
                                                     {
                                                         (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
                                                             .ProcessRequest(null, request.GetContentType());
 
                                                         if (string.IsNullOrEmpty(res.Item1))
@@ -542,10 +518,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CentralDispatchManager API
-                                            else if (HPDDomains.Contains(Host) 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if (HPDDomains.Contains(Host) && request.Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -563,10 +538,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CAPONE GriefReporter API
-                                            else if (CAPONEDomains.Contains(Host) 
-                                                && !string.IsNullOrEmpty(Method))
+                                            else if (CAPONEDomains.Contains(Host) && request.Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -592,24 +566,16 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
-
-                                                            #region PSN Network Test
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;
-                                                            #endregion
-
-                                                            #region Get Away Google
                                                             case "/robots.txt":
                                                                 response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
                                                                 break;
-                                                            #endregion
-
-                                                            #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
                                                                 // We want to check if the router allows external IPs first.
-                                                                string ServerIP = VariousUtils.GetPublicIPAddress(true);
+                                                                string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
                                                                 try
                                                                 {
                                                                     using TcpClient client = new(ServerIP, ListenerPort);
@@ -617,7 +583,7 @@ namespace HTTPServer
                                                                 }
                                                                 catch // Failed to connect to public ip, so we fallback to local IP.
                                                                 {
-                                                                    ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                                                                    ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
 
                                                                     try
                                                                     {
@@ -626,7 +592,7 @@ namespace HTTPServer
                                                                     }
                                                                     catch // Failed to connect to local ip, trying IPV4 only as a last resort.
                                                                     {
-                                                                        ServerIP = VariousUtils.GetLocalIPAddress(false).ToString();
+                                                                        ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
                                                                     }
                                                                 }
                                                                 if (ServerIP.Length > 15)
@@ -639,9 +605,6 @@ namespace HTTPServer
                                                                 response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
                                                                 WebPlayer = null;
                                                                 break;
-                                                            #endregion
-
-                                                            #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -684,8 +647,6 @@ namespace HTTPServer
                                                                         };
                                                                 }
                                                                 break;
-                                                            #endregion
-
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
@@ -693,7 +654,7 @@ namespace HTTPServer
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
@@ -710,14 +671,9 @@ namespace HTTPServer
                                                     case "POST":
                                                         switch (absolutepath)
                                                         {
-
-                                                            #region PSN Network Test
                                                             case "/networktest/post_128":
                                                                 response = HttpBuilder.OK();
                                                                 break;
-                                                            #endregion
-
-                                                            #region LibSecure HomeTools
                                                             case "/!HomeTools/MakeBarSdat/":
                                                                 (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
                                                                 if (makeres != null)
@@ -781,8 +737,6 @@ namespace HTTPServer
                                                                 else
                                                                     response = HttpBuilder.InternalServerError();
                                                                 break;
-                                                            #endregion
-
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
@@ -790,7 +744,7 @@ namespace HTTPServer
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
@@ -805,7 +759,7 @@ namespace HTTPServer
                                                             string ContentType = request.GetContentType();
                                                             if (request.GetDataStream != null && !string.IsNullOrEmpty(ContentType))
                                                             {
-                                                                string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+                                                                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                                                                 if (!string.IsNullOrEmpty(boundary))
                                                                 {
                                                                     string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{absolutepath[1..]}";
@@ -853,7 +807,6 @@ namespace HTTPServer
                                                     case "HEAD":
                                                         switch (absolutepath)
                                                         {
-                                                            #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -882,8 +835,6 @@ namespace HTTPServer
                                                                         response = HttpBuilder.MissingParameters();
                                                                 }
                                                                 break;
-                                                            #endregion
-
                                                             default:
                                                                 response = FileSystemRouteHandler.HandleHEAD(request, filePath);
                                                                 break;
@@ -897,7 +848,7 @@ namespace HTTPServer
                                                         if (File.Exists(filePath))
                                                         {
                                                             // We want to check if the router allows external IPs first.
-                                                            string ServerIP = VariousUtils.GetPublicIPAddress(true);
+                                                            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
                                                             try
                                                             {
                                                                 using TcpClient client = new(ServerIP, ListenerPort);
@@ -905,18 +856,18 @@ namespace HTTPServer
                                                             }
                                                             catch // Failed to connect, so we fallback to local IP.
                                                             {
-                                                                ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                                                                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
                                                             }
                                                             if (ServerIP.Length > 15)
                                                                 ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
 
-                                                            string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                                             if (ContentType == "application/octet-stream")
                                                             {
-                                                                byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
-                                                                foreach (var entry in HTTPUtils.PathernDictionary)
+                                                                byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                                foreach (var entry in HTTPProcessor.PathernDictionary)
                                                                 {
-                                                                    if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                    if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                                                     {
                                                                         ContentType = entry.Key;
                                                                         break;
@@ -1019,7 +970,7 @@ namespace HTTPServer
 
                     if (response.ContentStream != null) // Safety.
                     {
-                        string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
+                        string EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
                         if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
                         {
@@ -1048,7 +999,7 @@ namespace HTTPServer
                             string? encoding = null;
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
 
                             if (!response.Headers.ContainsKey("Content-Type"))
                                 response.Headers.Add("Content-Type", "text/plain");
@@ -1163,13 +1114,13 @@ namespace HTTPServer
                     using HugeMemoryStream ms = new();
                     int buffersize = HTTPServerConfiguration.BufferSize;
                     Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                     if (ContentType == "application/octet-stream")
                     {
-                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
-                        foreach (var entry in HTTPUtils.PathernDictionary)
+                        byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                        foreach (var entry in HTTPProcessor.PathernDictionary)
                         {
-                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -1224,7 +1175,7 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
                             {
                                 response.Headers.Add("Content-Encoding", "gzip");
-                                response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
+                                response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
                             }
                             else
                                 response.ContentAsUTF8 = payload;
@@ -1252,12 +1203,12 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
                             {
                                 response.Headers.Add("Content-Encoding", "gzip");
-                                response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                             }
                             else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
                             {
                                 response.Headers.Add("Content-Encoding", "deflate");
-                                response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                             }
                             else
                                 response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1299,7 +1250,7 @@ namespace HTTPServer
                     response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                    response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
@@ -1400,20 +1351,20 @@ namespace HTTPServer
                     if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = new MemoryStream(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload)));
+                        response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
                     }
                     else
                         response.ContentAsUTF8 = payload;
                 }
                 else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                 {
-                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                     if (ContentType == "application/octet-stream")
                     {
-                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
-                        foreach (var entry in HTTPUtils.PathernDictionary)
+                        byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                        foreach (var entry in HTTPProcessor.PathernDictionary)
                         {
-                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -1438,12 +1389,12 @@ namespace HTTPServer
                     if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPUtils.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
                     }
                     else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
                     {
                         response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPUtils.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
                     }
                     else
                         response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1453,12 +1404,12 @@ namespace HTTPServer
                     long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                     fs.Position = startByte;
 
-                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                     if (ContentType == "application/octet-stream")
                     {
-                        foreach (var entry in HTTPUtils.PathernDictionary)
+                        foreach (var entry in HTTPProcessor.PathernDictionary)
                         {
-                            if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
+                            if (DataTypesUtils.FindbyteSequence(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -1479,7 +1430,7 @@ namespace HTTPServer
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                    response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
@@ -1550,7 +1501,7 @@ namespace HTTPServer
 
                     if (response.ContentStream != null) // Safety.
                     {
-                        string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
+                        string EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
                         if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
@@ -1572,7 +1523,7 @@ namespace HTTPServer
                             string? encoding = null;
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
@@ -1738,7 +1689,7 @@ namespace HTTPServer
             HttpRequest req = new()
             {
                 Method = tokens[0].ToUpper(),
-                Url = HTTPUtils.DecodeUrl(tokens[1]),
+                Url = HTTPProcessor.DecodeUrl(tokens[1]),
                 Headers = headers,
                 Data = null,
                 IP = clientip,
@@ -1769,6 +1720,30 @@ namespace HTTPServer
             }
 
             return req;
+        }
+
+        /// <summary>
+        /// Compute the MD5 checksum of a stream.
+        /// <para>Calcul la somme des contr�les en MD5 d'un stream.</para>
+        /// </summary>
+        /// <param name="input">The input stream (must be seekable).</param>
+        /// <returns>A string.</returns>
+        private static string ComputeStreamMD5(Stream input)
+        {
+            if (!input.CanSeek)
+                return string.Empty;
+
+            // ComputeHash - returns byte array  
+            byte[] bytes = MD5.Create().ComputeHash(input);
+
+            input.Position = 0;
+
+            // Convert byte array to a string   
+            StringBuilder builder = new();
+            for (int i = 0; i < bytes.Length; i++)
+                builder.Append(bytes[i].ToString("x2"));
+
+            return builder.ToString();
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex("Match (\\d+) (.*) (.*)$")]

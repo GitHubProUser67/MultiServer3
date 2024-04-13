@@ -1,12 +1,14 @@
 using CustomLogger;
 using HomeTools.BARFramework;
 using HomeTools.Crypto;
-using BackendProject.MiscUtils;
-using BackendProject.CryptoUtils;
-using WebUtils.CDS;
 using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
+using EndianTools;
+using System.Runtime.Intrinsics.X86;
+using System.Runtime.Intrinsics;
+using CyberBackendLibrary.Crypto;
+using CyberBackendLibrary.DataTypes;
 
 namespace HomeTools.UnBAR
 {
@@ -86,9 +88,9 @@ namespace HomeTools.UnBAR
                 {
                     RawBarData = await File.ReadAllBytesAsync(filePath);
 
-                    if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
+                    if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
                         isSharc = true;
-                    else if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
+                    else if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
                     {
                         isSharc = true;
                         isLittleEndian = true;
@@ -115,7 +117,7 @@ namespace HomeTools.UnBAR
 
                                 if (SharcHeader == Array.Empty<byte>())
                                     return; // Sharc Header failed to decrypt.
-                                else if (!VariousUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
                                     options = ToolsImpl.base64CDNKey1;
 
@@ -126,7 +128,7 @@ namespace HomeTools.UnBAR
 
                                     if (SharcHeader == Array.Empty<byte>())
                                         return; // Sharc Header failed to decrypt.
-                                    else if (!VariousUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                    else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
                                         options = ToolsImpl.base64CDNKey2;
 
@@ -137,7 +139,7 @@ namespace HomeTools.UnBAR
 
                                         if (SharcHeader == Array.Empty<byte>())
                                             return; // Sharc Header failed to decrypt.
-                                        else if (!VariousUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                        else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                             return; // All keys failed to decrypt.
                                     }
                                 }
@@ -176,7 +178,7 @@ namespace HomeTools.UnBAR
 
                                         if (isLittleEndian)
                                         {
-                                            FileBytes = VariousUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
+                                            FileBytes = DataTypesUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -186,7 +188,7 @@ namespace HomeTools.UnBAR
                                         }
                                         else
                                         {
-                                            FileBytes = VariousUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                            FileBytes = DataTypesUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -213,11 +215,11 @@ namespace HomeTools.UnBAR
                     }
                     else
                     {
-                        if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
+                        if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
                         {
 
                         }
-                        else if (VariousUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
+                        else if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
                             isLittleEndian = true;
                         else
                             return; // File not a BAR.
@@ -320,7 +322,7 @@ namespace HomeTools.UnBAR
                     if (tableOfContent.Compression == CompressionMethod.Encrypted && 
                         ((data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01) || (data[0] == 0x01 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)))
                     {
-                        int dataStart = VariousUtils.FindDataPositionInBinary(RawBarData, data);
+                        int dataStart = FindDataPositionInBinary(RawBarData, data);
 
                         if (dataStart != -1)
                         {
@@ -349,7 +351,7 @@ namespace HomeTools.UnBAR
 
                             if (DecryptedSignatureHeader != null)
                             {
-                                string SignatureHeaderHexString = VariousUtils.ByteArrayToHexString(DecryptedSignatureHeader);
+                                string SignatureHeaderHexString = DataTypesUtils.ByteArrayToHexString(DecryptedSignatureHeader);
 #if DEBUG
                                 LoggerAccessor.LogInfo($"SignatureHeader - {SignatureHeaderHexString}");
 #endif
@@ -463,8 +465,8 @@ namespace HomeTools.UnBAR
             {
 #if DEBUG
                 LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                LoggerAccessor.LogInfo($"Key - {VariousUtils.ByteArrayToHexString(Key)}");
-                LoggerAccessor.LogInfo($"IV - {VariousUtils.ByteArrayToHexString(tableOfContent.IV)}");
+                LoggerAccessor.LogInfo($"Key - {DataTypesUtils.ByteArrayToHexString(Key)}");
+                LoggerAccessor.LogInfo($"IV - {DataTypesUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
                 byte[]? FileBytes = toolsImpl.ProcessLibsecureXTEABlocks(data, Key, tableOfContent.IV);
@@ -556,5 +558,39 @@ namespace HomeTools.UnBAR
             tableOfContent = null;
             toolsImpl = null;
         }
+
+
+        /// <summary>
+        /// Finds a matching byte array within an other byte array.
+        /// <para>Trouve un tableau de bytes correspondant dans un autre tableau de bytes.</para>
+        /// </summary>
+        /// <param name="data1">The data to search for.</param>
+        /// <param name="data2">The data to search into for the data1.</param>
+        /// <returns>A int (-1 if not found).</returns>
+        private static int FindDataPositionInBinary(byte[]? data1, byte[] data2)
+        {
+            if (data1 == null)
+                return -1;
+
+            for (int i = 0; i < data1.Length - data2.Length + 1; i++)
+            {
+                bool found = true;
+                for (int j = 0; j < data2.Length; j++)
+                {
+                    if (data1[i + j] != data2[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                    return i;
+            }
+
+            return -1; // Data2 not found in Data1
+        }
+
+        
     }
 }

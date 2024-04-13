@@ -1,6 +1,7 @@
 using System.Numerics;
+using CyberBackendLibrary.DataTypes;
 using HomeTools.Crypto;
-using BackendProject.MiscUtils;
+
 
 namespace HomeTools.UnBAR
 {
@@ -498,7 +499,7 @@ namespace HomeTools.UnBAR
                 }
                 AppLoader appLoader = new();
                 byte[] numArray5 = npd.getVersion() <= 1L ? new byte[16] : npd.getDigest();
-                if (npd.getVersion() > 1L && VariousUtils.AreArraysIdentical(numArray5, new byte[16]))
+                if (npd.getVersion() > 1L && DataTypesUtils.AreArraysIdentical(numArray5, new byte[16]))
                     // Unsure about this, but a SDATv2 or higher with empty IV is not documented.
                     // So we assume that we need to disable the cryptography when it's the case.
                     num8 = 1;

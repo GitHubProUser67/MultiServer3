@@ -1,15 +1,12 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-using BackendProject.MiscUtils;
+
 
 public static class MultiSocksServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
+    public static string ServerBindAddress { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
     public static string DirtySocksDatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
-    public static bool EnableDiscordPlugin { get; set; } = true;
-    public static string DiscordBotToken { get; set; } = string.Empty;
-    public static string DiscordChannelID { get; set; } = string.Empty;
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -29,12 +26,7 @@ public static class MultiSocksServerConfiguration
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
                 new JProperty("server_bind_address", ServerBindAddress),
-                new JProperty("database", DirtySocksDatabaseConfig),
-                new JProperty("discord_bot_token", DiscordBotToken),
-                new JProperty("discord_channel_id", DiscordChannelID),
-                new JProperty("discord_plugin", new JObject(
-                    new JProperty("enabled", EnableDiscordPlugin)
-                ))
+                new JProperty("database", DirtySocksDatabaseConfig)
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -47,9 +39,6 @@ public static class MultiSocksServerConfiguration
 
             ServerBindAddress = config.server_bind_address;
             DirtySocksDatabaseConfig = config.database;
-            DiscordBotToken = config.discord_bot_token;
-            DiscordChannelID = config.discord_channel_id;
-            EnableDiscordPlugin = config.discord_plugin.enabled;
         }
         catch (Exception)
         {
@@ -76,22 +65,21 @@ class Program
 
     static void Main()
     {
-        if (!VariousUtils.IsWindows())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("MultiSocks");
 
         MultiSocksServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/MultiSocks.json");
 
-        if (MultiSocksServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(MultiSocksServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(MultiSocksServerConfiguration.DiscordBotToken))
-            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(MultiSocksServerConfiguration.DiscordChannelID, MultiSocksServerConfiguration.DiscordBotToken);
-
         _ = Task.Run(() => Parallel.Invoke(
                     () => _ = new MultiSocks.DirtySocks.DirtySocksServer().Run(new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

@@ -2,8 +2,7 @@ using CustomLogger;
 using System.Net;
 using System.Text;
 using System.Net.Sockets;
-using BackendProject.MiscUtils;
-using BackendProject.DotNetty.Extensions.UdpSocket;
+using CyberBackendLibrary.DataTypes;
 
 namespace QuazalServer.QNetZ
 {
@@ -19,18 +18,7 @@ namespace QuazalServer.QNetZ
 			this.BackendPort = BackendPort;
         }
 
-        public QPacketHandlerPRUDP(UdpSocket udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
-        {
-            NettyUDP = udp;
-            SourceName = sourceName;
-            this.AccessKey = AccessKey;
-            PID = pid;
-            Port = port;
-            this.BackendPort = BackendPort;
-        }
-
         private readonly UdpClient? UDP;
-        private readonly UdpSocket? NettyUDP;
 
         public string SourceName;
 		public string AccessKey;
@@ -159,13 +147,11 @@ namespace QuazalServer.QNetZ
 			// bufferize in queue then send, that's how Quazal does it
 			if (!CacheResponse(reqPacket, sendPacket, ep))
 			{
-				if (NettyUDP != null)
-                    _ = NettyUDP.SendAsync(ep, data);
-				else if (UDP != null)
+                if (UDP != null)
                     _ = UDP.SendAsync(data, data.Length, ep);
             }
 
-            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {VariousUtils.ByteArrayToHexString(data)}");
+            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {DataTypesUtils.ByteArrayToHexString(data)}");
 		}
 
         public QPacket MakeACK(QPacket p, QClient client)
@@ -185,9 +171,7 @@ namespace QuazalServer.QNetZ
 		public void SendACK(QPacket p, QClient client)
 		{
 			byte[] payload = MakeACK(p, client).toBuffer(AccessKey);
-            if (NettyUDP != null)
-                _ = NettyUDP.SendAsync(client.Endpoint, payload);
-            else if (UDP != null)
+            if (UDP != null)
                 _ = UDP.SendAsync(payload, payload.Length, client.Endpoint);
         }
 
@@ -256,7 +240,7 @@ namespace QuazalServer.QNetZ
                     foreach (byte b in data)
                         sb.Append(b.ToString("X2") + " ");
 
-                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{VariousUtils.ByteArrayToHexString(buff)}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{DataTypesUtils.ByteArrayToHexString(buff)}");
 
                     LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
                     LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
@@ -320,7 +304,7 @@ namespace QuazalServer.QNetZ
 								{
 									case "ex5LYTJ0":
 										if (packetIn.payload != null)
-											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {VariousUtils.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
+											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {DataTypesUtils.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
 										else
                                             LoggerAccessor.LogWarn($"[QPakcetHandler] - Client requested a HERMES packet with no data!");
                                         break;

@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonUtils\HorizonUtils.csproj" />
+    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonService\HorizonService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

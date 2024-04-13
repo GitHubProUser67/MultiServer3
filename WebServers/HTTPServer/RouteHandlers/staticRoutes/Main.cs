@@ -1,10 +1,8 @@
-using BackendProject.MiscUtils;
-using BackendProject.SSDP_DLNA;
-using WebUtils.THQ;
+
+using WebAPIService.THQ;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
-using Newtonsoft.Json;
-using System.Text;
+using CyberBackendLibrary.HTTP;
 using HttpStatusCode = HTTPServer.Models.HttpStatusCode;
 
 namespace HTTPServer.RouteHandlers.staticRoutes
@@ -18,7 +16,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = string.Empty,
                     Callable = (HttpRequest request) => {
-                        foreach (string indexFile in HTTPUtils.DefaultDocuments)
+                        foreach (string indexFile in HTTPProcessor.DefaultDocuments)
                         {
                             if (File.Exists(HTTPServerConfiguration.HTTPStaticFolder + indexFile))
                             {
@@ -28,7 +26,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                 {
                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(HTTPServerConfiguration.HTTPStaticFolder + indexFile, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request.IP, request.Port, request);
                                     if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                        return HttpResponse.Send(HTTPUtils.Compress(CollectPHP.Item1), "text/html", VariousUtils.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") }));
+                                        return HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") }));
                                     else
                                         return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                 }
@@ -49,7 +47,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
 
                                             stream.Flush();
 
-                                            return HttpResponse.Send(HTTPUtils.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") } });
+                                            return HttpResponse.Send(HTTPProcessor.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + indexFile).ToString("r") } });
                                         }
                                     }
                                     else
@@ -84,7 +82,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = "onlineconfigservice.ubi.com",
                     Callable = (HttpRequest request) => {
-                        return HttpResponse.Send(WebUtils.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters?["onlineConfigID"]), "application/json; charset=utf-8");
+                        return HttpResponse.Send(WebAPIService.UBISOFT.OnlineConfigService.JsonData.GetOnlineConfigPSN(request.QueryParameters?["onlineConfigID"]), "application/json; charset=utf-8");
                      }
                 },
                 new() {
@@ -113,7 +111,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                                 {
                                                     case "en":
                                                         if (format == "xml")
-                                                            return HttpResponse.Send(WebUtils.UBISOFT.MatchMakingConfig.XMLData.DFSPS3NTSCENXMLPayload, "text/html; charset=utf-8"); // Not an error, packet shows this content type...
+                                                            return HttpResponse.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.DFSPS3NTSCENXMLPayload, "text/html; charset=utf-8"); // Not an error, packet shows this content type...
                                                         break;
                                                 }
                                                 break;
@@ -138,7 +136,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Callable = (HttpRequest request) => {
                         if (request.GetDataStream != null)
                         {
-                            string? UFCResult = THQ.ProcessUFCUserData(request.GetDataStream, HTTPUtils.ExtractBoundary(request.GetContentType()), HTTPServerConfiguration.APIStaticFolder);
+                            string? UFCResult = THQ.ProcessUFCUserData(request.GetDataStream, HTTPProcessor.ExtractBoundary(request.GetContentType()), HTTPServerConfiguration.APIStaticFolder);
                             if (!string.IsNullOrEmpty(UFCResult))
                                 return HttpResponse.Send(UFCResult, "text/xml");
                         }

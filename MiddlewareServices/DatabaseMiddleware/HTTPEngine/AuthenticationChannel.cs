@@ -1,4 +1,4 @@
-﻿using DatabaseMiddleware.Models;
+using DatabaseMiddleware.Models;
 using Newtonsoft.Json;
 
 namespace DatabaseMiddleware.HTTPEngine

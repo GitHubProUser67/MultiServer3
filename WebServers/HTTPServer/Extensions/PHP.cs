@@ -1,4 +1,5 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
+
 using HTTPServer.Models;
 using System.Diagnostics;
 using System.Net.Sockets;
@@ -11,7 +12,7 @@ namespace HTTPServer.Extensions
         public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, string ip, string? port, HttpRequest request)
         {
             // We want to check if the router allows external IPs first.
-            string ServerIP = VariousUtils.GetPublicIPAddress(true);
+            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
             try
             {
                 using TcpClient client = new(ServerIP, request.ServerPort);
@@ -19,7 +20,7 @@ namespace HTTPServer.Extensions
             }
             catch // Failed to connect, so we fallback to local IP.
             {
-                ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
             }
 
             if (!string.IsNullOrEmpty(request.Url) && !string.IsNullOrEmpty(port))
@@ -119,7 +120,7 @@ namespace HTTPServer.Extensions
                         if (memoryStream.Length == 0)
                         {
                             using StreamReader errorReader = proc.StandardError;
-                            memoryStream.Write(HTTPUtils.RemoveUnwantedPHPHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
+                            memoryStream.Write(HTTPProcessor.RemoveUnwantedPHPHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
                         }
 
                         // Process Set-Cookie headers
@@ -149,7 +150,7 @@ namespace HTTPServer.Extensions
                         }
 
                         // Get the final byte array
-                        returndata = HTTPUtils.RemoveUnwantedPHPHeaders(memoryStream.ToArray());
+                        returndata = HTTPProcessor.RemoveUnwantedPHPHeaders(memoryStream.ToArray());
 
                         reader.Close();
                     }
