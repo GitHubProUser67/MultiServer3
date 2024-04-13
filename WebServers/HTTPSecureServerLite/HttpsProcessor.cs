@@ -583,7 +583,7 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region CentralDispatchManager API
-                    else if (CAPONEDomains.Contains(Host))
+                    else if (HPDDomains.Contains(Host))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
 

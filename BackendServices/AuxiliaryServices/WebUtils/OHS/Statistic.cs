@@ -121,7 +121,7 @@ namespace WebUtils.OHS
                     }
                     catch (Exception ex)
                     {
-                        LoggerAccessor.LogWarn($"[OHS] : Client issued Heatmap Tracker with an unknown body format, report this to GITHUB: {ex}");
+                        LoggerAccessor.LogWarn($"[OHS] : Client issued Points Tracker with an unknown body format, report this to GITHUB: {ex}");
                     }
 
                     ms.Flush();
@@ -130,7 +130,7 @@ namespace WebUtils.OHS
 
             if (!string.IsNullOrEmpty(dataforohs))
             {
-                LoggerAccessor.LogInfo($"[OHS] : Client issued Heatmap Tracker - {dataforohs}");
+                LoggerAccessor.LogInfo($"[OHS] : Client issued Points Tracker - {dataforohs}");
                 return JaminProcessor.JaminFormat("{ [\"status\"] = \"success\" }", 0);
             }
             else
