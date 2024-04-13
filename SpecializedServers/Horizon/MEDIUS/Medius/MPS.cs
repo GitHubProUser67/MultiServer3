@@ -245,7 +245,7 @@ namespace Horizon.MEDIUS.Medius
                                 else
                                     partyType = int.Parse(messageParts[3]);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 // Not Important.
                             }
@@ -781,15 +781,15 @@ namespace Horizon.MEDIUS.Medius
                     {
                         LoggerAccessor.LogInfo("MediusServerConnectNotification Received");
                         //LoggerAccessor.LogWarn($"sessionkey {(data.ClientObject as DMEObject).SessionKey} worldid {(int)connectNotification.MediusWorldUID}");
-                        if (data.ClientObject != null && MediusClass.Manager.GetGameByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
+                        if (data.ClientObject != null && MediusClass.Manager.GetGameByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
                         {
-                            Game? conn = MediusClass.Manager.GetGameByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
+                            Game? conn = MediusClass.Manager.GetGameByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
                                 await conn.OnMediusServerConnectNotification(connectNotification);
                         }
                         else if (data.ClientObject != null)
                         {
-                            Party? conn = MediusClass.Manager.GetPartyByWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
+                            Party? conn = MediusClass.Manager.GetPartyByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
                                 await conn.OnMediusServerConnectNotification(connectNotification);
                         }
@@ -818,7 +818,7 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerEndGameRequest
                 case MediusServerEndGameRequest endGameRequest:
                     {
-                        var game = MediusClass.Manager.GetGameByGameId(endGameRequest.WorldID);
+                        var game = MediusClass.Manager.GetGameByGameId(endGameRequest.MediusWorldID);
 
                         if (game != null && endGameRequest.BrutalFlag == true && data.ClientObject != null)
                         {
@@ -947,7 +947,7 @@ namespace Horizon.MEDIUS.Medius
                 Message = new MediusServerCreateGameWithAttributesRequest()
                 {
                     MessageID = new MessageId($"{gameId}-{acctId}-{msgId}-{1}"),
-                    MediusWorldUID = (uint)gameId,
+                    WorldID = (uint)gameId,
                     Attributes = (MediusWorldAttributesType)gameAttributes,
                     ApplicationID = clientAppId,
                     MaxClients = gameMaxPlayers

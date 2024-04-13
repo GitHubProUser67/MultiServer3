@@ -1022,21 +1022,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck < new FileInfo(local_path).LastWriteTimeUtc)
-                        {
-                            response.Headers.Clear();
-
-                            response.Headers.Add("ETag", EtagMD5);
-                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                            response.Headers.Add("age", "1800");
-
-                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
-
-                            WriteLineToStream(stream, response.ToHeader());
-
-                            stream.Flush();
-                        }
-                        else if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
+                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
                             response.Headers.Clear();
 
@@ -1560,21 +1546,7 @@ namespace HTTPServer
                     {
                         string EtagMD5 = VariousUtils.ComputeMD5(response.ContentStream);
 
-                        if (request.Headers.TryGetValue("If-Modified-Since", out string? value) && DateTime.TryParse(value, out DateTime HeaderTimeCheck) && HeaderTimeCheck < new FileInfo(local_path).LastWriteTimeUtc)
-                        {
-                            response.Headers.Clear();
-
-                            response.Headers.Add("ETag", EtagMD5);
-                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                            response.Headers.Add("age", "1800");
-
-                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
-
-                            WriteLineToStream(stream, response.ToHeader());
-
-                            stream.Flush();
-                        }
-                        else if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
+                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
                             response.Headers.Clear();
 

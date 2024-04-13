@@ -94,7 +94,7 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Remove a world from a specific room based on the provided parameters
-        public static void RemoveWorld(string appId, string worldId)
+        public static void RemoveWorld(string appId, string? worldId)
         {
             lock (rooms)
             {
@@ -111,7 +111,7 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Remove a game from a specific room based on the provided parameters
-        public static void RemoveGame(string appId, string worldId, string? gameName)
+        public static void RemoveGame(string appId, string? worldId, string? gameName)
         {
             if (!string.IsNullOrEmpty(gameName))
             {

@@ -255,7 +255,7 @@ namespace Horizon.MUM
             return Task.CompletedTask;
         }
 
-        public virtual async Task EndParty()
+        public virtual async Task EndParty(int appid)
         {
             // destroy flag
             destroyed = true;
@@ -268,7 +268,7 @@ namespace Horizon.MUM
             // Remove players from game world
             while (LocalClients.Count > 0)
             {
-                var client = LocalClients[0].Client;
+                ClientObject? client = LocalClients[0].Client;
                 if (client == null)
                     LocalClients.RemoveAt(0);
                 else
@@ -276,9 +276,15 @@ namespace Horizon.MUM
                 // client.LeaveChannel(ChatChannel);
             }
 
-
             // Unregister from channel
             ChatChannel?.UnregisterParty(this);
+
+            // Send end game
+            DMEServer?.Queue(new MediusServerEndGameRequest()
+            {
+                MediusWorldID = MediusWorldId,
+                BrutalFlag = false
+            });
 
             // Delete db entry if game hasn't started
             // Otherwise do a final update

@@ -7,13 +7,15 @@ using Horizon.LIBRARY.Database.Models;
 using Horizon.MUIS.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
+using System.Text.Json.Serialization;
 
 namespace Horizon.MUIS.Models
 {
     public class Game
     {
         static readonly IInternalLogger Logger = InternalLoggerFactory.GetInstance<Game>();
-
+        
+        [JsonIgnore]
         public static int IdCounter = 1;
 
         public class GameClient
@@ -24,8 +26,7 @@ namespace Horizon.MUIS.Models
             public bool InGame;
         }
 
-        public int Id = 0;
-        public int DMEWorldId = -1;
+        public int MediusWorldId = 0;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
         public List<GameClient> Clients = new();
@@ -78,14 +79,14 @@ namespace Horizon.MUIS.Models
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
-        public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject dmeServer)
+        public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject dmeServer, int WorldId = 0)
         {
             if (createGame is MediusCreateGameRequest r)
-                FromCreateGameRequest(r);
+                FromCreateGameRequest(r, WorldId);
             else if (createGame is MediusCreateGameRequest0 r0)
-                FromCreateGameRequest0(r0);
+                FromCreateGameRequest0(r0, WorldId);
             else if (createGame is MediusCreateGameRequest1 r1)
-                FromCreateGameRequest1(r1);
+                FromCreateGameRequest1(r1, WorldId);
             else if (createGame is MediusServerCreateGameOnMeRequest r2)
                 FromCreateGameOnMeRequest(r2);
             else if (createGame is MediusServerCreateGameOnSelfRequest r3)
@@ -93,7 +94,7 @@ namespace Horizon.MUIS.Models
             else if (createGame is MediusServerCreateGameOnSelfRequest0 r4)
                 FromCreateGameOnSelfRequest0(r4);
 
-            Id = IdCounter++;
+            MediusWorldId = IdCounter++;
 
             utcTimeCreated = Utils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
@@ -103,7 +104,7 @@ namespace Horizon.MUIS.Models
             Host = client;
             SetWorldStatus(MediusWorldStatus.WorldPendingCreation).Wait();
 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: Created by {client} | Host: {Host}");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: Created by {client} | Host: {Host}");
         }
 
         public GameDTO ToGameDTO()
@@ -115,7 +116,7 @@ namespace Horizon.MUIS.Models
                 GameEndDt = utcTimeEnded,
                 GameStartDt = utcTimeStarted,
                 GameHostType = GameHostType.ToString(),
-                GameId = Id,
+                GameId = MediusWorldId,
                 GameLevel = GameLevel,
                 GameName = GameName,
                 GameStats = GameStats,
@@ -140,7 +141,7 @@ namespace Horizon.MUIS.Models
             };
         }
 
-        private void FromCreateGameRequest(MediusCreateGameRequest createGame)
+        private void FromCreateGameRequest(MediusCreateGameRequest createGame, int WorldId = 0)
         {
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
@@ -161,9 +162,10 @@ namespace Horizon.MUIS.Models
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
             Attributes = createGame.Attributes;
+            WorldID = WorldId;
         }
 
-        private void FromCreateGameRequest0(MediusCreateGameRequest0 createGame)
+        private void FromCreateGameRequest0(MediusCreateGameRequest0 createGame, int WorldId = 0)
         {
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
@@ -177,10 +179,11 @@ namespace Horizon.MUIS.Models
             GenericField3 = createGame.GenericField3;
             GamePassword = createGame.GamePassword;
             GameHostType = createGame.GameHostType;
+            WorldID = WorldId;
         }
 
 
-        private void FromCreateGameRequest1(MediusCreateGameRequest1 createGame)
+        private void FromCreateGameRequest1(MediusCreateGameRequest1 createGame, int WorldId = 0)
         {
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
@@ -196,6 +199,7 @@ namespace Horizon.MUIS.Models
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
             Attributes = createGame.WorldAttributesType;
+            WorldID = WorldId;
         }
 
         private void FromCreateGameOnMeRequest(MediusServerCreateGameOnMeRequest serverCreateGameOnMe)
@@ -279,7 +283,7 @@ namespace Horizon.MUIS.Models
             {
                 var client = Clients[i];
 
-                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.Id != Id)
+                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
                 {
                     //Logger.Warn($"REMOVING CLIENT: {client}\n IS: {client.Client}\n IS Connected?: {client.Client.IsConnected}\nClient CurrentGame ID: {client.Client.CurrentGame?.Id}\nGameId: {Id}\nMatch?: {client.Client.CurrentGame?.Id != Id}");
                     Clients.RemoveAt(i);
@@ -365,7 +369,7 @@ namespace Horizon.MUIS.Models
                 return;
 
             // 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} added.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added.");
 
             Clients.Add(new GameClient()
             {
@@ -380,7 +384,7 @@ namespace Horizon.MUIS.Models
         protected virtual async Task OnPlayerLeft(GameClient player)
         {
             // 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {player.Client} left.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {player.Client} left.");
 
             // 
             player.InGame = false;
@@ -399,7 +403,7 @@ namespace Horizon.MUIS.Models
         public virtual async Task RemovePlayer(ClientObject client)
         {
             // 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: {client} removed.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} removed.");
 
             // Remove host
             if (Host == client)
@@ -429,7 +433,7 @@ namespace Horizon.MUIS.Models
         public virtual async Task OnWorldReport(MediusWorldReport report)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != Id)
+            if (report.MediusWorldID != MediusWorldId)
                 return;
 
 
@@ -470,7 +474,7 @@ namespace Horizon.MUIS.Models
         public virtual async Task OnWorldReport0(MediusWorldReport0 report)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != Id)
+            if (report.MediusWorldID != MediusWorldId)
                 return;
 
             GameName = report.GameName;
@@ -511,8 +515,7 @@ namespace Horizon.MUIS.Models
             // destroy flag
             destroyed = true;
 
-            // 
-            LoggerAccessor.LogInfo($"Game {Id}: {GameName}: EndGame() called.");
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: EndGame() called.");
 
             // Send to plugins
             await MuisClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });
@@ -520,16 +523,12 @@ namespace Horizon.MUIS.Models
             // Remove players from game world
             while (Clients.Count > 0)
             {
-                var client = Clients[0].Client;
+                ClientObject? client = Clients[0].Client;
                 if (client == null)
-                {
                     Clients.RemoveAt(0);
-                }
                 else
-                {
                     await client.LeaveGame(this);
                     // client.LeaveChannel(ChatChannel);
-                }
             }
 
 
@@ -537,19 +536,16 @@ namespace Horizon.MUIS.Models
             ChatChannel?.UnregisterGame(this);
 
             // Send end game
-            if (DMEWorldId > 0)
+            DMEServer?.Queue(new MediusServerEndGameRequest()
             {
-                DMEServer?.Queue(new MediusServerEndGameRequest()
-                {
-                    WorldID = this.DMEWorldId,
-                    BrutalFlag = false
-                });
-            }
+                MediusWorldID = MediusWorldId,
+                BrutalFlag = false
+            });
 
             // Delete db entry if game hasn't started
             // Otherwise do a final update
             if (!utcTimeStarted.HasValue)
-                _ = HorizonServerConfiguration.Database.DeleteGame(Id);
+                _ = HorizonServerConfiguration.Database.DeleteGame(MediusWorldId);
             else
                 _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
         }
