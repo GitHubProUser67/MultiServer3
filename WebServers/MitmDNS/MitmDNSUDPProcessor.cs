@@ -1,8 +1,8 @@
 using CustomLogger;
 using System.Net;
 using System.Text.RegularExpressions;
-using BackendProject.MiscUtils;
-using BackendProject.DotNetty.Extensions.UdpSocket;
+using CyberBackendLibrary.DNS;
+using DotNetty.Extensions.UdpSocket;
 
 namespace MitmDNS
 {
@@ -51,7 +51,7 @@ namespace MitmDNS
         {
             bool treated = false;
 
-            string fullname = string.Join(".", HTTPUtils.GetDnsName(data).ToArray());
+            string fullname = string.Join(".", DNSProcessor.GetDnsName(data).ToArray());
 
             LoggerAccessor.LogInfo($"[DNS_UDP] - Host: {fullname} was Requested.");
 
@@ -105,7 +105,7 @@ namespace MitmDNS
             }
 
             if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                url = VariousUtils.GetFirstActiveIPAddress(fullname, VariousUtils.GetPublicIPAddress(true));
+                url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
 
             IPAddress ip = IPAddress.None; // NXDOMAIN
             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -123,10 +123,10 @@ namespace MitmDNS
 
                 LoggerAccessor.LogInfo($"[DNS_UDP] - Resolved: {fullname} to: {ip}");
 
-                return HTTPUtils.MakeDnsResponsePacket(data, ip);
+                return DNSProcessor.MakeDnsResponsePacket(data, ip);
             }
             else if (url == "NXDOMAIN")
-                return HTTPUtils.MakeDnsResponsePacket(data, ip);
+                return DNSProcessor.MakeDnsResponsePacket(data, ip);
 
             return null;
         }

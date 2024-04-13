@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using System.Net;
 using System.Text;
@@ -68,7 +68,7 @@ namespace Horizon.MUM
                             string? base64json = MumChannelHandler.JsonSerializeChannelsList();
 
                             if (!string.IsNullOrEmpty(base64json))
-                                await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(base64json)));
+                                await ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(base64json)));
                             else
                                 await ctx.Response.Send();
                         }
@@ -99,7 +99,7 @@ namespace Horizon.MUM
                             string? base64xml = MumChannelHandler.XMLSerializeChannelsList();
 
                             if (!string.IsNullOrEmpty(base64xml))
-                                await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(base64xml)));
+                                await ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(base64xml)));
                             else
                                 await ctx.Response.Send();
                         }
@@ -125,7 +125,7 @@ namespace Horizon.MUM
                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                         {
                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(MumChannelHandler.GetCRC32ChannelsList())));
+                            await ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(MumChannelHandler.GetCRC32ChannelsList())));
                         }
                         else
                             await ctx.Response.Send(MumChannelHandler.GetCRC32ChannelsList());
@@ -151,7 +151,7 @@ namespace Horizon.MUM
                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                await ctx.Response.Send(HTTPUtils.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                await ctx.Response.Send(HTTPProcessor.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
                             }
                             else
                                 await ctx.Response.Send(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));

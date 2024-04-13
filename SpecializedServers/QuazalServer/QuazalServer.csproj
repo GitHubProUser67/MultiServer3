@@ -20,15 +20,15 @@
     <PackageReference Include="lzo.net" Version="0.0.6" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebUtils\WebUtils.csproj" />
-  </ItemGroup>
   
   <ItemGroup>
     <Content Include="static\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\BackendServices\CyberBackendLibrary\CyberBackendLibrary.csproj" />
   </ItemGroup>
 
 </Project>

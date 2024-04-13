@@ -1,7 +1,6 @@
-using BackendProject.MiscUtils;
+
 using CustomLogger;
 using PSHostsFile;
-using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -20,7 +19,7 @@ namespace MitmDNS
                 if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
                 {
                     LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                    if (VariousUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                    if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                     try
                     {
 #if NET7_0
@@ -93,7 +92,7 @@ namespace MitmDNS
 #endif
                                     dns.Address = IpFromConfig;
                                 else
-                                    dns.Address = VariousUtils.GetLocalIPAddress().ToString();
+                                    dns.Address = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
                                 break;
                             default:
                                 LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
@@ -206,7 +205,7 @@ namespace MitmDNS
 #endif
                                     dns.Address = IpFromConfig;
                                 else
-                                    dns.Address = VariousUtils.GetLocalIPAddress().ToString();
+                                    dns.Address = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
                                 DicRules.Add(hostname, dns);
                                 DicRules.Add("www." + hostname, dns);

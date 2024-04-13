@@ -1,9 +1,10 @@
-using BackendProject.MiscUtils;
-using WebUtils.SSFW;
+
 using CustomLogger;
 using HttpMultipartParser;
 using System.Security.Cryptography;
+using WebAPIService.SSFW;
 using System.Text;
+using CyberBackendLibrary.DataTypes;
 
 namespace TycoonServer
 {
@@ -63,7 +64,7 @@ namespace TycoonServer
                         extractedData[i] = 0x20;
                 }
 
-                if (VariousUtils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                if (DataTypesUtils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
                     LoggerAccessor.LogInfo($"[Tycoon] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 

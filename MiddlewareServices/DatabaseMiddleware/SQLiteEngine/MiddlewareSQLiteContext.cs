@@ -1,4 +1,4 @@
-﻿using Horizon.LIBRARY.Database.Entities;
+using Horizon.LIBRARY.Database.Entities;
 using SQLite.CodeFirst;
 using System.Data;
 using System.Data.Common;

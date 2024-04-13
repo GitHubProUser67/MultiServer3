@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Math;
 using Horizon.RT.Cryptography.RSA;
-using BackendProject.MiscUtils;
+
 
 namespace Horizon.DME.Config
 {
@@ -39,7 +39,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// IP of the DME.
         /// </summary>
-        public string DMEIp { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
+        public string DMEIp { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         #endregion
 
         #region PublicIp
@@ -86,7 +86,7 @@ namespace Horizon.DME.Config
         /// be multi-threaded.For most development, running the server as a single
         /// thread (setting DmeServerWorldsPerThread to "0") is recommended.
         /// </summary>
-        public bool EnableSleeps = VariousUtils.IsWindows(); // (DEFAULT: 1 for Win32; 0 for Linux)
+        public bool EnableSleeps = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows; // (DEFAULT: 1 for Win32; 0 for Linux)
         public bool UseThread = true; // (DEFAULT: 0)
 
         public bool EnableMedius = true; // (DEFAULT: 1)
@@ -109,7 +109,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Authentication Server.
         /// </summary>
-        public string Ip { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.
@@ -131,7 +131,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Proxy Server.
         /// </summary>
-        public string Ip { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.

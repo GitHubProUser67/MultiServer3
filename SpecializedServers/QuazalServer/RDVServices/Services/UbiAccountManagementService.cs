@@ -55,7 +55,7 @@ namespace QuazalServer.RDVServices.Services
                                 {
                                     account = new UbiAccount()
                                     {
-                                        m_ubi_account_id = WebUtils.SSFW.GuidGenerator.SSFWGenerateGuid(playerInfo.AccountId, playerInfo.Name),
+                                        m_ubi_account_id = GuidGenerator.UBISOFTGenerateGuid(playerInfo.AccountId, playerInfo.Name),
                                         m_username = playerInfo.Name,
                                         m_password = string.Empty,
                                         m_first_name = playerInfo.Name,

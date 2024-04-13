@@ -2,8 +2,9 @@ using HTTPServer;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-using BackendProject.MiscUtils;
+
 using HomeTools.AFS;
+using CyberBackendLibrary.GeoLocalization;
 
 public static class HTTPServerConfiguration
 {
@@ -23,9 +24,6 @@ public static class HTTPServerConfiguration
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
-    public static bool EnableDiscordPlugin { get; set; } = true;
-    public static string DiscordBotToken { get; set; } = string.Empty;
-    public static string DiscordChannelID { get; set; } = string.Empty;
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
@@ -65,13 +63,8 @@ public static class HTTPServerConfiguration
                 new JProperty("http_version", HttpVersion),
                 new JProperty("plugin_params", PluginParams),
                 new JProperty("plugins_folder", PluginsFolder),
-                new JProperty("discord_bot_token", DiscordBotToken),
-                new JProperty("discord_channel_id", DiscordChannelID),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_image_upscale", EnableImageUpscale),
-                new JProperty("discord_plugin", new JObject(
-                    new JProperty("enabled", EnableDiscordPlugin)
-                )),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
@@ -99,11 +92,8 @@ public static class HTTPServerConfiguration
             HttpVersion = config.http_version;
             PluginParams = config.plugin_params;
             PluginsFolder = config.plugins_folder;
-            DiscordBotToken = config.discord_bot_token;
-            DiscordChannelID = config.discord_channel_id;
             EnablePUTMethod = config.enable_put_method;
             EnableImageUpscale = config.enable_image_upscale;
-            EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray PortsArray = config.Ports;
             // Deserialize Ports if it exists
             if (PortsArray != null)
@@ -142,21 +132,20 @@ class Program
 
     static void Main()
     {
-        if (!VariousUtils.IsWindows())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("HTTPServer");
 
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
-        GeoIPUtils.Initialize();
+        GeoIP.Initialize();
 
         AFSClass.MapperHelperFolder = HTTPServerConfiguration.HomeToolsHelperStaticFolder;
 
         _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-
-        if (HTTPServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPServerConfiguration.DiscordBotToken))
-            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPServerConfiguration.DiscordChannelID, HTTPServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => _ = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
@@ -173,7 +162,7 @@ class Program
             }
         }
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

@@ -19,7 +19,7 @@ namespace QuazalServer.RDVServices.UbisoftDatabase
                 // Username doesn't exist, create a new account
                 UbiAccount account = new()
                 {
-                    m_ubi_account_id = WebUtils.SSFW.GuidGenerator.SSFWGenerateGuid(playerInfo.AccountId, playerInfo.UbiAcctName),
+                    m_ubi_account_id = GuidGenerator.UBISOFTGenerateGuid(playerInfo.AccountId, playerInfo.UbiAcctName),
                     m_username = playerInfo.UbiAcctName,
                     m_password = playerInfo.UbiPass,
                     m_first_name = string.Empty,
@@ -51,7 +51,7 @@ namespace QuazalServer.RDVServices.UbisoftDatabase
 
         public static UbiAccount? GetTrackingAccount()
         {
-            return MemoryPlayerDB?.FirstOrDefault(account => account.m_ubi_account_id == WebUtils.SSFW.GuidGenerator.SSFWGenerateGuid("Tracking", "Tracking"));
+            return MemoryPlayerDB?.FirstOrDefault(account => account.m_ubi_account_id == GuidGenerator.UBISOFTGenerateGuid("Tracking", "Tracking"));
         }
 
         public static UbiAccount? GetAccountByUsername(string username)
@@ -64,7 +64,7 @@ namespace QuazalServer.RDVServices.UbisoftDatabase
             if (string.IsNullOrWhiteSpace(acctid) || string.IsNullOrEmpty(ubiacctname))
                 return null;
 
-            return MemoryPlayerDB?.FirstOrDefault(account => account.m_ubi_account_id == WebUtils.SSFW.GuidGenerator.SSFWGenerateGuid(acctid, ubiacctname));
+            return MemoryPlayerDB?.FirstOrDefault(account => account.m_ubi_account_id == GuidGenerator.UBISOFTGenerateGuid(acctid, ubiacctname));
         }
 
         public static void InitiateDatabase()
@@ -77,7 +77,7 @@ namespace QuazalServer.RDVServices.UbisoftDatabase
             if (GetAccountByUsername("Tracking") == null)
                 MemoryPlayerDB.Add(new UbiAccount
                 {
-                    m_ubi_account_id = WebUtils.SSFW.GuidGenerator.SSFWGenerateGuid("Tracking", "Tracking"),
+                    m_ubi_account_id = GuidGenerator.UBISOFTGenerateGuid("Tracking", "Tracking"),
                     m_username = "Tracking",
                     m_password = string.Empty,
                     m_first_name = string.Empty,
