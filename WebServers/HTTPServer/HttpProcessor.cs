@@ -215,7 +215,8 @@ namespace HTTPServer
                                             if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 absolutepath.EndsWith("/") ||
-                                                absolutepath.Contains("/ohs") ||
+                                                absolutepath.Contains("/ohs_") ||
+                                                absolutepath.Contains("/ohs/") ||
                                                 absolutepath.Contains("/statistic/") ||
                                                 absolutepath.Contains("/Konami/" ))
                                             {
