@@ -2,11 +2,10 @@ using CustomLogger;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using static WebUtils.OHS.UserCounter;
 using System.Text;
 using System.Security.Cryptography;
 using BackendProject.MiscUtils;
-using System.Linq;
+using static WebUtils.OHS.UserCounter;
 
 namespace WebUtils.OHS
 {
@@ -46,6 +45,8 @@ namespace WebUtils.OHS
                     object? key = VariousUtils.GetValueFromJToken(Token, "key");
 
                     object? user = VariousUtils.GetValueFromJToken(Token, "user");
+
+                    Directory.CreateDirectory(directorypath + $"/User_Profiles");
 
                     if (!global)
                     {
@@ -92,7 +93,7 @@ namespace WebUtils.OHS
                                     user = user.ToString(),
                                     key = new JObject { { keystring, JToken.FromObject(value) } }
                                 };
-                                Directory.CreateDirectory(directorypath + "/User_Profiles");
+
                                 File.WriteAllText(profiledatastring, JsonConvert.SerializeObject(newProfile));
                             }
                         }
@@ -205,7 +206,7 @@ namespace WebUtils.OHS
                 {
                     // Parsing the JSON string
                     JObject? jsonObject = JObject.Parse(dataforohs);
-					
+
                     if (!global)
                     {
                         // Getting the value of the "user" field
@@ -299,7 +300,7 @@ namespace WebUtils.OHS
                 {
                     // Parsing the JSON string
                     JObject? jsonObject = JObject.Parse(dataforohs);
-                        
+
                     if (!global)
                     {
                         // Getting the value of the "user" field
@@ -408,11 +409,10 @@ namespace WebUtils.OHS
 
                     // Getting the value of the "user" field
                     dataforohs = (string?)jsonObject["user"];
-                    string[] keys = jsonObject["keys"].ToObject<string[]>();
+                    string[]? keys = jsonObject["keys"]?.ToObject<string[]>();
 
                     if (!global)
                     {
-
                         if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
                             string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
@@ -422,7 +422,7 @@ namespace WebUtils.OHS
                                 // Parse the JSON string to a JObject
                                 JObject userProfile = JObject.Parse(userprofile);
 
-                                foreach (var key in keys)
+                                foreach (string key in keys)
                                 {
                                     // Check if the "key" property exists and if it is an object
                                     if (userProfile.TryGetValue(key, out JToken? keyValueToken))

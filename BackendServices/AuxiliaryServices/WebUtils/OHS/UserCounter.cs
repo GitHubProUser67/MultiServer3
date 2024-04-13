@@ -52,6 +52,8 @@ namespace WebUtils.OHS
                     value = firstKeyValuePair.Value;
                 }
 
+                Directory.CreateDirectory(directorypath + $"/User_Profiles");
+
                 try
                 {
                     string profiledatastring = directorypath + $"/User_Profiles/{user}_Stats.json";
@@ -92,7 +94,7 @@ namespace WebUtils.OHS
                                 user = user.ToString(),
                                 key = new JObject { { keystring, JToken.FromObject(value) } }
                             };
-                            Directory.CreateDirectory(directorypath + "/User_Profiles");
+
                             File.WriteAllText(profiledatastring, JsonConvert.SerializeObject(newProfile));
                         }
                     }
@@ -159,6 +161,9 @@ namespace WebUtils.OHS
                 string? user = jObject.Value<string>("user");
 
                 int value = jObject.Value<int>("value");
+
+                Directory.CreateDirectory(directorypath + $"/User_Profiles");
+
                 try
                 {
                     string profileCurDataString = directorypath + $"User_Profiles/{user}_Stats.json";
@@ -216,7 +221,7 @@ namespace WebUtils.OHS
                                 user = user.ToString(),
                                 key = new JObject { { keystring, 1 } }
                             };
-                            Directory.CreateDirectory(directorypath + "User_Profiles");
+
                             File.WriteAllText(profileCurDataString, JsonConvert.SerializeObject(newProfile));
 
                             // Set the output to incremented value
@@ -353,7 +358,7 @@ namespace WebUtils.OHS
 
                     // Getting the value of the "user" field
                     dataforohs = (string?)jsonObject["user"];
-                    string[] keys = jsonObject["keys"].ToObject<string[]>();
+                    string[]? keys = jsonObject["keys"]?.ToObject<string[]>();
 
                     if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {

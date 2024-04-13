@@ -530,6 +530,8 @@ namespace WebUtils.OHS
                     if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(key))
                         return null;
 
+                    Directory.CreateDirectory(scoreboardpath);
+
                     string scoreboardfile = scoreboardpath + $"/scoreboard_{key}.json";
 
                     if (!File.Exists(scoreboardfile))
@@ -629,7 +631,7 @@ namespace WebUtils.OHS
         // Helper method to format the Lua table as a string
         public static string FormatScoreBoardLuaTable(Dictionary<int, Dictionary<string, object>> luaTable)
         {
-            var luaString = "{\n";
+            string luaString = "{\n";
             foreach (var rankData in luaTable)
             {
                 luaString += $"    [{rankData.Key}] = {{\n";

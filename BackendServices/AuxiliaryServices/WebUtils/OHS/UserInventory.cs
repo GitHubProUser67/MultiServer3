@@ -428,6 +428,8 @@ namespace WebUtils.OHS
                             }
                             else
                             {
+                                Directory.CreateDirectory(inventorypath);
+
                                 JToken? keyToken = jObject.GetValue("inventory_names");
 
                                 if (keyToken != null)
