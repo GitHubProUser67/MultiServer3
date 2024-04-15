@@ -96,7 +96,7 @@ namespace WebAPIService.OHS
         {
             string? dataforohs = null;
 
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary))
             {

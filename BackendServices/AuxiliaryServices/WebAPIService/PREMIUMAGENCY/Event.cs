@@ -1,5 +1,5 @@
-using BackendProject.MiscUtils;
 using CustomLogger;
+using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
 using System.Text;
 using System.Web;
@@ -18,7 +18,7 @@ namespace WebAPIService.PREMIUMAGENCY
             }
             else
             {
-                string boundary = HTTPUtils.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new(PostData))
                 {
@@ -482,7 +482,7 @@ namespace WebAPIService.PREMIUMAGENCY
             }
             else
             {
-                string boundary = HTTPUtils.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new(PostData))
                 {
@@ -843,7 +843,7 @@ namespace WebAPIService.PREMIUMAGENCY
             }
             else
             {
-                string boundary = HTTPUtils.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new(PostData))
                 {
