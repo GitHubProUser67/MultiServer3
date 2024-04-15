@@ -41,11 +41,10 @@ namespace WebUtils.PREMIUMAGENCY
             string listenerfx = $"{workpath}/eventController/hs/listnerfx/Resources";
             string GundamPath = $"{workpath}/eventController/Gundam/Resources";
 
-
-            string homecafeEnquetePath = $"{workpath}/eventController/hc_Enquete/Resources";
-            string homecafeGalleryPath = $"{workpath}/eventController/hc_gallery/Resources";
-            string homecafeShopPath = $"{workpath}/eventController/hc_Shop/Resources";
-            string homecafePlanPath = $"{workpath}/eventController/hc_plan/Resources";
+            string homecafeEnquetePath = $"{workpath}/eventController/hc/hc_Enquete/Resources";
+            string homecafeGalleryPath = $"{workpath}/eventController/hc/hc_gallery/Resources";
+            string homecafeShopPath = $"{workpath}/eventController/hc/hc_Shop/Resources";
+            string homecafePlanPath = $"{workpath}/eventController/hc/hc_plan/Resources";
 
             string hs_commu_ev_cfg_130222 = $"{workpath}/eventController/hs/CommEvent/130222/Resources";
             string hs_userinfo_cfg = $"{workpath}/eventController/hs/UserInfo/Resources";
@@ -1222,8 +1221,8 @@ namespace WebUtils.PREMIUMAGENCY
                 #region RollyCafe1F Plan
                 case "hc_plan":
                     {
-                        Directory.CreateDirectory(homecafeEnquetePath);
-                        string filePath = $"{homecafeEnquetePath}/{resKey}.xml";
+                        Directory.CreateDirectory(homecafePlanPath);
+                        string filePath = $"{homecafePlanPath}/{resKey}.xml";
                         if (File.Exists(filePath))
                         {
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
