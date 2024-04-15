@@ -35,8 +35,6 @@ namespace WebUtils.OHS
 
             directoryPath = RemoveCommands(directoryPath);
 
-            Directory.CreateDirectory(directoryPath);
-
             switch (method)
             {
                 case "POST":

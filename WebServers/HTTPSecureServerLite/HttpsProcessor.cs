@@ -433,7 +433,8 @@ namespace HTTPSecureServerLite
                     #region Outso OHS API
                     else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
                                                 absolutepath.EndsWith("/") ||
-                                                absolutepath.Contains("/ohs") ||
+                                                absolutepath.Contains("/ohs_") ||
+                                                absolutepath.Contains("/ohs/") ||
                                                 absolutepath.Contains("/statistic/") ||
                                                 absolutepath.Contains("/Konami/" ))
                     {

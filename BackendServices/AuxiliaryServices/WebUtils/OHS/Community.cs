@@ -43,6 +43,8 @@ namespace WebUtils.OHS
 
                         if (key != null)
                         {
+                            Directory.CreateDirectory(directorypath + $"/Community_Profiles");
+
                             if (File.Exists(directorypath + $"/Community_Profiles/{key}.json"))
                             {
                                 string tempreader = File.ReadAllText(directorypath + $"/Community_Profiles/{key}.json");
@@ -110,6 +112,8 @@ namespace WebUtils.OHS
                         object? key = VariousUtils.GetValueFromJToken(Token, "key");
 
                         int inc = Convert.ToInt32(VariousUtils.GetValueFromJToken(Token, "inc"));
+
+                        Directory.CreateDirectory(directorypath + $"/Community_Profiles");
 
                         if (File.Exists(directorypath + $"/Community_Profiles/{key}.json") && key != null)
                         {
