@@ -183,7 +183,7 @@ namespace WebUtils.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[UserInventory] - Json Format Error - {ex}");
+                LoggerAccessor.LogError($"[UserInventory] GetGlobalItems - Json Format Error - {ex}");
             }
 
             if (!string.IsNullOrEmpty(batchparams))
