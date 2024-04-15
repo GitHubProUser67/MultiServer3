@@ -1,10 +1,9 @@
 using CustomLogger;
+using CyberBackendLibrary.DataTypes;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
-using BackendProject.FileHelper;
-using WebUtils.SSFW;
-using BackendProject.MiscUtils;
+using WebAPIService.SSFW;
 
 namespace SSFWServer
 {
@@ -86,7 +85,7 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                if (VariousUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                if (DataTypesUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                 {
                     rpcn = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
@@ -217,7 +216,7 @@ namespace SSFWServer
                             }
                             else
                             {
-                                string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(kvp.Key, 13, 18)).Key;
+                                string scenename = scenemap.FirstOrDefault(x => x.Value == SSFWMisc.ExtractPortion(kvp.Key, 13, 18)).Key;
                                 if (!string.IsNullOrEmpty(scenename))
                                 {
                                     if (File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/LayoutService/{env}/person/{resultString}/{kvp.Key}.json")) // SceneID now mapped, so SceneID based file has become obsolete.

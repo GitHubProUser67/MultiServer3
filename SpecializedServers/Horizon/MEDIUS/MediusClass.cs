@@ -13,7 +13,7 @@ using Horizon.PluginManager;
 using Horizon.MEDIUS.Medius;
 using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
-using BackendProject.MiscUtils;
+
 using Horizon.MUM;
 
 namespace Horizon.MEDIUS
@@ -634,7 +634,7 @@ namespace Horizon.MEDIUS
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(VariousUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

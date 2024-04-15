@@ -2,7 +2,9 @@ using CustomLogger;
 using Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
-using BackendProject.MiscUtils;
+
+using CyberBackendLibrary.GeoLocalization;
+using System.Runtime;
 
 public static class HorizonServerConfiguration
 {
@@ -14,7 +16,6 @@ public static class HorizonServerConfiguration
     public static bool EnableMuis { get; set; } = true;
     public static bool EnableBWPS { get; set; } = true;
     public static bool EnableNAT { get; set; } = true;
-    public static bool EnableDiscordPlugin { get; set; } = true;
     public static string? PlayerAPIStaticPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string? DMEConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dme.json";
     public static string? MEDIUSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/medius.json";
@@ -24,8 +25,6 @@ public static class HorizonServerConfiguration
     public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc="; // Base64 only.
     public static string HomeVersionBetaHDK { get; set; } = "01.86";
     public static string HomeVersionRetail { get; set; } = "01.86";
-    public static string DiscordBotToken { get; set; } = string.Empty;
-    public static string DiscordChannelID { get; set; } = string.Empty;
 
     public static DbController Database = new(DatabaseConfig);
 
@@ -74,12 +73,7 @@ public static class HorizonServerConfiguration
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("database", DatabaseConfig),
                 new JProperty("home_version_beta_hdk", HomeVersionBetaHDK),
-                new JProperty("home_version_retail", HomeVersionRetail),
-                new JProperty("discord_bot_token", DiscordBotToken),
-                new JProperty("discord_channel_id", DiscordChannelID),
-                new JProperty("discord_plugin", new JObject(
-                    new JProperty("enabled", EnableDiscordPlugin)
-                ))
+                new JProperty("home_version_retail", HomeVersionRetail)
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -107,9 +101,6 @@ public static class HorizonServerConfiguration
             DatabaseConfig = config.database;
             HomeVersionBetaHDK = config.home_version_beta_hdk;
             HomeVersionRetail = config.home_version_retail;
-            DiscordBotToken = config.discord_bot_token;
-            DiscordChannelID = config.discord_channel_id;
-            EnableDiscordPlugin = config.discord_plugin.enabled;
         }
         catch (Exception)
         {
@@ -138,7 +129,7 @@ class Program
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
-            GeoIPUtils.Initialize();
+            GeoIP.Initialize();
 
             Task.Run(() => { new Horizon.MUM.MumServerHandler("*", 10076).StartServer(); });
 
@@ -167,21 +158,23 @@ class Program
 
     static void Main()
     {
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
         LoggerAccessor.SetupLogger("Horizon");
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
 
-        SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
-
-        if (HorizonServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HorizonServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HorizonServerConfiguration.DiscordBotToken))
-            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HorizonServerConfiguration.DiscordChannelID, HorizonServerConfiguration.DiscordBotToken);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => HorizonStarter(),
                     () => RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

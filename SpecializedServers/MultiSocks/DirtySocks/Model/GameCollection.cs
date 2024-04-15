@@ -1,4 +1,4 @@
-﻿namespace MultiSocks.DirtySocks.Model
+namespace MultiSocks.DirtySocks.Model
 {
     public class GameCollection
     {

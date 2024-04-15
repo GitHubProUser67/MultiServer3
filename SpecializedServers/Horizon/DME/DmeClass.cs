@@ -9,7 +9,7 @@ using System.Net;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
-using BackendProject.MiscUtils;
+
 
 namespace Horizon.DME
 {
@@ -354,7 +354,7 @@ namespace Horizon.DME
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(VariousUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

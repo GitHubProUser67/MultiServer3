@@ -1,16 +1,16 @@
 using System.Collections.Specialized;
 using System.Text;
-using BackendProject.FileHelper.Utils;
-using BackendProject.MiscUtils;
-using BackendProject.SSDP_DLNA;
-using WebUtils;
-using WebUtils.LOOT;
-using WebUtils.NDREAMS;
-using WebUtils.OHS;
-using WebUtils.PREMIUMAGENCY;
-using WebUtils.HELLFIRE;
-using WebUtils.VEEMEE;
-using BackendProject.WebTools;
+
+using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.DNS;
+using CyberBackendLibrary.GeoLocalization;
+using WebAPIService;
+using WebAPIService.LOOT;
+using WebAPIService.NDREAMS;
+using WebAPIService.OHS;
+using WebAPIService.PREMIUMAGENCY;
+using WebAPIService.HELLFIRE;
+using WebAPIService.VEEMEE;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Net;
@@ -18,9 +18,11 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
-using WebUtils.UBISOFT.HERMES_API;
-using WebUtils.CAPONE;
-using WebUtils.CDM;
+using WebAPIService.UBISOFT.HERMES_API;
+using WebAPIService.CAPONE;
+using WebAPIService.CDM;
+using WebAPIService.MultiMedia;
+using CyberBackendLibrary.DataTypes;
 
 namespace HTTPSecureServerLite
 {
@@ -117,10 +119,10 @@ namespace HTTPSecureServerLite
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with a ByteDance crawler!");
                     else
                     {
-                        fullurl = HTTPUtils.DecodeUrl(request.Url.RawWithQuery);
+                        fullurl = HTTPProcessor.DecodeUrl(request.Url.RawWithQuery);
 
                         string SuplementalMessage = string.Empty;
-                        string? GeoCodeString = GeoIPUtils.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+                        string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
 
                         if (!string.IsNullOrEmpty(GeoCodeString))
                         {
@@ -134,7 +136,7 @@ namespace HTTPSecureServerLite
 
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 
-                        absolutepath = HTTPUtils.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
+                        absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                         statusCode = HttpStatusCode.Continue;
                     }
                 }
@@ -157,7 +159,7 @@ namespace HTTPSecureServerLite
                 LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Multi-Part Body : Body -> {request.DataAsString}");
 #endif
 
-            response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
 
             #region Domains
 
@@ -294,7 +296,7 @@ namespace HTTPSecureServerLite
                     {
                         bool handled = false;
 
-                        foreach (string indexFile in HTTPUtils.DefaultDocuments)
+                        foreach (string indexFile in HTTPProcessor.DefaultDocuments)
                         {
                             if (File.Exists(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile))
                             {
@@ -340,7 +342,7 @@ namespace HTTPSecureServerLite
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile).ToString("r"));
                                         response.StatusCode = (int)statusCode;
-                                        response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
+                                        response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + indexFile));
                                         sent = await response.Send(buffer);
                                     }
                                     else
@@ -415,7 +417,7 @@ namespace HTTPSecureServerLite
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                        string? res = new HELLFIREClass(request.Method.ToString(), HTTPUtils.RemoveQueryString(absolutepath)).ProcessRequest(request.DataAsBytes, request.ContentType);
+                        string? res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath)).ProcessRequest(request.DataAsBytes, request.ContentType);
                         if (string.IsNullOrEmpty(res))
                             statusCode = HttpStatusCode.InternalServerError;
                         else
@@ -524,7 +526,7 @@ namespace HTTPSecureServerLite
                         {
                             // TODO, verify ticket data for every platforms.
 
-                            if (Authorization.StartsWith("psn t=") && VariousUtils.IsBase64String(Authorization))
+                            if (Authorization.StartsWith("psn t=") && DataTypesUtils.IsBase64String(Authorization))
                             {
                                 byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
 
@@ -541,7 +543,7 @@ namespace HTTPSecureServerLite
                                         extractedData[i] = 0x48;
                                 }
 
-                                if (VariousUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                if (DataTypesUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                                     LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                 else
                                     LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -552,7 +554,7 @@ namespace HTTPSecureServerLite
                             }
 
                             (string?, string?) res = new HERMESClass(request.Method.ToString(), absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                    request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIPUtils.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPSServerConfiguration.APIStaticFolder)
+                                    request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPSServerConfiguration.APIStaticFolder)
                                 .ProcessRequest(request.DataAsBytes, request.ContentType);
                             if (string.IsNullOrEmpty(res.Item1))
                                 statusCode = HttpStatusCode.InternalServerError;
@@ -685,7 +687,7 @@ namespace HTTPSecureServerLite
 
                                                     byte[]? DnsReq = Convert.FromBase64String(dnsRequestBase64Url);
 
-                                                    string fullname = string.Join(".", HTTPUtils.GetDnsName(DnsReq).ToArray());
+                                                    string fullname = string.Join(".", DNSProcessor.GetDnsName(DnsReq).ToArray());
 
                                                     LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
 
@@ -738,7 +740,7 @@ namespace HTTPSecureServerLite
                                                     }
 
                                                     if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                        url = VariousUtils.GetFirstActiveIPAddress(fullname, VariousUtils.GetPublicIPAddress(true));
+                                                        url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
 
                                                     IPAddress ip = IPAddress.None; // NXDOMAIN
                                                     if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -756,10 +758,10 @@ namespace HTTPSecureServerLite
 
                                                         LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {ip}");
 
-                                                        DnsReq = HTTPUtils.MakeDnsResponsePacket(DnsReq, ip);
+                                                        DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
                                                     }
                                                     else if (url == "NXDOMAIN")
-                                                        DnsReq = HTTPUtils.MakeDnsResponsePacket(DnsReq, ip);
+                                                        DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
 
                                                     if (DnsReq != null && DnsReq.Length <= 512) // Https wire expect padding.
                                                     {
@@ -803,7 +805,7 @@ namespace HTTPSecureServerLite
                                     case "/!player":
                                     case "/!player/":
                                         // We want to check if the router allows external IPs first.
-                                        string ServerIP = VariousUtils.GetPublicIPAddress(true);
+                                        string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
                                         try
                                         {
                                             using TcpClient client = new(ServerIP, request.Destination.Port);
@@ -811,7 +813,7 @@ namespace HTTPSecureServerLite
                                         }
                                         catch (Exception) // Failed to connect, so we fallback to local IP.
                                         {
-                                            ServerIP = VariousUtils.GetLocalIPAddress(true).ToString();
+                                            ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
                                         }
                                         if (ServerIP.Length > 15)
                                             ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
@@ -839,7 +841,7 @@ namespace HTTPSecureServerLite
                                             }
                                             else if (request.RetrieveQueryValue("m3u") == "on")
                                             {
-                                                string? m3ufile = StaticFileSystemUtils.GetM3UStreamFromDirectory(filePath[..^1], $"https://example.com{absolutepath[..^1]}");
+                                                string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], $"https://example.com{absolutepath[..^1]}");
                                                 if (!string.IsNullOrEmpty(m3ufile))
                                                 {
                                                     statusCode = HttpStatusCode.OK;
@@ -858,7 +860,7 @@ namespace HTTPSecureServerLite
                                             {
                                                 bool handled = false;
 
-                                                foreach (string indexFile in HTTPUtils.DefaultDocuments)
+                                                foreach (string indexFile in HTTPProcessor.DefaultDocuments)
                                                 {
                                                     if (File.Exists(filePath + indexFile))
                                                     {
@@ -906,7 +908,7 @@ namespace HTTPSecureServerLite
                                                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + indexFile).ToString("r"));
                                                                 response.StatusCode = (int)statusCode;
-                                                                response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath + indexFile));
+                                                                response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath + indexFile));
                                                                 sent = await response.Send(buffer);
                                                             }
                                                             else
@@ -975,13 +977,13 @@ namespace HTTPSecureServerLite
                                                 {
                                                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                                     if (ContentType == "application/octet-stream")
                                                     {
-                                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
-                                                        foreach (var entry in HTTPUtils.PathernDictionary)
+                                                        byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                        foreach (var entry in HTTPProcessor.PathernDictionary)
                                                         {
-                                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                                             {
                                                                 ContentType = entry.Key;
                                                                 break;
@@ -1020,7 +1022,7 @@ namespace HTTPSecureServerLite
                                             {
                                                 byte[]? DnsReq = request.DataAsBytes;
 
-                                                string fullname = string.Join(".", HTTPUtils.GetDnsName(DnsReq).ToArray());
+                                                string fullname = string.Join(".", DNSProcessor.GetDnsName(DnsReq).ToArray());
 
                                                 LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
 
@@ -1075,7 +1077,7 @@ namespace HTTPSecureServerLite
                                                 }
 
                                                 if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                    url = VariousUtils.GetFirstActiveIPAddress(fullname, VariousUtils.GetPublicIPAddress(true));
+                                                    url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
 
                                                 IPAddress ip = IPAddress.None; // NXDOMAIN
                                                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -1093,10 +1095,10 @@ namespace HTTPSecureServerLite
 
                                                     LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {ip}");
 
-                                                    DnsReq = HTTPUtils.MakeDnsResponsePacket(DnsReq, ip);
+                                                    DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
                                                 }
                                                 else if (url == "NXDOMAIN")
-                                                    DnsReq = HTTPUtils.MakeDnsResponsePacket(DnsReq, ip);
+                                                    DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
 
                                                 if (DnsReq != null && DnsReq.Length <= 512) // Https wire expect padding.
                                                 {
@@ -1136,7 +1138,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={makeres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(makeres.Value.Item1);
                                         }
                                         else
@@ -1155,7 +1157,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={unbarres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(unbarres.Value.Item1);
                                         }
                                         else
@@ -1174,7 +1176,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={cdsres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(cdsres.Value.Item1);
                                         }
                                         else
@@ -1193,7 +1195,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={cdsbruteres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(cdsbruteres.Value.Item1);
                                         }
                                         else
@@ -1212,7 +1214,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={hcdbres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(hcdbres.Value.Item1);
                                         }
                                         else
@@ -1231,7 +1233,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={ticketlistres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(ticketlistres.Value.Item1);
                                         }
                                         else
@@ -1250,7 +1252,7 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                             response.Headers.Add("Content-disposition", $"attachment; filename={infres.Value.Item2}");
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                            response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                             sent = await response.Send(infres.Value.Item1);
                                         }
                                         else
@@ -1343,7 +1345,7 @@ namespace HTTPSecureServerLite
                                     byte[] PostData = request.DataAsBytes;
                                     if (PostData != Array.Empty<byte>() && !string.IsNullOrEmpty(ContentType))
                                     {
-                                        string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+                                        string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                                         if (!string.IsNullOrEmpty(boundary))
                                         {
                                             string UploadDirectoryPath = HTTPSServerConfiguration.HTTPSTempFolder + $"/DataUpload/{absolutepath[1..]}";
@@ -1399,14 +1401,14 @@ namespace HTTPSecureServerLite
                                 if (fileInfo.Exists)
                                 {
                                     statusCode = HttpStatusCode.OK;
-                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                     if (ContentType == "application/octet-stream")
                                     {
                                         bool matched = false;
-                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
-                                        foreach (var entry in HTTPUtils.PathernDictionary)
+                                        byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                        foreach (var entry in HTTPProcessor.PathernDictionary)
                                         {
-                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                             {
                                                 matched = true;
                                                 response.ContentType = entry.Key;
@@ -1443,13 +1445,13 @@ namespace HTTPSecureServerLite
                             case "PROPFIND":
                                 if (File.Exists(filePath))
                                 {
-                                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                                     if (ContentType == "application/octet-stream")
                                     {
-                                        byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(filePath, 10);
-                                        foreach (var entry in HTTPUtils.PathernDictionary)
+                                        byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                        foreach (var entry in HTTPProcessor.PathernDictionary)
                                         {
-                                            if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                             {
                                                 ContentType = entry.Key;
                                                 break;

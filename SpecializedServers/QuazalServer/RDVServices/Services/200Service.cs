@@ -1,4 +1,4 @@
-﻿using QuazalServer.QNetZ.Attributes;
+using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Interfaces;
 

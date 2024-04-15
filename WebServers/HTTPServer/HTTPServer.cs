@@ -1,5 +1,5 @@
 // Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
-using BackendProject.MiscUtils;
+
 using CustomLogger;
 using HTTPServer.Models;
 using System.Collections.Concurrent;
@@ -34,7 +34,7 @@ namespace HTTPServer
             {
                 Parallel.ForEach(ports, port =>
                 {
-                    if (VariousUtils.IsTCPPortAvailable(port))
+                    if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
                         new Thread(() => CreateHTTPPortListener(port)).Start();
                 });
             }
@@ -67,7 +67,7 @@ namespace HTTPServer
                                 LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown an IOException: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound && VariousUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
                             else
                                 break;
@@ -78,7 +78,7 @@ namespace HTTPServer
                                 LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown a SocketException: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound && VariousUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
                             else
                                 break;
@@ -88,7 +88,7 @@ namespace HTTPServer
                             if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTPServer] - Client loop thrown an assertion: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound && VariousUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
                             else
                                 break;

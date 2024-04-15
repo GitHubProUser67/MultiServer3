@@ -5,7 +5,8 @@ using Newtonsoft.Json.Linq;
 using Horizon.LIBRARY.Database;
 using System.Runtime;
 using System.Net;
-using BackendProject.MiscUtils;
+
+using System.Security.Principal;
 
 public static class SVOServerConfiguration
 {
@@ -107,8 +108,10 @@ class Program
 
     static void Main()
     {
-        if (VariousUtils.IsWindows())
-            if (!VariousUtils.IsAdministrator())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (IsWindows)
+            if (!IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
@@ -121,7 +124,7 @@ class Program
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 
-        SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
 
         if (HttpListener.IsSupported)
             _ = Task.Run(new SVOServer("*").Start);
@@ -134,7 +137,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {
@@ -158,6 +161,18 @@ class Program
             Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
         }
     }
+
+    /// <summary>
+    /// Know if we are the true administrator of the Windows system.
+    /// <para>Savoir si est réellement l'administrateur Windows.</para>
+    /// </summary>
+    /// <returns>A boolean.</returns>
+#pragma warning disable
+    private static bool IsAdministrator()
+    {
+        return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+#pragma warning restore
 
     private static bool StartAsAdmin(string? filePath)
     {

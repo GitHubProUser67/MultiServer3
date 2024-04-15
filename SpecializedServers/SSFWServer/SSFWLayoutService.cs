@@ -1,8 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using BackendProject.FileHelper;
-using BackendProject.MiscUtils;
+
 
 namespace SSFWServer
 {
@@ -46,7 +45,7 @@ namespace SSFWServer
                             }
                             else
                             {
-                                string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(kvp.Key, 13, 18)).Key;
+                                string scenename = scenemap.FirstOrDefault(x => x.Value == SSFWMisc.ExtractPortion(kvp.Key, 13, 18)).Key;
                                 if (!string.IsNullOrEmpty(scenename))
                                 {
                                     if (File.Exists(directorypath + $"/{kvp.Key}.json")) // SceneID now mapped, so SceneID based file has become obsolete.
@@ -74,7 +73,7 @@ namespace SSFWServer
                         }
                         else
                         {
-                            string scenename = scenemap.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
+                            string scenename = scenemap.FirstOrDefault(x => x.Value == SSFWMisc.ExtractPortion(sceneid, 13, 18)).Key;
                             if (!string.IsNullOrEmpty(scenename))
                             {
                                 if (File.Exists(directorypath + $"/{sceneid}.json")) // SceneID now mapped, so SceneID based file has become obsolete.
@@ -117,7 +116,7 @@ namespace SSFWServer
                     }
                     else
                     {
-                        string scenename = ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == VariousUtils.ExtractPortion(sceneid, 13, 18)).Key;
+                        string scenename = ScenelistParser.sceneDictionary.FirstOrDefault(x => x.Value == SSFWMisc.ExtractPortion(sceneid, 13, 18)).Key;
                         if (!string.IsNullOrEmpty(scenename))
                         {
                             string filepath = directorypath + $"/{scenename}.json";

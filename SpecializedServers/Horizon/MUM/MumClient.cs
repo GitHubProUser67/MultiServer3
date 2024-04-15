@@ -1,4 +1,5 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.Crypto;
+
 using System.Net;
 
 namespace Horizon.MUM
@@ -16,7 +17,7 @@ namespace Horizon.MUM
                 client.DefaultRequestHeaders.Add("content-type", "text/xml; charset=UTF-8");
                 HttpResponseMessage response = client.GetAsync($"http://{ip}:{port}/{command}/").Result;
                 response.EnsureSuccessStatusCode();
-                return WebCryptoUtils.Decrypt(response.Content.ReadAsStringAsync().Result, key, MumUtils.ConfigIV);
+                return WebCrypto.Decrypt(response.Content.ReadAsStringAsync().Result, key, MumUtils.ConfigIV);
             }
             catch (Exception)
             {
@@ -30,7 +31,7 @@ namespace Horizon.MUM
                 client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
                 client.Headers.Add("method", "GET");
                 client.Headers.Add("content-type", "text/xml; charset=UTF-8");
-                return WebCryptoUtils.Decrypt(client.DownloadStringTaskAsync(new Uri($"http://{ip}:{port}/{command}/")).Result, key, MumUtils.ConfigIV);
+                return WebCrypto.Decrypt(client.DownloadStringTaskAsync(new Uri($"http://{ip}:{port}/{command}/")).Result, key, MumUtils.ConfigIV);
 #pragma warning restore
             }
             catch (Exception)

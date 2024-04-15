@@ -17,12 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
     <PackageReference Include="Watson.Lite" Version="6.1.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonUtils\HorizonUtils.csproj" />
+    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonService\HorizonService.csproj" />
   </ItemGroup>
   
   <ItemGroup>

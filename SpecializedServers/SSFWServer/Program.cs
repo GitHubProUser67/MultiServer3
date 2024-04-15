@@ -1,4 +1,3 @@
-using BackendProject.MiscUtils;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
@@ -12,9 +11,6 @@ public static class SSFWServerConfiguration
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string ScenelistFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot/SceneList.xml";
-    public static bool EnableDiscordPlugin { get; set; } = true;
-    public static string DiscordBotToken { get; set; } = string.Empty;
-    public static string DiscordChannelID { get; set; } = string.Empty;
     public static List<string>? BannedIPs { get; set; }
 
     /// <summary>
@@ -40,11 +36,6 @@ public static class SSFWServerConfiguration
                 new JProperty("static_folder", SSFWStaticFolder),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("scenelist_file", ScenelistFile),
-                new JProperty("discord_bot_token", DiscordBotToken),
-                new JProperty("discord_channel_id", DiscordChannelID),
-                new JProperty("discord_plugin", new JObject(
-                    new JProperty("enabled", EnableDiscordPlugin)
-                )),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString().Replace("/", "\\\\"));
 
@@ -62,9 +53,6 @@ public static class SSFWServerConfiguration
             SSFWStaticFolder = config.static_folder;
             HTTPSCertificateFile = config.certificate_file;
             ScenelistFile = config.scenelist_file;
-            DiscordBotToken = config.discord_bot_token;
-            DiscordChannelID = config.discord_channel_id;
-            EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists
             if (bannedIPsArray != null)
@@ -95,17 +83,16 @@ class Program
 
     static void Main()
     {
-        if (!VariousUtils.IsWindows())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SSFWServer");
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
-
-        if (SSFWServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(SSFWServerConfiguration.DiscordBotToken))
-            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(SSFWServerConfiguration.DiscordChannelID, SSFWServerConfiguration.DiscordBotToken);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
 
         _ = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
@@ -114,7 +101,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

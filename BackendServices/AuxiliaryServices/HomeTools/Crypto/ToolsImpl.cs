@@ -4,9 +4,11 @@ using System.Numerics;
 using ComponentAce.Compression.Libs.zlib;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using BackendProject.MiscUtils;
+
 using HomeTools.UnBAR;
 using System.Security.Cryptography;
+using EndianTools;
+using CyberBackendLibrary.DataTypes;
 
 namespace HomeTools.Crypto
 {
@@ -420,12 +422,12 @@ namespace HomeTools.Crypto
 
         public byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return VariousUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
+            return DataTypesUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
         public byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return VariousUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
+            return DataTypesUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
         public byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
@@ -484,16 +486,16 @@ namespace HomeTools.Crypto
 
                         Array.Copy(ISO97971, 0, block, fileBytes.Length, ISO97971.Length); // Copy the ISO97971 padding at the beginning
 
-                        string hexresult = libsecure.MemXOR(VariousUtils.ByteArrayToHexString(ivBlk), VariousUtils.ByteArrayToHexString(block), blockSize);
+                        string hexresult = libsecure.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize);
                         hexStr.Append(hexresult[..^(BytesToFill * 2)]); // Pemdas rule necessary, and we double size because we work with bytes in a string.
                     }
                     else
-                        hexStr.Append(libsecure.MemXOR(VariousUtils.ByteArrayToHexString(ivBlk), VariousUtils.ByteArrayToHexString(block), blockSize));
+                        hexStr.Append(libsecure.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize));
 
                     i += blockSize;
                 }
 
-                returnstring = VariousUtils.HexStringToByteArray(hexStr.ToString());
+                returnstring = DataTypesUtils.HexStringToByteArray(hexStr.ToString());
 
                 hexStr = null;
                 libsecure = null;

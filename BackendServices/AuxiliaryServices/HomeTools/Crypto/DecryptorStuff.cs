@@ -1,6 +1,6 @@
 namespace HomeTools.Crypto
 {
-    internal abstract class Decryptor
+    public abstract class Decryptor
     {
         public virtual void doInit(byte[] key, byte[] iv)
         {

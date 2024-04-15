@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 
@@ -16,7 +16,7 @@ namespace TycoonServer
             string DisplayName = string.Empty;
             string InstanceID = string.Empty;
             string Region = string.Empty;
-            string? boundary = HTTPUtils.ExtractBoundary(ContentType);
+            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (boundary != null)
             {

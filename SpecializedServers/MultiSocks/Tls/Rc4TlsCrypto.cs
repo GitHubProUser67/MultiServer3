@@ -1,7 +1,8 @@
-using BackendProject.MiscUtils;
+
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
+using System.Reflection;
 
 namespace MultiSocks.Tls;
 
@@ -21,7 +22,7 @@ public class Rc4TlsCrypto : BcTlsCrypto
     {
         if (_writeSslKeyLog)
         {
-            var secret = VariousUtils.ReflectMasterSecretFromBCTls(cryptoParams.SecurityParameters.MasterSecret) ?? throw new Exception("[MultiSocks Rc4TlsCrypto] - Failed to reflect master secret");
+            var secret = ReflectMasterSecretFromBCTls(cryptoParams.SecurityParameters.MasterSecret) ?? throw new Exception("[MultiSocks Rc4TlsCrypto] - Failed to reflect master secret");
             var clientRandom = Convert.ToHexString(cryptoParams.SecurityParameters.ClientRandom);
             var masterSecret = Convert.ToHexString(secret);
 
@@ -50,5 +51,18 @@ public class Rc4TlsCrypto : BcTlsCrypto
     {
         return new TlsRc4Cipher(cryptoParams, cipherKeySize, CreateMac(cryptoParams, macAlgorithm),
             CreateMac(cryptoParams, macAlgorithm));
+    }
+
+    /// <summary>
+    /// Get the master secret from BouncyCastle.
+    /// <para>Obtiens le master secret de BouncyCastle.</para>
+    /// </summary>
+    /// <param name="secret">The secret.</param>
+    /// <returns>A byte array.</returns>
+    private byte[]? ReflectMasterSecretFromBCTls(TlsSecret secret)
+    {
+        // We need to use reflection to access the master secret from BC
+        // because using Extract() destroys the key for subsequent calls
+        return (byte[]?)typeof(BcTlsSecret).GetField("m_data", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(secret);
     }
 }
