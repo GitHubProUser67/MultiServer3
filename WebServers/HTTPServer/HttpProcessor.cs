@@ -207,6 +207,13 @@ namespace HTTPServer
                                     "content-dev.gr.online.scea.com",
                                 };
 
+                                List<string> nDreamsDomains = new()
+                                {
+                                    "pshome.ndreams.net",
+                                    "www.ndreamshs.com",
+                                    "www.ndreamsportal.com"
+                                };
+
                                 if (response == null)
                                 {
                                     switch (Host)
@@ -317,12 +324,10 @@ namespace HTTPServer
                                             #endregion
 
                                             #region nDreams API
-                                            else if ((Host == "pshome.ndreams.net" 
-                                                || Host == "www.ndreamshs.com"
-                                                || Host == "www.ndreamsportal.com")
+                                            else if (nDreamsDomains.Contains(Host)
                                                 && !string.IsNullOrEmpty(Method) 
                                                 && absolutepath.EndsWith(".php") 
-                                                || absolutepath.EndsWith("/"))
+                                                || absolutepath.Contains("/gateway/"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
@@ -404,7 +409,7 @@ namespace HTTPServer
                                             else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
                                                 Host == "homeec.scej-nbs.jp" ||
-                                                Host == "homeecqa.scej-nbs.jp"||
+                                                Host == "homeecqa.scej-nbs.jp" ||
                                                 Host == "homect-scej.jp" ||
                                                 Host == "qa-homect-scej.jp") 
                                                 && !string.IsNullOrEmpty(Method)
