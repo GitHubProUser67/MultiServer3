@@ -179,6 +179,14 @@ namespace HTTPSecureServerLite
                                     "content-dev.gr.online.scea.com",
                                 };
 
+
+            List<string> nDreamsDomains = new()
+                                {
+                                    "pshome.ndreams.net",
+                                    "www.ndreamshs.com",
+                                    "www.ndreamsportal.com"
+                                };
+
             #endregion
 
             if (statusCode == HttpStatusCode.Continue)
@@ -390,7 +398,10 @@ namespace HTTPSecureServerLite
                     #endregion
 
                     #region nDreams API
-                    else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com" || Host == "www.ndreamsportal.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith("/")))
+                    else if (nDreamsDomains.Contains(Host)
+                    && !string.IsNullOrEmpty(request.Method.ToString())
+                    && absolutepath.EndsWith(".php")
+                    || absolutepath.Contains("/gateway/"))
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
 
