@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
+    <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
+
+	<!--
+	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
+	  affected interfaces (or abstract classes) will not be backward compatible. There are also several
+	  methods in DotNetUtilities dealing with ECDsa which is only available from net47.
+
+	  TODO: Use suppressions for each individual case of version-dependent methods.
+    -->
+    <NoWarn>$(NoWarn);CP0002;CP0005;CP0006</NoWarn>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+	<DefineConstants />
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+</Project>

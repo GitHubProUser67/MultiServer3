@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using SVO.Games;
@@ -191,7 +191,7 @@ namespace SVO
                                 {
                                     ctx.Response.Headers.Set("Content-Type", "application/xml;charset=UTF-8");
                                     ctx.Response.Headers.Set("Content-Language", string.Empty);
-                                    string? boundary = HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
+                                    string? boundary = HTTPProcessor.ExtractBoundary(ctx.Request.ContentType);
 
                                     var data = MultipartFormDataParser.Parse(ctx.Request.InputStream, boundary);
 
@@ -262,7 +262,7 @@ namespace SVO
                         if (File.Exists(filePath))
                         {
                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                            ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                            ctx.Response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
 
                             ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));

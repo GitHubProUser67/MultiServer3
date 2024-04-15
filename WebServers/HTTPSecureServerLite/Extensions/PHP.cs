@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
 using System.Diagnostics;
 using System.Text;
 using WatsonWebserver.Core;
@@ -102,7 +102,7 @@ namespace HTTPSecureServerLite.Extensions
                         if (memoryStream.Length == 0)
                         {
                             using StreamReader errorReader = proc.StandardError;
-                            memoryStream.Write(HTTPUtils.RemoveUnwantedPHPHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
+                            memoryStream.Write(HTTPProcessor.RemoveUnwantedPHPHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
                         }
 
                         // Process Set-Cookie headers
@@ -132,7 +132,7 @@ namespace HTTPSecureServerLite.Extensions
                         }
 
                         // Get the final byte array
-                        returndata = HTTPUtils.RemoveUnwantedPHPHeaders(memoryStream.ToArray());
+                        returndata = HTTPProcessor.RemoveUnwantedPHPHeaders(memoryStream.ToArray());
 
                         reader.Close();
                     }

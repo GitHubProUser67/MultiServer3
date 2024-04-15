@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+
 
 namespace Horizon.BWPS.Config
 {
@@ -18,7 +18,7 @@ namespace Horizon.BWPS.Config
         /// <summary>
         /// IP of the BWPS.
         /// </summary>
-        public string BWPSIp { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
+        public string BWPSIp { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         #endregion
 
         /// <summary>

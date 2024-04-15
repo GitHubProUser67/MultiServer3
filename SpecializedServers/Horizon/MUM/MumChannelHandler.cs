@@ -4,7 +4,8 @@ using Horizon.MEDIUS;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.Crypto;
 
 namespace Horizon.MUM
 {
@@ -15,7 +16,7 @@ namespace Horizon.MUM
             return JsonConvert.SerializeObject(channel, Formatting.Indented, new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                Converters = { new JsonIPConverterUtils() }
+                Converters = { new JsonIPConverter() }
             });
         }
 
@@ -24,18 +25,18 @@ namespace Horizon.MUM
             return JsonConvert.DeserializeXmlNode(JsonConvert.SerializeObject(channel, new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                Converters = { new JsonIPConverterUtils() }
+                Converters = { new JsonIPConverter() }
             }), "Channel")?.OuterXml ?? "<Channel></Channel>";
         }
 
         public static string? JsonSerializeChannelsList()
         {
-            return WebCryptoUtils.Encrypt(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true);
+            return WebCrypto.Encrypt(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true);
         }
 
         public static string? XMLSerializeChannelsList()
         {
-            return WebCryptoUtils.Encrypt(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true, true);
+            return WebCrypto.Encrypt(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true, true);
         }
 
         public static string GetCRC32ChannelsList()
@@ -46,7 +47,7 @@ namespace Horizon.MUM
 
             foreach (Channel channel in MediusClass.Manager.GetAllChannels())
             {
-                XMLData += $"<CRC32 name=\"{channel.Name}\">{new Crc32Utils().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
+                XMLData += $"<CRC32 name=\"{channel.Name}\">{new CastleLibrary.Custom.Crc32().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
             }
 
             return XMLData + "</Root>";
@@ -103,7 +104,7 @@ namespace Horizon.MUM
                             return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverter() }
                             })?.FirstOrDefault(x => x.Name == channel.Name && x.ApplicationId == channel.ApplicationId);
                     }
                 }
@@ -136,7 +137,7 @@ namespace Horizon.MUM
                             return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverter() }
                             })?.FirstOrDefault(x => x.Id == WorldId && x.ApplicationId == Appid);
                     }
                 }
@@ -169,7 +170,7 @@ namespace Horizon.MUM
                             return JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverter() }
                             })?.Where(channel => channel.ApplicationId == Appid).OrderBy(channel => channel.PlayerCount).FirstOrDefault();
                     }
                 }
@@ -205,7 +206,7 @@ namespace Horizon.MUM
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverter() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -262,7 +263,7 @@ namespace Horizon.MUM
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverter() }
                             });
 
                             if (ConvertedChannelsLists != null)
@@ -314,7 +315,7 @@ namespace Horizon.MUM
                             List<Channel>? ConvertedChannelsLists = JsonConvert.DeserializeObject<List<Channel>>(RemoteChannelsList, new JsonSerializerSettings
                             {
                                 PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
-                                Converters = { new JsonIPConverterUtils() }
+                                Converters = { new JsonIPConverter() }
                             });
 
                             if (ConvertedChannelsLists != null)

@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+
 using CustomLogger;
 using PSHostsFile;
 using System.Net;
@@ -18,7 +18,7 @@ namespace HTTPSecureServerLite
             if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
             {
                 LoggerAccessor.LogInfo("[HTTPS_DNS] - Downloading Configuration File...");
-                if (VariousUtils.IsWindows()) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                 try
                 {
 #if NET7_0
@@ -84,7 +84,7 @@ namespace HTTPSecureServerLite
 #endif
                                     dns.Address = IpFromConfig;
                                 else
-                                    dns.Address = VariousUtils.GetLocalIPAddress().ToString();
+                                    dns.Address = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
                                 break;
                             default:
                                 LoggerAccessor.LogWarn($"[HTTPS_DNS] - Rule : {s} is not a formated properly, skipping...");
@@ -197,7 +197,7 @@ namespace HTTPSecureServerLite
 #endif
                                     dns.Address = IpFromConfig;
                                 else
-                                    dns.Address = VariousUtils.GetLocalIPAddress().ToString();
+                                    dns.Address = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
                                 DicRules.Add(hostname, dns);
                                 DicRules.Add("www." + hostname, dns);

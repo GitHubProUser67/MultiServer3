@@ -1,6 +1,4 @@
-using BackendProject.MiscUtils;
-using System.Data;
-using System.Numerics;
+using CyberBackendLibrary.DataTypes;
 using System.Text;
 
 namespace QuazalServer.QNetZ
@@ -437,7 +435,7 @@ namespace QuazalServer.QNetZ
 					sb.Append(b.ToString("X2") + " ");
 			}
 			sb.AppendLine();
-			sb.AppendLine(" Checksum:0x" + VariousUtils.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
+			sb.AppendLine(" Checksum:0x" + DataTypesUtils.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
 			sb.AppendLine("}");
 			return sb.ToString();
 		}

@@ -1,5 +1,6 @@
-using BackendProject.MiscUtils;
+
 using CustomLogger;
+using CyberBackendLibrary.HTTP;
 using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
@@ -64,7 +65,7 @@ namespace Horizon.HTTPSERVICE
                         if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                         {
                             ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                            await ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
+                            await ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
                         }
                         else
                             await ctx.Response.Send(CrudRoomManager.ToJson());
@@ -90,7 +91,7 @@ namespace Horizon.HTTPSERVICE
                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                await ctx.Response.Send(HTTPUtils.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                await ctx.Response.Send(HTTPProcessor.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
                             }
                             else
                                 await ctx.Response.Send(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));

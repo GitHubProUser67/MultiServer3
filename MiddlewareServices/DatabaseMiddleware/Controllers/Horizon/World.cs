@@ -1,4 +1,4 @@
-﻿using DatabaseMiddleware.SQLiteEngine;
+using DatabaseMiddleware.SQLiteEngine;
 using System.Runtime.InteropServices;
 
 namespace DatabaseMiddleware.Controllers.Horizon

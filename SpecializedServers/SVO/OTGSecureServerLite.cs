@@ -1,4 +1,4 @@
-using BackendProject.MiscUtils;
+using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Net;
@@ -95,11 +95,11 @@ namespace SVO
 
                 if (!string.IsNullOrEmpty(ctx.Request.Url.RawWithQuery))
                 {
-                    fullurl = HTTPUtils.DecodeUrl(ctx.Request.Url.RawWithQuery);
+                    fullurl = HTTPProcessor.DecodeUrl(ctx.Request.Url.RawWithQuery);
 
                     LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}");
 
-                    absolutepath = HTTPUtils.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPUtils.RemoveQueryString(fullurl);
+                    absolutepath = HTTPProcessor.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                     statusCode = HttpStatusCode.Continue;
                 }
                 else
@@ -134,7 +134,7 @@ namespace SVO
                                 statusCode = HttpStatusCode.OK;
                                 ctx.Response.ContentType = "application/xml;charset=UTF-8";
                                 ctx.Response.Headers.Set("Content-Language", string.Empty);
-                                string? boundary = HTTPUtils.ExtractBoundary(ctx.Request.ContentType);
+                                string? boundary = HTTPProcessor.ExtractBoundary(ctx.Request.ContentType);
 
                                 var data = MultipartFormDataParser.Parse(new MemoryStream(ctx.Request.DataAsBytes), boundary);
 
@@ -189,7 +189,7 @@ namespace SVO
 
                         statusCode = HttpStatusCode.OK;
                         ctx.Response.StatusCode = (int)statusCode;
-                        ctx.Response.ContentType = HTTPUtils.GetMimeType(Path.GetExtension(filePath));
+                        ctx.Response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
                         ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         ctx.Response.Headers.Add("ETag", Guid.NewGuid().ToString()); // Well, kinda wanna avoid client caching.

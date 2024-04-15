@@ -2,9 +2,10 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
-using BackendProject.MiscUtils;
+
 using HomeTools.AFS;
-using WebUtils.LeaderboardsService;
+using WebAPIService.LeaderboardsService;
+using CyberBackendLibrary.GeoLocalization;
 
 public static class HTTPSServerConfiguration
 {
@@ -23,9 +24,6 @@ public static class HTTPSServerConfiguration
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool UseSelfSignedCertificate { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
-    public static bool EnableDiscordPlugin { get; set; } = true;
-    public static string DiscordBotToken { get; set; } = string.Empty;
-    public static string DiscordChannelID { get; set; } = string.Empty;
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
@@ -62,13 +60,8 @@ public static class HTTPSServerConfiguration
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
-                new JProperty("discord_bot_token", DiscordBotToken),
-                new JProperty("discord_channel_id", DiscordChannelID),
                 new JProperty("use_self_signed_certificate", UseSelfSignedCertificate),
                 new JProperty("enable_put_method", EnablePUTMethod),
-                new JProperty("discord_plugin", new JObject(
-                    new JProperty("enabled", EnableDiscordPlugin)
-                )),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
@@ -95,11 +88,8 @@ public static class HTTPSServerConfiguration
             ConvertersFolder = config.converters_folder;
             HTTPSCertificateFile = config.certificate_file;
             HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
-            DiscordBotToken = config.discord_bot_token;
-            DiscordChannelID = config.discord_channel_id;
             UseSelfSignedCertificate = config.use_self_signed_certificate;
             EnablePUTMethod = config.enable_put_method;
-            EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray PortsArray = config.Ports;
             // Deserialize Ports if it exists
             if (PortsArray != null)
@@ -138,7 +128,9 @@ class Program
 
     static void Main()
     {
-        if (!VariousUtils.IsWindows())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("HTTPSecureServer");
@@ -147,18 +139,15 @@ class Program
 
         string certpath = HTTPSServerConfiguration.HTTPSCertificateFile;
 
-        SSLUtils.InitCerts(certpath);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(certpath);
 
-        GeoIPUtils.Initialize();
+        GeoIP.Initialize();
 
         AFSClass.MapperHelperFolder = HTTPSServerConfiguration.HomeToolsHelperStaticFolder;
         LeaderboardClass.APIPath = HTTPSServerConfiguration.APIStaticFolder;
 
         _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
         _ = new Timer(LeaderboardClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-
-        if (HTTPSServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(HTTPSServerConfiguration.DiscordBotToken))
-            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(HTTPSServerConfiguration.DiscordChannelID, HTTPSServerConfiguration.DiscordBotToken);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => SecureDNSConfigProcessor.InitDNSSubsystem(),
@@ -169,7 +158,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

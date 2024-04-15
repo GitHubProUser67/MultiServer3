@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 
 namespace HomeTools.Crypto
 {
-    internal class AESCBC128Encrypt : Decryptor
+    public class AESCBC128Encrypt : Decryptor
     {
         private Aes? c;
         private ICryptoTransform? ct;
@@ -18,8 +18,9 @@ namespace HomeTools.Crypto
                 c.IV = iv;
                 ct = c.CreateEncryptor();
             }
-            catch (Exception)
+            catch
             {
+
             }
         }
 

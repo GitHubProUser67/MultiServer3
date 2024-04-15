@@ -11,10 +11,12 @@ using Horizon.MEDIUS.PluginArgs;
 using Horizon.PluginManager;
 using System.Net;
 using Horizon.LIBRARY.Database.Models;
-using BackendProject.MiscUtils;
 using Horizon.MUM;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Text;
+using System.Security.Cryptography;
+using CyberBackendLibrary.DataTypes;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -152,9 +154,9 @@ namespace Horizon.MEDIUS.Medius
 
                         if (QueryData != null)
                         {
-                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{VariousUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
-                            if (QueryData.Length == 6 && VariousUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
+                            if (QueryData.Length == 6 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
                         }
                         break;
@@ -1276,7 +1278,7 @@ namespace Horizon.MEDIUS.Medius
                         await HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                         {
                             AccountName = accountRegRequest.AccountName,
-                            AccountPassword = VariousUtils.ComputeSHA256(accountRegRequest.Password),
+                            AccountPassword = ComputeSHA256(accountRegRequest.Password),
                             MachineId = data.MachineId,
                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                             AppId = data.ClientObject.ApplicationId
@@ -1471,10 +1473,8 @@ namespace Horizon.MEDIUS.Medius
                                             });
                                         }
 
-                                        else if (VariousUtils.ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
-                                        {
+                                        else if (ComputeSHA256(accountLoginRequest.Password) == r.Result.AccountPassword)
                                             await Login(accountLoginRequest.MessageID, clientChannel, data, r.Result, false);
-                                        }
                                         else
                                         {
                                             // Incorrect password
@@ -1522,7 +1522,7 @@ namespace Horizon.MEDIUS.Medius
                                             _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                                             {
                                                 AccountName = accountLoginRequest.Username,
-                                                AccountPassword = VariousUtils.ComputeSHA256(accountLoginRequest.Password),
+                                                AccountPassword = ComputeSHA256(accountLoginRequest.Password),
                                                 MachineId = data.MachineId,
                                                 MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                                 AppId = data.ClientObject.ApplicationId
@@ -2953,6 +2953,28 @@ namespace Horizon.MEDIUS.Medius
 
             // return patched
             return true;
+        }
+        #endregion
+
+        #region SHA256
+
+        /// <summary>
+        /// Compute the SHA256 checksum of a string.
+        /// <para>Calcul la somme des contr�les en SHA256 d'un string.</para>
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <returns>A string.</returns>
+        private static string ComputeSHA256(string input)
+        {
+            // ComputeHash - returns byte array  
+            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+
+            // Convert byte array to a string   
+            StringBuilder builder = new();
+            for (int i = 0; i < bytes.Length; i++)
+                builder.Append(bytes[i].ToString("x2"));
+
+            return builder.ToString();
         }
         #endregion
     }

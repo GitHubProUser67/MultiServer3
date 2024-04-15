@@ -1,18 +1,14 @@
-using BackendProject.MiscUtils;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = VariousUtils.GetLocalIPAddress().ToString();
-    public static string ServerPublicBindAddress { get; set; } = VariousUtils.GetPublicIPAddress();
+    public static string ServerBindAddress { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+    public static string ServerPublicBindAddress { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static bool UsePublicIP { get; set; } = false;
-    public static bool EnableDiscordPlugin { get; set; } = true;
-    public static string DiscordBotToken { get; set; } = string.Empty;
-    public static string DiscordChannelID { get; set; } = string.Empty;
     public static List<Tuple<int, string>>? BackendServersList { get; set; } = new List<Tuple<int, string>>
                     {
                         Tuple.Create(30201, "yh64s"), // TDUPS2
@@ -80,11 +76,6 @@ public static class QuazalServerConfiguration
                 new JProperty("ednet_bind_address_override", EdNetBindAddressOverride),
                 new JProperty("quazal_static_folder", QuazalStaticFolder),
                 new JProperty("server_public_ip", UsePublicIP),
-                new JProperty("discord_bot_token", DiscordBotToken),
-                new JProperty("discord_channel_id", DiscordChannelID),
-                new JProperty("discord_plugin", new JObject(
-                    new JProperty("enabled", EnableDiscordPlugin)
-                )),
                 new JProperty("backend_servers_list", new JArray(
                     from item in BackendServersList
                     select new JObject(
@@ -115,9 +106,6 @@ public static class QuazalServerConfiguration
             EdNetBindAddressOverride = config.ednet_bind_address_override;
             QuazalStaticFolder = config.quazal_static_folder;
             UsePublicIP = config.server_public_ip;
-            DiscordBotToken = config.discord_bot_token;
-            DiscordChannelID = config.discord_channel_id;
-            EnableDiscordPlugin = config.discord_plugin.enabled;
             JArray BackendServersListArray = config.backend_servers_list;
             // Deserialize BackendServersList if it exists
             if (BackendServersListArray != null)
@@ -152,7 +140,9 @@ class Program
 
     static void Main()
     {
-        if (!VariousUtils.IsWindows())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("QuazalServer");
@@ -161,9 +151,6 @@ class Program
 
         QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
         QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.InitiateDatabase();
-
-        if (QuazalServerConfiguration.EnableDiscordPlugin && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordChannelID) && !string.IsNullOrEmpty(QuazalServerConfiguration.DiscordBotToken))
-            _ = BackendProject.Discord.CrudDiscordBot.BotStarter(QuazalServerConfiguration.DiscordChannelID, QuazalServerConfiguration.DiscordBotToken);
 
         // Timer for scheduled updates every 30 seconds.
         _ = new Timer(QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.ScheduledDatabaseUpdate, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
@@ -176,7 +163,7 @@ class Program
                     () => RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

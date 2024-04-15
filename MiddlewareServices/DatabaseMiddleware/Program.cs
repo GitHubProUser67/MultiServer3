@@ -1,4 +1,5 @@
-﻿using BackendProject.MiscUtils;
+
+using CyberBackendLibrary.GeoLocalization;
 using CustomLogger;
 using DatabaseMiddleware.HTTPEngine;
 using DatabaseMiddleware.SQLiteEngine;
@@ -71,7 +72,9 @@ class Program
 
     static void Main()
     {
-        if (!VariousUtils.IsWindows())
+        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("DatabaseMiddleware");
@@ -82,7 +85,7 @@ class Program
 
         _ = new Timer(AuthenticationChannel.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 
-        GeoIPUtils.Initialize();
+        GeoIP.Initialize();
 
         SQLiteConnector.AddDatabases(DatabaseMiddlewareServerConfiguration.DbFiles).Wait();
 
@@ -92,7 +95,7 @@ class Program
                     () => _ = RefreshConfig()
                 ));
 
-        if (VariousUtils.IsWindows())
+        if (IsWindows)
         {
             while (true)
             {

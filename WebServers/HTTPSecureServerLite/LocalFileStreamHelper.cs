@@ -1,7 +1,10 @@
-using BackendProject.MiscUtils;
+
 using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
+
+using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.DataTypes;
 
 namespace HTTPSecureServerLite
 {
@@ -26,12 +29,12 @@ namespace HTTPSecureServerLite
                 using (HugeMemoryStream ms = new())
                 {
                     Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                    string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                     if (ContentType == "application/octet-stream")
                     {
-                        foreach (var entry in HTTPUtils.PathernDictionary)
+                        foreach (var entry in HTTPProcessor.PathernDictionary)
                         {
-                            if (VariousUtils.FindbyteSequence(VariousUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
+                            if (DataTypesUtils.FindbyteSequence(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -85,7 +88,7 @@ namespace HTTPSecureServerLite
                             if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                return ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
                             }
                             else
                                 return ctx.Response.Send(payload).Result;
@@ -126,7 +129,7 @@ namespace HTTPSecureServerLite
                     ms.Position = 0;
                     ctx.Response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
-                    ctx.Response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                    ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     ctx.Response.Headers.Add("Content-Length", ms.Length.ToString());
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
@@ -175,7 +178,7 @@ namespace HTTPSecureServerLite
                 if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    return ctx.Response.Send(HTTPUtils.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                    return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
                 }
                 else
                     return ctx.Response.Send(payload).Result;
@@ -186,14 +189,14 @@ namespace HTTPSecureServerLite
                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                 ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                 if (ContentType == "application/octet-stream")
                 {
                     bool matched = false;
-                    byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPUtils.PathernDictionary)
+                    byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                    foreach (var entry in HTTPProcessor.PathernDictionary)
                     {
-                        if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                        if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                         {
                             matched = true;
                             ctx.Response.ContentType = entry.Key;
@@ -218,14 +221,14 @@ namespace HTTPSecureServerLite
             {
                 long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                 fs.Position = startByte;
-                string ContentType = HTTPUtils.GetMimeType(Path.GetExtension(local_path));
+                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                 if (ContentType == "application/octet-stream")
                 {
                     bool matched = false;
-                    byte[] VerificationChunck = VariousUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPUtils.PathernDictionary)
+                    byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                    foreach (var entry in HTTPProcessor.PathernDictionary)
                     {
-                        if (VariousUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                        if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                         {
                             matched = true;
                             ctx.Response.ContentType = entry.Key;
@@ -239,7 +242,7 @@ namespace HTTPSecureServerLite
                     ctx.Response.ContentType = ContentType;
                 ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
-                ctx.Response.Headers.Add("Server", VariousUtils.GenerateServerSignature());
+                ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                 ctx.Response.Headers.Add("Content-Length", TotalBytes.ToString());
                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));

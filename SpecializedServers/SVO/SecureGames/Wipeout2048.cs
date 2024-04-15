@@ -1,5 +1,6 @@
-using BackendProject.MiscUtils;
+
 using CustomLogger;
+using CyberBackendLibrary.DataTypes;
 using HttpMultipartParser;
 using System;
 using System.Net;
@@ -642,7 +643,7 @@ namespace SVO
                                 // Convert the modified data to a string
                                 psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
-                                if (VariousUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                if (DataTypesUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
                                     LoggerAccessor.LogInfo($"OTG_HTTPS : User {psnname} logged in and is on RPCN");
                                 else
                                     LoggerAccessor.LogInfo($"OTG_HTTPS : User {psnname} logged in and is on PSN");
