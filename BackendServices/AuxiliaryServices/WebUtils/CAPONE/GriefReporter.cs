@@ -66,11 +66,11 @@ namespace WebUtils.CAPONE
                 string fileName = string.Empty;
 
                 JObject jObject = JObject.Parse(Encoding.UTF8.GetString(PostData));
-                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - jObject check {jObject}");
                 Uri dataURL = (Uri)VariousUtils.GetValueFromJToken(jObject, "dataLocation");
-                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - dataURL check {dataURL}");
                 string finalPath = Path.Combine(workPath, dataURL.AbsolutePath);
-                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - finalPath check {finalPath}");
+#if DEBUG
+                LoggerAccessor.LogWarn($"[CAPONE] GriefReporter - jObject check {jObject}\ndataURL check {dataURL}\nfinalPath check {finalPath}");
+#endif
 
                 try
                 {
