@@ -26,13 +26,6 @@ namespace WebAPIService.CAPONE
 
             switch (method)
             {
-                case "GET":
-                    switch (absolutePath)
-                    {
-                        case "/publisher/list/":
-                            return "<xml><status>success</status></xml>"; // TODO: emulate the publishers system.
-                    }
-                    break;
                 case "POST":
                     switch (absolutePath)
                     {

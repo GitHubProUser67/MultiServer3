@@ -43,9 +43,9 @@ namespace WebAPIService.OUWF
             {
                 XmlElement dirElement = xmlDoc.CreateElement("dir");
 
-                string HDKBuildRoot = "C:/HDK186/Build/";
+                //string HDKBuildRoot = "H:/HDK186/Build/";
 
-                string editDir = GetRelativePath(HDKBuildRoot, dir);
+                //string editDir = GetRelativePath(HDKBuildRoot, dir);
 
                 string backSlashEdit;
 

@@ -109,6 +109,8 @@ namespace HTTPServer
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {request.Url}");
 
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url);
+                                string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + request.Url;
+
 
                                 if (HTTPServerConfiguration.RedirectRules != null)
                                 {
@@ -209,6 +211,13 @@ namespace HTTPServer
                                     "content-dev.gr.online.scea.com",
                                 };
 
+                                List<string> nDreamsDomains = new()
+                                {
+                                    "pshome.ndreams.net",
+                                    "www.ndreamshs.com",
+                                    "www.ndreamsportal.com"
+                                };
+
                                 if (response == null)
                                 {
                                     switch (Host)
@@ -216,15 +225,16 @@ namespace HTTPServer
                                         default:
 
                                             #region Outso OHS API
-                                            if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
+                                            if ((Host == "stats.outso-srv1.com" 
+                                                || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 absolutepath.EndsWith("/") ||
                                                 absolutepath.Contains("/ohs_") ||
                                                 absolutepath.Contains("/ohs/") ||
                                                 absolutepath.Contains("/statistic/") ||
-                                                absolutepath.Contains("/Konami/" ))
+                                                absolutepath.Contains("/tracker/" ))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
                                                 string? res = null;
                                                 int version = 0;
@@ -254,9 +264,12 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Outso OUWF Debug API
-                                            else if (Host == "ouwf.outso-srv1.com" && request.GetDataStream != null && !string.IsNullOrEmpty(Method) && request.GetContentType().StartsWith("multipart/form-data"))
+                                            else if (Host == "ouwf.outso-srv1.com" 
+                                                && request.GetDataStream != null 
+                                                && !string.IsNullOrEmpty(Method) 
+                                                && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Requested a OuWF method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
 
                                                 string? res = null;
                                                 using (MemoryStream postdata = new())
@@ -273,9 +286,12 @@ namespace HTTPServer
                                             #endregion
 
                                             #region VEEMEE API
-                                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && Method != null && absolutepath.EndsWith(".php"))
+                                            else if ((Host == "away.veemee.com"
+                                                || Host == "home.veemee.com") &&
+                                                !string.IsNullOrEmpty(Method) &&
+                                                absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a VEEMEE  method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
 
                                                 if (request.GetDataStream != null)
                                                 {
@@ -312,9 +328,12 @@ namespace HTTPServer
                                             #endregion
 
                                             #region nDreams API
-                                            else if ((Host == "pshome.ndreams.net" || Host == "www.ndreamshs.com" || Host == "www.ndreamsportal.com") && !string.IsNullOrEmpty(Method) && (absolutepath.EndsWith(".php") || absolutepath.EndsWith("/")))
+                                            else if (nDreamsDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method) 
+                                                && absolutepath.EndsWith(".php") 
+                                                || absolutepath.Contains("/gateway/"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
                                                 NDREAMSClass ndreams = new(Method, $"http://{Host}{request.Url}", absolutepath, HTTPServerConfiguration.APIStaticFolder);
@@ -336,10 +355,12 @@ namespace HTTPServer
                                             }
                                             #endregion
 
-                                            #region JUGGERNAUT API
-                                            else if (Host == "juggernaut-games.com" && !string.IsNullOrEmpty(Method) && absolutepath.EndsWith(".php"))
+                                            #region Juggernaut Games API
+                                            else if (Host == "juggernaut-games.com" 
+                                                && !string.IsNullOrEmpty(Method) 
+                                                && absolutepath.EndsWith(".php"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a JUGGERNAUT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
 
                                                 string? res = null;
                                                 JUGGERNAUTClass juggernaut = new(Method, absolutepath);
@@ -363,9 +384,11 @@ namespace HTTPServer
                                             #endregion
 
                                             #region LOOT API
-                                            else if ((Host == "server.lootgear.com" || Host == "alpha.lootgear.com") && !string.IsNullOrEmpty(Method))
+                                            else if ((Host == "server.lootgear.com" 
+                                                || Host == "alpha.lootgear.com") 
+                                                && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
 
                                                 string? res = null;
                                                 LOOTClass loot = new(Method, absolutepath);
@@ -389,18 +412,21 @@ namespace HTTPServer
                                             #region PREMIUMAGENCY API
                                             else if ((Host == "test.playstationhome.jp" ||
                                                 Host == "playstationhome.jp" ||
-                                                Host == "scej-home.playstation.net" ||
                                                 Host == "homeec.scej-nbs.jp" ||
-                                                Host == "homeecqa.scej-nbs.jp") && Method != null && request.GetContentType().StartsWith("multipart/form-data") && absolutepath.Contains("/eventController/"))
+                                                Host == "homeecqa.scej-nbs.jp" ||
+                                                Host == "homect-scej.jp" ||
+                                                Host == "qa-homect-scej.jp") 
+                                                && !string.IsNullOrEmpty(Method)
+                                                && absolutepath.Contains("/eventController/"))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a PREMIUMAGENCY method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -413,7 +439,7 @@ namespace HTTPServer
                                             #region FROMSOFTWARE API
                                             else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a FROMSOFTWARE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
 
                                                 (byte[]?, string?, string[][]?) res = new();
                                                 if (request.GetDataStream != null)
@@ -431,9 +457,11 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Ubisoft API
-                                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") && !string.IsNullOrEmpty(Method))
+                                            else if (Host.Contains("api-ubiservices.ubi.com") 
+                                                && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") 
+                                                && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
 
                                                 string Authorization = request.RetrieveHeaderValue("Authorization");
 
@@ -518,9 +546,10 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CentralDispatchManager API
-                                            else if (HPDDomains.Contains(Host) && request.Method != null)
+                                            else if (HPDDomains.Contains(Host) 
+                                                && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -538,9 +567,10 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CAPONE GriefReporter API
-                                            else if (CAPONEDomains.Contains(Host) && request.Method != null)
+                                            else if (CAPONEDomains.Contains(Host) 
+                                                && !string.IsNullOrEmpty(Method))
                                             {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
 
                                                 string? res = null;
                                                 if (request.GetDataStream != null)
@@ -566,12 +596,20 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
+
+                                                            #region PSN Network Test
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
                                                                 break;
+                                                            #endregion
+
+                                                            #region Get Away Google
                                                             case "/robots.txt":
                                                                 response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
                                                                 break;
+                                                            #endregion
+
+                                                            #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
                                                                 // We want to check if the router allows external IPs first.
@@ -605,6 +643,9 @@ namespace HTTPServer
                                                                 response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
                                                                 WebPlayer = null;
                                                                 break;
+                                                            #endregion
+
+                                                            #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -647,6 +688,8 @@ namespace HTTPServer
                                                                         };
                                                                 }
                                                                 break;
+                                                            #endregion
+
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
@@ -671,9 +714,14 @@ namespace HTTPServer
                                                     case "POST":
                                                         switch (absolutepath)
                                                         {
+
+                                                            #region PSN Network Test
                                                             case "/networktest/post_128":
                                                                 response = HttpBuilder.OK();
                                                                 break;
+                                                            #endregion
+
+                                                            #region LibSecure HomeTools
                                                             case "/!HomeTools/MakeBarSdat/":
                                                                 (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
                                                                 if (makeres != null)
@@ -737,6 +785,8 @@ namespace HTTPServer
                                                                 else
                                                                     response = HttpBuilder.InternalServerError();
                                                                 break;
+                                                            #endregion
+
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
@@ -807,6 +857,7 @@ namespace HTTPServer
                                                     case "HEAD":
                                                         switch (absolutepath)
                                                         {
+                                                            #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
@@ -835,6 +886,8 @@ namespace HTTPServer
                                                                         response = HttpBuilder.MissingParameters();
                                                                 }
                                                                 break;
+                                                            #endregion
+
                                                             default:
                                                                 response = FileSystemRouteHandler.HandleHEAD(request, filePath);
                                                                 break;

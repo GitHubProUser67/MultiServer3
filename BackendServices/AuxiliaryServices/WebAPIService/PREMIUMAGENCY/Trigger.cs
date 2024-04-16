@@ -19,8 +19,6 @@ namespace WebAPIService.PREMIUMAGENCY
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                LoggerAccessor.LogWarn($"{Encoding.UTF8.GetString(PostData)}");
-
                 nid = data.GetParameterValue("nid");
                 readcnt = data.GetParameterValue("readcnt");
 
@@ -2571,10 +2569,6 @@ namespace WebAPIService.PREMIUMAGENCY
 
                 #region j_liargame2 CALL
                 case "298":
-                    if (File.Exists($"{workpath}/eventController/j_liargame2/confirmEventTriggerCALL.xml"))
-                        return File.ReadAllText($"{workpath}/eventController/j_liargame2/confirmEventTriggerCALL.xml");
-                    LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for CALL evid PUBLIC LiarGame2 {eventId}!");
-
                     string j_liargame2CALLTriggerPath = j_liargame2TriggerPath + "confirmEventTrigger_CALL.xml";
                     if (File.Exists(j_liargame2CALLTriggerPath))
                     {

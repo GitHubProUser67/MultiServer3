@@ -2,13 +2,40 @@ using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Text;
+using System.Web;
 
 namespace WebAPIService.PREMIUMAGENCY
 {
     public class Ranking
     {
-        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
+        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
+            string nid = string.Empty;
+
+            if (method == "GET")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError($"[PREMIUMAGENCY] - name id {nid} or eventid {eventId} is null, this shouldn't happen!!!");
+                return null;
+            }
+
             #region Paths
 
             string homeSquareT037Path = $"{workPath}/eventController/ItemRankings/hs/T037/";
@@ -114,19 +141,32 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
+        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
-
             string nid = string.Empty;
 
-            using (MemoryStream ms = new(PostData))
+            if (method == "GET")
             {
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                nid = data.GetParameterValue("nid");
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                ms.Flush();
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError($"[PREMIUMAGENCY] - name id {nid} or eventid {eventId} is null, this shouldn't happen!!!");
+                return null;
             }
 
             #region Paths
@@ -243,8 +283,34 @@ namespace WebAPIService.PREMIUMAGENCY
         }
 
 
-        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId)
+        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
+            string nid = string.Empty;
+
+            if (method == "GET")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
+
             #region Paths
 
 

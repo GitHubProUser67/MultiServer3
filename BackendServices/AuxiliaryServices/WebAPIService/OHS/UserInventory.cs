@@ -177,13 +177,13 @@ namespace WebAPIService.OHS
                 }
                 else
                 {
-                    LoggerAccessor.LogError($"[UserInventory] - File Not Found in this dir: {globalinvdatastring} \nSending Default!");
+                    LoggerAccessor.LogError($"[UserInventory] GetGlobalItems - File Not Found in this dir: {globalinvdatastring} \nSending Default!");
 
                 }
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[UserInventory] - Json Format Error - {ex}");
+                LoggerAccessor.LogError($"[UserInventory] GetGlobalItems - Json Format Error - {ex}");
             }
 
             if (!string.IsNullOrEmpty(batchparams))

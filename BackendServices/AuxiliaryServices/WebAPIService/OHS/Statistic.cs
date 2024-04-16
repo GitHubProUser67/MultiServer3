@@ -47,7 +47,7 @@ namespace WebAPIService.OHS
         }
 
 
-        public static string? Tracker(byte[] PostData, string ContentType)
+        public static string? HeatmapTracker(byte[] PostData, string ContentType)
         {
             string? dataforohs = null;
 
@@ -71,7 +71,7 @@ namespace WebAPIService.OHS
                     {
 #if DEBUG
                         dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
-                        LoggerAccessor.LogInfo($"[OHS] Heatmap Teacker Data : {dataforohs}");
+                        LoggerAccessor.LogInfo($"[OHS] Heatmap Tracker Data : {dataforohs}");
 #endif
                     }
                     catch (Exception ex)
@@ -91,5 +91,51 @@ namespace WebAPIService.OHS
             else
                 return JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", 0);
         }
+
+        public static string? PointsTracker(byte[] PostData, string ContentType)
+        {
+            string? dataforohs = null;
+
+            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+            if (!string.IsNullOrEmpty(boundary))
+            {
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                    try
+                    {
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                    }
+                    catch (Exception)
+                    {
+                        // Not Important.
+                    }
+
+                    try
+                    {
+#if DEBUG
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), false, 0);
+                        LoggerAccessor.LogInfo($"[OHS] Points Tracker Data : {dataforohs}");
+#endif
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogWarn($"[OHS] : Client issued Points Tracker with an unknown body format, report this to GITHUB: {ex}");
+                    }
+
+                    ms.Flush();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(dataforohs))
+            {
+                LoggerAccessor.LogInfo($"[OHS] : Client issued Points Tracker - {dataforohs}");
+                return JaminProcessor.JaminFormat("{ [\"status\"] = \"success\" }", 0);
+            }
+            else
+                return JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", 0);
+        }
+
     }
 }

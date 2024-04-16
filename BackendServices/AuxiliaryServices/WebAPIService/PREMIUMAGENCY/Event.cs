@@ -1,12 +1,41 @@
 using CustomLogger;
+using CyberBackendLibrary.HTTP;
+using HttpMultipartParser;
 using System.Text;
+using System.Web;
 
 namespace WebAPIService.PREMIUMAGENCY
 {
     public class Event
     {
-        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath)
+        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
         {
+            string nid = string.Empty;
+
+            if (method == "GET")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
+
             switch (eventId)
             {
                 case "63":
@@ -443,8 +472,33 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? entryEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath)
+        public static string? entryEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath, string method)
         {
+            string nid = string.Empty;
+
+            if (method == "GET")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
 
             switch (eventId)
             {
@@ -779,8 +833,34 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath)
+        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath, string fulluripath, string method)
         {
+            string nid = string.Empty;
+
+            if (method == "GET")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                using (MemoryStream ms = new(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    nid = data.GetParameterValue("nid");
+
+                    ms.Flush();
+                }
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
+
             switch (eventId)
             {
                 case "63":
@@ -831,7 +911,6 @@ namespace WebAPIService.PREMIUMAGENCY
                     else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ClearEvent FALLBACK sent for LOCAL MikuLiveEvent {eventId}!\nExpected path {mikuLiveEventFilePathLocal}");
-
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
                              "<description type=\"text\">Success</description>\r\n\t" +
