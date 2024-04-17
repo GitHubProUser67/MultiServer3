@@ -25,19 +25,13 @@ namespace WebAPIService.CDM
                     $"{res}\r\n" +
                     "</xml>";
 
-#if DEBUG
-                LoggerAccessor.LogInfo($"[CDM] - OUTPUT {res}");
-#endif
-
                 return resourceXML;
             }
             else
             {
                 LoggerAccessor.LogError($"[CDM] - Failed to find publisher list with expected path {filePath}!");
 
-                return "<xml>" +
-                    "<status>fail</status>" +
-                    "</xml>";
+                return "<xml><status>fail</status></xml>";
             }
 
         }

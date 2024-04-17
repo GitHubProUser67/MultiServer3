@@ -29,7 +29,6 @@ namespace WebAPIService.CDM
             string res = string.Empty;
             string endPointURI = string.Empty;
 
-
             List<string> endPoints = new () { "/user/game/", "/user/sync/", "/leaderboard/" };
 
             // Dedicated endpoint trimmer for sanity checks!

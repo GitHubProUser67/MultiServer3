@@ -1,7 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json;
 
-namespace SSFWServer
+namespace SSFWServer.Services
 {
     public class SSFWAdminObjectService : IDisposable
     {
