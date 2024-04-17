@@ -42,10 +42,10 @@ namespace WebAPIService.CDM
 
         public static string? handleUserSync(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
+            string status;
             string userSync = string.Empty;
 
             string boundary = HTTPProcessor.ExtractBoundary(ContentType);
-
             using (MemoryStream ms = new(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
@@ -55,25 +55,19 @@ namespace WebAPIService.CDM
                 ms.Flush();
             }
 
-            LoggerAccessor.LogInfo($"[CDM] User Sync - Received: {userSync}");
-
+            LoggerAccessor.LogInfo($"[CDM] User Sync - Received: \n{userSync}");
 
             string pubListPath = $"{workpath}/CDM/{absolutePath}";
-
             Directory.CreateDirectory(pubListPath);
             string filePath = $"{pubListPath}/UserSyncData.json";
-            LoggerAccessor.LogInfo($"[CDM] User Sync Received!");
 
-            string status;
             try
             {
                 File.WriteAllBytes(filePath, Encoding.UTF8.GetBytes(userSync));
                 status = "<xml>\r\n\t" +
                     "<status>success</status>\r\n" +
                     "</xml>";
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 LoggerAccessor.LogError($"[CDM] User Sync JSON write failed with exception {e}");
 
                 status = "<xml>\r\n\t" +
@@ -82,7 +76,6 @@ namespace WebAPIService.CDM
             }
 
             return status;
-
         }
 
     }
