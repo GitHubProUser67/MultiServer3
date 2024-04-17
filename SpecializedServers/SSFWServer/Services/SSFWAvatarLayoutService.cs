@@ -2,7 +2,7 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 
-namespace SSFWServer
+namespace SSFWServer.Services
 {
     public class SSFWAvatarLayoutService : IDisposable
     {

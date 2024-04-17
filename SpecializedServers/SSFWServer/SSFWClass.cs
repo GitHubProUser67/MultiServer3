@@ -6,6 +6,7 @@ using NetCoreServer;
 using CustomLogger;
 using System.Text.RegularExpressions;
 using System.Net.Security;
+using SSFWServer.Services;
 
 namespace SSFWServer
 {
@@ -88,7 +89,7 @@ namespace SSFWServer
 
                 if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
-                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Url}");
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 
                     string sessionid = GetHeaderValue(Headers, "X-Home-Session-Id");
 
@@ -106,6 +107,8 @@ namespace SSFWServer
                     switch (request.Method)
                     {
                         case "GET":
+
+                            #region LayoutService
                             if (absolutepath.Contains("/LayoutService/cprod/person/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWLayoutService layout = new(legacykey);
@@ -126,6 +129,9 @@ namespace SSFWServer
                                     Response.MakeGetResponse(res, "application/json");
                                 layout.Dispose();
                             }
+                            #endregion
+
+                            #region AdminObjectService
                             else if (absolutepath.Contains("/AdminObjectService/start") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAdminObjectService iga = new(sessionid, legacykey);
@@ -137,6 +143,9 @@ namespace SSFWServer
                                 Response.SetBody();
                                 iga.Dispose();
                             }
+                            #endregion
+
+                            #region SaveDataService
                             else if (absolutepath.Contains($"/SaveDataService/cprod/{segments.LastOrDefault()}") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWGetFileList filelist = new();
@@ -147,6 +156,8 @@ namespace SSFWServer
                                     Response.MakeErrorResponse();
                                 filelist.Dispose();
                             }
+                            #endregion
+
                             else if (!string.IsNullOrEmpty(sessionid))
                             {
                                 if (File.Exists(filePath + ".json"))
@@ -197,6 +208,8 @@ namespace SSFWServer
                             }
                             break;
                         case "POST":
+
+                            #region SSFW Login
                             // Create a byte array
                             byte[] postbuffer = request.BodyBytes;
                             if (absolutepath == "/bb88aea9-6bf8-4201-a6ff-5d1f8da0dd37/login/token/psn")
@@ -226,8 +239,14 @@ namespace SSFWServer
                                     Response.SetBody();
                                 }
                             }
+                            #endregion
+
+                            #region PING
                             else if (absolutepath.Contains("/morelife") && !string.IsNullOrEmpty(GetHeaderValue(Headers, "x-signature")))
                                 Response.MakeGetResponse("{}", "application/json");
+                            #endregion
+
+                            #region AvatarLayoutService
                             else if (absolutepath.Contains("/AvatarLayoutService/cprod/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAvatarLayoutService layout = new(sessionid, legacykey);
@@ -239,6 +258,9 @@ namespace SSFWServer
                                 Response.SetBody();
                                 layout.Dispose();
                             }
+                            #endregion
+
+                            #region LayoutService
                             else if (absolutepath.Contains("/LayoutService/cprod/person/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWLayoutService layout = new(legacykey);
@@ -250,6 +272,9 @@ namespace SSFWServer
                                 Response.SetBody();
                                 layout.Dispose();
                             }
+                            #endregion
+
+                            #region RewardsService
                             else if (absolutepath.Contains("/RewardsService/cprod/rewards/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
@@ -270,6 +295,8 @@ namespace SSFWServer
                                 Response.MakeOkResponse();
                                 reward.Dispose();
                             }
+                            #endregion
+
                             else if (!string.IsNullOrEmpty(sessionid))
                             {
                                 LoggerAccessor.LogWarn($"[SSFW] : Host requested a POST method I don't know about! - Report it to GITHUB with the request : {absolutepath}");
@@ -335,6 +362,8 @@ namespace SSFWServer
                             }
                             break;
                         case "DELETE":
+
+                            #region AvatarLayoutService
                             if (absolutepath.Contains("/AvatarLayoutService/cprod/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAvatarLayoutService layout = new(sessionid, legacykey);
@@ -346,6 +375,8 @@ namespace SSFWServer
                                 Response.SetBody();
                                 layout.Dispose();
                             }
+                            #endregion
+
                             else if (!string.IsNullOrEmpty(sessionid))
                             {
                                 if (File.Exists(filePath + ".json"))
