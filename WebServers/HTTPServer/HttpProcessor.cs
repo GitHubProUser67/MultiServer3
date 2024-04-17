@@ -194,9 +194,11 @@ namespace HTTPServer
 
                                 response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
-                                List<string> HPDDomains = new() { 
-									"dev.destinations.scea.com",
+                                List<string> HPDDomains = new() {
                                     "prd.destinations.scea.com",
+                                    "pre.destinations.scea.com",
+                                    "qa.destinations.scea.com",
+                                    "dev.destinations.scea.com",
                                     "holdemeu.destinations.scea.com",
                                     "holdemna.destinations.scea.com",
                                     "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
