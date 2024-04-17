@@ -33,7 +33,6 @@ namespace WebAPIService.CDM
 
                 return "<xml><status>fail</status></xml>";
             }
-
         }
 
     }

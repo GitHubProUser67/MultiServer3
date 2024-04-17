@@ -704,7 +704,7 @@ namespace CyberBackendLibrary.HTTP
             return true;
         }
 
-        public static string? ExtractBoundary(string? contentType)
+        public static string ExtractBoundary(string contentType)
         {
             if (!string.IsNullOrEmpty(contentType))
             {
