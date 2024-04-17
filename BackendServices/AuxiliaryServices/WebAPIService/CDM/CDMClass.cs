@@ -1,4 +1,10 @@
 
+using CustomLogger;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+
 namespace WebAPIService.CDM
 {
     public class CDMClass : IDisposable
@@ -21,19 +27,53 @@ namespace WebAPIService.CDM
                 return null;
 
             string res = string.Empty;
+            string endPointURI = string.Empty;
 
-            Directory.CreateDirectory(directoryPath);
+
+            List<string> endPoints = new () { "/user/game/", "/user/sync/", "/leaderboard/" };
+
+            // Dedicated endpoint trimmer for sanity checks!
+            foreach (string endPoint in endPoints)
+            {
+                if (absolutePath.StartsWith(endPoint))
+                {
+                    endPointURI = absolutePath.Substring(0, endPoint.Length);
+                    break;
+                }
+            }
+
+            // If no endpoint is found, use the full absolute path
+            if (string.IsNullOrEmpty(endPointURI))
+            {
+                endPointURI = absolutePath;
+            }
 
             switch (method)
             {
                 case "GET":
-                    switch (absolutePath)
+                    switch (endPointURI)
                     {
                         case "/publisher/list/":
-                            return "<xml><status>success</status></xml>"; // TODO: emulate the publishers system.
+                            return Publisher.handlePublisherList(PostData, ContentType, workPath, absolutePath);
+                        case "/user/game/":
+                            return User.handleGame(PostData, ContentType, workPath, absolutePath);
+                        default:
+                            LoggerAccessor.LogError($"Unhandled GET endpoint for {endPointURI}");
+                            break;
+                    }
+                    break;
+                case "POST":
+                   switch (endPointURI)
+                    {
+                        case "/user/sync/":
+                            return User.handleUserSync(PostData, ContentType, workPath, absolutePath);
+                        default:
+                            LoggerAccessor.LogError($"Unhandled POST endpoint for {endPointURI}");
+                            break;
                     }
                     break;
                 default:
+                    LoggerAccessor.LogError($"Unhandled {method} endpoint for {absolutePath}");
                     break;
             }
 
