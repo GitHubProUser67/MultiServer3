@@ -165,8 +165,10 @@ namespace HTTPSecureServerLite
             #region Domains
 
             List<string> HPDDomains = new List<string>() {
-                                    "dev.destinations.scea.com",
                                     "prd.destinations.scea.com",
+                                    "pre.destinations.scea.com",
+                                    "qa.destinations.scea.com",
+                                    "dev.destinations.scea.com",
                                     "holdemeu.destinations.scea.com",
                                     "holdemna.destinations.scea.com",
                                     "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
