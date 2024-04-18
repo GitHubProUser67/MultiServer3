@@ -28,6 +28,7 @@ using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
 using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
+using System;
 
 namespace HTTPServer
 {
@@ -111,7 +112,6 @@ namespace HTTPServer
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url);
                                 string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + request.Url;
 
-
                                 if (HTTPServerConfiguration.RedirectRules != null)
                                 {
                                     foreach (string rule in HTTPServerConfiguration.RedirectRules)
@@ -194,9 +194,11 @@ namespace HTTPServer
 
                                 response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
-                                List<string> HPDDomains = new() { 
-									"dev.destinations.scea.com",
+                                List<string> HPDDomains = new() {
                                     "prd.destinations.scea.com",
+                                    "pre.destinations.scea.com",
+                                    "qa.destinations.scea.com",
+                                    "dev.destinations.scea.com",
                                     "holdemeu.destinations.scea.com",
                                     "holdemna.destinations.scea.com",
                                     "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
@@ -552,13 +554,26 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
 
                                                 string? res = null;
-                                                if (request.GetDataStream != null)
+
+                                                if(Method == "POST")
                                                 {
-                                                    using MemoryStream postdata = new();
-                                                    request.GetDataStream.CopyTo(postdata);
-                                                    res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
-                                                    postdata.Flush();
+                                                    if (request.GetDataStream != null)
+                                                    {
+                                                        using MemoryStream postdata = new();
+                                                        request.GetDataStream.CopyTo(postdata);
+                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                        postdata.Flush();
+                                                    }
+                                                } else
+                                                {
+
+                                                    using (MemoryStream postdata = new())
+                                                    {
+                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                        postdata.Flush();
+                                                    }
                                                 }
+
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else

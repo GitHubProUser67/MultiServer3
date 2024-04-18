@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 
 
-namespace SSFWServer
+namespace SSFWServer.Services
 {
     public class SSFWLayoutService : IDisposable
     {
@@ -93,7 +93,7 @@ namespace SSFWServer
 
                 return true;
             }
-            
+
             return false;
         }
 

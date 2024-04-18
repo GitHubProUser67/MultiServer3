@@ -1,7 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json;
 
-namespace SSFWServer
+namespace SSFWServer.SaveDataHelper
 {
     public class SSFWGetFileList : IDisposable
     {
@@ -26,7 +26,7 @@ namespace SSFWServer
             }
             catch (Exception e)
             {
-                LoggerAccessor.LogError($"[SSFW] - FILELIST ERROR: {e}");
+                LoggerAccessor.LogError($"[SSFW] - SaveDataDebug GetFileList ERROR: \n{e}");
             }
 
             return null;
@@ -53,7 +53,7 @@ namespace SSFWServer
             }
             catch (Exception e)
             {
-                LoggerAccessor.LogError($"[SSFW] - GETFILELIST ERROR: {e}");
+                LoggerAccessor.LogError($"[SSFW] - SaveDataDebug GetFileList ERROR: \n{e}");
             }
 
             return null;
