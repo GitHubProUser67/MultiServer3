@@ -43,7 +43,7 @@ namespace HomeWebTools
                         {
                             #region LibSecure HomeTools
                             case "/!HomeTools/MakeBarSdat/":
-                                (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(request.GetDataStream, request.GetContentType());
+                                (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(APIStaticFolder, request.GetDataStream, request.GetContentType());
                                 if (makeres != null)
                                     response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
                                 else
