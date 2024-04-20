@@ -57,6 +57,8 @@ namespace WebAPIService.CDM
                             return Publisher.handlePublisherList(PostData, ContentType, workPath, absolutePath);
                         case "/user/game/":
                             return User.handleGame(PostData, ContentType, workPath, absolutePath);
+                        case "/leaderboard/":
+                            return Leaderboards.handleLeaderboards(PostData, ContentType, workPath, absolutePath);
                         default:
                             LoggerAccessor.LogError($"Unhandled GET endpoint for {endPointURI}");
                             break;

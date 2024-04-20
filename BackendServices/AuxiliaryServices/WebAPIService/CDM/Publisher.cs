@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WebAPIService.CDM
 {
-    internal class Publisher
+    public class Publisher
     {
         public static string? handlePublisherList(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
