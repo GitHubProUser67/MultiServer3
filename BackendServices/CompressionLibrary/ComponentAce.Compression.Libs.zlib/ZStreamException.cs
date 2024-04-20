@@ -1,13 +1,16 @@
-namespace ComponentAce.Compression.Libs.zlib;
+using System.IO;
 
-public class ZStreamException : IOException
+namespace ComponentAce.Compression.Libs.zlib
 {
-	public ZStreamException()
-	{
-	}
+    public class ZStreamException : IOException
+    {
+        public ZStreamException()
+        {
+        }
 
-	public ZStreamException(string s)
-		: base(s)
-	{
-	}
+        public ZStreamException(string s)
+            : base(s)
+        {
+        }
+    }
 }

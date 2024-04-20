@@ -101,24 +101,65 @@ public static class QuazalServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            ServerBindAddress = config.server_bind_address;
-            ServerPublicBindAddress = config.server_public_bind_address;
-            EdNetBindAddressOverride = config.ednet_bind_address_override;
-            QuazalStaticFolder = config.quazal_static_folder;
-            UsePublicIP = config.server_public_ip;
-            JArray BackendServersListArray = config.backend_servers_list;
+            ServerBindAddress = GetValueOrDefault(config, "server_bind_address", ServerBindAddress);
+            ServerPublicBindAddress = GetValueOrDefault(config, "server_public_bind_address", ServerPublicBindAddress);
+            EdNetBindAddressOverride = GetValueOrDefault(config, "ednet_bind_address_override", EdNetBindAddressOverride);
+            QuazalStaticFolder = GetValueOrDefault(config, "quazal_static_folder", QuazalStaticFolder);
+            UsePublicIP = GetValueOrDefault(config, "server_public_ip", UsePublicIP);
             // Deserialize BackendServersList if it exists
-            if (BackendServersListArray != null)
-                BackendServersList = BackendServersListArray.ToObject<List<Tuple<int, string>>>();
-            JArray RendezVousServersListArray = config.rendezvous_servers_list;
-            // Deserialize BackendServersList if it exists
-            if (RendezVousServersListArray != null)
-                RendezVousServersList = RendezVousServersListArray.ToObject<List<Tuple<int, int, string>>>();
+            try
+            {
+                JArray BackendServersListArray = config.backend_servers_list;
+                if (BackendServersListArray != null)
+                    BackendServersList = BackendServersListArray.ToObject<List<Tuple<int, string>>>();
+            }
+            catch
+            {
+
+            }
+            // Deserialize RendezVousServersList if it exists
+            try
+            {
+                JArray RendezVousServersListArray = config.rendezvous_servers_list;
+                if (RendezVousServersListArray != null)
+                    RendezVousServersList = RendezVousServersListArray.ToObject<List<Tuple<int, int, string>>>();
+            }
+            catch
+            {
+
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("quazal.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"quazal.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

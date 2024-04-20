@@ -1,4 +1,5 @@
 using Org.BouncyCastle.Crypto.Digests;
+using System;
 
 namespace Horizon.RT.Cryptography.Hash
 {
@@ -22,7 +23,7 @@ namespace Horizon.RT.Cryptography.Hash
             byte[] result = new byte[20];
 
             // Compute sha1 hash
-            Sha1Digest digest = new Sha1Digest();
+            Sha1Digest digest = new();
             digest.BlockUpdate(input, inOff, length);
             digest.DoFinal(result, 0);
 

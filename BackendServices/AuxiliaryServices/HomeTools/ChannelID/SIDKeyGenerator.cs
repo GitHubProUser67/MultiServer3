@@ -1,5 +1,6 @@
 
 using EndianTools;
+using System;
 using System.Collections;
 
 namespace HomeTools.ChannelID

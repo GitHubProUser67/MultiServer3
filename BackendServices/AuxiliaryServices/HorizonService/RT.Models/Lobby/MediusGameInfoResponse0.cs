@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -93,7 +94,7 @@ namespace Horizon.RT.Models
                 $"GameLevel: {GameLevel} " +
                 $"PlayerSkillLevel: {PlayerSkillLevel} " +
                 $"PlayerCount: {PlayerCount} " +
-                $"GameStats: {BitConverter.ToString(GameStats)} " +
+                $"GameStats: {System.BitConverter.ToString(GameStats)} " +
                 $"GameName: {GameName} " +
                 $"RulesSet: {RulesSet} " +
                 $"GenericField1: {GenericField1:X8} " +

@@ -2,12 +2,10 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\EndianTools\EndianTools.csproj" />
     <ProjectReference Include="..\HomeTools\HomeTools.csproj" />
     <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
 	<PackageReference Include="NLua" Version="1.7.2" />

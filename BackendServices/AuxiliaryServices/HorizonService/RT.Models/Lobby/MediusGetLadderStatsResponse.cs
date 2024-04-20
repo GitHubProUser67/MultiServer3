@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -49,7 +50,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"StatusCode: {StatusCode} " +
-                $"Stats: {Convert.ToString(Stats)}";
+                $"Stats: {System.Convert.ToString(Stats)}";
         }
     }
 }

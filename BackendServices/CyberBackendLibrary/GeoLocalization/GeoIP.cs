@@ -1,5 +1,7 @@
 using MaxMind.GeoIP2;
 using MaxMind.GeoIP2.Responses;
+using System;
+using System.IO;
 using System.Net;
 
 namespace CyberBackendLibrary.GeoLocalization

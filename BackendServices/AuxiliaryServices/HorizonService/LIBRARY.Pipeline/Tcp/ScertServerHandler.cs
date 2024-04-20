@@ -2,6 +2,7 @@ using CustomLogger;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Groups;
 using Horizon.RT.Models;
+using System;
 
 namespace Horizon.LIBRARY.Pipeline.Tcp
 {
@@ -22,8 +23,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
             {
                 lock (this)
                 {
-                    if (Group == null)
-                        Group = g = new DefaultChannelGroup(ctx.Executor);
+                    Group ??= g = new DefaultChannelGroup(ctx.Executor);
                 }
             }
             else
@@ -37,9 +37,8 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
                 OnChannelInactive?.Invoke(ctx.Channel);
             });
 
-            if (g != null)
-                // Add to channels list
-                g.Add(ctx.Channel);
+            // Add to channels list
+            g?.Add(ctx.Channel);
 
             // Send event upstream
             OnChannelActive?.Invoke(ctx.Channel);
@@ -74,7 +73,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            LoggerAccessor.LogWarn(exception.ToString());
+            LoggerAccessor.LogError(exception.ToString());
             context.CloseAsync();
         }
     }

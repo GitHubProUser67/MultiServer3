@@ -1,4 +1,5 @@
 using CustomLogger;
+using System;
 using System.Numerics;
 
 namespace HomeTools.Crypto
@@ -87,7 +88,7 @@ namespace HomeTools.Crypto
 
         public static byte[] reverseByteWithSizeFIX(byte[] b)
         {
-            byte[] numArray = b[b.Length - 1] != 0 ? new byte[b.Length] : new byte[b.Length - 1];
+            byte[] numArray = b[^1] != 0 ? new byte[b.Length] : new byte[b.Length - 1];
             for (int index = 0; index < numArray.Length; ++index)
                 numArray[numArray.Length - 1 - index] = b[index];
             return numArray;

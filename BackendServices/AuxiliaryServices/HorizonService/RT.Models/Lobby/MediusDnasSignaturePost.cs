@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -57,7 +58,7 @@ namespace Horizon.RT.Models
                 $"SessionKey: {SessionKey} " +
                 $"DnasSignatureType: {DnasSignatureType} " +
                 $"SignatureLength: {DnasSignatureLength} " +
-                $"DnasSignature: {BitConverter.ToString(DnasSignature)}";
+                $"DnasSignature: {System.BitConverter.ToString(DnasSignature)}";
         }
     }
 }

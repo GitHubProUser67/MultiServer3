@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -40,7 +41,7 @@ namespace Horizon.RT.Models
                 $"SequenceId: {SequenceId} " +
                 $"StartAddress: {StartAddress:X8} " +
                 $"Length: {Length} " +
-                $"Data :{(Data == null ? "" : BitConverter.ToString(Data))}";
+                $"Data :{(Data == null ? "" : System.BitConverter.ToString(Data))}";
         }
     }
 }

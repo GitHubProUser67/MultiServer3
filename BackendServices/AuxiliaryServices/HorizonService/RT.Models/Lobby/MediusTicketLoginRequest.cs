@@ -1,5 +1,7 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System;
 
 namespace Horizon.RT.Models
 {
@@ -15,37 +17,34 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Session Key
         /// </summary>
-        public string SessionKey; // SESSIONKEY_MAXLEN
+        public string? SessionKey; // SESSIONKEY_MAXLEN
         /// <summary>
         /// Ticket Size
         /// </summary>
         public uint TicketSize; 
-        public byte[] UNK0;
+        public byte[]? UNK0;
         /// <summary>
         /// Account Name
         /// </summary>
         public uint UserAccountId;
         public byte UserOnlineIDLen;
-        public string UserOnlineId;
-        public string UserRegion;
-        public string UserDomain;
+        public string? UserOnlineId;
+        public string? UserRegion;
+        public string? UserDomain;
         public uint UserStatus;
-        public byte[] UNK1;
-        public byte[] UNK2;
+        public byte[]? UNK1;
+        public byte[]? UNK2;
         /// <summary>
         /// NP Service ID
         /// </summary>
-        public string ServiceID;
+        public string? ServiceID;
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
             TicketSize = reader.ReadUInt32();
@@ -63,13 +62,10 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(2);
             writer.Write(TicketSize);
@@ -80,7 +76,7 @@ namespace Horizon.RT.Models
             writer.Write(UserRegion, Constants.USER_REGION_MAXLEN);
             writer.Write(UserDomain, Constants.USER_DOMAIN_MAXLEN);
             writer.Write(UNK1 ?? new byte[12], 12);
-            writer.Write(ServiceID ?? "", Constants.SERVICE_ID_MAXLEN);
+            writer.Write(ServiceID ?? string.Empty, Constants.SERVICE_ID_MAXLEN);
             writer.Write(UserStatus);
         }
 
@@ -102,7 +98,7 @@ namespace Horizon.RT.Models
                 $"UserStatus: {UserStatus} ";
         }
 
-        public static UInt32 ReverseBytes(UInt32 value)
+        public static uint ReverseBytes(uint value)
         {
             return (value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
                 (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24;

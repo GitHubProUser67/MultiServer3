@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace WebAPIService.FROMSOFTWARE
 {
     public class FROMSOFTWAREClass : IDisposable

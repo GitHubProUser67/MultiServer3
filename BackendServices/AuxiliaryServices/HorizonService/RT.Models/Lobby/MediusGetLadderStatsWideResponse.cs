@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -53,7 +54,7 @@ namespace Horizon.RT.Models
                 $"MessageID: {MessageID} " +
                 $"StatusCode: {StatusCode} " +
                 $"AccountID_or_ClanID: {AccountID_or_ClanID} " +
-                $"Stats: {Convert.ToString(Stats)}";
+                $"Stats: {System.Convert.ToString(Stats)}";
         }
     }
 }

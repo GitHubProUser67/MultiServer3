@@ -2,6 +2,8 @@ using CustomLogger;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using Horizon.RT.Models;
+using System;
+using System.Collections.Generic;
 
 namespace Horizon.LIBRARY.Pipeline.Tcp
 {
@@ -19,12 +21,12 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         {
             try
             {
-                foreach (var message in input.Messages)
+                foreach (BaseScertMessage message in input.Messages)
                     output.Add(message);
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn(ex.ToString());
+                LoggerAccessor.LogError(ex.ToString());
             }
         }
     }

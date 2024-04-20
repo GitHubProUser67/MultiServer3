@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace CyberBackendLibrary.HTTP
 {
     // This class removes the 2gb limit of the classic MemoryStream (but might consume more ram).

@@ -1,10 +1,15 @@
-
 using CustomLogger;
 using PSHostsFile;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MitmDNS
 {
@@ -22,7 +27,7 @@ namespace MitmDNS
                     if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                     try
                     {
-#if NET7_0
+#if NET7_0_OR_GREATER
                         HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
                         response.EnsureSuccessStatusCode();
                         ParseRules(await response.Content.ReadAsStringAsync(), false);

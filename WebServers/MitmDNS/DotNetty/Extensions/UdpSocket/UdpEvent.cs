@@ -1,4 +1,5 @@
 using DotNetty.Transport.Channels;
+using System;
 using System.Net;
 
 namespace DotNetty.Extensions.UdpSocket

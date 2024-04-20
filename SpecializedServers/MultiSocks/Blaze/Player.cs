@@ -61,7 +61,8 @@ namespace MultiSocks.Blaze.PlayerData
             public uint GetIPvalue()
             {
                 byte[] byteip = ((IPEndPoint?)Client.Client.RemoteEndPoint).Address.GetAddressBytes();
-                Array.Reverse(byteip);
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(byteip);
                 return BitConverter.ToUInt32(byteip, 0);
             }
 

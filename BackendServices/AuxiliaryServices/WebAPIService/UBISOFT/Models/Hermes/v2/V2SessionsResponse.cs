@@ -1,3 +1,5 @@
+using System;
+
 namespace WebAPIService.UBISOFT.Models.Hermes.v2
 {
     public class V2SessionsResponse

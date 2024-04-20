@@ -1,7 +1,9 @@
+using System.IO;
 using Org.BouncyCastle.Math;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System;
 
 namespace Horizon.RT.Models
 {

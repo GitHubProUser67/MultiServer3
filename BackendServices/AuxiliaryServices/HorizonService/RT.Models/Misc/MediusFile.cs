@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -86,7 +87,7 @@ namespace Horizon.RT.Models
         public override string ToString()
         {
             return $"Filename: {FileName} " +
-                $"ServerChecksum: {Convert.ToString(ServerChecksum)} " +
+                $"ServerChecksum: {System.Convert.ToString(ServerChecksum)} " +
                 $"FileID: {FileID} " +
                 $"FileSize: {FileSize} " +
                 $"CreationTimeStamp: {CreationTimeStamp} " +

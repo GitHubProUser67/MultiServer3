@@ -37,13 +37,40 @@ public static class MultiSocksServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            ServerBindAddress = config.server_bind_address;
-            DirtySocksDatabaseConfig = config.database;
+            ServerBindAddress = GetValueOrDefault(config, "server_bind_address", ServerBindAddress);
+            DirtySocksDatabaseConfig = GetValueOrDefault(config, "database", DirtySocksDatabaseConfig);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("MultiSocks.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"MultiSocks.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

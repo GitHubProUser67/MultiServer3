@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace CastleLibrary.Custom
 {
     /// <summary>
@@ -45,7 +49,7 @@ namespace CastleLibrary.Custom
             {
                 // Initialize checksumRegister to 0xFFFFFFFF and calculate the checksum.
                 return ~byteStream.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
-                          (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
+                          m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8));
             }
             catch (FormatException e)
             {

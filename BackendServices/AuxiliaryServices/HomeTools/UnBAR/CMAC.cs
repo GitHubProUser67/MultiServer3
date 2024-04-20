@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using HomeTools.Crypto;
 
@@ -6,11 +7,11 @@ namespace HomeTools.UnBAR
     internal class CMAC : Hash
     {
         private int hashLen;
-        private byte[] key;
-        private byte[] K1;
-        private byte[] K2;
-        private byte[] nonProcessed;
-        private byte[] previous;
+        private byte[]? key;
+        private byte[]? K1;
+        private byte[]? K2;
+        private byte[]? nonProcessed;
+        private byte[]? previous;
 
         public CMAC() => hashLen = 16;
 
@@ -35,9 +36,7 @@ namespace HomeTools.UnBAR
             BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
             byte[] src1 = ConversionUtils.reverseByteWithSizeFIX(bigInteger2.ToByteArray());
             if (src1.Length >= 16)
-            {
                 ConversionUtils.arraycopy(src1, src1.Length - 16, K1, 0L, 16);
-            }
             else
             {
                 ConversionUtils.arraycopy(numArray1, 0, K1, 0L, numArray1.Length);
@@ -46,9 +45,7 @@ namespace HomeTools.UnBAR
             bigInteger2 = new BigInteger(ConversionUtils.reverseByteWithSizeFIX(K1));
             byte[] src2 = ConversionUtils.reverseByteWithSizeFIX(((K1[0] & 128) == 0 ? bigInteger2 << 1 : bigInteger2 << 1 ^ new BigInteger(135)).ToByteArray());
             if (src2.Length >= 16)
-            {
                 ConversionUtils.arraycopy(src2, src2.Length - 16, K2, 0L, 16);
-            }
             else
             {
                 ConversionUtils.arraycopy(numArray1, 0, K2, 0L, numArray1.Length);
@@ -87,9 +84,7 @@ namespace HomeTools.UnBAR
             byte[] numArray1 = new byte[16];
             ConversionUtils.arraycopy(nonProcessed, 0, numArray1, 0L, nonProcessed.Length);
             if (nonProcessed.Length == 16)
-            {
                 ToolsImpl.XOR(numArray1, numArray1, K1);
-            }
             else
             {
                 numArray1[nonProcessed.Length] = 128;
@@ -107,9 +102,7 @@ namespace HomeTools.UnBAR
             byte[] numArray = new byte[16];
             ConversionUtils.arraycopy(nonProcessed, 0, numArray, 0L, nonProcessed.Length);
             if (nonProcessed.Length == 16)
-            {
                 ToolsImpl.XOR(numArray, numArray, K1);
-            }
             else
             {
                 numArray[nonProcessed.Length] = 128;

@@ -1,6 +1,7 @@
 using HomeTools.Crypto;
 using CustomLogger;
 using EndianTools;
+using System;
 
 namespace WebAPIService.CDS
 {

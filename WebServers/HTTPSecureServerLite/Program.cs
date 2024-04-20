@@ -2,13 +2,19 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
-
 using HomeTools.AFS;
 using WebAPIService.LeaderboardsService;
 using CyberBackendLibrary.GeoLocalization;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading;
+using System;
+using System.Threading.Tasks;
 
 public static class HTTPSServerConfiguration
 {
+    public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
+    public static ushort DefaultPluginsPort { get; set; } = 60850;
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
@@ -27,6 +33,8 @@ public static class HTTPSServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
+
+    public static List<HTTPSecureServerLite.PluginManager.HTTPSecurePlugin> plugins = HTTPSecureServerLite.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -61,6 +69,8 @@ public static class HTTPSServerConfiguration
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
                 new JProperty("use_self_signed_certificate", UseSelfSignedCertificate),
+                new JProperty("default_plugins_port", DefaultPluginsPort),
+                new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
@@ -75,38 +85,91 @@ public static class HTTPSServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            DNSOnlineConfig = config.online_routes_config;
-            DNSConfig = config.routes_config;
-            DNSAllowUnsafeRequests = config.allow_unsafe_requests;
-            APIStaticFolder = config.api_static_folder;
-            PHPRedirectUrl = config.php.redirct_url;
-            PHPVersion = config.php.version;
-            PHPStaticFolder = config.php.static_folder;
-            PHPDebugErrors = config.php.debug_errors;
-            HTTPSStaticFolder = config.https_static_folder;
-            HTTPSTempFolder = config.https_temp_folder;
-            ConvertersFolder = config.converters_folder;
-            HTTPSCertificateFile = config.certificate_file;
-            HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
-            UseSelfSignedCertificate = config.use_self_signed_certificate;
-            EnablePUTMethod = config.enable_put_method;
-            JArray PortsArray = config.Ports;
+            DNSOnlineConfig = GetValueOrDefault(config, "online_routes_config", DNSOnlineConfig);
+            DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
+            DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
+            APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
+            PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
+            PHPVersion = GetValueOrDefault(config.php, "version", PHPVersion);
+            PHPStaticFolder = GetValueOrDefault(config.php, "static_folder", PHPStaticFolder);
+            PHPDebugErrors = GetValueOrDefault(config.php, "debug_errors", PHPDebugErrors);
+            HTTPSStaticFolder = GetValueOrDefault(config, "https_static_folder", HTTPSStaticFolder);
+            HTTPSTempFolder = GetValueOrDefault(config, "https_temp_folder", HTTPSTempFolder);
+            ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
+            HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            HomeToolsHelperStaticFolder = GetValueOrDefault(config, "hometools_helper_static_folder", HomeToolsHelperStaticFolder);
+            UseSelfSignedCertificate = GetValueOrDefault(config, "use_self_signed_certificate", UseSelfSignedCertificate);
+            PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
+            DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
+            EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             // Deserialize Ports if it exists
-            if (PortsArray != null)
-                Ports = PortsArray.ToObject<List<ushort>>();
-            JArray redirectRulesArray = config.RedirectRules;
+            try
+            {
+                JArray PortsArray = config.Ports;
+                // Deserialize Ports if it exists
+                if (PortsArray != null)
+                    Ports = PortsArray.ToObject<List<ushort>>();
+            }
+            catch
+            {
+
+            }
             // Deserialize RedirectRules if it exists
-            if (redirectRulesArray != null)
-                RedirectRules = redirectRulesArray.ToObject<List<string>>();
-            JArray bannedIPsArray = config.BannedIPs;
+            try
+            {
+                JArray redirectRulesArray = config.RedirectRules;
+                // Deserialize RedirectRules if it exists
+                if (redirectRulesArray != null)
+                    RedirectRules = redirectRulesArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
             // Deserialize BannedIPs if it exists
-            if (bannedIPsArray != null)
-                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                // Deserialize BannedIPs if it exists
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("https.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"https.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 
@@ -143,7 +206,6 @@ class Program
 
         GeoIP.Initialize();
 
-        AFSClass.MapperHelperFolder = HTTPSServerConfiguration.HomeToolsHelperStaticFolder;
         LeaderboardClass.APIPath = HTTPSServerConfiguration.APIStaticFolder;
 
         _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
@@ -157,6 +219,16 @@ class Program
                     }),
                     () => RefreshConfig()
                 ));
+
+        if (HTTPSServerConfiguration.plugins.Count > 0)
+        {
+            int i = 0;
+            foreach (HTTPSecureServerLite.PluginManager.HTTPSecurePlugin plugin in HTTPSServerConfiguration.plugins)
+            {
+                _ = plugin.HTTPSecureStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i));
+                i++;
+            }
+        }
 
         if (IsWindows)
         {

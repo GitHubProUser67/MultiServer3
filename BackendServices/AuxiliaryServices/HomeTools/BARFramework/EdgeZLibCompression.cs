@@ -1,5 +1,7 @@
 using ComponentAce.Compression.Libs.zlib;
 using EndianTools;
+using System;
+using System.IO;
 
 namespace HomeTools.BARFramework
 {
@@ -108,8 +110,8 @@ namespace HomeTools.BARFramework
             internal byte[] GetBytes()
             {
                 byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes(SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes(CompressedSize), 0, array, 0, 2);
+                Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(SourceSize) : SourceSize), 0, array, 2, 2);
+                Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(CompressedSize) : CompressedSize), 0, array, 0, 2);
                 return array;
             }
 
@@ -130,8 +132,8 @@ namespace HomeTools.BARFramework
                     array = new byte[4];
                     Array.Copy(inData, array, 4);
                 }
-                result.SourceSize = BitConverter.ToUInt16(array, 2);
-                result.CompressedSize = BitConverter.ToUInt16(array, 0);
+                result.SourceSize = BitConverter.ToUInt16(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 2);
+                result.CompressedSize = BitConverter.ToUInt16(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
                 return result;
             }
 

@@ -2,6 +2,8 @@ using CustomLogger;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using Horizon.RT.Models;
+using System;
+using System.Collections.Generic;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {
@@ -25,13 +27,11 @@ namespace Horizon.LIBRARY.Pipeline.Udp
                         output.Add(new ScertDatagramPacket(message, input.Destination, input.Source));
                 }
                 else
-                {
                     output.Add(input);
-                }
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn(ex.ToString());
+                LoggerAccessor.LogError(ex.ToString());
             }
         }
     }

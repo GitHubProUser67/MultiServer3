@@ -1,5 +1,7 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {
@@ -14,7 +16,7 @@ namespace Horizon.RT.Models
 
         public MediusCallbackStatus StatusCode;
         public int AnnouncementID;
-        public string Announcement; // ANNOUNCEMENT_MAXLEN
+        public string? Announcement; // ANNOUNCEMENT_MAXLEN
         public bool EndOfList;
 
         public List<int> warhawkIds = new() { 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 }; // list of warhawk app IDs

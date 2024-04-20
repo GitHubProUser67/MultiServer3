@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -53,7 +54,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"SessionKey: {SessionKey} " +
-                $"MachineSignature: {BitConverter.ToString(MachineSignature)}";
+                $"MachineSignature: {System.BitConverter.ToString(MachineSignature)}";
         }
     }
 }

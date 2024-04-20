@@ -2,26 +2,27 @@ using HTTPServer;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-
-using HomeTools.AFS;
 using CyberBackendLibrary.GeoLocalization;
+using System.IO;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
+using System.Threading;
 
 public static class HTTPServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
+    public static ushort DefaultPluginsPort { get; set; } = 61850;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static bool PHPDebugErrors { get; set; } = false;
-    public static ushort DefaultPluginsPort { get; set; } = 61850;
     public static int BufferSize { get; set; } = 4096;
     public static string HttpVersion { get; set; } = "1.1";
-    public static string PluginParams { get; set; } = string.Empty;
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
-    public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
@@ -57,11 +58,9 @@ public static class HTTPServerConfiguration
                 new JProperty("http_static_folder", HTTPStaticFolder),
                 new JProperty("http_temp_folder", HTTPTempFolder),
                 new JProperty("converters_folder", ConvertersFolder),
-                new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
-                new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("buffer_size", BufferSize),
                 new JProperty("http_version", HttpVersion),
-                new JProperty("plugin_params", PluginParams),
+                new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_image_upscale", EnableImageUpscale),
@@ -78,39 +77,88 @@ public static class HTTPServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            PHPRedirectUrl = config.php.redirct_url;
-            PHPVersion = config.php.version;
-            PHPStaticFolder = config.php.static_folder;
-            PHPDebugErrors = config.php.debug_errors;
-            APIStaticFolder = config.api_static_folder;
-            HTTPStaticFolder = config.http_static_folder;
-            HTTPTempFolder = config.http_temp_folder;
-            ConvertersFolder = config.converters_folder;
-            HomeToolsHelperStaticFolder = config.hometools_helper_static_folder;
-            DefaultPluginsPort = config.default_plugins_port;
-            BufferSize = config.buffer_size;
-            HttpVersion = config.http_version;
-            PluginParams = config.plugin_params;
-            PluginsFolder = config.plugins_folder;
-            EnablePUTMethod = config.enable_put_method;
-            EnableImageUpscale = config.enable_image_upscale;
-            JArray PortsArray = config.Ports;
+            PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
+            PHPVersion = GetValueOrDefault(config.php, "version", PHPVersion);
+            PHPStaticFolder = GetValueOrDefault(config.php, "static_folder", PHPStaticFolder);
+            PHPDebugErrors = GetValueOrDefault(config.php, "debug_errors", PHPDebugErrors);
+            APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
+            HTTPStaticFolder = GetValueOrDefault(config, "http_static_folder", HTTPStaticFolder);
+            HTTPTempFolder = GetValueOrDefault(config, "http_temp_folder", HTTPTempFolder);
+            ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
+            BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
+            HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
+            PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
+            DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
+            EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
+            EnableImageUpscale = GetValueOrDefault(config, "enable_image_upscale", EnableImageUpscale);
             // Deserialize Ports if it exists
-            if (PortsArray != null)
-                Ports = PortsArray.ToObject<List<ushort>>();
-            JArray redirectRulesArray = config.RedirectRules;
+            try
+            {
+                JArray PortsArray = config.Ports;
+                // Deserialize Ports if it exists
+                if (PortsArray != null)
+                    Ports = PortsArray.ToObject<List<ushort>>();
+            }
+            catch
+            {
+
+            }
             // Deserialize RedirectRules if it exists
-            if (redirectRulesArray != null)
-                RedirectRules = redirectRulesArray.ToObject<List<string>>();
-            JArray bannedIPsArray = config.BannedIPs;
+            try
+            {
+                JArray redirectRulesArray = config.RedirectRules;
+                // Deserialize RedirectRules if it exists
+                if (redirectRulesArray != null)
+                    RedirectRules = redirectRulesArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
             // Deserialize BannedIPs if it exists
-            if (bannedIPsArray != null)
-                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                // Deserialize BannedIPs if it exists
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("http.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"http.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 
@@ -143,10 +191,6 @@ class Program
 
         GeoIP.Initialize();
 
-        AFSClass.MapperHelperFolder = HTTPServerConfiguration.HomeToolsHelperStaticFolder;
-
-        _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-
         _ = Task.Run(() => Parallel.Invoke(
                     () => _ = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
                     () => RefreshConfig()
@@ -157,7 +201,7 @@ class Program
             int i = 0;
             foreach (HTTPServer.PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
             {
-                _ = plugin.HTTPStartPlugin("MultiServer", (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i));
+                _ = plugin.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i));
                 i++;
             }
         }

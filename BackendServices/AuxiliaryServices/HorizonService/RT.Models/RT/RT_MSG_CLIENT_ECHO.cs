@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -23,7 +24,7 @@ namespace Horizon.RT.Models
         public override string ToString()
         {
             return base.ToString() + " " +
-                $"Value: {BitConverter.ToString(Value)}";
+                $"Value: {System.BitConverter.ToString(Value)}";
         }
 
     }

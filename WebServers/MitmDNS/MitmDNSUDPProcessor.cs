@@ -3,6 +3,9 @@ using System.Net;
 using System.Text.RegularExpressions;
 using CyberBackendLibrary.DNS;
 using DotNetty.Extensions.UdpSocket;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
 namespace MitmDNS
 {

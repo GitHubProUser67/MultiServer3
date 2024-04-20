@@ -1,4 +1,7 @@
 // Copyright (C) 2016 by Barend Erasmus and donated to the public domain
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace HTTPServer.Models

@@ -1,4 +1,6 @@
 using HttpMultipartParser;
+using System;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace WebAPIService.HELLFIRE.Helpers

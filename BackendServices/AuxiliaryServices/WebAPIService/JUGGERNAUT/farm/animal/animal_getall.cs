@@ -1,3 +1,5 @@
+using System.IO;
+using System.Collections.Generic;
 namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_getall

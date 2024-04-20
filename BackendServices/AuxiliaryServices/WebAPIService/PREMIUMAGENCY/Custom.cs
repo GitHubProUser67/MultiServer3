@@ -1,6 +1,9 @@
 using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace WebAPIService.PREMIUMAGENCY
@@ -540,7 +543,7 @@ namespace WebAPIService.PREMIUMAGENCY
         public static string? getUserEventCustomRequestListPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
 
-            string nid = string.Empty;
+            string? nid = string.Empty;
 
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 

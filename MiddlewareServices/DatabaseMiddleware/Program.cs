@@ -33,21 +33,61 @@ public static class DatabaseMiddlewareServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            DatabaseAccessKey = config.database_accesskey;
-            AuthenticationsList = config.authenticationslist;
-            JArray DbFilesArray = config.DbFiles;
+            DatabaseAccessKey = GetValueOrDefault(config, "database_accesskey", DatabaseAccessKey);
+            AuthenticationsList = GetValueOrDefault(config, "authenticationslist", AuthenticationsList);
             // Deserialize DbConnectionsArray if it exists
-            if (DbFilesArray != null)
-                DbFiles = DbFilesArray.ToObject<List<string>>();
-            JArray bannedIPsArray = config.BannedIPs;
+            try
+            {
+                JArray DbFilesArray = config.DbFiles;
+                if (DbFilesArray != null)
+                    DbFiles = DbFilesArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
             // Deserialize BannedIPs if it exists
-            if (bannedIPsArray != null)
-                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
         catch (Exception)
         {
             LoggerAccessor.LogWarn("dbmiddleware.json file is malformed, using server's default.");
         }
+    }
+
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

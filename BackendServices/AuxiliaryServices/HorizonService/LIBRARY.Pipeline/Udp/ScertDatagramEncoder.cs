@@ -1,8 +1,12 @@
 using CustomLogger;
+using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using Horizon.LIBRARY.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {
@@ -22,26 +26,29 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
             if (!ctx.HasAttribute(Constants.SCERT_CLIENT))
                 ctx.GetAttribute(Constants.SCERT_CLIENT).Set(new Attribute.ScertClientAttribute());
-            var scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
+            Attribute.ScertClientAttribute scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
 
             // Serialize
-            var msgs = message.Message.Serialize(scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
+            List<byte[]>? msgs = message.Message?.Serialize(scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
 
             // Condense as much as possible
-            var condensedMsgs = msgs.GroupWhileAggregating(0, (sum, item) => sum + item.Length, (sum, item) => sum < maxPacketLength);
+            IEnumerable<IEnumerable<byte[]>>? condensedMsgs = msgs?.GroupWhileAggregating(0, (sum, item) => sum + item.Length, (sum, item) => sum < maxPacketLength);
 
-            foreach (var msgGroup in condensedMsgs)
+            if (condensedMsgs != null)
             {
-                var byteBuffer = ctx.Allocator.Buffer(msgGroup.Sum(x => x.Length));
-                foreach (var msg in msgGroup)
-                    byteBuffer.WriteBytes(msg);
-                output.Add(new DatagramPacket(byteBuffer, message.Destination));
+                foreach (IEnumerable<byte[]> msgGroup in condensedMsgs)
+                {
+                    IByteBuffer byteBuffer = ctx.Allocator.Buffer(msgGroup.Sum(x => x.Length));
+                    foreach (byte[] msg in msgGroup)
+                        byteBuffer.WriteBytes(msg);
+                    output.Add(new DatagramPacket(byteBuffer, message.Destination));
+                }
             }
         }
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            LoggerAccessor.LogWarn(exception.ToString());
+            LoggerAccessor.LogError(exception.ToString());
         }
     }
 }

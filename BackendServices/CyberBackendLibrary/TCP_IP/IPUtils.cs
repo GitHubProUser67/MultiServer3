@@ -1,4 +1,7 @@
+using System;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
@@ -16,7 +19,7 @@ namespace CyberBackendLibrary.TCP_IP
         /// <returns>A string.</returns>
         public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
-#if NET7_0
+#if NET7_0_OR_GREATER
             try
             {
                 HttpResponseMessage response = new HttpClient().GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;

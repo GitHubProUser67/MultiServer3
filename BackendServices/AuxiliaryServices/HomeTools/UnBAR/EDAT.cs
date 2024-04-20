@@ -1,5 +1,8 @@
+using System;
+using System.IO;
 using System.Numerics;
 using CyberBackendLibrary.DataTypes;
+using EndianTools;
 using HomeTools.Crypto;
 
 
@@ -60,7 +63,7 @@ namespace HomeTools.UnBAR
             numArray2[3] = 0;
             o1.Write(numArray2, 0, 4);
             long length1 = fileStream.Length;
-            byte[] bytes = BitConverter.GetBytes(length1);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(length1) : length1);
             byte[] numArray3 = new byte[8];
             for (int index = 0; index < 8; ++index)
                 numArray3[index] = 0;

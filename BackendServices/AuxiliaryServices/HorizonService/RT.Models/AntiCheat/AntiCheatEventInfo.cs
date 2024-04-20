@@ -1,5 +1,6 @@
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.IO;
 
 namespace Horizon.RT.Models.AntiCheat
 {

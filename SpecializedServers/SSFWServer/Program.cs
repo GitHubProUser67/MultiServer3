@@ -47,21 +47,56 @@ public static class SSFWServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            SSFWMinibase = config.minibase;
-            SSFWLegacyKey = config.legacyKey;
-            SSFWCrossSave = config.cross_save;
-            SSFWStaticFolder = config.static_folder;
-            HTTPSCertificateFile = config.certificate_file;
-            ScenelistFile = config.scenelist_file;
-            JArray bannedIPsArray = config.BannedIPs;
+            SSFWMinibase = GetValueOrDefault(config, "minibase", SSFWMinibase);
+            SSFWLegacyKey = GetValueOrDefault(config, "legacyKey", SSFWLegacyKey);
+            SSFWCrossSave = GetValueOrDefault(config, "cross_save", SSFWCrossSave);
+            SSFWStaticFolder = GetValueOrDefault(config, "static_folder", SSFWStaticFolder);
+            HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            ScenelistFile = GetValueOrDefault(config, "scenelist_file", ScenelistFile);
             // Deserialize BannedIPs if it exists
-            if (bannedIPsArray != null)
-                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                // Deserialize BannedIPs if it exists
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("ssfw.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"ssfw.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

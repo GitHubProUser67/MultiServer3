@@ -1,3 +1,4 @@
+using System;
 using WebAPIService.UBISOFT.HERMES_API.v1;
 using WebAPIService.UBISOFT.HERMES_API.v2;
 

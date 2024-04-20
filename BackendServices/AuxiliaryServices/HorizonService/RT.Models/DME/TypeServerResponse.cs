@@ -1,3 +1,4 @@
+using System.IO;
 using Org.BouncyCastle.Utilities.Net;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;

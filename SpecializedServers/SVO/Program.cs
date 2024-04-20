@@ -5,7 +5,6 @@ using Newtonsoft.Json.Linq;
 using Horizon.LIBRARY.Database;
 using System.Runtime;
 using System.Net;
-
 using System.Security.Principal;
 
 public static class SVOServerConfiguration
@@ -67,26 +66,61 @@ public static class SVOServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            SVOStaticFolder = config.static_folder;
-            SVOHTTPSBypass = config.https_bypass;
-            DatabaseConfig = config.database;
-            HTTPSCertificateFile = config.certificate_file;
-            PSHomeRPCS3Workaround = config.pshome_rpcs3workaround;
+            SVOStaticFolder = GetValueOrDefault(config, "static_folder", SVOStaticFolder);
+            SVOHTTPSBypass = GetValueOrDefault(config, "https_bypass", SVOHTTPSBypass);
+            DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
+            HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            PSHomeRPCS3Workaround = GetValueOrDefault(config, "pshome_rpcs3workaround", PSHomeRPCS3Workaround);
             // Look for the MOTD xml file.
-            string motd_file = config.motd_file;
+            string motd_file = GetValueOrDefault(config, "MOTD", string.Empty);
             if (!File.Exists(motd_file))
-                LoggerAccessor.LogWarn("Could not find the motd.xml file, using default xml.");
+                LoggerAccessor.LogWarn("Could not find the MOTD file, using default xml.");
             else
                 MOTD = File.ReadAllText(motd_file);
-            JArray bannedIPsArray = config.BannedIPs;
             // Deserialize BannedIPs if it exists
-            if (bannedIPsArray != null)
-                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                // Deserialize BannedIPs if it exists
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("svo.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"svo.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

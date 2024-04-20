@@ -1,5 +1,7 @@
 using CustomLogger;
 using Horizon.RT.Models;
+using System;
+using System.Linq;
 using System.Net;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models
@@ -62,7 +64,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         public DMEObject(MediusServerSetAttributesRequest request)
         {
-            Port = (int)request.ListenServerAddress.Port;
+            Port = request.ListenServerAddress.Port;
             SetIp(request.ListenServerAddress.Address);
 
             // Generate new session key

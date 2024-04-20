@@ -884,9 +884,9 @@ namespace Ionic.Zlib
 
             // mtime
             if (!LastModified.HasValue) LastModified = DateTime.Now;
-            System.TimeSpan delta = LastModified.Value - _unixEpoch;
-            Int32 timet = (Int32)delta.TotalSeconds;
-            Array.Copy(BitConverter.GetBytes(timet), 0, header, i, 4);
+            TimeSpan delta = LastModified.Value - _unixEpoch;
+            int timet = (int)delta.TotalSeconds;
+            Array.Copy(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.EndianSwap(timet)) : BitConverter.GetBytes(timet), 0, header, i, 4);
             i += 4;
 
             // xflg
