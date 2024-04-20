@@ -162,12 +162,12 @@ namespace WebAPIService.PREMIUMAGENCY
                              "</xml>";
                     }
                 case "347":
-                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/";
+                    string SonyAquarium = $"{workpath}/eventController/SonyAquarium/Config/cache/";
                     Directory.CreateDirectory(SonyAquarium);
                     PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{SonyAquarium}/{nid}.cache");
                     if (File.Exists(SonyAquarium))
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC SonyAquarium {eventId}!");
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC SonyAquarium Config {eventId}!");
                         return "<xml>\r\n" +
                              "<result type=\"int\">1</result>\r\n" +
                              "<description type=\"text\">Success</description>\r\n" +
