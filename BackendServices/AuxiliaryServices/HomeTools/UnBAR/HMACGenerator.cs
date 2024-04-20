@@ -1,5 +1,6 @@
 using CustomLogger;
 using HomeTools.Crypto;
+using System;
 using System.Security.Cryptography;
 
 namespace HomeTools.UnBAR

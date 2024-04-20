@@ -1,5 +1,7 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Linq;
 
 namespace Horizon.RT.Models
 {
@@ -35,7 +37,7 @@ namespace Horizon.RT.Models
 
         public override string ToString()
         {
-            return string.Join("", key?.Select(x => x.ToString("X8")));
+            return string.Join(string.Empty, key?.Select(x => x.ToString("X8")));
         }
     }
 }

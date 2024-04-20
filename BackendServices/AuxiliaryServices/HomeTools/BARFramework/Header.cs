@@ -1,3 +1,5 @@
+using System;
+
 namespace HomeTools.BARFramework
 {
     public class Header

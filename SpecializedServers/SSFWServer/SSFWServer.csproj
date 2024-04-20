@@ -9,7 +9,6 @@
 	<DockerfileRunArguments>-p 8080:8080 -p 10443:10443</DockerfileRunArguments>
 	<ApplicationIcon>SSFW.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
-	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

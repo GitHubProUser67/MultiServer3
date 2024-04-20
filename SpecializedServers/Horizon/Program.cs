@@ -2,7 +2,6 @@ using CustomLogger;
 using Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
-
 using CyberBackendLibrary.GeoLocalization;
 using System.Runtime;
 
@@ -84,28 +83,55 @@ public static class HorizonServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            EnableMedius = config.medius.enabled;
-            EnableDME = config.dme.enabled;
-            EnableMuis = config.muis.enabled;
-            EnableNAT = config.nat.enabled;
-            EnableBWPS = config.bwps.enabled;
-            HTTPSCertificateFile = config.certificate_file;
-            PlayerAPIStaticPath = config.player_api_static_path;
-            DMEConfig = config.dme.config;
-            MEDIUSConfig = config.medius.config;
-            MUISConfig = config.muis.config;
-            NATConfig = config.nat.config;
-            BWPSConfig = config.bwps.config;
-            MediusAPIKey = config.medius_api_key;
-            PluginsFolder = config.plugins_folder;
-            DatabaseConfig = config.database;
-            HomeVersionBetaHDK = config.home_version_beta_hdk;
-            HomeVersionRetail = config.home_version_retail;
+            EnableMedius = GetValueOrDefault(config.medius, "enabled", EnableMedius);
+            EnableDME = GetValueOrDefault(config.dme, "enabled", EnableDME);
+            EnableMuis = GetValueOrDefault(config.muis, "enabled", EnableMuis);
+            EnableNAT = GetValueOrDefault(config.nat, "enabled", EnableNAT);
+            EnableBWPS = GetValueOrDefault(config.bwps, "enabled", EnableBWPS);
+            HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            PlayerAPIStaticPath = GetValueOrDefault(config, "player_api_static_path", PlayerAPIStaticPath);
+            DMEConfig = GetValueOrDefault(config.dme, "config", DMEConfig);
+            MEDIUSConfig = GetValueOrDefault(config.medius, "config", MEDIUSConfig);
+            MUISConfig = GetValueOrDefault(config.muis, "config", MUISConfig);
+            NATConfig = GetValueOrDefault(config.nat, "config", NATConfig);
+            BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
+            MediusAPIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
+            PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
+            DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
+            HomeVersionBetaHDK = GetValueOrDefault(config, "home_version_beta_hdk", HomeVersionBetaHDK);
+            HomeVersionRetail = GetValueOrDefault(config, "home_version_retail", HomeVersionRetail);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("horizon.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"horizon.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

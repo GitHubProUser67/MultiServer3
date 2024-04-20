@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -39,7 +40,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"SessionKey: {SessionKey} " +
-                $"Stats: {BitConverter.ToString(Stats)}";
+                $"Stats: {System.BitConverter.ToString(Stats)}";
         }
     }
 }

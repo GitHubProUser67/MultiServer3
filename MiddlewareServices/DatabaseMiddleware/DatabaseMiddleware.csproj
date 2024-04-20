@@ -10,7 +10,6 @@
 	<ApplicationIcon>DatabaseMiddleware.ico</ApplicationIcon>
 	<InvariantGlobalization>false</InvariantGlobalization>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
-	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

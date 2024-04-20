@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -63,7 +64,7 @@ namespace Horizon.RT.Models
                 $"FilterMask3: {FilterMask3} " +
                 $"FilterMask4: {FilterMask4} " +
                 $"LobbyFilterType: {LobbyFilterType} " +
-                $"FilterMaskLevel: {Convert.ToInt32(FilterMaskLevel)}:{FilterMaskLevel}";
+                $"FilterMaskLevel: {System.Convert.ToInt32(FilterMaskLevel)}:{FilterMaskLevel}";
         }
     }
 }

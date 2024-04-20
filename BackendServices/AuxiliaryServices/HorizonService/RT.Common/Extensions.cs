@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Horizon.RT.Common
 {
     public static class Extensions

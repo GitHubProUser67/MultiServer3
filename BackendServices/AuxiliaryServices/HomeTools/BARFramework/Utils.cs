@@ -1,4 +1,5 @@
 using EndianTools;
+using System;
 
 namespace HomeTools.BARFramework
 {

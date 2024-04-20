@@ -1,3 +1,5 @@
+using System.IO;
+using System.Collections.Generic;
 namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class joinedspace

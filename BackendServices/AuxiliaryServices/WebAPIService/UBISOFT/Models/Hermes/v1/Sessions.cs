@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace WebAPIService.UBISOFT.Models.Hermes.v1
 {
     public class Sessions

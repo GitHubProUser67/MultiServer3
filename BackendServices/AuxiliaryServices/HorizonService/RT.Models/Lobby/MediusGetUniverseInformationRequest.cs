@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -62,7 +63,7 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
-                $"InfoType: {Convert.ToInt32(InfoType)}:{InfoType} " +
+                $"InfoType: {System.Convert.ToInt32(InfoType)}:{InfoType} " +
                 $"CharacterEncoding: {CharacterEncoding} " +
                 $"Language: {Language}";
         }

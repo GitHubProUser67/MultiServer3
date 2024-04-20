@@ -1,5 +1,7 @@
 using ComponentAce.Compression.Libs.zlib;
 using CustomLogger;
+using System;
+using System.IO;
 
 namespace HomeTools.BARFramework
 {

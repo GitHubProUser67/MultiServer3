@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,8 +14,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             using (MD5 md5 = MD5.Create())
             {
-                byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(UserID + "G0TOH00000!!!!m3TycoonN0?w*" + DisplayName));
-                hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(UserID + "G0TOH00000!!!!m3TycoonN0?w*" + DisplayName))).Replace("-", string.Empty);
                 md5.Clear();
             }
 

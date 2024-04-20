@@ -5,10 +5,12 @@ using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
 using EndianTools;
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Intrinsics;
 using CyberBackendLibrary.Crypto;
 using CyberBackendLibrary.DataTypes;
+using System.Threading.Tasks;
+using System;
+using System.IO;
+using System.Collections.Generic;
 
 namespace HomeTools.UnBAR
 {
@@ -79,7 +81,7 @@ namespace HomeTools.UnBAR
         {
             bool isSharc = false;
             bool isLittleEndian = false;
-            string options = ToolsImpl.base64DefaultSharcKey;
+            string options = ToolsImpl.base64CDNKey2;
             byte[]? RawBarData = null;
 
             if (File.Exists(filePath))
@@ -130,7 +132,7 @@ namespace HomeTools.UnBAR
                                         return; // Sharc Header failed to decrypt.
                                     else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
-                                        options = ToolsImpl.base64CDNKey2;
+                                        options = ToolsImpl.base64DefaultSharcKey;
 
                                         Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 

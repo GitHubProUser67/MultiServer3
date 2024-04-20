@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public void Reset()
         {
-            Array.Clear(m_buf);
+            Array.Clear(m_buf, 0, m_buf.Length);
             m_bufPos = 0;
             m_state = State.Absorbing;
         }

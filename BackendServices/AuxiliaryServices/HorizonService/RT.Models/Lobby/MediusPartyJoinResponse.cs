@@ -1,5 +1,7 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {
@@ -34,18 +36,15 @@ namespace Horizon.RT.Models
 
         public int maxPlayers;
 
-        public List<int> maxPlayersUnpprovedList = new List<int> { 21784, 20371, 20374 };
+        public List<int> maxPlayersUnpprovedList = new() { 21784, 20371, 20374 };
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>(); 
             reader.ReadBytes(3);
 
-            //
             StatusCode = reader.Read<MediusCallbackStatus>();
             PartyHostType = reader.Read<MediusGameHostType>();
             ConnectionInfo = reader.Read<NetConnectionInfo>();
@@ -56,14 +55,11 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(new byte[3]);
 
-            // 
             writer.Write(StatusCode);
             writer.Write(PartyHostType);
             writer.Write(ConnectionInfo);

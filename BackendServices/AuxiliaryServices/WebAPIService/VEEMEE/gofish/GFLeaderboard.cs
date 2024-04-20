@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using CyberBackendLibrary.HTTP;
 
 namespace WebAPIService.VEEMEE.gofish

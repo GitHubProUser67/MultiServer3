@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 namespace WebAPIService.NDREAMS.Aurora
 {
     public static class AuroraXPTable

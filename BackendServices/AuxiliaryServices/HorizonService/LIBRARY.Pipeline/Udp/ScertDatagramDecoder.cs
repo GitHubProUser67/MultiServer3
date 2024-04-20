@@ -6,13 +6,16 @@ using DotNetty.Transport.Channels.Sockets;
 using Horizon.RT.Common;
 using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramDecoder : MessageToMessageDecoder<DatagramPacket>
     {
         readonly ICipher[]? _ciphers = null;
-        readonly Func<RT_MSG_TYPE, CipherContext, ICipher>? _getCipher = null;
+        readonly Func<RT_MSG_TYPE, CipherContext, ICipher?>? _getCipher = null;
 
         public ScertDatagramDecoder(params ICipher[] ciphers)
         {
@@ -32,7 +35,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         {
             while (message.Content.IsReadable())
             {
-                object decoded = Decode(context, message);
+                object? decoded = Decode(context, message);
                 if (decoded == null)
                     break;
 
@@ -58,12 +61,12 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
             if (!context.HasAttribute(Constants.SCERT_CLIENT))
                 context.GetAttribute(Constants.SCERT_CLIENT).Set(new Attribute.ScertClientAttribute());
-            var scertClient = context.GetAttribute(Constants.SCERT_CLIENT).Get();
+            Attribute.ScertClientAttribute scertClient = context.GetAttribute(Constants.SCERT_CLIENT).Get();
 
             if (frameLength <= 0)
             {
                 input.Content.SetReaderIndex(input.Content.ReaderIndex + headerLength);
-                return BaseScertMessage.Instantiate((RT_MSG_TYPE)(id & 0x7F), null, Array.Empty<byte>(), (int)scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
+                return BaseScertMessage.Instantiate((RT_MSG_TYPE)(id & 0x7F), null, Array.Empty<byte>(), scertClient.MediusVersion != null ? (int)scertClient.MediusVersion : 108, scertClient.ApplicationID, scertClient.CipherService);
             }
 
             if (id >= 0x80)
@@ -92,7 +95,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
             int totalFrameLength = headerLength + frameLengthInt;
             input.Content.SetReaderIndex(input.Content.ReaderIndex + totalFrameLength);
-            return new ScertDatagramPacket(BaseScertMessage.Instantiate((RT_MSG_TYPE)id, hash, messageContents, (int)scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService), null, input.Sender);
+            return new ScertDatagramPacket(BaseScertMessage.Instantiate((RT_MSG_TYPE)id, hash, messageContents, scertClient.MediusVersion != null ? (int)scertClient.MediusVersion : 108, scertClient.ApplicationID, scertClient.CipherService), null, input.Sender);
         }
     }
 }

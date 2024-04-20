@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace HTTPServer.Extensions
 {
     public static class StringExtensions

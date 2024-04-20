@@ -2,7 +2,9 @@ using DotNetty.Buffers;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
+using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace DotNetty.Extensions.UdpSocket
 {

@@ -2,6 +2,8 @@ using CustomLogger;
 using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
+using System;
+using System.Collections.Generic;
 
 namespace Horizon.LIBRARY.Pipeline.Tcp
 {
@@ -136,7 +138,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            LoggerAccessor.LogWarn(exception.ToString());
+            LoggerAccessor.LogError(exception.ToString());
             context.CloseAsync();
         }
 

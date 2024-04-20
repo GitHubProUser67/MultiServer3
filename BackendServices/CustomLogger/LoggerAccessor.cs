@@ -1,6 +1,10 @@
 using Figgle;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CustomLogger
 {

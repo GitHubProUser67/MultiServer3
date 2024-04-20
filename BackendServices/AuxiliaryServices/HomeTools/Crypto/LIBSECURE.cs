@@ -3,15 +3,15 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text;
-
 using EndianTools;
 using CyberBackendLibrary.DataTypes;
+using System;
 
 namespace HomeTools.Crypto
 {
-    internal class LIBSECURE
+    public class LIBSECURE
     {
-        public byte[]? InitiateLibsecureXTEACTRBlock(byte[] BlkBytes, byte[] KeyBytes, byte[] m_iv)
+        public static byte[]? InitiateLibsecureXTEACTRBlock(byte[] BlkBytes, byte[] KeyBytes, byte[] m_iv)
         {
             if (KeyBytes.Length == 16 && m_iv.Length == 8 && BlkBytes.Length <= 8)
             {
@@ -37,85 +37,84 @@ namespace HomeTools.Crypto
             return null;
         }
 
-        public string MemXOR(string IV, string block, int blocksize)
+        public static string MemXOR(string IV, string block, int blocksize)
         {
             StringBuilder? CryptoBytes = new();
 
-            if (blocksize == 2)
+            switch (blocksize)
             {
-                for (int i = 1; i != 0; --i)
-                {
-                    string BlockIV = IV[..1];
-                    string CipherBlock = block[..1];
-                    IV = IV[1..];
-                    block = block[1..];
-                    try
+                case 2:
+                    for (int i = 1; i != 0; --i)
                     {
-                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                            ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                        string BlockIV = IV[..1];
+                        string CipherBlock = block[..1];
+                        IV = IV[1..];
+                        block = block[1..];
+                        try
+                        {
+                            CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
+                                ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                        }
                     }
-                    catch (Exception ex)
+                    break;
+                case 4:
+                    for (int i = 2; i != 0; --i)
                     {
-                        LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                        string BlockIV = IV[..2];
+                        string CipherBlock = block[..2];
+                        IV = IV[2..];
+                        block = block[2..];
+                        try
+                        {
+                            CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
+                                ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                        }
                     }
-                }
-            }
-            else if (blocksize == 4)
-            {
-                for (int i = 2; i != 0; --i)
-                {
-                    string BlockIV = IV[..2];
-                    string CipherBlock = block[..2];
-                    IV = IV[2..];
-                    block = block[2..];
-                    try
+                    break;
+                case 8:
+                    for (int i = 4; i != 0; --i)
                     {
-                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                            ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                        string BlockIV = IV[..4];
+                        string CipherBlock = block[..4];
+                        IV = IV[4..];
+                        block = block[4..];
+                        try
+                        {
+                            CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
+                                ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                        }
                     }
-                    catch (Exception ex)
+                    break;
+                case 16:
+                    for (int i = 8; i != 0; --i)
                     {
-                        LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                        string BlockIV = IV[..8];
+                        string CipherBlock = block[..8];
+                        IV = IV[8..];
+                        block = block[8..];
+                        try
+                        {
+                            CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
+                                (Convert.ToUInt32(BlockIV, 16) ^ Convert.ToUInt32(CipherBlock, 16)).ToString("X8"))));
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
+                        }
                     }
-                }
-            }
-            else if (blocksize == 8)
-            {
-                for (int i = 4; i != 0; --i)
-                {
-                    string BlockIV = IV[..4];
-                    string CipherBlock = block[..4];
-                    IV = IV[4..];
-                    block = block[4..];
-                    try
-                    {
-                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                            ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
-                    }
-                }
-            }
-            else if (blocksize == 16)
-            {
-                for (int i = 8; i != 0; --i)
-                {
-                    string BlockIV = IV[..8];
-                    string CipherBlock = block[..8];
-                    IV = IV[8..];
-                    block = block[8..];
-                    try
-                    {
-                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                            (Convert.ToUInt32(BlockIV, 16) ^ Convert.ToUInt32(CipherBlock, 16)).ToString("X8"))));
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
-                    }
-                }
+                    break;
             }
 
             return CryptoBytes.ToString();

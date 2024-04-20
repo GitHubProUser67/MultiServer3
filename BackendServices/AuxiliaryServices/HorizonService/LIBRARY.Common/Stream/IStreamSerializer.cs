@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace Horizon.LIBRARY.Common.Stream
 {
     public interface IStreamSerializer

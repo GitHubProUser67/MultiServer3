@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.IO;
 using CyberBackendLibrary.DataTypes;
 using CyberBackendLibrary.HTTP;
 
@@ -7,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using WebAPIService.LeaderboardsService.NDREAMS;
+using System;
 
 namespace WebAPIService.NDREAMS.Aurora
 {

@@ -13,6 +13,9 @@ namespace QuazalServer.RDVServices
                 // If it's an IPv4 address, pass. EdNet is not IPV6 compatible.
                 if (ipBytes.Length == 4)
                 {
+                    if (!BitConverter.IsLittleEndian)
+                        Array.Reverse(ipBytes);
+
                     result = BitConverter.ToUInt32(ipBytes, 0);
                     return true;
                 }

@@ -1,3 +1,4 @@
+using System.IO;
 using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
@@ -185,7 +186,7 @@ namespace WebAPIService.PREMIUMAGENCY
                         Directory.CreateDirectory(homeSquareT037Path);
                         string filePath = $"{homeSquareT037Path}/{nid}.cache";
                         PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), filePath);
-                        Console.WriteLine("FormData written to file: " + filePath);
+                        LoggerAccessor.LogInfo("[PREMIUMAGENCY] - FormData written to file: " + filePath);
                         if (File.Exists(filePath))
                         {
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryItemRankingPoints FOUND for PUBLIC HomeSquare T037 {eventId}!");
@@ -216,7 +217,7 @@ namespace WebAPIService.PREMIUMAGENCY
                         Directory.CreateDirectory(MikuLiveJukeboxPath);
                         string filePath = $"{MikuLiveJukeboxPath}/{nid}.cache";
                         PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), filePath);
-                        Console.WriteLine("FormData written to file: " + filePath);
+                        LoggerAccessor.LogInfo("[PREMIUMAGENCY] - FormData written to file: " + filePath);
                         if (File.Exists(filePath))
                         {
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryItemRankingPoints FOUND for PUBLIC MikuliveJukebox {eventId}!");
@@ -248,7 +249,7 @@ namespace WebAPIService.PREMIUMAGENCY
                         Directory.CreateDirectory(j_liargame2Path);
                         string filePath = $"{j_liargame2Path}/{nid}.cache";
                         PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), filePath);
-                        Console.WriteLine("FormData written to file: " + filePath);
+                        LoggerAccessor.LogInfo("[PREMIUMAGENCY] - FormData written to file: " + filePath);
                         if (File.Exists(filePath))
                         {
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryItemRankingPoints FOUND for PUBLIC LiarGame2 {eventId}!");
@@ -285,7 +286,7 @@ namespace WebAPIService.PREMIUMAGENCY
 
         public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
         {
-            string nid = string.Empty;
+            string? nid = string.Empty;
 
             if (method == "GET")
             {

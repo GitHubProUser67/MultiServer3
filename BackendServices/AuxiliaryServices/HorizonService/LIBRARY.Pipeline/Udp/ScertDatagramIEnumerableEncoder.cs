@@ -4,6 +4,10 @@ using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using Horizon.LIBRARY.Common;
 using System.Net;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using DotNetty.Buffers;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {
@@ -18,37 +22,32 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
         protected override void Encode(IChannelHandlerContext ctx, IEnumerable<ScertDatagramPacket> messages, List<object> output)
         {
-            List<byte[]> temp;
-            Dictionary<EndPoint, List<byte[]>> msgsByEndpoint = new Dictionary<EndPoint, List<byte[]>>();
+            List<byte[]>? temp = new();
+            Dictionary<EndPoint, List<byte[]>> msgsByEndpoint = new();
             if (messages is null)
                 return;
 
             if (!ctx.HasAttribute(Constants.SCERT_CLIENT))
                 ctx.GetAttribute(Constants.SCERT_CLIENT).Set(new Attribute.ScertClientAttribute());
-            var scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
+            Attribute.ScertClientAttribute scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
 
             // Serialize and add
-            foreach (var msg in messages)
+            foreach (ScertDatagramPacket msg in messages)
             {
-                if (!msgsByEndpoint.TryGetValue(msg.Destination, out temp))
+                if (msg.Destination != null && !msgsByEndpoint.TryGetValue(msg.Destination, out temp))
                     msgsByEndpoint.Add(msg.Destination, temp = new List<byte[]>());
 
-                temp.AddRange(msg.Message.Serialize(scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService));
+                if (msg.Message != null)
+                    temp.AddRange(msg.Message.Serialize(scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService));
             }
 
-            foreach (var kvp in msgsByEndpoint)
+            foreach (KeyValuePair<EndPoint, List<byte[]>> kvp in msgsByEndpoint)
             {
                 // Condense as much as possible
-                if (kvp.Value.Count > 1)
+                foreach (IEnumerable<byte[]> msgGroup in kvp.Value.GroupWhileAggregating(0, (sum, item) => sum + item.Length, (sum, item) => sum < maxPacketLength))
                 {
-
-                }
-                var condensedMsgs = kvp.Value.GroupWhileAggregating(0, (sum, item) => sum + item.Length, (sum, item) => sum < maxPacketLength);
-
-                foreach (var msgGroup in condensedMsgs)
-                {
-                    var byteBuffer = ctx.Allocator.Buffer(msgGroup.Sum(x => x.Length));
-                    foreach (var msg in msgGroup)
+                    IByteBuffer byteBuffer = ctx.Allocator.Buffer(msgGroup.Sum(x => x.Length));
+                    foreach (byte[] msg in msgGroup)
                         byteBuffer.WriteBytes(msg);
                     output.Add(new DatagramPacket(byteBuffer, kvp.Key));
                 }
@@ -57,7 +56,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            LoggerAccessor.LogWarn(exception.ToString());
+            LoggerAccessor.LogError(exception.ToString());
             context.CloseAsync();
         }
     }

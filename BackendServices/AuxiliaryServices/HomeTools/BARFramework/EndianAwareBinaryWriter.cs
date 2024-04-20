@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace HomeTools.BARFramework
 {
     public abstract class EndianAwareBinaryWriter

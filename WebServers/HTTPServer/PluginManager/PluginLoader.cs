@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace HTTPServer.PluginManager
@@ -10,17 +13,18 @@ namespace HTTPServer.PluginManager
 
             if (Directory.Exists(folderPath))
             {
-                string[] dllFiles = Directory.GetFiles(folderPath, "*.dll");
-
-                foreach (string dllFile in dllFiles)
+                foreach (string dllFile in Directory.GetFiles(folderPath, "*.dll"))
                 {
                     HTTPPlugin? plugin = LoadPlugin(dllFile);
                     if (plugin != null)
+                    {
+                        CustomLogger.LoggerAccessor.LogInfo($"[HTTP] - Plugin:{dllFile} Loaded.");
                         plugins.Add(plugin);
+                    }
                 }
             }
             else
-                CustomLogger.LoggerAccessor.LogWarn($"No Plugins Folder found: {folderPath}");
+                CustomLogger.LoggerAccessor.LogWarn($"[HTTP] - No Plugins Folder found: {folderPath}");
 
             return plugins;
         }
@@ -29,20 +33,15 @@ namespace HTTPServer.PluginManager
         {
             try
             {
-                Assembly assembly = Assembly.LoadFrom(pluginPath);
-
-                foreach (Type type in assembly.GetTypes())
+                foreach (Type type in Assembly.LoadFrom(pluginPath).GetTypes())
                 {
                     if (typeof(HTTPPlugin).IsAssignableFrom(type))
-                    {
-                        var plugin = Activator.CreateInstance(type) as HTTPPlugin;
-                        return plugin;
-                    }
+                        return Activator.CreateInstance(type) as HTTPPlugin;
                 }
             }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogError($"Error loading plugin '{pluginPath}': {ex}");
+                CustomLogger.LoggerAccessor.LogError($"[HTTP] - Error loading plugin '{pluginPath}': {ex}");
             }
 
             return null;

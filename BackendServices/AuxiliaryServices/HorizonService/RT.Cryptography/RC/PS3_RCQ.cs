@@ -1,3 +1,8 @@
+using EndianTools;
+using SevenZip.Buffer;
+using System;
+using System.Linq;
+
 namespace Horizon.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
@@ -37,12 +42,16 @@ namespace Horizon.RT.Cryptography.RC
 
             // Reload
             for (int i = 0; i < 4; ++i)
-                iv[i] = BitConverter.ToUInt32(iv_buffer, i * 4);
+                iv[i] = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(iv_buffer) : iv_buffer, i * 4);
             RC_Pass(hash, ref iv);
 
             for (int i = 0; i < 4; ++i)
             {
-                var b = BitConverter.GetBytes(iv[i]);
+                byte[] b = BitConverter.GetBytes(iv[i]);
+
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(b);
+
                 Array.Copy(b, 0, iv_buffer, i * 4, 4);
             }
 
@@ -77,12 +86,16 @@ namespace Horizon.RT.Cryptography.RC
             Array.Copy(_key, 0, iv, 0, 0x10);
 
             for (int i = 0; i < 4; ++i)
-                seed[i] = BitConverter.ToUInt32(iv, i * 4);
+                seed[i] = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(iv) : iv, i * 4);
             RC_Pass(hash, ref seed);
 
             for (int i = 0; i < 4; ++i)
             {
-                var b = BitConverter.GetBytes(seed[i]);
+                byte[] b = BitConverter.GetBytes(seed[i]);
+
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(b);
+
                 Array.Copy(b, 0, iv, i * 4, 4);
             }
 
@@ -257,7 +270,7 @@ namespace Horizon.RT.Cryptography.RC
 
         public bool Equals(PS3_RCQ b)
         {
-            return b.Context == this.Context && (b._key?.SequenceEqual(this._key) ?? false);
+            return b.Context == Context && (b._key?.SequenceEqual(_key) ?? false);
         }
 
         #endregion
@@ -271,7 +284,7 @@ namespace Horizon.RT.Cryptography.RC
 
         public override string ToString()
         {
-            return $"PS3_RCQ({Context}, {BitConverter.ToString(_key).Replace("-", "")})";
+            return $"PS3_RCQ({Context}, {BitConverter.ToString(_key).Replace("-", string.Empty)})";
         }
 
     }

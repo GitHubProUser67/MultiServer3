@@ -1,3 +1,4 @@
+using System;
 using CustomLogger;
 using System.Text;
 using System.Security.Cryptography;

@@ -7,6 +7,9 @@ using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.X509;
 using CyberBackendLibrary.DataTypes;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -19,28 +22,6 @@ namespace CyberBackendLibrary.SSL
         public const string PRIVATE_RSA_KEY_FOOTER = "\n-----END RSA PRIVATE KEY-----";
         public const string PUBLIC_RSA_KEY_HEADER = "-----BEGIN RSA PUBLIC KEY-----\n";
         public const string PUBLIC_RSA_KEY_FOOTER = "\n-----END RSA PUBLIC KEY-----";
-        public const string SCERT_ROOT_CA = "-----BEGIN CERTIFICATE-----\r\n" +
-            "MIIDujCCAqKgAwIBAgIUAQAAAAAAAAAAAAAAAAAAAAAAAAAwDQYJKoZIhvcNAQEF\r\n" +
-            "BQAwgZYxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTESMBAGA1UEBxMJU2FuIERp\r\n" +
-            "ZWdvMTEwLwYDVQQKEyhTT05ZIENvbXB1dGVyIEVudGVydGFpbm1lbnQgQW1lcmlj\r\n" +
-            "YSBJbmMuMRQwEgYDVQQLEwtTQ0VSVCBHcm91cDEdMBsGA1UEAxMUU0NFUlQgUm9v\r\n" +
-            "dCBBdXRob3JpdHkwHhcNMDUwMTAxMTIwMDAwWhcNMzQxMjMxMjM1OTU5WjCBljEL\r\n" +
-            "MAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRIwEAYDVQQHEwlTYW4gRGllZ28xMTAv\r\n" +
-            "BgNVBAoTKFNPTlkgQ29tcHV0ZXIgRW50ZXJ0YWlubWVudCBBbWVyaWNhIEluYy4x\r\n" +
-            "FDASBgNVBAsTC1NDRVJUIEdyb3VwMR0wGwYDVQQDExRTQ0VSVCBSb290IEF1dGhv\r\n" +
-            "cml0eTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKc0nZ71kfvzujJ\r\n" +
-            "UeegRB6ZIK64dwY4HXm6b8q0i7YQWeCPT5uOPoQUC2gLtyUxn2vwhNWv4Zf/Dn/R\r\n" +
-            "RSz7AbqD2KlcbwryIbQMBx6lOnG80baC0pCRFWCpxYRgrndxXYeotSceGD4t0+xc\r\n" +
-            "T7qaR4X+z8s2M3zfpLtXiCQ6L9Fqzy+ZV3mEokkO26nG5LicnwSiPGO7yrkHFZGn\r\n" +
-            "x30oLv7rhTh18iUUgd0Wzp7t+39OkcUo2mJnG9yMEtphA0JW0/LFZTsuIGWy4H6P\r\n" +
-            "Ll9fvX/+ZZzx2+cTeGym6y7bIxorRAr246payX2v0ZmNyzz/SD4XC/ui0QNzuL0r\r\n" +
-            "joG48o0CAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAOgopH+NM7SJTvVDS90pS0vKY\r\n" +
-            "AgMNi0o5wp8VKAvqFusZULN/dz+gXSwfwydzCJteZfTw8Xs+iYIRgGqqAuTaV1xT\r\n" +
-            "TGDaHYgCw1EUF4chNKtQ8PjFb7nOFJOGd25Aedr4W09g2sTAtz7htsED0703odZM\r\n" +
-            "FTk9g6Q1wrP/ZWRIYKHSXYMSwssmMpgMeb7v0z7tgqizbppnu9BC/BcaST2yliLO\r\n" +
-            "rrlrBCNoL34oHSz9Wd9JexamZ4JQkiU8ViIyRfaey9/qGZRdVv/sJkxFv4zqGk/t\r\n" +
-            "iRmeyTsNzoS+i+Fk3qbajbJcAd3TesHckyWcODi46+jf4VZxqIZLNXRqvJmanw==\r\n" +
-            "-----END CERTIFICATE-----\n";
         public const string ENTRUST_NET_CA = "-----BEGIN CERTIFICATE-----\r\n" +
             "MIIEKjCCAxKgAwIBAgIEOGPe+DANBgkqhkiG9w0BAQUFADCBtDEUMBIGA1UEChML\r\n" +
             "RW50cnVzdC5uZXQxQDA+BgNVBAsUN3d3dy5lbnRydXN0Lm5ldC9DUFNfMjA0OCBp\r\n" +
@@ -66,21 +47,6 @@ namespace CyberBackendLibrary.SSL
             "bYQLCIt+jerXmCHG8+c8eS9enNFMFY3h7CI3zJpDC5fcgJCNs2ebb0gIFVbPv/Er\r\n" +
             "fF6adulZkMV8gzURZVE=\r\n" +
             "-----END CERTIFICATE-----\n";
-        public const string HOME_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\r\n" +
-            "MIICXQIBAAKBgQCzeKs2pwCMRPYkTKcUd+cuLFk5bGHBy1DWZED/uTtfERwqjJEi\r\n" +
-            "cKVwJxTlayFWnqigZthNgFW/RJUMIZsK10lc1j/jM4lf7vlUjrTwGoOSTP2dIFO7\r\n" +
-            "cLVNMTDuq82bfbwnPX8SJAW8MpL9KJOxhX1aiMaUekaN5x56yOMQr1lwFwIDAQAB\r\n" +
-            "AoGBAKpWq1ox42k+wsftIN9idj7yxLSl05rV2CHEAZU1P86ZNLyFsfKYK81oqoKc\r\n" +
-            "zYWjDLVBJ6dXWQsykqxy8O63Kt6lH42TCezj/iQN+hV2rzhQQgMJ8K3goqsPgIlt\r\n" +
-            "hHqvYKZxBUGym9s+v/B2QOaz8Bvbew4ge2/L/xzX4vpaR6ABAkEA3vUROwJoVFOj\r\n" +
-            "hQOccOJZ93rGlNrGWkpM4UE5LsaanALEWb8b1rfugsQ457RoGtXOk4+lFAhbVq/2\r\n" +
-            "yDtet9QIFwJBAM4RwiGnD6Xct504gsiJCFTgPaye8gDwvmdp3XNsAABnnioJp0yM\r\n" +
-            "aTJ7aXp6IyVm00RQKEVegQbZ1Menh5Ie2AECQADwX0Y0WGQihgnFXh9LlL1qEvQF\r\n" +
-            "h9hRf8ljEO6Vf4kwqcsG9wMMe0CpuuOe6uFSDTCp5jQTZO8UhqGJPnjft7kCQHg+\r\n" +
-            "wIsmkuj0DGi/qwEdhTER0KtD7G9EC7cIfWJ2qOGTlSVukKMIY/JDNV90mcGfaLQ6\r\n" +
-            "GeWwqZW30oPWbDOFsAECQQC076s5komcJC1YipfTYGdpyNS5tAGeLJfE7IlpVrwt\r\n" +
-            "n9rAHnFapGDVIRpkhIWWOmFzUttc+zUglqERusjqAAYj\r\n" +
-            "-----END RSA PRIVATE KEY-----\r\n";
 
         public static string[] DnsList = {
             "www.outso-srv1.com",
@@ -163,10 +129,9 @@ namespace CyberBackendLibrary.SSL
 
             // Generate a new RSA key pair
             using RSA rsa = RSA.Create();
-            rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN=MultiServer Certificate Authority [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new($"CN=MultiServer Certificate Authority, OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
 
             // Configure the certificate as CA.
             request.CertificateExtensions.Add(
@@ -213,10 +178,9 @@ namespace CyberBackendLibrary.SSL
 
             // Generate a new RSA key pair
             using RSA rsa = RSA.Create();
-            rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new($"CN=MultiServerCorp.online [" + GetRandomInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
 
             // Set additional properties of the certificate
             request.CertificateExtensions.Add(
@@ -292,10 +256,9 @@ namespace CyberBackendLibrary.SSL
         {
             // Generate a new RSA key pair
             using RSA rsa = RSA.Create(1024);
-            rsa.ImportFromPem(HOME_PRIVATE_KEY.ToArray());
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN=MultiServerCorp.online [" + new Random().NextInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new($"CN=MultiServerCorp.online [" + GetRandomInt64(100, 999) + "], OU=Scientists Department, O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, HashAlgorithmName.MD5, RSASignaturePadding.Pkcs1);
 
             // Set additional properties of the certificate
             request.CertificateExtensions.Add(
@@ -399,7 +362,7 @@ namespace CyberBackendLibrary.SSL
         /// <returns>Nothing.</returns>
         public static void CreateHomeCertificatesFile(string rootcaSubject, string selfsignedSubject, string FileName)
         {
-            File.WriteAllText(FileName, rootcaSubject + selfsignedSubject + SCERT_ROOT_CA + ENTRUST_NET_CA); // For PSHome clients.
+            File.WriteAllText(FileName, rootcaSubject + selfsignedSubject + ENTRUST_NET_CA); // For PSHome clients.
         }
 
         /// <summary>
@@ -424,12 +387,7 @@ namespace CyberBackendLibrary.SSL
                     changed = true;
                 }
                 else
-                {
-                    using RSA rsa = RSA.Create();
-                    rsa.ImportFromPem(File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca_privkey.pem").ToArray());
-                    rootca = X509Certificate2.CreateFromPem(File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca.pem").ToArray()).CopyWithPrivateKey(rsa);
-                    rsa.Clear();
-                }
+                    rootca = X509Certificate2.CreateFromPem(File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca.pem").ToArray(), File.ReadAllText(Path.GetDirectoryName(certpath) + $"/{Path.GetFileNameWithoutExtension(certpath)}_rootca_privkey.pem").ToArray());
 
                 StringBuilder CertPem = new();
                 PemWriter CSRPemWriter = new(new StringWriter(CertPem));
@@ -470,6 +428,12 @@ namespace CyberBackendLibrary.SSL
             string header = string.Format("-----BEGIN {0}-----", type);
             int start = pem.IndexOf(header) + header.Length;
             return Convert.FromBase64String(pem[start..pem.IndexOf(string.Format("-----END {0}-----", type), start)]);
+        }
+
+        private static long GetRandomInt64(long minValue, long maxValue)
+        {
+            Random random = new();
+            return (long)(((random.Next() << 32) | random.Next()) * (double)(maxValue - minValue) / 0xFFFFFFFFFFFFFFFF) + minValue;
         }
     }
 

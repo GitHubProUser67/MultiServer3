@@ -1,6 +1,11 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime;
+using System.Threading;
+using System.Threading.Tasks;
 
 public static class MitmDNSServerConfiguration
 {
@@ -38,14 +43,41 @@ public static class MitmDNSServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            DNSOnlineConfig = config.online_routes_config;
-            DNSConfig = config.routes_config;
-            DNSAllowUnsafeRequests = config.allow_unsafe_requests;
+            DNSOnlineConfig = GetValueOrDefault(config, "online_routes_config", DNSOnlineConfig);
+            DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
+            DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("dns.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"dns.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 

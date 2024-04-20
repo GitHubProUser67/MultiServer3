@@ -4,13 +4,16 @@ using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
 using Horizon.RT.Common;
 using Horizon.RT.Cryptography;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertIEnumerableDecoder : MessageToMessageDecoder<IByteBuffer>
     {
         readonly ICipher[]? _ciphers = null;
-        readonly Func<RT_MSG_TYPE, CipherContext, ICipher>? _getCipher = null;
+        readonly Func<RT_MSG_TYPE, CipherContext, ICipher?>? _getCipher = null;
 
         /// <summary>
         ///     Create a new instance.
@@ -28,7 +31,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         {
             try
             {
-                var decoded = Decode(context, input);
+                List<object>? decoded = Decode(context, input);
                 if (decoded != null)
                     output.AddRange(decoded);
             }
@@ -49,7 +52,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         /// <returns>The <see cref="IByteBuffer" /> which represents the frame or <c>null</c> if no frame could be created.</returns>
         protected virtual List<object>? Decode(IChannelHandlerContext context, IByteBuffer input)
         {
-            List<object> messages = new List<object>();
+            List<object> messages = new();
 
             //input.MarkReaderIndex();
             byte id = input.GetByte(input.ReaderIndex);
@@ -59,7 +62,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 
             if (!context.HasAttribute(Constants.SCERT_CLIENT))
                 context.GetAttribute(Constants.SCERT_CLIENT).Set(new Attribute.ScertClientAttribute());
-            var scertClient = context.GetAttribute(Constants.SCERT_CLIENT).Get();
+            Attribute.ScertClientAttribute scertClient = context.GetAttribute(Constants.SCERT_CLIENT).Get();
 
             // only split messages if the RT_MSG_TYPE is the message list id
             if ((id & 0x7F) != 0x3B)
@@ -97,9 +100,8 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
             // parse out each message into their own buffers
             for (int i = 0; i < messageContents.Length;)
             {
-                var subId = messageContents[i];
-                var subLen = BitConverter.ToInt16(messageContents, i + 1) + 3;
-                if (subId >= 0x80)
+                int subLen = BitConverter.ToInt16(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(messageContents) : messageContents, i + 1) + 3;
+                if (messageContents[i] >= 0x80)
                     subLen += 4;
 
                 messages.Add(input.RetainedSlice(input.ReaderIndex + totalLength + i, subLen));

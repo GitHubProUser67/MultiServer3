@@ -1,6 +1,10 @@
 using ComponentAce.Compression.Libs.zlib;
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -704,7 +708,7 @@ namespace CyberBackendLibrary.HTTP
             return true;
         }
 
-        public static string ExtractBoundary(string contentType)
+        public static string ExtractBoundary(string? contentType)
         {
             if (!string.IsNullOrEmpty(contentType))
             {
@@ -713,14 +717,14 @@ namespace CyberBackendLibrary.HTTP
                     return contentType[(boundaryIndex + 9)..];
             }
 
-            return contentType;
+            return contentType ?? string.Empty;
         }
 
         public static string ExtractDirtyProxyPath(string referer)
         {
             if (string.IsNullOrEmpty(referer))
                 return string.Empty;
-#if NET6_0
+#if NET5_0_OR_GREATER
             Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 #elif NET7_0_OR_GREATER
             // Match the input string with the pattern

@@ -1,6 +1,8 @@
+using System.IO;
 using CustomLogger;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {
@@ -18,7 +20,7 @@ namespace Horizon.RT.Models
 
         public MediusCallbackStatus StatusCode;
         public MediusGameHostType GameHostType;
-        public NetConnectionInfo ConnectInfo;
+        public NetConnectionInfo? ConnectInfo;
         /// <summary>
         /// MaxPlayers
         /// </summary>

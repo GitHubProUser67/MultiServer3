@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -74,7 +75,7 @@ namespace Horizon.RT.Models
                 $"StatusCode: {StatusCode} " +
                 $"AccountID: {AccountID} " +
                 $"AccountName: {AccountName} " +
-                $"Stats: {BitConverter.ToString(Stats)} " +
+                $"Stats: {System.BitConverter.ToString(Stats)} " +
                 $"OnlineState: {OnlineState} " +
                 $"LadderStat: {LadderStat} " +
                 $"LadderPosition: {LadderPosition} " +

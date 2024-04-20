@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -70,7 +71,7 @@ namespace Horizon.RT.Models
                 $"SessionKey: {SessionKey} " +
                 $"MessageType: {MessageType} " +
                 $"TargetAccountID: {TargetAccountID} " +
-                $"Message: {BitConverter.ToString(Message)}";
+                $"Message: {System.BitConverter.ToString(Message)}";
         }
     }
 }

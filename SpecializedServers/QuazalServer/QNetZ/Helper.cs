@@ -4,6 +4,7 @@ using lzo.net;
 using Ionic.Zlib;
 using System.Text.RegularExpressions;
 using CyberBackendLibrary.DataTypes;
+using EndianTools;
 
 namespace QuazalServer.QNetZ
 {
@@ -59,14 +60,14 @@ namespace QuazalServer.QNetZ
 		{
 			byte[] b = new byte[4];
 			s.Read(b, 0, 4);
-			return BitConverter.ToSingle(b, 0);
+			return BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(b) : b, 0);
 		}
 
 		public static double ReadDouble(Stream s)
 		{
 			byte[] b = new byte[8];
 			s.Read(b, 0, 8);
-			return BitConverter.ToDouble(b, 0);
+			return BitConverter.ToDouble(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(b) : b, 0);
 		}
 
 		public static string ReadString(Stream s)
@@ -164,13 +165,13 @@ namespace QuazalServer.QNetZ
 
 		public static void WriteFloat(Stream s, float v)
 		{
-			byte[] b = BitConverter.GetBytes(v);
+			byte[] b = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(v) : v);
 			s.Write(b, 0, 4);
 		}
 
 		public static void WriteFloatLE(Stream s, float v)
 		{
-			byte[] b = BitConverter.GetBytes(v);
+			byte[] b = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(v) : v);
 			s.WriteByte(b[3]);
 			s.WriteByte(b[2]);
 			s.WriteByte(b[1]);
@@ -179,7 +180,7 @@ namespace QuazalServer.QNetZ
 
 		public static void WriteDouble(Stream s, double v)
 		{
-			byte[] b = BitConverter.GetBytes(v);
+			byte[] b = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(v) : v);
 			s.Write(b, 0, 8);
 		}
 

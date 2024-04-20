@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using WebAPIService.UBISOFT.Models;
 using Newtonsoft.Json;
+using System;
 
 namespace WebAPIService.UBISOFT.OnlineConfigService
 {

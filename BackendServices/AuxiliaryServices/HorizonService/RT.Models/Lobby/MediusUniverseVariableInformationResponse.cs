@@ -1,7 +1,10 @@
+using System.IO;
 using CustomLogger;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 using System.Globalization;
+using System.Collections.Generic;
+using System;
 
 namespace Horizon.RT.Models
 {
@@ -30,7 +33,7 @@ namespace Horizon.RT.Models
         public string? SvoURL; // UNIVERSE_SVO_URL_MAXLEN
         public bool EndOfList;
 
-        public List<int> approvedList = new List<int> { 10421, 20043, 20244, 20043, 20464, 21093, 21094, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 21784, 22073, 20464, 22500, 22920, 22924, 22930 };
+        public List<int> approvedList = new() { 10421, 20043, 20244, 20043, 20464, 21093, 21094, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 21784, 22073, 20464, 22500, 22920, 22924, 22930 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -137,7 +140,7 @@ namespace Horizon.RT.Models
                             {
                                 homebetaver = Double.Parse(betafirstFiveElements, CultureInfo.InvariantCulture);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 homebetaver = 0;
                             }
@@ -164,7 +167,7 @@ namespace Horizon.RT.Models
                             {
                                 homeretailver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 homeretailver = 0;
                             }

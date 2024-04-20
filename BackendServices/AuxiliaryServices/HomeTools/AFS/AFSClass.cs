@@ -1,10 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HomeTools.AFS
 {
     public class AFSClass
     {
-        public static string MapperHelperFolder = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
+        public static string MapperHelperFolder = $"{Directory.GetCurrentDirectory()}/static/!HomeTools/HelperFiles/";
         private static readonly string UUIDRegexModel = @"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}";
         private static readonly Dictionary<string, string> MappedAFSHashesCache = new();
 
@@ -139,6 +144,67 @@ namespace HomeTools.AFS
 
             if (Directory.Exists(MapperHelperFolder))
             {
+                if (File.Exists(MapperHelperFolder + "/core_data_mapper_helper.txt")) // Shortcut for coredata entries, allows to save on CPU usage.
+                {
+                    Parallel.ForEach(File.ReadLines(MapperHelperFolder + "/core_data_mapper_helper.txt"), line =>
+                    {
+                        if (line.Contains(':'))
+                        {
+                            string[] elements = line.Split(':');
+                            if (elements.Length == 2)
+                            {
+                                lock (MappedAFSHashesCache)
+                                {
+                                    if (!MappedAFSHashesCache.ContainsKey(elements[0]))
+                                        MappedAFSHashesCache.Add(elements[0], elements[1]);
+                                    else
+                                        MappedAFSHashesCache[elements[0]] = elements[1];
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (File.Exists(MapperHelperFolder + "/scene_file_mapper_helper.txt")) // Shortcut for scene entries, allows to save on CPU usage.
+                {
+                    Parallel.ForEach(File.ReadLines(MapperHelperFolder + "/scene_file_mapper_helper.txt"), line =>
+                    {
+                        if (line.Contains(':'))
+                        {
+                            string[] elements = line.Split(':');
+                            if (elements.Length == 2)
+                            {
+                                lock (MappedAFSHashesCache)
+                                {
+                                    if (!MappedAFSHashesCache.ContainsKey(elements[0]))
+                                        MappedAFSHashesCache.Add(elements[0], elements[1]);
+                                    else
+                                        MappedAFSHashesCache[elements[0]] = elements[1];
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (File.Exists(MapperHelperFolder + "/CoredataHelper.xml")) // This is done at runtime on Eboot, but we need a XML to establish a mapper list.
+                {
+                    // Match the patterns in the file content
+                    Parallel.ForEach(new List<MappedList>(AFSRegexProcessor.ScanForString(File.ReadAllText(MapperHelperFolder + "/CoredataHelper.xml"))), match => {
+                        if (!string.IsNullOrEmpty(match.file))
+                        {
+                            string text = AFSHash.EscapeString(match.file);
+                            string CrcHash = AFSHash.ComputeAFSHash(text);
+                            lock (MappedAFSHashesCache)
+                            {
+                                if (!MappedAFSHashesCache.ContainsKey(CrcHash))
+                                    MappedAFSHashesCache.Add(CrcHash, text);
+                                else
+                                    MappedAFSHashesCache[CrcHash] = text;
+                            }
+                        }
+                    });
+                }
+
                 if (File.Exists(MapperHelperFolder + "/SceneList.xml")) // We Need the scenelist to do the scenes AFS map.
                 {
                     // Match the patterns in the file content

@@ -1,3 +1,5 @@
+using System;
+
 namespace EndianTools
 {
     public class EndianUtils
@@ -26,6 +28,24 @@ namespace EndianTools
         }
 
         /// <summary>
+        /// Reverse the endianess of a given int.
+        /// <para>change l'endianess d'un int.</para>
+        /// </summary>
+        /// <param name="dataIn">The int to endian-swap.</param>
+        /// <returns>A int.</returns>
+        public static int EndianSwap(int dataIn)
+        {
+            bool LittleEndian = BitConverter.IsLittleEndian;
+
+            byte[] bytes = BitConverter.GetBytes(dataIn);
+
+            if (LittleEndian)
+                Array.Reverse(bytes);
+
+            return BitConverter.ToInt32(!LittleEndian ? EndianSwap(bytes) : bytes, 0);
+        }
+
+        /// <summary>
         /// Reverse the endianess of a given uint.
         /// <para>change l'endianess d'un uint.</para>
         /// </summary>
@@ -37,6 +57,24 @@ namespace EndianTools
                    ((dataIn & 0x0000FF00U) << 8) |
                    ((dataIn & 0x00FF0000U) >> 8) |
                    ((dataIn & 0xFF000000U) >> 24);
+        }
+
+        /// <summary>
+        /// Reverse the endianess of a given long.
+        /// <para>change l'endianess d'un long.</para>
+        /// </summary>
+        /// <param name="dataIn">The long to endian-swap.</param>
+        /// <returns>A long.</returns>
+        public static long EndianSwap(long dataIn)
+        {
+            bool LittleEndian = BitConverter.IsLittleEndian;
+
+            byte[] bytes = BitConverter.GetBytes(dataIn);
+
+            if (LittleEndian)
+                Array.Reverse(bytes);
+
+            return BitConverter.ToInt64(!LittleEndian ? EndianSwap(bytes) : bytes, 0);
         }
 
         /// <summary>
@@ -58,12 +96,12 @@ namespace EndianTools
         }
 
         /// <summary>
-        /// Reverse the endianess of a given int.
-        /// <para>change l'endianess d'un int.</para>
+        /// Reverse the endianess of a given double.
+        /// <para>change l'endianess d'un double.</para>
         /// </summary>
-        /// <param name="dataIn">The int to endian-swap.</param>
-        /// <returns>A uint.</returns>
-        public static int EndianSwap(int dataIn)
+        /// <param name="dataIn">The double to endian-swap.</param>
+        /// <returns>A double.</returns>
+        public static double EndianSwap(double dataIn)
         {
             bool LittleEndian = BitConverter.IsLittleEndian;
 
@@ -72,7 +110,37 @@ namespace EndianTools
             if (LittleEndian)
                 Array.Reverse(bytes);
 
-            return BitConverter.ToInt32(!LittleEndian ? EndianSwap(bytes) : bytes, 0);
+            return BitConverter.ToDouble(!LittleEndian ? EndianSwap(bytes) : bytes, 0);
+        }
+
+        /// <summary>
+        /// Reverse the endianess of a given float.
+        /// <para>change l'endianess d'un float.</para>
+        /// </summary>
+        /// <param name="dataIn">The float to endian-swap.</param>
+        /// <returns>A float.</returns>
+        public static float EndianSwap(float dataIn)
+        {
+            bool LittleEndian = BitConverter.IsLittleEndian;
+
+            byte[] bytes = BitConverter.GetBytes(dataIn);
+
+            if (LittleEndian)
+                Array.Reverse(bytes);
+
+            return BitConverter.ToSingle(!LittleEndian ? EndianSwap(bytes) : bytes, 0);
+        }
+
+        /// <summary>
+        /// Reverse the endianess of a given short.
+        /// <para>change l'endianess d'un short.</para>
+        /// </summary>
+        /// <param name="dataIn">The short to endian-swap.</param>
+        /// <returns>A short.</returns>
+        public static short EndianSwap(short dataIn)
+        {
+            // Use bitwise operations to swap the bytes
+            return (short)(dataIn >> 8 | (dataIn & 0xFF) << 8);
         }
 
         /// <summary>

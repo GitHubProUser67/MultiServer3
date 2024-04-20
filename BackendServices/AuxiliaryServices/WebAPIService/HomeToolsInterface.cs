@@ -4,7 +4,6 @@ using HomeTools.ChannelID;
 using HomeTools.Crypto;
 using HomeTools.UnBAR;
 using CyberBackendLibrary.HTTP;
-
 using WebAPIService.CDS;
 using CustomLogger;
 using HttpMultipartParser;
@@ -13,19 +12,23 @@ using System.Security.Cryptography;
 using System.Text;
 using CompressionLibrary.Custom;
 using CyberBackendLibrary.DataTypes;
+using System.IO;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 
 namespace WebAPIService
 {
     public class HomeToolsInterface
     {
-        public static (byte[]?, string)? MakeBarSdat(string converterPath, Stream? PostData, string? ContentType)
+        public static (byte[]?, string)? MakeBarSdat(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
             List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
+                string maindir = Path.GetTempPath() + $"/MakeBarSdat_cache/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -47,7 +50,7 @@ namespace WebAPIService
                     {
                         leanzlib = data.GetParameterValue("leanzlib");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -55,7 +58,7 @@ namespace WebAPIService
                     {
                         encrypt = data.GetParameterValue("encrypt");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -63,7 +66,7 @@ namespace WebAPIService
                     {
                         version2 = data.GetParameterValue("version2");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -71,7 +74,7 @@ namespace WebAPIService
                     {
                         bigendian = data.GetParameterValue("bigendian");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -159,9 +162,6 @@ namespace WebAPIService
                             bararchive.AddFile(Path.Combine(unzipdir, path));
                         }
 
-                        // Get the name of the directory
-                        string directoryName = new DirectoryInfo(unzipdir).Name;
-
                         // Create a text file to write the paths to
                         StreamWriter writer = new(unzipdir + @"/files.txt");
 
@@ -171,8 +171,7 @@ namespace WebAPIService
                         // Loop through the files and write their paths to the text file
                         foreach (string file in files)
                         {
-                            string relativePath = string.Concat("file=\"", file.Replace(unzipdir, string.Empty).AsSpan(1), "\"");
-                            writer.WriteLine(relativePath.Replace(@"\", "/"));
+                            writer.WriteLine(string.Concat("file=\"", file.Replace(unzipdir, string.Empty).AsSpan(1), "\"").Replace(@"\", "/"));
                         }
 
                         writer.Close();
@@ -344,7 +343,7 @@ namespace WebAPIService
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
+                string maindir = Path.GetTempPath() + $"/UnBar_cache/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -364,7 +363,7 @@ namespace WebAPIService
                     {
                         subfolder = data.GetParameterValue("subfolder");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -372,7 +371,7 @@ namespace WebAPIService
                     {
                         bruteforce = data.GetParameterValue("bruteforce");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -380,7 +379,7 @@ namespace WebAPIService
                     {
                         afsengine = data.GetParameterValue("afsengine");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -400,9 +399,7 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
-                        string guid = GenerateDynamicCacheGuid(filename);
-
-                        string tempdir = $"{maindir}/{guid}";
+                        string tempdir = $"{maindir}/{GenerateDynamicCacheGuid(filename)}";
 
                         string unbardir = tempdir + $"/unbar";
 
@@ -614,7 +611,7 @@ namespace WebAPIService
                     {
                         decrypt = data.GetParameterValue("decrypt");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -892,7 +889,7 @@ namespace WebAPIService
                     {
                         version1 = data.GetParameterValue("version1");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -911,8 +908,6 @@ namespace WebAPIService
                         filedata.Read(buffer, 0, contentLength);
 
                         filename = multipartfile.FileName;
-
-                        string guid = GenerateDynamicCacheGuid(filename);
 
                         if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                              && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x01 && version1 == "on")
@@ -1083,7 +1078,7 @@ namespace WebAPIService
                     {
                         sceneid = int.Parse(data.GetParameterValue("sceneid"));
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -1091,7 +1086,7 @@ namespace WebAPIService
                     {
                         newerhome = data.GetParameterValue("newerhome");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -1133,7 +1128,7 @@ namespace WebAPIService
                     {
                         newerhome = data.GetParameterValue("newerhome");
                     }
-                    catch (Exception)
+                    catch
                     {
 
                     }
@@ -1150,7 +1145,7 @@ namespace WebAPIService
                         {
                             res = "Invalid ChannelID";
                         }
-                        catch (Exception)
+                        catch
                         {
                             // Not Important
                         }
@@ -1169,7 +1164,7 @@ namespace WebAPIService
                         {
                             res = "Invalid ChannelID";
                         }
-                        catch (Exception)
+                        catch
                         {
                             // Not Important
                         }

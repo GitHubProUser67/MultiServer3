@@ -1,6 +1,7 @@
 using CustomLogger;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
+using System;
 
 namespace Horizon.LIBRARY.Pipeline.Udp
 {
@@ -9,16 +10,16 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         public override bool IsSharable => true;
 
 
-        public Action<IChannel> OnChannelActive;
-        public Action<IChannel> OnChannelInactive;
-        public Action<IChannel, DatagramPacket> OnChannelMessage;
+        public Action<IChannel>? OnChannelActive;
+        public Action<IChannel>? OnChannelInactive;
+        public Action<IChannel, DatagramPacket>? OnChannelMessage;
 
         public override void ChannelActive(IChannelHandlerContext ctx)
         {
             // Detect when client disconnects
             ctx.Channel.CloseCompletion.ContinueWith((x) =>
             {
-                LoggerAccessor.LogInfo("[UDP] - Channel Closed");
+                LoggerAccessor.LogWarn("[UDP] - Channel Closed");
                 OnChannelInactive?.Invoke(ctx.Channel);
             });
 
@@ -29,7 +30,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         // The Channel is closed hence the connection is closed
         public override void ChannelInactive(IChannelHandlerContext ctx)
         {
-            LoggerAccessor.LogInfo("[UDP] - Client disconnected");
+            LoggerAccessor.LogWarn("[UDP] - Client disconnected");
 
             // Send event upstream
             OnChannelInactive?.Invoke(ctx.Channel);
@@ -45,7 +46,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            LoggerAccessor.LogWarn(exception.ToString());
+            LoggerAccessor.LogError(exception.ToString());
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.IO;
 namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_stats

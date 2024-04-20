@@ -2,6 +2,8 @@ using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using WebAPIService.HELLFIRE.Helpers;
+using System.IO;
+using System.Threading;
 
 namespace TycoonServer.HFProcessors
 {
@@ -30,7 +32,7 @@ namespace TycoonServer.HFProcessors
                     {
                         DisplayName = data.GetParameterValue("DisplayName");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important.
                     }
@@ -38,7 +40,7 @@ namespace TycoonServer.HFProcessors
                     {
                         InstanceID = data.GetParameterValue("InstanceID");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important.
                     }
@@ -46,7 +48,7 @@ namespace TycoonServer.HFProcessors
                     {
                         Region = data.GetParameterValue("Region");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important.
                     }

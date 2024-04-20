@@ -1,6 +1,10 @@
 using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models
 {
@@ -131,7 +135,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         #region Messages
         public void BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage msg)
         {
-            foreach (var client in Clients.Where(x => x != source))
+            foreach (ClientObject? client in Clients.Where(x => x != source))
             {
                 client?.Queue(new MediusBinaryFwdMessage()
                 {
@@ -144,7 +148,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         public void BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage1 msg)
         {
-            foreach (var client in Clients.Where(x => x != source))
+            foreach (ClientObject? client in Clients.Where(x => x != source))
             {
                 client?.Queue(new MediusBinaryFwdMessage1()
                 {
