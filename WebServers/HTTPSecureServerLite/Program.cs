@@ -27,7 +27,6 @@ public static class HTTPSServerConfiguration
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
-    public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool UseSelfSignedCertificate { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
     public static List<ushort>? Ports { get; set; } = new() { 443 };
@@ -67,7 +66,6 @@ public static class HTTPSServerConfiguration
                 new JProperty("https_temp_folder", HTTPSTempFolder),
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("certificate_file", HTTPSCertificateFile),
-                new JProperty("hometools_helper_static_folder", HomeToolsHelperStaticFolder),
                 new JProperty("use_self_signed_certificate", UseSelfSignedCertificate),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
@@ -97,7 +95,6 @@ public static class HTTPSServerConfiguration
             HTTPSTempFolder = GetValueOrDefault(config, "https_temp_folder", HTTPSTempFolder);
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
-            HomeToolsHelperStaticFolder = GetValueOrDefault(config, "hometools_helper_static_folder", HomeToolsHelperStaticFolder);
             UseSelfSignedCertificate = GetValueOrDefault(config, "use_self_signed_certificate", UseSelfSignedCertificate);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
