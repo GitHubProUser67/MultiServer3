@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Numerics;
+using CastleLibrary.Utils.Conversion;
 using CyberBackendLibrary.DataTypes;
 using EndianTools;
 using HomeTools.Crypto;

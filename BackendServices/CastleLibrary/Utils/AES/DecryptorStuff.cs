@@ -1,4 +1,4 @@
-namespace HomeTools.Crypto
+namespace CastleLibrary.Utils.AES
 {
     public abstract class Decryptor
     {

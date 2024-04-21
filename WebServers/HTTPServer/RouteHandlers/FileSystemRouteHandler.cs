@@ -92,7 +92,7 @@ namespace HTTPServer.RouteHandlers
 
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale && fileSize <= 2147483648) // 2gb limit.
             {
-                byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{new CastleLibrary.Custom.Crc32().Get(Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????")):X}")?.Result;
+                byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{new CastleLibrary.Utils.Crc32().Get(Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????")):X}")?.Result;
 
                 if (UpscalledOrOriginalData != null)
                     response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
@@ -108,17 +108,15 @@ namespace HTTPServer.RouteHandlers
             }
             else
             {
-                long FileLength = new FileInfo(local_path).Length;
-
-                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && FileLength <= 8000000)
+                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && fileSize <= 8000000)
                 {
                     response.Headers.Add("Content-Encoding", "gzip");
-                    response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
                 }
-                else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && FileLength <= 8000000)
+                else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && fileSize <= 8000000)
                 {
                     response.Headers.Add("Content-Encoding", "deflate");
-                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
                 }
                 else
                     response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

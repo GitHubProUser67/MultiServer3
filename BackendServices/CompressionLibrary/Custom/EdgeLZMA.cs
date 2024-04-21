@@ -1,3 +1,4 @@
+using CustomLogger;
 using EndianTools;
 using SevenZip.Compression.LZMA;
 using System;
@@ -88,7 +89,7 @@ namespace CompressionLibrary.Custom
                 int streamSize = (int)(result.Length - preLength);
                 if (streamSize >= 0x10000)
                 {
-                    System.Diagnostics.Debug.WriteLine("[EdgeLzma] - Warning - Stream did not compress - script might not be executed on PS3 correctly.");
+                    LoggerAccessor.LogDebug("[EdgeLzma] - Warning - Stream did not compress - script might not be executed on PS3 correctly.");
                     result.Position = preLength;
                     result.SetLength(preLength);
                     result.Write(buffer, offset, Math.Min(inSize, 0x10000));
@@ -228,20 +229,20 @@ namespace CompressionLibrary.Custom
                             return FileData;
                         else if (safemode)
                         {
-                            System.Diagnostics.Debug.WriteLine("[EdgeLzmaSegs] - File size is different than the one indicated in TOC! Sending input file instead.");
+                            LoggerAccessor.LogError("[EdgeLzmaSegs] - File size is different than the one indicated in TOC! Sending input file instead.");
                             return inbuffer;
                         }
                     }
                     else if (safemode)
-                        System.Diagnostics.Debug.WriteLine("[EdgeLzmaSegs] - The byte array length is not evenly divisible by 8, decompression failed!");
+                        LoggerAccessor.LogError("[EdgeLzmaSegs] - The byte array length is not evenly divisible by 8, decompression failed!");
                 }
                 else if (safemode)
-                    System.Diagnostics.Debug.WriteLine("[EdgeLzmaSegs] - File is not a valid segment based EdgeLzma compressed file!");
+                    LoggerAccessor.LogError("[EdgeLzmaSegs] - File is not a valid segment based EdgeLzma compressed file!");
             }
             catch (Exception ex)
             {
                 if (safemode)
-                    System.Diagnostics.Debug.WriteLine($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
+                    LoggerAccessor.LogError($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
             }
 
             return null;

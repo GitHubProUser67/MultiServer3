@@ -19,4 +19,8 @@
     <Optimize>True</Optimize>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
+  </ItemGroup>
+
 </Project>

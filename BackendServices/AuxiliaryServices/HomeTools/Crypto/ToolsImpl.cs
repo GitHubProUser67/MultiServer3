@@ -9,6 +9,7 @@ using EndianTools;
 using CyberBackendLibrary.DataTypes;
 using System;
 using System.IO;
+using CastleLibrary.Utils.Conversion;
 
 namespace HomeTools.Crypto
 {
@@ -323,14 +324,14 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        private byte[] ComponentAceDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
+        private byte[] ComponentAceDecompressEdgeZlibChunk(byte[] InData, ChunkHeader header)
         {
             if (header.CompressedSize == header.SourceSize)
-                return inData;
+                return InData;
             MemoryStream memoryStream = new();
             ZOutputStream zoutputStream = new(memoryStream, true);
-            byte[] array = new byte[inData.Length];
-            Array.Copy(inData, 0, array, 0, inData.Length);
+            byte[] array = new byte[InData.Length];
+            Array.Copy(InData, 0, array, 0, InData.Length);
             zoutputStream.Write(array, 0, array.Length);
             zoutputStream.Close();
             memoryStream.Close();

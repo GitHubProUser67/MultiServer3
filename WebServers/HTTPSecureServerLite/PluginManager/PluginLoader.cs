@@ -18,7 +18,7 @@ namespace HTTPSecureServerLite.PluginManager
                     HTTPSecurePlugin? plugin = LoadPlugin(dllFile);
                     if (plugin != null)
                     {
-                        CustomLogger.LoggerAccessor.LogInfo($"[HTTPS] - Plugin:{dllFile} Loaded.");
+                        CustomLogger.LoggerAccessor.LogInfo($"[HTTPS] - Plugin: {dllFile} Loaded.");
                         plugins.Add(plugin);
                     }
                 }
@@ -35,8 +35,15 @@ namespace HTTPSecureServerLite.PluginManager
             {
                 foreach (Type type in Assembly.LoadFrom(pluginPath).GetTypes())
                 {
-                    if (typeof(HTTPSecurePlugin).IsAssignableFrom(type))
-                        return Activator.CreateInstance(type) as HTTPSecurePlugin;
+                    try
+                    {
+                        if (typeof(HTTPSecurePlugin).IsAssignableFrom(type))
+                            return Activator.CreateInstance(type) as HTTPSecurePlugin;
+                    }
+                    catch (ReflectionTypeLoadException)
+                    {
+                        CustomLogger.LoggerAccessor.LogWarn($"[HTTPS] - Plugin: {pluginPath} is not compatible with this project, ignoring...");
+                    }
                 }
             }
             catch (Exception ex)

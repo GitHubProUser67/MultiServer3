@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
 	<OutputType>Library</OutputType>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	<BaseOutputPath>..\..\WebServers\HTTPSecureServerLite\bin</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
