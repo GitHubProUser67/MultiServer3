@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 443:443</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 443:443 -p 61900:61900</DockerfileRunArguments>
     <ApplicationIcon>HTTPS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>

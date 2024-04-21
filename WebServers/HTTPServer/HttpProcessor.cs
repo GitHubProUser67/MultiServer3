@@ -29,6 +29,7 @@ using WebAPIService.MultiMedia;
 using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
 using System;
+using WebAPIService.HELLFIRE;
 
 namespace HTTPServer
 {
@@ -179,8 +180,7 @@ namespace HTTPServer
 
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
-
-                                string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
+                                string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder);
 
                                 if (HTTPServerConfiguration.plugins.Count > 0)
                                 {
@@ -354,6 +354,31 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region Hellfire Games API
+                                            else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
+                                                
+                                                string res = string.Empty;
+                                                
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                {
+                                                    //response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
+                                                }
                                             }
                                             #endregion
 

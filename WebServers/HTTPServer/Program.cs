@@ -24,7 +24,7 @@ public static class HTTPServerConfiguration
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
-    public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
+    public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000, 61900 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 

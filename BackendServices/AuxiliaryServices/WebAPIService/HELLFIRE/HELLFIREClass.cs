@@ -1,14 +1,20 @@
+using TycoonServer.HFProcessors;
+using WebAPIService.HELLFIRE.Helpers;
+using WebAPIService.HELLFIRE.HFProcessors;
+
 namespace WebAPIService.HELLFIRE
 {
     public class HELLFIREClass : IDisposable
     {
+        private string workpath;
         private string absolutepath;
         private string method;
         private bool disposedValue;
 
-        public HELLFIREClass(string method, string absolutepath)
+        public HELLFIREClass(string method, string absolutepath, string workpath)
         {
             this.absolutepath = absolutepath;
+            this.workpath = workpath;
             this.method = method;
         }
 
@@ -22,14 +28,21 @@ namespace WebAPIService.HELLFIRE
                 case "POST":
                     switch (absolutepath)
                     {
+                        #region HomeTycoon
                         case "/HomeTycoon/Main_SCEE.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         case "/HomeTycoon/Main_SCEJ.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         case "/HomeTycoon/Main_SCEAsia.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         case "/HomeTycoon/Main.php":
-                            return Redirector.ProcessMainRedirector(PostData, ContentType);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                        #endregion
+
+                        #region ClearasilSkater
+                        case "/ClearasilSkater/Main.php":
+                            return ClearasilSkaterRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                        #endregion
                         default:
                             break;
                     }
