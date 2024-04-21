@@ -29,7 +29,7 @@ namespace WebAPIService.CDM
             string res = string.Empty;
             string endPointURI = string.Empty;
 
-            List<string> endPoints = new () { "/user/game/", "/user/sync/", "/user/event/", "/user/quest/",
+            List<string> endPoints = new () { "/user/game/", "/user/sync/", "/user/event/", "/user/quest/", "/user/space/",
                 "/userevent/list/date/", "/userevent/list/friend/", "/quest/list/date/", "/leaderboard/" };
 
             // Dedicated endpoint trimmer for sanity checks!
@@ -53,6 +53,10 @@ namespace WebAPIService.CDM
                 case "GET":
                     switch (endPointURI)
                     {
+                        ///<summary>
+                        /// Primary endpoint for any CDM supported minigame, returns the company publisherID, password, and name.
+                        /// If this publisher list does not contain a valid token and pubID, the minigame will consider the server unavailable.
+                        ///</summary>
                         case "/publisher/list/":
                             return Publisher.handlePublisherList(PostData, ContentType, workPath, absolutePath);
                         case "/user/game/":

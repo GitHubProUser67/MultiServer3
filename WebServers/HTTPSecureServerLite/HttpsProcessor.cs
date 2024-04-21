@@ -430,7 +430,7 @@ namespace HTTPSecureServerLite
                     {
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                        string? res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath)).ProcessRequest(request.DataAsBytes, request.ContentType);
+                        string? res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(request.DataAsBytes, request.ContentType);
                         if (string.IsNullOrEmpty(res))
                             statusCode = HttpStatusCode.InternalServerError;
                         else
@@ -439,7 +439,7 @@ namespace HTTPSecureServerLite
                             statusCode = HttpStatusCode.OK;
                         }
                         response.StatusCode = (int)statusCode;
-                        response.ContentType = "text/plain";
+                        response.ContentType = "application/xml;charset=UTF-8";
                         sent = await response.Send(res);
                     }
                     #endregion

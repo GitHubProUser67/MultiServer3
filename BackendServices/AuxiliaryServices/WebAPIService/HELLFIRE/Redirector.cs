@@ -5,7 +5,7 @@ namespace WebAPIService.HELLFIRE
 {
     public class Redirector
     {
-        public static string? ProcessMainRedirector(byte[] PostData, string ContentType)
+        public static string? ProcessMainHomeTycoonRedirector(byte[] PostData, string ContentType)
         {
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
@@ -30,5 +30,6 @@ namespace WebAPIService.HELLFIRE
 
             return null;
         }
+
     }
 }
