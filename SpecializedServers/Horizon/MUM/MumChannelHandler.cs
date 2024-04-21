@@ -47,7 +47,7 @@ namespace Horizon.MUM
 
             foreach (Channel channel in MediusClass.Manager.GetAllChannels())
             {
-                XMLData += $"<CRC32 name=\"{channel.Name}\">{new CastleLibrary.Custom.Crc32().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
+                XMLData += $"<CRC32 name=\"{channel.Name}\">{new CastleLibrary.Utils.Crc32().Get(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X}</CRC32>";
             }
 
             return XMLData + "</Root>";

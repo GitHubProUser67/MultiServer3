@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace HomeTools.Crypto
+namespace CastleLibrary.Utils.AES
 {
     public class AESCBC128Encrypt : Decryptor
     {

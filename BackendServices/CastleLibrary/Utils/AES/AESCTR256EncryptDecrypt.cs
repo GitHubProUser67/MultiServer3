@@ -4,7 +4,7 @@ using Org.BouncyCastle.Security;
 using System.Text;
 using System;
 
-namespace CyberBackendLibrary.Crypto
+namespace CastleLibrary.Utils.AES
 {
     public class AESCTR256EncryptDecrypt
     {

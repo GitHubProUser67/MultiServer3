@@ -1,4 +1,5 @@
 using CyberBackendLibrary.DataTypes;
+using EndianTools;
 using System.Text;
 
 namespace QuazalServer.QNetZ
@@ -317,7 +318,7 @@ namespace QuazalServer.QNetZ
 
 			uint tmp = 0;
 			for (int i = 0; i < data.Length / 4; i++)
-				tmp += BitConverter.ToUInt32(data, i * 4);
+				tmp += BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(data) : data, i * 4);
 
 			uint leftOver = (uint)data.Length & 3;
 			uint processed = 0;
@@ -364,6 +365,7 @@ namespace QuazalServer.QNetZ
 
 		public static byte[] MakeChecksum4(byte[] data, string AccessKey)
         {
+			bool LittleEndian = BitConverter.IsLittleEndian;
             int len = data.Length;
             len -= len % 4;
 
@@ -383,12 +385,12 @@ namespace QuazalServer.QNetZ
                 trailerBytes[i] = data[len + i];
             }
 
-            byte[] Output = BitConverter.GetBytes(dataSum + Key4(AccessKey) + BitConverter.ToUInt32(trailerBytes, 0));
+			if (!LittleEndian)
+				Array.Reverse(trailerBytes);
 
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(Output);
+			uint Checksum = dataSum + Key4(AccessKey) + BitConverter.ToUInt32(trailerBytes, 0);
 
-            return Output;
+            return BitConverter.GetBytes(!LittleEndian ? EndianUtils.EndianSwap(Checksum) : Checksum);
         }
 
         private void ExtractFlags()
@@ -406,7 +408,7 @@ namespace QuazalServer.QNetZ
 			if (flags != null)
 			{
                 foreach (PACKETFLAG flag in flags)
-                    sb.Append("[" + flag.ToString().Replace("FLAG_", "") + "]");
+                    sb.Append("[" + flag.ToString().Replace("FLAG_", string.Empty) + "]");
             }
 			return sb.ToString();
 		}

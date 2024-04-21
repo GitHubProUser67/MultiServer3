@@ -2,7 +2,7 @@ using CustomLogger;
 using System;
 using System.Numerics;
 
-namespace HomeTools.Crypto
+namespace CastleLibrary.Utils.Conversion
 {
     public class ConversionUtils
     {

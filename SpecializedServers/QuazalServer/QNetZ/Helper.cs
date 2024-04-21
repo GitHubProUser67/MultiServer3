@@ -1,7 +1,7 @@
 using System.Text;
 using System.Security.Cryptography;
 using lzo.net;
-using Ionic.Zlib;
+using ComponentAce.Compression.Libs.zlib;
 using System.Text.RegularExpressions;
 using CyberBackendLibrary.DataTypes;
 using EndianTools;
@@ -223,31 +223,39 @@ namespace QuazalServer.QNetZ
 
         public static byte[] Decompress(string AccessKey, byte[] InData)
         {
-			switch (AccessKey)
+            MemoryStream memoryStream = new();
+
+            switch (AccessKey)
 			{
                 case "hg7j1":
                 case "yh64s":
-                    MemoryStream memoryStream = new();
                     using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
                     {
                         lzo.CopyTo(memoryStream);
+						lzo.Close();
                         memoryStream.Position = 0;
+                        memoryStream.Close();
                         return memoryStream.ToArray();
                     }
 				default:
-                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Decompress);
-                    MemoryStream result = new();
-                    s.CopyTo(result);
-                    return result.ToArray();
+                    ZOutputStream zoutputStream = new(memoryStream, false);
+                    byte[] array = new byte[InData.Length];
+                    Array.Copy(InData, 0, array, 0, InData.Length);
+                    zoutputStream.Write(array, 0, array.Length);
+                    zoutputStream.Close();
+                    memoryStream.Close();
+                    return memoryStream.ToArray();
             }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-            ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
-            MemoryStream result = new();
-            s.CopyTo(result);
-            return result.ToArray();
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, 9, false);
+            zoutputStream.Write(InData, 0, InData.Length);
+            zoutputStream.Close();
+            memoryStream.Close();
+            return memoryStream.ToArray();
         }
 
         public static byte[] Encrypt(string key, byte[] data)

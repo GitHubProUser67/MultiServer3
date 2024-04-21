@@ -10717,7 +10717,7 @@ namespace Horizon.MEDIUS.Medius
                 accountDto = new()
                 {
                     AccountId = iAccountID,
-                    AccountName = $"Guest_{new CastleLibrary.Custom.Crc32().Get(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X}",
+                    AccountName = $"Guest_{new CastleLibrary.Utils.Crc32().Get(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X}",
                     AccountPassword = "UNSET",
                     MachineId = data.MachineId,
                     MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),

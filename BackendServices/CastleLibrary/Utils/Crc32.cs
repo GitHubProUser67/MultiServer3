@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CastleLibrary.Custom
+namespace CastleLibrary.Utils
 {
     /// <summary>
     /// Performs 32-bit reversed cyclic redundancy checks.
@@ -28,9 +28,9 @@ namespace CastleLibrary.Custom
                 uint tableEntry = (uint)i;
                 for (var j = 0; j < 8; ++j)
                 {
-                    tableEntry = ((tableEntry & 1) != 0)
-                        ? (s_generator ^ (tableEntry >> 1))
-                        : (tableEntry >> 1);
+                    tableEntry = (tableEntry & 1) != 0
+                        ? s_generator ^ tableEntry >> 1
+                        : tableEntry >> 1;
                 }
                 return tableEntry;
             }).ToArray();
@@ -49,7 +49,7 @@ namespace CastleLibrary.Custom
             {
                 // Initialize checksumRegister to 0xFFFFFFFF and calculate the checksum.
                 return ~byteStream.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
-                          m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8));
+                          m_checksumTable[checksumRegister & 0xFF ^ Convert.ToByte(currentByte)] ^ checksumRegister >> 8);
             }
             catch (FormatException e)
             {

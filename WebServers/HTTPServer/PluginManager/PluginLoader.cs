@@ -35,8 +35,15 @@ namespace HTTPServer.PluginManager
             {
                 foreach (Type type in Assembly.LoadFrom(pluginPath).GetTypes())
                 {
-                    if (typeof(HTTPPlugin).IsAssignableFrom(type))
-                        return Activator.CreateInstance(type) as HTTPPlugin;
+                    try
+                    {
+                        if (typeof(HTTPPlugin).IsAssignableFrom(type))
+                            return Activator.CreateInstance(type) as HTTPPlugin;
+                    }
+                    catch (ReflectionTypeLoadException)
+                    {
+                        CustomLogger.LoggerAccessor.LogWarn($"[HTTP] - Plugin: {pluginPath} is not compatible with this project, ignoring...");
+                    }
                 }
             }
             catch (Exception ex)

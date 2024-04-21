@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using CastleLibrary.Utils.Conversion;
 using HomeTools.Crypto;
 
 namespace HomeTools.UnBAR
@@ -7,11 +8,11 @@ namespace HomeTools.UnBAR
     internal class CMACGenerator : HashGenerator
     {
         private int hashLen;
-        private byte[] key;
-        private byte[] K1;
-        private byte[] K2;
-        private byte[] nonProcessed;
-        private byte[] previous;
+        private byte[]? key;
+        private byte[]? K1;
+        private byte[]? K2;
+        private byte[]? nonProcessed;
+        private byte[]? previous;
 
         public CMACGenerator() => hashLen = 16;
 

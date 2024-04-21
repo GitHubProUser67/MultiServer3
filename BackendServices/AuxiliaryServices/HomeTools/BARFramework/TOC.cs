@@ -1,4 +1,4 @@
-using CyberBackendLibrary.Crypto;
+using CastleLibrary.Utils.AES;
 using EndianTools;
 using System;
 using System.Collections;
@@ -84,9 +84,7 @@ namespace HomeTools.BARFramework
         {
             get
             {
-                AfsHash afsHash = new(path);
-                HashedFileName filename = new(afsHash.Value);
-                return this[filename];
+                return this[new HashedFileName(new AfsHash(path).Value)];
             }
         }
 
@@ -160,9 +158,7 @@ namespace HomeTools.BARFramework
             foreach (TOCEntry tocentry in m_entries.Values)
             {
                 binaryWriter.Write((int)tocentry.FileName);
-                uint num = tocentry.DataOffset;
-                num |= (uint)tocentry.Compression;
-                binaryWriter.Write(num);
+                binaryWriter.Write(tocentry.DataOffset |= (uint)tocentry.Compression);
                 binaryWriter.Write(tocentry.Size);
                 binaryWriter.Write(tocentry.CompressedSize);
             }
@@ -179,18 +175,14 @@ namespace HomeTools.BARFramework
                 if (endian == EndianType.BigEndian)
                 {
                     binaryWriter.Write(EndianUtils.EndianSwap((int)tocentry.FileName));
-                    uint num = tocentry.DataOffset;
-                    num |= (uint)tocentry.Compression;
-                    binaryWriter.Write(EndianUtils.EndianSwap(num));
+                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.DataOffset |= (uint)tocentry.Compression));
                     binaryWriter.Write(EndianUtils.EndianSwap(tocentry.Size));
                     binaryWriter.Write(EndianUtils.EndianSwap(tocentry.CompressedSize));
                 }
                 else
                 {
                     binaryWriter.Write((int)tocentry.FileName);
-                    uint num = tocentry.DataOffset;
-                    num |= (uint)tocentry.Compression;
-                    binaryWriter.Write(num);
+                    binaryWriter.Write(tocentry.DataOffset |= (uint)tocentry.Compression);
                     binaryWriter.Write(tocentry.Size);
                     binaryWriter.Write(tocentry.CompressedSize);
                 }
@@ -231,9 +223,7 @@ namespace HomeTools.BARFramework
 
         internal void ResortOffsets()
         {
-            TOCEntry[] collection = SortByDataSectionOffset();
-            LinkedList<TOCEntry> linkedList = new(collection);
-            LinkedListNode<TOCEntry>? linkedListNode = linkedList.First;
+            LinkedListNode<TOCEntry>? linkedListNode = new LinkedList<TOCEntry>(SortByDataSectionOffset()).First;
             if (linkedListNode != null)
             {
                 LinkedListNode<TOCEntry>? next = linkedListNode.Next;
@@ -241,8 +231,7 @@ namespace HomeTools.BARFramework
                     linkedListNode.Value.DataOffset = 0U;
                 while (next != null)
                 {
-                    uint dataOffset = linkedListNode.Value.DataOffset;
-                    uint num = dataOffset + linkedListNode.Value.AlignedSize;
+                    uint num = linkedListNode.Value.DataOffset + linkedListNode.Value.AlignedSize;
                     if (num != next.Value.DataOffset)
                         next.Value.DataOffset = num;
                     linkedListNode = next;
