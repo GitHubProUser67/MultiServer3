@@ -14,8 +14,8 @@ namespace HTTPSecureServerLite
 {
     public static partial class SecureDNSConfigProcessor
     {
-        public static Dictionary<string, DnsSettings>? DicRules = null;
-        public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
 
         public static void InitDNSSubsystem()
         {
@@ -40,7 +40,7 @@ namespace HTTPSecureServerLite
                     LoggerAccessor.LogError($"[HTTPS_DNS] - Online Config failed to initialize! - {ex}");
                 }
             }
-            else if (DicRules == null)
+            else
             {
                 if (File.Exists(HTTPSServerConfiguration.DNSConfig))
                     ParseRules(HTTPSServerConfiguration.DNSConfig);
@@ -51,16 +51,12 @@ namespace HTTPSecureServerLite
 
         public static void ParseRules(string Filename, bool IsFilename = true)
         {
-            DicRules = new Dictionary<string, DnsSettings>();
-            StarRules = new List<KeyValuePair<string, DnsSettings>>();
-
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
-                DicRules = ParseSimpleDNSRules(Filename, DicRules);
+                ParseSimpleDNSRules(Filename);
             else
             {
                 HashSet<string> processedDomains = new();
-                string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (string s in rules)
+                foreach (string s in IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None))
                 {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
@@ -150,7 +146,7 @@ namespace HTTPSecureServerLite
             LoggerAccessor.LogInfo("[HTTPS_DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
-        private static Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
+        private static void ParseSimpleDNSRules(string Filename)
         {
             // Read all lines from the test file
             string[] lines = File.ReadAllLines(Filename);
@@ -178,9 +174,7 @@ namespace HTTPSecureServerLite
                 // Check if the .dns file exists
                 if (File.Exists(dnsFilePath))
                 {
-                    string[] dnsFileLines = File.ReadAllLines(dnsFilePath);
-
-                    foreach (string line in dnsFileLines)
+                    foreach (string line in File.ReadAllLines(dnsFilePath))
                     {
                         if (line.StartsWith("\t\tA"))
                         {
@@ -212,8 +206,6 @@ namespace HTTPSecureServerLite
                     }
                 }
             }
-
-            return DicRules;
         }
 
         private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
