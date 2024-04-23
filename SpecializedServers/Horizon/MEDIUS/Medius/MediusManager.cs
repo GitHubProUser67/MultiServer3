@@ -486,7 +486,6 @@ namespace Horizon.MEDIUS.Medius
                         ApplicationId = r.ApplicationID,
                         Name = gameName,
                         Type = ChannelType.Game,
-
                     };
 
                     await MediusClass.Manager.AddChannel(gameChannel);
