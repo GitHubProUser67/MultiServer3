@@ -7241,11 +7241,19 @@ namespace Horizon.MEDIUS.Medius
 
                         Channel? channel = MumChannelHandler.GetLeastPopulatedRemoteChannel(data.ClientObject.ApplicationId, data.ClientObject.IP);
 
-                        channel ??= MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+                        try
+                        {
+                            channel ??= MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+                        }
+                        catch
+                        {
+                            // Not Important.
+                        }
+
+                        channel ??= MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
 
                         if (channel == null)
                         {
-                            // Log
                             LoggerAccessor.LogWarn($"{data.ClientObject.AccountName} attempting to join non-existent channel {joinLeastPopulatedChannelRequest}");
 
                             data.ClientObject.Queue(new MediusJoinLeastPopulatedChannelResponse()
