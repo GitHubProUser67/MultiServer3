@@ -486,7 +486,7 @@ namespace HTTPSecureServerLite
                             QueryElements.Add(k, QueryElements[k]);
                         }
 
-                        string? res = new LOOTClass(request.Method.ToString(), absolutepath).ProcessRequest(QueryElementsList, request.DataAsBytes, request.ContentType);
+                        string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiPath).ProcessRequest(QueryElementsList, request.DataAsBytes, request.ContentType);
                         if (string.IsNullOrEmpty(res))
                         {
                             response.ContentType = "text/plain";

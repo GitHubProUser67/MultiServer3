@@ -1,3 +1,4 @@
+using CustomLogger;
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
 using System.Text;
@@ -15,7 +16,12 @@ namespace WebAPIService.LOOT
                 using MemoryStream ms = new(PostData);
                 byte[]? ticketData = null;
                 var data = MultipartFormDataParser.Parse(ms, boundary);
+
                 string action = data.GetParameterValue("action");
+                string psn_acct_name = data.GetParameterValue("psn_acct_name");
+                string guid = data.GetParameterValue("guid");
+                string serialized_data = data.GetParameterValue("serialized_data");
+                string protocol_version = data.GetParameterValue("protocol_version");
 
                 foreach (var file in data.Files)
                 {
@@ -55,6 +61,8 @@ namespace WebAPIService.LOOT
                     // Convert the modified data to a string
                     string psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
+                    LoggerAccessor.LogInfo($"[LOOT] ProtocolVersion: {protocol_version} - Player {psn_acct_name} Action detected as: {action} GUID: {guid} Serialized_Data {serialized_data} ");
+
                     switch (action)
                     {
                         case "200.000000": // AddAchievementEarned
@@ -65,9 +73,128 @@ namespace WebAPIService.LOOT
                             break;
                         case "207.000000": // GetUserAchievementCount
                             break;
+                        //Save Current Status and send it to DB
+                        case "501":
+                            {
+                                switch (guid)
+                                {
+                                    //SS3 Director's Chair
+                                    case "1BDF949A-0A804B07-9C4C7BAE-46C15AAE":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#Floor:1,EX_ENTITY,0,0,0,0,0,0,false,,false,StageFloor_Plywood.mdl#Canvas:1:L,EX_ENTITY,-9.388,15.5,-12.464,0,0,0,true,,false,StageCanvas_WhiteL.mdl#Canvas:1:C,EX_ENTITY,0.706,7.2691,-21.788,0,0,0,true,,false,StageCanvas_White.mdl#Canvas:1:R,EX_ENTITY,11.3,12.955,-12.8,0,0,0,true,,false,StageCanvas_WhiteR.mdl</body>\r\n" +
+                                                "</response>";
+                                        }
+
+                                    //SS3 Floodlight
+                                    case "F810F551-01B540C0-B25A372C-E657524C":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#RichardLight:1,RICHARD_LIGHT,0.25098,0.67843,0.90196,10,1,10,0,14,9.6883,265.09,1,30,12.7,3.2,15.5,1,2.5,3.5#RichardLight:2,RICHARD_LIGHT,0.88235,0.88235,0.88235,8,1,5,0,0,10.677,0.85705,5,30,5.7,5,6.2,1,2.5,13.5#RichardLight:3,RIG_LIGHT,0.98039,0.23529,1,15,1,0,5.5,4,0,0,0,0,0,0,0,0,0,0,0</body>\r\n" +
+                                                "</response>";
+                                        }
+                                    //SS3 SpotLight
+                                    case "6E5532C3-D87E43BA-AC2695CB-555A96A3":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#RichardLight:1,RICHARD_LIGHT,1.349,1.7765,2,10,1,-10,1.35,-14,10.512,262.12,1,30,-12.7,3.2,-15.5,1,2.5,-13.5#RichardLight:2,RICHARD_LIGHT,0.88235,0.88235,0.88235,8,1,5,0,0,10.677,0.85705,5,30,5.7,5,6.2,1,2.5,-13.5#RichardLight:3,RIG_LIGHT,0.98039,0.23529,1,15,1,0,5.5,-4,0,0,0,0,0,0,0,0,0,0,0</body>\r\n" +
+                                                "</response>";
+                                        }
+                                    //Camera - Stage
+                                    case "6E0B532B-07194299-A80FC531-39C893BB":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#1,RICHARD_CAMERA,3.0275,1.5,-11.296,0,180,0,76.515#2,RICHARD_CAMERA,5.655,1.5,-5.9686,0,180,0,49.847#3,RICHARD_CAMERA,-5.0921,1.5,-9.2886,0,180,0,49.847</body>\r\n" +
+                                                "</response>";
+                                        }
+                                    default:
+                                        {
+                                            LoggerAccessor.LogError($"Unhandled GET DB Status with object {guid} please report to GITHUB");
+                                        }
+                                        break;
+                                }
+                            }
+                            break;
+                        //Fetch Current Status from DB
+                        case "502":
+                            { 
+                                switch(guid)
+                                {
+                                    //SS3 Director's Chair
+                                    case "1BDF949A-0A804B07-9C4C7BAE-46C15AAE":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#Floor:1,EX_ENTITY,0,0,0,0,0,0,false,,false,StageFloor_Plywood.mdl#Canvas:1:L,EX_ENTITY,-9.388,15.5,-12.464,0,0,0,true,,false,StageCanvas_WhiteL.mdl#Canvas:1:C,EX_ENTITY,0.706,7.2691,-21.788,0,0,0,true,,false,StageCanvas_White.mdl#Canvas:1:R,EX_ENTITY,11.3,12.955,-12.8,0,0,0,true,,false,StageCanvas_WhiteR.mdl</body>\r\n" +
+                                                "</response>";
+                                        }
+
+                                    //SS3 Floodlight
+                                    case "F810F551-01B540C0-B25A372C-E657524C":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#RichardLight:1,RICHARD_LIGHT,0.25098,0.67843,0.90196,10,1,10,0,14,9.6883,265.09,1,30,12.7,3.2,15.5,1,2.5,3.5#RichardLight:2,RICHARD_LIGHT,0.88235,0.88235,0.88235,8,1,5,0,0,10.677,0.85705,5,30,5.7,5,6.2,1,2.5,13.5#RichardLight:3,RIG_LIGHT,0.98039,0.23529,1,15,1,0,5.5,4,0,0,0,0,0,0,0,0,0,0,0</body>\r\n" +
+                                                "</response>";
+                                        }
+                                    //SS3 SpotLight
+                                    case "6E5532C3-D87E43BA-AC2695CB-555A96A3":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body></body>\r\n" +
+                                                "</response>";
+
+                                            /// <summary>
+                                            /// Commented out SpotLight data works, but it doesn't handle well in LUA to activate minigame, so we leave default for now.
+                                            /// </summary>
+                                            /// #RichardLight:1,RICHARD_LIGHT,1.349,1.7765,2,10,1,-10,1.35,-14,10.512,262.12,1,30,-12.7,3.2,-15.5,1,2.5,-13.5#RichardLight:2,RICHARD_LIGHT,0.88235,0.88235,0.88235,8,1,5,0,0,10.677,0.85705,5,30,5.7,5,6.2,1,2.5,-13.5#RichardLight:3,RIG_LIGHT,0.98039,0.23529,1,15,1,0,5.5,-4,0,0,0,0,0,0,0,0,0,0,0
+
+                                        }
+                                    //Camera - Stage
+                                    case "6E0B532B-07194299-A80FC531-39C893BB":
+                                        {
+                                            return "<response>\r\n" +
+                                                "    <code>200</code>\r\n" +
+                                                "    <message>ok</message>\r\n" +
+                                                "    <version>1</version>\r\n" +
+                                                "    <body>#1,RICHARD_CAMERA,3.0275,1.5,-11.296,0,180,0,76.515#2,RICHARD_CAMERA,5.655,1.5,-5.9686,0,180,0,49.847#3,RICHARD_CAMERA,-5.0921,1.5,-9.2886,0,180,0,49.847</body>\r\n" +
+                                                "</response>";
+                                        }
+
+                                    default:
+                                        {
+                                            LoggerAccessor.LogError($"Unhandled UPLOAD DB Status with object {guid} please report to GITHUB");
+                                        }
+                                        break;
+                                }
+
+                            }
+                            break;
                         case "604.000000": // UNK
                             break;
                         default:
+                            {
+                                LoggerAccessor.LogError($"[LOOT] - Unhandled Action {action} please report to GITHUB");
+                            }
                             break;
 
                     }
