@@ -63,10 +63,6 @@ namespace TycoonServer.HFProcessors
                             return "<Response><URL>http://game2.hellfiregames.com:61900/HomeTycoon</URL></Response>";
                         case "QueryMotd":
                             return "<Response><Motd>Message of the Day!</Motd></Response>";
-                        case "RequestNPTicket":
-                            return NPTicket.RequestNPTicket(PostData, boundary);
-                        case "RequestTownInstance":
-                            return TownInstance.RequestTownInstance(UserID, DisplayName, PHPSessionID);
                         case "QueryServerGlobals":
                             return "<Response><GlobalHard>1</GlobalHard><GlobalWrinkles>1</GlobalWrinkles></Response>";
                         case "QueryPrices":
@@ -91,6 +87,10 @@ namespace TycoonServer.HFProcessors
                                 return $"<Response>{File.ReadAllText($"{WorkPath}/TYCOON/User_Data/{UserID}_Gifts.xml")}</Response>";
                             else
                                 return "<Response><Gift>111111</Gift></Response>";
+                        case "RequestNPTicket":
+                            return NPTicket.RequestNPTicket(PostData, boundary);
+                        case "RequestTownInstance":
+                            return TownInstance.RequestTownInstance(UserID, DisplayName, PHPSessionID);
                         case "RequestTown":
                             Thread.Sleep(1000); // Why is that in here? Because the game is so bugged that responding too fast makes it crash.
                             return TownInstance.RequestTown(UserID, InstanceID, DisplayName, WorkPath);

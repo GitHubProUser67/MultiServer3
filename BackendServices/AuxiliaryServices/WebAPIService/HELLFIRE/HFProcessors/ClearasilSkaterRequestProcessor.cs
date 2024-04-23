@@ -70,15 +70,8 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             return User.UpdateUserClearasilSkater(PostData, boundary, UserID, WorkPath);
                         case "TotalScoreLeaderboard":
                             return Leaderboards.GetLeaderboards(PostData, boundary, UserID, WorkPath);
-                            /*
-                            return "<Response> <table> <DisplayName>JumpSuit</DisplayName> <LeaderboardScore>1</LeaderboardScore> " +
-                                "<DisplayName>Devil303</DisplayName> <LeaderboardScore>2</LeaderboardScore>" + 
-                                "<DisplayName>AgentDark447</DisplayName> <LeaderboardScore>3</LeaderboardScore>" +
-                                "<DisplayName>SpliceWave</DisplayName> <LeaderboardScore>4</LeaderboardScore> </table>" +
-                                "</Response>";
-                            */
                         case "LogMetric":
-                            return "<Response></Response>";
+                            return "<Response></Response>"; // We don't really care about Metrics just yet
 
 
                         case "QueryMotd":

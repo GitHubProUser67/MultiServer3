@@ -418,7 +418,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
 
                                                 string? res = null;
-                                                LOOTClass loot = new(Method, absolutepath);
+                                                LOOTClass loot = new(Method, absolutepath, apiPath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();

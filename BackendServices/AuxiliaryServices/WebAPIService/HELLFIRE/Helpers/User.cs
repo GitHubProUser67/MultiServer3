@@ -8,7 +8,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 {
     public class User
     {
-        public static string DefaultHomeTycoonProfile = "<TotalCollected>0.000000</TotalCollected><Wallet>9999999.000000</Wallet><Workers>99.000000</Workers>" +
+        public static string DefaultHomeTycoonProfile = "<NewPlayer>1</NewPlayer><TotalCollected>0.000000</TotalCollected><Wallet>9999999.000000</Wallet><Workers>99.000000</Workers>" +
             "<GoldCoins>999999.000000</GoldCoins><SilverCoins>999999.000000</SilverCoins><Options><MusicVolume>1.0</MusicVolume></Options><Missions>" +
             "</Missions><Journal></Journal><Dialogs></Dialogs><Unlocked></Unlocked><Activities></Activities><Expansions></Expansions><Vehicles></Vehicles>" +
             "<Flags></Flags><Inventory></Inventory>";
