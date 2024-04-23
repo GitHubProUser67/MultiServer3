@@ -959,7 +959,7 @@ namespace Horizon.MEDIUS.Medius
                             StatusCode = MediusCallbackStatus.MediusMatchingInProgress,
                         });
 
-                        Task.Delay(6000).ContinueWith((r => AssignGameToJoin(data.ClientObject, matchFindGameRequest)));
+                        await Task.Delay(6000).ContinueWith(r => AssignGameToJoin(data.ClientObject, matchFindGameRequest));
 
                         break;
                     }
@@ -6674,7 +6674,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        var channel = data.ClientObject.CurrentChannel;
+                        Channel? channel = data.ClientObject.CurrentChannel;
                         if (channel == null)
                         {
                             data.ClientObject.Queue(new MediusGetLobbyPlayerNames_ExtraInfoResponse()
@@ -7241,8 +7241,7 @@ namespace Horizon.MEDIUS.Medius
 
                         Channel? channel = MumChannelHandler.GetLeastPopulatedRemoteChannel(data.ClientObject.ApplicationId, data.ClientObject.IP);
 
-                        if (channel == null)
-                            channel = MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+                        channel ??= MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
 
                         if (channel == null)
                         {
