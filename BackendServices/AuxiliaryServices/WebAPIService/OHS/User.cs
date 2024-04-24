@@ -438,16 +438,24 @@ namespace WebAPIService.OHS
                                             string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                                             //We lower them for True/False edgecase, otherwise Jamin will not return them!
 
-                                            output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
+                                            if(ohsUserName == usersArray.Last().ToString())
+                                            {
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
+                                            } else {
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
+                                            }
                                         }
 
                                         //This needs logic to handle commas for multiple players if found. BUT this is enough to satisfy 2.
 
                                     }
-                                } else
-                                {
-                                    //Fallback in case someones points file for some reason doesn't exist.
-                                    output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
+                                } else {
+                                    if (ohsUserName == usersArray.Last().ToString())
+                                    {
+                                        output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
+                                    } else {
+                                        output += $"{{ [\"{ohsUserName}\"] = \"0\" }}, ";
+                                    }
                                 }
                             }
                             catch (Exception e)
