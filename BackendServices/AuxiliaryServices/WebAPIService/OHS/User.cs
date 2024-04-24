@@ -325,6 +325,7 @@ namespace WebAPIService.OHS
                                 }
                             }
                         }
+
                     }
                     else
                     {
@@ -351,6 +352,109 @@ namespace WebAPIService.OHS
                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
                         else if ((string?)jsonObject["key"] == "vickie_version")
                             output = "{[\"vickie_version\"] = 7}";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[User] - Json Format Error - {ex}");
+            }
+
+            if (!string.IsNullOrEmpty(batchparams))
+            {
+                if (string.IsNullOrEmpty(output))
+                    return "{ }";
+                else
+                    return output;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(output))
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
+                else
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
+            }
+
+            return dataforohs;
+        }
+
+        public static string? GetMany(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        {
+            string? dataforohs = null;
+            string? output = null;
+
+            if (string.IsNullOrEmpty(batchparams))
+            {
+                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
+                        ms.Flush();
+                    }
+                }
+            }
+            else
+                dataforohs = batchparams;
+
+            try
+            {
+                if (!string.IsNullOrEmpty(dataforohs))
+                {
+                    // Parsing the JSON string
+                    JObject? jsonObject = JObject.Parse(dataforohs);
+
+                    // Getting the value of the "user" field as an array
+                    JArray? usersArray = (JArray?)jsonObject["users"];
+
+                    if (usersArray != null)
+                    {
+                        output = ""; // Initialize output string
+
+                        foreach (var userToken in usersArray)
+                        {
+                            string? ohsUserName = userToken.Value<string>();
+
+                            try
+                            {
+                                if (ohsUserName != null && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
+                                {
+                                    string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{ohsUserName}.json");
+
+                                    if (!string.IsNullOrEmpty(userprofile))
+                                    {
+                                        // Parse the JSON string to a JObject
+                                        jsonObject = JObject.Parse(userprofile);
+
+                                        // Check if the "key" property exists and if it is an object
+                                        if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                        {
+                                            //string playerNameToAppend = $"\"[ {ohsUserName} = {keyValueToken.Value<int>()}\"";
+
+                                            string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                            //We lower them for True/False edgecase, otherwise Jamin will not return them!
+
+                                            output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
+                                        }
+
+                                        //This needs logic to handle commas for multiple players if found. BUT this is enough to satisfy 2.
+
+                                    }
+                                } else
+                                {
+                                    //Fallback in case someones points file for some reason doesn't exist.
+                                    output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                LoggerAccessor.LogError($"[OHS] user/getmany/ caught error from '{ohsUserName}' with exception {e}");
+                            }
+                        }
                     }
                 }
             }

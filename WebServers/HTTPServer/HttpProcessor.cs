@@ -180,7 +180,7 @@ namespace HTTPServer
 
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
-                                string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder);
+                                string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
 
                                 if (HTTPServerConfiguration.plugins.Count > 0)
                                 {
@@ -238,7 +238,7 @@ namespace HTTPServer
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
-                                                string? res = null;
+                                                #region OHS API Version
                                                 int version = 0;
                                                 if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
                                                     version = 2;
@@ -252,12 +252,16 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
+                                                #endregion
+
+                                                string? res = null;
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream?.CopyTo(postdata);
                                                     res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
+
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
