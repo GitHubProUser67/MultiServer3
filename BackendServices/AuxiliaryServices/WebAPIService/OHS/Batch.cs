@@ -88,6 +88,9 @@ namespace WebAPIService.OHS
                                     case "user/gets/":
                                         resultfromcommand = User.Gets(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
                                         break;
+                                    case "user/getmany/":
+                                        resultfromcommand = User.GetMany(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
+                                        break;
                                     case "user/set/":
                                         resultfromcommand = User.Set(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
                                         break;
