@@ -31,7 +31,7 @@ namespace WebAPIService.CDM
             }
             else
             {
-                LoggerAccessor.LogError($"[CDM] - Failed to find publisher game with expected path {filePath}!");
+                LoggerAccessor.LogError($"[CDM] - Publisher Game failed with expected path {filePath}!");
 
                 return "<xml>" +
                     "<status>fail</status>" +
@@ -60,7 +60,7 @@ namespace WebAPIService.CDM
             }
             else
             {
-                LoggerAccessor.LogError($"[CDM] - Failed to find publisher game with expected path {filePath}!");
+                LoggerAccessor.LogError($"[CDM] - User Space failed with expected path {filePath}!");
 
                 return "<xml>" +
                     "<status>fail</status>" +
