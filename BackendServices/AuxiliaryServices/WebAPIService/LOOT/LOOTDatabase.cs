@@ -172,6 +172,7 @@ namespace WebAPIService.LOOT
                                             }
 
                                         }
+                                    
                                     //SS3 SpotLight
                                     case "6E5532C3-D87E43BA-AC2695CB-555A96A3":
                                         {
@@ -218,6 +219,7 @@ namespace WebAPIService.LOOT
                                             }
 
                                         }
+                                    
                                     //Camera - Stage
                                     case "6E0B532B-07194299-A80FC531-39C893BB":
                                         {
@@ -264,9 +266,10 @@ namespace WebAPIService.LOOT
                                             }
 
                                         }
+                                    
                                     default:
                                         {
-                                            LoggerAccessor.LogError($"Unhandled GET DB Status with object {guid} please report to GITHUB");
+                                            LoggerAccessor.LogError($"[LOOT] - Unhandled GET DB Status with object {guid} please report to GITHUB");
                                         }
                                         break;
                                 }
@@ -455,7 +458,7 @@ namespace WebAPIService.LOOT
 
                                     default:
                                         {
-                                            LoggerAccessor.LogError($"Unhandled UPLOAD DB Status with object {guid} please report to GITHUB");
+                                            LoggerAccessor.LogError($"[LOOT] - Unhandled UPLOAD DB Status with object {guid} please report to GITHUB");
                                         }
                                         break;
                                 }

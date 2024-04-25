@@ -438,23 +438,42 @@ namespace WebAPIService.OHS
                                             string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
                                             //We lower them for True/False edgecase, otherwise Jamin will not return them!
 
-                                            if(ohsUserName == usersArray.Last().ToString())
-                                            {
-                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
-                                            } else {
-                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
-                                            }
-                                        }
 
+                                            if (directorypath.Contains("Konami"))
+                                            {
+                                                if (ohsUserName == usersArray.Last().ToString())
+                                                {
+                                                    output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
+                                                }
+                                                else
+                                                {
+                                                    output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
+                                                }
+                                            } else
+                                            {
+                                                output = outputOriginal.ToLower();
+                                            }
+                                            
+                                                
+                                        }
                                         //This needs logic to handle commas for multiple players if found. BUT this is enough to satisfy 2.
 
                                     }
                                 } else {
-                                    if (ohsUserName == usersArray.Last().ToString())
+                                    if(directorypath.Contains("Konami"))
                                     {
+                                        if (ohsUserName == usersArray.Last().ToString())
+                                        {
+                                            output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
+                                        }
+                                        else
+                                        {
+                                            output += $"{{ [\"{ohsUserName}\"] = \"0\" }}, ";
+                                        }
+                                    } else
+                                    {
+                                        //If No file exists, we will assume its a int for now until another minigame doesn't use ints
                                         output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
-                                    } else {
-                                        output += $"{{ [\"{ohsUserName}\"] = \"0\" }}, ";
                                     }
                                 }
                             }
