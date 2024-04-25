@@ -10,7 +10,8 @@ using System.Security.Principal;
 public static class SVOServerConfiguration
 {
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
-    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SVO.pfx";
+    public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static string SVOStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwsvoroot";
     public static bool SVOHTTPSBypass { get; set; } = true;
     public static bool PSHomeRPCS3Workaround { get; set; } = true;
@@ -27,6 +28,15 @@ public static class SVOServerConfiguration
         "CydoniaX (PlayStationÂ®Home Community Manager) &amp; Locust_Star (PlayStationÂ®Home Community Specialist)</TEXTAREA>\r\n    \r\n    <TEXT name=\"legend\" x=\"984\" y=\"548\" width=\"652\" height=\"18\" fontSize=\"18\" align=\"right\" textColor=\"#CCFFFFFF\">[CROSS] Continue</TEXT>\r\n" +
         "    <QUICKLINK name=\"refresh\" button=\"SV_PAD_X\" linkOption=\"NORMAL\" href=\"../home/homeEnterWorld.jsp\"/>\r\n" +
         "</SVML>";
+
+    public static string[]? HTTPSDNSList { get; set; } = {
+            "homeps3.svo.online.scee.com",
+            "starhawk-prod2.svo.online.scea.com",
+            "warhawk-prod3.svo.online.scea.com",
+            "singstar.svo.online.com",
+            "hdc.cprod.homeps3.online.scee.com",
+            "secure.cprodts.homeps3.online.scee.com"
+        };
 
     public static DbController? Database = new(DatabaseConfig);
 
@@ -51,8 +61,10 @@ public static class SVOServerConfiguration
             File.WriteAllText(configPath, new JObject(
                 new JProperty("static_folder", SVOStaticFolder),
                 new JProperty("https_bypass", SVOHTTPSBypass),
-                new JProperty("database", DatabaseConfig),
+                new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("certificate_password", HTTPSCertificatePassword),
+                new JProperty("database", DatabaseConfig),
                 new JProperty("pshome_rpcs3workaround", PSHomeRPCS3Workaround),
                 new JProperty("MOTD", MOTD),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
@@ -68,6 +80,9 @@ public static class SVOServerConfiguration
 
             SVOStaticFolder = GetValueOrDefault(config, "static_folder", SVOStaticFolder);
             SVOHTTPSBypass = GetValueOrDefault(config, "https_bypass", SVOHTTPSBypass);
+            HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
+            HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             PSHomeRPCS3Workaround = GetValueOrDefault(config, "pshome_rpcs3workaround", PSHomeRPCS3Workaround);
@@ -158,7 +173,7 @@ class Program
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, SVOServerConfiguration.HTTPSDNSList);
 
         if (HttpListener.IsSupported)
             _ = Task.Run(new SVOServer("*").Start);
@@ -166,7 +181,7 @@ class Program
             LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new OTGSecureServerLite(Path.GetDirectoryName(SVOServerConfiguration.HTTPSCertificateFile) + $"/{Path.GetFileNameWithoutExtension(SVOServerConfiguration.HTTPSCertificateFile)}_selfsigned.pfx", "qwerty", "0.0.0.0", 10062).StartServer(), // 0.0.0.0 as the certificate binds to this ip.
+                    () => new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062).StartServer(), // 0.0.0.0 as the certificate binds to this ip.
                     async () => await SVOManager.StartTickPooling(),
                     () => RefreshConfig()
                 ));

@@ -27,6 +27,8 @@ namespace HTTPServer
         #region Public Methods
         public HttpServer(List<ushort>? ports, List<Route> routes, CancellationToken cancellationToken)
         {
+			LoggerAccessor.LogWarn("[HTTP] - HTTP system is initialising, service will be available when initialized...");
+
             Processor = new HttpProcessor();
 
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -35,7 +37,7 @@ namespace HTTPServer
             {
                 Processor.AddRoute(route);
             }
-
+			
             if (ports != null)
             {
                 Parallel.ForEach(ports, port =>
@@ -48,6 +50,8 @@ namespace HTTPServer
 
         private void CreateHTTPPortListener(ushort listenerPort)
         {
+            _ = Processor.TryGetServerIP(listenerPort);
+
             Task serverHTTP = Task.Run(async () =>
             {
                 try

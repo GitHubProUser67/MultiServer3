@@ -12,7 +12,7 @@ namespace HTTPServer.Models
         public string? UrlRegex { get; set; }
         public string? Method { get; set; }
         public string? Host { get; set; }
-        public Func<HttpRequest, HttpResponse>? Callable { get; set; }
+        public Func<HttpRequest, HttpResponse?>? Callable { get; set; }
 
         #endregion
     }

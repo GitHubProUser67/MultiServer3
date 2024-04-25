@@ -7,12 +7,13 @@ using Horizon.MEDIUS.Medius.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using IChannel = DotNetty.Transport.Channels.IChannel;
-using Horizon.MUM;
 using Horizon.HTTPSERVICE;
+using Horizon.MEDIUS;
+using Horizon.MEDIUS.Medius;
 
-namespace Horizon.MEDIUS.Medius
+namespace Horizon.MUM
 {
-    public class MediusManager
+    public class MumManager
     {
         public class QuickLookup
         {
@@ -294,7 +295,8 @@ namespace Horizon.MEDIUS.Medius
             List<Channel> channels = new();
             List<Game> Games = new();
 
-            Parallel.ForEach(_appIdGroups.Values, appIds => {
+            Parallel.ForEach(_appIdGroups.Values, appIds =>
+            {
                 foreach (int appId in appIds)
                 {
                     if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
@@ -312,7 +314,8 @@ namespace Horizon.MEDIUS.Medius
 
             foreach (Channel channel in channels)
             {
-                Parallel.ForEach(channel._games, game => {
+                Parallel.ForEach(channel._games, game =>
+                {
                     lock (Games)
                     {
                         if (game.MediusWorldId == gameId)
@@ -329,7 +332,8 @@ namespace Horizon.MEDIUS.Medius
             List<Channel> channels = new();
             List<Game> Games = new();
 
-            Parallel.ForEach(_appIdGroups.Values, appIds => {
+            Parallel.ForEach(_appIdGroups.Values, appIds =>
+            {
                 foreach (int appId in appIds)
                 {
                     if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
@@ -347,7 +351,8 @@ namespace Horizon.MEDIUS.Medius
 
             foreach (Channel channel in channels)
             {
-                Parallel.ForEach(channel._games, game => {
+                Parallel.ForEach(channel._games, game =>
+                {
                     lock (Games)
                     {
                         if (game.GameName == gameName)
@@ -1132,7 +1137,7 @@ namespace Horizon.MEDIUS.Medius
                 // Else send normal Connection type to DME
                 else
                 {
-                    if ((client.MediusVersion > 108 && client.ApplicationId != 10994) || client.ApplicationId == 10683 || client.ApplicationId == 10684)
+                    if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
                     {
                         dme.Queue(new MediusServerJoinGameRequest()
                         {
@@ -1245,7 +1250,8 @@ namespace Horizon.MEDIUS.Medius
         {
             List<Channel> channels = new();
 
-            Parallel.ForEach(_appIdGroups.Values, appIds => {
+            Parallel.ForEach(_appIdGroups.Values, appIds =>
+            {
                 foreach (int appId in appIds)
                 {
                     if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
@@ -1626,7 +1632,7 @@ namespace Horizon.MEDIUS.Medius
                 partyName = r.PartyName;
 
             var existingParties = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.PartyIdToGame.Select(g => g.Value));
-            
+
             // Ensure the name is unique
             // If the host leaves then we unreserve the name
             if (existingParties.Any(x => x.WorldStatus != MediusWorldStatus.WorldClosed && x.WorldStatus != MediusWorldStatus.WorldInactive && x.PartyName == partyName && x.Host != null && x.Host.IsConnected))
@@ -1746,9 +1752,9 @@ namespace Horizon.MEDIUS.Medius
                         _mediusFiles.Add(new MediusFile()
                         {
                             FileName = files[i],
-                            FileID = (int)i,
+                            FileID = i,
                             FileSize = (int)fi.Length,
-                            CreationTimeStamp = (int)Utils.ToUnixTime(fi.CreationTime),
+                            CreationTimeStamp = (int)fi.CreationTime.ToUnixTime(),
                         });
                     }
                     catch (Exception e)
@@ -1807,7 +1813,7 @@ namespace Horizon.MEDIUS.Medius
                                 FileName = fileName.ToString(),
                                 FileID = i,
                                 FileSize = (int)fi.Length,
-                                CreationTimeStamp = (int)Utils.ToUnixTime(fi.CreationTime),
+                                CreationTimeStamp = (int)fi.CreationTime.ToUnixTime(),
                             });
                         }
                         catch (Exception e)
@@ -2059,7 +2065,8 @@ namespace Horizon.MEDIUS.Medius
                 // Remove channels
                 while (channelsToRemove.TryDequeue(out (QuickLookup, int) lookupAndChannelApplicationId))
                 {
-                    _ = Task.Run(() => Parallel.ForEach(lookupAndChannelApplicationId.Item1.AppIdToChannel.Values, channels => {
+                    _ = Task.Run(() => Parallel.ForEach(lookupAndChannelApplicationId.Item1.AppIdToChannel.Values, channels =>
+                    {
                         foreach (Channel channel in channels)
                         {
                             try

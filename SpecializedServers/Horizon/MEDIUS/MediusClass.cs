@@ -28,7 +28,7 @@ namespace Horizon.MEDIUS
 
         public static IPAddress SERVER_IP = IPAddress.None;
 
-        public static MediusManager Manager = new();
+        public static MumManager Manager = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
         public SECURITY_MODE eSecurityMode = SECURITY_MODE.MODE_UNKNOWN;

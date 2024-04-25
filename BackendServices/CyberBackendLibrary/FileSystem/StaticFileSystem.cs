@@ -5,20 +5,28 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CyberBackendLibrary.HTTP
+namespace CyberBackendLibrary.FileSystem
 {
     public static class StaticFileSystem
     {
         public static IEnumerable<FileSystemInfo> AllFilesAndFolders(this DirectoryInfo dir)
         {
-            foreach (FileInfo f in dir.GetFiles())
-                yield return f;
-            foreach (DirectoryInfo d in dir.GetDirectories())
+            if ((dir.Attributes & FileAttributes.Hidden) == 0)
             {
-                yield return d;
-                foreach (FileSystemInfo o in d.AllFilesAndFolders())
-                    yield return o;
+                foreach (FileInfo f in dir.GetFiles().Where(file => (file.Attributes & FileAttributes.Hidden) == 0))
+                    yield return f;
+                foreach (DirectoryInfo d in dir.GetDirectories().Where(dir => (dir.Attributes & FileAttributes.Hidden) == 0))
+                {
+                    yield return d;
+                    foreach (FileSystemInfo o in d.AllFilesAndFolders())
+                        yield return o;
+                }
             }
+        }
+
+        public static IEnumerable<FileSystemInfo> AllFilesAndFolders(this DirectoryInfo dir, string TextFilter, int numofEntries)
+        {
+            return dir.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).AsParallel().Where(info => info.FullName.Contains(TextFilter, StringComparison.InvariantCultureIgnoreCase) && (info.Attributes & FileAttributes.Hidden) == 0).Take(numofEntries).ToArray();
         }
 
         public static IEnumerable<string>? GetMediaFilesList(string directoryPath)

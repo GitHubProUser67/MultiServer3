@@ -6,6 +6,7 @@ using CyberBackendLibrary.HTTP;
 using HttpStatusCode = HTTPServer.Models.HttpStatusCode;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace HTTPServer.RouteHandlers.staticRoutes
 {
@@ -18,7 +19,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Method = "GET",
                     Host = string.Empty,
                     Callable = (HttpRequest request) => {
-                        foreach (string indexFile in HTTPProcessor.DefaultDocuments)
+                        foreach (string indexFile in HTTPProcessor._DefaultFiles)
                         {
                             if (File.Exists(HTTPServerConfiguration.HTTPStaticFolder + indexFile))
                             {
@@ -56,11 +57,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                             }
                         }
 
-                        return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
-                                {
-                                    HttpStatusCode = HttpStatusCode.Not_Found,
-                                    ContentAsUTF8 = string.Empty
-                                };
+                        return null;
                      }
                 },
                 new() {

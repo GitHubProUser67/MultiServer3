@@ -91,8 +91,8 @@ namespace HTTPSecureServerLite
 
         public void StartServer()
         {
-            _ = TryGetServerIP(port);
-
+			_ = TryGetServerIP(port);
+			
             if (dohdns && !SecureDNSConfigProcessor.Initiated)
                 _ = Task.Run(SecureDNSConfigProcessor.InitDNSSubsystem);
 
@@ -153,7 +153,7 @@ namespace HTTPSecureServerLite
             string clientip = request.Source.IpAddress;
             string clientport = request.Source.Port.ToString();
             string ServerIP = request.Destination.IpAddress;
-            if (string.IsNullOrEmpty(ServerIP))
+			if (string.IsNullOrEmpty(ServerIP))
                 ServerIP = serverIP;
             string ServerPort = request.Destination.Port.ToString();
             bool sent = false;
@@ -435,7 +435,6 @@ namespace HTTPSecureServerLite
 							{
                                 statusCode = HttpStatusCode.NotFound;
                                 response.StatusCode = (int)statusCode;
-
                                 if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                 {
                                     response.ContentType = "text/html";

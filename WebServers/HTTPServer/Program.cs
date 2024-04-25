@@ -23,6 +23,7 @@ public static class HTTPServerConfiguration
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
+    public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
@@ -62,6 +63,7 @@ public static class HTTPServerConfiguration
                 new JProperty("http_version", HttpVersion),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
+                new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_image_upscale", EnableImageUpscale),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
@@ -89,6 +91,7 @@ public static class HTTPServerConfiguration
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
+            NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             EnableImageUpscale = GetValueOrDefault(config, "enable_image_upscale", EnableImageUpscale);
             // Deserialize Ports if it exists

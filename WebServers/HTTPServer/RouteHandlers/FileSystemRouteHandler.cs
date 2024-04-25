@@ -1,5 +1,6 @@
 // Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
 using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
@@ -10,17 +11,17 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string filepath, string httpdirectoryrequest, string clientip, string? clientport)
+        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string directoryPath, string filepath, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
                 return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
                 return Handle_LocalFile(request, filepath);
             else
-                return HttpBuilder.NotFound();
+                return HttpBuilder.NotFound(request, absolutepath, Host, directoryPath, ServerIP, ListenerPort.ToString(), request.RetrieveHeaderValue("Accept").Contains("html"));
         }
 
-        public static HttpResponse HandleHEAD(HttpRequest request, string local_path)
+        public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string directoryPath, string local_path, string ServerIP, ushort ListenerPort)
         {
             if (File.Exists(local_path))
             {
@@ -33,7 +34,7 @@ namespace HTTPServer.RouteHandlers
                 {
                     bool matched = false;
                     byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPProcessor.PathernDictionary)
+                    foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
                         if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                         {
@@ -53,7 +54,7 @@ namespace HTTPServer.RouteHandlers
                 return response;
             }
             else
-                return HttpBuilder.NotFound();
+                return HttpBuilder.NotFound(request, absolutepath, Host, directoryPath, ServerIP, ListenerPort.ToString(), request.RetrieveHeaderValue("Accept").Contains("html"));
         }
 
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
@@ -65,7 +66,7 @@ namespace HTTPServer.RouteHandlers
             if (ContentType == "application/octet-stream")
             {
                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                foreach (var entry in HTTPProcessor.PathernDictionary)
+                foreach (var entry in HTTPProcessor._PathernDictionary)
                 {
                     if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                     {
@@ -207,13 +208,13 @@ namespace HTTPServer.RouteHandlers
             }
             else
             {
-                foreach (string indexFile in HTTPProcessor.DefaultDocuments)
+                foreach (string indexFile in HTTPProcessor._DefaultFiles)
                 {
-                    if (File.Exists(local_path + indexFile))
+                    if (File.Exists(local_path + $"/{indexFile}"))
                     {
                         if (indexFile.Contains(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                         {
-                            (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(local_path + indexFile, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                            (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(local_path + $"/{indexFile}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
                                 return HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                             else
@@ -223,7 +224,7 @@ namespace HTTPServer.RouteHandlers
                         {
                             if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
                             {
-                                using FileStream stream = new(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                using FileStream stream = new(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                                 byte[]? buffer = null;
 
                                 using (MemoryStream ms = new())
@@ -238,7 +239,7 @@ namespace HTTPServer.RouteHandlers
                                 return HttpResponse.Send(HTTPProcessor.Compress(buffer), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                             }
                             else
-                                return HttpResponse.Send(File.Open(local_path + indexFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                return HttpResponse.Send(File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                         }
                     }
                 }
