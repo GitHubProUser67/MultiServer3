@@ -19,7 +19,7 @@ namespace WebAPIService.HELLFIRE
                     {
                         case "VersionCheck":
                             ms.Flush();
-                            return "<Response><URL>http://game2.hellfiregames.com:61900/HomeTycoon</URL></Response>";
+                            return "<Response><URL>http://game2.hellfiregames.com/HomeTycoon</URL></Response>";
                         default:
                             break;
 
