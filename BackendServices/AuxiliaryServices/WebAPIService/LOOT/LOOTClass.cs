@@ -28,7 +28,7 @@ namespace WebAPIService.LOOT
                     {
                         case "/index.action.php":
                             if (PostData != null && !string.IsNullOrEmpty(ContentType))
-                                return LOOTDatabase.ProcessDatabaseRequest(PostData, ContentType);
+                                return LOOTDatabase.ProcessDatabaseRequest(PostData, ContentType, workpath);
                             break;
                         default:
                             LoggerAccessor.LogError($"[LOOT] Unhandled POST request {absolutepath} please report to GITHUB");
