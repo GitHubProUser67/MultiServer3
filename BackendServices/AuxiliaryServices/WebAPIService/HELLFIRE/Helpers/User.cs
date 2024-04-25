@@ -59,7 +59,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         }
 
                         // Get the updated XML string
-                        updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", "").Replace("</root>", "");
+                        updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
 #pragma warning restore 8602
                         // Save the updated profile back to the file
                         File.WriteAllText(profilePath, updatedXMLProfile);
@@ -107,7 +107,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         doc.SelectSingleNode("//LeaderboardScore").InnerText = data.GetParameterValue("LeaderboardScore");
                         
                         // Get the updated XML string
-                        updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", "").Replace("</root>", "");
+                        updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
 #pragma warning restore 8602
                         // Save the updated profile back to the file
                         File.WriteAllText(profilePath, updatedXMLProfile);

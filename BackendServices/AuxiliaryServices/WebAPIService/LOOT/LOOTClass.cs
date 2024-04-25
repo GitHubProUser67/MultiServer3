@@ -31,7 +31,7 @@ namespace WebAPIService.LOOT
                                 return LOOTDatabase.ProcessDatabaseRequest(PostData, ContentType, workpath);
                             break;
                         default:
-                            LoggerAccessor.LogError($"[LOOT] Unhandled POST request {absolutepath} please report to GITHUB");
+                            LoggerAccessor.LogWarn($"[LOOT] Unhandled POST request {absolutepath} please report to GITHUB");
                             break;
                     }
                     break;
@@ -43,7 +43,7 @@ namespace WebAPIService.LOOT
                                 return LOOTTeleporter.FetchTeleporterInfo(workpath);
                             }
                         default:
-                            LoggerAccessor.LogError($"[LOOT] Unhandled GET request {absolutepath} please report to GITHUB");
+                            LoggerAccessor.LogWarn($"[LOOT] Unhandled GET request {absolutepath} please report to GITHUB");
                             break;
                     }
                     break;

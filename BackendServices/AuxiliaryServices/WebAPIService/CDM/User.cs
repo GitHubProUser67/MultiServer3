@@ -32,12 +32,11 @@ namespace WebAPIService.CDM
             else
             {
                 LoggerAccessor.LogError($"[CDM] - Publisher Game failed with expected path {filePath}!");
-
-                return "<xml>" +
-                    "<status>fail</status>" +
-                    "</xml>";
             }
 
+            return "<xml>" +
+                "<status>fail</status>" +
+                "</xml>";
         }
 
         public static string? handleSpace(byte[] PostData, string ContentType, string workpath, string absolutePath)
@@ -61,12 +60,11 @@ namespace WebAPIService.CDM
             else
             {
                 LoggerAccessor.LogError($"[CDM] - User Space failed with expected path {filePath}!");
-
-                return "<xml>" +
-                    "<status>fail</status>" +
-                    "</xml>";
             }
 
+            return "<xml>" +
+                "<status>fail</status>" +
+                "</xml>";
         }
 
         public static string? handleUserSync(byte[] PostData, string ContentType, string workpath, string absolutePath)

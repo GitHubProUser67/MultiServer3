@@ -21,16 +21,15 @@ namespace WebAPIService.CDM
                 LoggerAccessor.LogInfo($"[CDM] - Leaderboard found and sent! (TEMP IMPLEMENTATION)!");
                 string res = File.ReadAllText(filePath);
 
-                string resourceXML = $"{res}";
-
-                return resourceXML;
+                return $"{res}";
             }
             else
             {
                 LoggerAccessor.LogError($"[CDM] - Failed to find Leaderboard with expected path {filePath}! (TEMP  IMPLEMENTATION)");
 
-                return "<xml><Leaderboard NAME=\"Player 1\" COINS=\"99999\" /></xml>";
             }
+
+            return "<xml><Leaderboard NAME=\"Player 1\" COINS=\"99999\" /></xml>";
         }
 
     }

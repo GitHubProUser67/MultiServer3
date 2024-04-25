@@ -43,7 +43,17 @@ namespace WebAPIService.HELLFIRE
                         case "/ClearasilSkater/Main.php":
                             return ClearasilSkaterRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         #endregion
-                        default:
+
+                        #region Novus Primus Prime
+                        case "/Main.php":
+                            //return NovusPrimeRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                        #endregion
+
+                        #region Giftinator
+                        case "/Giftinator/Main.php":
+                            //return GiftinatorRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                        #endregion
+                        default:    
                             break;
                     }
                     break;
