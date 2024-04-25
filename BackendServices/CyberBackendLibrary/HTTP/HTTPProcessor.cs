@@ -599,7 +599,7 @@ namespace CyberBackendLibrary.HTTP
         public static string[] _DefaultFiles =
         {
             "index.html",
-            "index.html",
+            "index.htm",
             "default.html",
             "default.htm",
             "home.html",
