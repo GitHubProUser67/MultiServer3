@@ -22,7 +22,7 @@ namespace Horizon.HTTPSERVICE
             this.port = port;
         }
 
-        public void StartServer(string certpath = "")
+        public void StartServer(string certpath = "", string certpass = "")
         {
             if (_Server != null && _Server.IsListening)
                 LoggerAccessor.LogWarn("CrudHandler Server already initiated");
@@ -37,7 +37,7 @@ namespace Horizon.HTTPSERVICE
                 if (!string.IsNullOrEmpty(certpath))
                 {
                     settings.Ssl.PfxCertificateFile = certpath;
-                    settings.Ssl.PfxCertificatePassword = "qwerty";
+                    settings.Ssl.PfxCertificatePassword = certpass;
                     settings.Ssl.Enable = true;
 
                     _Server = new WebserverLite(settings, DefaultRoute);

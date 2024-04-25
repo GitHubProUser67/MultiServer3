@@ -956,10 +956,10 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.Queue(new MediusMatchFindGameStatusResponse()
                         {
                             MessageID = matchFindGameRequest.MessageID,
-                            StatusCode = MediusCallbackStatus.MediusMatchingInProgress,
+                            StatusCode = MediusCallbackStatus.MediusMatchingInProgress
                         });
 
-                        await Task.Delay(6000).ContinueWith(r => AssignGameToJoin(data.ClientObject, matchFindGameRequest));
+                        _ = Task.Delay(6000).ContinueWith(r => AssignGameToJoin(data.ClientObject, matchFindGameRequest));
 
                         break;
                     }

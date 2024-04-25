@@ -9,7 +9,8 @@ public static class HorizonServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/medius_plugins";
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
-    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/HorizonHTTPService.pfx";
+    public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static bool EnableMedius { get; set; } = true;
     public static bool EnableDME { get; set; } = true;
     public static bool EnableMuis { get; set; } = true;
@@ -24,6 +25,7 @@ public static class HorizonServerConfiguration
     public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc="; // Base64 only.
     public static string HomeVersionBetaHDK { get; set; } = "01.86";
     public static string HomeVersionRetail { get; set; } = "01.86";
+    public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
 
@@ -66,7 +68,9 @@ public static class HorizonServerConfiguration
                     new JProperty("enabled", EnableBWPS),
                     new JProperty("config", BWPSConfig)
                 )),
+                new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("certificate_password", HTTPSCertificatePassword),
                 new JProperty("player_api_static_path", PlayerAPIStaticPath),
                 new JProperty("medius_api_key", MediusAPIKey),
                 new JProperty("plugins_folder", PluginsFolder),
@@ -89,7 +93,9 @@ public static class HorizonServerConfiguration
             EnableNAT = GetValueOrDefault(config.nat, "enabled", EnableNAT);
             EnableBWPS = GetValueOrDefault(config.bwps, "enabled", EnableBWPS);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
             PlayerAPIStaticPath = GetValueOrDefault(config, "player_api_static_path", PlayerAPIStaticPath);
+            HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             DMEConfig = GetValueOrDefault(config.dme, "config", DMEConfig);
             MEDIUSConfig = GetValueOrDefault(config.medius, "config", MEDIUSConfig);
             MUISConfig = GetValueOrDefault(config.muis, "config", MUISConfig);
@@ -163,7 +169,7 @@ class Program
 
             _ = Task.Run(() => Parallel.Invoke(
                    () => new Horizon.HTTPSERVICE.CrudServerHandler("*", 61920).StartServer(),
-                   () => new Horizon.HTTPSERVICE.CrudServerHandler("*", 8443).StartServer(HorizonServerConfiguration.HTTPSCertificateFile)
+                   () => new Horizon.HTTPSERVICE.CrudServerHandler("0.0.0.0", 8443).StartServer(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
                ));
         }
 
@@ -193,7 +199,7 @@ class Program
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword, HorizonServerConfiguration.HTTPSDNSList);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => HorizonStarter(),

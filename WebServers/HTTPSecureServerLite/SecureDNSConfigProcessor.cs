@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HTTPSecureServerLite
 {
@@ -16,9 +17,12 @@ namespace HTTPSecureServerLite
     {
         public static Dictionary<string, DnsSettings> DicRules = new();
         public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static bool Initiated = false;
 
         public static void InitDNSSubsystem()
         {
+            LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system is initialising, endpoints will be available when initialized...");
+
             if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
             {
                 LoggerAccessor.LogInfo("[HTTPS_DNS] - Downloading Configuration File...");
@@ -142,6 +146,8 @@ namespace HTTPSecureServerLite
                     DicRules.Add("www." + domain, dns);
                 }
             }
+
+            Initiated = true;
 
             LoggerAccessor.LogInfo("[HTTPS_DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }

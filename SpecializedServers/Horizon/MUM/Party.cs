@@ -154,7 +154,7 @@ namespace Horizon.MUM
             }
 
             // Auto close when everyone leaves or if host fails to connect after timeout time
-            if (!utcTimeEmpty.HasValue && LocalClients.Count(x => x.InGame) == 0 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+            if (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame) && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
 
             return Task.CompletedTask;
@@ -193,12 +193,6 @@ namespace Horizon.MUM
 
         public virtual void AddPlayer(ClientObject client)
         {
-            if (client.DmeClientId == null)
-            {
-                LoggerAccessor.LogError($"Party {MediusWorldId}: {PartyName}: {client} DmeId is null! Skipping...");
-                return;
-            }
-
             // Don't add again
             if (LocalClients.Any(x => x.Client == client))
                 return;
@@ -208,7 +202,7 @@ namespace Horizon.MUM
             LocalClients.Add(new PartyClient()
             {
                 Client = client,
-                DmeId = (int)client.DmeClientId
+                DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
             });
 
             // Inform the client of any custom game mode

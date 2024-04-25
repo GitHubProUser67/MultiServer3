@@ -20,6 +20,8 @@ namespace MitmDNS
 
         public async void MitmDNSMain()
         {
+            LoggerAccessor.LogWarn("[DNS] - DNS system is initialising, service will be available when initialized...");
+
             if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
             {
                 LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");

@@ -97,19 +97,31 @@ namespace SVO
             }
             catch (Exception e)
             {
-                LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
+                LoggerAccessor.LogError("[SVO] - An Exception Occured while starting the http server: " + e.Message);
                 threadActive = false;
                 return;
             }
+
+            HashSet<Task> requests = new();
+            for (int i = 0; i < Environment.ProcessorCount; i++)
+                requests.Add(listener.GetContextAsync());
 
             // wait for requests
             while (threadActive)
             {
                 try
                 {
-                    HttpListenerContext context = await listener.GetContextAsync();
                     if (!threadActive) break;
-                    _ = Task.Run(() => ProcessContext(context));
+
+                    Task t = await Task.WhenAny(requests);
+                    requests.Remove(t);
+
+                    if (t is Task<HttpListenerContext>)
+                    {
+                        HttpListenerContext? ctx = (t as Task<HttpListenerContext>)?.Result;
+                        requests.Add(ProcessContext(ctx));
+                        requests.Add(listener.GetContextAsync());
+                    }
                 }
                 catch (HttpListenerException e)
                 {
@@ -134,8 +146,11 @@ namespace SVO
             }
         }
 
-        private async void ProcessContext(HttpListenerContext ctx)
+        private async Task ProcessContext(HttpListenerContext? ctx)
         {
+            if (ctx == null)
+                return;
+
             bool isok = false;
             string clientip = string.Empty;
             string absolutepath = string.Empty;
@@ -148,32 +163,27 @@ namespace SVO
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
                 else
                 {
-                    try
+                    string? UserAgent = ctx.Request.UserAgent.ToLower();
+                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                     {
-                        string? UserAgent = ctx.Request.UserAgent.ToLower();
-                        if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
-                        {
-                            ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
-                        }
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-
-                    if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
-                    {
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
-                        // get filename path
-                        absolutepath = ctx.Request.Url.AbsolutePath;
-                        isok = true;
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
                     }
                     else
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid parameters!");
+                    {
+                        if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
+                        {
+                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                            // get filename path
+                            absolutepath = ctx.Request.Url.AbsolutePath;
+                            isok = true;
+                        }
+                        else
+                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid parameters!");
+                    }
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Not Important.
             }

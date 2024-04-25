@@ -1,4 +1,6 @@
+using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Collections.Generic;
 
 namespace HTTPServer
@@ -92,12 +94,16 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse NotFound(bool KeepAlive = false)
+        public static HttpResponse NotFound(HttpRequest request, string absolutepath, string Host, string directoryPath, string ServerIP, string serverPort, bool HTMLResponse)
         {
-            return new HttpResponse(KeepAlive)
-            {
-                HttpStatusCode = HttpStatusCode.Not_Found,
-            };
+            if (!HTMLResponse)
+                return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
+                {
+                    HttpStatusCode = HttpStatusCode.Not_Found,
+                };
+            else
+                return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",  directoryPath,
+                    HTTPServerConfiguration.HTTPStaticFolder, HTTPProcessor.GenerateServerSignature(), serverPort, HTTPServerConfiguration.NotFoundSuggestions), "text/html", null, HttpStatusCode.Not_Found);
         }
 
         public static HttpResponse NotAllowed(bool KeepAlive = false)
