@@ -30,9 +30,9 @@ namespace WebAPIService.CDM
             else
             {
                 LoggerAccessor.LogError($"[CDM] - Failed to find publisher list with expected path {filePath}!");
-
-                return "<xml><status>fail</status></xml>";
             }
+
+            return "<xml><status>fail</status></xml>";
         }
 
     }

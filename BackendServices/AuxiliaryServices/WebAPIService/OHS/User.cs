@@ -439,47 +439,33 @@ namespace WebAPIService.OHS
                                             //We lower them for True/False edgecase, otherwise Jamin will not return them!
 
 
-                                            if (directorypath.Contains("Konami"))
+                                            if (ohsUserName == usersArray.Last().ToString())
                                             {
-                                                if (ohsUserName == usersArray.Last().ToString())
-                                                {
-                                                    output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
-                                                }
-                                                else
-                                                {
-                                                    output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
-                                                }
-                                            } else
-                                            {
-                                                output = outputOriginal.ToLower();
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
                                             }
-                                            
-                                                
+                                            else
+                                            {
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
+                                            }
+
                                         }
-                                        //This needs logic to handle commas for multiple players if found. BUT this is enough to satisfy 2.
 
                                     }
                                 } else {
-                                    if(directorypath.Contains("Konami"))
+
+                                    if (ohsUserName == usersArray.Last().ToString())
                                     {
-                                        if (ohsUserName == usersArray.Last().ToString())
-                                        {
-                                            output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
-                                        }
-                                        else
-                                        {
-                                            output += $"{{ [\"{ohsUserName}\"] = \"0\" }}, ";
-                                        }
-                                    } else
-                                    {
-                                        //If No file exists, we will assume its a int for now until another minigame doesn't use ints
                                         output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
+                                    }
+                                    else
+                                    {
+                                        output += $"{{ [\"{ohsUserName}\"] = \"0\" }}, ";
                                     }
                                 }
                             }
                             catch (Exception e)
                             {
-                                LoggerAccessor.LogError($"[OHS] user/getmany/ caught error from '{ohsUserName}' with exception {e}");
+                                LoggerAccessor.LogWarn($"[OHS] user/getmany/ caught error from '{ohsUserName}' with exception {e}");
                             }
                         }
                     }

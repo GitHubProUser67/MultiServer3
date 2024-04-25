@@ -23,6 +23,8 @@ namespace WebAPIService.LOOT
                 string serialized_data = data.GetParameterValue("serialized_data");
                 string protocol_version = data.GetParameterValue("protocol_version");
 
+                string LOOTDBPlayerSavePath = $"{WorkPath}/LOOT/SS3/{guid}";
+
                 foreach (var file in data.Files)
                 {
                     using Stream filedata = file.Data;
@@ -61,7 +63,9 @@ namespace WebAPIService.LOOT
                     // Convert the modified data to a string
                     string psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
+#if DEBUG
                     LoggerAccessor.LogInfo($"[LOOT] ProtocolVersion: {protocol_version} - Player {psn_acct_name} Action detected as: {action} GUID: {guid} Serialized_Data {serialized_data} ");
+#endif
 
                     switch (action)
                     {
@@ -82,7 +86,8 @@ namespace WebAPIService.LOOT
                                     //SS3 Director's Chair
                                     case "1BDF949A-0A804B07-9C4C7BAE-46C15AAE":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -129,7 +134,8 @@ namespace WebAPIService.LOOT
                                     //SS3 Floodlight
                                     case "F810F551-01B540C0-B25A372C-E657524C":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -176,7 +182,8 @@ namespace WebAPIService.LOOT
                                     //SS3 SpotLight
                                     case "6E5532C3-D87E43BA-AC2695CB-555A96A3":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -223,7 +230,8 @@ namespace WebAPIService.LOOT
                                     //Camera - Stage
                                     case "6E0B532B-07194299-A80FC531-39C893BB":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -269,7 +277,7 @@ namespace WebAPIService.LOOT
                                     
                                     default:
                                         {
-                                            LoggerAccessor.LogError($"[LOOT] - Unhandled GET DB Status with object {guid} please report to GITHUB");
+                                            LoggerAccessor.LogWarn($"[LOOT] - Unhandled GET DB Status with object {guid} please report to GITHUB");
                                         }
                                         break;
                                 }
@@ -283,7 +291,8 @@ namespace WebAPIService.LOOT
                                     //SS3 Director's Chair
                                     case "1BDF949A-0A804B07-9C4C7BAE-46C15AAE":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -327,7 +336,8 @@ namespace WebAPIService.LOOT
                                     //SS3 Floodlight
                                     case "F810F551-01B540C0-B25A372C-E657524C":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -369,7 +379,8 @@ namespace WebAPIService.LOOT
                                     //SS3 SpotLight
                                     case "6E5532C3-D87E43BA-AC2695CB-555A96A3":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -416,7 +427,8 @@ namespace WebAPIService.LOOT
                                     //Camera - Stage
                                     case "6E0B532B-07194299-A80FC531-39C893BB":
                                         {
-                                            string profilePath = $"{WorkPath}/LOOT/SS3/{guid}/{psn_acct_name}.cache";
+                                            Directory.CreateDirectory(LOOTDBPlayerSavePath);
+                                            string profilePath = $"{LOOTDBPlayerSavePath}/{psn_acct_name}.cache";
 
                                             try
                                             {
@@ -458,7 +470,7 @@ namespace WebAPIService.LOOT
 
                                     default:
                                         {
-                                            LoggerAccessor.LogError($"[LOOT] - Unhandled UPLOAD DB Status with object {guid} please report to GITHUB");
+                                            LoggerAccessor.LogWarn($"[LOOT] - Unhandled UPLOAD DB Status with object {guid} please report to GITHUB");
                                         }
                                         break;
                                 }
@@ -469,7 +481,7 @@ namespace WebAPIService.LOOT
                             break;
                         default:
                             {
-                                LoggerAccessor.LogError($"[LOOT] - Unhandled Action {action} please report to GITHUB");
+                                LoggerAccessor.LogWarn($"[LOOT] - Unhandled Action {action} please report to GITHUB");
                             }
                             break;
 

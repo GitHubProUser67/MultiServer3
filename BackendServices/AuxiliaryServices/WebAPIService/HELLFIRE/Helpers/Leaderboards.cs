@@ -24,6 +24,11 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             foreach (var playerData in playerDataFiles)
             {
+                if(!File.Exists(playerData)) {
+                    //If file doesn't exist continue foreach
+                    continue;
+                }
+
                 // Load the XML file
                 XmlDocument doc2 = new XmlDocument();
                 string xmlProfile = File.ReadAllText(playerData);
@@ -45,12 +50,12 @@ namespace WebAPIService.HELLFIRE.Helpers
                         }
                         else
                         {
-                            LoggerAccessor.LogError("Error: Unable to parse LeaderboardScore value as an float.");
+                            LoggerAccessor.LogError("[HFGAMEs] - Unable to parse LeaderboardScore value as an float.");
                         }
                     }
                     else
                     {
-                        LoggerAccessor.LogError("Error: LeaderboardScore element not found in the XML.");
+                        LoggerAccessor.LogError("[HFGAMEs] - LeaderboardScore element not found in the XML.");
                     }
                 }
 

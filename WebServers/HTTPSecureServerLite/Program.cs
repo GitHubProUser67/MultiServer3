@@ -24,7 +24,7 @@ public static class HTTPSServerConfiguration
     public static string HomeToolsHelperStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/HomeToolsXMLs";
     public static bool UseSelfSignedCertificate { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
-    public static List<ushort>? Ports { get; set; } = new() { 443, 61900 };
+    public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 
