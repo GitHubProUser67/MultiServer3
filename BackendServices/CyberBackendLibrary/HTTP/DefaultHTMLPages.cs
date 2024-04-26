@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CyberBackendLibrary.HTTP
 {
@@ -9,7 +10,7 @@ namespace CyberBackendLibrary.HTTP
     {
         public static ConcurrentDictionary<string, Tuple<DateTime, List<string>>> AINotFoundGuessingResultCache = new();
 
-        public static string GenerateNotFound(string absolutepathUrl, string urlBase, string directoryPath, string HttpRootFolder, string serverSignature, string serverPort, bool AIAssistant)
+        public static Task<string> GenerateNotFound(string absolutepathUrl, string urlBase, string directoryPath, string HttpRootFolder, string serverSignature, string serverPort, bool AIAssistant)
         {
             string HTMLContent = $@"<!DOCTYPE html PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
                                 <html><head><meta http-equiv=""Content-Type"" content=""text/html; charset=windows-1252"">
@@ -30,7 +31,7 @@ namespace CyberBackendLibrary.HTTP
 
                 // The idea behind this logic, is to cache results to avoid as much as possible to trigger the file/directory seaching which is very costly on large data storage.
 
-                if (AINotFoundGuessingResultCache.TryGetValue(absolutepathUrl, out Tuple<DateTime, List<string>>? value) && (DateTime.Now - value.Item1).TotalHours <= 2) // We renew cache entry after 2 hours of validity.
+                if (AINotFoundGuessingResultCache.TryGetValue(absolutepathUrl, out Tuple<DateTime, List<string>>? value) && (DateTime.Now - value.Item1).TotalMinutes <= 30) // We renew cache entry after 30 minutes of validity.
                     Urls = value.Item2;
                 else
                 {
@@ -65,7 +66,7 @@ namespace CyberBackendLibrary.HTTP
                                   <hr>
                                   <address>{serverSignature} Server at Port {serverPort}</address>";
 
-            return HTMLContent;
+            return Task.FromResult(HTMLContent);
         }
     }
 }
