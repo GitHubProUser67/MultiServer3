@@ -5,16 +5,21 @@ using System.Threading.Tasks;
 
 namespace CustomLogger
 {
-    public class RessourcesLogger
+    public class ResourceMonitor
     {
         public static Task StartPerfWatcher() // Windows Only.
         {
+            long idleTime, kernelTime, userTime;
+
             while (true)
             {
-                // Sleep for 5 minutes (300,000 milliseconds)
-                Thread.Sleep(5 * 60 * 1000);
+                // Sleep for 1 minute (60,000 milliseconds)
+                Thread.Sleep(60000);
 
-                LoggerAccessor.LogInfo($"[RessourcesLogger] - Current percentage Used Physical Ram: {100 - (((decimal)PerformanceInfo.GetPhysicalAvailableMemoryInMiB() / (decimal)PerformanceInfo.GetTotalMemoryInMiB()) * 100)}");
+                LoggerAccessor.LogInfo($"[ResourceMonitor] - Current percentage Used Physical Ram: {(100 - (((decimal)PerformanceInfo.GetPhysicalAvailableMemoryInMiB() / (decimal)PerformanceInfo.GetTotalMemoryInMiB()) * 100)).ToString("0.##")}%");
+
+                if (PerformanceInfo.GetSystemTimes(out idleTime, out kernelTime, out userTime))
+                    LoggerAccessor.LogInfo($"[ResourceMonitor] - Current CPU Load: {(100.0 - ((idleTime / (double)(kernelTime + userTime)) * 100.0)):0.##}%");
             }
         }
     }
@@ -22,6 +27,10 @@ namespace CustomLogger
     public static class PerformanceInfo
 
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetSystemTimes(out long lpIdleTime, out long lpKernelTime, out long lpUserTime);
+
         [DllImport("psapi.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetPerformanceInfo([Out] out PerformanceInformation PerformanceInformation, [In] int Size);
