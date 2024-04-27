@@ -34,6 +34,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
+using WebAPIService.HELLFIRE;
 
 namespace HTTPServer
 {
@@ -403,7 +404,7 @@ namespace HTTPServer
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                                                string res = string.Empty;
+                                                string? res = string.Empty;
 
                                                 if (request.GetDataStream != null)
                                                 {
