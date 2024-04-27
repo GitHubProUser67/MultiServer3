@@ -29,6 +29,7 @@ using WebAPIService.MultiMedia;
 using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
 using System;
+using WebAPIService.HELLFIRE;
 
 namespace HTTPServer
 {
@@ -179,7 +180,6 @@ namespace HTTPServer
 
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
-
                                 string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
 
                                 if (HTTPServerConfiguration.plugins.Count > 0)
@@ -238,7 +238,7 @@ namespace HTTPServer
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
-                                                string? res = null;
+                                                #region OHS API Version
                                                 int version = 0;
                                                 if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
                                                     version = 2;
@@ -252,12 +252,16 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
+                                                #endregion
+
+                                                string? res = null;
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream?.CopyTo(postdata);
                                                     res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
+
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
@@ -357,6 +361,31 @@ namespace HTTPServer
                                             }
                                             #endregion
 
+                                            #region Hellfire Games API
+                                            else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
+                                                
+                                                string res = string.Empty;
+                                                
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                {
+                                                    //response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
+                                                }
+                                            }
+                                            #endregion
+
                                             #region Juggernaut Games API
                                             else if (Host == "juggernaut-games.com" 
                                                 && !string.IsNullOrEmpty(Method) 
@@ -393,7 +422,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
 
                                                 string? res = null;
-                                                LOOTClass loot = new(Method, absolutepath);
+                                                LOOTClass loot = new(Method, absolutepath, apiPath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();

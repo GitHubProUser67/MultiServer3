@@ -5,7 +5,7 @@ namespace WebAPIService.HELLFIRE
 {
     public class Redirector
     {
-        public static string? ProcessMainRedirector(byte[] PostData, string ContentType)
+        public static string? ProcessMainHomeTycoonRedirector(byte[] PostData, string ContentType)
         {
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
@@ -19,7 +19,7 @@ namespace WebAPIService.HELLFIRE
                     {
                         case "VersionCheck":
                             ms.Flush();
-                            return "<Response><URL>http://game2.hellfiregames.com:61900/HomeTycoon</URL></Response>";
+                            return "<Response><URL>http://game2.hellfiregames.com/HomeTycoon</URL></Response>";
                         default:
                             break;
 
@@ -30,5 +30,6 @@ namespace WebAPIService.HELLFIRE
 
             return null;
         }
+
     }
 }

@@ -31,13 +31,40 @@ namespace WebAPIService.CDM
             }
             else
             {
-                LoggerAccessor.LogError($"[CDM] - Failed to find publisher game with expected path {filePath}!");
-
-                return "<xml>" +
-                    "<status>fail</status>" +
-                    "</xml>";
+                LoggerAccessor.LogError($"[CDM] - Publisher Game failed with expected path {filePath}!");
             }
 
+            return "<xml>" +
+                "<status>fail</status>" +
+                "</xml>";
+        }
+
+        public static string? handleSpace(byte[] PostData, string ContentType, string workpath, string absolutePath)
+        {
+            string pubListPath = $"{workpath}/CDM/{absolutePath}";
+
+            Directory.CreateDirectory(pubListPath);
+            string filePath = $"{pubListPath}/space.xml";
+            if (File.Exists(filePath))
+            {
+                LoggerAccessor.LogInfo($"[CDM] User Space - found and sent!");
+                string res = File.ReadAllText(filePath);
+
+                string resourceXML = "<xml>\r\n\t" +
+                    "<status>success</status>\r\n" +
+                    $"{res}\r\n" +
+                    "</xml>";
+
+                return resourceXML;
+            }
+            else
+            {
+                LoggerAccessor.LogError($"[CDM] - User Space failed with expected path {filePath}!");
+            }
+
+            return "<xml>" +
+                "<status>fail</status>" +
+                "</xml>";
         }
 
         public static string? handleUserSync(byte[] PostData, string ContentType, string workpath, string absolutePath)
