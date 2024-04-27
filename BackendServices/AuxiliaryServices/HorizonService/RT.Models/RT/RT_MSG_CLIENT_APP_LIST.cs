@@ -1,5 +1,9 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Horizon.RT.Models
 {
@@ -8,7 +12,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_APP_LIST;
 
-        public List<int> Targets { get; set; } = new List<int>();
+        public List<int> Targets { get; set; } = new();
         public byte[]? Payload { get; set; }
         public short SourceIn { get; set; }
 

@@ -1023,41 +1023,83 @@ namespace SVO
                                             id = value;
                                     }
 
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.ContentType = "text/xml";
                                     ctx.Response.Headers.Set("Content-Language", string.Empty);
 
                                     string fileName = ctx.Request.RetrieveQueryValue("filename");
 
-                                    // Wipeout 2048 is stuck at this stage...
-
                                     if (!new Regex(@"\.[^.]+$").Match(fileName).Success) // We give a default extension if none found.
                                         fileName += ".bin";
 
-                                    ctx.Response.ContentType = "application/binary";
-
                                     if (File.Exists($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/rest/fileservices/{name}/{fileName}"))
-                                    {
-                                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                        return await ctx.Response.SendFinalChunk(File.ReadAllBytes($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/rest/fileservices/{name}/{fileName}"));
-                                    }
-                                    else if (fileName == "PROFILE.bin") // Game always expect a file to be sent even if it not exist.
-                                    {
-                                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                                        return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes("<?xml version=\"3.0\"?>\n" +
-                                            "<GenStats>\n\t" +
-                                            "<Version>1.0</Version>\n\t" +
-                                            $"<ProfileHash>{SVOProcessor.EXPERIMENTAL_CalcuateOTGSecuredHash("m4nT15")}</ProfileHash>\n\t" +
-                                            "<Stats>\n" +
-                                            "</Stats>\n" +
-                                            "</GenStats>\n")); // This obviously doens't work yet as a response.
-                                    }
+                                        return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes($"<BinaryDownload checksum=\"{SVOProcessor.CalcuateOTGSecuredHash("m4nT15")}\">\n" +
+                                                $"        <Data>{File.ReadAllText($"{SVOServerConfiguration.SVOStaticFolder}/wox_ws/rest/fileservices/{name}/{fileName}")}</Data>\n" +
+                                                $"    </BinaryDownload>"));
                                     else
-                                    {
-                                        ctx.Response.ChunkedTransfer = false;
+                                        return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes($"<BinaryDownload checksum=\"{SVOProcessor.CalcuateOTGSecuredHash("m4nT15")}\">\n" +
+                                                "        <Data></Data>\n" +
+                                                $"    </BinaryDownload>"));
+                                }
+                                else
+                                {
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                    ctx.Response.ContentType = "text/plain";
+                                    return await ctx.Response.Send();
+                                }
+                        }
+                        break;
 
-                                        ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                                        ctx.Response.ContentType = "text/plain";
-                                        return await ctx.Response.Send();
+                    case "/wox_ws/rest/activities/FriendActivities":
+
+                        switch (method)
+                        {
+                            case "GET":
+                                string name = string.Empty;
+
+                                string authKey = string.Empty;
+
+                                string timeZone = string.Empty;
+
+                                string signature = string.Empty;
+                                string id = string.Empty;
+
+                                string? cookieHeader = ctx.Request.Headers.Get("Cookie");
+
+                                if (cookieHeader != null)
+                                {
+                                    ctx.Response.ChunkedTransfer = true;
+
+                                    string[] cookies = cookieHeader.Split(';');
+
+                                    foreach (string cookie in cookies)
+                                    {
+                                        string[] parts = cookie.Trim().Split('=');
+
+                                        string key = parts[0];
+                                        string value = parts[1];
+
+                                        if (key == "name")
+                                            name = value;
+                                        else if (key == "authKey")
+                                            authKey = value;
+                                        else if (key == "timeZone")
+                                            timeZone = value;
+                                        else if (key == "signature")
+                                            signature = value;
+                                        else if (key == "id")
+                                            id = value;
                                     }
+
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.ContentType = "text/xml";
+                                    ctx.Response.Headers.Set("Content-Language", string.Empty);
+
+                                    string filter = ctx.Request.RetrieveQueryValue("filter");
+
+                                    return await ctx.Response.SendFinalChunk(Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
+                                       "<FriendActivities>" +
+                                       "</FriendActivities>"));
                                 }
                                 else
                                 {

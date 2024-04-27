@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 

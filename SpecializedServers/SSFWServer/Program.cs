@@ -9,8 +9,14 @@ public static class SSFWServerConfiguration
     public static string SSFWMinibase { get; set; } = "[]";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
-    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
+    public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SSFW.pfx";
+    public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static string ScenelistFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot/SceneList.xml";
+    public static string[]? HTTPSDNSList { get; set; } = {
+            "cprod.homerewards.online.scee.com",
+            "cprod.homeidentity.online.scee.com",
+            "cprod.homeserverservices.online.scee.com",
+        };
     public static List<string>? BannedIPs { get; set; }
 
     /// <summary>
@@ -34,7 +40,9 @@ public static class SSFWServerConfiguration
                 new JProperty("legacyKey", SSFWLegacyKey),
                 new JProperty("cross_save", SSFWCrossSave),
                 new JProperty("static_folder", SSFWStaticFolder),
+                new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
+                new JProperty("certificate_password", HTTPSCertificatePassword),
                 new JProperty("scenelist_file", ScenelistFile),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString().Replace("/", "\\\\"));
@@ -47,21 +55,58 @@ public static class SSFWServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            SSFWMinibase = config.minibase;
-            SSFWLegacyKey = config.legacyKey;
-            SSFWCrossSave = config.cross_save;
-            SSFWStaticFolder = config.static_folder;
-            HTTPSCertificateFile = config.certificate_file;
-            ScenelistFile = config.scenelist_file;
-            JArray bannedIPsArray = config.BannedIPs;
+            SSFWMinibase = GetValueOrDefault(config, "minibase", SSFWMinibase);
+            SSFWLegacyKey = GetValueOrDefault(config, "legacyKey", SSFWLegacyKey);
+            SSFWCrossSave = GetValueOrDefault(config, "cross_save", SSFWCrossSave);
+            SSFWStaticFolder = GetValueOrDefault(config, "static_folder", SSFWStaticFolder);
+            HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
+            HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
+            HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
+            ScenelistFile = GetValueOrDefault(config, "scenelist_file", ScenelistFile);
             // Deserialize BannedIPs if it exists
-            if (bannedIPsArray != null)
-                BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                // Deserialize BannedIPs if it exists
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            LoggerAccessor.LogWarn("ssfw.json file is malformed, using server's default.");
+            LoggerAccessor.LogWarn($"ssfw.json file is malformed (exception: {ex}), using server's default.");
         }
+    }
+
+    // Helper method to get a value or default value if not present
+    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    {
+        if (obj != null)
+        {
+            if (obj is JObject jObject)
+            {
+                if (jObject.TryGetValue(propertyName, out JToken? value))
+                {
+                    T? returnvalue = value.ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+            else if (obj is JArray jArray)
+            {
+                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
+                {
+                    T? returnvalue = jArray[index].ToObject<T>();
+                    if (returnvalue != null)
+                        return returnvalue;
+                }
+            }
+        }
+        return defaultValue;
     }
 }
 
@@ -92,12 +137,12 @@ class Program
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword, SSFWServerConfiguration.HTTPSDNSList);
 
         _ = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
         _ = Task.Run(() => Parallel.Invoke(
-                    () => new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, "qwerty", SSFWServerConfiguration.SSFWLegacyKey).StartSSFW(),
+                    () => new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword, SSFWServerConfiguration.SSFWLegacyKey).StartSSFW(),
                     () => RefreshConfig()
                 ));
 

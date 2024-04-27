@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -96,7 +97,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"GameName: {GameName} " +
-                $"GameStats: {BitConverter.ToString(GameStats)} " +
+                $"GameStats: {System.BitConverter.ToString(GameStats)} " +
                 $"GamePassword: {GamePassword} " +
                 $"ApplicationID: {ApplicationID} " +
                 $"MaxClients: {MaxClients} " +

@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -65,7 +66,7 @@ namespace Horizon.RT.Models
                 $"ApplicationID: {ApplicationID} " +
                 $"PlayerStatus: {PlayerStatus} " +
                 $"ConnectionClass: {ConnectionClass} " +
-                $"Stats: {BitConverter.ToString(Stats)}";
+                $"Stats: {System.BitConverter.ToString(Stats)}";
         }
     }
 }

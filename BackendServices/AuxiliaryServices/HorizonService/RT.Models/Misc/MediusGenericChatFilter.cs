@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -20,7 +21,7 @@ namespace Horizon.RT.Models
         public override string ToString()
         {
             return base.ToString() + " " +
-                $"GenericChatFilterBitfield: {BitConverter.ToString(GenericChatFilterBitfield)}";
+                $"GenericChatFilterBitfield: {System.BitConverter.ToString(GenericChatFilterBitfield)}";
         }
     }
 }

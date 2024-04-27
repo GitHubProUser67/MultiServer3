@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -69,7 +70,7 @@ namespace Horizon.RT.Models
                 $"TargetRoutingDmeWorldID: {TargetRoutingDmeWorldID} " +
                 $"SourceDmeWorldID: {SourceDmeWorldID} " + 
                 $"MsgType: {msgType} " +
-                $"Contents: {BitConverter.ToString(Contents)}";
+                $"Contents: {System.BitConverter.ToString(Contents)}";
         }
     }
 }

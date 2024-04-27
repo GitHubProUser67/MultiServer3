@@ -1,11 +1,14 @@
+using CastleLibrary.Utils.AES;
+using CastleLibrary.Utils.Conversion;
 using HomeTools.Crypto;
+using System;
 
 namespace HomeTools.UnBAR
 {
     internal class AppLoaderReverse
     {
-        private Decryptor dec;
-        private HashGenerator hash;
+        private Decryptor? dec;
+        private HashGenerator? hash;
 
         public bool doAll(
           int hashFlag,
@@ -36,14 +39,14 @@ namespace HomeTools.UnBAR
             getHashKeys(hashFlag, version, numArray3, hashKey);
             setDecryptor(cryptoFlag);
             setHash(hashFlag);
-            dec.doInit(numArray1, numArray2);
-            hash.doInit(numArray3);
+            dec?.doInit(numArray1, numArray2);
+            hash?.doInit(numArray3);
         }
 
         public void doUpdate(byte[] i, int inOffset, byte[] o, int outOffset, int len)
         {
-            dec.doUpdate(i, inOffset, o, outOffset, len);
-            hash.doUpdate(o, outOffset, len);
+            dec?.doUpdate(i, inOffset, o, outOffset, len);
+            hash?.doUpdate(o, outOffset, len);
         }
 
         public bool doFinal(byte[] generatedHash) => hash.doFinal(generatedHash);

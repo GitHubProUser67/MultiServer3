@@ -14,21 +14,26 @@ using HttpMultipartParser;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using HTTPServer.RouteHandlers;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Collections.Specialized;
 using WebAPIService.LOOT;
-using System.Buffers;
 using WebAPIService.UBISOFT.HERMES_API;
 using WebAPIService.FROMSOFTWARE;
 using WebAPIService.CAPONE;
 using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
-using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
 using System;
+using System.Security.Cryptography;
+using System.Buffers;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Collections.Specialized;
+using System.Threading.Tasks;
 using WebAPIService.HELLFIRE;
 
 namespace HTTPServer
@@ -38,6 +43,7 @@ namespace HTTPServer
         #region Fields
 
         private readonly List<Route> Routes = new();
+        private string serverIP = "127.0.0.1";
 
         #endregion
 
@@ -45,7 +51,7 @@ namespace HTTPServer
 
         public HttpProcessor()
         {
-
+            
         }
 
         #endregion
@@ -61,6 +67,35 @@ namespace HTTPServer
             }
 
             return false;
+        }
+
+        public Task TryGetServerIP(ushort Port)
+        {
+            // We want to check if the router allows external IPs first.
+            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
+            try
+            {
+                using TcpClient client = new(ServerIP, Port);
+                client.Close();
+            }
+            catch // Failed to connect to public ip, so we fallback to local IP.
+            {
+                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
+
+                try
+                {
+                    using TcpClient client = new(ServerIP, Port);
+                    client.Close();
+                }
+                catch // Failed to connect to local ip, trying IPV4 only as a last resort.
+                {
+                    ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
+                }
+            }
+
+            serverIP = ServerIP;
+
+            return Task.CompletedTask;
         }
 
         public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
@@ -90,12 +125,11 @@ namespace HTTPServer
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
                                 HttpResponse? response = null;
-
                                 string Method = request.Method;
-
                                 string Host = request.RetrieveHeaderValue("Host");
-
+                                string Accept = request.RetrieveHeaderValue("Accept");
                                 string SuplementalMessage = string.Empty;
+                                string fullurl = HTTPProcessor.DecodeUrl(request.Url);
                                 string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
 
                                 if (!string.IsNullOrEmpty(GeoCodeString))
@@ -108,14 +142,14 @@ namespace HTTPServer
                                         SuplementalMessage = " Located at " + parts[0] + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
                                 }
 
-                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {request.Url}");
+                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 
-                                string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url);
-                                string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + request.Url;
+                                string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
+                                string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
 
                                 if (HTTPServerConfiguration.RedirectRules != null)
                                 {
-                                    foreach (string rule in HTTPServerConfiguration.RedirectRules)
+                                    foreach (string? rule in HTTPServerConfiguration.RedirectRules)
                                     {
                                         if (!string.IsNullOrEmpty(rule) && rule.StartsWith("Redirect") && rule.Length >= 9) // Redirect + whitespace is minimum 9 in length.
                                         {
@@ -180,9 +214,10 @@ namespace HTTPServer
 
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
+
                                 string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
 
-                                if (HTTPServerConfiguration.plugins.Count > 0)
+                                if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {
                                     foreach (PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
                                     {
@@ -217,7 +252,8 @@ namespace HTTPServer
                                 {
                                     "pshome.ndreams.net",
                                     "www.ndreamshs.com",
-                                    "www.ndreamsportal.com"
+                                    "www.ndreamsportal.com",
+                                    "nDreams-multiserver-cdn"
                                 };
 
                                 if (response == null)
@@ -238,7 +274,9 @@ namespace HTTPServer
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
-                                                #region OHS API Version
+                                                string? res = null;
+												
+												#region OHS API Version
                                                 int version = 0;
                                                 if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
                                                     version = 2;
@@ -252,16 +290,15 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
-                                                #endregion
-
-                                                string? res = null;
+												#endregion
+												
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream?.CopyTo(postdata);
                                                     res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
-
+												
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
@@ -336,13 +373,14 @@ namespace HTTPServer
                                             #region nDreams API
                                             else if (nDreamsDomains.Contains(Host)
                                                 && !string.IsNullOrEmpty(Method) 
-                                                && absolutepath.EndsWith(".php") 
-                                                || absolutepath.Contains("/gateway/"))
+                                                && (absolutepath.EndsWith(".php")
+                                                || absolutepath.Contains("/NDREAMS/")
+                                                || absolutepath.Contains("/gateway/")))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new(Method, $"http://{Host}{request.Url}", absolutepath, HTTPServerConfiguration.APIStaticFolder);
+                                                NDREAMSClass ndreams = new(Method, apiPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, HTTPServerConfiguration.APIStaticFolder, Host);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -365,9 +403,9 @@ namespace HTTPServer
                                             else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
-                                                
-                                                string res = string.Empty;
-                                                
+
+                                                string? res = string.Empty;
+
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -640,7 +678,6 @@ namespace HTTPServer
                                                     case "GET":
                                                         switch (absolutepath)
                                                         {
-
                                                             #region PSN Network Test
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(new byte[2097152]);
@@ -656,27 +693,7 @@ namespace HTTPServer
                                                             #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
-                                                                // We want to check if the router allows external IPs first.
-                                                                string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
-                                                                try
-                                                                {
-                                                                    using TcpClient client = new(ServerIP, ListenerPort);
-                                                                    client.Close();
-                                                                }
-                                                                catch // Failed to connect to public ip, so we fallback to local IP.
-                                                                {
-                                                                    ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
-
-                                                                    try
-                                                                    {
-                                                                        using TcpClient client = new(ServerIP, ListenerPort);
-                                                                        client.Close();
-                                                                    }
-                                                                    catch // Failed to connect to local ip, trying IPV4 only as a last resort.
-                                                                    {
-                                                                        ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
-                                                                    }
-                                                                }
+                                                                string ServerIP = serverIP;
                                                                 if (ServerIP.Length > 15)
                                                                     ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
                                                                 WebVideoPlayer? WebPlayer = new((request.QueryParameters ?? new Dictionary<string, string>()).Aggregate(new NameValueCollection(),
@@ -736,7 +753,7 @@ namespace HTTPServer
 
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
@@ -750,7 +767,7 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(outputStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, filePath, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
                                                                 }
                                                                 break;
                                                         }
@@ -758,82 +775,15 @@ namespace HTTPServer
                                                     case "POST":
                                                         switch (absolutepath)
                                                         {
-
                                                             #region PSN Network Test
                                                             case "/networktest/post_128":
                                                                 response = HttpBuilder.OK();
                                                                 break;
                                                             #endregion
-
-                                                            #region LibSecure HomeTools
-                                                            case "/!HomeTools/MakeBarSdat/":
-                                                                (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType());
-                                                                if (makeres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/UnBar/":
-                                                                (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(HTTPServerConfiguration.ConvertersFolder, request.GetDataStream, request.GetContentType(), HTTPServerConfiguration.HomeToolsHelperStaticFolder).Result;
-                                                                if (unbarres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/CDS/":
-                                                                (byte[]?, string)? cdsres = HomeToolsInterface.CDS(request.GetDataStream, request.GetContentType());
-                                                                if (cdsres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/CDSBruteforce/":
-                                                                (byte[]?, string)? cdsbruteres = HomeToolsInterface.CDSBruteforce(request.GetDataStream, request.GetContentType());
-                                                                if (cdsbruteres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsbruteres.Value.Item1, cdsbruteres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/HCDBUnpack/":
-                                                                (byte[]?, string)? hcdbres = HomeToolsInterface.HCDBUnpack(request.GetDataStream, request.GetContentType());
-                                                                if (hcdbres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, hcdbres.Value.Item1, hcdbres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/TicketList/":
-                                                                (byte[]?, string)? ticketlistres = HomeToolsInterface.TicketList(request.GetDataStream, request.GetContentType());
-                                                                if (ticketlistres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, ticketlistres.Value.Item1, ticketlistres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/INF/":
-                                                                (byte[]?, string)? infres = HomeToolsInterface.INF(request.GetDataStream, request.GetContentType());
-                                                                if (infres != null)
-                                                                    response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, infres.Value.Item1, infres.Value.Item2);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/ChannelID/":
-                                                                string? channelres = HomeToolsInterface.ChannelID(request.GetDataStream, request.GetContentType());
-                                                                if (!string.IsNullOrEmpty(channelres))
-                                                                    response = HttpResponse.Send(channelres);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            case "/!HomeTools/SceneID/":
-                                                                string? sceneres = HomeToolsInterface.SceneID(request.GetDataStream, request.GetContentType());
-                                                                if (!string.IsNullOrEmpty(sceneres))
-                                                                    response = HttpResponse.Send(sceneres);
-                                                                else
-                                                                    response = HttpBuilder.InternalServerError();
-                                                                break;
-                                                            #endregion
-
+															
                                                             default:
                                                                 if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{request.Url}");
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
@@ -843,7 +793,7 @@ namespace HTTPServer
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
                                                                 else
-                                                                    response = HttpBuilder.NotFound();
+                                                                    response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
                                                                 break;
                                                         }
                                                         break;
@@ -858,8 +808,7 @@ namespace HTTPServer
                                                                 {
                                                                     string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{absolutepath[1..]}";
                                                                     Directory.CreateDirectory(UploadDirectoryPath);
-                                                                    var data = MultipartFormDataParser.Parse(request.GetDataStream, boundary);
-                                                                    foreach (FilePart? multipartfile in data.Files)
+                                                                    foreach (FilePart? multipartfile in MultipartFormDataParser.Parse(request.GetDataStream, boundary).Files)
                                                                     {
                                                                         if (multipartfile.Data.Length > 0)
                                                                         {
@@ -933,7 +882,7 @@ namespace HTTPServer
                                                             #endregion
 
                                                             default:
-                                                                response = FileSystemRouteHandler.HandleHEAD(request, filePath);
+                                                                response = FileSystemRouteHandler.HandleHEAD(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort);
                                                                 break;
                                                         }
                                                         break;
@@ -944,17 +893,7 @@ namespace HTTPServer
                                                     case "PROPFIND":
                                                         if (File.Exists(filePath))
                                                         {
-                                                            // We want to check if the router allows external IPs first.
-                                                            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
-                                                            try
-                                                            {
-                                                                using TcpClient client = new(ServerIP, ListenerPort);
-                                                                client.Close();
-                                                            }
-                                                            catch // Failed to connect, so we fallback to local IP.
-                                                            {
-                                                                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
-                                                            }
+                                                            string ServerIP = serverIP;
                                                             if (ServerIP.Length > 15)
                                                                 ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
 
@@ -962,7 +901,7 @@ namespace HTTPServer
                                                             if (ContentType == "application/octet-stream")
                                                             {
                                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
-                                                                foreach (var entry in HTTPProcessor.PathernDictionary)
+                                                                foreach (var entry in HTTPProcessor._PathernDictionary)
                                                                 {
                                                                     if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                                                     {
@@ -989,7 +928,7 @@ namespace HTTPServer
                                                                 "</a:multistatus>", "text/xml", null, Models.HttpStatusCode.MultiStatus);
                                                         }
                                                         else
-                                                            response = HttpBuilder.NotFound();
+                                                            response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
                                                         break;
                                                     default:
                                                         response = HttpBuilder.NotAllowed();
@@ -1215,7 +1154,7 @@ namespace HTTPServer
                     if (ContentType == "application/octet-stream")
                     {
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                        foreach (var entry in HTTPProcessor.PathernDictionary)
+                        foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
                             if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                             {
@@ -1459,7 +1398,7 @@ namespace HTTPServer
                     if (ContentType == "application/octet-stream")
                     {
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                        foreach (var entry in HTTPProcessor.PathernDictionary)
+                        foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
                             if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                             {
@@ -1504,7 +1443,7 @@ namespace HTTPServer
                     string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                     if (ContentType == "application/octet-stream")
                     {
-                        foreach (var entry in HTTPProcessor.PathernDictionary)
+                        foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
                             if (DataTypesUtils.FindbyteSequence(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
                             {
@@ -1741,12 +1680,12 @@ namespace HTTPServer
             {
                 if (route.Callable != null)
                 {
-                    HttpResponse result = route.Callable(request);
-                    if (result.IsValid())
+                    HttpResponse? result = route.Callable(request);
+                    if (result != null && result.IsValid())
                         return result;
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Not Important
             }

@@ -956,10 +956,10 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.Queue(new MediusMatchFindGameStatusResponse()
                         {
                             MessageID = matchFindGameRequest.MessageID,
-                            StatusCode = MediusCallbackStatus.MediusMatchingInProgress,
+                            StatusCode = MediusCallbackStatus.MediusMatchingInProgress
                         });
 
-                        Task.Delay(6000).ContinueWith((r => AssignGameToJoin(data.ClientObject, matchFindGameRequest)));
+                        _ = Task.Delay(6000).ContinueWith(r => AssignGameToJoin(data.ClientObject, matchFindGameRequest));
 
                         break;
                     }
@@ -6674,7 +6674,7 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        var channel = data.ClientObject.CurrentChannel;
+                        Channel? channel = data.ClientObject.CurrentChannel;
                         if (channel == null)
                         {
                             data.ClientObject.Queue(new MediusGetLobbyPlayerNames_ExtraInfoResponse()
@@ -7241,12 +7241,19 @@ namespace Horizon.MEDIUS.Medius
 
                         Channel? channel = MumChannelHandler.GetLeastPopulatedRemoteChannel(data.ClientObject.ApplicationId, data.ClientObject.IP);
 
-                        if (channel == null)
-                            channel = MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+                        try
+                        {
+                            channel ??= MediusClass.Manager.GetChannelLeastPoplated(data.ClientObject.ApplicationId);
+                        }
+                        catch
+                        {
+                            // Not Important.
+                        }
+
+                        channel ??= MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
 
                         if (channel == null)
                         {
-                            // Log
                             LoggerAccessor.LogWarn($"{data.ClientObject.AccountName} attempting to join non-existent channel {joinLeastPopulatedChannelRequest}");
 
                             data.ClientObject.Queue(new MediusJoinLeastPopulatedChannelResponse()
@@ -10717,7 +10724,7 @@ namespace Horizon.MEDIUS.Medius
                 accountDto = new()
                 {
                     AccountId = iAccountID,
-                    AccountName = $"Guest_{new CastleLibrary.Custom.Crc32().Get(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X}",
+                    AccountName = $"Guest_{new CastleLibrary.Utils.Crc32().Get(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X}",
                     AccountPassword = "UNSET",
                     MachineId = data.MachineId,
                     MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),

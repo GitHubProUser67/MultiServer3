@@ -1,3 +1,4 @@
+using System.IO;
 namespace WebAPIService.JUGGERNAUT.farm.crafting
 {
     public class crafting_stats

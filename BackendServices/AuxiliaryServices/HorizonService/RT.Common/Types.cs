@@ -1,3 +1,5 @@
+using System;
+
 namespace Horizon.RT.Common
 {
     #region RT_MSG

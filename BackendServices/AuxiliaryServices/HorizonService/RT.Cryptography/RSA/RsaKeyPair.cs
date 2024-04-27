@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Math;
+using System;
 
 namespace Horizon.RT.Cryptography.RSA
 {

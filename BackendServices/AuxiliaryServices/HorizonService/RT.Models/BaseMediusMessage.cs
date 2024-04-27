@@ -1,5 +1,7 @@
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System;
+using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {

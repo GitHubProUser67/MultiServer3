@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using WebAPIService.UBISOFT.Models.Hermes.v1;

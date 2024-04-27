@@ -1,9 +1,10 @@
 using System.Text;
 using System.Security.Cryptography;
 using lzo.net;
-using Ionic.Zlib;
+using ComponentAce.Compression.Libs.zlib;
 using System.Text.RegularExpressions;
 using CyberBackendLibrary.DataTypes;
+using EndianTools;
 
 namespace QuazalServer.QNetZ
 {
@@ -59,14 +60,14 @@ namespace QuazalServer.QNetZ
 		{
 			byte[] b = new byte[4];
 			s.Read(b, 0, 4);
-			return BitConverter.ToSingle(b, 0);
+			return BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(b) : b, 0);
 		}
 
 		public static double ReadDouble(Stream s)
 		{
 			byte[] b = new byte[8];
 			s.Read(b, 0, 8);
-			return BitConverter.ToDouble(b, 0);
+			return BitConverter.ToDouble(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(b) : b, 0);
 		}
 
 		public static string ReadString(Stream s)
@@ -164,13 +165,13 @@ namespace QuazalServer.QNetZ
 
 		public static void WriteFloat(Stream s, float v)
 		{
-			byte[] b = BitConverter.GetBytes(v);
+			byte[] b = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(v) : v);
 			s.Write(b, 0, 4);
 		}
 
 		public static void WriteFloatLE(Stream s, float v)
 		{
-			byte[] b = BitConverter.GetBytes(v);
+			byte[] b = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(v) : v);
 			s.WriteByte(b[3]);
 			s.WriteByte(b[2]);
 			s.WriteByte(b[1]);
@@ -179,7 +180,7 @@ namespace QuazalServer.QNetZ
 
 		public static void WriteDouble(Stream s, double v)
 		{
-			byte[] b = BitConverter.GetBytes(v);
+			byte[] b = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(v) : v);
 			s.Write(b, 0, 8);
 		}
 
@@ -222,31 +223,39 @@ namespace QuazalServer.QNetZ
 
         public static byte[] Decompress(string AccessKey, byte[] InData)
         {
-			switch (AccessKey)
+            MemoryStream memoryStream = new();
+
+            switch (AccessKey)
 			{
                 case "hg7j1":
                 case "yh64s":
-                    MemoryStream memoryStream = new();
                     using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
                     {
                         lzo.CopyTo(memoryStream);
+						lzo.Close();
                         memoryStream.Position = 0;
+                        memoryStream.Close();
                         return memoryStream.ToArray();
                     }
 				default:
-                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Decompress);
-                    MemoryStream result = new();
-                    s.CopyTo(result);
-                    return result.ToArray();
+                    ZOutputStream zoutputStream = new(memoryStream, false);
+                    byte[] array = new byte[InData.Length];
+                    Array.Copy(InData, 0, array, 0, InData.Length);
+                    zoutputStream.Write(array, 0, array.Length);
+                    zoutputStream.Close();
+                    memoryStream.Close();
+                    return memoryStream.ToArray();
             }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-            ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
-            MemoryStream result = new();
-            s.CopyTo(result);
-            return result.ToArray();
+            MemoryStream memoryStream = new();
+            ZOutputStream zoutputStream = new(memoryStream, 9, false);
+            zoutputStream.Write(InData, 0, InData.Length);
+            zoutputStream.Close();
+            memoryStream.Close();
+            return memoryStream.ToArray();
         }
 
         public static byte[] Encrypt(string key, byte[] data)

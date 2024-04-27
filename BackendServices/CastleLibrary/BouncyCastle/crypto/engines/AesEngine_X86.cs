@@ -142,11 +142,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private enum Mode { DEC_128, DEC_192, DEC_256, ENC_128, ENC_192, ENC_256, UNINITIALIZED };
 
-        private Vector128<byte>[] m_roundKeys = null;
-        private Mode m_mode = Mode.UNINITIALIZED;
+        private Vector128<byte>[]? m_roundKeys;
+        private Mode m_mode;
 
-        public AesEngine_X86()
+        public AesEngine_X86(Vector128<byte>[]? roundKeys = null)
         {
+            m_roundKeys = roundKeys;
+            m_mode = Mode.UNINITIALIZED;
+
             if (!IsSupported)
                 throw new PlatformNotSupportedException(nameof(AesEngine_X86));
         }
@@ -159,7 +162,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!(parameters is KeyParameter keyParameter))
             {
-                ArgumentNullException.ThrowIfNull(parameters, nameof(parameters));
+                if (parameters == null)
+                    throw new ArgumentNullException(nameof(parameters));
+
                 throw new ArgumentException("invalid type: " + Platform.GetTypeName(parameters), nameof(parameters));
             }
 

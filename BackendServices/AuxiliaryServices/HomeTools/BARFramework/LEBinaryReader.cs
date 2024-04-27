@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace HomeTools.BARFramework
 {
     internal class LEBinaryReader : EndianAwareBinaryReader

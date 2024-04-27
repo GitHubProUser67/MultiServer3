@@ -4,7 +4,6 @@ using HomeTools.ChannelID;
 using HomeTools.Crypto;
 using HomeTools.UnBAR;
 using CyberBackendLibrary.HTTP;
-
 using WebAPIService.CDS;
 using CustomLogger;
 using HttpMultipartParser;
@@ -13,19 +12,23 @@ using System.Security.Cryptography;
 using System.Text;
 using CompressionLibrary.Custom;
 using CyberBackendLibrary.DataTypes;
+using System.IO;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 
 namespace WebAPIService
 {
     public class HomeToolsInterface
     {
-        public static (byte[]?, string)? MakeBarSdat(string converterPath, Stream? PostData, string? ContentType)
+        public static (byte[]?, string)? MakeBarSdat(string APIStaticFolder, Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
             List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/MakeBarSdat_cache/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
+                string maindir = APIStaticFolder + $"/cache/MakeBarSdat/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -47,7 +50,7 @@ namespace WebAPIService
                     {
                         leanzlib = data.GetParameterValue("leanzlib");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -55,7 +58,7 @@ namespace WebAPIService
                     {
                         encrypt = data.GetParameterValue("encrypt");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -63,7 +66,7 @@ namespace WebAPIService
                     {
                         version2 = data.GetParameterValue("version2");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -71,7 +74,7 @@ namespace WebAPIService
                     {
                         bigendian = data.GetParameterValue("bigendian");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -159,9 +162,6 @@ namespace WebAPIService
                             bararchive.AddFile(Path.Combine(unzipdir, path));
                         }
 
-                        // Get the name of the directory
-                        string directoryName = new DirectoryInfo(unzipdir).Name;
-
                         // Create a text file to write the paths to
                         StreamWriter writer = new(unzipdir + @"/files.txt");
 
@@ -171,8 +171,7 @@ namespace WebAPIService
                         // Loop through the files and write their paths to the text file
                         foreach (string file in files)
                         {
-                            string relativePath = string.Concat("file=\"", file.Replace(unzipdir, string.Empty).AsSpan(1), "\"");
-                            writer.WriteLine(relativePath.Replace(@"\", "/"));
+                            writer.WriteLine(string.Concat("file=\"", file.Replace(unzipdir, string.Empty).AsSpan(1), "\"").Replace(@"\", "/"));
                         }
 
                         writer.Close();
@@ -337,14 +336,14 @@ namespace WebAPIService
             return output;
         }
 
-        public static async Task<(byte[]?, string)?> UnBar(string converterPath, Stream? PostData, string? ContentType, string HelperStaticFolder)
+        public static async Task<(byte[]?, string)?> UnBar(string APIStaticFolder, Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
             (byte[]?, string)? output = null;
             List<(byte[]?, string)?> TasksResult = new();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = Directory.GetCurrentDirectory() + $"/static/HomeToolsCache/UnBar_cache/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
+                string maindir = APIStaticFolder + $"/cache/UnBar/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -364,7 +363,7 @@ namespace WebAPIService
                     {
                         subfolder = data.GetParameterValue("subfolder");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -372,7 +371,7 @@ namespace WebAPIService
                     {
                         bruteforce = data.GetParameterValue("bruteforce");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -380,7 +379,7 @@ namespace WebAPIService
                     {
                         afsengine = data.GetParameterValue("afsengine");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -400,9 +399,7 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
-                        string guid = GenerateDynamicCacheGuid(filename);
-
-                        string tempdir = $"{maindir}/{guid}";
+                        string tempdir = $"{maindir}/{GenerateDynamicCacheGuid(filename)}";
 
                         string unbardir = tempdir + $"/unbar";
 
@@ -414,19 +411,19 @@ namespace WebAPIService
 
                         if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
                         {
-                            await RunUnBAR.Run(converterPath, barfile, unbardir, false);
+                            await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false);
                             ogfilename = filename;
                             filename = filename[..^4].ToUpper();
                         }
                         else if (filename.ToLower().EndsWith(".sharc"))
                         {
-                            await RunUnBAR.Run(converterPath, barfile, unbardir, false);
+                            await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false);
                             ogfilename = filename;
                             filename = filename[..^6].ToUpper();
                         }
                         else if (filename.ToLower().EndsWith(".sdat"))
                         {
-                            await RunUnBAR.Run(converterPath, barfile, unbardir, true);
+                            await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, true);
                             ogfilename = filename;
                             filename = filename[..^5].ToUpper();
                         }
@@ -614,7 +611,7 @@ namespace WebAPIService
                     {
                         decrypt = data.GetParameterValue("decrypt");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -634,64 +631,19 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
-                        if (decrypt == "on" && sha1.Length >= 16)
+                        if (!string.IsNullOrEmpty(sha1) && sha1.Length >= 16)
                         {
                             byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, sha1[..16]);
 
                             if (ProcessedFileBytes != null)
-                            {
-                                if (ProcessedFileBytes.Length >= 8 && (ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x78 && ProcessedFileBytes[2] == 0x6d && ProcessedFileBytes[3] == 0x6c
-                                    || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x58 && ProcessedFileBytes[2] == 0x4d && ProcessedFileBytes[3] == 0x4c
-                                    || ProcessedFileBytes[0] == 0xEF && ProcessedFileBytes[1] == 0xBB && ProcessedFileBytes[2] == 0xBF && ProcessedFileBytes[3] == 0x3C && ProcessedFileBytes[4] == 0x3F && ProcessedFileBytes[5] == 0x78 && ProcessedFileBytes[6] == 0x6D && ProcessedFileBytes[7] == 0x6C
-                                    || ProcessedFileBytes[0] == 0x3C && ProcessedFileBytes[1] == 0x3F && ProcessedFileBytes[2] == 0x78 && ProcessedFileBytes[3] == 0x6D && ProcessedFileBytes[4] == 0x6C && ProcessedFileBytes[5] == 0x20 && ProcessedFileBytes[6] == 0x76 && ProcessedFileBytes[7] == 0x65
-                                    || ProcessedFileBytes[0] == 0x3c && ProcessedFileBytes[1] == 0x53 && ProcessedFileBytes[2] == 0x43 && ProcessedFileBytes[3] == 0x45))
-                                {
-                                    if (filename.ToLower().Contains(".sdc"))
-                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.sdc"));
-                                    else if (filename.ToLower().Contains(".odc"))
-                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.odc"));
-                                    else
-                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.xml"));
-                                }
-                                else if (ProcessedFileBytes.Length > 4 && ProcessedFileBytes[0] == 0x73 && ProcessedFileBytes[1] == 0x65 && ProcessedFileBytes[2] == 0x67 && ProcessedFileBytes[3] == 0x73)
-                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.hcdb"));
-                                else if (ProcessedFileBytes.Length > 4 && ((ProcessedFileBytes[0] == 0xAD && ProcessedFileBytes[1] == 0xEF && ProcessedFileBytes[2] == 0x17 && ProcessedFileBytes[3] == 0xE1)
-                                    || (ProcessedFileBytes[0] == 0xE1 && ProcessedFileBytes[1] == 0x17 && ProcessedFileBytes[2] == 0xEF && ProcessedFileBytes[3] == 0xAD)))
-                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.bar"));
-                                else // If all scan failed, fallback.
-                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.bin"));
-                            }
+                                TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_decrypted{Path.GetExtension(filename)}"));
                         }
                         else
                         {
-                            using SHA1 sha1hash = SHA1.Create();
-                            byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, BitConverter.ToString(sha1hash.ComputeHash(buffer)).Replace("-", "").ToUpper()[..16]);
+                            byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, BitConverter.ToString(SHA1.HashData(buffer)).Replace("-", string.Empty).ToUpper()[..16]);
 
                             if (ProcessedFileBytes != null)
-                            {
-                                if (buffer.Length >= 8 && (buffer[0] == 0x3c && buffer[1] == 0x78 && buffer[2] == 0x6d && buffer[3] == 0x6c
-                                    || buffer[0] == 0x3c && buffer[1] == 0x58 && buffer[2] == 0x4d && buffer[3] == 0x4c
-                                    || buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF && buffer[3] == 0x3C && buffer[4] == 0x3F && buffer[5] == 0x78 && buffer[6] == 0x6D && buffer[7] == 0x6C
-                                    || buffer[0] == 0x3C && buffer[1] == 0x3F && buffer[2] == 0x78 && buffer[3] == 0x6D && buffer[4] == 0x6C && buffer[5] == 0x20 && buffer[6] == 0x76 && buffer[7] == 0x65
-                                    || buffer[0] == 0x3c && buffer[1] == 0x53 && buffer[2] == 0x43 && buffer[3] == 0x45))
-                                {
-                                    if (filename.ToLower().Contains(".sdc"))
-                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.sdc"));
-                                    else if (filename.ToLower().Contains(".odc"))
-                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.odc"));
-                                    else
-                                        TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.xml"));
-                                }
-                                else if (buffer.Length > 4 && buffer[0] == 0x73 && buffer[1] == 0x65 && buffer[2] == 0x67 && buffer[3] == 0x73)
-                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.hcdb"));
-                                else if (buffer.Length > 4 && ((buffer[0] == 0xAD && buffer[1] == 0xEF && buffer[2] == 0x17 && buffer[3] == 0xE1)
-                                    || (buffer[0] == 0xE1 && buffer[1] == 0x17 && buffer[2] == 0xEF && buffer[3] == 0xAD)))
-                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.bar"));
-                                else // If all scan failed, fallback.
-                                    TasksResult.Add((ProcessedFileBytes, $"{filename}_Encrypted.bin"));
-                            }
-
-                            sha1hash.Clear();
+                                TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));
                         }
 
                         i++;
@@ -892,7 +844,7 @@ namespace WebAPIService
                     {
                         version1 = data.GetParameterValue("version1");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -911,8 +863,6 @@ namespace WebAPIService
                         filedata.Read(buffer, 0, contentLength);
 
                         filename = multipartfile.FileName;
-
-                        string guid = GenerateDynamicCacheGuid(filename);
 
                         if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                              && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x01 && version1 == "on")
@@ -1083,7 +1033,7 @@ namespace WebAPIService
                     {
                         sceneid = int.Parse(data.GetParameterValue("sceneid"));
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -1091,7 +1041,7 @@ namespace WebAPIService
                     {
                         newerhome = data.GetParameterValue("newerhome");
                     }
-                    catch (Exception)
+                    catch
                     {
                         // Not Important
                     }
@@ -1133,7 +1083,7 @@ namespace WebAPIService
                     {
                         newerhome = data.GetParameterValue("newerhome");
                     }
-                    catch (Exception)
+                    catch
                     {
 
                     }
@@ -1150,7 +1100,7 @@ namespace WebAPIService
                         {
                             res = "Invalid ChannelID";
                         }
-                        catch (Exception)
+                        catch
                         {
                             // Not Important
                         }
@@ -1169,7 +1119,7 @@ namespace WebAPIService
                         {
                             res = "Invalid ChannelID";
                         }
-                        catch (Exception)
+                        catch
                         {
                             // Not Important
                         }

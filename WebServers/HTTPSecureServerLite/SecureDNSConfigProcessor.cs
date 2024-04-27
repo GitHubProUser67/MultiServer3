@@ -1,33 +1,41 @@
-
 using CustomLogger;
 using PSHostsFile;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HTTPSecureServerLite
 {
     public static partial class SecureDNSConfigProcessor
     {
-        public static Dictionary<string, DnsSettings>? DicRules = null;
-        public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static bool Initiated = false;
 
         public static void InitDNSSubsystem()
         {
+            LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system is initialising, endpoints will be available when initialized...");
+
             if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
             {
                 LoggerAccessor.LogInfo("[HTTPS_DNS] - Downloading Configuration File...");
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                 try
                 {
-#if NET7_0
+#if NET7_0_OR_GREATER
                     HttpResponseMessage response = new HttpClient().GetAsync(HTTPSServerConfiguration.DNSOnlineConfig).Result;
                     response.EnsureSuccessStatusCode();
                     ParseRules(response.Content.ReadAsStringAsync().Result, false);
 #else
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                            ParseRules(new WebClient().DownloadStringTaskAsync(HTTPSServerConfiguration.DNSOnlineConfig).Result, false);
+                    ParseRules(new WebClient().DownloadStringTaskAsync(HTTPSServerConfiguration.DNSOnlineConfig).Result, false);
 #pragma warning restore
 #endif
                 }
@@ -36,7 +44,7 @@ namespace HTTPSecureServerLite
                     LoggerAccessor.LogError($"[HTTPS_DNS] - Online Config failed to initialize! - {ex}");
                 }
             }
-            else if (DicRules == null)
+            else
             {
                 if (File.Exists(HTTPSServerConfiguration.DNSConfig))
                     ParseRules(HTTPSServerConfiguration.DNSConfig);
@@ -47,16 +55,12 @@ namespace HTTPSecureServerLite
 
         public static void ParseRules(string Filename, bool IsFilename = true)
         {
-            DicRules = new Dictionary<string, DnsSettings>();
-            StarRules = new List<KeyValuePair<string, DnsSettings>>();
-
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
-                DicRules = ParseSimpleDNSRules(Filename, DicRules);
+                ParseSimpleDNSRules(Filename);
             else
             {
                 HashSet<string> processedDomains = new();
-                string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (string s in rules)
+                foreach (string s in IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None))
                 {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
@@ -143,10 +147,12 @@ namespace HTTPSecureServerLite
                 }
             }
 
+            Initiated = true;
+
             LoggerAccessor.LogInfo("[HTTPS_DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
-        private static Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
+        private static void ParseSimpleDNSRules(string Filename)
         {
             // Read all lines from the test file
             string[] lines = File.ReadAllLines(Filename);
@@ -174,9 +180,7 @@ namespace HTTPSecureServerLite
                 // Check if the .dns file exists
                 if (File.Exists(dnsFilePath))
                 {
-                    string[] dnsFileLines = File.ReadAllLines(dnsFilePath);
-
-                    foreach (string line in dnsFileLines)
+                    foreach (string line in File.ReadAllLines(dnsFilePath))
                     {
                         if (line.StartsWith("\t\tA"))
                         {
@@ -208,8 +212,6 @@ namespace HTTPSecureServerLite
                     }
                 }
             }
-
-            return DicRules;
         }
 
         private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)

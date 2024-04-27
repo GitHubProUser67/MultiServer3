@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\WebServers\HTTPServer\HTTPServer.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyFilesTargetName" AfterTargets="AfterBuild">
+    <ItemGroup>
+        <FilesToCopy Include="$(OutDir)HomeWebTools.pdb" />
+        <FilesToCopy Include="$(OutDir)HomeWebTools.deps.json" />
+        <FilesToCopy Include="$(OutDir)HomeWebTools.dll" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <FilesExist Condition="Exists(@(FilesToCopy))">true</FilesExist>
+    </PropertyGroup>
+
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutDir)\static\plugins\" Condition="$(FilesExist)" />
+    <Delete Files="@(FilesToCopy)" Condition="$(FilesExist)" />
+  </Target>
+  
+  <Target Name="AfterBuild">
+  <Copy SourceFiles="$(MSBuildProjectDirectory)\..\b\$(OutputPath)b.dll" DestinationFolder="$(OutputPath)" ContinueOnError="true" />  
+  </Target>
+  
+  <ItemGroup>
+    <Content Include="static\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
+  </ItemGroup>
+
+</Project>

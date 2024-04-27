@@ -1,6 +1,7 @@
+using System;
+
 namespace HomeTools.BARFramework
 {
-
     [Flags]
     public enum ArchiveFlags : ushort
     {

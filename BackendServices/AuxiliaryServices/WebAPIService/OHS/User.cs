@@ -1,3 +1,6 @@
+using System.Linq;
+using System;
+using System.IO;
 using CustomLogger;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
@@ -752,15 +755,13 @@ namespace WebAPIService.OHS
             // Function to generate a unique number based on a string using MD5
             public static int GenerateUniqueNumber(string inputString)
             {
-                using (MD5 md5Hash = MD5.Create())
-                {
-                    byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
+                byte[] data = MD5.HashData(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
 
-                    // To get a small integer within Lua int bounds, take the least significant 16 bits of the hash and convert to int16
-                    int uniqueNumber = Math.Abs(BitConverter.ToUInt16(data, 0));
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(data);
 
-                    return uniqueNumber;
-                }
+                // To get a small integer within Lua int bounds, take the least significant 16 bits of the hash and convert to int16
+                return Math.Abs(BitConverter.ToUInt16(data, 0));
             }
         }
 

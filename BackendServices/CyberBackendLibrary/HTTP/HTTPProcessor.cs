@@ -1,6 +1,10 @@
 using ComponentAce.Compression.Libs.zlib;
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -9,7 +13,7 @@ namespace CyberBackendLibrary.HTTP
 {
     public partial class HTTPProcessor
     {
-        public static readonly Dictionary<string, string> mimeTypes = new(StringComparer.InvariantCultureIgnoreCase)
+        public static readonly Dictionary<string, string> _mimeTypes = new(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
 
@@ -581,7 +585,7 @@ namespace CyberBackendLibrary.HTTP
             #endregion
         };
 
-        public static readonly Dictionary<string, byte[]> PathernDictionary = new()
+        public static readonly Dictionary<string, byte[]> _PathernDictionary = new()
         {
 #if NET6_0
             // Add more entries as needed
@@ -592,17 +596,23 @@ namespace CyberBackendLibrary.HTTP
             { "video/mp4", new byte[] { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70 } }
         };
 
-        public static string[] DefaultDocuments =
+        public static string[] _DefaultFiles =
         {
-            "/index.html",
-            "/index.htm",
-            "/default.html",
-            "/default.htm",
-            "/index.php",
-            "/default.php"
+            "index.html",
+            "index.htm",
+            "default.html",
+            "default.htm",
+            "home.html",
+            "home.htm",
+            "home.cgi",
+            "welcome.html",
+            "welcome.htm",
+            "index.php",
+            "default.aspx",
+            "default.asp"
         };
 
-        public static string DecodeUrl(string Value)
+        public static string DecodeUrl(string? Value)
         {
             //Decode request from the DLNA device
             if (string.IsNullOrEmpty(Value)) return string.Empty;
@@ -623,7 +633,7 @@ namespace CyberBackendLibrary.HTTP
                 if (!extension.StartsWith("."))
                     extension = "." + extension;
 
-                return mimeTypes.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
+                return _mimeTypes.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
             }
         }
 
@@ -632,7 +642,7 @@ namespace CyberBackendLibrary.HTTP
             if (string.IsNullOrEmpty(mimeType))
                 return null;
             else
-                return mimeTypes.TryGetValue(mimeType, out string? extension) ? extension : null;
+                return _mimeTypes.TryGetValue(mimeType, out string? extension) ? extension : null;
         }
 
         public static byte[] RemoveUnwantedPHPHeaders(byte[] phpOutputBytes)
@@ -704,7 +714,7 @@ namespace CyberBackendLibrary.HTTP
             return true;
         }
 
-        public static string ExtractBoundary(string contentType)
+        public static string ExtractBoundary(string? contentType)
         {
             if (!string.IsNullOrEmpty(contentType))
             {
@@ -713,14 +723,14 @@ namespace CyberBackendLibrary.HTTP
                     return contentType[(boundaryIndex + 9)..];
             }
 
-            return contentType;
+            return contentType ?? string.Empty;
         }
 
         public static string ExtractDirtyProxyPath(string referer)
         {
             if (string.IsNullOrEmpty(referer))
                 return string.Empty;
-#if NET6_0
+#if NET5_0_OR_GREATER
             Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 #elif NET7_0_OR_GREATER
             // Match the input string with the pattern
@@ -751,8 +761,11 @@ namespace CyberBackendLibrary.HTTP
             return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key));
         }
 
-        public static string RemoveQueryString(string input)
+        public static string RemoveQueryString(string? input)
         {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
             int indexOfQuestionMark = input.IndexOf('?');
 
             if (indexOfQuestionMark >= 0)

@@ -1,3 +1,4 @@
+using System.IO;
 namespace WebAPIService.UBISOFT.HERMES_API.v2
 {
     public class V2ConfigurationClass

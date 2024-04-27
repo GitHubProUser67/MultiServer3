@@ -5,6 +5,9 @@ using Horizon.LIBRARY.Common;
 using System.Collections.Concurrent;
 using System.Net;
 using static Horizon.LIBRARY.libAntiCheat.Models.Game;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models
 {
@@ -13,7 +16,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         protected static Random RNG = new();
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
-        public List<GameClient> Clients = new List<GameClient>();
+        public List<GameClient> Clients = new();
 
         public bool PassedAntiCheat = false;
 
@@ -140,12 +143,12 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public List<string> FriendsListPS3 { get; set; }
+        public List<string>? FriendsListPS3 { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public Dictionary<int, string> FriendsList { get; set; }
+        public Dictionary<int, string>? FriendsList { get; set; }
 
         /// <summary>
         /// 
@@ -212,9 +215,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// File being Uploaded
         /// </summary>
-        public MediusFile mediusFileToUpload;
-
-
+        public MediusFile? mediusFileToUpload;
 
         public ClientObject()
         {

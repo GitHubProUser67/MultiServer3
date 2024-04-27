@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Horizon.LIBRARY.Common.Stream
 {
-    public class MessageReader : BinaryReader
+    public class MessageReader : System.IO.BinaryReader
     {
         public int MediusVersion { get; set; }
         public int AppId { get; set; }

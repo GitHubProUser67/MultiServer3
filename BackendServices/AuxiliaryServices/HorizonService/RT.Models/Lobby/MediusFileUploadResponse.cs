@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -60,7 +61,7 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
-                $"Data: {(Data != null ? BitConverter.ToString(Data) : "<null>")} " +
+                $"Data: {(Data != null ? System.BitConverter.ToString(Data) : "<null>")} " +
                 $"iStartByteIndex: {iStartByteIndex} " +
                 $"iDataSize: {iDataSize} " +
                 $"iPacketNumber: {iPacketNumber} " +

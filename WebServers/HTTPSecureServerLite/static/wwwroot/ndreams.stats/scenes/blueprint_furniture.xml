@@ -1,0 +1,26 @@
+<games>
+	<fall_over url="https://pshome.ndreams.net/blueprint/blueprint_furniture.php"/>
+	<https url="https://pshome.ndreams.net/blueprint/blueprint_furniture.php"/>
+	<packlock pack="bare" val="false" />
+	<packlock pack="scifi" val="false" />
+	<packlock pack="wallpaper" val="false" />
+	<packlock pack="apocalypse" val="false" />
+	<packlock pack="asylum" val="false" />
+	<packlock pack="classroom" val="false" />
+	<packlock pack="bling" val="false" />
+	<packlock pack="paint" val="false" />
+	<envirolock name="1_valley" val="false" />
+	<envirolock name="5_island" val="false" />
+	<envirolock name="6_city" val="false" />
+	<envirolock name="2_space" val="false" />
+	<envirolock name="3_1995" val="false" />
+	<envirolock name="4_ship" val="false" />
+	<envirolock name="7_aurora" val="false" />
+	<skylock index="1" val="false" />
+	<skylock index="2" val="false" />
+	<skylock index="3" val="false" />
+	<skylock index="4" val="false" />
+	<skylock index="5" val="false" />
+	<newfurn val="true" />
+	<newoption val="true" />
+</games>

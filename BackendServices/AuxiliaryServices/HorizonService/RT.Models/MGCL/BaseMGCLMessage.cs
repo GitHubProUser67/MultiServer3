@@ -10,6 +10,5 @@ namespace Horizon.RT.Models
         {
 
         }
-
     }
 }

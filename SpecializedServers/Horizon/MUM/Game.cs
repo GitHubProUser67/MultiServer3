@@ -59,6 +59,7 @@ namespace Horizon.MUM
         public byte[]? GroupMemberList;
         public uint AppDataSize;
         public string? AppData;
+
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
@@ -420,12 +421,6 @@ namespace Horizon.MUM
 
         public virtual void AddPlayer(ClientObject client)
         {
-            if (client.DmeClientId == null)
-            {
-                LoggerAccessor.LogError($"Game {MediusWorldId}: {GameName}: {client} DmeId is null! Skipping...");
-                return;
-            }
-
             // Don't add again
             if (LocalClients.Any(x => x.Client == client))
                 return;
@@ -435,7 +430,7 @@ namespace Horizon.MUM
             LocalClients.Add(new GameClient()
             {
                 Client = client,
-                DmeId = (int)client.DmeClientId
+                DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
             });
 
             // Inform the client of any custom game mode

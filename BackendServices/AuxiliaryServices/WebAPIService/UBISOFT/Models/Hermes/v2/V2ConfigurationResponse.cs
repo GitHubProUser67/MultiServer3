@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace WebAPIService.UBISOFT.Models.Hermes.v2
 {
     public class ClubService

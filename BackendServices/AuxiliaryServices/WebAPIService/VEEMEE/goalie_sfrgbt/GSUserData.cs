@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Xml;
 using CyberBackendLibrary.HTTP;
 using WebAPIService.LeaderboardsService.VEEMEE;

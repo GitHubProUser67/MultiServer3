@@ -1,3 +1,4 @@
+using System;
 using TycoonServer.HFProcessors;
 using WebAPIService.HELLFIRE.Helpers;
 using WebAPIService.HELLFIRE.HFProcessors;

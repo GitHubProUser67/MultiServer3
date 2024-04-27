@@ -1,3 +1,4 @@
+using CastleLibrary.Utils.Conversion;
 using HomeTools.Crypto;
 using System.Numerics;
 
@@ -9,7 +10,7 @@ namespace HomeTools.UnBAR
         public long blockSize;
         public BigInteger fileLen;
 
-        public static EDATData createEDATData(byte[] data) => new EDATData()
+        public static EDATData createEDATData(byte[] data) => new()
         {
             flags = ConversionUtils.be32(data, 0),
             blockSize = ConversionUtils.be32(data, 4),

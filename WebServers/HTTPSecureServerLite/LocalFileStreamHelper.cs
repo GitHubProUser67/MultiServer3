@@ -1,10 +1,10 @@
-
 using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
-
 using CyberBackendLibrary.HTTP;
 using CyberBackendLibrary.DataTypes;
+using System.IO;
+using System;
 
 namespace HTTPSecureServerLite
 {
@@ -32,7 +32,7 @@ namespace HTTPSecureServerLite
                     string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
                     if (ContentType == "application/octet-stream")
                     {
-                        foreach (var entry in HTTPProcessor.PathernDictionary)
+                        foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
                             if (DataTypesUtils.FindbyteSequence(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
                             {
@@ -194,7 +194,7 @@ namespace HTTPSecureServerLite
                 {
                     bool matched = false;
                     byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPProcessor.PathernDictionary)
+                    foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
                         if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                         {
@@ -226,7 +226,7 @@ namespace HTTPSecureServerLite
                 {
                     bool matched = false;
                     byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPProcessor.PathernDictionary)
+                    foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
                         if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                         {

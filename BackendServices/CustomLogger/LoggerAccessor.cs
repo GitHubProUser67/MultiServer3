@@ -1,6 +1,10 @@
 using Figgle;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CustomLogger
 {
@@ -19,7 +23,7 @@ namespace CustomLogger
 
                 Console.Clear();
             }
-            catch (Exception) // If a background or windows service, will assert.
+            catch // If a background or windows service, will assert.
             {
 
             }
@@ -45,7 +49,7 @@ namespace CustomLogger
             if (Environment.OSVersion.Platform == PlatformID.Win32NT 
                 || Environment.OSVersion.Platform == PlatformID.Win32S 
                 || Environment.OSVersion.Platform == PlatformID.Win32Windows)
-                Task.Run(RessourcesLogger.StartPerfWatcher);
+                _ = Task.Run(ResourceMonitor.StartPerfWatcher);
 #endif
             initiated = true;
         }

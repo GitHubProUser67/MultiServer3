@@ -1,4 +1,6 @@
 using EndianTools;
+using System;
+using System.IO;
 
 namespace HomeTools.BARFramework
 {
@@ -14,8 +16,7 @@ namespace HomeTools.BARFramework
             if (m_br.BaseStream.Length == 0)
                 return Array.Empty<byte>();
 
-            byte[] dataIn = m_br.ReadBytes(length);
-            return EndianUtils.EndianSwap(dataIn);
+            return EndianUtils.EndianSwap(m_br.ReadBytes(length));
         }
 
         public override short ReadInt16()
@@ -28,7 +29,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToInt16(array, 0);
+            return BitConverter.ToInt16(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
 
         public override int ReadInt32()
@@ -41,7 +42,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToInt32(array, 0);
+            return BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
 
         public override float ReadSingle()
@@ -54,7 +55,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToSingle(array, 0);
+            return BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
 
         public override ushort ReadUInt16()
@@ -67,7 +68,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToUInt16(array, 0);
+            return BitConverter.ToUInt16(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
 
         public override uint ReadUInt32()
@@ -80,7 +81,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToUInt32(array, 0);
+            return BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
 
         public override long ReadInt64()
@@ -93,7 +94,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToInt64(array, 0);
+            return BitConverter.ToInt64(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
 
         public override ulong ReadUInt64()
@@ -106,7 +107,7 @@ namespace HomeTools.BARFramework
             byte[] array = new byte[num];
             m_br.Read(array, 0, num);
             Array.Reverse(array);
-            return BitConverter.ToUInt64(array, 0);
+            return BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(array) : array, 0);
         }
     }
 }

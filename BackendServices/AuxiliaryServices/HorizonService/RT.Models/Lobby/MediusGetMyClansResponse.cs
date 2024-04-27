@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -76,7 +77,7 @@ namespace Horizon.RT.Models
                 $"ClanName: {ClanName} " +
                 $"LeaderAccountID: {LeaderAccountID} " +
                 $"LeaderAccountName: {LeaderAccountName} " +
-                $"Stats: {BitConverter.ToString(Stats)} " +
+                $"Stats: {System.BitConverter.ToString(Stats)} " +
                 $"Status: {Status} " +
                 $"EndOfList: {EndOfList}";
         }

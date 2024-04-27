@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -116,7 +117,7 @@ namespace Horizon.RT.Models
                 $"MediusWorldID: {MediusWorldID} " +
                 $"PlayerCount: {PlayerCount} " +
                 $"GameName: {GameName} " +
-                $"GameStats: {BitConverter.ToString(GameStats)} " +
+                $"GameStats: {System.BitConverter.ToString(GameStats)} " +
                 $"MinPlayers: {MinPlayers} " +
                 $"MaxPlayers: {MaxPlayers} " +
                 $"GameLevel: {GameLevel} " +

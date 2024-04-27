@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -27,7 +28,7 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"TargetOrSource: {TargetOrSource} " +
-                $"Payload: {(Payload == null ? "" : BitConverter.ToString(Payload))}";
+                $"Payload: {(Payload == null ? string.Empty : System.BitConverter.ToString(Payload))}";
         }
     }
 }

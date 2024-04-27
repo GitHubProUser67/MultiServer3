@@ -1,5 +1,8 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
+using System;
 
 namespace Horizon.RT.Models
 {
@@ -38,15 +41,15 @@ namespace Horizon.RT.Models
         public static List<RT_MSG_SERVER_MEMORY_POKE> FromPayload(uint address, byte[] payload)
         {
             int i = 0;
-            var msgs = new List<RT_MSG_SERVER_MEMORY_POKE>();
+            List<RT_MSG_SERVER_MEMORY_POKE> msgs = new();
 
             while (i < payload.Length)
             {
-                int len = (payload.Length - i);
+                int len = payload.Length - i;
                 if (len > Constants.MEDIUS_MESSAGE_MAXLEN)
                     len = Constants.MEDIUS_MESSAGE_MAXLEN;
 
-                var msg = new RT_MSG_SERVER_MEMORY_POKE()
+                RT_MSG_SERVER_MEMORY_POKE msg = new()
                 {
                     start_Address = (uint)(address + i),
                     Payload = new byte[len],

@@ -1,4 +1,10 @@
+using CustomLogger;
+using EndianTools;
 using SevenZip.Compression.LZMA;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace CompressionLibrary.Custom
 {
@@ -83,7 +89,7 @@ namespace CompressionLibrary.Custom
                 int streamSize = (int)(result.Length - preLength);
                 if (streamSize >= 0x10000)
                 {
-                    System.Diagnostics.Debug.WriteLine("[EdgeLzma] - Warning - Stream did not compress - script might not be executed on PS3 correctly.");
+                    LoggerAccessor.LogDebug("[EdgeLzma] - Warning - Stream did not compress - script might not be executed on PS3 correctly.");
                     result.Position = preLength;
                     result.SetLength(preLength);
                     result.Write(buffer, offset, Math.Min(inSize, 0x10000));
@@ -120,7 +126,7 @@ namespace CompressionLibrary.Custom
         public byte[] Decompress(byte[] buffer)
         {
             MemoryStream result = new();
-            int outSize = BitConverter.ToInt32(buffer, 12);
+            int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, 12);
             int streamCount = outSize + 0xffff >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
@@ -150,13 +156,14 @@ namespace CompressionLibrary.Custom
         /// <returns>A byte array.</returns>
         public byte[]? SegmentsDecompress(byte[] inbuffer, bool safemode) // Todo, make it multithreaded like original sdk.
         {
+            bool LittleEndian = BitConverter.IsLittleEndian;
             try
             {
                 if (inbuffer[0] == 0x73 && inbuffer[1] == 0x65 && inbuffer[2] == 0x67 && inbuffer[3] == 0x73)
                 {
-                    int numofsegments = BitConverter.ToInt16(new byte[] { inbuffer[7], inbuffer[6] }, 0);
-                    int OriginalSize = BitConverter.ToInt32(new byte[] { inbuffer[11], inbuffer[10], inbuffer[9], inbuffer[8] }, 0);
-                    //int CompressedSize = BitConverter.ToInt32(new byte[] { inbuffer[15], inbuffer[14], inbuffer[13], inbuffer[12] }, 0); // Unused during decompression.
+                    int numofsegments = BitConverter.ToInt16(!LittleEndian ? new byte[] { inbuffer[6], inbuffer[7] } : new byte[] { inbuffer[7], inbuffer[6] }, 0);
+                    int OriginalSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[8], inbuffer[9], inbuffer[10], inbuffer[11] } : new byte[] { inbuffer[11], inbuffer[10], inbuffer[9], inbuffer[8] }, 0);
+                    int CompressedSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[12], inbuffer[13], inbuffer[14], inbuffer[15] } : new byte[] { inbuffer[15], inbuffer[14], inbuffer[13], inbuffer[12] }, 0); // Unused during decompression.
                     byte[] TOCData = new byte[8 * numofsegments]; // 8 being size of each TOC entry.
                     byte[][] arrayOfArrays = new byte[numofsegments][];
                     Buffer.BlockCopy(inbuffer, 16, TOCData, 0, TOCData.Length);
@@ -176,18 +183,18 @@ namespace CompressionLibrary.Custom
                             Array.Reverse(SegmentCompressedSizeByte);
                             Array.Reverse(SegmentOriginalSizeByte);
                             Array.Reverse(SegmentOffsetByte);
-                            int SegmentCompressedSize = BitConverter.ToUInt16(SegmentCompressedSizeByte, 0);
-                            int SegmentOriginalSize = BitConverter.ToUInt16(SegmentOriginalSizeByte, 0);
+                            int SegmentCompressedSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.EndianSwap(SegmentCompressedSizeByte) : SegmentCompressedSizeByte, 0);
+                            int SegmentOriginalSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.EndianSwap(SegmentOriginalSizeByte) : SegmentOriginalSizeByte, 0);
                             int SegmentOffset = 0;
                             byte[] CompressedData = Array.Empty<byte>();
                             if (SegmentCompressedSize <= 0) // Safer than just comparing with 0.
                             {
-                                SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0);
+                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.EndianSwap(SegmentOffsetByte) : SegmentOffsetByte, 0);
                                 CompressedData = new byte[65536];
                             }
                             else
                             {
-                                SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
+                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.EndianSwap(SegmentOffsetByte) : SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
                                 CompressedData = new byte[SegmentCompressedSize];
                             }
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);
@@ -222,20 +229,20 @@ namespace CompressionLibrary.Custom
                             return FileData;
                         else if (safemode)
                         {
-                            System.Diagnostics.Debug.WriteLine("[EdgeLzmaSegs] - File size is different than the one indicated in TOC! Sending input file instead.");
+                            LoggerAccessor.LogError("[EdgeLzmaSegs] - File size is different than the one indicated in TOC! Sending input file instead.");
                             return inbuffer;
                         }
                     }
                     else if (safemode)
-                        System.Diagnostics.Debug.WriteLine("[EdgeLzmaSegs] - The byte array length is not evenly divisible by 8, decompression failed!");
+                        LoggerAccessor.LogError("[EdgeLzmaSegs] - The byte array length is not evenly divisible by 8, decompression failed!");
                 }
                 else if (safemode)
-                    System.Diagnostics.Debug.WriteLine("[EdgeLzmaSegs] - File is not a valid segment based EdgeLzma compressed file!");
+                    LoggerAccessor.LogError("[EdgeLzmaSegs] - File is not a valid segment based EdgeLzma compressed file!");
             }
             catch (Exception ex)
             {
                 if (safemode)
-                    System.Diagnostics.Debug.WriteLine($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
+                    LoggerAccessor.LogError($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
             }
 
             return null;

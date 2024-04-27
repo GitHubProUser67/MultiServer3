@@ -5,6 +5,8 @@ using System.Security.Cryptography;
 using WebAPIService.SSFW;
 using System.Text;
 using CyberBackendLibrary.DataTypes;
+using System.IO;
+using System;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
@@ -19,34 +21,28 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             if (PostData != null)
             {
-                using (MemoryStream copyStream = new(PostData))
+                using MemoryStream copyStream = new(PostData);
+                foreach (var file in MultipartFormDataParser.Parse(copyStream, boundary).Files)
                 {
-                    var data = MultipartFormDataParser.Parse(copyStream, boundary);
+                    using Stream filedata = file.Data;
+                    filedata.Position = 0;
 
-                    foreach (var file in data.Files)
-                    {
-                        using (Stream filedata = file.Data)
-                        {
-                            filedata.Position = 0;
+                    // Find the number of bytes in the stream
+                    int contentLength = (int)filedata.Length;
 
-                            // Find the number of bytes in the stream
-                            int contentLength = (int)filedata.Length;
+                    // Create a byte array
+                    byte[] buffer = new byte[contentLength];
 
-                            // Create a byte array
-                            byte[] buffer = new byte[contentLength];
+                    // Read the contents of the memory stream into the byte array
+                    filedata.Read(buffer, 0, contentLength);
 
-                            // Read the contents of the memory stream into the byte array
-                            filedata.Read(buffer, 0, contentLength);
+                    if (file.FileName == "ticket.bin")
+                        ticketData = buffer;
 
-                            if (file.FileName == "ticket.bin")
-                                ticketData = buffer;
-
-                            filedata.Flush();
-                        }
-                    }
-
-                    copyStream.Flush();
+                    filedata.Flush();
                 }
+
+                copyStream.Flush();
             }
 
             if (ticketData != null)

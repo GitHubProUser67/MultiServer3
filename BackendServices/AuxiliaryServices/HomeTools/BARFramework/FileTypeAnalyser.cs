@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace HomeTools.BARFramework
@@ -46,7 +48,7 @@ namespace HomeTools.BARFramework
             try
             {
                 TextReader textReader = new StreamReader(inStream);
-                string text = textReader.ReadLine();
+                string? text = textReader.ReadLine();
                 if (text == null)
                 {
                     result = HomeFileType.Unknown;
@@ -121,7 +123,7 @@ namespace HomeTools.BARFramework
                     result = HomeFileType.LUASource;
                 textReader.Close();
             }
-            catch (Exception)
+            catch
             {
                 result = HomeFileType.Unknown;
             }

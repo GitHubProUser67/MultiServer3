@@ -2,8 +2,11 @@ using CustomLogger;
 using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Transport.Channels;
+using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.RT.Common;
 using Horizon.RT.Models;
+using System;
+using System.Collections.Generic;
 
 namespace Horizon.LIBRARY.Pipeline.Tcp
 {
@@ -21,7 +24,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         {
             try
             {
-                var decoded = Decode(context, input);
+                object? decoded = Decode(context, input);
                 if (decoded != null)
                     output.Add(decoded);
             }
@@ -49,11 +52,11 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
             int totalLength = 3;
 
             if (!context.HasAttribute(Constants.SCERT_CLIENT))
-                context.GetAttribute(Constants.SCERT_CLIENT).Set(new Attribute.ScertClientAttribute());
-            var scertClient = context.GetAttribute(Constants.SCERT_CLIENT).Get();
+                context.GetAttribute(Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
+            ScertClientAttribute scertClient = context.GetAttribute(Constants.SCERT_CLIENT).Get();
 
             if (frameLength <= 0)
-                return BaseScertMessage.Instantiate((RT_MSG_TYPE)(id & 0x7F), null, new byte[0], (int)scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
+                return BaseScertMessage.Instantiate((RT_MSG_TYPE)(id & 0x7F), null, Array.Empty<byte>(), scertClient.MediusVersion != null ? (int)scertClient.MediusVersion : 108, scertClient.ApplicationID, scertClient.CipherService);
 
             if (id >= 0x80)
             {
@@ -80,7 +83,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
             input.GetBytes(input.ReaderIndex + totalLength, messageContents);
 
             input.SetReaderIndex(input.ReaderIndex + totalLength + frameLengthInt);
-            return BaseScertMessage.Instantiate((RT_MSG_TYPE)id, hash, messageContents, (int)scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
+            return BaseScertMessage.Instantiate((RT_MSG_TYPE)id, hash, messageContents, scertClient.MediusVersion != null ? (int)scertClient.MediusVersion : 108, scertClient.ApplicationID, scertClient.CipherService);
         }
     }
 }

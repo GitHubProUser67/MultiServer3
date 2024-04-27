@@ -1,6 +1,9 @@
 using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
+using System;
+using System.IO;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -196,11 +199,11 @@ namespace WebAPIService.PREMIUMAGENCY
             try
             {
 
-                List<(string, string)> formData = new List<(string, string)>();
+                List<(string, string)> formData = new();
 
-                using (StreamReader reader = new StreamReader(filePath))
+                using (StreamReader reader = new(filePath))
                 {
-                    string line;
+                    string? line;
                     string currentKey = string.Empty;
                     string currentValue = string.Empty;
 

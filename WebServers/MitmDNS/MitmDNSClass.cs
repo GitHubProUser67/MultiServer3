@@ -1,70 +1,71 @@
-
 using CustomLogger;
 using PSHostsFile;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MitmDNS
 {
     public partial class MitmDNSClass
     {
-        public static Dictionary<string, DnsSettings>? DicRules = null;
-        public static List<KeyValuePair<string, DnsSettings>>? StarRules = null;
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
 
         public async void MitmDNSMain()
         {
-            await Task.Run(async () => {
-                if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
+            LoggerAccessor.LogWarn("[DNS] - DNS system is initialising, service will be available when initialized...");
+
+            if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
+            {
+                LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                try
                 {
-                    LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                    if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-                    try
-                    {
-#if NET7_0
+#if NET7_0_OR_GREATER
                         HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
                         response.EnsureSuccessStatusCode();
                         ParseRules(await response.Content.ReadAsStringAsync(), false);
 #else
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                        ParseRules(await new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig), false);
+                    ParseRules(await new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig), false);
 #pragma warning restore
 #endif
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                        return;
-                    }
                 }
-                else if (DicRules == null)
+                catch (Exception ex)
                 {
-                    if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
-                        ParseRules(MitmDNSServerConfiguration.DNSConfig);
-                    else
-                    {
-                        LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
-                        Environment.Exit(0);
-                    }
+                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
+                    return;
                 }
-            });
+            }
+            else
+            {
+                if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+                    ParseRules(MitmDNSServerConfiguration.DNSConfig);
+                else
+                {
+                    LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
+                    Environment.Exit(0);
+                }
+            }
 
-            _ = new MitmDNSUDPProcessor().RunDns();
+            await new MitmDNSUDPProcessor().RunDns();
         }
 
         private static void ParseRules(string Filename, bool IsFilename = true)
         {
-            DicRules = new Dictionary<string, DnsSettings>();
-            StarRules = new List<KeyValuePair<string, DnsSettings>>();
-
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
-                DicRules = ParseSimpleDNSRules(Filename, DicRules);
+                ParseSimpleDNSRules(Filename);
             else
             {
                 HashSet<string> processedDomains = new();
-                string[] rules = IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (string s in rules)
+                foreach (string s in IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None))
                 {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
@@ -154,7 +155,7 @@ namespace MitmDNS
             LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
 
-        private static Dictionary<string, DnsSettings> ParseSimpleDNSRules(string Filename, Dictionary<string, DnsSettings> DicRules)
+        private static void ParseSimpleDNSRules(string Filename)
         {
             // Read all lines from the test file
             string[] lines = File.ReadAllLines(Filename);
@@ -182,9 +183,7 @@ namespace MitmDNS
                 // Check if the .dns file exists
                 if (File.Exists(dnsFilePath))
                 {
-                    string[] dnsFileLines = File.ReadAllLines(dnsFilePath);
-
-                    foreach (string line in dnsFileLines)
+                    foreach (string line in File.ReadAllLines(dnsFilePath))
                     {
                         if (line.StartsWith("\t\tA"))
                         {
@@ -216,8 +215,6 @@ namespace MitmDNS
                     }
                 }
             }
-
-            return DicRules;
         }
 
         private bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)

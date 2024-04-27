@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace HomeTools.BARFramework
 {
     public class StreamBar : BARArchive

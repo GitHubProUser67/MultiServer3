@@ -1,4 +1,7 @@
 
+using System;
+using System.IO;
+
 namespace WebAPIService.CAPONE
 {
     public class CAPONEClass : IDisposable

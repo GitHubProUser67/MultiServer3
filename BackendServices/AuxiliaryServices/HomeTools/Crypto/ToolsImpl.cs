@@ -4,11 +4,12 @@ using System.Numerics;
 using ComponentAce.Compression.Libs.zlib;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-
-using HomeTools.UnBAR;
 using System.Security.Cryptography;
 using EndianTools;
 using CyberBackendLibrary.DataTypes;
+using System;
+using System.IO;
+using CastleLibrary.Utils.Conversion;
 
 namespace HomeTools.Crypto
 {
@@ -288,8 +289,7 @@ namespace HomeTools.Crypto
             if (header.CompressedSize == header.SourceSize)
                 return inData;
             MemoryStream baseInputStream = new(inData);
-            Inflater inf = new(true);
-            InflaterInputStream inflaterInputStream = new(baseInputStream, inf);
+            InflaterInputStream inflaterInputStream = new(baseInputStream, new Inflater(true));
             MemoryStream memoryStream = new();
             byte[] array = new byte[4096];
             for (; ; )
@@ -324,14 +324,14 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        private byte[] ComponentAceDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
+        private byte[] ComponentAceDecompressEdgeZlibChunk(byte[] InData, ChunkHeader header)
         {
             if (header.CompressedSize == header.SourceSize)
-                return inData;
+                return InData;
             MemoryStream memoryStream = new();
             ZOutputStream zoutputStream = new(memoryStream, true);
-            byte[] array = new byte[inData.Length];
-            Array.Copy(inData, 0, array, 0, inData.Length);
+            byte[] array = new byte[InData.Length];
+            Array.Copy(InData, 0, array, 0, InData.Length);
             zoutputStream.Write(array, 0, array.Length);
             zoutputStream.Close();
             memoryStream.Close();
@@ -385,14 +385,13 @@ namespace HomeTools.Crypto
             int inputLength = inputArray.Length;
             byte[]? output = new byte[inputLength];
             ToolsImpl? toolsimpl = new();
-            LIBSECURE? libsecure = new();
 
             while (inputIndex < inputLength)
             {
                 int blockSize = Math.Min(8, inputLength - inputIndex);
                 byte[] block = new byte[blockSize];
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[]? taskResult = libsecure.InitiateLibsecureXTEACTRBlock(block, Key, IV) ?? null;
+                byte[]? taskResult = LIBSECURE.InitiateLibsecureXTEACTRBlock(block, Key, IV) ?? null;
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
                 if (taskResult.Length < blockSize)
@@ -404,7 +403,6 @@ namespace HomeTools.Crypto
             }
 
             toolsimpl = null;
-            libsecure = null;
 
             return output;
         }
@@ -450,7 +448,6 @@ namespace HomeTools.Crypto
             if (IVA.Length >= blockSize)
             {
                 StringBuilder? hexStr = new();
-                LIBSECURE? libsecure = new();
                 byte[]? returnstring = null;
                 int i = blockSize; // Start index for processing.
 
@@ -486,11 +483,10 @@ namespace HomeTools.Crypto
 
                         Array.Copy(ISO97971, 0, block, fileBytes.Length, ISO97971.Length); // Copy the ISO97971 padding at the beginning
 
-                        string hexresult = libsecure.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize);
-                        hexStr.Append(hexresult[..^(BytesToFill * 2)]); // Pemdas rule necessary, and we double size because we work with bytes in a string.
+                        hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize)[..^(BytesToFill * 2)]); // Pemdas rule necessary, and we double size because we work with bytes in a string.
                     }
                     else
-                        hexStr.Append(libsecure.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize));
+                        hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize));
 
                     i += blockSize;
                 }
@@ -498,7 +494,6 @@ namespace HomeTools.Crypto
                 returnstring = DataTypesUtils.HexStringToByteArray(hexStr.ToString());
 
                 hexStr = null;
-                libsecure = null;
 
                 return returnstring;
             }

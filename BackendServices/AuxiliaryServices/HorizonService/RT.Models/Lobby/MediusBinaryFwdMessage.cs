@@ -1,3 +1,4 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -45,7 +46,7 @@ namespace Horizon.RT.Models
                 $"MessageID: {MessageID} " +
                 $"OriginatorAccountID: {OriginatorAccountID} " +
                 $"MessageType: {MessageType} " +
-                $"Message: {BitConverter.ToString(Message)}";
+                $"Message: {System.BitConverter.ToString(Message)}";
         }
     }
 }

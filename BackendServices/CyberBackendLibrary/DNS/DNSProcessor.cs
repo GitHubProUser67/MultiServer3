@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -6,7 +8,6 @@ namespace CyberBackendLibrary.DNS
 {
     public class DNSProcessor
     {
-
         public static byte[]? MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
         {
             try
@@ -70,11 +71,9 @@ namespace CyberBackendLibrary.DNS
                 Array.Resize(ref str, i);
                 i -= 1;
             }
-            string res = Encoding.ASCII.GetString(str);
             //if (res.ToLower() == "www") return null; Some sites do not work without www
             /* else*/
-            return res;
+            return Encoding.ASCII.GetString(str);
         }
-
     }
 }

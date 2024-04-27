@@ -1,5 +1,7 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {
@@ -69,11 +71,11 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID:{MessageID} " +
-             $"StatusCode:{StatusCode} " +
-$"IgnoreAccountID:{IgnoreAccountID} " +
-$"IgnoreAccountName:{IgnoreAccountName} " +
-$"PlayerStatus:{PlayerStatus} " +
-$"EndOfList:{EndOfList}";
+                $"StatusCode:{StatusCode} " +
+                $"IgnoreAccountID:{IgnoreAccountID} " +
+                $"IgnoreAccountName:{IgnoreAccountName} " +
+                $"PlayerStatus:{PlayerStatus} " +
+                $"EndOfList:{EndOfList}";
         }
 
         public static List<MediusGetIgnoreListResponse> FromCollection(MessageId messageId, IEnumerable<MediusGetIgnoreListResponseItem> items)

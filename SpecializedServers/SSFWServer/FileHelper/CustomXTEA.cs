@@ -1,4 +1,5 @@
 using CustomLogger;
+using EndianTools;
 
 namespace SSFWServer
 {
@@ -19,6 +20,8 @@ namespace SSFWServer
         /// <returns></returns>
         public byte[] Decrypt(byte[] data, byte[] key)
         {
+            bool LittleEndian = BitConverter.IsLittleEndian;
+
             try
             {
                 if (data.Length % 8 != 0)
@@ -32,16 +35,16 @@ namespace SSFWServer
                     {
                         for (int i = 0; i < buffer.Length; i += 8)
                         {
-                            blockBuffer[0] = BitConverter.ToUInt32(buffer, i);
-                            blockBuffer[1] = BitConverter.ToUInt32(buffer, i + 4);
-                            Decrypt(Rounds, blockBuffer, CreateKey(key));
+                            blockBuffer[0] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i);
+                            blockBuffer[1] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i + 4);
+                            Decrypt(Rounds, blockBuffer, CreateKey(key, LittleEndian));
                             writer.Write(blockBuffer[0]);
                             writer.Write(blockBuffer[1]);
                         }
                     }
                 }
                 // verify valid length
-                uint length = BitConverter.ToUInt32(buffer, 0);
+                uint length = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, 0);
                 if (length > buffer.Length - 4)
                     return Array.Empty<byte>();
                 byte[] result = new byte[length];
@@ -61,7 +64,7 @@ namespace SSFWServer
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public uint[] CreateKey(byte[] key)
+        public uint[] CreateKey(byte[] key, bool Endianess)
         {
             // It might be a better idea to just calculate the MD5 hash of the key: var hash = MD5.Create().ComputeHash(key);
             // But we don't want to depend on the Cryptography namespace, because it would increase the build size for some Unity3d platforms.
@@ -76,8 +79,8 @@ namespace SSFWServer
                 hash[i] = (byte)(17 * i ^ key[i % key.Length]);
             }
             return new[] {
-                BitConverter.ToUInt32(hash, 0), BitConverter.ToUInt32(hash, 4),
-                BitConverter.ToUInt32(hash, 8), BitConverter.ToUInt32(hash, 12)
+                BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 0), BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 4),
+                BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 8), BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 12)
             };
         }
 

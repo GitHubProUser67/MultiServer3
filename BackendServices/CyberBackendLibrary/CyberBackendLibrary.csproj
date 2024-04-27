@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -14,7 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CastleLibrary\CastleLibrary.csproj" />
     <ProjectReference Include="..\CompressionLibrary\CompressionLibrary.csproj" />
-    <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
   </ItemGroup>
 
 </Project>

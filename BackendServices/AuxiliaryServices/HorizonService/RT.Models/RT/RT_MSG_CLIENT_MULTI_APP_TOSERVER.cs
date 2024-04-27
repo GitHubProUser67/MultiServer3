@@ -1,5 +1,8 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horizon.RT.Models
 {
@@ -8,14 +11,14 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_MULTI_APP_TOSERVER;
 
-        public List<BaseScertMessage> Messages { get; set; } = new List<BaseScertMessage>();
+        public List<BaseScertMessage> Messages { get; set; } = new();
 
         public override void Deserialize(MessageReader reader)
         {
             Messages = new List<BaseScertMessage>();
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                var message = BaseScertMessage.Instantiate(reader);
+                var message = Instantiate(reader);
                 Messages.Add(message);
             }
         }

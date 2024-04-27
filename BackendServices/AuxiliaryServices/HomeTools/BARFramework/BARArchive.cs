@@ -8,7 +8,10 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Xml;
 using CyberBackendLibrary.DataTypes;
-using CyberBackendLibrary.Crypto;
+using System.IO;
+using System.Collections.Generic;
+using System;
+using CastleLibrary.Utils.AES;
 
 namespace HomeTools.BARFramework
 {
@@ -165,7 +168,7 @@ namespace HomeTools.BARFramework
             else if (options == BARAddFileOptions.Default)
             {
                 string a = Path.GetExtension(filePath).ToLower();
-                if (a == ".mp3" || a == ".mp4" || a == ".bar" || a == ".sharc")
+                if (!string.IsNullOrEmpty(a) && (a == ".mp3" || a == ".mp4" || a == ".bar" || a == ".sharc"))
                     result = false;
             }
             return result;
@@ -173,8 +176,7 @@ namespace HomeTools.BARFramework
 
         private string GetInBARPath(string filePath)
         {
-            string text = filePath.Replace(Path.DirectorySeparatorChar, '/');
-            return text.Substring(m_resourceRoot.Length + 1);
+            return filePath.Replace(Path.DirectorySeparatorChar, '/')[(m_resourceRoot.Length + 1)..];
         }
 
         private void RunDeleteOperation(HashedFileName fileName, BARFileOperationFlags flags)

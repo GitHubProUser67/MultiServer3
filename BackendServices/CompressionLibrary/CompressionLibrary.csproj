@@ -2,13 +2,17 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SevenZip" Version="19.0.0" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CustomLogger\CustomLogger.csproj" />
+    <ProjectReference Include="..\EndianTools\EndianTools.csproj" />
   </ItemGroup>
 
 </Project>

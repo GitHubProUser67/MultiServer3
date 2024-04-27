@@ -330,7 +330,7 @@ namespace QuazalServer.QNetZ
 
 						if (packetIn.payload != null)
 						{
-                            ulong time = BitConverter.ToUInt64(packetIn.payload, 5);
+                            ulong time = BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(packetIn.payload) : packetIn.payload, 5);
 
                             if (NATPingTimeToIgnore.Contains(time))
                                 NATPingTimeToIgnore.Remove(time);

@@ -1,5 +1,7 @@
+using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System;
 
 namespace Horizon.RT.Models
 {
@@ -16,7 +18,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Session Key
         /// </summary>
-        public string SessionKey; // SESSIONKEY_MAXLEN
+        public string? SessionKey; // SESSIONKEY_MAXLEN
         /// <summary>
         /// MediusWorldID
         /// </summary>
@@ -28,28 +30,22 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(3);
 
-            //
             MediusWorldID = reader.ReadInt32();
             Stats = reader.ReadBytes(Constants.ACCOUNTSTATS_MAXLEN);
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(new byte[3]);
 
-            //
             writer.Write(MediusWorldID);
             writer.Write(Stats, Constants.ACCOUNTSTATS_MAXLEN);
         }

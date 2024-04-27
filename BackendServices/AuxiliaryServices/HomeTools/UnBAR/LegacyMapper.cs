@@ -1,6 +1,11 @@
 using HomeTools.AFS;
 using CustomLogger;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.IO;
+using System.Linq;
+using System;
 
 namespace HomeTools.UnBAR
 {
@@ -20,7 +25,7 @@ namespace HomeTools.UnBAR
 
                 if (string.IsNullOrEmpty(prefix))
                 {
-#if NET6_0
+#if NET5_0_OR_GREATER
                     Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(foldertomap);
 #elif NET7_0_OR_GREATER
                     Match match = UUIDRegex().Match(foldertomap);

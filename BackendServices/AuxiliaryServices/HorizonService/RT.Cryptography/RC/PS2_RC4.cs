@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace Horizon.RT.Cryptography.RC
 {
     /// <summary>
