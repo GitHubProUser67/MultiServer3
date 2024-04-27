@@ -11,17 +11,17 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string directoryPath, string filepath, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
+        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
                 return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
                 return Handle_LocalFile(request, filepath);
             else
-                return HttpBuilder.NotFound(request, absolutepath, Host, directoryPath, ServerIP, ListenerPort.ToString(), request.RetrieveHeaderValue("Accept").Contains("html"));
+                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
-        public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string directoryPath, string local_path, string ServerIP, ushort ListenerPort)
+        public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string local_path, string Accept, string ServerIP, ushort ListenerPort)
         {
             if (File.Exists(local_path))
             {
@@ -54,7 +54,7 @@ namespace HTTPServer.RouteHandlers
                 return response;
             }
             else
-                return HttpBuilder.NotFound(request, absolutepath, Host, directoryPath, ServerIP, ListenerPort.ToString(), request.RetrieveHeaderValue("Accept").Contains("html"));
+                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)

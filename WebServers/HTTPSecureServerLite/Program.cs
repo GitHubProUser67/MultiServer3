@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System;
 using System.Threading.Tasks;
+using CyberBackendLibrary.AIModels;
 
 public static class HTTPSServerConfiguration
 {
@@ -88,7 +89,8 @@ public static class HTTPSServerConfiguration
             "www.konami.com",
             "www.ndreamsportal.com",
             "nonprod3.homerewards.online.scee.com",
-            "www.services.heavyh2o.net"
+            "www.services.heavyh2o.net",
+            "nDreams-multiserver-cdn"
         };
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
@@ -273,6 +275,9 @@ class Program
         LeaderboardClass.APIPath = HTTPSServerConfiguration.APIStaticFolder;
 
         _ = new Timer(LeaderboardClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+
+        if (HTTPSServerConfiguration.NotFoundSuggestions)
+            _ = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPSServerConfiguration.HTTPSStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => Parallel.ForEach(HTTPSServerConfiguration.Ports ?? new List<ushort> { }, port =>

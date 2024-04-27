@@ -94,7 +94,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse NotFound(HttpRequest request, string absolutepath, string Host, string directoryPath, string ServerIP, string serverPort, bool HTMLResponse)
+        public static HttpResponse NotFound(HttpRequest request, string absolutepath, string Host, string ServerIP, string serverPort, bool HTMLResponse)
         {
             if (!HTMLResponse)
                 return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
@@ -102,7 +102,7 @@ namespace HTTPServer
                     HttpStatusCode = HttpStatusCode.Not_Found,
                 };
             else
-                return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",  directoryPath,
+                return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
                     HTTPServerConfiguration.HTTPStaticFolder, HTTPProcessor.GenerateServerSignature(), serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.Not_Found);
         }
 

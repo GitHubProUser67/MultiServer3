@@ -191,3 +191,4 @@ ps3home-sr1.easports.ea.com,Redirect,IP
 collector.gr.online.scea.com,Redirect,IP
 content.gr.online.scea.com,Redirect,IP
 www.konami.com,Redirect,IP
+nDreams-multiserver-cdn,Redirect,IP

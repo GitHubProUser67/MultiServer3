@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using System.Threading;
+using CyberBackendLibrary.AIModels;
 
 public static class HTTPServerConfiguration
 {
@@ -193,6 +194,9 @@ class Program
         HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
 
         GeoIP.Initialize();
+
+        if (HTTPServerConfiguration.NotFoundSuggestions)
+            _ = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => _ = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
