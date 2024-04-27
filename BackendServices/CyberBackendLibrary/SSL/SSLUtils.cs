@@ -164,9 +164,13 @@ namespace CyberBackendLibrary.SSL
             }
             IPAddress PublicServerIP = IPAddress.Parse(TCP_IP.IPUtils.GetPublicIPAddress());
             IPAddress LocalServerIP = TCP_IP.IPUtils.GetLocalIPAddress();
+            sanBuilder.AddDnsName(PublicServerIP.ToString());
             sanBuilder.AddIpAddress(PublicServerIP);
             if (PublicServerIP != LocalServerIP)
+            {
+                sanBuilder.AddDnsName(LocalServerIP.ToString());
                 sanBuilder.AddIpAddress(LocalServerIP);
+            }
             sanBuilder.AddEmailAddress("MultiServer@gmail.com");
             request.CertificateExtensions.Add(sanBuilder.Build());
 
