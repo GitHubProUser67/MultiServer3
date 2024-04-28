@@ -4,6 +4,7 @@ using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
 using CyberBackendLibrary.GeoLocalization;
 using System.Runtime;
+using System.Security.Cryptography;
 
 public static class HorizonServerConfiguration
 {
@@ -11,6 +12,7 @@ public static class HorizonServerConfiguration
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/HorizonHTTPService.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
+    public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static bool EnableMedius { get; set; } = true;
     public static bool EnableDME { get; set; } = true;
     public static bool EnableMuis { get; set; } = true;
@@ -71,6 +73,7 @@ public static class HorizonServerConfiguration
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
+                new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("player_api_static_path", PlayerAPIStaticPath),
                 new JProperty("medius_api_key", MediusAPIKey),
                 new JProperty("plugins_folder", PluginsFolder),
@@ -94,6 +97,7 @@ public static class HorizonServerConfiguration
             EnableBWPS = GetValueOrDefault(config.bwps, "enabled", EnableBWPS);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
+            HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
             PlayerAPIStaticPath = GetValueOrDefault(config, "player_api_static_path", PlayerAPIStaticPath);
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             DMEConfig = GetValueOrDefault(config.dme, "config", DMEConfig);
@@ -199,7 +203,8 @@ class Program
 
         HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword, HorizonServerConfiguration.HTTPSDNSList);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
+            HorizonServerConfiguration.HTTPSDNSList, HorizonServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         _ = Task.Run(() => Parallel.Invoke(
                     () => HorizonStarter(),

@@ -10,6 +10,7 @@ using System.Threading;
 using System;
 using System.Threading.Tasks;
 using CyberBackendLibrary.AIModels;
+using System.Security.Cryptography;
 
 public static class HTTPSServerConfiguration
 {
@@ -29,6 +30,7 @@ public static class HTTPSServerConfiguration
     public static bool PHPDebugErrors { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
+    public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
     public static string[]? HTTPSDNSList { get; set; } = {
@@ -132,6 +134,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
+                new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
@@ -163,6 +166,7 @@ public static class HTTPSServerConfiguration
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
+            HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
@@ -268,7 +272,8 @@ class Program
 
         string certpath = HTTPSServerConfiguration.HTTPSCertificateFile;
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(certpath, HTTPSServerConfiguration.HTTPSCertificatePassword, HTTPSServerConfiguration.HTTPSDNSList);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(certpath, HTTPSServerConfiguration.HTTPSCertificatePassword,
+            HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         GeoIP.Initialize();
 
