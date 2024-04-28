@@ -6,12 +6,14 @@ using Horizon.LIBRARY.Database;
 using System.Runtime;
 using System.Net;
 using System.Security.Principal;
+using System.Security.Cryptography;
 
 public static class SVOServerConfiguration
 {
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SVO.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
+    public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static string SVOStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwsvoroot";
     public static bool SVOHTTPSBypass { get; set; } = true;
     public static bool PSHomeRPCS3Workaround { get; set; } = true;
@@ -64,6 +66,7 @@ public static class SVOServerConfiguration
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
+                new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("database", DatabaseConfig),
                 new JProperty("pshome_rpcs3workaround", PSHomeRPCS3Workaround),
                 new JProperty("MOTD", MOTD),
@@ -82,6 +85,7 @@ public static class SVOServerConfiguration
             SVOHTTPSBypass = GetValueOrDefault(config, "https_bypass", SVOHTTPSBypass);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
+            HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
@@ -173,7 +177,8 @@ class Program
 
         SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, SVOServerConfiguration.HTTPSDNSList);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
+            SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         if (HttpListener.IsSupported)
             _ = Task.Run(new SVOServer("*").Start);

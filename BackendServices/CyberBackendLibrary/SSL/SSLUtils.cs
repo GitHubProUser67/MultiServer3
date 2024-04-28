@@ -2,10 +2,6 @@ using CustomLogger;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using Org.BouncyCastle.OpenSsl;
-using Org.BouncyCastle.Pkcs;
-using Org.BouncyCastle.X509;
 using CyberBackendLibrary.DataTypes;
 using System;
 using System.IO;
@@ -48,14 +44,54 @@ namespace CyberBackendLibrary.SSL
             "fF6adulZkMV8gzURZVE=\r\n" +
             "-----END CERTIFICATE-----\n";
 
+        private static readonly string[] tlds = {
+            ".com", ".org", ".net", ".int", ".edu", ".gov", ".mil", // Generic TLDs
+            ".info", ".biz", ".mobi", ".name", ".pro", ".aero", ".coop", // Generic TLDs continued
+            ".asia", ".cat", ".jobs", ".museum", ".tel", ".travel", ".tel", // Sponsored TLDs
+            ".travel", ".int", ".online",
+            ".ac", ".ad", ".ae", ".af", ".ag", ".ai", ".al", ".am", ".an", // Country Code TLDs (A-Z)
+            ".ao", ".aq", ".ar", ".as", ".at", ".au", ".aw", ".ax", ".az",
+            ".ba", ".bb", ".bd", ".be", ".bf", ".bg", ".bh", ".bi", ".bj",
+            ".bm", ".bn", ".bo", ".br", ".bs", ".bt", ".bv", ".bw", ".by",
+            ".bz", ".ca", ".cc", ".cd", ".cf", ".cg", ".ch", ".ci", ".ck",
+            ".cl", ".cm", ".cn", ".co", ".cr", ".cs", ".cu", ".cv", ".cx",
+            ".cy", ".cz", ".dd", ".de", ".dj", ".dk", ".dm", ".do", ".dz",
+            ".ec", ".ee", ".eg", ".eh", ".er", ".es", ".et", ".eu", ".fi",
+            ".fj", ".fk", ".fm", ".fo", ".fr", ".ga", ".gb", ".gd", ".ge",
+            ".gf", ".gg", ".gh", ".gi", ".gl", ".gm", ".gn", ".gp", ".gq",
+            ".gr", ".gs", ".gt", ".gu", ".gw", ".gy", ".hk", ".hm", ".hn",
+            ".hr", ".ht", ".hu", ".id", ".ie", ".il", ".im", ".in", ".io",
+            ".iq", ".ir", ".is",".it", ".je", ".jm", ".jo", ".jp", ".ke",
+            ".kg", ".kh", ".ki", ".km", ".kn", ".kp", ".kr", ".kw", ".ky",
+            ".kz", ".la", ".lb", ".lc", ".li", ".lk", ".lr", ".ls", ".lt",
+            ".lu", ".lv", ".ly", ".ma", ".mc", ".md", ".me", ".mg", ".mh",
+            ".mk", ".ml", ".mm", ".mn", ".mo", ".mp", ".mq", ".mr", ".ms",
+            ".mt", ".mu", ".mv", ".mw", ".mx", ".my", ".mz", ".na", ".nc",
+            ".ne", ".nf", ".ng", ".ni", ".nl", ".no", ".np",  ".nr", ".nu",
+            ".nz", ".om", ".pa", ".pe", ".pf", ".pg", ".ph", ".pk", ".pl",
+            ".pm", ".pn", ".pr", ".ps", ".pt", ".pw", ".py", ".qa", ".re",
+            ".ro", ".rs", ".ru", ".rw", ".sa", ".sb", ".sc", ".sd", ".se",
+            ".sg", ".sh", ".si", ".sj", ".sk", ".sl", ".sm", ".sn", ".so",
+            ".sr", ".ss", ".st", ".su",  ".sv", ".sx", ".sy", ".sz", ".tc",
+            ".td", ".tf", ".tg", ".th", ".tj", ".tk", ".tl", ".tm", ".tn",
+            ".to", ".tp", ".tr", ".tt", ".tv", ".tw", ".tz",  ".ua", ".ug",
+            ".uk", ".us", ".uy", ".uz",  ".va", ".vc", ".ve", ".vg", ".vi",
+            ".vn", ".vu", ".wf", ".ws", ".ye", ".yt", ".za", ".zm", ".zw",
+            ".arpa", ".aero", ".coop", ".museum", ".asia", ".cat", ".jobs", // Infrastructure TLD
+            ".mobi",
+            ".example", ".localhost", ".test" // Reserved TLDs
+        };
+
         /// <summary>
         /// Creates a Root CA Cert for chain signed usage.
         /// <para>Creation d'un certificat Root pour usage sur une chaine de certificats.</para>
         /// </summary>
         /// <param name="directoryPath">The output RootCA filename.</param>
         /// <returns>A X509Certificate2.</returns>
-        public static X509Certificate2 CreateRootCertificateAuthority(string directoryPath, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
+        public static X509Certificate2 CreateRootCertificateAuthority(string directoryPath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
         {
+            DateTime CurrentDate = DateTime.Now;
+
             byte[] certSerialNumber = new byte[16];
             new Random().NextBytes(certSerialNumber);
 
@@ -63,7 +99,7 @@ namespace CyberBackendLibrary.SSL
             using RSA rsa = RSA.Create();
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
             // Configure the certificate as CA.
             request.CertificateExtensions.Add(
@@ -78,8 +114,8 @@ namespace CyberBackendLibrary.SSL
             X509Certificate2 RootCACertificate = request.Create(
                 request.SubjectName,
                 new RsaPkcs1SignatureGenerator(rsa),
-                new(new DateTime(1980, 1, 1), TimeSpan.Zero),
-                new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                new(CurrentDate.AddDays(-1)),
+                new(CurrentDate.AddYears(100)),
                 certSerialNumber).CopyWithPrivateKey(rsa);
 
             string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
@@ -92,7 +128,7 @@ namespace CyberBackendLibrary.SSL
             File.WriteAllText(directoryPath + "/MultiServer_rootca.pem", PemRootCACertificate);
 
             // Export the certificate in PFX format.
-            File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, ""));
+            File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
 
             rsa.Clear();
 
@@ -108,7 +144,7 @@ namespace CyberBackendLibrary.SSL
         /// <param name="RootCACertificate">The initial RootCA.</param>
         /// <param name="PFXCertificatePath">The output ChainCA file path.</param>
         /// <returns>A string.</returns>
-        public static void CreateChainSignedCert(X509Certificate2 RootCACertificate, string PFXCertificatePath, string certPassword, string[]? DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool wildcard = true)
+        public static void CreateChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string PFXCertificatePath, string certPassword, string[]? DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool wildcard = true)
         {
             RSA? RootCAPrivateKey = RootCACertificate.GetRSAPrivateKey();
 
@@ -118,6 +154,8 @@ namespace CyberBackendLibrary.SSL
                 return;
             }
 
+            DateTime CurrentDate = DateTime.Now;
+
             byte[] certSerialNumber = new byte[16];
             new Random().NextBytes(certSerialNumber);
 
@@ -125,7 +163,7 @@ namespace CyberBackendLibrary.SSL
             using RSA rsa = RSA.Create();
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
             // Set additional properties of the certificate
             request.CertificateExtensions.Add(
@@ -153,17 +191,17 @@ namespace CyberBackendLibrary.SSL
             }
             if (wildcard)
             {
-                sanBuilder.AddDnsName("*.net");
-                sanBuilder.AddDnsName("*.com");
-                sanBuilder.AddDnsName("*.fr");
-                sanBuilder.AddDnsName("*.it");
-                sanBuilder.AddDnsName("*.en");
-                sanBuilder.AddDnsName("*.de");
-                sanBuilder.AddDnsName("*.ru");
-                sanBuilder.AddDnsName("*.online");
+                foreach (string tld in tlds)
+                {
+                    sanBuilder.AddDnsName("*" + tld);
+                }
             }
+            IPAddress Loopback = IPAddress.Loopback;
             IPAddress PublicServerIP = IPAddress.Parse(TCP_IP.IPUtils.GetPublicIPAddress());
             IPAddress LocalServerIP = TCP_IP.IPUtils.GetLocalIPAddress();
+            sanBuilder.AddDnsName("localhost");
+            sanBuilder.AddDnsName(Loopback.ToString());
+            sanBuilder.AddIpAddress(Loopback);
             sanBuilder.AddDnsName(PublicServerIP.ToString());
             sanBuilder.AddIpAddress(PublicServerIP);
             if (PublicServerIP != LocalServerIP)
@@ -177,8 +215,8 @@ namespace CyberBackendLibrary.SSL
             X509Certificate2 ChainSignedCert = request.Create(
                 RootCACertificate.IssuerName,
                 new RsaPkcs1SignatureGenerator(RootCAPrivateKey),
-                new(new DateTime(1980, 1, 1), TimeSpan.Zero),
-                new(new DateTime(7980, 1, 1), TimeSpan.Zero),
+                new(CurrentDate.AddDays(-1)),
+                new(CurrentDate.AddYears(100)),
                 certSerialNumber).CopyWithPrivateKey(rsa);
 
             // Export the private key.
@@ -207,7 +245,7 @@ namespace CyberBackendLibrary.SSL
         /// <param name="certPassword">Password of the certificate file.</param>
         /// <param name="DnsList">DNS domains to include in the certificate.</param>
         /// <returns>Nothing.</returns>
-        public static void InitCerts(string certpath, string certPassword, string[]? DnsList)
+        public static void InitCerts(string certpath, string certPassword, string[]? DnsList, HashAlgorithmName Hashing)
         {
             string directoryPath = Path.GetDirectoryName(certpath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
 
@@ -216,11 +254,11 @@ namespace CyberBackendLibrary.SSL
             X509Certificate2? RootCACertificate = null;
 
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
-                RootCACertificate = CreateRootCertificateAuthority(directoryPath);
+                RootCACertificate = CreateRootCertificateAuthority(directoryPath, Hashing);
             else
                 RootCACertificate = X509Certificate2.CreateFromPem(File.ReadAllText(directoryPath + "/MultiServer_rootca.pem").ToArray(), File.ReadAllText(directoryPath + "/MultiServer_rootca_privkey.pem").ToArray());
 
-            CreateChainSignedCert(RootCACertificate, certpath, certPassword, DnsList);
+            CreateChainSignedCert(RootCACertificate, Hashing, certpath, certPassword, DnsList);
         }
 
         private static long GetRandomInt64(long minValue, long maxValue)

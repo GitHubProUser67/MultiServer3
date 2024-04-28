@@ -2,6 +2,7 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
 using System.Runtime;
+using System.Security.Cryptography;
 
 public static class SSFWServerConfiguration
 {
@@ -11,6 +12,7 @@ public static class SSFWServerConfiguration
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SSFW.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
+    public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static string ScenelistFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot/SceneList.xml";
     public static string[]? HTTPSDNSList { get; set; } = {
             "cprod.homerewards.online.scee.com",
@@ -43,6 +45,7 @@ public static class SSFWServerConfiguration
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
+                new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("scenelist_file", ScenelistFile),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString().Replace("/", "\\\\"));
@@ -61,6 +64,7 @@ public static class SSFWServerConfiguration
             SSFWStaticFolder = GetValueOrDefault(config, "static_folder", SSFWStaticFolder);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
+            HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             ScenelistFile = GetValueOrDefault(config, "scenelist_file", ScenelistFile);
             // Deserialize BannedIPs if it exists
@@ -137,7 +141,8 @@ class Program
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword, SSFWServerConfiguration.HTTPSDNSList);
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
+            SSFWServerConfiguration.HTTPSDNSList, SSFWServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         _ = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
