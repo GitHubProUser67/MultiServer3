@@ -113,6 +113,8 @@ namespace HTTPServer
                     return;
                 }
 
+                HttpRequest? request = null;
+
                 using Stream? inputStream = GetInputStream(tcpClient);
                 using (Stream? outputStream = GetOutputStream(tcpClient))
                 {
@@ -122,7 +124,10 @@ namespace HTTPServer
                         {
                             DateTime CurrentDate = DateTime.UtcNow;
 
-                            HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
+                            if (request == null)
+                                request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
+                            else
+                                AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
@@ -954,14 +959,14 @@ namespace HTTPServer
 
                                 if (response != null)
                                     WriteResponse(outputStream, request, response, filePath);
-
-                                request.Dispose();
                             }
                         }
                     }
                     outputStream.Flush();
                 }
                 inputStream.Flush();
+
+                request?.Dispose();
             }
             catch (IOException ex)
             {
@@ -1706,13 +1711,49 @@ namespace HTTPServer
             return null;
         }
 
-        private static HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
+        protected virtual void AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string? clientport, ushort ListenerPort)
+        {
+            HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport?.ToString(), ListenerPort);
+
+            if (newRequest != null)
+            {
+                request = newRequest;
+                newRequest.Dispose();
+            }
+            else
+            {
+                if (request.Data != null && request.Data.CanSeek)
+                {
+                    // Seek to the end of the target stream, and copy from there.
+                    long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
+                    inputStream.CopyTo(request.Data);
+                    request.Data.Position = CurrentPosition;
+                }
+                else
+                {
+                    int bytesRead = 0;
+                    byte[] buffer = new byte[8192];
+
+                    request.Data = new HugeMemoryStream(); // We can't predict stream size, so take safer option.
+
+                    while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        request.Data.Write(buffer, 0, bytesRead);
+                    }
+
+                    request.Data.Position = 0;
+                }
+            }
+        }
+
+
+        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
         {
             string line = string.Empty;
 
-            // Read Request Line
+            // Read Request Line and check if valid.
             string[] tokens = Readline(inputStream).Split(' ');
-            if (tokens.Length != 3)
+            if (tokens.Length != 3 || !tokens.Any(token => token.Contains("HTTP")))
                 return null;
             // string protocolVersion = tokens[2]; // Unused.
 
@@ -1794,6 +1835,7 @@ namespace HTTPServer
 
             return builder.ToString();
         }
+
 #if NET7_0_OR_GREATER
         [GeneratedRegex("Match (\\d+) (.*) (.*)$")]
         private static partial Regex ApacheMatchRegex();
