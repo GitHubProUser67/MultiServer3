@@ -127,7 +127,7 @@ namespace HTTPServer
                             if (request == null)
                                 request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
                             else
-                                request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
+                                AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
@@ -1033,7 +1033,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
+                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
                             response.Headers.Clear();
 
@@ -1557,7 +1557,7 @@ namespace HTTPServer
                     {
                         string EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
-                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
+                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
                         {
                             response.Headers.Clear();
 
@@ -1711,42 +1711,40 @@ namespace HTTPServer
             return null;
         }
 
-        protected virtual HttpRequest AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string? clientport, ushort ListenerPort)
-		{
-			HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport?.ToString(), ListenerPort);
+        protected virtual void AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string? clientport, ushort ListenerPort)
+        {
+            HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport?.ToString(), ListenerPort);
 
-			if (newRequest != null)
-			{
-				request.Dispose();
-				return newRequest;
-			}
-			else
-			{
-				if (request.Data != null && request.Data.CanSeek)
-				{
-					// Seek to the end of the target stream, and copy from there.
-					long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
-					inputStream.CopyTo(request.Data);
-					request.Data.Position = CurrentPosition;
-				}
-				else
-				{
-					int bytesRead = 0;
-					byte[] buffer = new byte[8192];
+            if (newRequest != null)
+            {
+                request = newRequest;
+                newRequest.Dispose();
+            }
+            else
+            {
+                if (request.Data != null && request.Data.CanSeek)
+                {
+                    // Seek to the end of the target stream, and copy from there.
+                    long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
+                    inputStream.CopyTo(request.Data);
+                    request.Data.Position = CurrentPosition;
+                }
+                else
+                {
+                    int bytesRead = 0;
+                    byte[] buffer = new byte[8192];
 
-					request.Data = new HugeMemoryStream(); // We can't predict stream size, so take safer option.
+                    request.Data = new HugeMemoryStream(); // We can't predict stream size, so take safer option.
 
-					while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
-					{
-						request.Data.Write(buffer, 0, bytesRead);
-					}
+                    while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        request.Data.Write(buffer, 0, bytesRead);
+                    }
 
-					request.Data.Position = 0;
-				}
-			}
-
-			return request;
-		}
+                    request.Data.Position = 0;
+                }
+            }
+        }
 
 
         protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
