@@ -1716,7 +1716,10 @@ namespace HTTPServer
 			HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport?.ToString(), ListenerPort);
 
 			if (newRequest != null)
-				request = newRequest;
+			{
+				request.Dispose();
+				return newRequest;
+			}
 			else
 			{
 				if (request.Data != null && request.Data.CanSeek)
