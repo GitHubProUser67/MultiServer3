@@ -1750,69 +1750,73 @@ namespace HTTPServer
 
 
         protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
-        {
-            string line = string.Empty;
+		{
+			// Read Request Line and check if valid.
+			string[] tokens = Readline(inputStream).Split(' ');
 
-            // Read Request Line and check if valid.
-            string[] tokens = Readline(inputStream).Split(' ');
-            if (tokens.Length != 3 || !tokens.Any(token => token.Contains("HTTP")))
-                return null;
-            // string protocolVersion = tokens[2]; // Unused.
+			if (tokens.Length == 3 && tokens[2].Contains("HTTP/"))
+			{
+				string line = string.Empty;
+				// string protocolVersion = tokens[2]; // Unused.
 
-            // Read Headers
-            Dictionary<string, string> headers = new();
-            while ((line = Readline(inputStream)) != null)
-            {
-                if (line.Equals(string.Empty))
-                    break;
+				// Read Headers
+				Dictionary<string, string> headers = new();
 
-                int separator = line.IndexOf(':');
-                if (separator == -1)
-                    return null;
-                int pos = separator + 1;
-                while (pos < line.Length && line[pos] == ' ')
-                {
-                    pos++;
-                }
+				while ((line = Readline(inputStream)) != null)
+				{
+					if (line.Equals(string.Empty))
+						break;
 
-                headers.Add(line[..separator], line[pos..]);
-            }
+					int separator = line.IndexOf(':');
+					if (separator == -1)
+						return null;
+					int pos = separator + 1;
+					while (pos < line.Length && line[pos] == ' ')
+					{
+						pos++;
+					}
 
-            HttpRequest req = new()
-            {
-                Method = tokens[0].ToUpper(),
-                Url = HTTPProcessor.DecodeUrl(tokens[1]),
-                Headers = headers,
-                Data = null,
-                IP = clientip,
-                Port = clientport,
-                ServerPort = ListenerPort
-            };
+					headers.Add(line[..separator], line[pos..]);
+				}
 
-            if (headers.TryGetValue("Content-Length", out string? value))
-            {
-                long bytesLeft = Convert.ToInt64(value);
+				HttpRequest req = new()
+				{
+					Method = tokens[0].ToUpper(),
+					Url = HTTPProcessor.DecodeUrl(tokens[1]),
+					Headers = headers,
+					Data = null,
+					IP = clientip,
+					Port = clientport,
+					ServerPort = ListenerPort
+				};
 
-                if (bytesLeft <= 2147483648)
-                    req.Data = new MemoryStream();
-                else
-                    req.Data = new HugeMemoryStream();
+				if (headers.TryGetValue("Content-Length", out string? value))
+				{
+					long bytesLeft = Convert.ToInt64(value);
 
-                while (bytesLeft > 0)
-                {
-                    Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
-                    int n = inputStream.Read(buffer);
+					if (bytesLeft <= 2147483648)
+						req.Data = new MemoryStream();
+					else
+						req.Data = new HugeMemoryStream();
 
-                    req.Data.Write(buffer);
+					while (bytesLeft > 0)
+					{
+						Span<byte> buffer = new byte[bytesLeft > HTTPServerConfiguration.BufferSize ? HTTPServerConfiguration.BufferSize : bytesLeft];
+						int n = inputStream.Read(buffer);
 
-                    bytesLeft -= n;
-                }
+						req.Data.Write(buffer);
 
-                req.Data.Position = 0;
-            }
+						bytesLeft -= n;
+					}
 
-            return req;
-        }
+					req.Data.Position = 0;
+				}
+
+				return req;
+			}
+
+			return null;
+		}
 
         /// <summary>
         /// Compute the MD5 checksum of a stream.
