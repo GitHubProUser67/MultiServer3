@@ -284,9 +284,7 @@ class Program
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
-        string certpath = HTTPSServerConfiguration.HTTPSCertificateFile;
-
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(certpath, HTTPSServerConfiguration.HTTPSCertificatePassword,
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         GeoIP.Initialize();
@@ -298,11 +296,11 @@ class Program
         if (HTTPSServerConfiguration.NotFoundSuggestions)
             _ = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPSServerConfiguration.HTTPSStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
+        if (HTTPSServerConfiguration.DNSOverEthernetEnabled && !SecureDNSConfigProcessor.Initiated)
+            _ = Task.Run(SecureDNSConfigProcessor.InitDNSSubsystem);
+
         _ = Task.Run(() => Parallel.Invoke(
-                    () => Parallel.ForEach(HTTPSServerConfiguration.Ports ?? new List<ushort> { }, port =>
-                    {
-                        new HttpsProcessor(certpath, HTTPSServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", port, HTTPSServerConfiguration.DNSOverEthernetEnabled).StartServer(); // 0.0.0.0 as the certificate binds to this IP
-                    }),
+                    () => new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token),
                     () => RefreshConfig()
                 ));
 
