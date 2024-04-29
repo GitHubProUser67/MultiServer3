@@ -109,6 +109,9 @@ namespace HTTPServer
                 {
                     LoggerAccessor.LogError($"[HTTPServer] - Listener failed to start with assertion: {ex}");
                 }
+
+                await StopAsync(_cts.Token);
+
             }, _cts.Token);
         }
 

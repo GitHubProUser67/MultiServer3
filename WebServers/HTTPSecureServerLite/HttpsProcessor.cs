@@ -27,27 +27,25 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
+using System.Threading;
 
 namespace HTTPSecureServerLite
 {
     public partial class HttpsProcessor
     {
-        public static bool IsStarted = false;
         private static string serverIP = "127.0.0.1";
         private static WebserverLite? _Server;
         private readonly string ip;
         private readonly string certpath;
         private readonly string certpass;
         private readonly ushort port;
-        private readonly bool dohdns;
 
-        public HttpsProcessor(string certpath, string certpass, string ip, ushort port, bool dohdns)
+        public HttpsProcessor(string certpath, string certpass, string ip, ushort port)
         {
             this.certpath = certpath;
             this.certpass = certpass;
             this.ip = ip;
             this.port = port;
-            this.dohdns = dohdns;
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -89,12 +87,17 @@ namespace HTTPSecureServerLite
             return Task.CompletedTask;
         }
 
+        public void StopServer()
+        {
+            _Server?.Stop();
+            _Server?.Dispose();
+
+            LoggerAccessor.LogWarn($"HTTPS Server on port: {port} stopped...");
+        }
+
         public void StartServer()
         {
 			_ = TryGetServerIP(port);
-
-            if (dohdns && !SecureDNSConfigProcessor.Initiated)
-                _ = Task.Run(SecureDNSConfigProcessor.InitDNSSubsystem);
 
             if (_Server != null && _Server.IsListening)
                 LoggerAccessor.LogWarn("HTTPS Server already initiated");
@@ -135,7 +138,6 @@ namespace HTTPSecureServerLite
                 });
 
                 _Server.Start();
-                IsStarted = true;
                 LoggerAccessor.LogInfo($"HTTPS Server initiated on port: {port}...");
             }
         }
