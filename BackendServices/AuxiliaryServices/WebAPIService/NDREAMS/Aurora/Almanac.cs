@@ -9,7 +9,7 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class Almanac
     {
-        public static string? ProcessAlmanac(byte[]? PostData, string? ContentType, string fullurl, string apipath)
+        public static string? ProcessAlmanac(DateTime CurrentDate, byte[]? PostData, string? ContentType, string fullurl, string apipath)
         {
             bool Weight = !string.IsNullOrEmpty(fullurl) && fullurl.Contains("Weights");
             string func = string.Empty;
@@ -17,7 +17,6 @@ namespace WebAPIService.NDREAMS.Aurora
             string key = string.Empty;
             string element = string.Empty;
             string resdata = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)

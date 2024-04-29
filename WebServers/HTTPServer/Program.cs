@@ -27,6 +27,7 @@ public static class HTTPServerConfiguration
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
+    public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
@@ -62,6 +63,7 @@ public static class HTTPServerConfiguration
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("buffer_size", BufferSize),
                 new JProperty("http_version", HttpVersion),
+                SerializeDateTimeOffset(),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
@@ -90,6 +92,7 @@ public static class HTTPServerConfiguration
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
+            DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
@@ -163,6 +166,17 @@ public static class HTTPServerConfiguration
             }
         }
         return defaultValue;
+    }
+
+    // Helper method for the DateTimeOffset config serialization.
+    public static JProperty SerializeDateTimeOffset()
+    {
+        JObject jObject = new();
+        foreach (var kvp in DateTimeOffset ?? new Dictionary<string, int>())
+        {
+            jObject.Add(kvp.Key, kvp.Value);
+        }
+        return new JProperty("datetime_offset", jObject);
     }
 }
 

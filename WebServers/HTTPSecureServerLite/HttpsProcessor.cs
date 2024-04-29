@@ -143,6 +143,7 @@ namespace HTTPSecureServerLite
         private static async Task DefaultRoute(HttpContextBase ctx)
         {
             HttpRequestBase request = ctx.Request;
+            DateTime CurrentDate = request.Timestamp.Start;
             HttpResponseBase response = ctx.Response;
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
             string fullurl = string.Empty;
@@ -178,8 +179,19 @@ namespace HTTPSecureServerLite
 
                             // Check if there are exactly two parts
                             if (parts.Length == 2)
-                                SuplementalMessage = " Located at " + parts[0] + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+                            {
+                                string CountryCode = parts[0];
+
+                                SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+
+                                if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
+                                    CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset[CountryCode]);
+                                else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                                    CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
+                            }
                         }
+                        else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                            CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 
@@ -480,7 +492,7 @@ namespace HTTPSecureServerLite
                         || absolutepath.Contains("/gateway/")))
 						{
 							LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
-                            string? res = new NDREAMSClass(request.Method.ToString(), apiPath, $"https://nDreams-multiserver-cdn/", $"https://{Host}{request.Url.RawWithQuery}", absolutepath,
+                            string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiPath, $"https://nDreams-multiserver-cdn/", $"https://{Host}{request.Url.RawWithQuery}", absolutepath,
                                 HTTPSServerConfiguration.APIStaticFolder, Host).ProcessRequest(null, request.DataAsBytes, request.ContentType);
 							if (string.IsNullOrEmpty(res))
 							{
@@ -811,25 +823,25 @@ namespace HTTPSecureServerLite
                                                         }
                                                         else
                                                         {
-                                                            if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out SecureDNSConfigProcessor.DnsSettings value))
+                                                            if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
                                                             {
-                                                                if (value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                                else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
-                                                                else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                                if (value.Mode == HandleMode.Allow) url = fullname;
+                                                                else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                                else if (value.Mode == HandleMode.Deny) url = "NXDOMAIN";
                                                                 treated = true;
                                                             }
 
                                                             if (!treated && SecureDNSConfigProcessor.StarRules != null)
                                                             {
-                                                                foreach (KeyValuePair<string, SecureDNSConfigProcessor.DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                                foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
                                                                 {
                                                                     Regex regex = new(rule.Key);
                                                                     if (!regex.IsMatch(fullname))
                                                                         continue;
 
-                                                                    if (rule.Value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                                    else if (rule.Value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                                    else if (rule.Value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                                    if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
                                                                     treated = true;
                                                                     break;
                                                                 }
@@ -1160,25 +1172,25 @@ namespace HTTPSecureServerLite
                                                     }
                                                     else
                                                     {
-                                                        if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out SecureDNSConfigProcessor.DnsSettings value))
+                                                        if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
                                                         {
-                                                            if (value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                            else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
-                                                            else if (value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                            if (value.Mode == HandleMode.Allow) url = fullname;
+                                                            else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                            else if (value.Mode == HandleMode.Deny) url = "NXDOMAIN";
                                                             treated = true;
                                                         }
 
                                                         if (!treated && SecureDNSConfigProcessor.StarRules != null)
                                                         {
-                                                            foreach (KeyValuePair<string, SecureDNSConfigProcessor.DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                            foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
                                                             {
                                                                 Regex regex = new(rule.Key);
                                                                 if (!regex.IsMatch(fullname))
                                                                     continue;
 
-                                                                if (rule.Value.Mode == SecureDNSConfigProcessor.HandleMode.Allow) url = fullname;
-                                                                else if (rule.Value.Mode == SecureDNSConfigProcessor.HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                                else if (rule.Value.Mode == SecureDNSConfigProcessor.HandleMode.Deny) url = "NXDOMAIN";
+                                                                if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                                else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                                else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
                                                                 treated = true;
                                                                 break;
                                                             }

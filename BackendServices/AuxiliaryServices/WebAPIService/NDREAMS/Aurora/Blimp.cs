@@ -7,14 +7,13 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class Blimp
     {
-        public static string? ProcessBlimps(byte[]? PostData, string? ContentType)
+        public static string? ProcessBlimps(DateTime CurrentDate, byte[]? PostData, string? ContentType)
         {
             string key = string.Empty;
             string func = string.Empty;
             string resdata = string.Empty;
             string user = string.Empty;
             string ship = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
