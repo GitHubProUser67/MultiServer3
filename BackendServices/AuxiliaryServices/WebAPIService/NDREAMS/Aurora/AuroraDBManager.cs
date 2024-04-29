@@ -15,14 +15,13 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class AuroraDBManager
     {
-        public static string? ProcessVisitCounter2(byte[]? PostData, string? ContentType, string apipath)
+        public static string? ProcessVisitCounter2(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string game = string.Empty;
             string territory = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
@@ -88,13 +87,12 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessTheEnd(byte[]? PostData, string? ContentType, string apipath)
+        public static string? ProcessTheEnd(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string doom = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
@@ -182,12 +180,11 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessComplexABTest(byte[]? PostData, string? ContentType)
+        public static string? ProcessComplexABTest(DateTime CurrentDate, byte[]? PostData, string? ContentType)
         {
             string func = string.Empty;
             string name = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
@@ -218,7 +215,7 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessOrbrunnerScores(byte[]? PostData, string? ContentType, string apipath)
+        public static string? ProcessOrbrunnerScores(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
@@ -226,7 +223,6 @@ namespace WebAPIService.NDREAMS.Aurora
             string xp = string.Empty;
             string orbs = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
@@ -299,7 +295,7 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessConsumables(byte[]? PostData, string? ContentType, string apipath)
+        public static string? ProcessConsumables(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
@@ -308,7 +304,6 @@ namespace WebAPIService.NDREAMS.Aurora
             string consumable = string.Empty;
             string count = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
@@ -462,13 +457,12 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessReleaseInfo(byte[]? PostData, string? ContentType, string apipath)
+        public static string? ProcessReleaseInfo(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string version = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
@@ -524,14 +518,13 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessAuroraXP(byte[]? PostData, string? ContentType, string apipath)
+        public static string? ProcessAuroraXP(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string locale = string.Empty;
             string ticket = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)

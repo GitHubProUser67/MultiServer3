@@ -1,9 +1,113 @@
+using System;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace CyberBackendLibrary.TCP_IP
 {
     public static class TCP_UDPUtils
     {
+        [DllImport("Iphlpapi.dll", SetLastError = true)]
+        private static extern uint GetTcpTable(IntPtr pTcpTable, ref uint dwOutBufLen, bool order);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        internal struct MibTcpTable
+        {
+            internal uint numberOfEntries;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        internal struct MibTcpRow
+        {
+            internal uint state;
+            internal uint localAddr;
+            internal byte localPort1;
+            internal byte localPort2;
+            internal byte localPort3;
+            internal byte localPort4;
+            internal uint remoteAddr;
+            internal byte remotePort1;
+            internal byte remotePort2;
+            internal byte remotePort3;
+            internal byte remotePort4;
+        }
+
+        /// <summary>
+        /// Get the Windows TCP Table.
+        /// <para>Obtiens la table TCP de Windows.</para>
+        /// </summary>
+        /// <returns>A array of int.</returns>
+        private static int[] GetTcpTable()
+        {
+            int[] ports = Array.Empty<int>();
+            uint dwOutBufLen = 0;
+            IntPtr pTcpTable = IntPtr.Zero;
+            uint num2 = GetTcpTable(IntPtr.Zero, ref dwOutBufLen, true);
+            if (num2 == 0x7a)
+            {
+                try
+                {
+                    pTcpTable = Marshal.AllocHGlobal((int)dwOutBufLen);
+                    num2 = GetTcpTable(pTcpTable, ref dwOutBufLen, true);
+                    if (num2 == 0)
+                    {
+                        IntPtr handle = pTcpTable;
+#pragma warning disable
+                        MibTcpTable table = (MibTcpTable)Marshal.PtrToStructure(handle, typeof(MibTcpTable));
+                        if (table.numberOfEntries > 0)
+                        {
+                            ports = new int[table.numberOfEntries];
+                            handle = (IntPtr)(((long)handle) + Marshal.SizeOf(table.numberOfEntries));
+                            for (int i = 0; i < table.numberOfEntries; i++)
+                            {
+                                MibTcpRow row = (MibTcpRow)Marshal.PtrToStructure(handle, typeof(MibTcpRow));
+                                int port = (((row.localPort3 << 0x18) | (row.localPort4 << 0x10)) | (row.localPort1 << 8)) | row.localPort2;
+                                ports[i] = port;
+                                handle = (IntPtr)(((long)handle) + Marshal.SizeOf(row));
+                            }
+                        }
+#pragma warning restore
+                    }
+                }
+                finally
+                {
+                    if (pTcpTable != IntPtr.Zero)
+                        Marshal.FreeHGlobal(pTcpTable);
+                }
+            }
+            return ports;
+        }
+
+        /// <summary>
+        /// Get the next available port on the system (Windows only).
+        /// <para>(Seulement sur Windows) Obtiens le prochain port disponible.</para>
+        /// </summary>
+        /// <param name="sourceport">The initial port to start with.</param>
+        /// <param name="attemptcount">Maximum number of tries.</param>
+        /// <returns>A int.</returns>
+        public static int GetNextVacantPort(int sourceport, uint attemptcount)
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows)
+            {
+                if (attemptcount == 0)
+                    throw new ArgumentOutOfRangeException("attemptcount");
+                foreach (int port in GetTcpTable())
+                {
+                    if (sourceport == port)
+                    {
+                        sourceport += 1;
+                        attemptcount -= 1;
+                        if (sourceport >= 0xffff && attemptcount > 0)
+                            sourceport = 1;
+                        else if (sourceport >= 0xffff && attemptcount == 0)
+                            return -1;
+                        return GetNextVacantPort(sourceport, attemptcount);
+                    }
+                }
+            }
+
+            return sourceport;
+        }
+
         /// <summary>
         /// Know if the given TCP port is available.
         /// <para>Savoir si le port TCP en question est disponible.</para>

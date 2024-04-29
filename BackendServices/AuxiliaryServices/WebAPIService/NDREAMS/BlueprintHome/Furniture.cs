@@ -12,7 +12,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
         public const int MaxSlots = 5;
         public const int MaxFurnSlots = 5;
 
-        public static string? ProcessFurniture(byte[]? PostData, string? ContentType, string baseurl, string apipath)
+        public static string? ProcessFurniture(DateTime CurrentDate, byte[]? PostData, string? ContentType, string baseurl, string apipath)
         {
             string blueprint_name = string.Empty;
             string blueprint_furn = string.Empty;
@@ -23,7 +23,6 @@ namespace WebAPIService.NDREAMS.BlueprintHome
             string owner = string.Empty;
             string func = string.Empty;
             string key = string.Empty;
-            DateTime CurrentDate = DateTime.Today;
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)

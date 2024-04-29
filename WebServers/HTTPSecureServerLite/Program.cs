@@ -33,6 +33,7 @@ public static class HTTPSServerConfiguration
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
+    public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static string[]? HTTPSDNSList { get; set; } = {
             "www.outso-srv1.com",
             "www.ndreamshs.com",
@@ -130,6 +131,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("api_static_folder", APIStaticFolder),
                 new JProperty("https_static_folder", HTTPSStaticFolder),
                 new JProperty("https_temp_folder", HTTPSTempFolder),
+                SerializeDateTimeOffset(),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("certificate_file", HTTPSCertificateFile),
@@ -171,6 +173,7 @@ public static class HTTPSServerConfiguration
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
+            DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             // Deserialize Ports if it exists
             try
@@ -240,6 +243,17 @@ public static class HTTPSServerConfiguration
             }
         }
         return defaultValue;
+    }
+
+    // Helper method for the DateTimeOffset config serialization.
+    public static JProperty SerializeDateTimeOffset()
+    {
+        JObject jObject = new();
+        foreach (var kvp in DateTimeOffset ?? new Dictionary<string, int>())
+        {
+            jObject.Add(kvp.Key, kvp.Value);
+        }
+        return new JProperty("datetime_offset", jObject);
     }
 }
 

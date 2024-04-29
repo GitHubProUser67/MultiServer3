@@ -13,6 +13,7 @@ namespace WebAPIService.NDREAMS
     public class NDREAMSClass : IDisposable
     {
         private bool disposedValue;
+        private DateTime currentdate;
         private string absolutepath;
         private string baseurl;
         private string filepath;
@@ -21,8 +22,9 @@ namespace WebAPIService.NDREAMS
         private string method;
         private string host;
 
-        public NDREAMSClass(string method, string filepath, string baseurl, string fullurl, string absolutepath, string apipath, string host)
+        public NDREAMSClass(DateTime currentdate, string method, string filepath, string baseurl, string fullurl, string absolutepath, string apipath, string host)
         {
+            this.currentdate = currentdate;
             this.absolutepath = absolutepath;
             this.filepath = filepath;
             this.baseurl = baseurl;
@@ -49,34 +51,34 @@ namespace WebAPIService.NDREAMS
                         case "/aurora/visit.php":
                             return visit.ProcessVisit(PostData, ContentType, apipath);
                         case "/aurora/Blimp.php":
-                            return Blimp.ProcessBlimps(PostData, ContentType);
+                            return Blimp.ProcessBlimps(currentdate, PostData, ContentType);
                         case "/aurora/almanac.php":
                         case "/aurora/almanacWeights.php":
-                            return Almanac.ProcessAlmanac(PostData, ContentType, fullurl, apipath);
+                            return Almanac.ProcessAlmanac(currentdate, PostData, ContentType, fullurl, apipath);
                         case "/aurora/MysteryItems/mystery3.php":
-                            return Mystery3.ProcessMystery3(PostData, ContentType, fullurl, apipath);
+                            return Mystery3.ProcessMystery3(currentdate, PostData, ContentType, fullurl, apipath);
                         case "/aurora/VisitCounter2.php":
-                            return AuroraDBManager.ProcessVisitCounter2(PostData, ContentType, apipath);
+                            return AuroraDBManager.ProcessVisitCounter2(currentdate, PostData, ContentType, apipath);
                         case "/aurora/TheEnd.php":
-                            return AuroraDBManager.ProcessTheEnd(PostData, ContentType, apipath);
+                            return AuroraDBManager.ProcessTheEnd(currentdate, PostData, ContentType, apipath);
                         case "/aurora/OrbrunnerScores.php":
-                            return AuroraDBManager.ProcessOrbrunnerScores(PostData, ContentType, apipath);
+                            return AuroraDBManager.ProcessOrbrunnerScores(currentdate, PostData, ContentType, apipath);
                         case "/aurora/Consumables.php":
-                            return AuroraDBManager.ProcessConsumables(PostData, ContentType, apipath);
+                            return AuroraDBManager.ProcessConsumables(currentdate, PostData, ContentType, apipath);
                         case "/aurora/PStats.php":
                             return AuroraDBManager.ProcessPStats(PostData, ContentType);
                         case "/aurora/ReleaseInfo.php":
-                            return AuroraDBManager.ProcessReleaseInfo(PostData, ContentType, apipath);
+                            return AuroraDBManager.ProcessReleaseInfo(currentdate, PostData, ContentType, apipath);
                         case "/aurora/AuroraXP.php":
-                            return AuroraDBManager.ProcessAuroraXP(PostData, ContentType, apipath);
+                            return AuroraDBManager.ProcessAuroraXP(currentdate, PostData, ContentType, apipath);
                         case "/aurora/VRSignUp.php":
                             return VRSignUp.ProcessVRSignUp(PostData, ContentType, apipath);
                         case "/gateway/":
                             return "<xml></xml>"; // Not gonna emulate this encrypted mess.
                         case "/thecomplex/ComplexABTest.php":
-                            return AuroraDBManager.ProcessComplexABTest(PostData, ContentType);
+                            return AuroraDBManager.ProcessComplexABTest(currentdate, PostData, ContentType);
                         case "/blueprint/blueprint_furniture.php":
-                            return Furniture.ProcessFurniture(PostData, ContentType, baseurl, apipath);
+                            return Furniture.ProcessFurniture(currentdate, PostData, ContentType, baseurl, apipath);
                         default:
                             LoggerAccessor.LogWarn($"[NDREAMS] - Unknown POST method: {absolutepath} was requested. Please report to GITHUB");
                             break;

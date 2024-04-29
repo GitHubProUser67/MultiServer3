@@ -1,6 +1,7 @@
 using CustomLogger;
 using PSHostsFile;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace MitmDNS
 {
     public partial class MitmDNSClass
     {
-        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
         public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
 
         public async void MitmDNSMain()
@@ -60,12 +61,13 @@ namespace MitmDNS
 
         private static void ParseRules(string Filename, bool IsFilename = true)
         {
+            LoggerAccessor.LogInfo("[DNS] - Parsing Configuration File...");
+
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
                 ParseSimpleDNSRules(Filename);
             else
             {
-                HashSet<string> processedDomains = new();
-                foreach (string s in IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None))
+                Parallel.ForEach(IsFilename ? File.ReadAllLines(Filename) : Filename.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None), s =>
                 {
                     if (s.StartsWith(";") || s.Trim() == string.Empty)
                     {
@@ -85,15 +87,7 @@ namespace MitmDNS
                                 break;
                             case "redirect":
                                 dns.Mode = HandleMode.Redirect;
-                                string IpFromConfig = split[2].Trim();
-#if NET6_0
-                                if (new Regex(@"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,7}:$|^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|^:((:[0-9a-fA-F]{0,4}){0,6})?$").IsMatch(IpFromConfig))
-#elif NET7_0_OR_GREATER
-                                if (IpRegex().IsMatch(IpFromConfig))
-#endif
-                                    dns.Address = IpFromConfig;
-                                else
-                                    dns.Address = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+                                dns.Address = GetIp(split[2].Trim());
                                 break;
                             default:
                                 LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
@@ -103,34 +97,33 @@ namespace MitmDNS
                         string domain = split[0].Trim();
 
                         // Check if the domain has been processed before
-                        if (!processedDomains.Contains(domain))
+                        if (domain.Contains('*'))
                         {
-                            processedDomains.Add(domain);
+                            // Escape all possible URI characters conflicting with Regex
+                            domain = domain.Replace(".", "\\.");
+                            domain = domain.Replace("$", "\\$");
+                            domain = domain.Replace("[", "\\[");
+                            domain = domain.Replace("]", "\\]");
+                            domain = domain.Replace("(", "\\(");
+                            domain = domain.Replace(")", "\\)");
+                            domain = domain.Replace("+", "\\+");
+                            domain = domain.Replace("?", "\\?");
+                            // Replace "*" characters with ".*" which means any number of any character for Regexp
+                            domain = domain.Replace("*", ".*");
 
-                            if (domain.Contains('*'))
+                            lock (StarRules)
                             {
-                                // Escape all possible URI characters conflicting with Regex
-                                domain = domain.Replace(".", "\\.");
-                                domain = domain.Replace("$", "\\$");
-                                domain = domain.Replace("[", "\\[");
-                                domain = domain.Replace("]", "\\]");
-                                domain = domain.Replace("(", "\\(");
-                                domain = domain.Replace(")", "\\)");
-                                domain = domain.Replace("+", "\\+");
-                                domain = domain.Replace("?", "\\?");
-                                // Replace "*" characters with ".*" which means any number of any character for Regexp
-                                domain = domain.Replace("*", ".*");
-
-                                StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                            }
-                            else
-                            {
-                                DicRules.Add(domain, dns);
-                                DicRules.Add("www." + domain, dns);
+                                if (!StarRules.Any(pair => pair.Key == domain))
+                                    StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
                             }
                         }
+                        else
+                        {
+                            DicRules.TryAdd(domain, dns);
+                            DicRules.TryAdd("www." + domain, dns);
+                        }
                     }
-                }
+                });
             }
 
             foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
@@ -147,8 +140,8 @@ namespace MitmDNS
                 if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
                 {
                     // Hosts entry should not support wildcard in theory, so only DicRules.
-                    DicRules.Add(domain, dns);
-                    DicRules.Add("www." + domain, dns);
+                    DicRules.TryAdd(domain, dns);
+                    DicRules.TryAdd("www." + domain, dns);
                 }
             }
 
@@ -176,7 +169,7 @@ namespace MitmDNS
 
             DnsSettings dns = new();
 
-            foreach (string hostname in hostnames)
+            Parallel.ForEach(hostnames, hostname =>
             {
                 string dnsFilePath = Path.GetDirectoryName(Filename) + $"/{hostname}.dns";
 
@@ -196,35 +189,66 @@ namespace MitmDNS
                             if (match.Success)
                             {
                                 dns.Mode = HandleMode.Redirect;
-                                string IpFromConfig = match.Groups[1].Value;
-#if NET6_0
-                                if (new Regex(@"^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,7}:$|^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|^:((:[0-9a-fA-F]{0,4}){0,6})?$").IsMatch(IpFromConfig))
-#elif NET7_0_OR_GREATER
-                                if (IpRegex().IsMatch(IpFromConfig))
-#endif
-                                    dns.Address = IpFromConfig;
-                                else
-                                    dns.Address = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+                                dns.Address = GetIp(match.Groups[1].Value);
 
-                                DicRules.Add(hostname, dns);
-                                DicRules.Add("www." + hostname, dns);
+                                DicRules.TryAdd(hostname, dns);
+                                DicRules.TryAdd("www." + hostname, dns);
 
                                 break;
                             }
                         }
                     }
                 }
-            }
+            });
         }
+
+        #region GetIP
+        private static string GetIp(string ip)
+        {
+            IPAddress IP = IPAddress.Loopback;
+
+            switch (Uri.CheckHostName(ip))
+            {
+                case UriHostNameType.IPv4:
+                    {
+                        IP = IPAddress.Parse(ip).MapToIPv4();
+                        break;
+                    }
+                case UriHostNameType.IPv6:
+                    {
+                        IP = IPAddress.Parse(ip).MapToIPv6();
+                        break;
+                    }
+                case UriHostNameType.Dns:
+                    {
+                        try
+                        {
+                            IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
+                        }
+                        catch // Host is invalid or non-existant, fallback to public/local server IP
+                        {
+                            IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
+                        break;
+                    }
+            }
+
+            return IP.ToString();
+        }
+        #endregion
 
         private bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }
-#if NET7_0_OR_GREATER
-        [GeneratedRegex("^((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$|^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,7}:$|^([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}$|^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}$|^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}$|^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}$|^([0-9a-fA-F]{1,4}:){1,1}(:[0-9a-fA-F]{1,4}){1,6}$|^:((:[0-9a-fA-F]{0,4}){0,6})?$")]
-        private static partial Regex IpRegex();
 
+#if NET7_0_OR_GREATER
         [GeneratedRegex("A\\s+(\\S+)")]
         private static partial Regex SimpleDNSRegex();
 #endif

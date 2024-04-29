@@ -120,6 +120,8 @@ namespace HTTPServer
                     {
                         if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
+                            DateTime CurrentDate = DateTime.UtcNow;
+
                             HttpRequest? request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
@@ -139,8 +141,19 @@ namespace HTTPServer
 
                                     // Check if there are exactly two parts
                                     if (parts.Length == 2)
-                                        SuplementalMessage = " Located at " + parts[0] + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+                                    {
+                                        string CountryCode = parts[0];
+
+                                        SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+
+                                        if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
+                                            CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset[CountryCode]);
+                                        else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                                            CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
+                                    }
                                 }
+                                else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                                    CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 
@@ -380,7 +393,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new(Method, apiPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, HTTPServerConfiguration.APIStaticFolder, Host);
+                                                NDREAMSClass ndreams = new(CurrentDate, Method, apiPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, HTTPServerConfiguration.APIStaticFolder, Host);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
