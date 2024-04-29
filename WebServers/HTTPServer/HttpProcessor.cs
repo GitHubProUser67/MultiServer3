@@ -1033,7 +1033,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
+                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
                             response.Headers.Clear();
 
@@ -1557,7 +1557,7 @@ namespace HTTPServer
                     {
                         string EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
-                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1 == EtagMD5)
+                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
                             response.Headers.Clear();
 
