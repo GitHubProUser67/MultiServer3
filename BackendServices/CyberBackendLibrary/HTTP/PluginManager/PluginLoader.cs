@@ -13,7 +13,7 @@ namespace CyberBackendLibrary.HTTP.PluginManager
 
             if (Directory.Exists(folderPath))
             {
-                foreach (string dllFile in Directory.GetFiles(folderPath, "*.dll"))
+                foreach (string dllFile in Directory.GetFiles(folderPath, "*.dll", SearchOption.AllDirectories))
                 {
                     HTTPPlugin? plugin = LoadPlugin(dllFile);
                     if (plugin != null)
