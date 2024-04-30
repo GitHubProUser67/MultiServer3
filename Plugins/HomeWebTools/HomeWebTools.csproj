@@ -8,6 +8,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
     <ProjectReference Include="..\..\WebServers\HTTPServer\HTTPServer.csproj" />
   </ItemGroup>
 
@@ -16,13 +17,19 @@
         <FilesToCopy Include="$(OutDir)HomeWebTools.pdb" />
         <FilesToCopy Include="$(OutDir)HomeWebTools.deps.json" />
         <FilesToCopy Include="$(OutDir)HomeWebTools.dll" />
+		<FilesToCopy1 Include="$(OutDir)WatsonWebserver.Core.dll" />
+        <FilesToCopy1 Include="$(OutDir)WatsonWebserver.Lite.dll" />
+		<FilesToCopy1 Include="$(OutDir)CavemanTcp.dll" />
+        <FilesToCopy1 Include="$(OutDir)HTTPServer.dll" />
     </ItemGroup>
 
     <PropertyGroup>
         <FilesExist Condition="Exists(@(FilesToCopy))">true</FilesExist>
+		<FilesExist Condition="Exists(@(FilesToCopy1))">true</FilesExist>
     </PropertyGroup>
 
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutDir)\static\plugins\" Condition="$(FilesExist)" />
+	<Copy SourceFiles="@(FilesToCopy1)" DestinationFolder="$(OutDir)\static\plugins\" Condition="$(FilesExist)" />
     <Delete Files="@(FilesToCopy)" Condition="$(FilesExist)" />
   </Target>
   

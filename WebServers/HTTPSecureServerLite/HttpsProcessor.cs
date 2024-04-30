@@ -28,6 +28,7 @@ using System.Linq;
 using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
 using System.Threading;
+using CyberBackendLibrary.HTTP.PluginManager;
 
 namespace HTTPSecureServerLite
 {
@@ -353,11 +354,20 @@ namespace HTTPSecureServerLite
                 {
                     if (HTTPSServerConfiguration.plugins.Count > 0)
                     {
-                        foreach (PluginManager.HTTPSecurePlugin plugin in HTTPSServerConfiguration.plugins)
+                        foreach (HTTPPlugin plugin in HTTPSServerConfiguration.plugins)
                         {
-                            sent = plugin.ProcessPluginMessage(request, response);
-                            if (sent)
-                                break;
+                            try
+                            {
+                                object? objReturn = plugin.ProcessPluginMessage(ctx);
+                                if (objReturn != null && objReturn is bool v)
+                                    sent = v;
+                                if (sent)
+                                    break;
+                            }
+                            catch (Exception ex)
+                            {
+                                LoggerAccessor.LogError($"[HTTPS] - Plugin {plugin.GetHashCode()} thrown an assertion: {ex}");
+                            }
                         }
                     }
 
@@ -1074,48 +1084,57 @@ namespace HTTPSecureServerLite
                                             }
                                             else
                                             {
-                                                if (File.Exists(filePath) && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
-                                                    sent = new LocalFileStreamHelper().Handle_LocalFile_Stream(ctx, filePath);
-                                                else
+                                                if (File.Exists(filePath))
                                                 {
-                                                    // send file
-                                                    if (File.Exists(filePath))
+                                                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                                                    if (ContentType == "application/octet-stream")
                                                     {
-                                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
-
-                                                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
-                                                        if (ContentType == "application/octet-stream")
+                                                        byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                        foreach (var entry in HTTPProcessor._PathernDictionary)
                                                         {
-                                                            byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
-                                                            foreach (var entry in HTTPProcessor._PathernDictionary)
+                                                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
                                                             {
-                                                                if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                                                                {
-                                                                    ContentType = entry.Key;
-                                                                    break;
-                                                                }
+                                                                ContentType = entry.Key;
+                                                                break;
                                                             }
                                                         }
+                                                    }
+
+                                                    string UserAgent = request.Useragent.ToLower();
+
+                                                    if (HTTPSServerConfiguration.EnableLiveTranscoding 
+                                                        && ((ContentType.Contains("video") && !ContentType.Contains("mp4")) 
+                                                        || ContentType.Contains("audio")) && !ContentType.Contains("mpeg")
+                                                        && !string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox")
+                                                        || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
+                                                        sent = await new Extensions.Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
+                                                    else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
+                                                        sent = new LocalFileStreamHelper().Handle_LocalFile_Stream(ctx, filePath, ContentType);
+                                                    else
+                                                    {
+                                                        // send file
+                                                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
+
                                                         sent = await SendFile(ctx, encoding, filePath, ContentType);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
+
+                                                    statusCode = HttpStatusCode.NotFound;
+                                                    response.StatusCode = (int)statusCode;
+
+                                                    if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                    {
+                                                        response.ContentType = "text/html";
+                                                        sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                                            HTTPSServerConfiguration.HTTPSStaticFolder, HTTPProcessor.GenerateServerSignature(), ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
                                                     }
                                                     else
                                                     {
-                                                        LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
-
-                                                        statusCode = HttpStatusCode.NotFound;
-                                                        response.StatusCode = (int)statusCode;
-
-                                                        if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
-                                                        {
-                                                            response.ContentType = "text/html";
-                                                            sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                HTTPSServerConfiguration.HTTPSStaticFolder, HTTPProcessor.GenerateServerSignature(), ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
-                                                        }
-                                                        else
-                                                        {
-                                                            response.ContentType = "text/plain";
-                                                            sent = await response.Send();
-                                                        }
+                                                        response.ContentType = "text/plain";
+                                                        sent = await response.Send();
                                                     }
                                                 }
                                             }
