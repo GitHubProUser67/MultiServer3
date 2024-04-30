@@ -35,6 +35,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using WebAPIService.HELLFIRE;
+using CyberBackendLibrary.HTTP.PluginManager;
 
 namespace HTTPServer
 {
@@ -237,11 +238,20 @@ namespace HTTPServer
 
                                 if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {
-                                    foreach (PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+                                    foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins)
                                     {
-                                        response = plugin.ProcessPluginMessage(request);
-                                        if (response != null)
-                                            break;
+                                        try
+                                        {
+                                            object? objReturn = plugin.ProcessPluginMessage(request);
+                                            if (objReturn != null && objReturn is HttpResponse v)
+                                                response = v;
+                                            if (response != null)
+                                                break;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            LoggerAccessor.LogError($"[HTTP] - Plugin {plugin.GetHashCode()} thrown an assertion: {ex}");
+                                        }
                                     }
                                 }
 

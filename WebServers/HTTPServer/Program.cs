@@ -9,6 +9,7 @@ using System;
 using System.Threading.Tasks;
 using System.Threading;
 using CyberBackendLibrary.AIModels;
+using CyberBackendLibrary.HTTP.PluginManager;
 
 public static class HTTPServerConfiguration
 {
@@ -32,7 +33,7 @@ public static class HTTPServerConfiguration
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 
-    public static List<HTTPServer.PluginManager.HTTPPlugin> plugins = HTTPServer.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static List<HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -220,7 +221,7 @@ class Program
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
             int i = 0;
-            foreach (HTTPServer.PluginManager.HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+            foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins)
             {
                 _ = plugin.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i));
                 i++;

@@ -11,6 +11,9 @@ using System;
 using System.Threading.Tasks;
 using CyberBackendLibrary.AIModels;
 using System.Security.Cryptography;
+using CyberBackendLibrary.HTTP.PluginManager;
+using System.Diagnostics;
+using System.Security.Principal;
 
 public static class HTTPSServerConfiguration
 {
@@ -33,6 +36,7 @@ public static class HTTPSServerConfiguration
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnablePUTMethod { get; set; } = false;
+    public static bool EnableLiveTranscoding { get; set; } = false;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static string[]? HTTPSDNSList { get; set; } = {
             "www.outso-srv1.com",
@@ -99,7 +103,7 @@ public static class HTTPSServerConfiguration
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 
-    public static List<HTTPSecureServerLite.PluginManager.HTTPSecurePlugin> plugins = HTTPSecureServerLite.PluginManager.PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static List<HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -141,6 +145,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("enable_put_method", EnablePUTMethod),
+                new JProperty("enable_live_transcoding", EnableLiveTranscoding),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
@@ -173,6 +178,7 @@ public static class HTTPSServerConfiguration
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
+            EnableLiveTranscoding = GetValueOrDefault(config, "enable_live_transcoding", EnableLiveTranscoding);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             // Deserialize Ports if it exists
@@ -284,6 +290,16 @@ class Program
 
         HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
 
+        if (HTTPSServerConfiguration.EnableLiveTranscoding && IsWindows)
+            if (!IsAdministrator())
+            {
+                LoggerAccessor.LogWarn("Live transcoding functionality needs administrator rights, trying to restart as admin...");
+                if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
+                    Environment.Exit(0);
+                else
+                    LoggerAccessor.LogError("Live transcoding functionality will not work due to missing administrator rights!");
+            }
+
         CyberBackendLibrary.SSL.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
@@ -307,9 +323,9 @@ class Program
         if (HTTPSServerConfiguration.plugins.Count > 0)
         {
             int i = 0;
-            foreach (HTTPSecureServerLite.PluginManager.HTTPSecurePlugin plugin in HTTPSServerConfiguration.plugins)
+            foreach (HTTPPlugin plugin in HTTPSServerConfiguration.plugins)
             {
-                _ = plugin.HTTPSecureStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i));
+                _ = plugin.HTTPStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i));
                 i++;
             }
         }
@@ -336,6 +352,43 @@ class Program
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
             Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+        }
+    }
+
+    /// <summary>
+    /// Know if we are the true administrator of the Windows system.
+    /// <para>Savoir si est réellement l'administrateur Windows.</para>
+    /// </summary>
+    /// <returns>A boolean.</returns>
+#pragma warning disable
+    private static bool IsAdministrator()
+    {
+        return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+#pragma warning restore
+
+    private static bool StartAsAdmin(string? filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return false;
+
+        try
+        {
+            new Process()
+            {
+                StartInfo =
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    }
+            }.Start();
+
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

@@ -166,7 +166,7 @@ class Program
         if (IsWindows)
             if (!IsAdministrator())
             {
-                Console.WriteLine("Trying to restart as admin");
+                Console.WriteLine("Trying to restart as admin...");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
                     Environment.Exit(0);
             }

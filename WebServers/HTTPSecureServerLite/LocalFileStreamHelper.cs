@@ -10,7 +10,7 @@ namespace HTTPSecureServerLite
 {
     public class LocalFileStreamHelper
     {
-        public bool Handle_LocalFile_Stream(HttpContextBase ctx, string local_path)
+        public bool Handle_LocalFile_Stream(HttpContextBase ctx, string local_path, string ContentType)
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
@@ -29,18 +29,6 @@ namespace HTTPSecureServerLite
                 using (HugeMemoryStream ms = new())
                 {
                     Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
-                    if (ContentType == "application/octet-stream")
-                    {
-                        foreach (var entry in HTTPProcessor._PathernDictionary)
-                        {
-                            if (DataTypesUtils.FindbyteSequence(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
-                            {
-                                ContentType = entry.Key;
-                                break;
-                            }
-                        }
-                    }
                     // Split the ranges based on the comma (',') separator
                     foreach (string RangeSelect in HeaderString.Split(','))
                     {
@@ -98,6 +86,7 @@ namespace HTTPSecureServerLite
                             ms.Flush();
                             ms.Close();
                             fs.Position = 0;
+
                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                             ctx.Response.Headers.Add("Accept-Ranges", "bytes");
@@ -185,31 +174,8 @@ namespace HTTPSecureServerLite
             }
             else if ((startByte >= endByte) || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
             {
-                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
-                ctx.Response.Headers.Add("Accept-Ranges", "bytes");
-                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
-                if (ContentType == "application/octet-stream")
-                {
-                    bool matched = false;
-                    byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPProcessor._PathernDictionary)
-                    {
-                        if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                        {
-                            matched = true;
-                            ctx.Response.ContentType = entry.Key;
-                            break;
-                        }
-                    }
-                    if (!matched)
-                        ctx.Response.ContentType = ContentType;
-                }
-                else
-                    ctx.Response.ContentType = ContentType;
-
                 fs.Position = 0;
+
                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
                 ctx.Response.Headers.Add("Accept-Ranges", "bytes");
@@ -221,25 +187,7 @@ namespace HTTPSecureServerLite
             {
                 long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                 fs.Position = startByte;
-                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
-                if (ContentType == "application/octet-stream")
-                {
-                    bool matched = false;
-                    byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
-                    foreach (var entry in HTTPProcessor._PathernDictionary)
-                    {
-                        if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
-                        {
-                            matched = true;
-                            ctx.Response.ContentType = entry.Key;
-                            break;
-                        }
-                    }
-                    if (!matched)
-                        ctx.Response.ContentType = ContentType;
-                }
-                else
-                    ctx.Response.ContentType = ContentType;
+                ctx.Response.ContentType = ContentType;
                 ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                 ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
