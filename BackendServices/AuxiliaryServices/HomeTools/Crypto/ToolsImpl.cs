@@ -450,6 +450,7 @@ namespace HomeTools.Crypto
                 StringBuilder? hexStr = new();
                 byte[]? returnstring = null;
                 int i = blockSize; // Start index for processing.
+                int totalProcessedBytes = 0;
 
                 while (i <= IVA.Length)
                 {
@@ -457,15 +458,14 @@ namespace HomeTools.Crypto
                     Array.Copy(IVA, i - blockSize, ivBlk, 0, blockSize);
 
                     int BytesToFill = 0;
+                    int BytesToCopy = Math.Min(blockSize, fileBytes.Length - totalProcessedBytes);
 
                     byte[] block = new byte[blockSize];
-                    if (fileBytes.Length < blockSize)
-                    {
-                        BytesToFill = blockSize - fileBytes.Length;
-                        Array.Copy(fileBytes, i - blockSize, block, 0, fileBytes.Length);
-                    }
-                    else
-                        Array.Copy(fileBytes, i - blockSize, block, 0, blockSize);
+                    if (BytesToCopy < blockSize)
+                        BytesToFill = blockSize - BytesToCopy;
+
+                    Array.Copy(fileBytes, i - blockSize, block, 0, BytesToCopy);
+                    totalProcessedBytes += BytesToCopy;
 
                     if (BytesToFill != 0)
                     {
