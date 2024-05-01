@@ -114,9 +114,11 @@ namespace WebAPIService.OHS
                                     case "usercounter/set/":
                                         resultfromcommand = UserCounter.Set(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
-                                    case "usercounter/increment/":
                                     case "usercounter/increment/v2/":
-                                        resultfromcommand = UserCounter.Increment(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        resultfromcommand = UserCounter.Increment(PostData, ContentType, directorypath + $"/{project}/", data, game, true);
+                                        break;
+                                    case "usercounter/increment/":
+                                        resultfromcommand = UserCounter.Increment(PostData, ContentType, directorypath + $"/{project}/", data, game, false);
                                         break;
                                     case "usercounter/getall/":
                                         resultfromcommand = UserCounter.Get_All(PostData, ContentType, directorypath + $"/{project}/", data, game);
@@ -125,7 +127,7 @@ namespace WebAPIService.OHS
                                         resultfromcommand = UserCounter.Get(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
                                     case "usercounter/incrementmany/":
-                                        resultfromcommand = UserCounter.Increment_Many(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        resultfromcommand = UserCounter.Increment_Many(PostData, ContentType, directorypath, data, game);
                                         break;
                                     case "userinventory/addglobalitems/":
                                         resultfromcommand = UserInventory.AddGlobalItems(PostData, ContentType, directorypath + $"/{project}/", data, game);
