@@ -10,7 +10,7 @@ namespace WebAPIService.OHS
             "/global/set/", "/global/getall/", "/global/get/",
             "/userid/", "/user/getwritekey/", "/user/set/",
             "/user/getall/", "/user/get/", "/user/gets/",  "/user/getmany/", "/usercounter/set/",
-            "/usercounter/getall/", "usercounter/getmany/", "/usercounter/get/", "/usercounter/incrementmany/",
+            "/usercounter/getall/", "usercounter/getmany/", "/usercounter/get/", "/usercounter/increment/",
             "/userinventory/addglobalitems/", "/userinventory/getglobalitems/",
             "/userinventory/getuserinventory/", "/leaderboard/requestbyusers/", "/leaderboard/requestbyrank/",
             "/leaderboard/update/", "/leaderboard/updatessameentry/", 
@@ -76,7 +76,7 @@ namespace WebAPIService.OHS
                         else if (absolutepath.Contains(Commands[16]))
                             res = UserCounter.Get(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[17]))
-                            res = UserCounter.Increment_Many(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = UserCounter.Increment(PostData, ContentType, directoryPath, string.Empty, game, false);
                         else if (absolutepath.Contains(Commands[18]))
                             res = UserInventory.AddGlobalItems(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[19]))

@@ -132,7 +132,7 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Increment(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string? Increment(byte[] PostData, string ContentType, string directorypath, string batchparams, int game, bool v2)
         {
             string? dataforohs = null;
             string? output = null;
@@ -170,8 +170,6 @@ namespace WebAPIService.OHS
 
                     int value = jObject.Value<int>("value");
 
-                    Directory.CreateDirectory(directorypath + $"/User_Profiles");
-
                     try
                     {
                         string profileCurDataString = directorypath + $"User_Profiles/{user}_Stats.json";
@@ -190,32 +188,24 @@ namespace WebAPIService.OHS
                                     int currentValue = existingKey.Value<int>();
                                     int newValue = 0;
 
-                                    //CurrentValue is stored file value already, value is the requested change.
+                                    // CurrentValue is stored file value already, value is the requested change.
                                     if (currentValue > value)
-                                    {
                                         newValue = currentValue - value;
-                                    }
                                     else
-                                    {
                                         newValue = currentValue + value;
-                                    }
 
                                     existingKey.Replace(newValue);
 
                                     // Set the output to the incremented value
-                                    output = (existingKey).ToString();
+                                    output = existingKey.ToString();
                                 }
                                 else
                                 {
-                                    // If the key doesn't exist or its value is not an integer, handle accordingly
-                                    // For example, you might want to set the value to 1 or handle an error.
-                                    // Modify this part based on your specific requirements.
                                     existingKey = value;
-                                    // Set the output to the incremented value
-                                    output = (value).ToString();
+                                    output = existingKey.ToString();
                                 }
 
-                                File.WriteAllText(output, jObject.ToString(Formatting.Indented));
+                                File.WriteAllText(profileCurDataString, jObjectFromFile.ToString(Formatting.Indented));
                             }
                         }
                         else if (key != null)
@@ -228,13 +218,15 @@ namespace WebAPIService.OHS
                                 var newProfile = new OHSUserProfile
                                 {
                                     user = user,
-                                    key = new JObject { { keystring, 1 } }
+                                    key = new JObject { { keystring, value < 0 ? 0 : value } }
                                 };
+
+                                Directory.CreateDirectory(directorypath + $"/User_Profiles");
 
                                 File.WriteAllText(profileCurDataString, JsonConvert.SerializeObject(newProfile));
 
                                 // Set the output to incremented value
-                                output = (value).ToString();
+                                output = value.ToString();
                             }
                         }
                     }
@@ -250,14 +242,14 @@ namespace WebAPIService.OHS
                 if (string.IsNullOrEmpty(output))
                     return "{ }";
                 else
-                    return $"{{ [\"{key}\"] = {output} }}";
+                    return v2 ? $"{{ [\"sessionCount\"] = {output} }}" : output;
             }
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ [\"{key}\"] = {output} }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {(v2 ? $"{{ [\"sessionCount\"] = {output} }}" : output)} }}", game);
             }
 
             return dataforohs;
@@ -328,7 +320,7 @@ namespace WebAPIService.OHS
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
                     dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }
@@ -408,7 +400,7 @@ namespace WebAPIService.OHS
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
                     dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }
@@ -453,7 +445,6 @@ namespace WebAPIService.OHS
                     {
                         string currencydata = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Stats.json");
 
-                        
                         if (!string.IsNullOrEmpty(currencydata))
                         {
                             // Parse the JSON string to a JObject
@@ -482,7 +473,7 @@ namespace WebAPIService.OHS
             else
             {
                 if (string.IsNullOrEmpty(output))
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
                     dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }
@@ -521,97 +512,83 @@ namespace WebAPIService.OHS
 
                 if (jObject != null)
                 {
-                    // Getting the value of the "user" field
-                    dataforohs = (string?)jObject["user"];
-                    string[]? keys = jObject["keys"]?.ToObject<string[]>();
-                    string[]? projects = jObject["projects"]?.ToObject<string[]>();
-                    int[]? values = jObject["values"]?.ToObject<int[]>();
-
-                    if (!string.IsNullOrEmpty(dataforohs) && keys != null && projects != null && values != null && keys.Length == projects.Length && projects.Length == values.Length)
-                    {
-                        string? output = null;
-                        string profileCurDataString = string.Empty;
-
-                        // Find the last index of "/"
-                        int lastIndex = directorypath.LastIndexOf('/');
-
-                        if (lastIndex != -1)
-                            // Remove everything from the last index onwards, this allows us to remove the project name for Increment_Many
-                            directorypath = directorypath[..lastIndex];
-
-                        int i = 0;
-
-                        foreach (string project in projects)
-                        {
-                            profileCurDataString = directorypath + $"/{project}/User_Profiles/{dataforohs}_Stats.json";
-
-                            if (File.Exists(profileCurDataString))
-                            {
-                                JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
-
-                                if (jObjectFromFile != null)
-                                {
-                                    JToken? existingKey = jObjectFromFile.SelectToken($"$..{keys[i]}");
-
-                                    if (existingKey != null && existingKey.Type == JTokenType.Integer)
-                                    {
-                                        // Increment the value of the existing key (assuming it's an integer)
-                                        int currentValue = existingKey.Value<int>();
-                                        int newValue = 0;
-
-                                        // CurrentValue is stored file value already, value is the requested change.
-                                        if (currentValue > values[i])
-                                            newValue = currentValue - values[i];
-                                        else
-                                            newValue = currentValue + values[i];
-
-                                        existingKey.Replace(newValue);
-
-                                        // Set the output to the incremented value
-                                        IncrementResults.Add(keys[i], existingKey.ToString());
-                                        output = existingKey.ToString();
-                                    }
-                                    else
-                                    {
-                                        // If the key doesn't exist or its value is not an integer, handle accordingly
-                                        // For example, you might want to set the value to 1 or handle an error.
-                                        // Modify this part based on your specific requirements.
-                                        existingKey = values[i];
-                                        // Set the output to the incremented value
-                                        IncrementResults.Add(keys[i], values[i].ToString());
-                                        output = values[i].ToString();
-                                    }
-
-                                    File.WriteAllText(output, jObject.ToString(Formatting.Indented));
-                                }
-                            }
-                            else if (keys[i] != null)
-                            {
-                                string? keystring = keys[i];
-
-                                if (!string.IsNullOrEmpty(keystring) && !string.IsNullOrEmpty(dataforohs))
-                                {
-                                    // Create a new profile with the key field and set it to 1
-                                    var newProfile = new OHSUserProfile
-                                    {
-                                        user = dataforohs,
-                                        key = new JObject { { keystring, 1 } }
-                                    };
-
-                                    File.WriteAllText(profileCurDataString, JsonConvert.SerializeObject(newProfile));
-
-                                    // Set the output to incremented value
-                                    IncrementResults.Add(keys[i], values[i].ToString());
-                                }
-                            }
-
-                            i++;
-                        }
-                    }
-
                     try
                     {
-                        
+                        // Getting the value of the "user" field
+                        dataforohs = (string?)jObject["user"];
+                        string[]? keys = jObject["keys"]?.ToObject<string[]>();
+                        string[]? projects = jObject["projects"]?.ToObject<string[]>();
+                        int[]? values = jObject["values"]?.ToObject<int[]>();
+
+                        if (!string.IsNullOrEmpty(dataforohs) && keys != null && projects != null && values != null && keys.Length == projects.Length && projects.Length == values.Length)
+                        {
+                            string profileCurDataString = string.Empty;
+
+                            int i = 0;
+
+                            foreach (string project in projects)
+                            {
+                                profileCurDataString = directorypath + $"/{project}/User_Profiles/{dataforohs}_Stats.json";
+
+                                if (File.Exists(profileCurDataString))
+                                {
+                                    JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
+
+                                    if (jObjectFromFile != null)
+                                    {
+                                        JToken? existingKey = jObjectFromFile.SelectToken($"$..{keys[i]}");
+
+                                        if (existingKey != null && existingKey.Type == JTokenType.Integer)
+                                        {
+                                            // Increment the value of the existing key (assuming it's an integer)
+                                            int currentValue = existingKey.Value<int>();
+                                            int newValue = 0;
+
+                                            // CurrentValue is stored file value already, value is the requested change.
+                                            if (currentValue > values[i])
+                                                newValue = currentValue - values[i];
+                                            else
+                                                newValue = currentValue + values[i];
+
+                                            existingKey.Replace(newValue);
+
+                                            // Set the output to the incremented value
+                                            IncrementResults.Add(keys[i], existingKey.ToString());
+                                        }
+                                        else
+                                        {
+                                            existingKey = values[i];
+                                            IncrementResults.Add(keys[i], values[i].ToString());
+                                        }
+
+                                        File.WriteAllText(profileCurDataString, jObjectFromFile.ToString(Formatting.Indented));
+                                    }
+                                }
+                                else if (keys[i] != null)
+                                {
+                                    string? keystring = keys[i];
+
+                                    if (!string.IsNullOrEmpty(keystring) && !string.IsNullOrEmpty(dataforohs))
+                                    {
+                                        // Create a new profile with the key field and set it to 1
+                                        var newProfile = new OHSUserProfile
+                                        {
+                                            user = dataforohs,
+                                            key = new JObject { { keystring, values[i] < 0 ? 0 : values[i] } }
+                                        };
+
+                                        Directory.CreateDirectory(directorypath + $"/{project}/User_Profiles/");
+
+                                        File.WriteAllText(profileCurDataString, JsonConvert.SerializeObject(newProfile));
+
+                                        // Set the output to incremented value
+                                        IncrementResults.Add(keys[i], values[i].ToString());
+                                    }
+                                }
+
+                                i++;
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -628,14 +605,18 @@ namespace WebAPIService.OHS
                 {
                     StringBuilder sb = new();
 
+                    int i = 1;
+
                     foreach (var item in IncrementResults)
                     {
                         if (sb.Length != 0)
                         {
-                            sb.Append($", [\"{item.Key}\"] = {item.Value}");
+                            sb.Append($", [{i}] = {{ [\"value\"] = {item.Value} }}");
                         }
                         else
-                            sb.Append($"{{ [\"{item.Key}\"] = {item.Value}");
+                            sb.Append($"{{ [{i}] = {{ [\"value\"] = {item.Value} }}");
+
+                        i++;
                     }
 
                     if (sb.Length != 0)
@@ -649,19 +630,23 @@ namespace WebAPIService.OHS
             else
             {
                 if (IncrementResults.Count <= 0)
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {{ }} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
                 {
                     StringBuilder sb = new();
+
+                    int i = 1;
 
                     foreach (var item in IncrementResults)
                     {
                         if (sb.Length != 0)
                         {
-                            sb.Append($", [\"{item.Key}\"] = {item.Value}");
+                            sb.Append($", [{i}] = {{ [\"value\"] = {item.Value} }}");
                         }
                         else
-                            sb.Append($"{{ [\"{item.Key}\"] = {item.Value}");
+                            sb.Append($"{{ [{i}] = {{ [\"value\"] = {item.Value} }}");
+
+                        i++;
                     }
 
                     if (sb.Length != 0)
