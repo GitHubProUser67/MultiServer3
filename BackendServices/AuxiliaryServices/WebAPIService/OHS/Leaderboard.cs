@@ -119,6 +119,8 @@ namespace WebAPIService.OHS
                 dataforohs = batchparams;
             // TODO! writekey must be somewhere.
 
+            string? value = null;
+
             try
             {
                 if (!string.IsNullOrEmpty(dataforohs))
@@ -132,6 +134,14 @@ namespace WebAPIService.OHS
                         string? user = rootObject.user;
                         int score = rootObject.score;
                         string? key = rootObject.key;
+
+                        if (!string.IsNullOrEmpty(rootObject.value))
+                        {
+                            value = JaminProcessor.JaminDeFormat(rootObject.value, false, 0, false);
+
+                            if (!string.IsNullOrEmpty(value))
+                                LoggerAccessor.LogInfo($"[OHS] : Leaderboard has extra data: {value}");
+                        }
 
                         string scoreboardfile = directorypath + $"/scoreboard_{key}.json";
 
@@ -195,6 +205,8 @@ namespace WebAPIService.OHS
 
             StringBuilder? resultBuilder = new();
 
+            string? value = null;
+
             try
             {
                 if (!string.IsNullOrEmpty(dataforohs))
@@ -208,6 +220,14 @@ namespace WebAPIService.OHS
                         string? user = rootObject.user;
                         int score = rootObject.score;
                         string[]? keys = rootObject.keys;
+
+                        if (!string.IsNullOrEmpty(rootObject.value))
+                        {
+                            value = JaminProcessor.JaminDeFormat(rootObject.value, false, 0, false);
+
+                            if (!string.IsNullOrEmpty(value))
+                                LoggerAccessor.LogInfo($"[OHS] : Leaderboard has extra data: {value}");
+                        }
 
                         if (keys != null)
                         {
@@ -703,7 +723,7 @@ namespace WebAPIService.OHS
             public string? user { get; set; }
             public string[]? keys { get; set; }
             public int score { get; set; }
-            public object[]? value { get; set; }
+            public string? value { get; set; }
         }
 
         public class ScoreBoardUpdate
@@ -711,7 +731,7 @@ namespace WebAPIService.OHS
             public string? user { get; set; }
             public string? key { get; set; }
             public int score { get; set; }
-            public object[]? value { get; set; }
+            public string? value { get; set; }
         }
 
         public class ScoreBoardUsersRequest
