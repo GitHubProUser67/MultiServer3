@@ -10,7 +10,7 @@ namespace WebAPIService.OHS
             "/global/set/", "/global/getall/", "/global/get/",
             "/userid/", "/user/getwritekey/", "/user/set/",
             "/user/getall/", "/user/get/", "/user/gets/",  "/user/getmany/", "/usercounter/set/",
-            "/usercounter/getall/", "usercounter/getmany/", "/usercounter/get/",
+            "/usercounter/getall/", "usercounter/getmany/", "/usercounter/get/", "/usercounter/incrementmany/",
             "/userinventory/addglobalitems/", "/userinventory/getglobalitems/",
             "/userinventory/getuserinventory/", "/leaderboard/requestbyusers/", "/leaderboard/requestbyrank/",
             "/leaderboard/update/", "/leaderboard/updatessameentry/", 
@@ -76,24 +76,26 @@ namespace WebAPIService.OHS
                         else if (absolutepath.Contains(Commands[16]))
                             res = UserCounter.Get(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[17]))
-                            res = UserInventory.AddGlobalItems(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = UserCounter.Increment_Many(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[18]))
-                            res = UserInventory.GetGlobalItems(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = UserInventory.AddGlobalItems(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[19]))
-                            res = UserInventory.GetUserInventory(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = UserInventory.GetGlobalItems(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[20]))
-                            res = Leaderboard.Leaderboard_RequestByUsers(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = UserInventory.GetUserInventory(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[21]))
-                            res = Leaderboard.Leaderboard_RequestByRank(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = Leaderboard.Leaderboard_RequestByUsers(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[22]))
-                            res = Leaderboard.Leaderboard_Update(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = Leaderboard.Leaderboard_RequestByRank(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[23]))
-                            res = Leaderboard.Leaderboard_UpdatesSameEntry(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = Leaderboard.Leaderboard_Update(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[24]))
-                            res = Statistic.Set(PostData, ContentType);
+                            res = Leaderboard.Leaderboard_UpdatesSameEntry(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[25]))
-                            res = Statistic.HeatmapTracker(PostData, ContentType);
+                            res = Statistic.Set(PostData, ContentType);
                         else if (absolutepath.Contains(Commands[26]))
+                            res = Statistic.HeatmapTracker(PostData, ContentType);
+                        else if (absolutepath.Contains(Commands[27]))
                             res = Statistic.PointsTracker(PostData, ContentType);
                     }
                     break;
@@ -110,8 +112,7 @@ namespace WebAPIService.OHS
 
             foreach (string pattern in Commands)
             {
-                string patternEscaped = Regex.Escape(pattern);
-                modifiedInput = Regex.Replace(modifiedInput, patternEscaped, string.Empty);
+                modifiedInput = Regex.Replace(modifiedInput, Regex.Escape(pattern), string.Empty);
             }
 
             return modifiedInput;
