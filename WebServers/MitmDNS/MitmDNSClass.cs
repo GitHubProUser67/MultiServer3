@@ -227,13 +227,13 @@ namespace MitmDNS
                         }
                         catch // Host is invalid or non-existant, fallback to public/local server IP
                         {
-                            IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                            IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress()); // Some legacy DNS clients doesn't support IPv6.
                         }
                         break;
                     }
                 default:
                     {
-                        IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                        IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress()); // Some legacy DNS clients doesn't support IPv6.
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
