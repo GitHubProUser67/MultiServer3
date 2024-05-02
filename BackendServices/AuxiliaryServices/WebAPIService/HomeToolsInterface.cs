@@ -869,24 +869,24 @@ namespace WebAPIService
                         {
                             byte[]? ProcessedFileBytes = new byte[buffer.Length - 8];
                             Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
-                            ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV1Process(ProcessedFileBytes);
+                            ProcessedFileBytes = LIBSECURE.InitiateBlowfishBuffer(ProcessedFileBytes, ToolsImpl.TicketListV1Key, ToolsImpl.TicketListV1IV, "CTR");
                             if (ProcessedFileBytes != null)
                                 TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                         }
                         else if (version1 == "on")
-                            TasksResult.Add((DataTypesUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, new BlowfishCTREncryptDecrypt().TicketListV1Process(buffer))
+                            TasksResult.Add((DataTypesUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV1Key, ToolsImpl.TicketListV1IV, "CTR"))
                                     , $"{filename}_Encrypted.lst"));
                         else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                             && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
                         {
                             byte[]? ProcessedFileBytes = new byte[buffer.Length - 8];
                             Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
-                            ProcessedFileBytes = new BlowfishCTREncryptDecrypt().TicketListV0Process(ProcessedFileBytes);
+                            ProcessedFileBytes = LIBSECURE.InitiateBlowfishBuffer(ProcessedFileBytes, ToolsImpl.TicketListV0Key, ToolsImpl.TicketListV0IV, "CTR");
                             if (ProcessedFileBytes != null)
                                 TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                         }
                         else
-                            TasksResult.Add((DataTypesUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, new BlowfishCTREncryptDecrypt().TicketListV0Process(buffer))
+                            TasksResult.Add((DataTypesUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV0Key, ToolsImpl.TicketListV0IV, "CTR"))
                                     , $"{filename}_Encrypted.lst"));
 
                         i++;
@@ -927,9 +927,6 @@ namespace WebAPIService
             (byte[]?, string)? output = null;
             List<(byte[]?, string)?> TasksResult = new();
 
-            if (ToolsImpl.INFIVA == null)
-                BlowfishCTREncryptDecrypt.InitiateMetadataCryptoContext();
-
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
@@ -956,29 +953,21 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
-                        if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0x00 && buffer[3] == 0x01 && ToolsImpl.INFIVA != null)
+                        if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0x00 && buffer[3] == 0x01)
                         {
-                            ToolsImpl? toolsimpl = new();
+                            buffer = ToolsImpl.RemovePaddingPrefix(buffer);
 
-                            buffer = toolsimpl.RemovePaddingPrefix(buffer);
-
-                            byte[]? decryptedfilebytes = toolsimpl.Crypt_Decrypt(buffer, ToolsImpl.INFIVA, 8);
-
-                            toolsimpl = null;
+                            byte[]? decryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.MetaDataV1Key, ToolsImpl.MetaDataV1IV, "CTR");
 
                             if (decryptedfilebytes != null)
                                 TasksResult.Add((decryptedfilebytes, $"{filename}_Decrypted.bin"));
                         }
-                        else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5 && ToolsImpl.INFIVA != null)
+                        else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5)
                         {
-                            ToolsImpl? toolsimpl = new();
-
-                            byte[]? encryptedfilebytes = toolsimpl.Crypt_Decrypt(buffer, ToolsImpl.INFIVA, 8);
+                            byte[]? encryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.MetaDataV1Key, ToolsImpl.MetaDataV1IV, "CTR");
 
                             if (encryptedfilebytes != null)
-                                TasksResult.Add((toolsimpl.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));
-
-                            toolsimpl = null;
+                                TasksResult.Add((ToolsImpl.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));
                         }
 
                         i++;

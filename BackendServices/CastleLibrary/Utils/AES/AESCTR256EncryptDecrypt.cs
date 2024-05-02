@@ -8,9 +8,9 @@ namespace CastleLibrary.Utils.AES
 {
     public class AESCTR256EncryptDecrypt
     {
-        public static byte[] InitiateCTRBuffer(byte[]? FileBytes, byte[] KeyBytes, byte[]? m_iv)
+        public static byte[]? InitiateCTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv)
         {
-            if (KeyBytes != null && KeyBytes.Length >= 16 && m_iv != null && m_iv.Length == 16 && FileBytes != null)
+            if (KeyBytes.Length >= 16 && m_iv.Length == 16)
             {
                 // Create the cipher
                 IBufferedCipher? cipher = CipherUtilities.GetCipher("AES/CTR/NOPADDING");
@@ -27,14 +27,14 @@ namespace CastleLibrary.Utils.AES
                 return ciphertextBytes;
             }
             else
-                CustomLogger.LoggerAccessor.LogError("[AESCTR256EncryptDecrypt] - InitiateCTRBuffer - Invalid FileBytes, KeyByes or IV!");
+                CustomLogger.LoggerAccessor.LogError("[AESCTR256EncryptDecrypt] - InitiateCTRBuffer - Invalid KeyBytes or IV!");
 
-            return Array.Empty<byte>();
+            return null;
         }
 
-        public static string? InitiateCTRBufferTobase64String(string FileString, byte[] KeyBytes, byte[]? m_iv)
+        public static string? InitiateCTRBufferTobase64String(string FileString, byte[] KeyBytes, byte[] m_iv)
         {
-            if (KeyBytes != null && KeyBytes.Length >= 16 && m_iv != null && m_iv.Length == 16)
+            if (KeyBytes.Length >= 16 && m_iv.Length == 16)
             {
                 byte[] FileBytes = Encoding.UTF8.GetBytes(FileString);
 
@@ -53,7 +53,7 @@ namespace CastleLibrary.Utils.AES
                 return Convert.ToBase64String(ciphertextBytes);
             }
             else
-                CustomLogger.LoggerAccessor.LogError("[AESCTR256EncryptDecrypt] - InitiateCTRBuffer - Invalid FileString, KeyBytes or IV!");
+                CustomLogger.LoggerAccessor.LogError("[AESCTR256EncryptDecrypt] - InitiateCTRBufferTobase64String - Invalid KeyBytes or IV!");
 
             return null;
         }

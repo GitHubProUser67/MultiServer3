@@ -11,7 +11,6 @@ using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System.Collections.Generic;
 using System;
-using CastleLibrary.Utils.AES;
 
 namespace HomeTools.BARFramework
 {
@@ -600,12 +599,12 @@ namespace HomeTools.BARFramework
                 if (m_endian == EndianType.BigEndian) // This data is always little endian.
                 {
                     writer.Write(EndianUtils.EndianSwap(IV));
-                    writer.Write(EndianUtils.EndianSwap(AESCTR256EncryptDecrypt.InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV)));
+                    writer.Write(EndianUtils.EndianSwap(LIBSECURE.InitiateAESBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV, "CTR") ?? Array.Empty<byte>()));
                 }
                 else
                 {
                     writer.Write(IV);
-                    writer.Write(AESCTR256EncryptDecrypt.InitiateCTRBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV));
+                    writer.Write(LIBSECURE.InitiateAESBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV, "CTR") ?? Array.Empty<byte>());
                 }
             }
             else
@@ -652,7 +651,6 @@ namespace HomeTools.BARFramework
         {
             if (m_header.Version == 512)
             {
-                ToolsImpl? toolsImpl = new();
                 bool isvalid = true;
                 if (inStream.Length == 0L)
                     isvalid = false;
@@ -662,7 +660,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = toolsImpl.ComponentAceEdgeZlibCompress(array);
+                    array2 = ToolsImpl.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length;
@@ -676,7 +674,7 @@ namespace HomeTools.BARFramework
                     tocEntry.Index = count;
                     byte[] IV = new byte[8];
                     Buffer.BlockCopy(tocEntry.IV, 0, IV, 0, tocEntry.IV.Length);
-                    tocEntry.RawData = toolsImpl.ProcessLibsecureXTEABlocks(array2, m_header.Key, IV);
+                    tocEntry.RawData = ToolsImpl.ProcessXTEAProxyBlocks(array2, m_header.Key, IV);
                 }
                 else
                 {
@@ -692,11 +690,9 @@ namespace HomeTools.BARFramework
                     tocEntry.Index = count;
                     tocEntry.RawData = array2;
                 }
-                toolsImpl = null;
             }
             else if (m_header.Version != 512 && encrypt)
             {
-                ToolsImpl? toolsImpl = new();
                 bool isvalid = true;
                 if (inStream.Length == 0L)
                     isvalid = false;
@@ -706,7 +702,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = toolsImpl.ComponentAceEdgeZlibCompress(array);
+                    array2 = ToolsImpl.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;
@@ -719,13 +715,13 @@ namespace HomeTools.BARFramework
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     if (m_endian == EndianType.BigEndian)
-                        tocEntry.RawData = DataTypesUtils.CombineByteArrays(toolsImpl.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = DataTypesUtils.CombineByteArrays(ToolsImpl.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              EndianUtils.EndianSwap(Utils.IntToByteArray(array2.Length)),
                              array2
                         });
                     else
-                        tocEntry.RawData = DataTypesUtils.CombineByteArrays(toolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = DataTypesUtils.CombineByteArrays(ToolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              Utils.IntToByteArray(array2.Length),
                              array2
@@ -745,7 +741,6 @@ namespace HomeTools.BARFramework
                     tocEntry.Index = count;
                     tocEntry.RawData = array2;
                 }
-                toolsImpl = null;
             }
             else
             {
@@ -926,7 +921,6 @@ namespace HomeTools.BARFramework
 
         public void SaveAs(string fileName)
         {
-            ToolsImpl? toolsImpl = new();
             Stream dataWriterStream = GetDataWriterStream(fileName);
             m_header.NumFiles = m_toc.Count;
             if (Dirty)
@@ -938,7 +932,7 @@ namespace HomeTools.BARFramework
             {
                 byte[] IV = new byte[16];
                 Buffer.BlockCopy(m_header.IV, 0, IV, 0, m_header.IV.Length);
-                new ToolsImpl().IncrementIVBytes(IV, 1); // IV so we increment.
+                ToolsImpl.IncrementIVBytes(IV, 1); // IV so we increment.
                 array = m_toc.GetBytesVersion2(version2key, IV, m_endian);
             }
             else
@@ -985,16 +979,15 @@ namespace HomeTools.BARFramework
             {
                 if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted)
                 {
-                    BlowfishCTREncryptDecrypt? blowfish = new();
-                    byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
+                    byte[] SignatureIV = BitConverter.GetBytes(ToolsImpl.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
                     if (BitConverter.IsLittleEndian)
                         Array.Reverse(SignatureIV);
                     byte[] OriginalSigntureIV = new byte[SignatureIV.Length];
                     Buffer.BlockCopy(SignatureIV, 0, OriginalSigntureIV, 0, OriginalSigntureIV.Length);
-                    toolsImpl.IncrementIVBytes(SignatureIV, 3);
+                    ToolsImpl.IncrementIVBytes(SignatureIV, 3);
                     byte[]? FileBytes = new byte[(int)tocentry.CompressedSize - 28];
                     Buffer.BlockCopy(tocentry.RawData, 28, FileBytes, 0, FileBytes.Length);
-                    FileBytes = blowfish.InitiateCTRBuffer(FileBytes, SignatureIV);
+                    FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImpl.DefaultKey, SignatureIV, "CTR");
                     if (FileBytes != null)
                     {
                         byte[]? SignatureHeader = new byte[24];
@@ -1002,7 +995,7 @@ namespace HomeTools.BARFramework
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
-                        SignatureHeader = blowfish.EncryptionProxyInit(SignatureHeader, OriginalSigntureIV);
+                        SignatureHeader = LIBSECURE.InitiateBlowfishBuffer(SignatureHeader, ToolsImpl.SignatureKey, OriginalSigntureIV, "CTR");
                         if (SignatureHeader != null)
                             Buffer.BlockCopy(SignatureHeader, 0, tocentry.RawData, 4, SignatureHeader.Length);
                         else
@@ -1010,7 +1003,6 @@ namespace HomeTools.BARFramework
                     }
                     else
                         LoggerAccessor.LogError("[Encryption Proxy] - Encryption of FileBytes failed! Entry will be corrupted!");
-                    blowfish = null;
                 }
                 WriteDataAlignedSection(tocentry.RawData, dataWriterStream);
             }
@@ -1029,7 +1021,6 @@ namespace HomeTools.BARFramework
                 LoggerAccessor.LogDebug("BAR Archive complete", Array.Empty<object>());
             Dirty = false;
             FileName = fileName;
-            toolsImpl = null;
         }
 
         public void LoadMap(string MAPFile)

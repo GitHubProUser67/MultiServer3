@@ -18,8 +18,6 @@ namespace HomeTools.Crypto
         public static int ENCRYPT_MODE = 1;
         public static int DECRYPT_MODE = 2;
 
-        public static byte[]? INFIVA = null;
-
         public static readonly string base64DefaultSharcKey = "L1ztpjqaZywDTBLh5CX6gRYWrhzmbeuVt+a/IUBHAtw=";
 
         public static readonly string base64CDNKey1 = "8243a3b10f1f1660a7fc934aac263c9c5161092dc25=";
@@ -246,12 +244,12 @@ namespace HomeTools.Crypto
                 output[index] = (byte)(inputA[index] ^ (uint)inputB[index]);
         }
 
-        public ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
+        public static ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
         {
             return (ulong)fileSize << 0x30 | (ulong)compressedSize << 0x20 & 0xFFFF00000000UL | (ulong)dataStart << 0xE & 0xFFFF0000UL | (ushort)userData;
         }
 
-        public void IncrementIVBytes(byte[] byteArray, int increment)
+        public static void IncrementIVBytes(byte[] byteArray, int increment)
         {
             for (int i = byteArray.Length - 1; i >= 0; i--)
             {
@@ -263,7 +261,7 @@ namespace HomeTools.Crypto
             }
         }
 
-        public byte[] ICSharpEdgeZlibDecompress(byte[] inData)
+        public static byte[] ICSharpEdgeZlibDecompress(byte[] inData)
         {
             MemoryStream memoryStream = new();
             MemoryStream memoryStream2 = new(inData);
@@ -284,7 +282,7 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        private byte[] ICSharpDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
+        private static byte[] ICSharpDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
         {
             if (header.CompressedSize == header.SourceSize)
                 return inData;
@@ -303,7 +301,7 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        public byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
+        public static byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
         {
             MemoryStream memoryStream = new();
             MemoryStream memoryStream2 = new(inData);
@@ -324,7 +322,7 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        private byte[] ComponentAceDecompressEdgeZlibChunk(byte[] InData, ChunkHeader header)
+        private static byte[] ComponentAceDecompressEdgeZlibChunk(byte[] InData, ChunkHeader header)
         {
             if (header.CompressedSize == header.SourceSize)
                 return InData;
@@ -338,7 +336,7 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        public byte[] ComponentAceEdgeZlibCompress(byte[] inData)
+        public static byte[] ComponentAceEdgeZlibCompress(byte[] inData)
         {
             MemoryStream memoryStream = new(inData.Length);
             MemoryStream memoryStream2 = new(inData);
@@ -355,7 +353,7 @@ namespace HomeTools.Crypto
             return memoryStream.ToArray();
         }
 
-        private byte[] ComponentAceCompressEdgeZlibChunk(byte[] InData)
+        private static byte[] ComponentAceCompressEdgeZlibChunk(byte[] InData)
         {
             MemoryStream memoryStream = new();
             ZOutputStream zoutputStream = new(memoryStream, 9, true);
@@ -379,35 +377,37 @@ namespace HomeTools.Crypto
             return array3;
         }
 
-        public byte[] ProcessLibsecureXTEABlocks(byte[] inputArray, byte[] Key, byte[] IV)
+        public static byte[] ProcessXTEAProxyBlocks(byte[] inputArray, byte[] Key, byte[] IV)
         {
             int inputIndex = 0;
             int inputLength = inputArray.Length;
+            byte[] block = new byte[8];
             byte[]? output = new byte[inputLength];
-            ToolsImpl? toolsimpl = new();
 
             while (inputIndex < inputLength)
             {
                 int blockSize = Math.Min(8, inputLength - inputIndex);
-                byte[] block = new byte[blockSize];
+                if (blockSize < 8)
+                {
+                    int difference = 8 - blockSize;
+                    Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
+                }
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[]? taskResult = LIBSECURE.InitiateLibsecureXTEACTRBlock(block, Key, IV) ?? null;
+                byte[]? taskResult = LIBSECURE.InitiateXTEABuffer(block, Key, IV, "CTR");
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
                 if (taskResult.Length < blockSize)
                     Buffer.BlockCopy(taskResult, 0, output, inputIndex, taskResult.Length);
                 else
                     Buffer.BlockCopy(taskResult, 0, output, inputIndex, blockSize);
-                toolsimpl.IncrementIVBytes(IV, 1);
+                IncrementIVBytes(IV, 1);
                 inputIndex += blockSize;
             }
-
-            toolsimpl = null;
 
             return output;
         }
 
-        public ulong Sha1toNonce(byte[] digest)
+        public static ulong Sha1toNonce(byte[] digest)
         {
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(digest);
@@ -418,17 +418,17 @@ namespace HomeTools.Crypto
             return v1;
         }
 
-        public byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
+        public static byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
             return DataTypesUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
-        public byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
+        public static byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
             return DataTypesUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
-        public byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
+        public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
         {
             if (fileBytes[0] == 0x00 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x01)
             {
@@ -443,64 +443,99 @@ namespace HomeTools.Crypto
                 return fileBytes;
         }
 
-        public byte[]? Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
+        public static byte[]? Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
         {
-            if (IVA.Length >= blockSize)
+            StringBuilder? hexStr = new();
+            byte[]? CipheredFileBytes = null;
+            int totalProcessedBytes = 0;
+            int totalBytes = fileBytes.Length;
+
+            while (totalProcessedBytes <= totalBytes)
             {
-                StringBuilder? hexStr = new();
-                byte[]? returnstring = null;
-                int i = blockSize; // Start index for processing.
-                int totalProcessedBytes = 0;
+                int Blksize = Math.Min(blockSize, totalBytes - totalProcessedBytes);
 
-                while (i <= IVA.Length)
+                byte[] ivBlk = new byte[blockSize];
+                if (Blksize < blockSize)
+                    Array.Copy(IVA, totalProcessedBytes, ivBlk, 0, Blksize);
+                else
+                    Array.Copy(IVA, totalProcessedBytes, ivBlk, 0, ivBlk.Length);
+
+                byte[] block = new byte[blockSize];
+                if (Blksize < blockSize)
+                    Array.Copy(fileBytes, totalProcessedBytes, block, 0, Blksize);
+                else
+                    Array.Copy(fileBytes, totalProcessedBytes, block, 0, block.Length);
+
+                int BytesToFill = blockSize - Blksize;
+
+                if (BytesToFill != 0)
                 {
-                    byte[] ivBlk = new byte[blockSize];
-                    Array.Copy(IVA, i - blockSize, ivBlk, 0, blockSize);
+                    byte[] ISO97971 = new byte[BytesToFill];
 
-                    int BytesToFill = 0;
-                    int BytesToCopy = Math.Min(blockSize, fileBytes.Length - totalProcessedBytes);
-
-                    byte[] block = new byte[blockSize];
-                    if (BytesToCopy < blockSize)
-                        BytesToFill = blockSize - BytesToCopy;
-
-                    Array.Copy(fileBytes, i - blockSize, block, 0, BytesToCopy);
-                    totalProcessedBytes += BytesToCopy;
-
-                    if (BytesToFill != 0)
+                    for (int j = 0; j < BytesToFill; j++)
                     {
-                        byte[] ISO97971 = new byte[BytesToFill];
-
-                        for (int j = 0; j < BytesToFill; j++)
-                        {
-                            if (j == 0)
-                                ISO97971[j] = 0x80;
-                            else if (j == BytesToFill - 1)
-                                ISO97971[j] = 0x01;
-                            else
-                                ISO97971[j] = 0x00;
-                        }
-
-                        Array.Copy(ISO97971, 0, block, fileBytes.Length, ISO97971.Length); // Copy the ISO97971 padding at the beginning
-
-                        hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize)[..^(BytesToFill * 2)]); // Pemdas rule necessary, and we double size because we work with bytes in a string.
+                        if (j == 0)
+                            ISO97971[j] = 0x80;
+                        else if (j == BytesToFill - 1)
+                            ISO97971[j] = 0x01;
+                        else
+                            ISO97971[j] = 0x00;
                     }
-                    else
-                        hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize));
 
-                    i += blockSize;
+                    Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
+
+                    hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize)[..(BytesToFill * 2)]);
+                }
+                else
+                    hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize));
+
+                totalProcessedBytes += blockSize;
+            }
+
+            CipheredFileBytes = DataTypesUtils.HexStringToByteArray(hexStr.ToString());
+
+            hexStr = null;
+
+            if (CipheredFileBytes.Length > fileBytes.Length)
+            {
+                byte[] ResultTrimmedArray = new byte[fileBytes.Length];
+                Buffer.BlockCopy(CipheredFileBytes, 0, ResultTrimmedArray, 0, ResultTrimmedArray.Length);
+                return ResultTrimmedArray;
+            }
+            else if (CipheredFileBytes.Length < fileBytes.Length)
+            {
+                int difference = fileBytes.Length - CipheredFileBytes.Length;
+                byte[] ResultAppendedArray = new byte[fileBytes.Length];
+
+                byte[] ivBlk = new byte[blockSize];
+                Array.Copy(IVA, IVA.Length - difference, ivBlk, 0, difference);
+
+                byte[] block = new byte[blockSize];
+                Array.Copy(fileBytes, fileBytes.Length - difference, block, 0, difference);
+
+                int BytesToFill = blockSize - difference;
+
+                byte[] ISO97971 = new byte[BytesToFill];
+
+                for (int j = 0; j < BytesToFill; j++)
+                {
+                    if (j == 0)
+                        ISO97971[j] = 0x80;
+                    else if (j == BytesToFill - 1)
+                        ISO97971[j] = 0x01;
+                    else
+                        ISO97971[j] = 0x00;
                 }
 
-                returnstring = DataTypesUtils.HexStringToByteArray(hexStr.ToString());
+                Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
-                hexStr = null;
-
-                return returnstring;
+                Buffer.BlockCopy(CipheredFileBytes, 0, ResultAppendedArray, 0, CipheredFileBytes.Length);
+                Buffer.BlockCopy(DataTypesUtils.HexStringToByteArray(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk),
+                    DataTypesUtils.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
+                return ResultAppendedArray;
             }
-            else
-                LoggerAccessor.LogError("[ToolsImpl] - Crypt_Decrypt - No IV entered or invalid length!");
 
-            return null;
+            return CipheredFileBytes;
         }
 
         internal struct ChunkHeader

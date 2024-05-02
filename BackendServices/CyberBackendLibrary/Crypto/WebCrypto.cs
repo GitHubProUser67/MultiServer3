@@ -108,13 +108,13 @@ namespace CyberBackendLibrary.Crypto
         public static string? Decrypt(string StringToDecrypt, string AccessKey, byte[] IV)
         {
             return Encoding.UTF8.GetString(AESCTR256EncryptDecrypt
-                    .InitiateCTRBuffer(Convert.FromBase64String(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV));
+                    .InitiateCTRBuffer(Convert.FromBase64String(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV) ?? Array.Empty<byte>());
         }
 
         public static string? Decrypt(byte[] ByteArrayToDecrypt, string AccessKey, byte[] IV)
         {
             return Encoding.UTF8.GetString(AESCTR256EncryptDecrypt
-                    .InitiateCTRBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV));
+                    .InitiateCTRBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV) ?? Array.Empty<byte>());
         }
 
         public static byte[]? DecryptToByteArray(string StringToDecrypt, string AccessKey, byte[] IV)

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using CastleLibrary.Utils.AES;
 
 namespace HomeTools.UnBAR
 {
@@ -100,8 +99,6 @@ namespace HomeTools.UnBAR
 
                     if (isSharc && RawBarData.Length > 52)
                     {
-                        ToolsImpl? toolsImpl = new();
-
                         try
                         {
                             byte[]? HeaderIV = new byte[16];
@@ -110,14 +107,14 @@ namespace HomeTools.UnBAR
 
                             if (HeaderIV != null)
                             {
-                                byte[] SharcHeader = new byte[28];
+                                byte[]? SharcHeader = new byte[28];
 
                                 Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                SharcHeader = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcHeader,
-                                 Convert.FromBase64String(options), HeaderIV);
+                                SharcHeader = LIBSECURE.InitiateAESBuffer(SharcHeader,
+                                 Convert.FromBase64String(options), HeaderIV, "CTR");
 
-                                if (SharcHeader == Array.Empty<byte>())
+                                if (SharcHeader == null)
                                     return; // Sharc Header failed to decrypt.
                                 else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
@@ -125,10 +122,10 @@ namespace HomeTools.UnBAR
 
                                     Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                    SharcHeader = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcHeader,
-                                     Convert.FromBase64String(options), HeaderIV);
+                                    SharcHeader = LIBSECURE.InitiateAESBuffer(SharcHeader,
+                                     Convert.FromBase64String(options), HeaderIV, "CTR");
 
-                                    if (SharcHeader == Array.Empty<byte>())
+                                    if (SharcHeader == null)
                                         return; // Sharc Header failed to decrypt.
                                     else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
@@ -136,10 +133,10 @@ namespace HomeTools.UnBAR
 
                                         Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
-                                        SharcHeader = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcHeader,
-                                         Convert.FromBase64String(options), HeaderIV);
+                                        SharcHeader = LIBSECURE.InitiateAESBuffer(SharcHeader,
+                                         Convert.FromBase64String(options), HeaderIV, "CTR");
 
-                                        if (SharcHeader == Array.Empty<byte>())
+                                        if (SharcHeader == null)
                                             return; // Sharc Header failed to decrypt.
                                         else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                             return; // All keys failed to decrypt.
@@ -166,11 +163,11 @@ namespace HomeTools.UnBAR
 
                                     Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
 
-                                    toolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+                                    ToolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
 
-                                    SharcTOC = AESCTR256EncryptDecrypt.InitiateCTRBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV);
+                                    SharcTOC = LIBSECURE.InitiateAESBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV, "CTR");
 
-                                    if (SharcTOC != Array.Empty<byte>())
+                                    if (SharcTOC != null)
                                     {
                                         byte[] SharcData = new byte[RawBarData.Length - (52 + SharcTOC.Length)];
 
@@ -212,8 +209,6 @@ namespace HomeTools.UnBAR
                         {
                             LoggerAccessor.LogError($"[RunUnBAR] - SHARC Decryption failed! with error - {ex}");
                         }
-
-                        toolsImpl = null;
                     }
                     else
                     {
@@ -332,8 +327,6 @@ namespace HomeTools.UnBAR
                             uint fileSize = tableOfContent.Size;
                             int userData = archive.BARHeader.UserData;
                             byte[] EncryptedSignatureHeader = new byte[24];
-                            BlowfishCTREncryptDecrypt? blowfish = new();
-                            ToolsImpl? toolsImpl = new();
 #if DEBUG
                             LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
                             LoggerAccessor.LogInfo($"CompressedSize - {compressedSize}");
@@ -341,7 +334,7 @@ namespace HomeTools.UnBAR
                             LoggerAccessor.LogInfo($"dataStart - 0x{dataStart:X}");
                             LoggerAccessor.LogInfo($"UserData - 0x{userData:X}");
 #endif
-                            byte[] SignatureIV = BitConverter.GetBytes(toolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
+                            byte[] SignatureIV = BitConverter.GetBytes(ToolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
 
                             if (BitConverter.IsLittleEndian)
                                 Array.Reverse(SignatureIV);
@@ -349,7 +342,7 @@ namespace HomeTools.UnBAR
                             // Copy the first 24 bytes from the source array to the destination array
                             Buffer.BlockCopy(data, 4, EncryptedSignatureHeader, 0, EncryptedSignatureHeader.Length);
 
-                            byte[]? DecryptedSignatureHeader = blowfish.EncryptionProxyInit(EncryptedSignatureHeader, SignatureIV);
+                            byte[]? DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImpl.SignatureKey, SignatureIV, "CTR");
 
                             if (DecryptedSignatureHeader != null)
                             {
@@ -381,15 +374,15 @@ namespace HomeTools.UnBAR
                                     }
                                     else
                                     {
-                                        toolsImpl.IncrementIVBytes(SignatureIV, 3);
+                                        ToolsImpl.IncrementIVBytes(SignatureIV, 3);
 
-                                        FileBytes = blowfish.InitiateCTRBuffer(FileBytes, SignatureIV);
+                                        FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImpl.DefaultKey, SignatureIV, "CTR");
 
                                         if (FileBytes != null)
                                         {
                                             try
                                             {
-                                                FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                                                FileBytes = ToolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
                                             }
                                             catch
                                             {
@@ -399,7 +392,7 @@ namespace HomeTools.UnBAR
 
                                                 try
                                                 {
-                                                    FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                                                    FileBytes = ToolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -427,9 +420,6 @@ namespace HomeTools.UnBAR
                                     fileStream.Close();
                                 }
                             }
-
-                            blowfish = null;
-                            toolsImpl = null;
                         }
                         else
                         {
@@ -458,7 +448,6 @@ namespace HomeTools.UnBAR
         private static void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
         {
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
-            ToolsImpl? toolsImpl = new();
             string path = string.Empty;
             if (!string.IsNullOrEmpty(tableOfContent.Path))
                 path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar));
@@ -471,11 +460,11 @@ namespace HomeTools.UnBAR
                 LoggerAccessor.LogInfo($"IV - {DataTypesUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
-                byte[]? FileBytes = toolsImpl.ProcessLibsecureXTEABlocks(data, Key, tableOfContent.IV);
+                byte[]? FileBytes = ToolsImpl.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
 
                 try
                 {
-                    FileBytes = toolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                    FileBytes = ToolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
                 }
                 catch
                 {
@@ -485,7 +474,7 @@ namespace HomeTools.UnBAR
 
                     try
                     {
-                        FileBytes = toolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                        FileBytes = ToolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
                     }
                     catch (Exception ex)
                     {
@@ -558,7 +547,6 @@ namespace HomeTools.UnBAR
             });
 #endif
             tableOfContent = null;
-            toolsImpl = null;
         }
 
 
