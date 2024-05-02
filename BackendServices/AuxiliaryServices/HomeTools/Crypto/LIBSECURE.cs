@@ -131,19 +131,27 @@ namespace HomeTools.Crypto
                 switch (blocksize)
                 {
                     case 2:
-                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                                ((byte)(Convert.ToByte(IV, 16) ^ Convert.ToByte(block, 16))).ToString("X2"))));
-                        break;
-                    case 4:
-                        for (int i = 4; i != 0; --i)
+                        for (int i = 1; i != 0; --i)
                         {
-                            string BlockIV = IV[..2];
-                            string CipherBlock = block[..2];
-                            IV = IV[2..];
-                            block = block[2..];
+                            string BlockIV = IV[..4];
+                            string CipherBlock = block[..4];
+                            IV = IV[4..];
+                            block = block[4..];
 
                             CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                                    ((byte)(Convert.ToByte(BlockIV, 16) ^ Convert.ToByte(CipherBlock, 16))).ToString("X2"))));
+                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                        }
+                        break;
+                    case 4:
+                        for (int i = 2; i != 0; --i)
+                        {
+                            string BlockIV = IV[..4];
+                            string CipherBlock = block[..4];
+                            IV = IV[4..];
+                            block = block[4..];
+
+                            CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
+                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
                     case 8:
