@@ -11,8 +11,8 @@ namespace WebAPIService.CDS
         {
             byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
-                return new BlowfishCTREncryptDecrypt().InitiateCTRBuffer(buffer,
-                    BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(new ToolsImpl().Sha1toNonce(digest)) : new ToolsImpl().Sha1toNonce(digest))); // Always big endian, so GetBytes() is fine as is.
+                return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.DefaultKey,
+                    BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(ToolsImpl.Sha1toNonce(digest)) : ToolsImpl.Sha1toNonce(digest)), "CTR"); // Always big endian.
 
             return null;
         }

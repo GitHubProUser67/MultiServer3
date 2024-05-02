@@ -11,28 +11,113 @@ namespace HomeTools.Crypto
 {
     public class LIBSECURE
     {
-        public static byte[]? InitiateLibsecureXTEACTRBlock(byte[] BlkBytes, byte[] KeyBytes, byte[] m_iv)
+        public static byte[]? InitiateXTEABuffer(byte[] FileBytes, byte[] KeyBytes, byte[]? m_iv, string mode, bool memxor = true, bool encrypt = false)
         {
-            if (KeyBytes.Length == 16 && m_iv.Length == 8 && BlkBytes.Length <= 8)
+            if (KeyBytes.Length == 16)
             {
-                byte[] nulledBytes = new byte[8];
+                byte[] nulledBytes = new byte[FileBytes.Length];
 
                 // Create the cipher
-                IBufferedCipher? cipher = CipherUtilities.GetCipher("LIBSECUREXTEA/CTR/NOPADDING");
+                IBufferedCipher? cipher = CipherUtilities.GetCipher($"LIBSECUREXTEA/{mode}/NOPADDING");
 
-                cipher.Init(false, new ParametersWithIV(new KeyParameter(EndianUtils.EndianSwap(KeyBytes)), EndianUtils.EndianSwap(m_iv))); // Bouncy Castle not like padding in decrypt mode with custom data.
+                if (mode == "CTR" || mode == "CBC")
+                {
+                    if (m_iv == null || m_iv.Length != 8)
+                    {
+                        LoggerAccessor.LogError("[LIBSECURE] - InitiateXTEABuffer - Invalid IV!");
+                        return null;
+                    }
+
+                    cipher.Init(encrypt, new ParametersWithIV(new KeyParameter(EndianUtils.EndianSwap(KeyBytes)), EndianUtils.EndianSwap(m_iv)));
+                }
+                else
+                    cipher.Init(encrypt, new KeyParameter(EndianUtils.EndianSwap(KeyBytes)));
 
                 // Encrypt the plaintext
                 byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(EndianUtils.EndianSwap(nulledBytes), 0, nulledBytes.Length, ciphertextBytes, 0);
+                int ciphertextLength = cipher.ProcessBytes(memxor ? nulledBytes : EndianUtils.EndianSwap(FileBytes), 0, nulledBytes.Length, ciphertextBytes, 0); // Little optimization for nulled bytes array, no need to endian swap a bunch of nulls.
                 cipher.DoFinal(ciphertextBytes, ciphertextLength);
 
                 cipher = null;
 
-                return new ToolsImpl().Crypt_Decrypt(BlkBytes, EndianUtils.EndianSwap(ciphertextBytes), 8);
+                return memxor ? ToolsImpl.Crypt_Decrypt(FileBytes, EndianUtils.EndianSwap(ciphertextBytes), 8) : EndianUtils.EndianSwap(ciphertextBytes);
             }
             else
-                LoggerAccessor.LogError("[LIBSECURE] - InitiateLibsecureXTEACTRBlock - Invalid BlkBytes, KeyByes or IV!");
+                LoggerAccessor.LogError("[LIBSECURE] - InitiateXTEABuffer - Invalid KeyByes!");
+
+            return null;
+        }
+
+        public static byte[]? InitiateBlowfishBuffer(byte[] FileBytes, byte[] KeyBytes, byte[]? m_iv, string mode, bool memxor = true, bool encrypt = false)
+        {
+            if (KeyBytes.Length == 32)
+            {
+                byte[] nulledBytes = new byte[FileBytes.Length];
+
+                // Create the cipher
+                IBufferedCipher? cipher = CipherUtilities.GetCipher($"Blowfish/{mode}/NOPADDING");
+
+                if (mode == "CTR" || mode == "CBC")
+                {
+                    if (m_iv == null || m_iv.Length != 8)
+                    {
+                        LoggerAccessor.LogError("[LIBSECURE] - InitiateBlowfishBuffer - Invalid IV!");
+                        return null;
+                    }
+
+                    cipher.Init(encrypt, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
+                }
+                else
+                    cipher.Init(encrypt, new KeyParameter(KeyBytes));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(memxor ? nulledBytes : FileBytes, 0, nulledBytes.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                cipher = null;
+
+                return memxor ? ToolsImpl.Crypt_Decrypt(FileBytes, ciphertextBytes, 8) : ciphertextBytes;
+            }
+            else
+                LoggerAccessor.LogError("[LIBSECURE] - InitiateBlowfishBuffer - Invalid KeyByes!");
+
+            return null;
+        }
+
+        public static byte[]? InitiateAESBuffer(byte[] FileBytes, byte[] KeyBytes, byte[]? m_iv, string mode, bool memxor = true, bool encrypt = false)
+        {
+            if (KeyBytes.Length >= 16)
+            {
+                byte[] nulledBytes = new byte[FileBytes.Length];
+
+                // Create the cipher
+                IBufferedCipher? cipher = CipherUtilities.GetCipher($"AES/{mode}/NOPADDING");
+
+                if (mode == "CTR" || mode == "CBC")
+                {
+                    if (m_iv == null || m_iv.Length != 16)
+                    {
+                        LoggerAccessor.LogError("[LIBSECURE] - InitiateAESBuffer - Invalid IV!");
+                        return null;
+                    }
+
+                    cipher.Init(encrypt, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
+                }
+                else
+                    cipher.Init(encrypt, new KeyParameter(KeyBytes));
+
+                // Encrypt the plaintext
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(memxor ? nulledBytes : FileBytes, 0, nulledBytes.Length, ciphertextBytes, 0);
+                cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+                cipher = null;
+
+                return memxor ? ToolsImpl.Crypt_Decrypt(FileBytes, ciphertextBytes, 16) : ciphertextBytes;
+            }
+            else
+                LoggerAccessor.LogError("[LIBSECURE] - InitiateAESBuffer - Invalid KeyByes!");
 
             return null;
         }
@@ -41,80 +126,55 @@ namespace HomeTools.Crypto
         {
             StringBuilder? CryptoBytes = new();
 
-            switch (blocksize)
+            try
             {
-                case 2:
-                    for (int i = 1; i != 0; --i)
-                    {
-                        string BlockIV = IV[..1];
-                        string CipherBlock = block[..1];
-                        IV = IV[1..];
-                        block = block[1..];
-                        try
+                switch (blocksize)
+                {
+                    case 2:
+                        CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
+                                ((byte)(Convert.ToByte(IV, 16) ^ Convert.ToByte(block, 16))).ToString("X2"))));
+                        break;
+                    case 4:
+                        for (int i = 4; i != 0; --i)
                         {
+                            string BlockIV = IV[..2];
+                            string CipherBlock = block[..2];
+                            IV = IV[2..];
+                            block = block[2..];
+
                             CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                                ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                                    ((byte)(Convert.ToByte(BlockIV, 16) ^ Convert.ToByte(CipherBlock, 16))).ToString("X2"))));
                         }
-                        catch (Exception ex)
+                        break;
+                    case 8:
+                        for (int i = 4; i != 0; --i)
                         {
-                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
-                        }
-                    }
-                    break;
-                case 4:
-                    for (int i = 2; i != 0; --i)
-                    {
-                        string BlockIV = IV[..2];
-                        string CipherBlock = block[..2];
-                        IV = IV[2..];
-                        block = block[2..];
-                        try
-                        {
+                            string BlockIV = IV[..4];
+                            string CipherBlock = block[..4];
+                            IV = IV[4..];
+                            block = block[4..];
+
                             CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                                ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
-                        catch (Exception ex)
+                        break;
+                    case 16:
+                        for (int i = 8; i != 0; --i)
                         {
-                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
-                        }
-                    }
-                    break;
-                case 8:
-                    for (int i = 4; i != 0; --i)
-                    {
-                        string BlockIV = IV[..4];
-                        string CipherBlock = block[..4];
-                        IV = IV[4..];
-                        block = block[4..];
-                        try
-                        {
+                            string BlockIV = IV[..4];
+                            string CipherBlock = block[..4];
+                            IV = IV[4..];
+                            block = block[4..];
+
                             CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                                ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
-                        catch (Exception ex)
-                        {
-                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
-                        }
-                    }
-                    break;
-                case 16:
-                    for (int i = 8; i != 0; --i)
-                    {
-                        string BlockIV = IV[..8];
-                        string CipherBlock = block[..8];
-                        IV = IV[8..];
-                        block = block[8..];
-                        try
-                        {
-                            CryptoBytes.Append(DataTypesUtils.ByteArrayToHexString(DataTypesUtils.HexStringToByteArray(
-                                (Convert.ToUInt32(BlockIV, 16) ^ Convert.ToUInt32(CipherBlock, 16)).ToString("X8"))));
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
-                        }
-                    }
-                    break;
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[LIBSECURE] - Error In MemXOR: {ex}");
             }
 
             return CryptoBytes.ToString();
