@@ -23,7 +23,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -63,7 +63,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -104,7 +104,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -188,7 +188,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -203,7 +203,7 @@ namespace WebAPIService.OHS
                 dataforohs = batchparams;
             // TODO! writekey must be somewhere.
 
-            StringBuilder? resultBuilder = new();
+            StringBuilder? resultBuilder = new StringBuilder();
 
             string? value = null;
 
@@ -413,7 +413,7 @@ namespace WebAPIService.OHS
 
                             if (File.Exists(scoreboardfile))
                             {
-                                StringBuilder? resultBuilder = new();
+                                StringBuilder? resultBuilder = new StringBuilder();
 
                                 foreach (string user in data.Users)
                                 {
@@ -625,8 +625,8 @@ namespace WebAPIService.OHS
 
         public static Scoreboard GenerateSampleScoreboard(int numEntries)
         {
-            Scoreboard scoreboard = new();
-            Random? random = new();
+            Scoreboard scoreboard = new Scoreboard();
+            Random? random = new Random();
 
             scoreboard.Entries = new List<ScoreboardEntry>();
 
@@ -695,7 +695,7 @@ namespace WebAPIService.OHS
 
         public class ScoreboardNameGenerator
         {
-            private static Random random = new();
+            private static Random random = new Random();
 
             // List of silly French-sounding words to be used in the names
             private static string[] sillyFrenchWords = { "Croissant", "Baguette", "Fougasse", "TarteAuFromage", "Tabernack", "UnePetiteContine", "ChuckNorris", "Pamplemousse", "JimCarrey", "Fromage" };

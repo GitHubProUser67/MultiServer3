@@ -11,46 +11,60 @@ namespace MitmDNS
 {
     public class MitmDNSUDPProcessor
     {
-        public static bool DnsStarted = false;
+        public bool DnsStarted = false;
+        public UdpSocket? socket;
 
-        public Task RunDns()
+        public Task RunSocket()
         {
-            UdpSocket udp = new(53);
+            socket = new(CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(53) ? 53
+                : CyberBackendLibrary.TCP_IP.TCP_UDPUtils.GetNextVacantPort(53, 10));
 
-            udp.OnStart(() =>
+            socket.OnStart(() =>
             {
                 LoggerAccessor.LogInfo("[DNS_UDP] - Server started on port 53");
             });
 
-            udp.OnRecieve((endPoint, bytes) =>
+            socket.OnRecieve((endPoint, bytes) =>
             {
                 if (endPoint is IPEndPoint EndPointIp)
                 {
                     LoggerAccessor.LogInfo($"[DNS_UDP] - Received request from {endPoint}");
                     Span<byte> Buffer = ProcRequest(TrimArray(bytes));
                     if (Buffer != null)
-                        _ = udp.SendAsync(EndPointIp, Buffer.ToArray());
+                        _ = socket.SendAsync(EndPointIp, Buffer.ToArray());
                 }
             });
 
-            udp.OnException(ex =>
+            socket.OnException(ex =>
             {
                 LoggerAccessor.LogError($"[DNS_UDP] - DotNetty Thrown an exception : {ex}");
             });
 
-            udp.OnStop(ex =>
+            socket.OnStop(ex =>
             {
-                LoggerAccessor.LogWarn($"[DNS_UDP] - DotNetty was stopped with exception: {ex}");
+                if (ex.Message.Contains("StopAsync"))
+                    LoggerAccessor.LogWarn($"[DNS_UDP] - System requested a server shutdown...");
+                else
+                    LoggerAccessor.LogError($"[DNS_UDP] - DotNetty was stopped with exception: {ex}");
             });
 
-            _ = udp.StartAsync();
+            _ = socket.StartAsync();
 
             DnsStarted = true;
 
             return Task.CompletedTask;
         }
 
-        private static Span<byte> ProcRequest(byte[] data)
+        public async Task StopSocket()
+        {
+            if (socket != null)
+            {
+                await socket.StopAsync();
+                socket = null;
+            }
+        }
+
+        private Span<byte> ProcRequest(byte[] data)
         {
             bool treated = false;
 
@@ -134,7 +148,7 @@ namespace MitmDNS
             return null;
         }
 
-        private static byte[] TrimArray(byte[] arr)
+        private byte[] TrimArray(byte[] arr)
         {
             int i = arr.Length - 1;
             while (arr[i] == 0) i--;

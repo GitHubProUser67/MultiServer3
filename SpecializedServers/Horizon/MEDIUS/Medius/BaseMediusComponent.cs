@@ -37,7 +37,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected IEventLoopGroup? _bossGroup = null;
         protected IEventLoopGroup? _workerGroup = null;
-        protected IChannel? _boundChannel = null;
+        protected ConcurrentBag<IChannel?>? _boundChannel = null;
         protected ScertServerHandler? _scertHandler = null;
         private uint _clientCounter = 0;
 
@@ -165,8 +165,7 @@ namespace Horizon.MEDIUS.Medius
                         pipeline.AddLast(_scertHandler);
                     }));
 
-                _boundChannel = await bootstrap.BindAsync(TCPPort);
-                _boundChannel = await bootstrap.BindAsync(UDPPort);
+                _boundChannel = new ConcurrentBag<IChannel?> { await bootstrap.BindAsync(TCPPort), (UDPPort != 0) ? await bootstrap.BindAsync(UDPPort) : null };
             }
             finally
             {
@@ -184,7 +183,15 @@ namespace Horizon.MEDIUS.Medius
             try
             {
                 if (_boundChannel != null)
-                    await _boundChannel.CloseAsync();
+                {
+                    foreach (var boundChannel in _boundChannel)
+                    {
+                        if (boundChannel != null)
+                            await boundChannel.CloseAsync();
+                    }
+
+                    _boundChannel = null;
+                }
             }
             finally
             {

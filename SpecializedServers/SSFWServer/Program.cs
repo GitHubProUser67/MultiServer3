@@ -116,24 +116,35 @@ public static class SSFWServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
+    static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    static string configPath = configDir + "ssfw.json";
+    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    static SSFWClass? Server;
+
+    static void StartOrUpdateServer()
     {
-        while (true)
+        Server?.StopSSFW();
+        Server = null;
+
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
+            SSFWServerConfiguration.HTTPSDNSList, SSFWServerConfiguration.HTTPSCertificateHashingAlgorithm);
+
+        Server = new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword, SSFWServerConfiguration.SSFWLegacyKey);
+
+        Server.StartSSFW();
+    }
+
+    static string ComputeMD5FromFile(string filePath)
+    {
+        using (FileStream stream = File.OpenRead(filePath))
         {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
-
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
+            // Convert the byte array to a hexadecimal string
+            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
         }
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
@@ -141,38 +152,57 @@ class Program
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
-            SSFWServerConfiguration.HTTPSDNSList, SSFWServerConfiguration.HTTPSCertificateHashingAlgorithm);
-
         _ = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword, SSFWServerConfiguration.SSFWLegacyKey).StartSSFW(),
-                    () => RefreshConfig()
-                ));
+        StartOrUpdateServer();
 
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
+            LoggerAccessor.LogInfo("Console Inputs are now available while server is running. . .");
+
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                string? stdin = Console.ReadLine();
 
-                Console.ReadLine();
-
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
-
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (!string.IsNullOrEmpty(stdin))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    switch (stdin.ToLower())
+                    {
+                        case "shutdown":
+                            LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                                Environment.Exit(0);
+                            }
+                            break;
+                        case "reboot":
+                            LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Rebooting!");
+
+                                SSFWServerConfiguration.RefreshVariables(configPath);
+
+                                StartOrUpdateServer();
+                            }
+                            break;
+                        default:
+                            LoggerAccessor.LogWarn($"Unknown command entered: {stdin}");
+                            break;
+                    }
                 }
+                else
+                    LoggerAccessor.LogWarn("No command entered!");
             }
         }
         else
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

@@ -21,6 +21,11 @@ namespace Horizon.NAT
 
                 await Task.Delay(100);
             }
+        }
+
+        public static async void StopServer()
+        {
+            started = false;
 
             await NATServer.Stop();
         }
@@ -45,10 +50,9 @@ namespace Horizon.NAT
             return Task.CompletedTask;
         }
 
-        public static void NATMain()
+        public static void StartServer()
         {
             Initialize();
-
             _ = StartServerAsync();
         }
 

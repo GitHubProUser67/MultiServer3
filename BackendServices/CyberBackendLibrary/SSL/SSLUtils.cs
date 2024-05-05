@@ -5,7 +5,10 @@ using System.Security.Cryptography.X509Certificates;
 using CyberBackendLibrary.DataTypes;
 using System;
 using System.IO;
-using System.Linq;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -99,7 +102,7 @@ namespace CyberBackendLibrary.SSL
             using RSA rsa = RSA.Create();
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new CertificateRequest($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
             // Configure the certificate as CA.
             request.CertificateExtensions.Add(
@@ -114,8 +117,8 @@ namespace CyberBackendLibrary.SSL
             X509Certificate2 RootCACertificate = request.Create(
                 request.SubjectName,
                 new RsaPkcs1SignatureGenerator(rsa),
-                new(CurrentDate.AddDays(-1)),
-                new(CurrentDate.AddYears(100)),
+                new DateTimeOffset(CurrentDate.AddDays(-1)),
+                new DateTimeOffset(CurrentDate.AddYears(100)),
                 certSerialNumber).CopyWithPrivateKey(rsa);
 
             string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
@@ -144,8 +147,11 @@ namespace CyberBackendLibrary.SSL
         /// <param name="RootCACertificate">The initial RootCA.</param>
         /// <param name="PFXCertificatePath">The output ChainCA file path.</param>
         /// <returns>A string.</returns>
-        public static void CreateChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string PFXCertificatePath, string certPassword, string[]? DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool wildcard = true)
+        public static void CreateChainSignedCert(X509Certificate2? RootCACertificate, HashAlgorithmName Hashing, string PFXCertificatePath, string certPassword, string[]? DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool wildcard = true)
         {
+            if (RootCACertificate == null)
+                return;
+
             RSA? RootCAPrivateKey = RootCACertificate.GetRSAPrivateKey();
 
             if (RootCAPrivateKey == null)
@@ -163,7 +169,7 @@ namespace CyberBackendLibrary.SSL
             using RSA rsa = RSA.Create();
 
             // Create a certificate request with the RSA key pair
-            CertificateRequest request = new($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
+            CertificateRequest request = new CertificateRequest($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
             // Set additional properties of the certificate
             request.CertificateExtensions.Add(
@@ -181,7 +187,7 @@ namespace CyberBackendLibrary.SSL
                     true));
 
             // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
-            SubjectAlternativeNameBuilder sanBuilder = new();
+            SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
             if (DnsList != null) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
             {
                 foreach (string str in DnsList)
@@ -215,8 +221,8 @@ namespace CyberBackendLibrary.SSL
             X509Certificate2 ChainSignedCert = request.Create(
                 RootCACertificate.IssuerName,
                 new RsaPkcs1SignatureGenerator(RootCAPrivateKey),
-                new(CurrentDate.AddDays(-1)),
-                new(CurrentDate.AddYears(100)),
+                new DateTimeOffset(CurrentDate.AddDays(-1)),
+                new DateTimeOffset(CurrentDate.AddYears(100)),
                 certSerialNumber).CopyWithPrivateKey(rsa);
 
             // Export the private key.
@@ -256,14 +262,75 @@ namespace CyberBackendLibrary.SSL
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath, Hashing);
             else
-                RootCACertificate = X509Certificate2.CreateFromPem(File.ReadAllText(directoryPath + "/MultiServer_rootca.pem").ToArray(), File.ReadAllText(directoryPath + "/MultiServer_rootca_privkey.pem").ToArray());
+                RootCACertificate = GetCertificate(File.ReadAllText(directoryPath + "/MultiServer_rootca.pem"), File.ReadAllText(directoryPath + "/MultiServer_rootca_privkey.pem"));
 
             CreateChainSignedCert(RootCACertificate, Hashing, certpath, certPassword, DnsList);
         }
 
+        /// <summary>
+        /// Get a X509Certificate2 a pem data and a pem encoded private key.
+        /// <para>Obtiens un X509Certificate2 depuis une donnée encodée en PEM avec une clé privée aussi encodée en pem.</para>
+        /// </summary>
+        /// <param name="pemCertstr">The pem cert string.</param>
+        /// <param name="pemPrivKeystr">The pem priv key string.</param>
+        /// <returns>A nullable X509Certificate2.</returns>
+        private static X509Certificate2? GetCertificate(string pemCertstr, string pemPrivKeystr)
+        {
+            try
+            {
+                return new X509Certificate2(System.Text.Encoding.UTF8.GetBytes(pemCertstr.Trim()))
+                {
+                    PrivateKey = GetRSAFromPem(pemPrivKeystr.Trim())
+                };
+            }
+            catch
+            {
+
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get a RSA key from a pem data.
+        /// <para>Obtiens une clé RSA depuis une donnée encodée en PEM.</para>
+        /// </summary>
+        /// <param name="pemstr">The pem string.</param>
+        /// <returns>A RSA key.</returns>
+        private static RSA GetRSAFromPem(string pemstr)
+        {
+            RSA rsaKey = RSA.Create();
+            RSA MakePublicRCSP(RSA rcsp, RsaKeyParameters rkp)
+            {
+                RSAParameters rsaParameters = DotNetUtilities.ToRSAParameters(rkp);
+                rcsp.ImportParameters(rsaParameters);
+                return rsaKey;
+            }
+
+            RSA MakePrivateRCSP(RSA rcsp, RsaPrivateCrtKeyParameters rkp)
+            {
+                RSAParameters rsaParameters = DotNetUtilities.ToRSAParameters(rkp);
+                rcsp.ImportParameters(rsaParameters);
+                return rsaKey;
+            }
+
+            object kp = new PemReader(new StringReader(pemstr)).ReadObject();
+
+            // If object has Private/Public property, we have a Private PEM
+            return kp is RsaPrivateCrtKeyParameters parameters ? MakePrivateRCSP(rsaKey, parameters) : kp.GetType().GetProperty("Private") != null 
+                ? MakePrivateRCSP(rsaKey, (RsaPrivateCrtKeyParameters)((AsymmetricCipherKeyPair)kp).Private) : MakePublicRCSP(rsaKey, (RsaKeyParameters)kp);
+        }
+
+        /// <summary>
+        /// Get a random int64 number.
+        /// <para>Obtiens un nombre int64 random.</para>
+        /// </summary>
+        /// <param name="minValue">The min value.</param>
+        /// <param name="maxValue">The max value.</param>
+        /// <returns>A long.</returns>
         private static long GetRandomInt64(long minValue, long maxValue)
         {
-            Random random = new();
+            Random random = new Random();
             return (long)(((random.Next() << 32) | random.Next()) * (double)(maxValue - minValue) / 0xFFFFFFFFFFFFFFFF) + minValue;
         }
 

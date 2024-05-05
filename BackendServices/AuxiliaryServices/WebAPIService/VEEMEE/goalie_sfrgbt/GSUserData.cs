@@ -60,7 +60,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                     }
 
                     // Load the XML string into an XmlDocument
-                    XmlDocument xmlDoc = new();
+                    XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText(filePath)}</xml>");
 
                     // Find the <goals> element

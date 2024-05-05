@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
+using Newtonsoft.Json;
 
 namespace SVO
 {
@@ -13,16 +14,26 @@ namespace SVO
         public static bool IsStarted = false;
         private static WebserverLite? _Server;
         private readonly string ip;
-        private readonly string certpath;
-        private readonly string certpass;
         private readonly int port;
 
         public OTGSecureServerLite(string certpath, string certpass, string ip, int port)
         {
-            this.certpath = certpath;
-            this.certpass = certpass;
             this.ip = ip;
             this.port = port;
+
+            WebserverSettings settings = new()
+            {
+                Hostname = ip,
+                Port = port,
+            };
+
+            settings.Ssl.PfxCertificateFile = certpath;
+            settings.Ssl.PfxCertificatePassword = certpass;
+            settings.Ssl.Enable = true;
+
+            _Server = new WebserverLite(settings, DefaultRoute);
+
+            StartServer();
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -35,23 +46,18 @@ namespace SVO
             }
         }
 
+        public void StopServer()
+        {
+            _Server?.Stop();
+            _Server?.Dispose();
+
+            LoggerAccessor.LogWarn($"OTG_HTTPS Server on port: {port} stopped...");
+        }
+
         public void StartServer()
         {
-            if (_Server != null && _Server.IsListening)
-                LoggerAccessor.LogWarn($"OTG_HTTPS Server already initiated on Port:{port}");
-            else
+            if (_Server != null && !_Server.IsListening)
             {
-                WebserverSettings settings = new()
-                {
-                    Hostname = ip,
-                    Port = port,
-                };
-
-                settings.Ssl.PfxCertificateFile = certpath;
-                settings.Ssl.PfxCertificatePassword = certpass;
-                settings.Ssl.Enable = true;
-
-                _Server = new WebserverLite(settings, DefaultRoute);
                 _Server.Routes.AuthenticateRequest = AuthorizeConnection;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
@@ -59,6 +65,7 @@ namespace SVO
 
                 _Server.Start();
                 IsStarted = true;
+
                 LoggerAccessor.LogInfo($"OTG_HTTPS Server initiated on Port:{port}...");
             }
         }
@@ -74,49 +81,46 @@ namespace SVO
 
             try
             {
-                try
+                string? UserAgent = ctx.Request.Useragent.ToLower();
+                if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                 {
-                    string? UserAgent = ctx.Request.Useragent.ToLower();
-                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
-                    {
-                        LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server while not being allowed!");
+                    LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server while not being allowed!");
 
-                        ctx.Response.StatusCode = (int)statusCode; // Send the other status.
-                        ctx.Response.ContentType = "text/plain";
-                        sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                    ctx.Response.StatusCode = (int)statusCode; // Send the other status.
+                    ctx.Response.ContentType = "text/plain";
+                    sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
 
-                        return;
-                    }
+                    return;
                 }
-                catch (Exception)
-                {
-
-                }
-
-                if (!string.IsNullOrEmpty(ctx.Request.Url.RawWithQuery))
-                {
-                    fullurl = HTTPProcessor.DecodeUrl(ctx.Request.Url.RawWithQuery);
-
-                    LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}");
-
-                    absolutepath = HTTPProcessor.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
-                    statusCode = HttpStatusCode.Continue;
-                }
-                else
-                    LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with invalid parameters!");
             }
-            catch (Exception)
+            catch
             {
 
             }
+
+            if (!string.IsNullOrEmpty(ctx.Request.Url.RawWithQuery))
+            {
+                fullurl = HTTPProcessor.DecodeUrl(ctx.Request.Url.RawWithQuery);
 
 #if DEBUG
-            foreach (string? key in ctx.Request.Headers.AllKeys)
-            {
-                string? value = ctx.Request.Headers[key];
-                LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Headers : HeaderIndex -> {key} | HeaderItem -> {value}");
-            }
+                LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                {
+                    HttpMethod = ctx.Request.Method,
+                    Url = ctx.Request.Url.Full,
+                    Headers = ctx.Request.Headers,
+                    HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
+                    UserAgent = ctx.Request.Useragent,
+                    ClientAddress = ctx.Request.Source.IpAddress + ":" + ctx.Request.Source.Port,
+                }), $"[[OTG_HTTPS]] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+#else
+                LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #endif
+
+                absolutepath = HTTPProcessor.ExtractDirtyProxyPath(ctx.Request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
+                statusCode = HttpStatusCode.Continue;
+            }
+            else
+                LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with invalid parameters!");
 
             ctx.Response.Headers.Add("Server", "Microsoft HTTP API 2.0");
 

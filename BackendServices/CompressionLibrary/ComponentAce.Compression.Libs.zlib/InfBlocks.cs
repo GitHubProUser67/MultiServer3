@@ -64,13 +64,13 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal int index;
 
-        internal int[]? blens;
+        internal int[] blens;
 
         internal int[] bb = new int[1];
 
         internal int[] tb = new int[1];
 
-        internal InfCodes? codes;
+        internal InfCodes codes;
 
         internal int last;
 
@@ -78,9 +78,9 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal int bitb;
 
-        internal int[]? hufts;
+        internal int[] hufts;
 
-        internal byte[]? window;
+        internal byte[] window;
 
         internal int end;
 
@@ -88,11 +88,11 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal int write;
 
-        internal object? checkfn;
+        internal object checkfn;
 
         internal long check;
 
-        internal InfBlocks(ZStream z, object? checkfn, int w)
+        internal InfBlocks(ZStream z, object checkfn, int w)
         {
             hufts = new int[4320];
             window = new byte[w];
@@ -102,7 +102,7 @@ namespace ComponentAce.Compression.Libs.zlib
             reset(z, null);
         }
 
-        internal void reset(ZStream z, long[]? c)
+        internal void reset(ZStream z, long[] c)
         {
             if (c != null)
                 c[0] = check;

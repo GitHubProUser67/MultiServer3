@@ -15,7 +15,7 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
             public int score { get; set; }
         }
 
-        private static List<ScoreboardEntry> scoreboard = new();
+        private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();
 
         public static void UpdateScoreBoard(string psnid, int newScore)
         {
@@ -57,7 +57,7 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
 
         public static string ConvertScoreboardToText()
         {
-            StringBuilder sb = new();
+            StringBuilder sb = new StringBuilder();
 
             foreach (var entry in scoreboard)
             {
@@ -81,7 +81,7 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
         {
             if (Directory.Exists(directoryPath))
             {
-                DirectoryInfo directoryInfo = new(directoryPath);
+                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
 
                 foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.txt"))
                 {

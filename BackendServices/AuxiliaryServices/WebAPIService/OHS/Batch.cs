@@ -18,7 +18,7 @@ namespace WebAPIService.OHS
 
             if (!string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -38,11 +38,11 @@ namespace WebAPIService.OHS
                     {
                         int i = 0;
 
-                        StringBuilder? resultBuilder = new();
+                        StringBuilder? resultBuilder = new StringBuilder();
 
                         foreach (var command in commands)
                         {
-                            i = i + 1;
+                            i++;
 
                             if (command != null && command.Data != null)
                             {

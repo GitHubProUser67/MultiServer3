@@ -102,7 +102,7 @@ namespace HomeTools.BARFramework
 
         internal Header()
         {
-            Random random = new();
+            Random random = new Random();
             m_magic = 2918127585U;
             m_version = 256;
             UserData = (int)DateTime.Now.ToFileTime();

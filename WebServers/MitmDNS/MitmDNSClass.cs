@@ -1,5 +1,4 @@
 using CustomLogger;
-using PSHostsFile;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,10 +17,22 @@ namespace MitmDNS
     {
         public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
         public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static bool Initiated = false;
+        public MitmDNSUDPProcessor proc = new();
 
-        public async void MitmDNSMain()
+        public async void StartUDPServer()
         {
-            LoggerAccessor.LogWarn("[DNS] - DNS system is initialising, service will be available when initialized...");
+            await proc.RunSocket();
+        }
+
+        public async void StopUDPServer()
+        {
+            await proc.StopSocket();
+        }
+
+        public async static void RenewConfig()
+        {
+            LoggerAccessor.LogWarn("[DNS] - DNS system configuration is initialising, service will be available when initialized...");
 
             if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
             {
@@ -41,26 +52,17 @@ namespace MitmDNS
                 }
                 catch (Exception ex)
                 {
-                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                    return;
+                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize! - {ex}");
                 }
             }
-            else
-            {
-                if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
-                    ParseRules(MitmDNSServerConfiguration.DNSConfig);
-                else
-                {
-                    LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
-                    Environment.Exit(0);
-                }
-            }
-
-            await new MitmDNSUDPProcessor().RunDns();
+            else if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+                ParseRules(MitmDNSServerConfiguration.DNSConfig);
         }
 
         private static void ParseRules(string Filename, bool IsFilename = true)
         {
+            Initiated = false;
+
             LoggerAccessor.LogInfo("[DNS] - Parsing Configuration File...");
 
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
@@ -126,24 +128,7 @@ namespace MitmDNS
                 });
             }
 
-            foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
-            {
-                string domain = hostsEntry.Hostname;
-
-                DnsSettings dns = new()
-                {
-                    Mode = HandleMode.Redirect,
-                    Address = hostsEntry.Address
-                };
-
-                // Check if the domain has been processed before
-                if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
-                {
-                    // Hosts entry should not support wildcard in theory, so only DicRules.
-                    DicRules.TryAdd(domain, dns);
-                    DicRules.TryAdd("www." + domain, dns);
-                }
-            }
+            Initiated = true;
 
             LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
@@ -243,7 +228,7 @@ namespace MitmDNS
         }
         #endregion
 
-        private bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

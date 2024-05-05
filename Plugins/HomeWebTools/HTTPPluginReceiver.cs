@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using WebAPIService;
+using System.Collections.Generic;
 
 namespace HomeWebTools
 {
@@ -17,7 +18,7 @@ namespace HomeWebTools
     {
         private string APIStaticFolder = Directory.GetCurrentDirectory() + "/static";
 
-        public Task HTTPStartPlugin(string param, ushort port)
+        public Task HTTPStartPlugin(string param, ushort port, Dictionary<string, object>? customparameters)
         {
             APIStaticFolder = param + "/!HomeTools";
 

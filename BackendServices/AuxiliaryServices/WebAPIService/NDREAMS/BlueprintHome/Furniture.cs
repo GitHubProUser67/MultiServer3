@@ -27,7 +27,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -246,8 +246,8 @@ namespace WebAPIService.NDREAMS.BlueprintHome
                                 string slotsXmlResult = "<slots>";
                                 string slotsUrlListDRM = string.Empty;
 
-                                List<BluePrintSlots> furnSlots = new();
-                                List<BluePrintSlots> Slots = new();
+                                List<BluePrintSlots> furnSlots = new List<BluePrintSlots>();
+                                List<BluePrintSlots> Slots = new List<BluePrintSlots>();
 
                                 if (File.Exists(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"))
                                 {
@@ -268,7 +268,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
                                     for (int i = 1; i <= MaxFurnSlots; i++)
                                     {
-                                        BluePrintSlots bpslot = new() { position = i, url = baseurl + $"NDREAMS/BlueprintHome/Furniture/{name}/blueprint_{i}.xml" };
+                                        BluePrintSlots bpslot = new BluePrintSlots() { position = i, url = baseurl + $"NDREAMS/BlueprintHome/Furniture/{name}/blueprint_{i}.xml" };
                                         furnSlots.Add(bpslot);
                                         furnslotsXmlResult += $"<furn_slot url=\"{bpslot.url}\"><name>{bpslot.name}</name><used>{bpslot.used}</used></furn_slot>";
                                         File.WriteAllText(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/blueprint_{i}.xml", "<xml></xml>");
@@ -297,7 +297,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
                                     for (int i = 1; i <= MaxSlots; i++)
                                     {
-                                        BluePrintSlots bpslot = new() { position = i, url = baseurl + $"NDREAMS/BlueprintHome/Layout/{name}/blueprint_{i}.xml" };
+                                        BluePrintSlots bpslot = new BluePrintSlots() { position = i, url = baseurl + $"NDREAMS/BlueprintHome/Layout/{name}/blueprint_{i}.xml" };
                                         Slots.Add(bpslot);
                                         slotsUrlListDRM += bpslot.url;
                                         slotsXmlResult += $"<slot url=\"{bpslot.url}\"><name>{bpslot.name}</name><used>{bpslot.used}</used></slot>";

@@ -13,7 +13,7 @@ namespace WebAPIService.NDREAMS.Fubar
             LoggerAccessor.LogInfo($"FUBAR POSTDATA: {Encoding.UTF8.GetString(PostData)}");
 
             string? boundary = HTTPProcessor.ExtractBoundary(contentType);
-            using (MemoryStream ms = new(PostData))
+            using (MemoryStream ms = new MemoryStream(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 

@@ -12,7 +12,7 @@ namespace HomeTools.UnBAR
     public partial class LegacyMapper
     {
         // Declare a global list to store file paths
-        private readonly List<string> filePathList = new();
+        private readonly List<string> filePathList = new List<string>();
 
         public Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
         {
@@ -25,7 +25,7 @@ namespace HomeTools.UnBAR
 
                 if (string.IsNullOrEmpty(prefix))
                 {
-#if NET5_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
                     Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(foldertomap);
 #elif NET7_0_OR_GREATER
                     Match match = UUIDRegex().Match(foldertomap);
@@ -41,7 +41,7 @@ namespace HomeTools.UnBAR
                 IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl") || s.ToLower().EndsWith(".atmos")
                 || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
                 || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown") || s.ToLower().EndsWith(".txt"));
-                List<MappedList> mappedListList = new();
+                List<MappedList> mappedListList = new List<MappedList>();
                 int i = 0;
                 foreach (string sourceFile in strings)
                 {
@@ -303,7 +303,7 @@ namespace HomeTools.UnBAR
 
         internal static List<MappedList> ScanForString(string sourceFile)
         {
-            List<RegexPatterns> regexPatternsList = new()
+            List<RegexPatterns> regexPatternsList = new List<RegexPatterns>()
               {
                     new RegexPatterns()
                     {
@@ -852,7 +852,7 @@ namespace HomeTools.UnBAR
                     }
               };
             string input = string.Empty;
-            List<MappedList> mappedListList = new();
+            List<MappedList> mappedListList = new List<MappedList>();
             using (StreamReader streamReader = File.OpenText(sourceFile))
             {
                 input = streamReader.ReadToEnd();

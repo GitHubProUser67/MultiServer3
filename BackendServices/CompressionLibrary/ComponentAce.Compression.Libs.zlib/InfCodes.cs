@@ -52,7 +52,7 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal int len;
 
-        internal int[]? tree;
+        internal int[] tree;
 
         internal int tree_index;
 

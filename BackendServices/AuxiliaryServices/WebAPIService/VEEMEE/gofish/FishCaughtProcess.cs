@@ -31,7 +31,7 @@ namespace WebAPIService.VEEMEE.gofish
                 if (File.Exists($"{apiPath}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml"))
                 {
                     // Load the XML string into an XmlDocument
-                    XmlDocument xmlDoc = new();
+                    XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{apiPath}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <fish_mask_upper> element

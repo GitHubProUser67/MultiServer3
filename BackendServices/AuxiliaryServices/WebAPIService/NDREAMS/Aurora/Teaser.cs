@@ -19,7 +19,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -61,12 +61,22 @@ namespace WebAPIService.NDREAMS.Aurora
 
         public static string Xoff_VerifyKey(string playerregion, string day)
         {
-            return BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes("xoff" + playerregion + day + "done!"))).Replace("-", string.Empty).ToLower();
+            byte[] SHA1Data = new byte[0];
+            using (SHA1 sha1hash = SHA1.Create())
+            {
+                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes("xoff" + playerregion + day + "done!"));
+            }
+            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
         }
 
         public static string Xoff_GetSignature(int day, int ResultDay)
         {
-            return BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay))).Replace("-", string.Empty).ToLower();
+            byte[] SHA1Data = new byte[0];
+            using (SHA1 sha1hash = SHA1.Create())
+            {
+                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay));
+            }
+            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
         }
     }
 }

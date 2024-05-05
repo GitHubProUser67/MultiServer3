@@ -25,7 +25,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -143,7 +143,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -266,7 +266,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -339,7 +339,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -419,7 +419,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -491,7 +491,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -503,7 +503,7 @@ namespace WebAPIService.OHS
             else
                 dataforohs = batchparams;
 
-            Dictionary<string, string> IncrementResults = new();
+            Dictionary<string, string> IncrementResults = new Dictionary<string, string>();
 
             if (!string.IsNullOrEmpty(dataforohs))
             {
@@ -603,7 +603,7 @@ namespace WebAPIService.OHS
                     return "{ }";
                 else
                 {
-                    StringBuilder sb = new();
+                    StringBuilder sb = new StringBuilder();
 
                     int i = 1;
 
@@ -633,7 +633,7 @@ namespace WebAPIService.OHS
                     dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
                 {
-                    StringBuilder sb = new();
+                    StringBuilder sb = new StringBuilder();
 
                     int i = 1;
 

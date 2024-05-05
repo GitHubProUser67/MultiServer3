@@ -4,6 +4,7 @@ using HttpMultipartParser;
 using SVO.Games;
 using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace SVO
 {
@@ -20,6 +21,8 @@ namespace SVO
         public SVOServer(string ip)
         {
             this.ip = ip;
+
+            Start();
         }
 
         public static bool IsIPBanned(string ipAddress)
@@ -173,7 +176,20 @@ namespace SVO
                     {
                         if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
                         {
+#if DEBUG
+                            LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                            {
+                                HttpMethod = ctx.Request.HttpMethod,
+                                Url = ctx.Request.Url.ToString(),
+                                Headers = ctx.Request.Headers,
+                                HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
+                                UserAgent = ctx.Request.UserAgent,
+                                ClientAddress = ctx.Request.RemoteEndPoint.ToString(),
+                            }), $"[[SVO]] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+#else
                             LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+#endif
+
                             // get filename path
                             absolutepath = ctx.Request.Url.AbsolutePath;
                             isok = true;

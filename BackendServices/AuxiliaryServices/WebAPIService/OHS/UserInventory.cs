@@ -27,7 +27,7 @@ namespace WebAPIService.OHS
                 {
                     try
                     {
-                        using (MemoryStream ms = new(PostData))
+                        using (MemoryStream ms = new MemoryStream(PostData))
                         {
                             var data = MultipartFormDataParser.Parse(ms, boundary);
                             LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -154,7 +154,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -217,7 +217,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -236,18 +236,18 @@ namespace WebAPIService.OHS
                     // Deserialize the JSON data into a JObject
                     JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
-                    string? user = jObject.Value<string>("user");
-                    string? region = jObject.Value<string>("region");
+                    string? user = jObject?.Value<string>("user");
+                    string? region = jObject?.Value<string>("region");
 
-                    StringBuilder ? resultBuilder = new();
+                    StringBuilder? resultBuilder = new StringBuilder();
 
                     string inventorypath = directorypath + $"/User_Inventory/{user}_{region}/";
 
                     if (Directory.Exists(inventorypath))
                     {
-                        JToken? invName = jObject.Value<string>("inventory_name");
+                        JToken? invName = jObject?.Value<string>("inventory_name");
                         string fileName = inventorypath + invName + ".json";
-                        JArray invItemsToChange = jObject.Value<JArray>("changes");
+                        JArray? invItemsToChange = jObject?.Value<JArray>("changes");
 
                         //JArray invItemsToChange = JArray.Parse(inventoryChanges);
 
@@ -366,7 +366,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -394,7 +394,7 @@ namespace WebAPIService.OHS
                         {
                             string inventorypath = directorypath + $"/User_Inventory/{user}_{region}/";
 
-                            StringBuilder? resultBuilder = new();
+                            StringBuilder? resultBuilder = new StringBuilder();
 
                             if (Directory.Exists(inventorypath))
                             {

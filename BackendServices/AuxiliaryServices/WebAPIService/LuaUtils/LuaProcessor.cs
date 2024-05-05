@@ -19,7 +19,7 @@ namespace WebAPIService.LuaUtils
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new("{ ");
+                    StringBuilder resultBuilder = new StringBuilder("{ ");
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {
@@ -66,7 +66,7 @@ namespace WebAPIService.LuaUtils
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new();
+                    StringBuilder resultBuilder = new StringBuilder();
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {
@@ -114,7 +114,7 @@ namespace WebAPIService.LuaUtils
         {
             object[]? returnValues = null;
 
-            using (Lua lua = new())
+            using (Lua lua = new Lua())
             {
                 try
                 {
@@ -146,7 +146,7 @@ namespace WebAPIService.LuaUtils
 
             object[]? returnValues = null;
 
-            using (Lua lua = new())
+            using (Lua lua = new Lua())
             {
                 try
                 {

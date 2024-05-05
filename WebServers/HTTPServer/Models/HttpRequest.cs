@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace HTTPServer.Models
 {
@@ -17,7 +18,9 @@ namespace HTTPServer.Models
         public string IP { get; set; } = string.Empty;
         public string? Port { get; set; } = string.Empty;
         public ushort ServerPort { get; set; }
+        [JsonIgnore]
         public Stream? Data { get; set; }
+        [JsonIgnore]
         public Route? Route { get; set; }
         public Dictionary<string, string> Headers { get; set; }
 
@@ -93,6 +96,7 @@ namespace HTTPServer.Models
             }
         }
 
+        [JsonIgnore]
         public Stream? GetDataStream
         {
             get

@@ -56,7 +56,7 @@ namespace CustomLogger
 
         public static long GetPhysicalAvailableMemoryInMiB()
         {
-            PerformanceInformation pi = new();
+            PerformanceInformation pi = new PerformanceInformation();
             if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
                 return Convert.ToInt64(pi.PhysicalAvailable.ToInt64() * pi.PageSize.ToInt64() / 1048576);
 
@@ -65,7 +65,7 @@ namespace CustomLogger
 
         public static long GetTotalMemoryInMiB()
         {
-            PerformanceInformation pi = new();
+            PerformanceInformation pi = new PerformanceInformation();
             if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
                 return Convert.ToInt64(pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1048576);
 

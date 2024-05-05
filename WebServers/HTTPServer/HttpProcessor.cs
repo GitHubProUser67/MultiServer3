@@ -36,6 +36,8 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using WebAPIService.HELLFIRE;
 using CyberBackendLibrary.HTTP.PluginManager;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace HTTPServer
 {
@@ -161,7 +163,11 @@ namespace HTTPServer
                                 else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                     CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
+#if DEBUG
+                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(request), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+#else
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+#endif
 
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                                 string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
@@ -304,7 +310,7 @@ namespace HTTPServer
 
                                                 string? res = null;
 												
-												#region OHS API Version
+                                                #region OHS API Version
                                                 int version = 0;
                                                 if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
                                                     version = 2;
@@ -318,7 +324,7 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
-												#endregion
+                                                #endregion
 												
                                                 using (MemoryStream postdata = new())
                                                 {
@@ -1004,7 +1010,7 @@ namespace HTTPServer
             Routes.Add(route);
         }
 
-        #endregion
+#endregion
 
         #region Private Methods
 
@@ -1860,6 +1866,6 @@ namespace HTTPServer
         [GeneratedRegex("\\b\\d{3}\\b")]
         private static partial Regex HttpStatusCodeRegex();
 #endif
-        #endregion
+#endregion
     }
 }

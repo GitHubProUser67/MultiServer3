@@ -24,7 +24,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -51,7 +51,7 @@ namespace WebAPIService.VEEMEE
                     ms.Flush();
                 }
 
-                return Processor.sign($"{{\"space\":1}}");
+                return Processor.Sign($"{{\"space\":1}}");
             }
 
             return null;
@@ -73,7 +73,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -107,7 +107,7 @@ namespace WebAPIService.VEEMEE
                     ms.Flush();
                 }
 
-                return Processor.sign($"{{\"slot\":{SlotManager.UpdateSlot($"{instance_id}_{slot_name}", 0, psn_id, false, max_slot)}}}");
+                return Processor.Sign($"{{\"slot\":{SlotManager.UpdateSlot($"{instance_id}_{slot_name}", 0, psn_id, false, max_slot)}}}");
             }
 
             return null;
@@ -130,7 +130,7 @@ namespace WebAPIService.VEEMEE
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
 
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -155,7 +155,7 @@ namespace WebAPIService.VEEMEE
                     ms.Flush();
                 }
 
-                return Processor.sign($"{{\"success\":{SlotManager.UpdateSlot($"{instance_id}_{slot_name}", slot_num, psn_id, true)}}}");
+                return Processor.Sign($"{{\"success\":{SlotManager.UpdateSlot($"{instance_id}_{slot_name}", slot_num, psn_id, true)}}}");
             }
 
             return null;
@@ -176,7 +176,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -201,7 +201,7 @@ namespace WebAPIService.VEEMEE
                     ms.Flush();
                 }
 
-                return Processor.sign("{ \"heartbeat\": true }");
+                return Processor.Sign("{ \"heartbeat\": true }");
             }
 
             return null;
@@ -210,7 +210,7 @@ namespace WebAPIService.VEEMEE
 
     public static class SlotManager
     {
-        private static Dictionary<string, Dictionary<int, string>> instanceData = new();
+        private static Dictionary<string, Dictionary<int, string>> instanceData = new Dictionary<string, Dictionary<int, string>>();
 
         public static string UpdateSlot(string instance_id, int slot_num, string psn_id, bool removemode, int max_slot = 0)
         {

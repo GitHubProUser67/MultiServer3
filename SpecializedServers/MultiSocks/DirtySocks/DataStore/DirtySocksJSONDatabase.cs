@@ -17,9 +17,9 @@ namespace MultiSocks.DirtySocks.DataStore
 
             try
             {
-                if (File.Exists(MultiSocksServerConfiguration.DirtySocksDatabaseConfig))
+                if (File.Exists(MultiSocksServerConfiguration.DirtySocksDatabasePath))
                 {
-                    using (StreamReader io = new(File.Open(MultiSocksServerConfiguration.DirtySocksDatabaseConfig, FileMode.Open, FileAccess.Read, FileShare.None)))
+                    using (StreamReader io = new(File.Open(MultiSocksServerConfiguration.DirtySocksDatabasePath, FileMode.Open, FileAccess.Read, FileShare.None)))
                     {
                         var extractedact = JsonConvert.DeserializeObject<List<DbAccount>>(io.ReadToEnd());
                         if (extractedact != null)
@@ -121,8 +121,8 @@ namespace MultiSocks.DirtySocks.DataStore
             {
                 data = JsonConvert.SerializeObject(Accounts);
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(MultiSocksServerConfiguration.DirtySocksDatabaseConfig));
-            using (FileStream file = File.Open(MultiSocksServerConfiguration.DirtySocksDatabaseConfig, FileMode.Create, FileAccess.Write, FileShare.None))
+            Directory.CreateDirectory(Path.GetDirectoryName(MultiSocksServerConfiguration.DirtySocksDatabasePath));
+            using (FileStream file = File.Open(MultiSocksServerConfiguration.DirtySocksDatabasePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 using (StreamWriter io = new(file))
                 {

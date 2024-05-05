@@ -12,7 +12,7 @@ namespace HomeTools.AFS
         {
             return ReturnMappedListFromFile(new List<RegexPatterns>()
               {
-                    new() {
+                    new RegexPatterns() {
                         type = ".scene",
                         pattern = "(?<=\\b(?<=config=\"))[^\"]*.scene"
                     }
@@ -21,7 +21,7 @@ namespace HomeTools.AFS
 
         public static List<MappedList> ScanForString(string sourceFileContent)
         {
-            List<RegexPatterns> regexPatternsList = new();
+            List<RegexPatterns> regexPatternsList = new List<RegexPatterns>();
 
             Parallel.ForEach(Regex.Matches(sourceFileContent, "(?<=\\b(?<=source=\"|src=\"|href=\"|file=\"|filename=\"|efx_filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*\\.[^\\\"]*").Cast<Match>(), match => {
                 string extension = Path.GetExtension(match.Value);
@@ -63,7 +63,7 @@ namespace HomeTools.AFS
         public static List<MappedList> ReturnMappedListFromFile(List<RegexPatterns> regexPatternsList, string sourceFile)
         {
             string input = string.Empty;
-            List<MappedList> mappedListList = new();
+            List<MappedList> mappedListList = new List<MappedList>();
             using (StreamReader streamReader = File.OpenText(sourceFile))
             {
                 input = streamReader.ReadToEnd();
@@ -96,7 +96,7 @@ namespace HomeTools.AFS
 
         public static List<MappedList> ReturnMappedList(List<RegexPatterns> regexPatternsList, string sourceFileContent)
         {
-            List<MappedList> mappedListList = new();
+            List<MappedList> mappedListList = new List<MappedList>();
             // Process 2 patherns at a time, removing the limit is not tolerable as CPU usage goes way too high.
             Parallel.ForEach(regexPatternsList, new ParallelOptions { MaxDegreeOfParallelism = 2 }, regexPatterns =>
             {

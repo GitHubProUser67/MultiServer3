@@ -22,7 +22,7 @@ namespace WebAPIService.VEEMEE.nml
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 					
@@ -46,7 +46,7 @@ namespace WebAPIService.VEEMEE.nml
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -66,38 +66,36 @@ namespace WebAPIService.VEEMEE.nml
 
             if (PostData != null && ContentType == "application/x-www-form-urlencoded")
             {
-                using (MemoryStream ms = new(PostData))
+                using MemoryStream ms = new MemoryStream(PostData);
+                var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                string game = data["game"];
+                string psnid = data["psnid"];
+
+                Directory.CreateDirectory($"{apiPath}/VEEMEE/nml/User_Data");
+
+                string xmlProfile = string.Empty;
+
+                if (File.Exists($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml"))
                 {
-                    var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                    string game = data["game"];
-                    string psnid = data["psnid"];
 
-                    Directory.CreateDirectory($"{apiPath}/VEEMEE/nml/User_Data");
+                    // Load the XML string into an XmlDocument
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml($"{File.ReadAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml")}");
 
-                    string xmlProfile = string.Empty;
-
-                    if (File.Exists($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml"))
-                    {
-
-                        // Load the XML string into an XmlDocument
-                        XmlDocument xmlDoc = new();
-                        xmlDoc.LoadXml($"{File.ReadAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml")}");
-
-                        ms.Flush();
-                        xmlProfile = xmlDoc.OuterXml;
-                    }
-                    else
-                    {
-                        string XmlData = $"<profiles>\r\n\t<player psnid_id=\"{RandomNumberGenerator.Create(psnid)}\" />\r\n\t<game game_id=\"{game}\" /><variable name=\"init\" type=\"bool\">false</variable>\r\n</profiles>";
-                        File.WriteAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml", XmlData);
-
-
-
-                        ms.Flush();
-                        xmlProfile = XmlData;
-                    }
-                    return xmlProfile;
+                    ms.Flush();
+                    xmlProfile = xmlDoc.OuterXml;
                 }
+                else
+                {
+                    string XmlData = $"<profiles>\r\n\t<player psnid_id=\"{RandomNumberGenerator.Create(psnid)}\" />\r\n\t<game game_id=\"{game}\" /><variable name=\"init\" type=\"bool\">false</variable>\r\n</profiles>";
+                    File.WriteAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml", XmlData);
+
+
+
+                    ms.Flush();
+                    xmlProfile = XmlData;
+                }
+                return xmlProfile;
             }
 
             return null;
@@ -221,11 +219,12 @@ namespace WebAPIService.VEEMEE.nml
 
             return null;
         }
+
         static bool VariableExists(XmlElement rootElement, string nameValue)
         {
-            XmlNodeList variableNodes = rootElement.SelectNodes($"//variable[@name='{nameValue}']");
-            return variableNodes.Count > 0;
+            return rootElement.SelectNodes($"//variable[@name='{nameValue}']").Count > 0;
         }
+
         static string CreateNewProfileFile(string postData, string fileName)
         {
             XmlDocument xmlDoc = new XmlDocument();

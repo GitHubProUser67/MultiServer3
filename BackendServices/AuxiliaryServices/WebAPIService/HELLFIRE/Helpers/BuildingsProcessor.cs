@@ -16,7 +16,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             if (PostData != null && !string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     Orientation = data.GetParameterValue("Orientation");
@@ -48,7 +48,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             if (PostData != null && !string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     TownID = data.GetParameterValue("TownID");

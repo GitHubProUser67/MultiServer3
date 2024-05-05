@@ -201,6 +201,11 @@ namespace Horizon.DME
 
                 await Task.Delay(5); // DME needs a super tight refresh timing, it handles P2P stuff so it's necessary.
             }
+        }
+
+        public static async void StopServer()
+        {
+            started = false;
 
             await TcpServer.Stop();
             await Task.WhenAll(MASManagers.Select(x => x.Value.StopAndClearStatus()));
@@ -235,7 +240,10 @@ namespace Horizon.DME
                 // build and start medius managers per app id
                 foreach (var applicationId in Settings.ApplicationIds)
                 {
-                    MASManagers.Add(applicationId, new MASClient(applicationId));
+                    if (MASManagers.ContainsKey(applicationId))
+                        MASManagers[applicationId] =  new MASClient(applicationId);
+                    else
+                        MASManagers.Add(applicationId, new MASClient(applicationId));
                 }
 
                 LoggerAccessor.LogInfo("DME Initalized.");
@@ -252,7 +260,7 @@ namespace Horizon.DME
             return Task.CompletedTask;
         }
 
-        public static void DmeMain()
+        public static void StartServer()
         {
             RefreshConfig();
             _ = StartServerAsync();

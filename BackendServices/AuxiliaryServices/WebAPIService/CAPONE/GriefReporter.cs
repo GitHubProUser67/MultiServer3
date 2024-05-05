@@ -14,7 +14,7 @@ namespace WebAPIService.CAPONE
         {
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-            using (MemoryStream ms = new(PostData))
+            using (MemoryStream ms = new MemoryStream(PostData))
             {
                 try
                 {
@@ -38,7 +38,7 @@ namespace WebAPIService.CAPONE
                             LoggerAccessor.LogInfo($"[CAPONE] - Writing evidence file {fileName} to {filePath}!");
 
                             // Save the file content.
-                            using (FileStream fs = new(filePath, FileMode.Create))
+                            using (FileStream fs = new FileStream(filePath, FileMode.Create))
                             {
                                 fs.Write(Encoding.UTF8.GetBytes(Convert.ToString(part.Data)), 0, Convert.ToInt32(part.Data.Length));
                                 LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - Written evidence file {fileName} to {filePath}!");
@@ -62,7 +62,7 @@ namespace WebAPIService.CAPONE
 
         public static string? caponeReportCollectorSubmit(byte[] PostData, string? ContentType, string workPath)
         {
-            using (MemoryStream ms = new(PostData))
+            using (MemoryStream ms = new MemoryStream(PostData))
             {
                 string fileName = string.Empty;
 

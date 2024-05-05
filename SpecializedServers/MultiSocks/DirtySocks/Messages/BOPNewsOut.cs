@@ -5,7 +5,7 @@ namespace MultiSocks.DirtySocks.Messages
         public override string _Name { get => "news"; }
         public string? PEERTIMEOUT { get; set; } = "10000";
         public string? BUDDY_URL { get; set; } = "\"http://gos.ea.com/\"";
-        public string? BUDDY_SERVER { get; set; } = MultiSocksServerConfiguration.ServerBindAddress;
+        public string? BUDDY_SERVER { get; set; } = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         public string? BUDDY_PORT { get; set; } = "13505";
         public string? GPS_REGIONS { get; set; } = "159.153.202.54,159.153.105.104,159.153.161.178,159.153.174.133";
         public string? EACONNECT_WEBOFFER_URL { get; set; } = "\"http://gos.ea.com/easo/editorial/common/2008/eaconnect/connect.jsp?site=easo&lkey=$LKEY$&lang=%s&country=%s\"";
@@ -20,7 +20,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? BIKE_DAY_ROAD_RULES_TAGFIELD { get; set; } = "\"BIKEDAYRULES3\"";
         public string? BIKE_NIGHT_OLD_ROAD_RULES_TAGFIELD { get; set; } = "\"BIKENIGHTRULES1,BIKENIGHTRULES2\"";
         public string? BIKE_NIGHT_ROAD_RULES_TAGFIELD { get; set; } = "\"BIKENIGHTRULES3\"";
-        public string? QOS_LOBBY { get; set; } = MultiSocksServerConfiguration.ServerBindAddress;
+        public string? QOS_LOBBY { get; set; } = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         public string? OS_PORT { get; set; } = "17582";
         public string? ROAD_RULES_SKEY { get; set; } = "frscores";
         public string? PROFANE_STRING { get; set; } = "\"@/&!\"";

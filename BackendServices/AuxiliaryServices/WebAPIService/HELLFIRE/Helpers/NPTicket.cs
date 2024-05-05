@@ -21,7 +21,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             if (PostData != null)
             {
-                using MemoryStream copyStream = new(PostData);
+                using MemoryStream copyStream = new MemoryStream(PostData);
                 foreach (var file in MultipartFormDataParser.Parse(copyStream, boundary).Files)
                 {
                     using Stream filedata = file.Data;

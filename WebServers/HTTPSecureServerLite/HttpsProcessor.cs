@@ -27,26 +27,33 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
-using System.Threading;
 using CyberBackendLibrary.HTTP.PluginManager;
+using Newtonsoft.Json;
 
 namespace HTTPSecureServerLite
 {
     public partial class HttpsProcessor
     {
         private static string serverIP = "127.0.0.1";
-        private static WebserverLite? _Server;
+        private WebserverLite? _Server;
         private readonly string ip;
-        private readonly string certpath;
-        private readonly string certpass;
         private readonly ushort port;
 
         public HttpsProcessor(string certpath, string certpass, string ip, ushort port)
         {
-            this.certpath = certpath;
-            this.certpass = certpass;
             this.ip = ip;
             this.port = port;
+            WebserverSettings settings = new()
+            {
+                Hostname = ip,
+                Port = port,
+            };
+            settings.Ssl.PfxCertificateFile = certpath;
+            settings.Ssl.PfxCertificatePassword = certpass;
+            settings.Ssl.Enable = true;
+            _Server = new WebserverLite(settings, DefaultRoute);
+
+            StartServer();
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -100,21 +107,8 @@ namespace HTTPSecureServerLite
         {
 			_ = TryGetServerIP(port);
 
-            if (_Server != null && _Server.IsListening)
-                LoggerAccessor.LogWarn("HTTPS Server already initiated");
-            else
+            if (_Server != null && !_Server.IsListening)
             {
-                WebserverSettings settings = new()
-                {
-                    Hostname = ip,
-                    Port = port,
-                };
-
-                settings.Ssl.PfxCertificateFile = certpath;
-                settings.Ssl.PfxCertificatePassword = certpass;
-                settings.Ssl.Enable = true;
-
-                _Server = new WebserverLite(settings, DefaultRoute);
                 _Server.Routes.AuthenticateRequest = AuthorizeConnection;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
@@ -196,7 +190,19 @@ namespace HTTPSecureServerLite
                         else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                             CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
+#if DEBUG
+                        LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                        {
+                            HttpMethod = request.Method,
+                            Url = request.Url.Full,
+                            Headers = request.Headers,
+                            HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
+                            UserAgent = request.Useragent,
+                            ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
+                        }), $"[[HTTPS]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+#else
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+#endif
 
                         absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                         fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
@@ -206,18 +212,10 @@ namespace HTTPSecureServerLite
                 else
                     LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with invalid parameters!");
             }
-            catch (Exception)
+            catch
             {
 
             }
-
-#if DEBUG
-            foreach (string? key in request.Headers.AllKeys)
-            {
-                string? value = request.Headers[key];
-                LoggerAccessor.LogInfo($"[CollectHeaders] - Debug Headers : HeaderIndex -> {key} | HeaderItem -> {value}");
-            }
-#endif
 
             #region Domains
 

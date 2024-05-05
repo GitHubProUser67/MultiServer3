@@ -111,7 +111,7 @@ namespace HomeTools.BARFramework
 
         public TOCEntry()
         {
-            Random random = new();
+            Random random = new Random();
             m_size = 0U;
             m_fileNameHash = (HashedFileName)0;
             m_compressedSize = 0U;
@@ -127,7 +127,7 @@ namespace HomeTools.BARFramework
 
         public TOCEntry(HashedFileName fileName, uint size) : this()
         {
-            Random random = new();
+            Random random = new Random();
             m_size = size;
             m_fileNameHash = fileName;
             m_data = Array.Empty<byte>();
@@ -137,7 +137,7 @@ namespace HomeTools.BARFramework
 
         public TOCEntry(int fileName, uint size, uint compressedSize, uint offset) : this()
         {
-            Random random = new();
+            Random random = new Random();
             m_size = size;
             m_fileNameHash = (HashedFileName)fileName;
             m_dataOffset = offset;

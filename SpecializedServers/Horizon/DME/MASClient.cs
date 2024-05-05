@@ -131,7 +131,10 @@ namespace Horizon.DME
         public async Task Stop()
         {
             if (_masChannel != null)
-                await _masChannel.DisconnectAsync();
+            {
+                await _masChannel.CloseAsync();
+                _masChannel = null;
+            }
             if (_group != null)
                 await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
 
@@ -143,7 +146,10 @@ namespace Horizon.DME
         public async Task StopAndClearStatus()
         {
             if (_masChannel != null)
-                await _masChannel.DisconnectAsync();
+            {
+                await _masChannel.CloseAsync();
+                _masChannel = null;
+            }
             if (_group != null)
                 await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
 

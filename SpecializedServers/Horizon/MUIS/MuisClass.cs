@@ -95,6 +95,11 @@ namespace Horizon.MUIS
 
                 await Task.Delay(100); // this value is the one used in Horizon by default.
             }
+        }
+
+        public static async void StopServer()
+        {
+            started = false;
 
             if (UniverseInfoServers != null)
                 await Task.WhenAll(UniverseInfoServers.Select(x => x.Stop()));
@@ -171,7 +176,7 @@ namespace Horizon.MUIS
             return Task.CompletedTask;
         }
 
-        public static void MuisMain()
+        public static void StartServer()
         {
             RefreshConfig();
             _ = StartServerAsync();

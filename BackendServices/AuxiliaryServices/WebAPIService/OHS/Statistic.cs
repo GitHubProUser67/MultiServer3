@@ -16,7 +16,7 @@ namespace WebAPIService.OHS
 
             if (!string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     try
@@ -57,7 +57,7 @@ namespace WebAPIService.OHS
 
             if (!string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     try
@@ -102,7 +102,7 @@ namespace WebAPIService.OHS
 
             if (!string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     try

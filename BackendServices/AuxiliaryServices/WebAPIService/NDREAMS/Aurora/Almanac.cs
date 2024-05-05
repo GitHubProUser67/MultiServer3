@@ -21,7 +21,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -85,9 +85,9 @@ namespace WebAPIService.NDREAMS.Aurora
                         else
                         {
                             if (Weight)
-                                File.WriteAllText(SkyFishingProfilePath, JsonConvert.SerializeObject(new List<FishingProps>() { new() { a_id = element, weight = resdata } }));
+                                File.WriteAllText(SkyFishingProfilePath, JsonConvert.SerializeObject(new List<FishingProps>() { new FishingProps() { a_id = element, weight = resdata } }));
                             else
-                                File.WriteAllText(SkyFishingProfilePath, JsonConvert.SerializeObject(new List<FishingProps>() { new() { a_id = element, str = resdata } }));
+                                File.WriteAllText(SkyFishingProfilePath, JsonConvert.SerializeObject(new List<FishingProps>() { new FishingProps() { a_id = element, str = resdata } }));
                         }
                         return $"<xml></xml>";
                 }

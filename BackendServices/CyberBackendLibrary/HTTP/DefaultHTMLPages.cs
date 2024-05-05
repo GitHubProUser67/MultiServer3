@@ -10,8 +10,8 @@ namespace CyberBackendLibrary.HTTP
 {
     public class DefaultHTMLPages
     {
-        public static ConcurrentDictionary<string, Tuple<DateTime, List<string>>> AINotFoundGuessingResultCache = new();
-        private static SemaphoreSlim searchSemaphore = new(Environment.ProcessorCount); // Limit to number-of-CPU-cores concurrent searches
+        public static ConcurrentDictionary<string, Tuple<DateTime, List<string>>> AINotFoundGuessingResultCache = new ConcurrentDictionary<string, Tuple<DateTime, List<string>>>();
+        private static SemaphoreSlim searchSemaphore = new SemaphoreSlim(Environment.ProcessorCount); // Limit to number-of-CPU-cores concurrent searches
 
         public static Task<string> GenerateNotFound(string absolutepathUrl, string urlBase, string HttpRootFolder, string serverSignature, string serverPort, bool AIAssistant)
         {

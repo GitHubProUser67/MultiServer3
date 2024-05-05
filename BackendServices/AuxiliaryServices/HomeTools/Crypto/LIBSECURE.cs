@@ -124,7 +124,7 @@ namespace HomeTools.Crypto
 
         public static string MemXOR(string IV, string block, int blocksize)
         {
-            StringBuilder? CryptoBytes = new();
+            StringBuilder? CryptoBytes = new StringBuilder();
 
             try
             {
