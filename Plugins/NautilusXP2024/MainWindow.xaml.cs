@@ -936,10 +936,12 @@ namespace NautilusXP2024
                 }
                 else
                 {
-                    string? filename = Path.GetFileName(Path.GetDirectoryName(itemPath));
+                    string folder = "/" + itemPath;
+
+                    string? filename = Path.GetFileName(Path.GetDirectoryName(folder));
 
                     bool sdat = false;
-                    IEnumerable<string> enumerable = Directory.EnumerateFiles(itemPath, "*.*", SearchOption.AllDirectories);
+                    IEnumerable<string> enumerable = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
                     BARArchive? bararchive = null;
 
                     string fileExtension = "";
@@ -947,29 +949,29 @@ namespace NautilusXP2024
                     switch (_settings.ArchiveTypeSettingRem)
                     {
                         case ArchiveTypeSetting.BAR:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", folder, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             fileExtension = ".BAR"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.BAR_S:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", folder, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
                             fileExtension = ".bar"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.SDAT:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", folder, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             sdat = true;
                             fileExtension = ".sdat"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.CORE_SHARC:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", folder, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
                             fileExtension = ".SHARC"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.SDAT_SHARC:
                             sdat = true;
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", folder, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
                             fileExtension = ".sdat"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.CONFIG_SHARC:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", itemPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", folder, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
                             fileExtension = ".sharc"; // Set the file extension
                             break;
                     }
@@ -979,26 +981,26 @@ namespace NautilusXP2024
 
                     foreach (string path in enumerable)
                     {
-                        var fullPath = Path.Combine(itemPath, path);
+                        var fullPath = Path.Combine(folder, path);
                         bararchive.AddFile(fullPath);
                         LogDebugInfo($"Archive Creation: Processing item {i + 1}: Added file to archive from directory: {fullPath}");
                     }
 
                     // Get the name of the directory
-                    string directoryName = new DirectoryInfo(itemPath).Name;
+                    string directoryName = new DirectoryInfo(folder).Name;
                     LogDebugInfo($"Archive Creation: Processing item { i + 1}: Processing directory into archive: {directoryName}");
 
                     // Create a text file to write the paths to
-                    StreamWriter writer = new(itemPath + @"/files.txt");
-                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Creating list of files at: {itemPath}files.txt for archive manifest.");
+                    StreamWriter writer = new(folder + @"/files.txt");
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Creating list of files at: {folder}files.txt for archive manifest.");
 
                     // Get all files in the directory and its immediate subdirectories
-                    string[] files = Directory.GetFiles(itemPath, "*.*", SearchOption.AllDirectories);
+                    string[] files = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories);
 
                     // Loop through the files and write their paths to the text file
                     foreach (string file in files)
                     {
-                        string relativePath = $"file=\"{file.Replace(itemPath, "").TrimStart(Path.DirectorySeparatorChar)}\"";
+                        string relativePath = $"file=\"{file.Replace(folder, "").TrimStart(Path.DirectorySeparatorChar)}\"";
                         writer.WriteLine(relativePath.Replace(@"\", "/"));
                         LogDebugInfo($"Archive Creation: Processing item {i + 1}: Logging file path for archive manifest: {relativePath.Replace(@"\", "/")}");
                     }
@@ -1006,8 +1008,8 @@ namespace NautilusXP2024
                     writer.Close();
                     LogDebugInfo($"Archive Creation: Processing item {i + 1}: File list for archive manifest completed and file closed.");
 
-                    bararchive.AddFile(itemPath + @"/files.txt");
-                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Added file list to archive: {itemPath}files.txt");
+                    bararchive.AddFile(folder + @"/files.txt");
+                    LogDebugInfo($"Archive Creation: Processing item {i + 1}: Added file list to archive: {folder}files.txt");
 
                     bararchive.CreateManifest();
                     LogDebugInfo("Archive Creation: Manifest created for archive.");

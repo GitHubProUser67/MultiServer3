@@ -29,7 +29,7 @@ namespace WebAPIService.CDM
             string res = string.Empty;
             string endPointURI = string.Empty;
 
-            List<string> endPoints = new () { "/user/game/", "/user/sync/", "/user/event/", "/user/quest/", "/user/space/",
+            List<string> endPoints = new List<string>() { "/user/game/", "/user/sync/", "/user/event/", "/user/quest/", "/user/space/",
                 "/userevent/list/date/", "/userevent/list/friend/", "/quest/list/date/", "/leaderboard/" };
 
             // Dedicated endpoint trimmer for sanity checks!

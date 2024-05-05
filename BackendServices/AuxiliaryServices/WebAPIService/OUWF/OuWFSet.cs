@@ -13,7 +13,7 @@ namespace WebAPIService.OUWF
         {
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-            using (MemoryStream ms = new(PostData))
+            using (MemoryStream ms = new MemoryStream(PostData))
             {
                 var multipartData = MultipartFormDataParser.Parse(ms, boundary);
 

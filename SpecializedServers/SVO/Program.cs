@@ -145,24 +145,45 @@ public static class SVOServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
+    static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    static string configPath = configDir + "svo.json";
+    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    static Task? MediusDatabaseLoop;
+    static OTGSecureServerLite? OTGServer;
+    static SVOServer? _SVOServer;
+
+    static void StartOrUpdateServer()
     {
-        while (true)
+        OTGServer?.StopServer();
+        OTGServer = null;
+
+        _SVOServer?.Stop();
+        _SVOServer = null;
+
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
+            SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
+
+        MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);
+
+        if (HttpListener.IsSupported)
+            _SVOServer = new SVOServer("*");
+        else
+            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
+
+        OTGServer = new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062);
+    }
+
+    static string ComputeMD5FromFile(string filePath)
+    {
+        using (FileStream stream = File.OpenRead(filePath))
         {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
-
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
+            // Convert the byte array to a hexadecimal string
+            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
         }
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (IsWindows)
             if (!IsAdministrator())
             {
@@ -175,44 +196,57 @@ class Program
 
         LoggerAccessor.SetupLogger("SVO");
 
-        SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
+        SVOServerConfiguration.RefreshVariables(configPath);
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
-            SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
+        StartOrUpdateServer();
 
-        if (HttpListener.IsSupported)
-            _ = Task.Run(new SVOServer("*").Start);
-        else
-            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
-
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062).StartServer(), // 0.0.0.0 as the certificate binds to this ip.
-                    async () => await SVOManager.StartTickPooling(),
-                    () => RefreshConfig()
-                ));
-
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
+            LoggerAccessor.LogInfo("Console Inputs are now available while server is running. . .");
+
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                string? stdin = Console.ReadLine();
 
-                Console.ReadLine();
-
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
-
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (!string.IsNullOrEmpty(stdin))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    switch (stdin.ToLower())
+                    {
+                        case "shutdown":
+                            LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                                Environment.Exit(0);
+                            }
+                            break;
+                        case "reboot":
+                            LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Rebooting!");
+
+                                SVOServerConfiguration.RefreshVariables(configPath);
+
+                                StartOrUpdateServer();
+                            }
+                            break;
+                        default:
+                            LoggerAccessor.LogWarn($"Unknown command entered: {stdin}");
+                            break;
+                    }
                 }
+                else
+                    LoggerAccessor.LogWarn("No command entered!");
             }
         }
         else
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 

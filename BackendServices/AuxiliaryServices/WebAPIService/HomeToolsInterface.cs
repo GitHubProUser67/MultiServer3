@@ -24,7 +24,7 @@ namespace WebAPIService
         public static (byte[]?, string)? MakeBarSdat(string APIStaticFolder, Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -33,7 +33,7 @@ namespace WebAPIService
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -163,7 +163,7 @@ namespace WebAPIService
                         }
 
                         // Create a text file to write the paths to
-                        StreamWriter writer = new(unzipdir + @"/files.txt");
+                        StreamWriter writer = new StreamWriter(unzipdir + @"/files.txt");
 
                         // Get all files in the directory and its immediate subdirectories
                         string[] files = Directory.GetFiles(unzipdir, "*.*", SearchOption.AllDirectories);
@@ -171,7 +171,8 @@ namespace WebAPIService
                         // Loop through the files and write their paths to the text file
                         foreach (string file in files)
                         {
-                            writer.WriteLine(string.Concat("file=\"", file.Replace(unzipdir, string.Empty).AsSpan(1), "\"").Replace(@"\", "/"));
+                            string relativePath = "file=\"" + file.Replace(unzipdir + @"\", string.Empty) + "\"";
+                            writer.WriteLine(relativePath.Replace(@"\", "/"));
                         }
 
                         writer.Close();
@@ -191,14 +192,14 @@ namespace WebAPIService
                             else
                                 RunUnBAR.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat");
 
-                            using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
+                            using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                             {
-                                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create);
+                                using ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
                                 // Add the first file to the archive
                                 ZipArchiveEntry entry1 = archive.CreateEntry($"{filename.ToLower()}.sdat");
                                 using (Stream entryStream = entry1.Open())
                                 {
-                                    using (FileStream fileStream = new(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
+                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename.ToLower()}.sdat", FileMode.Open))
                                     {
                                         fileStream.CopyTo(entryStream);
                                         fileStream.Flush();
@@ -211,7 +212,7 @@ namespace WebAPIService
                                     // Add the second file to the archive
                                     ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
                                     using Stream entryStream = entry2.Open();
-                                    using (FileStream fileStream = new(rebardir + $"/{filename}.sharc.map", FileMode.Open))
+                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.sharc.map", FileMode.Open))
                                     {
                                         fileStream.CopyTo(entryStream);
                                         fileStream.Flush();
@@ -223,7 +224,7 @@ namespace WebAPIService
                                     // Add the second file to the archive
                                     ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
                                     using Stream entryStream = entry2.Open();
-                                    using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
+                                    using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                     {
                                         fileStream.CopyTo(entryStream);
                                         fileStream.Flush();
@@ -236,16 +237,16 @@ namespace WebAPIService
                         }
                         else
                         {
-                            using (FileStream zipStream = new(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
+                            using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                             {
-                                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create);
+                                using ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
                                 if (version2 == "on")
                                 {
                                     // Add the first file to the archive
                                     ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.SHARC");
                                     using (Stream entryStream = entry1.Open())
                                     {
-                                        using (FileStream fileStream = new(rebardir + $"/{filename}.SHARC", FileMode.Open))
+                                        using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.SHARC", FileMode.Open))
                                         {
                                             fileStream.CopyTo(entryStream);
                                             fileStream.Flush();
@@ -257,7 +258,7 @@ namespace WebAPIService
                                     ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.sharc.map");
                                     using (Stream entryStream = entry2.Open())
                                     {
-                                        using (FileStream fileStream = new(rebardir + $"/{filename}.sharc.map", FileMode.Open))
+                                        using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.sharc.map", FileMode.Open))
                                         {
                                             fileStream.CopyTo(entryStream);
                                             fileStream.Flush();
@@ -271,7 +272,7 @@ namespace WebAPIService
                                     ZipArchiveEntry entry1 = archive.CreateEntry($"{filename}.BAR");
                                     using (Stream entryStream = entry1.Open())
                                     {
-                                        using (FileStream fileStream = new(rebardir + $"/{filename}.BAR", FileMode.Open))
+                                        using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.BAR", FileMode.Open))
                                         {
                                             fileStream.CopyTo(entryStream);
                                             fileStream.Flush();
@@ -283,7 +284,7 @@ namespace WebAPIService
                                     ZipArchiveEntry entry2 = archive.CreateEntry($"{filename}.bar.map");
                                     using (Stream entryStream = entry2.Open())
                                     {
-                                        using (FileStream fileStream = new(rebardir + $"/{filename}.bar.map", FileMode.Open))
+                                        using (FileStream fileStream = new FileStream(rebardir + $"/{filename}.bar.map", FileMode.Open))
                                         {
                                             fileStream.CopyTo(entryStream);
                                             fileStream.Flush();
@@ -313,9 +314,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -339,7 +340,7 @@ namespace WebAPIService
         public static async Task<(byte[]?, string)?> UnBar(string APIStaticFolder, Stream? PostData, string? ContentType, string HelperStaticFolder)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -348,7 +349,7 @@ namespace WebAPIService
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -443,7 +444,7 @@ namespace WebAPIService
                             continue;
                         }
 
-                        LegacyMapper? map = new();
+                        LegacyMapper? map = new LegacyMapper();
 
                         if (Directory.Exists(unbardir + $"/{filename}") && (ogfilename.ToLower().EndsWith(".bar") || ogfilename.ToLower().EndsWith(".sharc") || ogfilename.ToLower().EndsWith(".sdat")))
                         {
@@ -566,9 +567,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -592,14 +593,14 @@ namespace WebAPIService
         public static (byte[]?, string)? CDS(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -640,7 +641,13 @@ namespace WebAPIService
                         }
                         else
                         {
-                            byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, BitConverter.ToString(SHA1.HashData(buffer)).Replace("-", string.Empty).ToUpper()[..16]);
+                            byte[] SHA1Data = new byte[0];
+                            using (SHA1 sha1hash = SHA1.Create())
+                            {
+                                SHA1Data = sha1hash.ComputeHash(buffer);
+                            }
+
+                            byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToUpper()[..16]);
 
                             if (ProcessedFileBytes != null)
                                 TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));
@@ -656,9 +663,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -682,14 +689,14 @@ namespace WebAPIService
         public static (byte[]?, string)? CDSBruteforce(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -710,7 +717,7 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
-                        BruteforceProcess? proc = new(buffer);
+                        BruteforceProcess? proc = new BruteforceProcess(buffer);
 
                         if (filename.ToLower().Contains(".hcdb"))
                             TasksResult.Add((proc.StartBruteForce(1), $"{filename}_Bruteforced.hcdb"));
@@ -731,9 +738,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -757,14 +764,14 @@ namespace WebAPIService
         public static (byte[]?, string)? HCDBUnpack(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -800,9 +807,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -826,14 +833,14 @@ namespace WebAPIService
         public static (byte[]?, string)? TicketList(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -899,9 +906,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -925,14 +932,14 @@ namespace WebAPIService
         public static (byte[]?, string)? INF(Stream? PostData, string? ContentType)
         {
             (byte[]?, string)? output = null;
-            List<(byte[]?, string)?> TasksResult = new();
+            List<(byte[]?, string)?> TasksResult = new List<(byte[]?, string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int i = 0;
@@ -980,9 +987,9 @@ namespace WebAPIService
             if (TasksResult.Count > 0)
             {
                 // Create a memory stream to hold the zip file content
-                using MemoryStream memoryStream = new();
+                using MemoryStream memoryStream = new MemoryStream();
                 // Create a ZipArchive in memory
-                using (ZipArchive archive = new(memoryStream, ZipArchiveMode.Create, true))
+                using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var item in TasksResult)
                     {
@@ -1012,7 +1019,7 @@ namespace WebAPIService
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     int sceneid = 0;
@@ -1062,7 +1069,7 @@ namespace WebAPIService
                 string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using MemoryStream ms = new();
+                    using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     string newerhome = string.Empty;
@@ -1078,7 +1085,7 @@ namespace WebAPIService
                     }
                     if (newerhome == "on")
                     {
-                        SceneKey? sceneKey = new(channelid);
+                        SceneKey? sceneKey = new SceneKey(channelid);
                         try
                         {
                             SIDKeyGenerator.Instance.VerifyNewerKey(sceneKey);
@@ -1097,7 +1104,7 @@ namespace WebAPIService
                     }
                     else
                     {
-                        SceneKey? sceneKey = new(channelid);
+                        SceneKey? sceneKey = new SceneKey(channelid);
                         try
                         {
                             SIDKeyGenerator.Instance.Verify(sceneKey);
@@ -1123,7 +1130,12 @@ namespace WebAPIService
 
         public static string GenerateDynamicCacheGuid(string input)
         {
-            return BitConverter.ToString(MD5.HashData(Encoding.UTF8.GetBytes(GetCurrentDateTime() + input))).Replace("-", string.Empty);
+            byte[] MD5Data = new byte[0];
+            using (MD5 md5 = MD5.Create())
+            {
+                MD5Data = md5.ComputeHash(Encoding.UTF8.GetBytes(GetCurrentDateTime() + input));
+            }
+            return BitConverter.ToString(MD5Data).Replace("-", string.Empty);
         }
 
         private static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)

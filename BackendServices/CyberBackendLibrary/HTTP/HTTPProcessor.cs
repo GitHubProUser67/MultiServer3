@@ -13,7 +13,7 @@ namespace CyberBackendLibrary.HTTP
 {
     public partial class HTTPProcessor
     {
-        public static readonly Dictionary<string, string> _mimeTypes = new(StringComparer.InvariantCultureIgnoreCase)
+        public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
 
@@ -585,9 +585,9 @@ namespace CyberBackendLibrary.HTTP
             #endregion
         };
 
-        public static readonly Dictionary<string, byte[]> _PathernDictionary = new()
+        public static readonly Dictionary<string, byte[]> _PathernDictionary = new Dictionary<string, byte[]>()
         {
-#if NET6_0
+#if NETSTANDARD2_1_OR_GREATER
             // Add more entries as needed
             { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } },
 #elif NET7_0_OR_GREATER
@@ -662,7 +662,7 @@ namespace CyberBackendLibrary.HTTP
                 // If no empty line found, return the original bytes
                 return phpOutputBytes;
 
-            List<byte> filteredOutput = new();
+            List<byte> filteredOutput = new List<byte>();
 
             bool skipHeaders = false;
 
@@ -730,7 +730,7 @@ namespace CyberBackendLibrary.HTTP
         {
             if (string.IsNullOrEmpty(referer))
                 return string.Empty;
-#if NET5_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
             Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 #elif NET7_0_OR_GREATER
             // Match the input string with the pattern
@@ -751,7 +751,7 @@ namespace CyberBackendLibrary.HTTP
             NameValueCollection formData = HttpUtility.ParseQueryString(Encoding.UTF8.GetString(urlEncodedDataByte));
 
             // Convert the NameValueCollection to a dictionary for easy sorting
-            Dictionary<string, string> formDataDictionary = new();
+            Dictionary<string, string> formDataDictionary = new Dictionary<string, string>();
             foreach (string? key in formData.AllKeys)
             {
                 if (key != null)
@@ -778,9 +778,9 @@ namespace CyberBackendLibrary.HTTP
         {
             byte[] byteoutput = Array.Empty<byte>();
 
-            using (MemoryStream output = new())
+            using (MemoryStream output = new MemoryStream())
             {
-                using (GZipStream gzipStream = new(output, CompressionLevel.Fastest, false))
+                using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, false))
                 {
                     gzipStream.Write(input, 0, input.Length);
                     gzipStream.Flush();
@@ -797,8 +797,8 @@ namespace CyberBackendLibrary.HTTP
         {
             if (input.Length > 2147483648)
             {
-                HugeMemoryStream outMemoryStream = new();
-                GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
+                HugeMemoryStream outMemoryStream = new HugeMemoryStream();
+                GZipStream outZStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.Flush();
                 outMemoryStream.Position = 0;
@@ -806,8 +806,8 @@ namespace CyberBackendLibrary.HTTP
             }
             else
             {
-                MemoryStream outMemoryStream = new();
-                GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
+                MemoryStream outMemoryStream = new MemoryStream();
+                GZipStream outZStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.Flush();
                 outMemoryStream.Position = 0;
@@ -819,8 +819,8 @@ namespace CyberBackendLibrary.HTTP
         {
             if (input.Length > 2147483648)
             {
-                HugeMemoryStream outMemoryStream = new();
-                ZOutputStream outZStream = new(outMemoryStream, 1, true);
+                HugeMemoryStream outMemoryStream = new HugeMemoryStream();
+                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.finish();
                 outMemoryStream.Position = 0;
@@ -828,8 +828,8 @@ namespace CyberBackendLibrary.HTTP
             }
             else
             {
-                MemoryStream outMemoryStream = new();
-                ZOutputStream outZStream = new(outMemoryStream, 1, true);
+                MemoryStream outMemoryStream = new MemoryStream();
+                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.finish();
                 outMemoryStream.Position = 0;
@@ -845,16 +845,27 @@ namespace CyberBackendLibrary.HTTP
         /// <returns>A string.</returns>
         public static string GenerateServerSignature()
         {
-            string pstring = Environment.OSVersion.Platform switch
+            string pstring = "OTHER";
+            switch (Environment.OSVersion.Platform)
             {
-                PlatformID.Win32NT or PlatformID.Win32S or PlatformID.Win32Windows => "WIN32",
-                PlatformID.WinCE => "WINCE",
-                PlatformID.Unix => "UNIX",
-                PlatformID.Xbox => "XBOX",
-                PlatformID.MacOSX => "MACOSX",
-                PlatformID.Other => "OTHER",
-                _ => "OTHER",
-            };
+                case PlatformID.Win32NT:
+                case PlatformID.Win32S:
+                case PlatformID.Win32Windows:
+                    pstring = "WIN32";
+                    break;
+                case PlatformID.WinCE:
+                    pstring = "WINCE";
+                    break;
+                case PlatformID.Unix:
+                    pstring = "UNIX";
+                    break;
+                case PlatformID.Xbox:
+                    pstring = "XBOX";
+                    break;
+                case PlatformID.MacOSX:
+                    pstring = "MACOSX";
+                    break;
+            }
             return $"{pstring}/1.0 UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
         }
 

@@ -121,7 +121,10 @@ namespace Horizon.MUIS
             try
             {
                 if (_boundChannel != null)
+                {
                     await _boundChannel.CloseAsync();
+                    _boundChannel = null;
+                }
             }
             finally
             {

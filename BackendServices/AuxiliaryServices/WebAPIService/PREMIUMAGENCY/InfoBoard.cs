@@ -14,7 +14,7 @@ namespace WebAPIService.PREMIUMAGENCY
             string? lang = string.Empty;
             string? regcd = string.Empty;
 
-            using (MemoryStream ms = new(PostData))
+            using (MemoryStream ms = new MemoryStream(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 

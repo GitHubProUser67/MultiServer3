@@ -6,44 +6,49 @@ using System.Text;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 
-
 namespace Horizon.HTTPSERVICE
 {
     public class CrudServerHandler
     {
-        public static bool IsStarted = false;
-        private static WebserverLite? _Server;
+        private WebserverLite? _Server;
         private string ip;
         private int port;
 
-        public CrudServerHandler(string ip, int port)
+        public CrudServerHandler(string ip, int port, string certpath = "", string certpass = "")
         {
             this.ip = ip;
             this.port = port;
+
+            WebserverSettings settings = new()
+            {
+                Hostname = ip,
+                Port = port,
+            };
+
+            if (!string.IsNullOrEmpty(certpath))
+            {
+                settings.Ssl.PfxCertificateFile = certpath;
+                settings.Ssl.PfxCertificatePassword = certpass;
+                settings.Ssl.Enable = true;
+            }
+
+            _Server = new WebserverLite(settings, DefaultRoute);
+
+            StartServer();
         }
 
-        public void StartServer(string certpath = "", string certpass = "")
+        public void StopServer()
         {
-            if (_Server != null && _Server.IsListening)
-                LoggerAccessor.LogWarn("CrudHandler Server already initiated");
-            else
+            _Server?.Stop();
+            _Server?.Dispose();
+
+            LoggerAccessor.LogWarn($"CrudHandler Server on port: {port} stopped...");
+        }
+
+        public void StartServer()
+        {
+            if (_Server != null && !_Server.IsListening)
             {
-                WebserverSettings settings = new()
-                {
-                    Hostname = ip,
-                    Port = port,
-                };
-
-                if (!string.IsNullOrEmpty(certpath))
-                {
-                    settings.Ssl.PfxCertificateFile = certpath;
-                    settings.Ssl.PfxCertificatePassword = certpass;
-                    settings.Ssl.Enable = true;
-
-                    _Server = new WebserverLite(settings, DefaultRoute);
-                }
-                else
-                    _Server = new WebserverLite(settings, DefaultRoute);
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
@@ -106,7 +111,7 @@ namespace Horizon.HTTPSERVICE
                 });
 
                 _Server.Start();
-                IsStarted = true;
+
                 LoggerAccessor.LogInfo($"CrudHandler Server initiated on port:{port}...");
             }
         }

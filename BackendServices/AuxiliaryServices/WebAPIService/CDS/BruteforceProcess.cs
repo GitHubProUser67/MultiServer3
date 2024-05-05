@@ -28,7 +28,14 @@ namespace WebAPIService.CDS
                 DecryptedFileBytes = CTRExploitProcess.ProcessExploit(TempBuffer, EncryptedFileBytes, mode);
 
                 if (DecryptedFileBytes != null)
-                    CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved SHA1: {0}", BitConverter.ToString(SHA1.HashData(DecryptedFileBytes)).Replace("-", string.Empty).ToUpper());
+                {
+                    byte[] SHA1Data;
+                    using (SHA1 sha1 = SHA1.Create())
+                    {
+                        SHA1Data = sha1.ComputeHash(DecryptedFileBytes);
+                    }
+                    CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved SHA1: {0}", BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToUpper());
+                }
                 else
                     CustomLogger.LoggerAccessor.LogError("[CDS] - BruteforceProcess - Nothing matched! - Make sure input was correct. - {0}", DateTime.Now.ToString());
 #if DEBUG

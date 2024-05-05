@@ -18,7 +18,7 @@ namespace CompressionLibrary.Custom
         /// <param name="SegsMode">Enables an alternative decompression mode.</param>
         /// <param name="safemode">Uses a proper error checking flag.</param>
         /// <returns>A byte array.</returns>
-        public byte[]? Decompress(byte[] data, bool SegsMode, bool safemode = true)
+        public byte[] Decompress(byte[] data, bool SegsMode, bool safemode = true)
         {
             if (SegsMode)
                 return SegmentsDecompress(data, safemode);
@@ -41,8 +41,8 @@ namespace CompressionLibrary.Custom
             int inSize = buffer.Length;
             int streamCount = inSize + 0xffff >> 16;
             int offset = 0;
-            MemoryStream result = new();
-            BinaryWriter bw = new(result);
+            MemoryStream result = new MemoryStream();
+            BinaryWriter bw = new BinaryWriter(result);
 
             bw.Write(new byte[] { 0x54, 0x4C, 0x5A, 0x43 }); // Tales of magic.
             bw.Write((byte)0x01); // Mode
@@ -78,7 +78,7 @@ namespace CompressionLibrary.Custom
             // reserve space for the stream lengths. we'll fill them in later after we know what they are.
             bw.Write(new byte[streamCount * 2]);
 
-            List<int> streamSizes = new();
+            List<int> streamSizes = new List<int>();
 
             for (int i = 0; i < streamCount; i++)
             {
@@ -125,12 +125,12 @@ namespace CompressionLibrary.Custom
         /// <returns>A byte array.</returns>
         public byte[] Decompress(byte[] buffer)
         {
-            MemoryStream result = new();
+            MemoryStream result = new MemoryStream();
             int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, 12);
             int streamCount = outSize + 0xffff >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
-            Decoder decoder = new();
+            Decoder decoder = new Decoder();
             decoder.SetDecoderProperties(new MemoryStream(buffer, 0x18, 5).ToArray());
 
             for (int i = 0; i < streamCount; i++)
@@ -154,7 +154,7 @@ namespace CompressionLibrary.Custom
         /// <param name="inbuffer">The byte array to decompress.</param>
         /// <param name="safemode">Uses a proper error checking flag.</param>
         /// <returns>A byte array.</returns>
-        public byte[]? SegmentsDecompress(byte[] inbuffer, bool safemode) // Todo, make it multithreaded like original sdk.
+        public byte[] SegmentsDecompress(byte[] inbuffer, bool safemode) // Todo, make it multithreaded like original sdk.
         {
             bool LittleEndian = BitConverter.IsLittleEndian;
             try
@@ -200,21 +200,23 @@ namespace CompressionLibrary.Custom
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);
                             if (SegmentCompressedSize > 0 && SegmentCompressedSize <= 65536 && CompressedData.Length > 3 && CompressedData[0] == 0x5D && CompressedData[1] == 0x00 && CompressedData[2] == 0x00)
                             {
-                                using MemoryStream compressedStream = new(CompressedData);
-                                using (MemoryStream decompressedStream = new())
+                                using (MemoryStream compressedStream = new MemoryStream(CompressedData))
                                 {
-                                    SegmentDecompress(compressedStream, decompressedStream);
-                                    decompressedStream.Position = 0;
-                                    // Find the number of bytes in the stream
-                                    int contentLength = (int)decompressedStream.Length;
-                                    // Create a byte array
-                                    byte[] buffer = new byte[contentLength];
-                                    // Read the contents of the memory stream into the byte array
-                                    decompressedStream.Read(buffer, 0, contentLength);
-                                    arrayOfArrays[index] = buffer;
-                                    decompressedStream.Flush();
+                                    using (MemoryStream decompressedStream = new MemoryStream())
+                                    {
+                                        SegmentDecompress(compressedStream, decompressedStream);
+                                        decompressedStream.Position = 0;
+                                        // Find the number of bytes in the stream
+                                        int contentLength = (int)decompressedStream.Length;
+                                        // Create a byte array
+                                        byte[] buffer = new byte[contentLength];
+                                        // Read the contents of the memory stream into the byte array
+                                        decompressedStream.Read(buffer, 0, contentLength);
+                                        arrayOfArrays[index] = buffer;
+                                        decompressedStream.Flush();
+                                    }
+                                    compressedStream.Flush();
                                 }
-                                compressedStream.Flush();
                             }
                             else
                                 arrayOfArrays[index] = CompressedData; // Can happen, just means segment is not compressed.
@@ -259,7 +261,7 @@ namespace CompressionLibrary.Custom
         {
             byte[] properties = new byte[5];
             inStream.Read(properties, 0, 5);
-            Decoder decoder = new();
+            Decoder decoder = new Decoder();
             decoder.SetDecoderProperties(properties);
             long outSize = 0;
             for (int i = 0; i < 8; i++)

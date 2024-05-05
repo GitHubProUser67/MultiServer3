@@ -33,12 +33,12 @@ namespace WebAPIService.MultiMedia
 			const int CdxFieldsCount = 3;
 
 			//send request to CDX server
-			HttpResponseMessage? CdxResponse = new HttpClient().Send(new HttpRequestMessage(HttpMethod.Get,new Uri(string.Format(
+			HttpResponseMessage? CdxResponse = new HttpClient().SendAsync(new HttpRequestMessage(HttpMethod.Get,new Uri(string.Format(
             "https://web.archive.org/cdx/search/cdx?fl={0}&url={1}",
             "timestamp,original,statuscode", //fields: ["urlkey","timestamp","original","mimetype","statuscode","digest","length"]
-            Uri.EscapeDataString(URL)))));
+            Uri.EscapeDataString(URL))))).Result;
 			if (!CdxResponse.IsSuccessStatusCode) throw new Exception("Unsuccessful Web Archive request: " + CdxResponse.ReasonPhrase ?? " without reason");
-			string[] CdxBody = new StreamReader(CdxResponse.Content.ReadAsStream()).ReadToEnd().TrimEnd().Split('\n');
+			string[] CdxBody = new StreamReader(CdxResponse.Content.ReadAsStreamAsync().Result).ReadToEnd().TrimEnd().Split('\n');
 
 			if (CdxBody.Length == 0)
 			{

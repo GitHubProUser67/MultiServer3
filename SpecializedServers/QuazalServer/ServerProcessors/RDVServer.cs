@@ -21,7 +21,7 @@ namespace QuazalServer.ServerProcessors
             Parallel.ForEach(PrudpInstances, tuple => { new Thread(() => HandleClient(tuple.Item1, BackendPID, tuple.Item2, tuple.Item3)).Start(); });
         }
 
-        public void StopAsync()
+        public void Stop()
         {
             _cts.Cancel();
             _shutflags.ToList().ForEach(x => x = false);

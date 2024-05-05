@@ -74,7 +74,7 @@ namespace HomeTools.UnBAR
             numArray2[0] = 0;
             while (o1.Length < 256L)
                 o1.Write(numArray2, 0, 1);
-            EDATData data = new();
+            EDATData data = new EDATData();
             data.flags = 16777276L;
             data.blockSize = 16384L;
             data.fileLen = new BigInteger(length1);
@@ -82,7 +82,7 @@ namespace HomeTools.UnBAR
             int hashFlag1 = 268435458;
             encryptData(fileStream, o1, npdPtr[0], data, key1);
             o1.Seek(144L, 0);
-            AppLoader appLoader = new();
+            AppLoader appLoader = new AppLoader();
             appLoader.doInit(hashFlag1, 0, 1, new byte[16], new byte[16], key1);
             int num1 = (data.getFlags() & FLAG_SDAT) != 0L ? 32 : 16;
             int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());
@@ -108,7 +108,7 @@ namespace HomeTools.UnBAR
             byte[] numArray4 = new byte[160];
             byte[] numArray5 = new byte[160];
             o1.Read(numArray4, 0, numArray4.Length);
-            AppLoaderReverse appLoaderReverse = new();
+            AppLoaderReverse appLoaderReverse = new AppLoaderReverse();
             byte[] numArray6 = new byte[16];
             int hashFlag2 = hashFlag1;
             byte[] i1 = numArray4;
@@ -270,7 +270,7 @@ namespace HomeTools.UnBAR
             }
             i.Read(numArray, 0, numArray.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
-            AppLoader appLoader1 = new();
+            AppLoader appLoader1 = new AppLoader();
             int hashFlag = (data.getFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
             if ((data.getFlags() & FLAG_DEBUG) != 0L)
                 hashFlag |= 16777216;
@@ -278,7 +278,7 @@ namespace HomeTools.UnBAR
                 return STATUS_ERROR_HEADERCHECK;
             if ((data.getFlags() & FLAG_0x20) == 0L)
             {
-                AppLoader appLoader2 = new();
+                AppLoader appLoader2 = new AppLoader();
                 appLoader2.doInit(hashFlag, version, 1, new byte[16], new byte[16], rifKey);
                 int num1 = (data.getFlags() & FLAG_COMPRESSED) != 0L ? 32 : 16;
                 int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)11) / (BigInteger)data.getBlockSize());
@@ -401,7 +401,7 @@ namespace HomeTools.UnBAR
                     ConversionUtils.arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
                 int num8 = 268435458;
                 int num9 = 268435457;
-                AppLoaderReverse appLoaderReverse = new();
+                AppLoaderReverse appLoaderReverse = new AppLoaderReverse();
                 byte[] digest = npd.getDigest();
                 byte[] numArray5 = new byte[20];
                 int hashFlag = num9;
@@ -501,7 +501,7 @@ namespace HomeTools.UnBAR
                     num8 |= 16777216;
                     num9 |= 16777216;
                 }
-                AppLoader appLoader = new();
+                AppLoader appLoader = new AppLoader();
                 byte[] numArray5 = npd.getVersion() <= 1L ? new byte[16] : npd.getDigest();
                 if (npd.getVersion() > 1L && DataTypesUtils.AreArraysIdentical(numArray5, new byte[16]))
                     // Unsure about this, but a SDATv2 or higher with empty IV is not documented.

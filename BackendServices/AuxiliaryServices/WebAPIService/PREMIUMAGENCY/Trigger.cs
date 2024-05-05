@@ -16,7 +16,7 @@ namespace WebAPIService.PREMIUMAGENCY
 
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-            using (MemoryStream ms = new(PostData))
+            using (MemoryStream ms = new MemoryStream(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -1174,7 +1174,7 @@ namespace WebAPIService.PREMIUMAGENCY
             string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     tday = data.GetParameterValue("tday");

@@ -15,7 +15,7 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
             public string? duration { get; set; }
         }
 
-        private static List<ScoreboardEntry> scoreboard = new();
+        private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();
 
         public static void UpdateScoreBoard(string psnid, string newDuration, int newScore)
         {
@@ -47,11 +47,11 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
 
         public static string ConvertScoreboardToXml()
         {
-            XElement xmlScoreboard = new("leaderboard");
+            XElement xmlScoreboard = new XElement("leaderboard");
 
             foreach (var entry in scoreboard)
             {
-                XElement xmlEntry = new("player",
+                XElement xmlEntry = new XElement("player",
                     new XElement("psnid", entry.psnid ?? "Voodooperson05"),
                     new XElement("score", entry.score),
                     new XElement("duration", entry.duration ?? "0"));
@@ -108,7 +108,7 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
         {
             if (Directory.Exists(directoryPath))
             {
-                DirectoryInfo directoryInfo = new(directoryPath);
+                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
 
                 foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.xml"))
                 {

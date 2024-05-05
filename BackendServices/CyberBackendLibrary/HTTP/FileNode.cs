@@ -53,8 +53,8 @@ namespace CyberBackendLibrary.HTTP
         {
             try
             {
-                DirectoryInfo directoryInfo = new(directoryPath);
-                FileNode fileNode = new()
+                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
+                FileNode fileNode = new FileNode()
                 {
                     Name = directoryInfo.Name,
                     Type = "Directory",

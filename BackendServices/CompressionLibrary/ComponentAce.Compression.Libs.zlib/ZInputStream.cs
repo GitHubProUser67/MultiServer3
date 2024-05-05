@@ -10,7 +10,7 @@ namespace ComponentAce.Compression.Libs.zlib
 
         protected int flush;
 
-        protected byte[]? buf;
+        protected byte[] buf;
 
         protected byte[] buf1 = new byte[1];
 

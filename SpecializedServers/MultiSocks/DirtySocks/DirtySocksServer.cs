@@ -3,7 +3,7 @@ using MultiSocks.DirtySocks.DataStore;
 
 namespace MultiSocks.DirtySocks
 {
-    public class DirtySocksServer
+    public class DirtySocksServer : IDisposable
     {
         public static IDatabase Database = new DirtySocksJSONDatabase();
         private AbstractDirtySockServer? RedirectorSSX3_NTSC_A;
@@ -16,16 +16,15 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
         private AbstractDirtySockServer? SSX3Matchmaker;
+        private bool disposedValue;
 
-        private CancellationTokenSource? _cancellationTokenSource;
-
-        public async Task Run(CancellationToken cancellationToken)
+        public DirtySocksServer(CancellationToken cancellationToken)
         {
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
             try
             {
-                RedirectorSSX3_NTSC_A = new RedirectorServer(11000, MultiSocksServerConfiguration.ServerBindAddress, 11051, false, "SSX-ER-PS2-2004", "PS2");
+                RedirectorSSX3_NTSC_A = new RedirectorServer(11000, ListenIP, 11051, false, "SSX-ER-PS2-2004", "PS2");
             }
             catch (Exception ex)
             {
@@ -34,7 +33,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorSSX3_PAL = new RedirectorServer(11050, MultiSocksServerConfiguration.ServerBindAddress, 11051, false, "SSX-ER-PS2-2004", "PS2");
+                RedirectorSSX3_PAL = new RedirectorServer(11050, ListenIP, 11051, false, "SSX-ER-PS2-2004", "PS2");
             }
             catch (Exception ex)
             {
@@ -43,7 +42,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorTSBO_NTSC_A = new RedirectorServer(11100, MultiSocksServerConfiguration.ServerBindAddress, 11101, false, "TSBO", "PS2");
+                RedirectorTSBO_NTSC_A = new RedirectorServer(11100, ListenIP, 11101, false, "TSBO", "PS2");
             }
             catch (Exception ex)
             {
@@ -52,7 +51,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorTSBO_PAL = new RedirectorServer(11140, MultiSocksServerConfiguration.ServerBindAddress, 11101, false, "TSBO", "PS2");
+                RedirectorTSBO_PAL = new RedirectorServer(11140, ListenIP, 11101, false, "TSBO", "PS2");
             }
             catch (Exception ex)
             {
@@ -61,7 +60,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21850, MultiSocksServerConfiguration.ServerBindAddress, 21851, false, "BURNOUT5", "PS3");
+                RedirectorBOP_PS3 = new RedirectorServer(21850, ListenIP, 21851, false, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -70,7 +69,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, MultiSocksServerConfiguration.ServerBindAddress, 21871, false, "BURNOUT5", "PS3");
+                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, ListenIP, 21871, false, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -121,31 +120,47 @@ namespace MultiSocks.DirtySocks
             }
 
             LoggerAccessor.LogInfo("DirtySocks Servers initiated...");
-
-            // Wait until cancellation is requested or task completes
-            await Task.Delay(-1, _cancellationTokenSource.Token);
-
-            // Dispose all servers
-            RedirectorSSX3_NTSC_A?.Dispose();
-            RedirectorSSX3_PAL?.Dispose();
-            RedirectorTSBO_NTSC_A?.Dispose();
-            RedirectorTSBO_PAL?.Dispose();
-            RedirectorBOP_PS3?.Dispose();
-            RedirectorBOPULTIMATEBOX_PS3?.Dispose();
-            BurnoutParadisePS3Matchmaker?.Dispose();
-            BurnoutParadiseUltimateBoxMatchmaker?.Dispose();
-            SimsMatchmaker?.Dispose();
-            SSX3Matchmaker?.Dispose();
-
-            LoggerAccessor.LogWarn("DirtySocks Servers stopped...");
-
-            // Complete the task
-            _cancellationTokenSource.Dispose();
         }
 
-        public void Cancel()
+        protected virtual void Dispose(bool disposing)
         {
-            _cancellationTokenSource?.Cancel();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // Dispose all servers
+                    RedirectorSSX3_NTSC_A?.Dispose();
+                    RedirectorSSX3_PAL?.Dispose();
+                    RedirectorTSBO_NTSC_A?.Dispose();
+                    RedirectorTSBO_PAL?.Dispose();
+                    RedirectorBOP_PS3?.Dispose();
+                    RedirectorBOPULTIMATEBOX_PS3?.Dispose();
+                    BurnoutParadisePS3Matchmaker?.Dispose();
+                    BurnoutParadiseUltimateBoxMatchmaker?.Dispose();
+                    SimsMatchmaker?.Dispose();
+                    SSX3Matchmaker?.Dispose();
+
+                    LoggerAccessor.LogWarn("DirtySocks Servers stopped...");
+                }
+
+                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
+                // TODO: affecter aux grands champs une valeur null
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
+        // ~DirtySocksServer()
+        // {
+        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

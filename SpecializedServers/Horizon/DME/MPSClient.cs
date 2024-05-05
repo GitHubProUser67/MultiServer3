@@ -166,7 +166,10 @@ namespace Horizon.DME
         {
             await Task.WhenAll(_worlds.Select(x => x.Stop()));
             if (_mpsChannel != null)
-                await _mpsChannel.DisconnectAsync();
+            {
+                await _mpsChannel.CloseAsync();
+                _mpsChannel = null;
+            }
             if (_group != null)
                 await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
 

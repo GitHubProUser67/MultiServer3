@@ -6,12 +6,12 @@ namespace CastleLibrary.Utils.Blowfish
 {
     public class BlowfishCTREncryptDecrypt
     {
-        public static byte[]? ProcessCTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv)
+        public static byte[] ProcessCTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv)
         {
             if (KeyBytes.Length == 32 && m_iv.Length == 8)
             {
                 // Create the cipher
-                IBufferedCipher? cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
+                IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/CTR/NOPADDING");
 
                 cipher.Init(false, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
 

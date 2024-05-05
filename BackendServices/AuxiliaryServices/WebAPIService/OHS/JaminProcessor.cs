@@ -163,7 +163,7 @@ namespace WebAPIService.OHS
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new("{ ");
+                    StringBuilder resultBuilder = new StringBuilder("{ ");
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {
@@ -210,7 +210,7 @@ namespace WebAPIService.OHS
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new();
+                    StringBuilder resultBuilder = new StringBuilder();
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {
@@ -282,7 +282,7 @@ namespace WebAPIService.OHS
         {
             object[]? returnValues = null;
 
-            using (Lua lua = new())
+            using (Lua lua = new Lua())
             {
                 try
                 {
@@ -308,7 +308,7 @@ namespace WebAPIService.OHS
 
         private static string ToLiteral(string input)
         {
-            StringBuilder literal = new(input.Length + 2);
+            StringBuilder literal = new StringBuilder(input.Length + 2);
             literal.Append("\"");
             foreach (var c in input)
             {

@@ -15,7 +15,7 @@ namespace WebAPIService.LOOT
 
             if (!string.IsNullOrEmpty(boundary))
             {
-                using MemoryStream ms = new(PostData);
+                using MemoryStream ms = new MemoryStream(PostData);
                 byte[]? ticketData = null;
                 var data = MultipartFormDataParser.Parse(ms, boundary);
 

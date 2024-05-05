@@ -31,7 +31,7 @@ namespace HTTPSecureServerLite.Extensions
         public async Task<bool> ProcessVideoTranscode(HttpContextBase context)
         {
             StartServer();
-            if (!CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(_httpPort))
+            if (!CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(_httpPort))
                 StartFFMpeg(context);
 
             _waitFFMpeg.WaitOne(6000); // We wait, but not more than 6000 if other process failed.

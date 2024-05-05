@@ -18,7 +18,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -43,7 +43,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     try
                     {
                         // Load the XML string
-                        XmlDocument xmlDoc = new();
+                        XmlDocument xmlDoc = new XmlDocument();
                         xmlDoc.Load(ProfilePath);
 
                         // Get the <days> and <sessions> nodes

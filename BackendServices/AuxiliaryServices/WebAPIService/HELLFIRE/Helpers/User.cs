@@ -38,7 +38,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                 doc.LoadXml("<root>" + xmlProfile + "</root>"); // Wrap the XML string in a root element
                 if (doc != null && PostData != null && !string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         // Update the profile values from the provided data
@@ -99,7 +99,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                 doc.LoadXml("<root>" + xmlProfile + "</root>"); // Wrap the XML string in a root element
                 if (doc != null && PostData != null && !string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         // Update the profile values from the provided data

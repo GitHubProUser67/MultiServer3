@@ -86,9 +86,13 @@ namespace Horizon.BWPS
 
                 await Task.Delay(100);
             }
+        }
+
+        public static async void StopServer()
+        {
+            started = false;
 
             await BWPS.Stop();
-            await Task.WhenAll(BWPS.Stop());
         }
 
         private static Task StartServerAsync()
@@ -128,7 +132,7 @@ namespace Horizon.BWPS
             return Task.CompletedTask;
         }
 
-        public static void BWPSMain()
+        public static void StartServer()
         {
             RefreshConfig();
             _ = StartServerAsync();

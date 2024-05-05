@@ -9,7 +9,7 @@ namespace CyberBackendLibrary.HTTP.PluginManager
     {
         public static List<HTTPPlugin> LoadPluginsFromFolder(string folderPath)
         {
-            List<HTTPPlugin> plugins = new();
+            List<HTTPPlugin> plugins = new List<HTTPPlugin>();
 
             if (Directory.Exists(folderPath))
             {

@@ -1,12 +1,13 @@
 using CustomLogger;
+using MultiSocks.DirtySocks;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-
+using System.Security.Cryptography;
 
 public static class MultiSocksServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
-    public static string DirtySocksDatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
+    public static bool UsePublicIPAddress { get; set; } = false;
+    public static string DirtySocksDatabasePath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -25,8 +26,8 @@ public static class MultiSocksServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
-                new JProperty("server_bind_address", ServerBindAddress),
-                new JProperty("database", DirtySocksDatabaseConfig)
+                new JProperty("use_public_ipaddress", UsePublicIPAddress),
+                new JProperty("dirtysocks_database_path", DirtySocksDatabasePath)
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -37,8 +38,8 @@ public static class MultiSocksServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            ServerBindAddress = GetValueOrDefault(config, "server_bind_address", ServerBindAddress);
-            DirtySocksDatabaseConfig = GetValueOrDefault(config, "database", DirtySocksDatabaseConfig);
+            UsePublicIPAddress = GetValueOrDefault(config, "use_public_ipaddress", UsePublicIPAddress);
+            DirtySocksDatabasePath = GetValueOrDefault(config, "dirtysocks_database_path", DirtySocksDatabasePath);
         }
         catch (Exception ex)
         {
@@ -76,58 +77,84 @@ public static class MultiSocksServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
+    static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    static string configPath = configDir + "MultiSocks.json";
+    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    static DirtySocksServer? DSServer;
+
+    static void StartOrUpdateServer()
     {
-        while (true)
+        DSServer?.Dispose();
+        DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
+    }
+
+    static string ComputeMD5FromFile(string filePath)
+    {
+        using (FileStream stream = File.OpenRead(filePath))
         {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
-
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            MultiSocksServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/MultiSocks.json");
+            // Convert the byte array to a hexadecimal string
+            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
         }
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("MultiSocks");
 
-        MultiSocksServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/MultiSocks.json");
+        MultiSocksServerConfiguration.RefreshVariables(configPath);
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => _ = new MultiSocks.DirtySocks.DirtySocksServer().Run(new CancellationTokenSource().Token),
-                    () => RefreshConfig()
-                ));
+        StartOrUpdateServer();
 
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
+            LoggerAccessor.LogInfo("Console Inputs are now available while server is running. . .");
+
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                string? stdin = Console.ReadLine();
 
-                Console.ReadLine();
-
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
-
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (!string.IsNullOrEmpty(stdin))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    switch (stdin.ToLower())
+                    {
+                        case "shutdown":
+                            LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                                Environment.Exit(0);
+                            }
+                            break;
+                        case "reboot":
+                            LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Rebooting!");
+
+                                MultiSocksServerConfiguration.RefreshVariables(configPath);
+
+                                StartOrUpdateServer();
+                            }
+                            break;
+                        default:
+                            LoggerAccessor.LogWarn($"Unknown command entered: {stdin}");
+                            break;
+                    }
                 }
+                else
+                    LoggerAccessor.LogWarn("No command entered!");
             }
         }
         else
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

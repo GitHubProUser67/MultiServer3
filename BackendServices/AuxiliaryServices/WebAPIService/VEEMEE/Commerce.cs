@@ -5,15 +5,15 @@ namespace WebAPIService.VEEMEE
     {
         public static string? Get_Count()
         {
-            VEEMEELoginCounter? counter = new();
-            string? returnstring = Processor.sign($"{{\"count\":{counter.GetLoginCount("Voodooperson05")}}}");
+            VEEMEELoginCounter? counter = new VEEMEELoginCounter();
+            string? returnstring = Processor.Sign($"{{\"count\":{counter.GetLoginCount("Voodooperson05")}}}");
             counter = null;
             return returnstring;
         }
 
         public static string? Get_Ownership()
         {
-            return Processor.sign("{\"owner\":\"Voodooperson05\"}");
+            return Processor.Sign("{\"owner\":\"Voodooperson05\"}");
         }
 
         private class VEEMEELoginCounter

@@ -104,7 +104,7 @@ namespace HomeTools.Crypto
             byte[] numArray1 = new byte[16];
             byte[] numArray2 = new byte[16];
             aesecbEncrypt(key, numArray1, 0, numArray2, 0, numArray1.Length);
-            BigInteger bigInteger1 = new(ConversionUtils.reverseByteWithSizeFIX(numArray2));
+            BigInteger bigInteger1 = new BigInteger(ConversionUtils.reverseByteWithSizeFIX(numArray2));
             BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
             byte[] src1 = ConversionUtils.reverseByteWithSizeFIX(bigInteger2.ToByteArray());
             if (src1.Length >= 16)
@@ -263,8 +263,8 @@ namespace HomeTools.Crypto
 
         public static byte[] ICSharpEdgeZlibDecompress(byte[] inData)
         {
-            MemoryStream memoryStream = new();
-            MemoryStream memoryStream2 = new(inData);
+            MemoryStream memoryStream = new MemoryStream();
+            MemoryStream memoryStream2 = new MemoryStream(inData);
             byte[] array = new byte[ChunkHeader.SizeOf];
             while (memoryStream2.Position < memoryStream2.Length)
             {
@@ -286,9 +286,9 @@ namespace HomeTools.Crypto
         {
             if (header.CompressedSize == header.SourceSize)
                 return inData;
-            MemoryStream baseInputStream = new(inData);
-            InflaterInputStream inflaterInputStream = new(baseInputStream, new Inflater(true));
-            MemoryStream memoryStream = new();
+            MemoryStream baseInputStream = new MemoryStream(inData);
+            InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, new Inflater(true));
+            MemoryStream memoryStream = new MemoryStream();
             byte[] array = new byte[4096];
             for (; ; )
             {
@@ -303,8 +303,8 @@ namespace HomeTools.Crypto
 
         public static byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
         {
-            MemoryStream memoryStream = new();
-            MemoryStream memoryStream2 = new(inData);
+            MemoryStream memoryStream = new MemoryStream();
+            MemoryStream memoryStream2 = new MemoryStream(inData);
             byte[] array = new byte[ChunkHeader.SizeOf];
             while (memoryStream2.Position < memoryStream2.Length)
             {
@@ -326,8 +326,8 @@ namespace HomeTools.Crypto
         {
             if (header.CompressedSize == header.SourceSize)
                 return InData;
-            MemoryStream memoryStream = new();
-            ZOutputStream zoutputStream = new(memoryStream, true);
+            MemoryStream memoryStream = new MemoryStream();
+            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, true);
             byte[] array = new byte[InData.Length];
             Array.Copy(InData, 0, array, 0, InData.Length);
             zoutputStream.Write(array, 0, array.Length);
@@ -338,8 +338,8 @@ namespace HomeTools.Crypto
 
         public static byte[] ComponentAceEdgeZlibCompress(byte[] inData)
         {
-            MemoryStream memoryStream = new(inData.Length);
-            MemoryStream memoryStream2 = new(inData);
+            MemoryStream memoryStream = new MemoryStream(inData.Length);
+            MemoryStream memoryStream2 = new MemoryStream(inData);
             while (memoryStream2.Position < memoryStream2.Length)
             {
                 int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
@@ -355,8 +355,8 @@ namespace HomeTools.Crypto
 
         private static byte[] ComponentAceCompressEdgeZlibChunk(byte[] InData)
         {
-            MemoryStream memoryStream = new();
-            ZOutputStream zoutputStream = new(memoryStream, 9, true);
+            MemoryStream memoryStream = new MemoryStream();
+            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, true);
             zoutputStream.Write(InData, 0, InData.Length);
             zoutputStream.Close();
             memoryStream.Close();
@@ -445,7 +445,7 @@ namespace HomeTools.Crypto
 
         public static byte[]? Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
         {
-            StringBuilder? hexStr = new();
+            StringBuilder? hexStr = new StringBuilder();
             byte[]? CipheredFileBytes = null;
             int totalProcessedBytes = 0;
             int totalBytes = fileBytes.Length;

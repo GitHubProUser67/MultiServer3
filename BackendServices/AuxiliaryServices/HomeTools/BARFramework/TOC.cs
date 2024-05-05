@@ -152,8 +152,8 @@ namespace HomeTools.BARFramework
 
         public byte[] GetBytesVersion1()
         {
-            MemoryStream memoryStream = new();
-            BinaryWriter binaryWriter = new(memoryStream);
+            MemoryStream memoryStream = new MemoryStream();
+            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
             foreach (TOCEntry tocentry in m_entries.Values)
             {
                 binaryWriter.Write((int)tocentry.FileName);
@@ -167,8 +167,8 @@ namespace HomeTools.BARFramework
 
         public byte[] GetBytesVersion2(string key, byte[] IV, EndianType endian)
         {
-            MemoryStream memoryStream = new();
-            BinaryWriter binaryWriter = new(memoryStream);
+            MemoryStream memoryStream = new MemoryStream();
+            BinaryWriter binaryWriter = new BinaryWriter(memoryStream);
             foreach (TOCEntry tocentry in m_entries.Values.Reverse()) // IMPORTANT, HOME EBOOT WANT THE TOC BACKWARD (spent a considerable amount of reverse...)
             {
                 if (endian == EndianType.BigEndian)

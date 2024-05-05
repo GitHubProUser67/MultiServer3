@@ -5,6 +5,9 @@ using Newtonsoft.Json.Linq;
 using CyberBackendLibrary.GeoLocalization;
 using System.Runtime;
 using System.Security.Cryptography;
+using System.Collections.Concurrent;
+using Horizon.HTTPSERVICE;
+using Horizon.MUM;
 
 public static class HorizonServerConfiguration
 {
@@ -147,92 +150,149 @@ public static class HorizonServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
-    {
-        while (true)
-        {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
-
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
-        }
-    }
+    static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    static string configPath = configDir + "horizon.json";
+    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    static ConcurrentBag<CrudServerHandler>? HTTPBag;
+    static MumServerHandler? MUMServer;
 
     static Task HorizonStarter()
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
-            GeoIP.Initialize();
+            MUMServer = new MumServerHandler("*", 10076);
 
-            Task.Run(() => { new Horizon.MUM.MumServerHandler("*", 10076).StartServer(); });
-
-            Horizon.MEDIUS.MediusClass.MediusMain();
-
-            _ = Task.Run(() => Parallel.Invoke(
-                   () => new Horizon.HTTPSERVICE.CrudServerHandler("*", 61920).StartServer(),
-                   () => new Horizon.HTTPSERVICE.CrudServerHandler("0.0.0.0", 8443).StartServer(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
-               ));
+            HTTPBag = new ConcurrentBag<CrudServerHandler>
+            {
+                new("*", 61920),
+                new("0.0.0.0", 8443, HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
+            };
         }
 
-        if (HorizonServerConfiguration.EnableNAT)
-            Horizon.NAT.NATClass.NATMain();
+        if (HorizonServerConfiguration.EnableMedius && !Horizon.MEDIUS.MediusClass.started)
+            Horizon.MEDIUS.MediusClass.StartServer();
 
-        if (HorizonServerConfiguration.EnableBWPS)
-            Horizon.BWPS.BWPSClass.BWPSMain();
+        if (HorizonServerConfiguration.EnableNAT && !Horizon.NAT.NATClass.started)
+            Horizon.NAT.NATClass.StartServer();
 
-        if (HorizonServerConfiguration.EnableMuis)
-            Horizon.MUIS.MuisClass.MuisMain();
+        if (HorizonServerConfiguration.EnableBWPS && !Horizon.BWPS.BWPSClass.started)
+            Horizon.BWPS.BWPSClass.StartServer();
 
-        if (HorizonServerConfiguration.EnableDME)
-            Horizon.DME.DmeClass.DmeMain();
+        if (HorizonServerConfiguration.EnableMuis && !Horizon.MUIS.MuisClass.started)
+            Horizon.MUIS.MuisClass.StartServer();
+
+        if (HorizonServerConfiguration.EnableDME && !Horizon.DME.DmeClass.started)
+            Horizon.DME.DmeClass.StartServer();
 
         return Task.CompletedTask;
     }
 
+    static void StartOrUpdateServer()
+    {
+        if (Horizon.DME.DmeClass.started && !HorizonServerConfiguration.EnableDME)
+            Horizon.DME.DmeClass.StopServer();
+
+        if (Horizon.MUIS.MuisClass.started && !HorizonServerConfiguration.EnableMuis)
+            Horizon.MUIS.MuisClass.StopServer();
+
+        if (Horizon.BWPS.BWPSClass.started && !HorizonServerConfiguration.EnableBWPS)
+            Horizon.BWPS.BWPSClass.StopServer();
+
+        if (Horizon.NAT.NATClass.started && !HorizonServerConfiguration.EnableNAT)
+            Horizon.NAT.NATClass.StopServer();
+
+        if (Horizon.MEDIUS.MediusClass.started && !HorizonServerConfiguration.EnableMedius)
+            Horizon.MEDIUS.MediusClass.StopServer();
+
+        MUMServer?.StopServer();
+        MUMServer = null;
+
+        if (HTTPBag != null)
+        {
+            foreach (var httpBag in HTTPBag)
+            {
+                httpBag.StopServer();
+            }
+
+            HTTPBag = null;
+        }
+
+        if (HorizonServerConfiguration.EnableMedius)
+            CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
+                    HorizonServerConfiguration.HTTPSDNSList, HorizonServerConfiguration.HTTPSCertificateHashingAlgorithm);
+
+        HorizonStarter().Wait();
+    }
+
+    static string ComputeMD5FromFile(string filePath)
+    {
+        using (FileStream stream = File.OpenRead(filePath))
+        {
+            // Convert the byte array to a hexadecimal string
+            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
+        }
+    }
+
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("Horizon");
 
-        HorizonServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/horizon.json");
+        GeoIP.Initialize();
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
-            HorizonServerConfiguration.HTTPSDNSList, HorizonServerConfiguration.HTTPSCertificateHashingAlgorithm);
+        HorizonServerConfiguration.RefreshVariables(configPath);
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => HorizonStarter(),
-                    () => RefreshConfig()
-                ));
+        StartOrUpdateServer();
 
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
+            LoggerAccessor.LogInfo("Console Inputs are now available while server is running. . .");
+
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                string? stdin = Console.ReadLine();
 
-                Console.ReadLine();
-
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
-
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                if (!string.IsNullOrEmpty(stdin))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    switch (stdin.ToLower())
+                    {
+                        case "shutdown":
+                            LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                                Environment.Exit(0);
+                            }
+                            break;
+                        case "reboot":
+                            LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                            {
+                                LoggerAccessor.LogInfo("Rebooting!");
+
+                                HorizonServerConfiguration.RefreshVariables(configPath);
+
+                                StartOrUpdateServer();
+                            }
+                            break;
+                        default:
+                            LoggerAccessor.LogWarn($"Unknown command entered: {stdin}");
+                            break;
+                    }
                 }
+                else
+                    LoggerAccessor.LogWarn("No command entered!");
             }
         }
         else
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

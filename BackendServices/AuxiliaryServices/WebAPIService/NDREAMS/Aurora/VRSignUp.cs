@@ -19,7 +19,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -30,7 +30,12 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = BitConverter.ToString(SHA1.HashData(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl"))).Replace("-", string.Empty).ToLower();
+                byte[] SHA1Data = new byte[0];
+                using (SHA1 sha1hash = SHA1.Create())
+                {
+                    SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl"));
+                }
+                string ExpectedHash = BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
 
                 if (hash == ExpectedHash)
                 {

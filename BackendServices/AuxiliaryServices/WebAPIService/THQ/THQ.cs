@@ -14,7 +14,7 @@ namespace WebAPIService.THQ
             if (!string.IsNullOrEmpty(boundary))
             {
                 // Create a memory stream to copy the content
-                using (MemoryStream copyStream = new())
+                using (MemoryStream copyStream = new MemoryStream())
                 {
                     // Copy the input stream to the memory stream
                     postdata.CopyTo(copyStream);

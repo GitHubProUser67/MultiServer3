@@ -50,7 +50,7 @@ namespace CastleLibrary.Utils.Conversion
             return num;
         }
 
-        public static void arraycopy(byte[]? src, int srcPos, byte[] dest, long destPos, int length)
+        public static void arraycopy(byte[] src, int srcPos, byte[] dest, long destPos, int length)
         {
             if (src != null)
                 for (int index = 0; index < length; ++index)
@@ -88,7 +88,7 @@ namespace CastleLibrary.Utils.Conversion
 
         public static byte[] reverseByteWithSizeFIX(byte[] b)
         {
-            byte[] numArray = b[^1] != 0 ? new byte[b.Length] : new byte[b.Length - 1];
+            byte[] numArray = b[b.Length - 1] != 0 ? new byte[b.Length] : new byte[b.Length - 1];
             for (int index = 0; index < numArray.Length; ++index)
                 numArray[numArray.Length - 1 - index] = b[index];
             return numArray;

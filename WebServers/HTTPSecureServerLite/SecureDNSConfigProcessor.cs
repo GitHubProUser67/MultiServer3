@@ -1,5 +1,4 @@
 using CustomLogger;
-using PSHostsFile;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -22,7 +21,7 @@ namespace HTTPSecureServerLite
 
         public static void InitDNSSubsystem()
         {
-            LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system is initialising, endpoints will be available when initialized...");
+            LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system configuration is initialising, endpoints will be available when initialized...");
 
             if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
             {
@@ -45,17 +44,14 @@ namespace HTTPSecureServerLite
                     LoggerAccessor.LogError($"[HTTPS_DNS] - Online Config failed to initialize! - {ex}");
                 }
             }
-            else
-            {
-                if (File.Exists(HTTPSServerConfiguration.DNSConfig))
-                    ParseRules(HTTPSServerConfiguration.DNSConfig);
-                else
-                    LoggerAccessor.LogError("[HTTPS_DNS] - No config text file, so HTTPS_DNS server configuration is aborted!");
-            }
+            else if (File.Exists(HTTPSServerConfiguration.DNSConfig))
+                ParseRules(HTTPSServerConfiguration.DNSConfig);
         }
 
         public static void ParseRules(string Filename, bool IsFilename = true)
         {
+            Initiated = false;
+
             LoggerAccessor.LogInfo("[HTTPS_DNS] - Parsing Configuration File...");
 
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
@@ -119,25 +115,6 @@ namespace HTTPSecureServerLite
                         }
                     }
                 });
-            }
-
-            foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
-            {
-                string domain = hostsEntry.Hostname;
-
-                DnsSettings dns = new()
-                {
-                    Mode = HandleMode.Redirect,
-                    Address = hostsEntry.Address
-                };
-
-                // Check if the domain has been processed before
-                if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
-                {
-                    // Hosts entry should not support wildcard in theory, so only DicRules.
-                    DicRules.TryAdd(domain, dns);
-                    DicRules.TryAdd("www." + domain, dns);
-                }
             }
 
             Initiated = true;

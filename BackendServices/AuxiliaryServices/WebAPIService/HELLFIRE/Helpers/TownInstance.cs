@@ -30,7 +30,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                 return $"<Response>{File.ReadAllText($"{WorkPath}/TYCOON/User_Data/{UserID}_{GenerateCityguid(InstanceID, UserID)}.xml")}</Response>";
             else
             {
-                StringBuilder? gridBuilder = new();
+                StringBuilder? gridBuilder = new StringBuilder();
 
                 for (int i = 1; i <= 256; i++)
                 {
@@ -87,7 +87,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             };
 
             // Replace characters in the result based on the mapping
-            StringBuilder? stringBuilder = new();
+            StringBuilder? stringBuilder = new StringBuilder();
 
             foreach (char c in result)
             {
@@ -143,7 +143,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             };
 
             // Replace characters in the result based on the mapping
-            StringBuilder? stringBuilder = new();
+            StringBuilder? stringBuilder = new StringBuilder();
 
             foreach (char c in result)
             {
