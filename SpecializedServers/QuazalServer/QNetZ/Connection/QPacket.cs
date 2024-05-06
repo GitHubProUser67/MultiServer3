@@ -191,7 +191,7 @@ namespace QuazalServer.QNetZ
 
 			if (tmpPayload != null && tmpPayload.Length > 0 && type != PACKETTYPE.SYN && m_oSourceVPort?.type != STREAMTYPE.NAT)
 			{
-				if (usesCompression && AccessKey != "hg7j1" && AccessKey != "yh64s") // Old LZO based clients not need compressed response.
+				if (usesCompression && AccessKey != "hg7j1" && AccessKey != "yh64s" && AccessKey != "uG9Kv3p") // Old LZO based clients not need compressed response.
 				{
 					uint sizeBefore = (uint)tmpPayload.Length;
 					byte[] buff = Helper.Compress(tmpPayload);
