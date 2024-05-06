@@ -31,6 +31,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61140, "HJb8Ix1M"), // RAYMANLEGENDSPS3
                         Tuple.Create(60001, "ridfebb9"), // RB3
                         Tuple.Create(21032, "8dtRv2oj"), // GRO
+                        Tuple.Create(30161, "uG9Kv3p"), // TUROKPS3
                         Tuple.Create(30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
                         Tuple.Create(61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
                     };
@@ -52,6 +53,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61133, 61134, "ex5LYTJ0"), // WATCHDOGSPS3
                         Tuple.Create(61137, 61138, "4TeVtJ7V"), // BGEHDPS3
                         Tuple.Create(61139, 61140, "HJb8Ix1M"), // RAYMANLEGENDSPS3
+                        Tuple.Create(30160, 30161, "uG9Kv3p"), // TUROKPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
                         Tuple.Create(61135, 61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
                     };

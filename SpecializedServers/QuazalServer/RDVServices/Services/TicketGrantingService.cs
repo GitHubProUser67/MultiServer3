@@ -161,7 +161,8 @@ namespace QuazalServer.RDVServices.Services
                     || Context.Handler.AccessKey == "OLjNg84Gh" || Context.Handler.AccessKey == "ridfebb9" 
                     || Context.Handler.AccessKey == "q1UFc45UwoyI" || Context.Handler.AccessKey == "h0rszqTw"
                     || Context.Handler.AccessKey == "os4R9pEiy" || Context.Handler.AccessKey == "lON6yKGp"
-                    || Context.Handler.AccessKey == "4TeVtJ7V" || Context.Handler.AccessKey == "HJb8Ix1M") // Console login not uses Quazal storage, they use a given account to log-in.
+                    || Context.Handler.AccessKey == "4TeVtJ7V" || Context.Handler.AccessKey == "HJb8Ix1M"
+                     || Context.Handler.AccessKey == "uG9Kv3p") // Console login not uses Quazal storage, they use a given account to log-in.
                 {
                     if (iswii.Success) // WII uses a master account.
                     {
