@@ -9,6 +9,7 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto;
+using System.Text;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -262,63 +263,32 @@ namespace CyberBackendLibrary.SSL
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath, Hashing);
             else
-                RootCACertificate = GetCertificate(File.ReadAllText(directoryPath + "/MultiServer_rootca.pem"), File.ReadAllText(directoryPath + "/MultiServer_rootca_privkey.pem"));
+                RootCACertificate = LoadPemCertificate(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
 
             CreateChainSignedCert(RootCACertificate, Hashing, certpath, certPassword, DnsList);
         }
 
         /// <summary>
-        /// Get a X509Certificate2 a pem data and a pem encoded private key.
-        /// <para>Obtiens un X509Certificate2 depuis une donnée encodée en PEM avec une clé privée aussi encodée en pem.</para>
+        /// Initiate a X509Certificate2 from a PEM certificate and a PEM privatekey.
+        /// <para>Initialise un certificat X509Certificate2 depuis un fichier certificate PEM et un fichier privatekey PEM.</para>
         /// </summary>
-        /// <param name="pemCertstr">The pem cert string.</param>
-        /// <param name="pemPrivKeystr">The pem priv key string.</param>
-        /// <returns>A nullable X509Certificate2.</returns>
-        private static X509Certificate2? GetCertificate(string pemCertstr, string pemPrivKeystr)
+        /// <param name="certificatePath">pem cert path.</param>
+        /// <param name="privateKeyPath">pem private key path.</param>
+        /// <returns>A X509Certificate2.</returns>
+        public static X509Certificate2 LoadPemCertificate(string certificatePath, string privateKeyPath)
         {
-            try
-            {
-                return new X509Certificate2(System.Text.Encoding.UTF8.GetBytes(pemCertstr.Trim()))
-                {
-                    PrivateKey = GetRSAFromPem(pemPrivKeystr.Trim())
-                };
-            }
-            catch
-            {
+            using X509Certificate2 publicKey = new X509Certificate2(certificatePath);
 
-            }
+            string[] privateKeyBlocks = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
+            using RSA rsa = RSA.Create();
 
-            return null;
-        }
+            if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
+                rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
+            else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
+                rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
 
-        /// <summary>
-        /// Get a RSA key from a pem data.
-        /// <para>Obtiens une clé RSA depuis une donnée encodée en PEM.</para>
-        /// </summary>
-        /// <param name="pemstr">The pem string.</param>
-        /// <returns>A RSA key.</returns>
-        private static RSA GetRSAFromPem(string pemstr)
-        {
-            RSA rsaKey = RSA.Create();
-            RSA MakePublicRCSP(RSA rcsp, RsaKeyParameters rkp)
-            {
-                RSAParameters rsaParameters = DotNetUtilities.ToRSAParameters(rkp);
-                rcsp.ImportParameters(rsaParameters);
-                return rsaKey;
-            }
-
-            RSA MakePrivateRCSP(RSA rcsp, RsaPrivateCrtKeyParameters rkp)
-            {
-                RSAParameters rsaParameters = DotNetUtilities.ToRSAParameters(rkp);
-                rcsp.ImportParameters(rsaParameters);
-                return rsaKey;
-            }
-
-            object kp = new PemReader(new StringReader(pemstr)).ReadObject();
-
-            // If object has Private/Public property, we have a Private PEM
-            return kp is RsaPrivateCrtKeyParameters parameters ? MakePrivateRCSP(rsaKey, parameters) : kp.GetType().GetProperty("Private") != null 
-                ? MakePrivateRCSP(rsaKey, (RsaPrivateCrtKeyParameters)((AsymmetricCipherKeyPair)kp).Private) : MakePublicRCSP(rsaKey, (RsaKeyParameters)kp);
+            return new X509Certificate2(publicKey.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
         }
 
         /// <summary>
