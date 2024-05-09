@@ -44,14 +44,7 @@ namespace MultiSocks.DirtySocks.Messages
                 User? user = client.User;
                 if (user == null) return;
 
-                PlusUser info = user.GetInfo();
-
-                client.SendMessage(new Newsnew8()
-                {
-
-                });
-
-                user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                client.SendMessage(new Newsnew8());
             }
             else
                 CustomLogger.LoggerAccessor.LogWarn($"[DirtySocks] - News - Client Requested an unknown config type: {NAME}, not responding");

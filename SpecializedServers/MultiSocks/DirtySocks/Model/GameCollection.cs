@@ -1,46 +1,55 @@
+using MultiSocks.DirtySocks.Messages;
+using System.Collections.Concurrent;
+
 namespace MultiSocks.DirtySocks.Model
 {
     public class GameCollection
     {
         private int GameID = 1;
-        private List<Game> Games = new();
+        public ConcurrentDictionary<int, Game> GamesSessions = new();
 
         public virtual Game? AddGame(int maxSize, int minSize, string custFlags, string @params,
-                string name, bool priv, string seed, string sysFlags, string? pass)
+                string name, bool priv, string seed, string sysFlags, string? pass, int roomId)
         {
-            lock (Games)
-            {
-                if (!Games.Any(game =>
-                    game.MaxSize == maxSize &&
-                    game.MinSize == minSize &&
-                    game.CustFlags == custFlags &&
-                    game.Params == @params &&
+            if (!GamesSessions.Values.Any(game =>
                     game.Name == name &&
-                    game.Priv == priv &&
-                    game.Seed == seed &&
-                    game.SysFlags == sysFlags &&
-                    game.pass == pass))
-                {
-                    Game game = new(maxSize, minSize, GameID, custFlags, @params,
-                                    name, priv, seed, sysFlags, pass);
-                    GameID++;
-                    Games.Add(game);
-                    return game;
-                }
-                else
-                    CustomLogger.LoggerAccessor.LogWarn("[Game] - Trying to add a game while an other with same properties exists!");
+                    game.Priv == priv))
+            {
+                Game game = new(maxSize, minSize, GameID, custFlags, @params,
+                                name, priv, seed, sysFlags, pass, roomId);
+                GameID++;
+                GamesSessions.TryAdd(game.ID, game);
+                return game;
             }
+            else
+                CustomLogger.LoggerAccessor.LogWarn("[Game] - Trying to add a game while an other with same properties exists!");
 
             return null;
         }
 
         public virtual void RemoveGame(Game game)
         {
-            lock (Games)
+            if (GamesSessions.ContainsKey(game.ID))
             {
                 CustomLogger.LoggerAccessor.LogWarn($"[Game] - Removing Game:{game.Name}:{game.ID}.");
-                Games.Remove(game);
+
+                foreach (User user in GamesSessions[game.ID].Users.GetAll())
+                {
+                    user.Connection?.SendMessage(new GdelOut());
+
+                    user.CurrentGame = null;
+
+                    user.SendPlusWho(user, !string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                }
+
+                GamesSessions.TryRemove(game.ID, out _);
             }
+        }
+
+        public void UpdateGame(Game game)
+        {
+            if (GamesSessions.ContainsKey(game.ID))
+                GamesSessions[game.ID] = game;
         }
 
         public Game? GetGameByName(string? name, string? pass)
@@ -48,18 +57,12 @@ namespace MultiSocks.DirtySocks.Model
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            lock (Games)
-            {
-                return Games.FirstOrDefault(x => x.Name == name && (!string.IsNullOrEmpty(x.pass) ? x.pass == pass : (x.pass == null || x.pass == string.Empty)));
-            }
+            return GamesSessions.FirstOrDefault(x => x.Value.Name == name && (!string.IsNullOrEmpty(x.Value.pass) ? x.Value.pass == pass : (x.Value.pass == null || x.Value.pass == string.Empty))).Value;
         }
 
         public int Count()
         {
-            lock (Games)
-            {
-                return Games.Count;
-            }
+            return GamesSessions.Count;
         }
     }
 }

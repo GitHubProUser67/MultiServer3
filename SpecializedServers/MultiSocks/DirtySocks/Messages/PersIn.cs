@@ -45,9 +45,9 @@ namespace MultiSocks.DirtySocks.Messages
                     MA = MAC,
                     A = client.IP
                 });
-
-                user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
             }
+
+            user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
         }
     }
 }

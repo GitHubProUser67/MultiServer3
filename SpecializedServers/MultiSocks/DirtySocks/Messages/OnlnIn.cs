@@ -12,7 +12,7 @@ namespace MultiSocks.DirtySocks.Messages
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            Model.User? user = client.User;
+            Model.User? user = !string.IsNullOrEmpty(PERS) ? mc.Users.GetUserByPersonaName(PERS) : client.User;
             if (user == null) return;
 
             Model.Room? Room = user.CurrentRoom;

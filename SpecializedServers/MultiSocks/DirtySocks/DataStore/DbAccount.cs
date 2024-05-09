@@ -9,5 +9,7 @@ namespace MultiSocks.DirtySocks.DataStore
         public string SHARE = "1";
         public string MAIL = "defaultEA@gmail.com";
         public List<string> Personas = new();
+        public List<string> Friends = new();
+        public List<string> Rivals = new();
     }
 }

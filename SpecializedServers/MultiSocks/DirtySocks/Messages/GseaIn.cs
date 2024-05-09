@@ -1,3 +1,5 @@
+using MultiSocks.DirtySocks.Model;
+
 namespace MultiSocks.DirtySocks.Messages
 {
     public class GseaIn : AbstractMessage
@@ -16,10 +18,33 @@ namespace MultiSocks.DirtySocks.Messages
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
-            client.SendMessage(new GseaOut()
-            {
+            if (context is not MatchmakerServer mc) return;
 
-            });
+            if (CANCEL == "1")
+            {
+                client.SendMessage(new GseaOut() { COUNT = "0" });
+                return;
+            }
+
+            if (int.TryParse(START, out int start) && int.TryParse(COUNT, out int count))
+            {
+                List<Game> MatchingList = mc.Games.GamesSessions.Values
+                    .Where(game => (CUSTFLAGS == "0" || game.CustFlags.Equals(CUSTFLAGS)) && (SYSFLAGS == "0" || game.SysFlags.Equals(SYSFLAGS)))
+                    .Skip(start - 1) // Adjusting for 1-based indexing
+                    .Take(count)
+                    .ToList();
+
+                client.SendMessage(new GseaOut() { COUNT = MatchingList.Count.ToString() });
+
+                foreach (Game game in MatchingList)
+                {
+                    client.SendMessage(game.GetPlusGam());
+                }
+            }
+            else
+            {
+                // TODO, send dirtysocks error.
+            }
         }
     }
 }
