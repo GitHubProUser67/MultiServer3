@@ -61,6 +61,9 @@ namespace MitmDNS
 
         private static void ParseRules(string Filename, bool IsFilename = true)
         {
+            DicRules.Clear();
+            StarRules.Clear();
+
             Initiated = false;
 
             LoggerAccessor.LogInfo("[DNS] - Parsing Configuration File...");

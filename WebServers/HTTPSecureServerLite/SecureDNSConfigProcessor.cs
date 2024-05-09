@@ -50,6 +50,9 @@ namespace HTTPSecureServerLite
 
         public static void ParseRules(string Filename, bool IsFilename = true)
         {
+            DicRules.Clear();
+            StarRules.Clear();
+
             Initiated = false;
 
             LoggerAccessor.LogInfo("[HTTPS_DNS] - Parsing Configuration File...");

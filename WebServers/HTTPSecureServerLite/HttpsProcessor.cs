@@ -841,19 +841,22 @@ namespace HTTPSecureServerLite
                                                                 treated = true;
                                                             }
 
-                                                            if (!treated && SecureDNSConfigProcessor.StarRules != null)
+                                                            lock (SecureDNSConfigProcessor.StarRules)
                                                             {
-                                                                foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                                if (!treated && SecureDNSConfigProcessor.StarRules != null)
                                                                 {
-                                                                    Regex regex = new(rule.Key);
-                                                                    if (!regex.IsMatch(fullname))
-                                                                        continue;
+                                                                    foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                                    {
+                                                                        Regex regex = new(rule.Key);
+                                                                        if (!regex.IsMatch(fullname))
+                                                                            continue;
 
-                                                                    if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                                                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                                    treated = true;
-                                                                    break;
+                                                                        if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                                        else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                                        else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                                        treated = true;
+                                                                        break;
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1199,19 +1202,22 @@ namespace HTTPSecureServerLite
                                                             treated = true;
                                                         }
 
-                                                        if (!treated && SecureDNSConfigProcessor.StarRules != null)
+                                                        lock (SecureDNSConfigProcessor.StarRules)
                                                         {
-                                                            foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                            if (!treated && SecureDNSConfigProcessor.StarRules != null)
                                                             {
-                                                                Regex regex = new(rule.Key);
-                                                                if (!regex.IsMatch(fullname))
-                                                                    continue;
+                                                                foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                                {
+                                                                    Regex regex = new(rule.Key);
+                                                                    if (!regex.IsMatch(fullname))
+                                                                        continue;
 
-                                                                if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                                                else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                                else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                                treated = true;
-                                                                break;
+                                                                    if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                                    treated = true;
+                                                                    break;
+                                                                }
                                                             }
                                                         }
                                                     }

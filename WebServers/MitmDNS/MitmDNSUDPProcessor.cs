@@ -66,85 +66,95 @@ namespace MitmDNS
 
         private Span<byte> ProcRequest(byte[] data)
         {
-            bool treated = false;
-
-            string fullname = string.Join(".", DNSProcessor.GetDnsName(data).ToArray());
-
-            LoggerAccessor.LogInfo($"[DNS_UDP] - Host: {fullname} was Requested.");
-
-            string? url = null;
-
-            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
+            try
             {
-                if (arparuleaddr != null)
+                bool treated = false;
+
+                string fullname = string.Join(".", DNSProcessor.GetDnsName(data).ToArray());
+
+                LoggerAccessor.LogInfo($"[DNS_UDP] - Host: {fullname} was Requested.");
+
+                string? url = null;
+
+                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                 {
-                    if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (arparuleaddr != null)
                     {
-                        // Split the IP address into octets
-                        string[] octets = arparuleaddr.ToString().Split('.');
+                        if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            // Split the IP address into octets
+                            string[] octets = arparuleaddr.ToString().Split('.');
 
-                        // Reverse the order of octets
-                        Array.Reverse(octets);
+                            // Reverse the order of octets
+                            Array.Reverse(octets);
 
-                        // Join the octets back together
-                        url = string.Join(".", octets);
+                            // Join the octets back together
+                            url = string.Join(".", octets);
 
-                        treated = true;
+                            treated = true;
+                        }
                     }
                 }
-            }
-            else
-            {
-                if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.ContainsKey(fullname))
+                else
                 {
-                    if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                    else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Redirect) url = MitmDNSClass.DicRules[fullname].Address ?? "127.0.0.1";
-                    else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
-                    treated = true;
-                }
-
-                if (!treated && MitmDNSClass.StarRules != null)
-                {
-                    foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
+                    if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.ContainsKey(fullname))
                     {
-                        Regex regex = new(rule.Key);
-                        if (!regex.IsMatch(fullname))
-                            continue;
-
-                        if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                        else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                        else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                        if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
+                        else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Redirect) url = MitmDNSClass.DicRules[fullname].Address ?? "127.0.0.1";
+                        else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
                         treated = true;
-                        break;
+                    }
+
+                    lock (MitmDNSClass.StarRules)
+                    {
+                        if (!treated && MitmDNSClass.StarRules != null)
+                        {
+                            foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
+                            {
+                                Regex regex = new(rule.Key);
+                                if (!regex.IsMatch(fullname))
+                                    continue;
+
+                                if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                treated = true;
+                                break;
+                            }
+                        }
                     }
                 }
 
+                if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
+                    url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+
+                IPAddress ip = IPAddress.None; // NXDOMAIN
+                if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
+                {
+                    try
+                    {
+                        if (!IPAddress.TryParse(url, out IPAddress? address))
+                            ip = Dns.GetHostEntry(url).AddressList[0];
+                        else ip = address;
+                    }
+                    catch (Exception)
+                    {
+                        ip = IPAddress.None;
+                    }
+
+                    LoggerAccessor.LogInfo($"[DNS_UDP] - Resolved: {fullname} to: {ip}");
+
+                    return DNSProcessor.MakeDnsResponsePacket(data, ip);
+                }
+                else if (url == "NXDOMAIN")
+                    return DNSProcessor.MakeDnsResponsePacket(data, ip);
+
             }
-
-            if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
-
-            IPAddress ip = IPAddress.None; // NXDOMAIN
-            if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
+            catch (Exception ex)
             {
-                try
-                {
-                    if (!IPAddress.TryParse(url, out IPAddress? address))
-                        ip = Dns.GetHostEntry(url).AddressList[0];
-                    else ip = address;
-                }
-                catch (Exception)
-                {
-                    ip = IPAddress.None;
-                }
-
-                LoggerAccessor.LogInfo($"[DNS_UDP] - Resolved: {fullname} to: {ip}");
-
-                return DNSProcessor.MakeDnsResponsePacket(data, ip);
+                LoggerAccessor.LogError($"[DNS_UDP] - ProcRequest thrown an assertion: {ex}");
             }
-            else if (url == "NXDOMAIN")
-                return DNSProcessor.MakeDnsResponsePacket(data, ip);
-
+            
             return null;
         }
 
