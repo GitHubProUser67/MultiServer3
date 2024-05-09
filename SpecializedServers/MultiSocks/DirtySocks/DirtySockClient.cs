@@ -172,7 +172,7 @@ namespace MultiSocks.DirtySocks
             {
                 ClientStream?.Write(data);
             }
-            catch (Exception)
+            catch
             {
                 // something bad happened :(
             }
@@ -184,7 +184,7 @@ namespace MultiSocks.DirtySocks
             {
                 ClientStream?.Write(msg.GetData());
             }
-            catch (Exception)
+            catch
             {
                 // something bad happened :(
             }

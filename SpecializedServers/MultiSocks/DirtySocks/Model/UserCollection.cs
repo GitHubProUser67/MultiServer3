@@ -1,17 +1,17 @@
 using MultiSocks.DirtySocks.Messages;
-using System.Collections.Concurrent;
 
 namespace MultiSocks.DirtySocks.Model
 {
     public class UserCollection
     {
-        protected ConcurrentQueue<User> Users = new(); // This data type follows the FIFO order, necessary for players list.
+        protected Dictionary<int, User> Users = new();
+        protected Queue<int> UserIdsQueue = new(); // To maintain insertion order
 
         public List<User> GetAll()
         {
             lock (Users)
             {
-                return Users.ToList();
+                return UserIdsQueue.Select(id => Users[id]).ToList();
             }
         }
 
@@ -22,8 +22,10 @@ namespace MultiSocks.DirtySocks.Model
 
             lock (Users)
             {
-                Users.Enqueue(user);
+                Users.Add(user.ID, user);
+                UserIdsQueue.Enqueue(user.ID);
             }
+
             return true;
         }
 
@@ -34,18 +36,29 @@ namespace MultiSocks.DirtySocks.Model
 
             lock (Users)
             {
-                Users.Enqueue(user);
+                Users.Add(user.ID, user);
+                UserIdsQueue.Enqueue(user.ID);
             }
+
             return true;
         }
 
-        public virtual void RemoveUser(User user)
+        public virtual void RemoveUser(User? user)
         {
-            lock (Users)
+            if (user == null)
+                return;
+
+            if (Users.ContainsKey(user.ID))
             {
-                // Dequeue and re-enqueue all users except the one to be removed
-                Users = new ConcurrentQueue<User>(Users.Where(u => u != user));
+                Users.Remove(user.ID);
+                UserIdsQueue = new Queue<int>(UserIdsQueue.Where(id => id != user.ID));
             }
+        }
+
+        public virtual void UpdateUser(User user, User updatedUser)
+        {
+            if (Users.ContainsKey(user.ID))
+                Users[user.ID] = updatedUser;
         }
 
         public User? GetUserByName(string? name)
@@ -53,26 +66,17 @@ namespace MultiSocks.DirtySocks.Model
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            lock (Users)
-            {
-                return Users.FirstOrDefault(x => x.Username == name);
-            }
+            return Users.FirstOrDefault(x => x.Value.Username == name).Value;
         }
 
         public User? GetUserByPersonaName(string name)
         {
-            lock (Users)
-            {
-                return Users.FirstOrDefault(x => x.PersonaName == name);
-            }
+            return Users.FirstOrDefault(x => x.Value.PersonaName == name).Value;
         }
 
         public int Count()
         {
-            lock (Users)
-            {
-                return Users.Count;
-            }
+            return Users.Count;
         }
 
         public void Broadcast(AbstractMessage msg)
@@ -82,7 +86,7 @@ namespace MultiSocks.DirtySocks.Model
             {
                 foreach (var user in Users)
                 {
-                    user.Connection?.SendMessage(data);
+                    user.Value.Connection?.SendMessage(data);
                 }
             }
         }

@@ -9,6 +9,8 @@ namespace MultiSocks.DirtySocks.DataStore
         public int AutoInc = 1;
         public List<DbAccount> Accounts = new();
         public HashSet<string> Personas = new();
+        public HashSet<string> Friends = new();
+        public HashSet<string> Rivals = new();
 
         public DirtySocksJSONDatabase()
         {
@@ -27,6 +29,8 @@ namespace MultiSocks.DirtySocks.DataStore
                         io.Close();
                     }
                     Personas.Clear();
+                    Friends.Clear();
+                    Rivals.Clear();
                     if (Accounts != null)
                     {
                         foreach (var user in Accounts)
@@ -34,6 +38,14 @@ namespace MultiSocks.DirtySocks.DataStore
                             foreach (var persona in user.Personas)
                             {
                                 Personas.Add(persona);
+                            }
+                            foreach (var persona in user.Friends)
+                            {
+                                Friends.Add(persona);
+                            }
+                            foreach (var persona in user.Rivals)
+                            {
+                                Rivals.Add(persona);
                             }
                         }
                         if (Accounts.Count > 0)
@@ -108,6 +120,78 @@ namespace MultiSocks.DirtySocks.DataStore
                 {
                     Personas.Remove(persona);
                     acct.Personas.Remove(persona);
+                    Save();
+                }
+            }
+            return index;
+        }
+
+        public int AddFriend(int id, string Friend)
+        {
+            Regex regex = new(@"[a-zA-Z0-9\s]");
+            if (!regex.IsMatch(Friend)) return -1;
+            var index = 0;
+            lock (Accounts)
+            {
+                var acct = Accounts.FirstOrDefault(x => x.ID == id);
+                if (acct == null) return -1;
+                if (Friends.Contains(Friend)) return -2;
+                Friends.Add(Friend);
+                acct.Friends.Add(Friend);
+                index = acct.Friends.Count;
+                Save();
+            }
+            return index;
+        }
+
+        public int DeleteFriend(int id, string Friend)
+        {
+            var index = 0;
+            lock (Accounts)
+            {
+                var acct = Accounts.FirstOrDefault(x => x.ID == id);
+                if (acct == null) return -1;
+                index = acct.Friends.IndexOf(Friend);
+                if (index != -1)
+                {
+                    Friends.Remove(Friend);
+                    acct.Friends.Remove(Friend);
+                    Save();
+                }
+            }
+            return index;
+        }
+
+        public int AddRival(int id, string Rival)
+        {
+            Regex regex = new(@"[a-zA-Z0-9\s]");
+            if (!regex.IsMatch(Rival)) return -1;
+            var index = 0;
+            lock (Accounts)
+            {
+                var acct = Accounts.FirstOrDefault(x => x.ID == id);
+                if (acct == null) return -1;
+                if (Rivals.Contains(Rival)) return -2;
+                Rivals.Add(Rival);
+                acct.Rivals.Add(Rival);
+                index = acct.Rivals.Count;
+                Save();
+            }
+            return index;
+        }
+
+        public int DeleteRival(int id, string Rival)
+        {
+            var index = 0;
+            lock (Accounts)
+            {
+                var acct = Accounts.FirstOrDefault(x => x.ID == id);
+                if (acct == null) return -1;
+                index = acct.Rivals.IndexOf(Rival);
+                if (index != -1)
+                {
+                    Rivals.Remove(Rival);
+                    acct.Rivals.Remove(Rival);
                     Save();
                 }
             }

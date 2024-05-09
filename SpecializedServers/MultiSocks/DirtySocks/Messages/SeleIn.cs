@@ -1,3 +1,5 @@
+using MultiSocks.DirtySocks.Model;
+
 namespace MultiSocks.DirtySocks.Messages
 {
     public class SeleIn : AbstractMessage
@@ -18,6 +20,8 @@ namespace MultiSocks.DirtySocks.Messages
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
+            User? user = client.User;
+
             if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
                 client.SendMessage(new SeleOut()
                 {
@@ -27,7 +31,7 @@ namespace MultiSocks.DirtySocks.Messages
                     ROOMS = ROOMS,
                     USERSETS = USERSETS,
                     MESGS = MESGS,
-                    MESGTYPES = (!string.IsNullOrEmpty(MESGTYPES) && MESGTYPES.StartsWith("1")) ? "01" : MESGTYPES,
+                    MESGTYPES = MESGTYPES,
                     ASYNC = ASYNC,
                     CTRL = "0",
                     STATS = STATS,
@@ -46,6 +50,9 @@ namespace MultiSocks.DirtySocks.Messages
                     MORE = "1",
                     SLOTS = "36"
                 });
+
+            if (user != null && (USERSETS != "0" || INGAME != "0"))
+                user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
         }
     }
 }

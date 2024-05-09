@@ -1,8 +1,8 @@
-namespace MultiSocks.DirtySocks.Messages
+﻿namespace MultiSocks.DirtySocks.Messages
 {
-    public class GqwkOut : AbstractMessage
+    public class PlusSesV2 : AbstractMessage
     {
-        public override string _Name { get => "gqwk"; }
+        public override string _Name { get => "+ses"; }
 
         public string? IDENT { get; set; } // Game ID
         public string WHEN { get; set; } = DateTime.Now.ToString("yyyy.MM.dd-hh:mm:ss");
