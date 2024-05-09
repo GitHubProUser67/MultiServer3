@@ -1,3 +1,5 @@
+using MultiSocks.DirtySocks.Model;
+
 namespace MultiSocks.DirtySocks.Messages
 {
     public class FgetIn : AbstractMessage
@@ -7,8 +9,14 @@ namespace MultiSocks.DirtySocks.Messages
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
-            client.SendMessage(new FgetOut());
+            User? user = client.User;
+            if (user == null) return;
+
+            user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+
             client.SendMessage(new PlusFup());
+
+            client.SendMessage(new FgetOut());
         }
     }
 }
