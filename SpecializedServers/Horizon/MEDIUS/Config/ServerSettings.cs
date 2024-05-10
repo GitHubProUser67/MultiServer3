@@ -405,6 +405,16 @@ namespace Horizon.MEDIUS.Config
         /// </summary>
         public bool PokePatchOn { get; set; } = true;
 
+        #region PSHOME
+        public string PlaystationHomeVersionBetaHDK { get; set; } = "01.86";
+
+        public string PlaystationHomeVersionRetail { get; set; } = "01.86";
+
+        public bool PlaystationHomeRetailAntiCheat { get; set; } = true;
+
+        public Dictionary<string, string> PlaystationHomeAdminsServersAccessList { get; set; } = new();
+
+        #endregion
     }
 
     #region TextFilterContext
