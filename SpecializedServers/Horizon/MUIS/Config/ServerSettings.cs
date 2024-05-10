@@ -46,7 +46,7 @@ namespace Horizon.MUIS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? NATIp { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233", true) ?? "34.199.94.233";
+        public string? NATIp { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233") ?? "34.199.94.233";
         /// <summary>
         /// Port of the NAT server.
         /// Provide the Port of the SCE-RT NAT Service

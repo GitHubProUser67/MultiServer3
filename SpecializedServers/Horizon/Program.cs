@@ -30,6 +30,7 @@ public static class HorizonServerConfiguration
     public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc="; // Base64 only.
     public static string HomeVersionBetaHDK { get; set; } = "01.86";
     public static string HomeVersionRetail { get; set; } = "01.86";
+    public static bool HomeRetailAntiCheat { get; set; } = true;
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -82,7 +83,8 @@ public static class HorizonServerConfiguration
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("database", DatabaseConfig),
                 new JProperty("home_version_beta_hdk", HomeVersionBetaHDK),
-                new JProperty("home_version_retail", HomeVersionRetail)
+                new JProperty("home_version_retail", HomeVersionRetail),
+                new JProperty("home_retail_anticheat", HomeRetailAntiCheat)
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -113,6 +115,7 @@ public static class HorizonServerConfiguration
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
             HomeVersionBetaHDK = GetValueOrDefault(config, "home_version_beta_hdk", HomeVersionBetaHDK);
             HomeVersionRetail = GetValueOrDefault(config, "home_version_retail", HomeVersionRetail);
+            HomeRetailAntiCheat = GetValueOrDefault(config, "home_retail_anticheat", HomeRetailAntiCheat);
         }
         catch (Exception ex)
         {
@@ -224,15 +227,6 @@ class Program
         HorizonStarter().Wait();
     }
 
-    static string ComputeMD5FromFile(string filePath)
-    {
-        using (FileStream stream = File.OpenRead(filePath))
-        {
-            // Convert the byte array to a hexadecimal string
-            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
-        }
-    }
-
     static void Main()
     {
         if (!IsWindows)
@@ -248,44 +242,38 @@ class Program
 
         if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
-            LoggerAccessor.LogInfo("Console Inputs are now available while server is running. . .");
-
             while (true)
             {
-                string? stdin = Console.ReadLine();
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
-                if (!string.IsNullOrEmpty(stdin))
+                Console.ReadLine();
+
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
+
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    switch (stdin.ToLower())
-                    {
-                        case "shutdown":
-                            LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
 
-                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
-                            {
-                                LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                                Environment.Exit(0);
-                            }
-                            break;
-                        case "reboot":
-                            LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
 
-                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
-                            {
-                                LoggerAccessor.LogInfo("Rebooting!");
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
 
-                                HorizonServerConfiguration.RefreshVariables(configPath);
+                            HorizonServerConfiguration.RefreshVariables(configPath);
 
-                                StartOrUpdateServer();
-                            }
-                            break;
-                        default:
-                            LoggerAccessor.LogWarn($"Unknown command entered: {stdin}");
-                            break;
-                    }
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
-                else
-                    LoggerAccessor.LogWarn("No command entered!");
             }
         }
         else

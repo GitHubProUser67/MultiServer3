@@ -16,7 +16,6 @@ namespace DatabaseMiddleware.HTTPEngine
 {
     public partial class HostBuilderServer
     {
-        public static bool IsStarted = false;
         private static WebserverLite? _Server;
         private readonly string ip;
         private readonly int port;
@@ -25,6 +24,8 @@ namespace DatabaseMiddleware.HTTPEngine
         {
             this.ip = ip;
             this.port = port;
+
+            StartServer();
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -51,10 +52,18 @@ namespace DatabaseMiddleware.HTTPEngine
             }
         }
 
+        public void StopServer()
+        {
+            _Server?.Stop();
+            _Server?.Dispose();
+
+            LoggerAccessor.LogWarn($"Database Server on port: {port} stopped...");
+        }
+
         public void StartServer()
         {
             if (_Server != null && _Server.IsListening)
-                LoggerAccessor.LogWarn("Database Server already initiated");
+                LoggerAccessor.LogWarn($"Database Server already initiated on port: {port}");
             else
             {
                 _Server = new WatsonWebserver.Lite.Extensions.HostBuilderExtension.HostBuilder(ip, port, false, DefaultRoute)
@@ -572,7 +581,6 @@ namespace DatabaseMiddleware.HTTPEngine
                 _Server.Settings.Debug.Routing = true;
 
                 _Server.Start();
-                IsStarted = true;
                 LoggerAccessor.LogInfo($"Database Server initiated on port: {port}...");
             }
         }

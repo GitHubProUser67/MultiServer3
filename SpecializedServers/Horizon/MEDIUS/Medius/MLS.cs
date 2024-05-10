@@ -10756,6 +10756,8 @@ namespace Horizon.MEDIUS.Medius
 
             if (data.ClientObject != null)
             {
+                CrudCIDManager.CreateUser(Anonymous ? "AnonymousClient" : data.ClientObject.AccountName, data.MachineId);
+
                 // Add to logged in clients
                 MediusClass.Manager.AddClient(data.ClientObject);
 

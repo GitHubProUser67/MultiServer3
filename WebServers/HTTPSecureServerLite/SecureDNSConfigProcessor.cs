@@ -16,7 +16,7 @@ namespace HTTPSecureServerLite
     public static partial class SecureDNSConfigProcessor
     {
         public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
-        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
 
         public static void InitDNSSubsystem()
@@ -105,11 +105,7 @@ namespace HTTPSecureServerLite
                             // Replace "*" characters with ".*" which means any number of any character for Regexp
                             domain = domain.Replace("*", ".*");
 
-                            lock (StarRules)
-                            {
-                                if (!StarRules.Any(pair => pair.Key == domain))
-                                    StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                            }
+                            StarRules.TryAdd(domain, dns);
                         }
                         else
                         {

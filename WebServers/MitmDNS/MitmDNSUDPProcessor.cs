@@ -1,170 +1,92 @@
 using CustomLogger;
-using System.Net;
-using System.Text.RegularExpressions;
-using CyberBackendLibrary.DNS;
-using DotNetty.Extensions.UdpSocket;
 using System.Threading.Tasks;
 using System;
-using System.Collections.Generic;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace MitmDNS
 {
     public class MitmDNSUDPProcessor
     {
-        public bool DnsStarted = false;
-        public UdpSocket? socket;
+        private bool _exit = false;
+        private UdpClient? listener = null;
+        private CancellationTokenSource _cts = null!;
 
-        public Task RunSocket()
+        public Task Start(CancellationToken cancellationToken)
         {
-            socket = new(CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(53) ? 53
-                : CyberBackendLibrary.TCP_IP.TCP_UDPUtils.GetNextVacantPort(53, 10));
+            _exit = false;
 
-            socket.OnStart(() =>
+            if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsUDPPortAvailable(53))
             {
-                LoggerAccessor.LogInfo("[DNS_UDP] - Server started on port 53");
-            });
+                _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            socket.OnRecieve((endPoint, bytes) =>
-            {
-                if (endPoint is IPEndPoint EndPointIp)
-                {
-                    LoggerAccessor.LogInfo($"[DNS_UDP] - Received request from {endPoint}");
-                    Span<byte> Buffer = ProcRequest(TrimArray(bytes));
-                    if (Buffer != null)
-                        _ = socket.SendAsync(EndPointIp, Buffer.ToArray());
-                }
-            });
-
-            socket.OnException(ex =>
-            {
-                LoggerAccessor.LogError($"[DNS_UDP] - DotNetty Thrown an exception : {ex}");
-            });
-
-            socket.OnStop(ex =>
-            {
-                if (ex.Message.Contains("StopAsync"))
-                    LoggerAccessor.LogWarn($"[DNS_UDP] - System requested a server shutdown...");
-                else
-                    LoggerAccessor.LogError($"[DNS_UDP] - DotNetty was stopped with exception: {ex}");
-            });
-
-            _ = socket.StartAsync();
-
-            DnsStarted = true;
+                new Thread(() => HandleClient(53)).Start();
+            }
+            else
+                LoggerAccessor.LogError("[DNS_UDP] - UDP Port 53 is occupied, UDP server failed to start!");
 
             return Task.CompletedTask;
         }
 
-        public async Task StopSocket()
+        public void Stop()
         {
-            if (socket != null)
-            {
-                await socket.StopAsync();
-                socket = null;
-            }
+            _cts?.Cancel();
+            _exit = true;
+            listener?.Dispose();
         }
 
-        private Span<byte> ProcRequest(byte[] data)
+        public void HandleClient(int listenPort)
         {
-            try
+            Task serverDNS = Task.Run(() =>
             {
-                bool treated = false;
+                object _sync = new();
+                Task<UdpReceiveResult>? CurrentRecvTask = null;
+                listener = new(listenPort);
 
-                string fullname = string.Join(".", DNSProcessor.GetDnsName(data).ToArray());
+                LoggerAccessor.LogInfo($"[DNS_UDP] Server initiated on port: {listenPort}...");
 
-                LoggerAccessor.LogInfo($"[DNS_UDP] - Host: {fullname} was Requested.");
-
-                string? url = null;
-
-                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
+                while (!_cts.Token.IsCancellationRequested)
                 {
-                    if (arparuleaddr != null)
+                    lock (_sync)
                     {
-                        if (arparuleaddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                        {
-                            // Split the IP address into octets
-                            string[] octets = arparuleaddr.ToString().Split('.');
-
-                            // Reverse the order of octets
-                            Array.Reverse(octets);
-
-                            // Join the octets back together
-                            url = string.Join(".", octets);
-
-                            treated = true;
-                        }
-                    }
-                }
-                else
-                {
-                    if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.ContainsKey(fullname))
-                    {
-                        if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Allow) url = fullname;
-                        else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Redirect) url = MitmDNSClass.DicRules[fullname].Address ?? "127.0.0.1";
-                        else if (MitmDNSClass.DicRules[fullname].Mode == HandleMode.Deny) url = "NXDOMAIN";
-                        treated = true;
+                        if (_exit)
+                            break;
                     }
 
-                    lock (MitmDNSClass.StarRules)
-                    {
-                        if (!treated && MitmDNSClass.StarRules != null)
-                        {
-                            foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
-                            {
-                                Regex regex = new(rule.Key);
-                                if (!regex.IsMatch(fullname))
-                                    continue;
-
-                                if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                treated = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
-
-                IPAddress ip = IPAddress.None; // NXDOMAIN
-                if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
-                {
                     try
                     {
-                        if (!IPAddress.TryParse(url, out IPAddress? address))
-                            ip = Dns.GetHostEntry(url).AddressList[0];
-                        else ip = address;
+                        // use non-blocking recieve
+                        if (CurrentRecvTask != null)
+                        {
+                            if (CurrentRecvTask.IsCompleted)
+                            {
+                                UdpReceiveResult result = CurrentRecvTask.Result;
+                                CurrentRecvTask = null;
+                                byte[]? ResultBuffer = DNSResolver.ProcRequest(result.Buffer);
+                                if (ResultBuffer != null)
+                                    _ = listener.SendAsync(ResultBuffer, ResultBuffer.Length, result.RemoteEndPoint);
+                            }
+                            else if (CurrentRecvTask.IsCanceled || CurrentRecvTask.IsFaulted)
+                                CurrentRecvTask = null;
+                        }
+
+                        CurrentRecvTask ??= listener.ReceiveAsync();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        ip = IPAddress.None;
+                        if (ex.InnerException is SocketException socketException &&
+                            socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
+                            LoggerAccessor.LogError($"[DNS_UDP] - HandleClient thrown an exception : {ex}");
+                        CurrentRecvTask = null;
                     }
 
-                    LoggerAccessor.LogInfo($"[DNS_UDP] - Resolved: {fullname} to: {ip}");
-
-                    return DNSProcessor.MakeDnsResponsePacket(data, ip);
+                    Thread.Sleep(1);
                 }
-                else if (url == "NXDOMAIN")
-                    return DNSProcessor.MakeDnsResponsePacket(data, ip);
 
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[DNS_UDP] - ProcRequest thrown an assertion: {ex}");
-            }
-            
-            return null;
-        }
+                LoggerAccessor.LogWarn($"[DNS_UDP] Server on port: {listenPort} was stopped...");
 
-        private byte[] TrimArray(byte[] arr)
-        {
-            int i = arr.Length - 1;
-            while (arr[i] == 0) i--;
-            byte[] data = new byte[i + 1];
-            Array.Copy(arr, data, i + 1);
-            return data;
+                CurrentRecvTask = null;
+            }, _cts.Token);
         }
     }
 }

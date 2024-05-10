@@ -60,9 +60,9 @@ namespace QuazalServer.QNetZ
                 return false;
 
             // got last fragment, assemble
-            var orderedFragments = AccumulatedPackets.OrderBy(x => x.uiSeqId);
+            IEnumerable<QPacket> orderedFragments = AccumulatedPackets.OrderBy(x => x.uiSeqId);
 			int numPackets = 0;
-			foreach (var fragPacket in orderedFragments)
+			foreach (QPacket fragPacket in orderedFragments)
 			{
 				numPackets++;
 				if (fragPacket.m_byPartNumber == 0)
@@ -79,13 +79,13 @@ namespace QuazalServer.QNetZ
 				// validate algorightm above
 				ushort seqId = fragments.First().uiSeqId;
 				int nfrag = 1;
-				foreach (var fragPacket in fragments)
+				foreach (QPacket fragPacket in fragments)
 				{
-					//if(fragPacket.uiSeqId != seqId)
-					//{
-					//	LoggerAccessor.LogInfo(1, "ERROR : packet sequence mismatch!");
-					//	//return false;
-					//}
+					if (fragPacket.uiSeqId != seqId)
+					{
+						LoggerAccessor.LogError("[PRUDP Reliable Handler] - packet sequence mismatch!");
+						return false;
+					}
 
 					if (fragments.Length == nfrag && fragPacket.m_byPartNumber != 0)
 					{

@@ -202,44 +202,38 @@ class Program
 
         if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
-            LoggerAccessor.LogInfo("Console Inputs are now available while server is running. . .");
-
             while (true)
             {
-                string? stdin = Console.ReadLine();
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
-                if (!string.IsNullOrEmpty(stdin))
+                Console.ReadLine();
+
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
+
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    switch (stdin.ToLower())
-                    {
-                        case "shutdown":
-                            LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
 
-                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
-                            {
-                                LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                                Environment.Exit(0);
-                            }
-                            break;
-                        case "reboot":
-                            LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
 
-                            if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
-                            {
-                                LoggerAccessor.LogInfo("Rebooting!");
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
 
-                                SVOServerConfiguration.RefreshVariables(configPath);
+                            SVOServerConfiguration.RefreshVariables(configPath);
 
-                                StartOrUpdateServer();
-                            }
-                            break;
-                        default:
-                            LoggerAccessor.LogWarn($"Unknown command entered: {stdin}");
-                            break;
-                    }
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
-                else
-                    LoggerAccessor.LogWarn("No command entered!");
             }
         }
         else

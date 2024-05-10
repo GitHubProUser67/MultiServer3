@@ -77,6 +77,36 @@ namespace Horizon.HTTPSERVICE
                     }
                 });
 
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/GetCIDsList/", async (HttpContextBase ctx) =>
+                {
+                    if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        string clientip = ctx.Request.Source.IpAddress;
+                        bool localhost = false;
+
+                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase) || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase)))
+                            localhost = true;
+
+                        ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                        ctx.Response.ContentType = localhost ? "application/json; charset=UTF-8" : "text/plain";
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                        if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                            await ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(CrudCIDManager.ToJson(localhost ? false : true))));
+                        }
+                        else
+                            await ctx.Response.Send(CrudCIDManager.ToJson(localhost ? false : true));
+                    }
+                });
+
                 _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/favicon.ico", async (HttpContextBase ctx) =>
                 {
                     if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.

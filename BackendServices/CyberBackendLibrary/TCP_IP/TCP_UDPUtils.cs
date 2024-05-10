@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
@@ -36,7 +39,7 @@ namespace CyberBackendLibrary.TCP_IP
         /// <para>Obtiens la table TCP de Windows.</para>
         /// </summary>
         /// <returns>A array of int.</returns>
-        private static int[] GetTcpTable()
+        private static int[] GetWindowsTcpTable()
         {
             int[] ports = Array.Empty<int>();
             uint dwOutBufLen = 0;
@@ -84,13 +87,13 @@ namespace CyberBackendLibrary.TCP_IP
         /// <param name="sourceport">The initial port to start with.</param>
         /// <param name="attemptcount">Maximum number of tries.</param>
         /// <returns>A int.</returns>
-        public static int GetNextVacantPort(int sourceport, uint attemptcount)
+        public static int GetNextVacantTCPPort(int sourceport, uint attemptcount)
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows)
             {
                 if (attemptcount == 0)
                     throw new ArgumentOutOfRangeException("attemptcount");
-                foreach (int port in GetTcpTable())
+                foreach (int port in GetWindowsTcpTable())
                 {
                     if (sourceport == port)
                     {
@@ -100,7 +103,7 @@ namespace CyberBackendLibrary.TCP_IP
                             sourceport = 1;
                         else if (sourceport >= 0xffff && attemptcount == 0)
                             return -1;
-                        return GetNextVacantPort(sourceport, attemptcount);
+                        return GetNextVacantTCPPort(sourceport, attemptcount);
                     }
                 }
             }
@@ -115,11 +118,12 @@ namespace CyberBackendLibrary.TCP_IP
         /// <param name="port">The port on which we scan.</param>
         /// <param name="ip">The optional ip on which we scan.</param>
         /// <returns>A boolean.</returns>
-        public static bool IsPortAvailable(int port, string ip = "localhost")
+        public static bool IsTCPPortAvailable(int port, string ip = "localhost")
         {
             try
             {
-                new TcpClient(ip, port).Close();
+                using TcpClient tcpClient = new TcpClient(ip, port);
+                tcpClient.Close();
             }
             catch
             {
@@ -128,6 +132,28 @@ namespace CyberBackendLibrary.TCP_IP
             }
 
             // The port is in use as we could connect to it.
+            return false;
+        }
+
+        /// <summary>
+        /// Know if the given UDP port is available.
+        /// <para>Savoir si le port UDP en question est disponible.</para>
+        /// </summary>
+        /// <param name="startingAtPort">The port from which we scan.</param>
+        /// <param name="maxNumberOfPortsToCheck">The number of ports to scan after the starting port.</param>
+        /// <returns>A boolean.</returns>
+        public static bool IsUDPPortAvailable(int startingAtPort, int maxNumberOfPortsToCheck = 1)
+        {
+            IEnumerable<int> range = Enumerable.Range(startingAtPort, maxNumberOfPortsToCheck);
+
+            if (range.Except(from p in range
+                             join used in System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners()
+                         on p equals used.Port
+                             select p).FirstOrDefault() > 0)
+                // The port is available
+                return true;
+
+            // The port is in use.
             return false;
         }
     }

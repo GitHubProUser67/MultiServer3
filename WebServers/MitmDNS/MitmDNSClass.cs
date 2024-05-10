@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MitmDNS
@@ -16,18 +17,23 @@ namespace MitmDNS
     public partial class MitmDNSClass
     {
         public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
-        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
-        public MitmDNSUDPProcessor proc = new();
+        public MitmDNSUDPProcessor UDPproc = new();
+        public MitmDNSTCPProcessor TCPproc = new();
 
-        public async void StartUDPServer()
+        public void StartServerAsync(CancellationToken cancellationToken)
         {
-            await proc.RunSocket();
+            Parallel.Invoke(() => {
+                _ = UDPproc.Start(cancellationToken);
+                _ = TCPproc.Start(cancellationToken);
+            });
         }
 
-        public async void StopUDPServer()
+        public void StopServer()
         {
-            await proc.StopSocket();
+            UDPproc.Stop();
+            TCPproc.Stop();
         }
 
         public async static void RenewConfig()
@@ -116,11 +122,7 @@ namespace MitmDNS
                             // Replace "*" characters with ".*" which means any number of any character for Regexp
                             domain = domain.Replace("*", ".*");
 
-                            lock (StarRules)
-                            {
-                                if (!StarRules.Any(pair => pair.Key == domain))
-                                    StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                            }
+                            StarRules.TryAdd(domain, dns);
                         }
                         else
                         {
