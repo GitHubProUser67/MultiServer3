@@ -619,9 +619,7 @@ namespace Horizon.MUIS
                     }
                 });
 
-                if (string.IsNullOrEmpty(HorizonServerConfiguration.HomeVersionBetaHDK))
-                {
-                    Settings.Universes.Add(20371, new UniverseInfo[]
+                Settings.Universes.Add(20371, new UniverseInfo[]
                     {
                         new UniverseInfo()
                         {
@@ -634,38 +632,14 @@ namespace Horizon.MUIS
                             SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
                             UniverseBilling = "SCEA",
                             BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                            ExtendedInfo = null,
+                            ExtendedInfo = $"01.86 http://{iptofile}/dev.01.86/",
                             Port = 10075,
                             UniverseId = 1
                         }
                     });
-                }
-                else
-                {
-                    Settings.Universes.Add(20371, new UniverseInfo[]
-                    {
-                        new UniverseInfo()
-                        {
-                            Name = "muis",
-                            Description = "01",
-                            Endpoint = iptofile,
-                            Status = 1,
-                            UserCount = 1,
-                            MaxUsers = 15000,
-                            SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                            UniverseBilling = "SCEA",
-                            BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                            ExtendedInfo = $"{HorizonServerConfiguration.HomeVersionBetaHDK} http://{iptofile}/dev.{HorizonServerConfiguration.HomeVersionBetaHDK}/",
-                            Port = 10075,
-                            UniverseId = 1
-                        }
-                    });
-                }
 
-                if (string.IsNullOrEmpty(HorizonServerConfiguration.HomeVersionRetail))
-                {
-                    Settings.Universes.Add(20374, new UniverseInfo[]
-                    {
+                Settings.Universes.Add(20374, new UniverseInfo[]
+                     {
                         new UniverseInfo()
                         {
                             Name = "CPROD prod1 (Public MUIS)",
@@ -675,35 +649,13 @@ namespace Horizon.MUIS
                             UserCount = 1,
                             MaxUsers = 15000,
                             SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                            ExtendedInfo = null,
+                            ExtendedInfo = $"01.86 http://{iptofile}/01.86/",
                             UniverseBilling = "SCEA",
                             BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
                             Port = 10075,
                             UniverseId = 1
                         }
-                    });
-                }
-                else
-                {
-                    Settings.Universes.Add(20374, new UniverseInfo[]
-                    {
-                        new UniverseInfo()
-                        {
-                            Name = "CPROD prod1 (Public MUIS)",
-                            Description = "01",
-                            Endpoint = iptofile,
-                            Status = 1,
-                            UserCount = 1,
-                            MaxUsers = 15000,
-                            SvoURL = $"http://{iptofile}:10060/HUBPS3_SVML/unity/start.jsp ",
-                            ExtendedInfo = $"{HorizonServerConfiguration.HomeVersionRetail} http://{iptofile}/{HorizonServerConfiguration.HomeVersionRetail}/",
-                            UniverseBilling = "SCEA",
-                            BillingSystemName = "Sony Computer Entertainment America, Inc. Billing System",
-                            Port = 10075,
-                            UniverseId = 1
-                        }
-                    });
-                }
+                     });
 
                 Settings.Universes.Add(20384, new UniverseInfo[]
                 {

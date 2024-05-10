@@ -42,7 +42,6 @@ namespace Horizon.MUIS
         protected internal class ChannelData
         {
             public int ApplicationId { get; set; } = 0;
-            public string? ExtraData { get; set; } // Just as a neat storage space for anything.
             public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
             public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
         }
@@ -194,7 +193,7 @@ namespace Horizon.MUIS
         protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (scertClient.CipherService != null)
             {
                 scertClient.CipherService.EnableEncryption = MuisClass.Settings.EncryptMessages;
@@ -258,25 +257,6 @@ namespace Horizon.MUIS
                                     break;
                             }
 
-                            break;
-                        }
-                    case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
-                        {
-                            byte[]? QueryData = clientCheatQuery.Data;
-
-                            if (QueryData != null)
-                            {
-                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{(clientChannel.RemoteAddress as IPEndPoint)?.Address} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
-
-                                switch (data.ApplicationId)
-                                {
-                                    case 20374:
-                                    case 20371:
-                                        if (QueryData.Length == 5 && QueryData[2] == 0x2e)
-                                            data.ExtraData = Encoding.ASCII.GetString(QueryData); // We store client version in ExtraData.
-                                        break;
-                                }
-                            }
                             break;
                         }
                     case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
@@ -625,26 +605,6 @@ namespace Horizon.MUIS
                                         if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_DNS) ||
                                             getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_EXTRAINFO))
                                         {
-                                            if (!string.IsNullOrEmpty(data.ExtraData) && !string.IsNullOrEmpty(info.ExtendedInfo) && info.ExtendedInfo.Contains(' '))
-                                            {
-                                                // Split the string based on whitespace
-                                                string[] parts = info.ExtendedInfo.Split(' ');
-
-                                                // Check if there is only one space
-                                                if (parts.Length == 2)
-                                                {
-                                                    switch (data.ApplicationId)
-                                                    {
-                                                        case 20371:
-                                                            info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionBetaHDK, data.ExtraData)}";
-                                                            break;
-                                                        case 20374:
-                                                            info.ExtendedInfo = $"{parts[0]} {parts[1].Replace(HorizonServerConfiguration.HomeVersionRetail, data.ExtraData)}";
-                                                            break;
-                                                    }
-                                                }
-                                            }
-
                                             Queue(new RT_MSG_SERVER_APP()
                                             {
                                                 Message = new MediusUniverseVariableInformationResponse()

@@ -46,7 +46,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
@@ -144,17 +144,6 @@ namespace Horizon.MEDIUS.Medius
                             }
                         }
 
-                        if (HorizonServerConfiguration.HomeRetailAntiCheat && data.ApplicationId == 20374)
-                        {
-                            if (!string.IsNullOrEmpty(HorizonServerConfiguration.HomeVersionRetail) && HorizonServerConfiguration.HomeVersionRetail.Equals("01.86"))
-                            {
-                                // Add more if needed.
-
-                                CheatQuery(0x10050500, 9, clientChannel);
-                                CheatQuery(0x10074820, 9, clientChannel);
-                            }
-                        }
-
                         PokePatch(clientChannel, data);
 
                         break;
@@ -171,9 +160,9 @@ namespace Horizon.MEDIUS.Medius
                             if (QueryData.Length == 6 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
 
-                            if (HorizonServerConfiguration.HomeRetailAntiCheat && data.ApplicationId == 20374)
+                            if (MediusClass.Settings.PlaystationHomeRetailAntiCheat && data.ApplicationId == 20374)
                             {
-                                if (!string.IsNullOrEmpty(HorizonServerConfiguration.HomeVersionRetail) && HorizonServerConfiguration.HomeVersionRetail.Equals("01.86"))
+                                if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
                                 {
                                     switch (clientCheatQuery.StartAddress)
                                     {
@@ -1799,7 +1788,21 @@ namespace Horizon.MEDIUS.Medius
                                                     #endregion
 
                                                     if (data != null)
+                                                    {
+                                                        if (MediusClass.Settings.PlaystationHomeRetailAntiCheat && data.ApplicationId == 20374 && 
+                                                        (string.IsNullOrEmpty(data.ClientObject.AccountName) || !MediusClass.Settings.PlaystationHomeAdminsServersAccessList.ContainsKey(data.ClientObject.AccountName)))
+                                                        {
+                                                            // Add more if needed.
+
+                                                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                            {
+                                                                CheatQuery(0x10050500, 9, clientChannel);
+                                                                CheatQuery(0x10074820, 9, clientChannel);
+                                                            }
+                                                        }
+
                                                         await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                    }
                                                 }
 
                                             }
@@ -1840,7 +1843,21 @@ namespace Horizon.MEDIUS.Medius
                                                             LoggerAccessor.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
 
                                                             if (r.IsCompletedSuccessfully && r.Result != null)
+                                                            {
+                                                                if (MediusClass.Settings.PlaystationHomeRetailAntiCheat && data.ApplicationId == 20374 &&
+                                                                (string.IsNullOrEmpty(data.ClientObject.AccountName) || !MediusClass.Settings.PlaystationHomeAdminsServersAccessList.ContainsKey(data.ClientObject.AccountName)))
+                                                                {
+                                                                    // Add more if needed.
+
+                                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                                    {
+                                                                        CheatQuery(0x10050500, 9, clientChannel);
+                                                                        CheatQuery(0x10074820, 9, clientChannel);
+                                                                    }
+                                                                }
+
                                                                 await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                            }
                                                             else
                                                             {
                                                                 // Reply error
@@ -1850,7 +1867,6 @@ namespace Horizon.MEDIUS.Medius
                                                                     StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
                                                                 });
                                                             }
-
                                                         });
                                                     }
                                                 }

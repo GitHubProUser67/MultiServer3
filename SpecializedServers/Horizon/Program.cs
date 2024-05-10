@@ -28,9 +28,6 @@ public static class HorizonServerConfiguration
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
     public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc="; // Base64 only.
-    public static string HomeVersionBetaHDK { get; set; } = "01.86";
-    public static string HomeVersionRetail { get; set; } = "01.86";
-    public static bool HomeRetailAntiCheat { get; set; } = true;
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -81,10 +78,7 @@ public static class HorizonServerConfiguration
                 new JProperty("player_api_static_path", PlayerAPIStaticPath),
                 new JProperty("medius_api_key", MediusAPIKey),
                 new JProperty("plugins_folder", PluginsFolder),
-                new JProperty("database", DatabaseConfig),
-                new JProperty("home_version_beta_hdk", HomeVersionBetaHDK),
-                new JProperty("home_version_retail", HomeVersionRetail),
-                new JProperty("home_retail_anticheat", HomeRetailAntiCheat)
+                new JProperty("database", DatabaseConfig)
             ).ToString().Replace("/", "\\\\"));
 
             return;
@@ -113,9 +107,6 @@ public static class HorizonServerConfiguration
             MediusAPIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
-            HomeVersionBetaHDK = GetValueOrDefault(config, "home_version_beta_hdk", HomeVersionBetaHDK);
-            HomeVersionRetail = GetValueOrDefault(config, "home_version_retail", HomeVersionRetail);
-            HomeRetailAntiCheat = GetValueOrDefault(config, "home_retail_anticheat", HomeRetailAntiCheat);
         }
         catch (Exception ex)
         {
