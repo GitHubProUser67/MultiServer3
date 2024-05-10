@@ -15,11 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetty.Handlers" Version="0.7.6" />
-    <PackageReference Include="DotNetty.Transport" Version="0.7.6" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\CyberBackendLibrary\CyberBackendLibrary.csproj" />
   </ItemGroup>
   

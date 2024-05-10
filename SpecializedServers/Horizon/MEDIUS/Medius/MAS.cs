@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Text;
 using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -143,6 +144,17 @@ namespace Horizon.MEDIUS.Medius
                             }
                         }
 
+                        if (HorizonServerConfiguration.HomeRetailAntiCheat && data.ApplicationId == 20374)
+                        {
+                            if (!string.IsNullOrEmpty(HorizonServerConfiguration.HomeVersionRetail) && HorizonServerConfiguration.HomeVersionRetail.Equals("01.86"))
+                            {
+                                // Add more if needed.
+
+                                CheatQuery(0x10050500, 9, clientChannel);
+                                CheatQuery(0x10074820, 9, clientChannel);
+                            }
+                        }
+
                         PokePatch(clientChannel, data);
 
                         break;
@@ -158,6 +170,30 @@ namespace Horizon.MEDIUS.Medius
 
                             if (QueryData.Length == 6 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
+
+                            if (HorizonServerConfiguration.HomeRetailAntiCheat && data.ApplicationId == 20374)
+                            {
+                                if (!string.IsNullOrEmpty(HorizonServerConfiguration.HomeVersionRetail) && HorizonServerConfiguration.HomeVersionRetail.Equals("01.86"))
+                                {
+                                    switch (clientCheatQuery.StartAddress)
+                                    {
+                                        case 0x10050500:
+                                            if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 }))
+                                            {
+                                                data.State = ClientState.DISCONNECTED;
+                                                await clientChannel.CloseAsync();
+                                            }
+                                            break;
+                                        case 0x10074820:
+                                            if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 }))
+                                            {
+                                                data.State = ClientState.DISCONNECTED;
+                                                await clientChannel.CloseAsync();
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
                         }
                         break;
                     }
@@ -731,7 +767,6 @@ namespace Horizon.MEDIUS.Medius
                             await data.ClientObject.Logout();
                         }
                         #endregion
-
                         else
                         {
                             await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
@@ -2509,8 +2544,13 @@ namespace Horizon.MEDIUS.Medius
 
             #region Update DB IP and CID
             await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
-            if (data.ClientObject != null && !string.IsNullOrEmpty(data.MachineId))
-                await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+            if (data.ClientObject != null)
+            {
+                CrudCIDManager.CreateUser(data.ClientObject.AccountName, data.MachineId);
+
+                if (!string.IsNullOrEmpty(data.MachineId))
+                    await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+            }
             #endregion
 
             if (data.ClientObject != null)
@@ -2720,6 +2760,8 @@ namespace Horizon.MEDIUS.Medius
 
             if (data.ClientObject != null)
             {
+                CrudCIDManager.CreateUser("AnonymousClient", data.MachineId);
+
                 // Login
                 await data.ClientObject.LoginAnonymous(anonymousLoginRequest, iAccountID);
 

@@ -17,11 +17,13 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
+using HorizonService.LIBRARY.Database.Simulated;
 
 namespace Horizon.LIBRARY.Database
 {
     public class DbController
     {
+        private string? directoryPath = null;
         public DbSettings _settings = new();
 
         private int _simulatedAccountIdCounter = 1;
@@ -118,24 +120,27 @@ namespace Horizon.LIBRARY.Database
 
         public DbController(string configFile)
         {
-            if (configFile != null)
+            if (!string.IsNullOrEmpty(configFile))
             {
-#pragma warning disable
-                Directory.CreateDirectory(Path.GetDirectoryName(configFile));
-#pragma warning restore
+                directoryPath = Path.GetDirectoryName(configFile);
 
-                if (File.Exists(configFile))
+                if (!string.IsNullOrEmpty(directoryPath))
                 {
-                    // Populate existing object
-                    try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
-                    catch (Exception ex) { LoggerAccessor.LogError(ex); }
-                }
-                else
-                {
-                    File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings));
-                    // Populate existing object
-                    try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
-                    catch (Exception ex) { LoggerAccessor.LogError(ex); }
+                    Directory.CreateDirectory(directoryPath);
+
+                    if (File.Exists(configFile))
+                    {
+                        // Populate existing object
+                        try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
+                        catch (Exception ex) { LoggerAccessor.LogError(ex); }
+                    }
+                    else
+                    {
+                        File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings));
+                        // Populate existing object
+                        try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
+                        catch (Exception ex) { LoggerAccessor.LogError(ex); }
+                    }
                 }
             }
         }
@@ -694,10 +699,28 @@ namespace Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                    result = false;
+                {
+                    if (string.IsNullOrEmpty(mac))
+                        mac = "empty";
+                    else if (mac.Contains('-'))
+                        mac = mac.Replace("-", string.Empty);
+
+                    (string, bool) ResultItem = JsonMacBanController.ReadFromJsonFile(directoryPath, mac);
+
+                    switch (ResultItem.Item1)
+                    {
+                        case "OK":
+                            return ResultItem.Item2;
+                        case "NOTFOUND":
+                            JsonMacBanController.WriteToJsonFile(directoryPath, mac);
+                            return false;
+                        case "INVALIDFOLDER":
+                            return false;
+                    }
+                }
                 else
                 {
-                    MacBan MacBanArray = new MacBan
+                    MacBan MacBanArray = new()
                     {
                         MacAddress = mac
                     };

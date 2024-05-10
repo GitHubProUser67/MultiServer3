@@ -28,7 +28,7 @@ namespace HTTPSecureServerLite
             {
                 Parallel.ForEach(ports, port =>
                 {
-                    if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(port))
+                    if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
                         new Thread(() => CreateHTTPSPortServer(port)).Start();
                 });
             }
@@ -47,7 +47,7 @@ namespace HTTPSecureServerLite
             }, _cts.Token);
         }
 
-        public void Stop()
+        public void StopServer()
         {
             _cts.Cancel();
             _listeners.Values.ToList().ForEach(x => x.StopServer());

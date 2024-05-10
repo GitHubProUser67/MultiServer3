@@ -32,8 +32,10 @@ namespace CyberBackendLibrary.DNS
             }
             catch
             {
-                throw;
+                
             }
+
+            return null;
         }
 
         public static List<string> GetDnsName(byte[] Req)

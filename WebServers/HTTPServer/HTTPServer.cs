@@ -42,7 +42,7 @@ namespace HTTPServer
             {
                 Parallel.ForEach(ports, port =>
                 {
-                    if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(port))
+                    if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
                         new Thread(() => CreateHTTPPortListener(port)).Start();
                 });
             }
@@ -81,7 +81,7 @@ namespace HTTPServer
                                 LoggerAccessor.LogError($"[HTTP] - Client loop thrown an IOException: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
                             else
                                 break;
@@ -92,7 +92,7 @@ namespace HTTPServer
                                 LoggerAccessor.LogError($"[HTTP] - Client loop thrown a SocketException: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
                             else
                                 break;
@@ -102,7 +102,7 @@ namespace HTTPServer
                             if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTP] - Client loop thrown an assertion: {ex}");
                             listener.Stop();
 
-                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
+                            if (!listener.Server.IsBound && CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(listenerPort)) // Check if server is closed, then, start it again.
                                 listener.Start();
                             else
                                 break;
