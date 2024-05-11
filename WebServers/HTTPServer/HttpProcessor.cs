@@ -1069,7 +1069,6 @@ namespace HTTPServer
                             string? encoding = null;
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
 
                             if (!response.Headers.ContainsKey("Content-Type"))
                                 response.Headers.Add("Content-Type", "text/plain");
@@ -1320,7 +1319,6 @@ namespace HTTPServer
                     response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
@@ -1500,7 +1498,6 @@ namespace HTTPServer
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
@@ -1593,7 +1590,6 @@ namespace HTTPServer
                             string? encoding = null;
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));

@@ -118,7 +118,6 @@ namespace HTTPSecureServerLite
                     ms.Position = 0;
                     ctx.Response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
-                    ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     ctx.Response.Headers.Add("Content-Length", ms.Length.ToString());
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
@@ -190,7 +189,6 @@ namespace HTTPSecureServerLite
                 ctx.Response.ContentType = ContentType;
                 ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
-                ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                 ctx.Response.Headers.Add("Content-Length", TotalBytes.ToString());
                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
