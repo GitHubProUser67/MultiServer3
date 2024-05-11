@@ -412,7 +412,7 @@ namespace Horizon.MEDIUS.Config
 
         public bool PlaystationHomeAntiCheat { get; set; } = true;
 
-        public bool PlaystationHomeUserNameWhitelist { get; set; } = true;
+        public bool PlaystationHomeUserNameWhitelist { get; set; } = false;
 
         public Dictionary<string, string> PlaystationHomeUsersServersAccessList { get; set; } = new();
 
